@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { File as TutanotaFile, Mail, MailFolder, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { File as TutanotaFile, Mail, MailSet, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
@@ -85,7 +85,7 @@ interface MoveMailsParams {
 	mailModel: MailModel
 	undoModel: UndoModel
 	mailIds: ReadonlyArray<IdTuple>
-	targetFolder: MailFolder
+	targetFolder: MailSet
 	moveMode: MoveMode
 }
 
@@ -191,11 +191,11 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 
 async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxModel, undoModel: UndoModel, movedMails: readonly MovedMails[]) {
 	// With move we only have two cases: either we move all emails that are in one mailbox to a specific folder or
-	// we are moving emails in different mailboxes to respective folders of the same type (e.g. user moves some emails
+	// we are moving emails in different mailboxes to respective mailSets of the same type (e.g. user moves some emails
 	// in search into spam, mails of each mailbox go into their own spam folder).
 	// Here we are trying to determine if the destination is a spam folder. If the move was done only for one mailbox
 	// then it is okay to take the first target folder because it will be the same for each moved chunk.
-	// If it was a move in multiple mailboxes it will only be a system folder and all of the target folders will have
+	// If it was a move in multiple mailboxes it will only be a system folder and all of the target mailSets will have
 	// the same type which is enough for our check.
 	const firstTargetFolderId = first(movedMails)?.targetFolder
 	if (firstTargetFolderId == null) {
@@ -274,7 +274,7 @@ export async function moveMailsToSystemFolder({
 	mailModel: MailModel
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolderType: SystemFolderType
-	currentFolder: MailFolder
+	currentFolder: MailSet
 	moveMode: MoveMode
 	undoModel: UndoModel
 }): Promise<boolean> {
@@ -349,7 +349,7 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 	}
 }
 
-export function getFolderIcon(folder: MailFolder): AllIcons {
+export function getFolderIcon(folder: MailSet): AllIcons {
 	return getFolderIconByType(getMailFolderType(folder))
 }
 
@@ -503,7 +503,7 @@ export async function showMoveMailsFromFolderDropdown(
 	mailModel: MailModel,
 	undoModel: UndoModel,
 	origin: PosRect,
-	currentFolder: MailFolder,
+	currentFolder: MailSet,
 	mails: LazyMailIdResolver,
 	moveMode: MoveMode,
 	opts?: ShowMoveMailsDropdownOpts,

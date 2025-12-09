@@ -1,6 +1,6 @@
 import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
-import { Mail, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailSet, MailSetTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import Stream from "mithril/stream"
@@ -47,7 +47,7 @@ export class ConversationListModel implements MailSetListModel {
 	// Map conversation IDs (to ensure unique conversations)
 	private readonly conversationMap: Map<Id, LoadedConversation> = new Map()
 
-	// The last fetched mail set entry id; the list model does not track mailsets but conversations, thus we can't rely
+	// The last fetched mail set entry id; the list model does not track mailSets but conversations, thus we can't rely
 	// on it to give us the oldest retrieved mail.
 	private lastFetchedMailSetEntryId: Id | null = null
 
@@ -64,7 +64,7 @@ export class ConversationListModel implements MailSetListModel {
 	private olderDisplayedSelectedMailOverride: Id | null = null
 
 	constructor(
-		private readonly mailSet: MailFolder,
+		private readonly mailSet: MailSet,
 		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly entityClient: EntityClient,
 		private readonly mailModel: MailModel,
@@ -108,7 +108,7 @@ export class ConversationListModel implements MailSetListModel {
 		this.listModel.enterMultiselect()
 	}
 
-	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailSet> {
 		return this._getLoadedMail(getElementId(mail))?.labels ?? []
 	}
 
@@ -122,7 +122,7 @@ export class ConversationListModel implements MailSetListModel {
 	)
 
 	async handleEntityUpdate(update: EntityUpdateData) {
-		if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
+		if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 			if (update.operation === OperationType.UPDATE) {
 				this.handleMailFolderUpdate([update.instanceListId, update.instanceId])
 			}

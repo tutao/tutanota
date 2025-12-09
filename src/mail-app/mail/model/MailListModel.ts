@@ -1,5 +1,5 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
-import { Mail, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailSet, MailSetTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import {
 	CUSTOM_MAX_ID,
 	customIdToUint8array,
@@ -38,7 +38,7 @@ export class MailListModel implements MailSetListModel {
 	private readonly mailMap: Map<Id, LoadedMail> = new Map()
 
 	constructor(
-		private readonly mailSet: MailFolder,
+		private readonly mailSet: MailSet,
 		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly entityClient: EntityClient,
 		private readonly mailModel: MailModel,
@@ -118,7 +118,7 @@ export class MailListModel implements MailSetListModel {
 		return this.getLoadedMailByMailId(mailElementId)?.mail ?? null
 	}
 
-	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailSet> {
 		return this.getLoadedMailByMailInstance(mail)?.labels ?? []
 	}
 
@@ -150,7 +150,7 @@ export class MailListModel implements MailSetListModel {
 	)
 
 	async handleEntityUpdate(update: EntityUpdateData) {
-		if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
+		if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 			// If a label is modified, we want to update all mails that reference it, which requires linearly iterating
 			// through all mails. There are more efficient ways we could do this, such as by keeping track of each label
 			// we've retrieved from the database and just update that, but we want to avoid adding more maps that we

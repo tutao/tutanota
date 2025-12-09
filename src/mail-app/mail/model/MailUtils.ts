@@ -1,12 +1,12 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, first } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { MailSetKind, ReplyType, SYSTEM_FOLDERS, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
-export type FolderInfo = { level: number; folder: MailFolder }
+export type FolderInfo = { level: number; folder: MailSet }
 
 export const enum MoveService {
 	RegularMove = "RegularMove",
@@ -27,7 +27,7 @@ export type MoveTargets = RegularMoveTargets | SimpleMoveTargets
 
 export const MAX_FOLDER_INDENT_LEVEL = 10
 
-export function getFolderName(folder: MailFolder): string {
+export function getFolderName(folder: MailSet): string {
 	switch (folder.folderType) {
 		case MailSetKind.CUSTOM:
 			return folder.name
@@ -57,7 +57,7 @@ export function getSystemFolderName(folderType: MailSetKind): string {
 			return lang.get("draft_action")
 
 		default:
-			// do not throw an error - new system folders may cause problems
+			// do not throw an error - new system mailSets may cause problems
 			//throw new Error("illegal folder type: " + this.folder.getFolderType())
 			return ""
 	}
@@ -78,11 +78,11 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	if (firstMail == null) return regularMoveTargets([])
 
 	const mailboxDetails = await foldersModel.getMailboxDetailsForMail(firstMail)
-	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
+	if (mailboxDetails == null) {
 		return regularMoveTargets([])
 	}
 
-	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.mailSets._id)
 	if (folders == null) {
 		return regularMoveTargets([])
 	}
@@ -116,13 +116,13 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	}
 }
 
-export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailFolder): Promise<Array<FolderInfo>> {
+export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailSet): Promise<Array<FolderInfo>> {
 	const mailboxDetails = await foldersModel.getMailboxDetailsForMailFolder(currentFolder)
-	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
+	if (mailboxDetails == null) {
 		return []
 	}
 
-	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.mailSets._id)
 	if (folders == null) {
 		return []
 	}
@@ -134,15 +134,15 @@ export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: M
 
 /**
  * Gets a system folder of the specified type and unwraps it.
- * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
+ * Some system mailSets don't exist in some cases, e.g. spam or archive for external mailboxes!
  *
  * Use with caution.
  */
-export function assertSystemFolderOfType(system: FolderSystem, type: SystemFolderType): MailFolder {
+export function assertSystemFolderOfType(system: FolderSystem, type: SystemFolderType): MailSet {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
 }
 
-export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFolder, omitLast = false) {
+export function getPathToFolderString(folderSystem: FolderSystem, folder: MailSet, omitLast = false) {
 	const folderPath = folderSystem.getPathToFolder(folder._id)
 	if (omitLast) {
 		folderPath.pop()

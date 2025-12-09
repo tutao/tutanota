@@ -3,7 +3,7 @@ use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ParsedEntity;
 use crate::entities::generated::sys::{Group, GroupInfo};
 use crate::entities::generated::tutanota::{
-	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
+	Mail, MailBox, MailSet, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
 use crate::entities::Entity;
 use crate::folder_system::{FolderSystem, MailSetKind};
@@ -71,8 +71,8 @@ impl MailFacade {
 		&self,
 		mailbox: &MailBox,
 	) -> Result<FolderSystem, ApiCallError> {
-		let folders_list = &mailbox.folders.as_ref().unwrap().folders;
-		let folders: Vec<MailFolder> = self
+		let folders_list = &mailbox.mailSets.mailSets;
+		let folders: Vec<MailSet> = self
 			.crypto_entity_client
 			.load_range(
 				folders_list,
@@ -211,10 +211,10 @@ impl MailFacade {
 
 	/// Move the given mails to the trash.
 	///
-	/// This is used to avoid having to load the user's mailbox, folders, etc., as it directly
+	/// This is used to avoid having to load the user's mailbox, mailSets, etc., as it directly
 	/// invokes the SimpleMoveMailService. It can also be used to move multiple Mails across
 	/// different mailboxes that the user has access to, moving each Mail to their respective
-	/// Trash folders.
+	/// Trash mailSets.
 	pub async fn trash_mails(&self, mails: Vec<IdTupleGenerated>) -> Result<(), ApiCallError> {
 		self.simple_move_mail(mails, MailSetKind::Trash).await
 	}

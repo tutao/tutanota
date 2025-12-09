@@ -44,7 +44,7 @@ interface ConfigObject {
 	_defaultCalendarView: Record<Id, CalendarViewType | null>
 	/** map from user id to a list of calendar grouproots*/
 	_hiddenCalendars: Record<Id, Id[]>
-	/** map from user id to a list of expanded folders (elementId)*/
+	/** map from user id to a list of expanded mailSets (elementId)*/
 	expandedMailFolders: Record<Id, Id[]>
 	_signupToken: string
 	_credentialEncryptionMode: CredentialEncryptionMode | null

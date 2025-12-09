@@ -9,7 +9,7 @@ import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../commo
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
 import { last, Thunk } from "@tutao/tutanota-utils"
-import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
@@ -29,19 +29,19 @@ export interface MailFolderViewAttrs {
 	mailModel: MailModel
 	mailboxDetail: MailboxDetail
 	mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id>
-	onFolderClick: (folder: MailFolder) => unknown
-	onFolderDrop: (dropData: DropData, folder: MailFolder) => unknown
+	onFolderClick: (folder: MailSet) => unknown
+	onFolderDrop: (dropData: DropData, folder: MailSet) => unknown
 	expandedFolders: ReadonlySet<Id>
-	onFolderExpanded: (folder: MailFolder, state: boolean) => unknown
-	onShowFolderAddEditDialog: (mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) => unknown
-	onDeleteCustomMailFolder: (folder: MailFolder) => unknown
+	onFolderExpanded: (folder: MailSet, state: boolean) => unknown
+	onShowFolderAddEditDialog: (mailGroupId: Id, folder: MailSet | null, parentFolder: MailSet | null) => unknown
+	onDeleteCustomMailFolder: (folder: MailSet) => unknown
 	inEditMode: boolean
 	onEditMailbox: () => unknown
 }
 
 type Counters = Record<string, number>
 
-/** Displays a tree of all folders. */
+/** Displays a tree of all mailSets. */
 export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	// Contains the id of the visible row
 	private visibleRow: string | null = null
@@ -88,7 +88,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		groupCounters: Counters,
 		folders: FolderSystem,
 		attrs: MailFolderViewAttrs,
-		path: MailFolder[],
+		path: MailSet[],
 		isInternalUser: boolean,
 		indentationLevel: number = 0,
 	): { children: Children[]; numRows: number } {
@@ -207,7 +207,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	 * Get a full path to a folder with colons in between,
 	 * Used for data-testids
 	 */
-	private getPathToFolderAsString(folderSystem: FolderSystem, currentFolder: MailFolder): string {
+	private getPathToFolderAsString(folderSystem: FolderSystem, currentFolder: MailSet): string {
 		return folderSystem
 			.getPathToFolder(currentFolder._id)
 			.map((f) => getFolderName(f))
@@ -219,7 +219,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return (counters[counterId] ?? 0) + system.children.reduce((acc, child) => acc + this.getTotalFolderCounter(counters, child), 0)
 	}
 
-	private createFolderMoreButton(folder: MailFolder, folders: FolderSystem, attrs: MailFolderViewAttrs, onClose: Thunk): IconButtonAttrs {
+	private createFolderMoreButton(folder: MailSet, folders: FolderSystem, attrs: MailFolderViewAttrs, onClose: Thunk): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
 				title: "more_label",
@@ -250,7 +250,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		})
 	}
 
-	private deleteButtonAttrs(attrs: MailFolderViewAttrs, folder: MailFolder): DropdownButtonAttrs {
+	private deleteButtonAttrs(attrs: MailFolderViewAttrs, folder: MailSet): DropdownButtonAttrs {
 		return {
 			label: "delete_action",
 			icon: Icons.Trash,
@@ -260,7 +260,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		}
 	}
 
-	private addButtonAttrs(attrs: MailFolderViewAttrs, folder: MailFolder): DropdownButtonAttrs {
+	private addButtonAttrs(attrs: MailFolderViewAttrs, folder: MailSet): DropdownButtonAttrs {
 		return {
 			label: "addFolder_action",
 			icon: Icons.Add,
@@ -270,7 +270,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		}
 	}
 
-	private editButtonAttrs(attrs: MailFolderViewAttrs, folders: FolderSystem, folder: MailFolder): DropdownButtonAttrs {
+	private editButtonAttrs(attrs: MailFolderViewAttrs, folders: FolderSystem, folder: MailSet): DropdownButtonAttrs {
 		return {
 			label: "edit_action",
 			icon: Icons.Edit,
@@ -284,7 +284,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		}
 	}
 
-	private renderCreateFolderAddButton(parentFolder: MailFolder | null, attrs: MailFolderViewAttrs): Child {
+	private renderCreateFolderAddButton(parentFolder: MailSet | null, attrs: MailFolderViewAttrs): Child {
 		return m(IconButton, {
 			title: "addFolder_action",
 			click: () => {

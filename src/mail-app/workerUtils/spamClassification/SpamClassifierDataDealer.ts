@@ -9,8 +9,8 @@ import {
 	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailFolder,
-	MailFolderTypeRef,
+	MailSet,
+	MailSetTypeRef,
 	MailTypeRef,
 	PopulateClientSpamTrainingDatum,
 } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -47,11 +47,7 @@ export class SpamClassifierDataDealer {
 	public async fetchAllTrainingData(ownerGroup: Id): Promise<TrainingDataset> {
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, ownerGroup)
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
-		const mailSets = await this.entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
-
-		if (mailbox.clientSpamTrainingData == null || mailbox.modifiedClientSpamTrainingDataIndex == null) {
-			return { trainingData: [], lastTrainingDataIndexId: GENERATED_MIN_ID, hamCount: 0, spamCount: 0 }
-		}
+		const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 
 		// clientSpamTrainingData is NOT cached
 		let clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
@@ -103,9 +99,6 @@ export class SpamClassifierDataDealer {
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
 
 		const emptyResult = { trainingData: [], lastTrainingDataIndexId: indexStartId, hamCount: 0, spamCount: 0 }
-		if (mailbox.clientSpamTrainingData == null || mailbox.modifiedClientSpamTrainingDataIndex == null) {
-			return emptyResult
-		}
 
 		const modifiedClientSpamTrainingDataIndicesSinceStart = await this.entityClient.loadRange(
 			ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -191,7 +184,7 @@ export class SpamClassifierDataDealer {
 	}
 
 	// Visible for testing
-	async fetchMailsByMailbagAfterDate(mailbag: MailBag, mailSets: MailFolder[], startDate: Date): Promise<Array<Mail>> {
+	async fetchMailsByMailbagAfterDate(mailbag: MailBag, mailSets: MailSet[], startDate: Date): Promise<Array<Mail>> {
 		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startDate.getTime()))
 		const trashFolder = assertNotNull(mailSets.find((set) => getMailSetKind(set) === MailSetKind.TRASH))
 		return mails.filter((mail) => {
@@ -200,7 +193,7 @@ export class SpamClassifierDataDealer {
 		})
 	}
 
-	private async fetchMailsForMailbox(mailbox: MailBox, mailSets: MailFolder[]): Promise<Array<Mail>> {
+	private async fetchMailsForMailbox(mailbox: MailBox, mailSets: MailSet[]): Promise<Array<Mail>> {
 		const downloadedMailClassificationData = new Array<Mail>()
 
 		const { LocalTimeDateProvider } = await import("../../../common/api/worker/DateProvider")
@@ -220,12 +213,7 @@ export class SpamClassifierDataDealer {
 		return downloadedMailClassificationData
 	}
 
-	private async uploadTrainingDataForMails(mails: MailWithMailDetails[], mailBox: MailBox, mailSets: MailFolder[]): Promise<void> {
-		const clientSpamTrainingDataListId = mailBox.clientSpamTrainingData
-		if (clientSpamTrainingDataListId == null) {
-			return
-		}
-
+	private async uploadTrainingDataForMails(mails: MailWithMailDetails[], mailBox: MailBox, mailSets: MailSet[]): Promise<void> {
 		const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum[] = await promiseMap(
 			mails,
 			async (mailWithDetail) => {

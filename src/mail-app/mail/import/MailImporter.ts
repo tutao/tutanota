@@ -1,5 +1,5 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { ImportMailState, ImportMailStateTypeRef, MailBox, MailFolder, MailFolderTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { ImportMailState, ImportMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
@@ -39,7 +39,7 @@ export class MailImporter {
 	private finalisedImportStates: Map<Id, ImportMailState> = new Map()
 	private activeImport: ActiveImport | null = null
 	public foldersForMailbox: FolderSystem | undefined
-	public selectedTargetFolder: MailFolder | null = null
+	public selectedTargetFolder: MailSet | null = null
 
 	constructor(
 		private readonly domainConfigProvider: DomainConfigProvider,
@@ -122,7 +122,7 @@ export class MailImporter {
 						uiStatus: UiImportStatus.Paused,
 						progressMonitor,
 					}
-					this.selectedTargetFolder = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
+					this.selectedTargetFolder = await this.entityClient.load(MailSetTypeRef, importMailState.targetFolder)
 				}
 			}
 		}

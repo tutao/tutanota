@@ -3,7 +3,7 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "../../../common/misc/KeyManager.js"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton.js"
 import { PosRect, showDropdown } from "../../../common/gui/base/Dropdown.js"
-import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { component_size, size } from "../../../common/gui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
@@ -27,9 +27,9 @@ export class LabelsPopup implements ModalComponent {
 		private readonly sourceElement: HTMLElement,
 		private readonly origin: PosRect,
 		private readonly width: number,
-		private readonly labelsForMails: ReadonlyMap<Id, ReadonlyArray<MailFolder>>,
-		private readonly labels: { label: MailFolder; state: LabelState }[],
-		private readonly onLabelsApplied: (addedLabels: MailFolder[], removedLabels: MailFolder[]) => unknown,
+		private readonly labelsForMails: ReadonlyMap<Id, ReadonlyArray<MailSet>>,
+		private readonly labels: { label: MailSet; state: LabelState }[],
+		private readonly onLabelsApplied: (addedLabels: MailSet[], removedLabels: MailSet[]) => unknown,
 	) {
 		this.view = this.view.bind(this)
 		this.oncreate = this.oncreate.bind(this)
@@ -97,7 +97,16 @@ export class LabelsPopup implements ModalComponent {
 											opacity,
 										},
 									}),
-									m(".button-height.flex.items-center.ml-12.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
+									m(
+										".button-height.flex.items-center.ml-12.overflow-hidden",
+										{
+											style: {
+												color,
+												opacity,
+											},
+										},
+										m(".text-ellipsis", label.name),
+									),
 								],
 							)
 						}),
@@ -161,9 +170,9 @@ export class LabelsPopup implements ModalComponent {
 		return false
 	}
 
-	private getSortedLabels(): Record<"addedLabels" | "removedLabels", MailFolder[]> {
-		const removedLabels: MailFolder[] = []
-		const addedLabels: MailFolder[] = []
+	private getSortedLabels(): Record<"addedLabels" | "removedLabels", MailSet[]> {
+		const removedLabels: MailSet[] = []
+		const addedLabels: MailSet[] = []
 		for (const { label, state } of this.labels) {
 			if (state === LabelState.Applied) {
 				addedLabels.push(label)
@@ -250,7 +259,7 @@ export class LabelsPopup implements ModalComponent {
 		modal.displayUnique(this, false)
 	}
 
-	private toggleLabel(labelState: { label: MailFolder; state: LabelState }) {
+	private toggleLabel(labelState: { label: MailSet; state: LabelState }) {
 		switch (labelState.state) {
 			case LabelState.AppliedToSome:
 				labelState.state = this.isMaxLabelsReached ? LabelState.NotApplied : LabelState.Applied

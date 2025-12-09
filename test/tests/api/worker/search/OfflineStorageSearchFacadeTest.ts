@@ -190,7 +190,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			],
 		}
 
-		o.test("all folders", async () => {
+		o.test("all mailSets", async () => {
 			await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 			const result = await offlineStorageSearchFacade.search(
 				"common",

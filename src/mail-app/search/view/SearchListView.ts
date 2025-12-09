@@ -7,7 +7,7 @@ import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/
 import { component_size, size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
@@ -36,7 +36,7 @@ export interface SearchListViewAttrs {
 	currentType: TypeRef<Mail | Contact | CalendarEvent>
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
-	getLabelsForMail: (mail: Mail) => MailFolder[]
+	getLabelsForMail: (mail: Mail) => MailSet[]
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 }

@@ -8,7 +8,7 @@ import {
 	ContactCustomDate,
 	ContactRelationship,
 	ContactSocialId,
-	MailFolder,
+	MailSet,
 	UserSettingsGroupRoot,
 } from "../entities/tutanota/TypeRefs.js"
 import { isApp, isElectronClient, isIOSApp } from "./Env"
@@ -29,17 +29,17 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 
 export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 
-export const getMailFolderType = (folder: MailFolder): MailSetKind => downcast(folder.folderType)
+export const getMailFolderType = (folder: MailSet): MailSetKind => downcast(folder.folderType)
 
-export function isFolder(folder: MailFolder): boolean {
+export function isFolder(folder: MailSet): boolean {
 	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL && folder.folderType !== MailSetKind.Imported
 }
 
-export function isNestableMailSet(mailSet: MailFolder): boolean {
+export function isNestableMailSet(mailSet: MailSet): boolean {
 	return mailSet.folderType === MailSetKind.CUSTOM
 }
 
-export function isLabel(folder: MailFolder): boolean {
+export function isLabel(folder: MailSet): boolean {
 	return folder.folderType === MailSetKind.LABEL
 }
 
@@ -121,7 +121,7 @@ export enum MailSetKind {
 export const SYSTEM_FOLDERS = [MailSetKind.INBOX, MailSetKind.SENT, MailSetKind.TRASH, MailSetKind.ARCHIVE, MailSetKind.SPAM, MailSetKind.DRAFT] as const
 export type SystemFolderType = (typeof SYSTEM_FOLDERS)[number]
 
-export function getMailSetKind(folder: MailFolder): MailSetKind {
+export function getMailSetKind(folder: MailSet): MailSetKind {
 	return folder.folderType as MailSetKind
 }
 

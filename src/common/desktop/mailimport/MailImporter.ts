@@ -5,16 +5,16 @@ import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { MailFolder } from "../../api/entities/tutanota/TypeRefs"
+import { MailSet } from "../../api/entities/tutanota/TypeRefs"
 import { IndentedFolder } from "../../api/common/mail/FolderSystem"
 import { repeat } from "@tutao/tutanota-utils"
 
 /**
- * Shows a dialog with the users folders that are able to import mails.
- * @param indentedFolders List of user's folders
+ * Shows a dialog with the users mailSets that are able to import mails.
+ * @param indentedFolders List of user's mailSets
  * @param okAction
  */
-export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: MailFolder) => unknown) {
+export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: MailSet) => unknown) {
 	let selectedIndentedFolder = indentedFolders[0]
 
 	const dialog = new Dialog(DialogType.EditSmall, {
@@ -54,7 +54,7 @@ export function folderSelectionDialog(indentedFolders: IndentedFolder[], okActio
 					selectedValue: selectedIndentedFolder.folder,
 					selectionChangedHandler: (v) => (selectedIndentedFolder.folder = v),
 					icon: BootIcons.Expand,
-				} satisfies DropDownSelectorAttrs<MailFolder>),
+				} satisfies DropDownSelectorAttrs<MailSet>),
 			]),
 		],
 	}).show()

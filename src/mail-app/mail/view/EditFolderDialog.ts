@@ -1,4 +1,4 @@
-import { Mail, MailFolder, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
@@ -11,7 +11,7 @@ import { MailReportType, MailSetKind } from "../../../common/api/common/Tutanota
 import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { assertNotNull, groupByAndMap } from "@tutao/tutanota-utils"
+import { groupByAndMap } from "@tutao/tutanota-utils"
 import { mailLocator } from "../../mailLocator.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
@@ -21,14 +21,14 @@ import { isSpamOrTrashFolder } from "../model/MailChecks.js"
  * Dialog for Edit and Add folder are the same.
  * @param editedFolder if this is null, a folder is being added, otherwise a folder is being edited
  */
-export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedFolder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
+export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedFolder: MailSet | null = null, parentFolder: MailSet | null = null) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
-	const folders = await mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailBoxDetail.mailbox.folders)._id)
+	const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
 	let folderNameValue = editedFolder?.name ?? ""
-	let targetFolders: SelectorItemList<MailFolder | null> = folders
+	let targetFolders: SelectorItemList<MailSet | null> = folders
 		.getIndentedList(editedFolder)
-		// filter: SPAM and TRASH and descendants are only shown if editing (folders can only be moved there, not created there)
+		// filter: SPAM and TRASH and descendants are only shown if editing (mailSets can only be moved there, not created there)
 		.filter((folderInfo: IndentedFolder) => !(editedFolder === null && isSpamOrTrashFolder(folders, folderInfo.folder)))
 		.map((folderInfo: IndentedFolder) => {
 			return {
@@ -51,12 +51,12 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 			items: targetFolders,
 			selectedValue: selectedParentFolder,
 			selectedValueDisplay: selectedParentFolder ? getFolderName(selectedParentFolder) : noParentFolderOption,
-			selectionChangedHandler: (newFolder: MailFolder | null) => (selectedParentFolder = newFolder),
+			selectionChangedHandler: (newFolder: MailSet | null) => (selectedParentFolder = newFolder),
 			helpLabel: () => (selectedParentFolder ? getPathToFolderString(folders, selectedParentFolder) : ""),
 		}),
 	]
 
-	async function getMailIdsGroupedByListId(folder: MailFolder): Promise<Map<Id, Id[]>> {
+	async function getMailIdsGroupedByListId(folder: MailSet): Promise<Map<Id, Id[]>> {
 		const mailSetEntries = await locator.entityClient.loadAll(MailSetEntryTypeRef, folder.entries)
 		return groupByAndMap(
 			mailSetEntries,
@@ -65,7 +65,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 		)
 	}
 
-	async function loadAllMailsOfFolder(folder: MailFolder, reportableMails: Array<Mail>) {
+	async function loadAllMailsOfFolder(folder: MailSet, reportableMails: Array<Mail>) {
 		const mailIdsPerBag = await getMailIdsGroupedByListId(folder)
 		for (const [mailListId, mailIds] of mailIdsPerBag) {
 			reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, mailListId, mailIds)))
@@ -132,19 +132,13 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 	Dialog.showActionDialog({
 		title: editedFolder ? "editFolder_action" : "addFolder_action",
 		child: form,
-		validator: () => checkFolderName(mailBoxDetail, folders, folderNameValue, mailGroupId, selectedParentFolder?._id ?? null),
+		validator: () => checkFolderName(folders, folderNameValue, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})
 }
 
-function checkFolderName(
-	mailboxDetail: MailboxDetail,
-	folders: FolderSystem,
-	name: string,
-	mailGroupId: Id,
-	parentFolderId: IdTuple | null,
-): TranslationKey | null {
+function checkFolderName(folders: FolderSystem, name: string, parentFolderId: IdTuple | null): TranslationKey | null {
 	if (name.trim() === "") {
 		return "folderNameNeutral_msg"
 	} else if (folders.getCustomFoldersOfParent(parentFolderId).some((f) => f.name === name)) {

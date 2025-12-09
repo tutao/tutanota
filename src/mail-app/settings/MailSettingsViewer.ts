@@ -4,7 +4,7 @@ import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel
 import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	MailboxPropertiesTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	OutOfOfficeNotificationTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
@@ -517,7 +517,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): Promise<string> {
-		const folders = await mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 		let folder = folders.getFolderById(elementIdPart(targetFolderId))
 
 		if (folder) {
@@ -534,7 +534,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				const props = await mailLocator.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
 				this._updateInboxRules(props)
-			} else if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
+			} else if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 				this._updateInboxRules(mailLocator.logins.getUserController().props)
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())

@@ -17,7 +17,7 @@ import {
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
@@ -517,7 +517,7 @@ export class MailIndexer {
 	 * Provides all mail set list ids of the given mailbox
 	 */
 	private async loadMailFolderListIds(mailbox: MailBox): Promise<Id[]> {
-		const mailSets = await this.entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
+		const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 		return mailSets.filter(isFolder).map((set) => set.entries)
 	}
 

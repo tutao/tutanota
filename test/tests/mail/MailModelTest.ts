@@ -10,7 +10,7 @@ import {
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -39,15 +39,15 @@ o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
 	let showSpy: Spy
 	let model: MailModel
-	const inboxFolder = createTestEntity(MailFolderTypeRef, {
+	const inboxFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "inboxId"],
 		folderType: MailSetKind.INBOX,
 	})
-	const spamFolder = createTestEntity(MailFolderTypeRef, {
+	const spamFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "spamId"],
 		folderType: MailSetKind.SPAM,
 	})
-	const anotherFolder = createTestEntity(MailFolderTypeRef, {
+	const anotherFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "archiveId"],
 		folderType: MailSetKind.ARCHIVE,
 	})

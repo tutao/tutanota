@@ -1,7 +1,7 @@
-import { InboxRule, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { InboxRule, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, ProcessingState } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, Nullable } from "@tutao/tutanota-utils"
+import { asyncFind, Nullable } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
@@ -64,26 +64,20 @@ export class InboxRuleHandler {
 	async findAndApplyMatchingRule(
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
-	): Promise<Nullable<{ targetFolder: MailFolder; processInboxDatum: UnencryptedProcessInboxDatum }>> {
+	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		const shouldApply =
 			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
 				mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION) &&
 			mail.processNeeded
 
-		if (
-			mail._errors ||
-			!shouldApply ||
-			!(await isLandingFolder(this.mailModel, mailboxDetail, mail)) ||
-			!this.logins.getUserController().isPaidAccount() ||
-			mailboxDetail.mailbox.folders == null
-		) {
+		if (mail._errors || !shouldApply || !(await isLandingFolder(this.mailModel, mailboxDetail, mail)) || !this.logins.getUserController().isPaidAccount()) {
 			return null
 		}
 
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 		if (inboxRule) {
-			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder) {
@@ -194,7 +188,7 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 }
 
 async function isLandingFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
-	const folders = await mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+	const folders = await mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 	const mailFolder = folders.getFolderByMail(mail)
 	return mailFolder?.folderType === MailSetKind.INBOX || mailFolder?.folderType === MailSetKind.SPAM
 }

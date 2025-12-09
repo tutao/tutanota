@@ -3,7 +3,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 import { Keys, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { component_size, size } from "../../../common/gui/size"
+import { component_size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -137,7 +137,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
-			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
+			// Desktop layout only because it doesn't make sense to drag mails to mailSets when the folder list and mail list aren't visible at the same time
 			event.dataTransfer?.setData(DropType.Mail, getElementId(mailUnderCursor))
 		} else {
 			event.preventDefault()
@@ -163,7 +163,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
-			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
+			// Desktop layout only because it doesn't make sense to drag mails to mailSets when the folder list and mail list aren't visible at the same time
 			event.dataTransfer?.setData(DropType.Mail, getElementId(mailUnderCursor))
 		} else {
 			event.preventDefault()
@@ -406,10 +406,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 		const selectedFolder = this.mailViewModel.getFolder()
 		if (selectedFolder) {
 			const mailDetails = await this.mailViewModel.getMailboxDetails()
-			if (mailDetails.mailbox.folders) {
-				const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailDetails.mailbox.folders._id)
-				return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH
-			}
+			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailDetails.mailbox.mailSets._id)
+			return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH
 		}
 		return false
 	}

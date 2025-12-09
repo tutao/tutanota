@@ -1,26 +1,25 @@
 import o from "@tutao/otest"
 import { GroupType } from "../../src/common/api/common/TutanotaConstants.js"
-import type { MailFolder } from "../../src/common/api/entities/tutanota/TypeRefs.js"
+import type { MailSet } from "../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,
 	ContactTypeRef,
 	MailBoxTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	MailSetEntryTypeRef,
 } from "../../src/common/api/entities/tutanota/TypeRefs.js"
-import { neverNull } from "@tutao/tutanota-utils"
 import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
 import { SessionType } from "../../src/common/api/common/SessionType.js"
 
-function loadFolders(folderListId: Id): Promise<MailFolder[]> {
-	return locator.cachingEntityClient.loadAll(MailFolderTypeRef, folderListId)
+function loadFolders(folderListId: Id): Promise<MailSet[]> {
+	return locator.cachingEntityClient.loadAll(MailSetTypeRef, folderListId)
 }
 
-function loadMailboxSystemFolders(): Promise<MailFolder[]> {
+function loadMailboxSystemFolders(): Promise<MailSet[]> {
 	return locator.cachingEntityClient.loadRoot(MailBoxTypeRef, locator.user.getUserGroupId()).then((mailbox) => {
-		return loadFolders(neverNull(mailbox.folders).folders)
+		return loadFolders(mailbox.mailSets.mailSets)
 	})
 }
 

@@ -331,7 +331,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	oncreate(vnode: Vnode<CalendarSettingsViewAttrs>) {
 		calendarLocator.eventController.addEntityListener(this.entityListener)
 		Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders()]).then(() => {
-			// We have to wait for the folders to be initialized before setting the URL,
+			// We have to wait for the mailSets to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
 			const stillAtDefaultUrl =
 				m.route.get() === this.userFolders[0].url || (m.route.get() === this.targetRoute && this.selectedFolder.url !== this.targetRoute)

@@ -6,8 +6,8 @@ import {
 	ImportMailStateTypeRef,
 	Mail,
 	MailBox,
-	MailFolder,
-	MailFolderTypeRef,
+	MailSet,
+	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
@@ -48,7 +48,7 @@ export interface MailOpenedListener {
 const TAG = "MailVM"
 
 /**
- * These folders will always use the mail list model instead of the conversation list model regardless of the user's
+ * These mailSets will always use the mail list model instead of the conversation list model regardless of the user's
  * settings.
  */
 const MAIL_LIST_FOLDERS: ReadonlyArray<MailSetKind> = Object.freeze([MailSetKind.DRAFT, MailSetKind.SENT])
@@ -61,7 +61,7 @@ export interface UndoAction {
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	/** Beware: this can be a label. */
-	private _folder: MailFolder | null = null
+	private _folder: MailSet | null = null
 	private _listModel: MailSetListModel | null = null
 	/** id of the mail requested to be displayed, independent of the list state. */
 	private stickyMailId: IdTuple | null = null
@@ -74,7 +74,7 @@ export class MailViewModel {
 	private _filterType: ReadonlySet<MailFilterType> = new Set()
 
 	/**
-	 * We remember the last URL used for each folder, so if we switch between folders, we can keep the selected mail.
+	 * We remember the last URL used for each folder, so if we switch between mailSets, we can keep the selected mail.
 	 * There's a similar (but different) hacky mechanism where we store the last URL but per each top-level view: navButtonRoutes. This one is per folder.
 	 */
 	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
@@ -83,8 +83,9 @@ export class MailViewModel {
 	private mailListDisplayModePref: boolean = false
 	/** A slightly hacky marker to avoid concurrent URL updates. */
 	private currentShowTargetMarker: object = {}
-	/* We only attempt counter fixup once after switching folders and loading the list fully. */
+	/* We only attempt counter fixup once after switching mailSets and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
+
 	constructor(
 		private readonly mailboxModel: MailboxModel,
 		private readonly mailModel: MailModel,
@@ -168,7 +169,7 @@ export class MailViewModel {
 		}
 	}
 
-	private async showMail(folder?: MailFolder | null, mailId?: Id) {
+	private async showMail(folder?: MailSet | null, mailId?: Id) {
 		// an optimization to not open an email that we already display
 		if (
 			folder != null &&
@@ -229,7 +230,7 @@ export class MailViewModel {
 		}
 	}
 
-	private async selectFolderToUse(folderArgument: MailFolder | null): Promise<MailFolder> {
+	private async selectFolderToUse(folderArgument: MailSet | null): Promise<MailSet> {
 		if (folderArgument) {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folderArgument)
 			if (mailboxDetail) {
@@ -306,7 +307,7 @@ export class MailViewModel {
 		return changed
 	}
 
-	private async loadAndSelectMail(folder: MailFolder, mailId: Id) {
+	private async loadAndSelectMail(folder: MailSet, mailId: Id) {
 		let pagesLoaded = 0
 		const foundMail = await this.listModel?.loadAndSelect(
 			mailId,
@@ -368,6 +369,7 @@ export class MailViewModel {
 
 		return await this.getResolvedMails(actionableMails)
 	}
+
 	clearStickyMail() {
 		if (this.stickyMailId) {
 			this.stickyMailId = null
@@ -388,13 +390,14 @@ export class MailViewModel {
 			return currentFolder != null && (currentFolder.folderType === MailSetKind.TRASH || currentFolder.folderType === MailSetKind.SPAM)
 		}
 	}
+
 	isExportingMailsAllowed(): boolean {
 		return this.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
 	}
 
-	private async getFolderForUserInbox(): Promise<MailFolder> {
+	private async getFolderForUserInbox(): Promise<MailSet> {
 		const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
-		const folders = await this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 		return assertSystemFolderOfType(folders, MailSetKind.INBOX)
 	}
 
@@ -439,19 +442,19 @@ export class MailViewModel {
 	/**
 	 * Beware: this can return a label.
 	 */
-	getFolder(): MailFolder | null {
+	getFolder(): MailSet | null {
 		return this._folder
 	}
 
-	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailSet> {
 		return this.listModel?.getLabelsForMail(mail) ?? []
 	}
 
-	async applyLabelToMails(mails: readonly IdTuple[], label: MailFolder): Promise<void> {
+	async applyLabelToMails(mails: readonly IdTuple[], label: MailSet): Promise<void> {
 		await this.mailModel.applyLabels(mails, [label], [])
 	}
 
-	private setListId(folder: MailFolder) {
+	private setListId(folder: MailSet) {
 		const oldFolderId = this._folder?._id
 		// update the folder just in case, maybe it got updated
 		this._folder = folder
@@ -513,10 +516,10 @@ export class MailViewModel {
 		this.shouldAttemptCounterFixup = true
 	}
 
-	private fixCounterIfNeeded: (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
+	private fixCounterIfNeeded: (folder: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
 		2000,
-		async (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
-			// If folders are changed, the list won't have the data we need.
+		async (folder: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
+			// If mailSets are changed, the list won't have the data we need.
 			// Do not rely on counters if we are not connected.
 			// We can't know the correct unreadMailCount if some unread mails are filtered out.
 			const ourFolder = this.getFolder()
@@ -549,7 +552,7 @@ export class MailViewModel {
 	)
 
 	private onListStateChange(listModel: MailSetListModel, newState: ListState<Mail>) {
-		// Fixup isn't needed for labels since only folders have counters.
+		// Fixup isn't needed for labels since only mailSets have counters.
 		// A counter fixup with a partially loaded list will set the counter to an incorrect value.
 		const folder = this.getFolder()
 		if (this.shouldAttemptCounterFixup && folder != null && folder.folderType !== MailSetKind.LABEL && newState.loadingStatus === ListLoadingState.Done) {
@@ -626,7 +629,7 @@ export class MailViewModel {
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
-		// capturing the state so that if we switch folders, we won't run into race conditions
+		// capturing the state so that if we switch mailSets, we won't run into race conditions
 		const folder = this._folder
 		const listModel = this.listModel
 
@@ -662,7 +665,7 @@ export class MailViewModel {
 
 	private async processImportedMails(update: EntityUpdateData<ImportMailState>) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-		const importedFolder = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
+		const importedFolder = await this.entityClient.load(MailSetTypeRef, importMailState.targetFolder)
 
 		let status = parseInt(importMailState.status) as ImportStatus
 
@@ -715,10 +718,10 @@ export class MailViewModel {
 		if (this.currentShowTargetMarker !== state) {
 			return
 		}
-		if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
+		if (mailboxDetail == null) {
 			return
 		}
-		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 		if (this.currentShowTargetMarker !== state) {
 			return
 		}
@@ -735,8 +738,8 @@ export class MailViewModel {
 		if (!this._folder) return false
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(this._folder)
 		const selectedFolder = this.getFolder()
-		if (selectedFolder && mailboxDetail && mailboxDetail.mailbox.folders) {
-			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		if (selectedFolder && mailboxDetail) {
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.DRAFT)
 		} else {
 			return false
@@ -747,20 +750,20 @@ export class MailViewModel {
 		const folder = this.getFolder()
 		if (folder) {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
-			if (folder && mailboxDetail && mailboxDetail.mailbox.folders) {
-				const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			if (folder && mailboxDetail) {
+				const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 				return isSpamOrTrashFolder(folders, folder)
 			}
 		}
 		return false
 	}
 
-	private async mailboxDetailForListWithFallback(folder?: MailFolder | null) {
+	private async mailboxDetailForListWithFallback(folder?: MailSet | null) {
 		const mailboxDetailForListId = folder ? await this.mailModel.getMailboxDetailsForMailFolder(folder) : null
 		return mailboxDetailForListId ?? (await this.mailboxModel.getUserMailboxDetails())
 	}
 
-	async finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
+	async finallyDeleteAllMailsInSelectedFolder(folder: MailSet): Promise<void> {
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.listModel?.selectNone()
 
@@ -774,7 +777,7 @@ export class MailViewModel {
 				}),
 			)
 		} else {
-			const folders = await this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			if (isSubfolderOfType(folders, folder, MailSetKind.TRASH) || isSubfolderOfType(folders, folder, MailSetKind.SPAM)) {
 				return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
 					ofClass(PreconditionFailedError, () => {
@@ -843,11 +846,11 @@ export class MailViewModel {
 		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
 	}
 
-	async editLabel(label: MailFolder, newData: { name: string; color: string }) {
+	async editLabel(label: MailSet, newData: { name: string; color: string }) {
 		await this.mailModel.updateLabel(label, newData)
 	}
 
-	async deleteLabel(label: MailFolder) {
+	async deleteLabel(label: MailSet) {
 		await this.mailModel.deleteLabel(label)
 	}
 
@@ -855,11 +858,11 @@ export class MailViewModel {
 	 * Returns true if mails should be grouped by conversation in the mail list based on user preference and a folder
 	 * @param folder the folder to check or, by default, the current folder
 	 */
-	groupMailsByConversation(folder: MailFolder | null = this._folder) {
+	groupMailsByConversation(folder: MailSet | null = this._folder) {
 		return this.mailModel.canUseConversationView() && listByConversationInFolder(this.conversationPrefProvider, folder)
 	}
 
-	getMoveMode(folder: MailFolder): MoveMode {
+	getMoveMode(folder: MailSet): MoveMode {
 		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
 	}
 }
@@ -867,7 +870,7 @@ export class MailViewModel {
 /**
  * @return true if mails should be grouped by conversation in the mail list based on user preference and a given {@param folder}
  */
-export function listByConversationInFolder(conversationPrefProvider: ConversationPrefProvider, folder: MailFolder | null): boolean {
+export function listByConversationInFolder(conversationPrefProvider: ConversationPrefProvider, folder: MailSet | null): boolean {
 	const onlySelectedMailInViewer = conversationPrefProvider.getConversationViewShowOnlySelectedMail()
 	const prefersConversationInList = !onlySelectedMailInViewer && conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
 

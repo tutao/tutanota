@@ -528,7 +528,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
 		this.populateAdminFolders().then(() => {
-			// We have to wait for the folders to be initialized before setting the URL,
+			// We have to wait for the mailSets to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
 			const routeWithoutHash = m.route.get().split("#", 2)[0]
 			const stillAtDefaultUrl = routeWithoutHash === this._userFolders[0].url
@@ -566,7 +566,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			colors: NavButtonColor.Nav,
 			click: () => {
 				// clear nav target if we navigate away before admin
-				// folders are loaded
+				// mailSets are loaded
 				this.navTarget = null
 				this.viewSlider.focus(this._settingsColumn)
 			},

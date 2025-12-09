@@ -1,4 +1,4 @@
-import { Mail, MailDetails, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
 import { MailPhishingStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -17,9 +17,9 @@ export class SpamClassificationHandler {
 	public async predictSpamForNewMail(
 		mail: Mail,
 		mailDetails: MailDetails,
-		sourceFolder: MailFolder,
+		sourceFolder: MailSet,
 		folderSystem: FolderSystem,
-	): Promise<{ targetFolder: MailFolder; processInboxDatum: UnencryptedProcessInboxDatum }> {
+	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
 		const spamMailDatum = createSpamMailDatum(mail, mailDetails)
 
 		const vectorizedMail = await this.spamClassifier.vectorize(spamMailDatum)

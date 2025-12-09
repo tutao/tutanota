@@ -460,9 +460,9 @@ pub struct MailBox {
 	#[serde(rename = "134")]
 	pub receivedAttachments: GeneratedId,
 	#[serde(rename = "443")]
-	pub folders: Option<MailFolderRef>,
+	pub mailSets: MailSetRef,
 	#[serde(rename = "1220")]
-	pub spamResults: Option<SpamResults>,
+	pub spamResults: SpamResults,
 	#[serde(rename = "1318")]
 	pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
 	#[serde(rename = "1463")]
@@ -474,11 +474,11 @@ pub struct MailBox {
 	#[serde(rename = "1585")]
 	pub mailImportStates: GeneratedId,
 	#[serde(rename = "1710")]
-	pub extractedFeatures: Option<GeneratedId>,
+	pub extractedFeatures: GeneratedId,
 	#[serde(rename = "1754")]
-	pub clientSpamTrainingData: Option<GeneratedId>,
+	pub clientSpamTrainingData: GeneratedId,
 	#[serde(rename = "1755")]
-	pub modifiedClientSpamTrainingDataIndex: Option<GeneratedId>,
+	pub modifiedClientSpamTrainingDataIndex: GeneratedId,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -815,7 +815,7 @@ impl Entity for DeleteMailData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct MailFolder {
+pub struct MailSet {
 	#[serde(rename = "431")]
 	pub _id: Option<IdTupleGenerated>,
 	#[serde(rename = "432")]
@@ -846,7 +846,7 @@ pub struct MailFolder {
 	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
-impl Entity for MailFolder {
+impl Entity for MailSet {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -857,14 +857,14 @@ impl Entity for MailFolder {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct MailFolderRef {
+pub struct MailSetRef {
 	#[serde(rename = "441")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "442")]
-	pub folders: GeneratedId,
+	pub mailSets: GeneratedId,
 }
 
-impl Entity for MailFolderRef {
+impl Entity for MailSetRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -1660,8 +1660,6 @@ pub struct MailboxServerProperties {
 	pub _format: i64,
 	#[serde(rename = "682")]
 	pub _ownerGroup: Option<GeneratedId>,
-	#[serde(rename = "683")]
-	pub whitelistProtectionEnabled: bool,
 }
 
 impl Entity for MailboxServerProperties {

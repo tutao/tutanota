@@ -277,16 +277,16 @@ export type MailBox = {
 
 	sentAttachments: Id;
 	receivedAttachments: Id;
-	folders: null | MailFolderRef;
-	spamResults: null | SpamResults;
+	mailSets: MailSetRef;
+	spamResults: SpamResults;
 	mailDetailsDrafts: null | MailDetailsDraftsRef;
 	archivedMailBags: MailBag[];
 	currentMailBag: null | MailBag;
 	importedAttachments: Id;
 	mailImportStates: Id;
-	extractedFeatures: null | Id;
-	clientSpamTrainingData: null | Id;
-	modifiedClientSpamTrainingDataIndex: null | Id;
+	extractedFeatures: Id;
+	clientSpamTrainingData: Id;
+	modifiedClientSpamTrainingDataIndex: Id;
 }
 export const CreateExternalUserGroupDataTypeRef: TypeRef<CreateExternalUserGroupData> = new TypeRef("tutanota", 138)
 
@@ -485,16 +485,16 @@ export type DeleteMailData = {
 	mails: IdTuple[];
 	folder: null | IdTuple;
 }
-export const MailFolderTypeRef: TypeRef<MailFolder> = new TypeRef("tutanota", 429)
+export const MailSetTypeRef: TypeRef<MailSet> = new TypeRef("tutanota", 429)
 
-export function createMailFolder(values: StrippedEntity<MailFolder>): MailFolder {
-    return Object.assign(create(typeModels[MailFolderTypeRef.typeId], MailFolderTypeRef), values)
+export function createMailSet(values: StrippedEntity<MailSet>): MailSet {
+    return Object.assign(create(typeModels[MailSetTypeRef.typeId], MailSetTypeRef), values)
 }
 
-export type MailFolder = {
-	_type: TypeRef<MailFolder>;
+export type MailSet = {
+	_type: TypeRef<MailSet>;
 	_errors: Object;
-	_original?: MailFolder
+	_original?: MailSet
 
 	_id: IdTuple;
 	_permissions: Id;
@@ -509,19 +509,19 @@ export type MailFolder = {
 	parentFolder: null | IdTuple;
 	entries: Id;
 }
-export const MailFolderRefTypeRef: TypeRef<MailFolderRef> = new TypeRef("tutanota", 440)
+export const MailSetRefTypeRef: TypeRef<MailSetRef> = new TypeRef("tutanota", 440)
 
-export function createMailFolderRef(values: StrippedEntity<MailFolderRef>): MailFolderRef {
-    return Object.assign(create(typeModels[MailFolderRefTypeRef.typeId], MailFolderRefTypeRef), values)
+export function createMailSetRef(values: StrippedEntity<MailSetRef>): MailSetRef {
+    return Object.assign(create(typeModels[MailSetRefTypeRef.typeId], MailSetRefTypeRef), values)
 }
 
-export type MailFolderRef = {
-	_type: TypeRef<MailFolderRef>;
-	_original?: MailFolderRef
+export type MailSetRef = {
+	_type: TypeRef<MailSetRef>;
+	_original?: MailSetRef
 
 	_id: Id;
 
-	folders: Id;
+	mailSets: Id;
 }
 export const MoveMailDataTypeRef: TypeRef<MoveMailData> = new TypeRef("tutanota", 445)
 
@@ -1000,7 +1000,6 @@ export type MailboxServerProperties = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	whitelistProtectionEnabled: boolean;
 }
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", 693)
 

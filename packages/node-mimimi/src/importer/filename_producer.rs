@@ -202,7 +202,7 @@ mod tests {
 		);
 	}
 
-	/// when we show file select window, it is possible to select files from multiple folders which can have
+	/// when we show file select window, it is possible to select files from multiple mailSets which can have
 	/// same name ( example: select files from RECENT view in file dialog )
 	#[test]
 	fn can_import_multiple_files_with_same_name() {

@@ -5,7 +5,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailReportType, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
@@ -964,7 +964,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private renderFoldersAndLabelsForMailbox(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null) {
 		const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
-		// Only show folders for mailbox in which edit was selected
+		// Only show mailSets for mailbox in which edit was selected
 		if (editingFolderForMailGroup && !inEditMode) {
 			return null
 		} else {
@@ -1015,7 +1015,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		})
 	}
 
-	private setExpandedState(folder: MailFolder, currentExpansionState: boolean) {
+	private setExpandedState(folder: MailSet, currentExpansionState: boolean) {
 		if (currentExpansionState) {
 			this.expandedState.delete(getElementId(folder))
 		} else {
@@ -1112,7 +1112,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return []
 	}
 
-	private async handleLabelMailDrop(dropData: MailDropData, targetLabel: MailFolder): Promise<void> {
+	private async handleLabelMailDrop(dropData: MailDropData, targetLabel: MailSet): Promise<void> {
 		const mailsToAddLabel = this.getDroppedMails(dropData)
 
 		if (!isEmpty(mailsToAddLabel)) {
@@ -1121,7 +1121,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async handleFolderInFolderDrop(dropData: FolderDropData, targetFolder: MailFolder) {
+	private async handleFolderInFolderDrop(dropData: FolderDropData, targetFolder: MailSet) {
 		if (
 			// dragging to Trash/Spam can be added at a later point
 			targetFolder.folderType === MailSetKind.TRASH ||
@@ -1148,7 +1148,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await mailLocator.mailModel.setParentForFolder(folderToMove, targetFolder._id)
 	}
 
-	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailFolder) {
+	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailSet) {
 		const currentFolder = this.mailViewModel.getFolder()
 
 		if (!currentFolder) {
@@ -1171,7 +1171,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async handeFolderFileDrop(dropData: FileDropData, mailboxDetail: MailboxDetail, mailFolder: MailFolder) {
+	private async handeFolderFileDrop(dropData: FileDropData, mailboxDetail: MailboxDetail, mailFolder: MailSet) {
 		function droppedOnlyMailFiles(files: Array<File>): boolean {
 			// there's similar logic on the AttachmentBubble, but for natively shared files.
 			return files.every((f) => f.name.endsWith(".eml") || f.name.endsWith(".mbox"))
@@ -1217,17 +1217,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		dialog?.show()
 	}
 
-	private async deleteCustomMailFolder(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<void> {
+	private async deleteCustomMailFolder(mailboxDetail: MailboxDetail, folder: MailSet): Promise<void> {
 		if (folder.folderType !== MailSetKind.CUSTOM) {
 			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.mailViewModel?.listModel?.selectNone()
-		if (mailboxDetail.mailbox.folders == null) {
-			return
-		}
-		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 
 		if (isSpamOrTrashFolder(folders, folder)) {
 			const confirmed = await Dialog.confirm(
@@ -1286,7 +1283,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) {
+	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailSet | null, parentFolder: MailSet | null) {
 		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
 	}
@@ -1295,11 +1292,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await showEditLabelDialog(mailbox, this.mailViewModel, null)
 	}
 
-	private async showLabelEditDialog(label: MailFolder) {
+	private async showLabelEditDialog(label: MailSet) {
 		await showEditLabelDialog(null, this.mailViewModel, label)
 	}
 
-	private async showLabelDeleteDialog(label: MailFolder) {
+	private async showLabelDeleteDialog(label: MailSet) {
 		const confirmed = await Dialog.confirm(
 			lang.getTranslation("confirmDeleteLabel_msg", {
 				"{1}": label.name,

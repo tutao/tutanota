@@ -9,7 +9,7 @@ import { AvailablePlanType, HighestTierPlans, ImportStatus, MailSetKind } from "
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
-import { MailFolder } from "../../common/api/entities/tutanota/TypeRefs"
+import { MailSet } from "../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
@@ -81,11 +81,11 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			// if a folder receives/imports a very large amount of mails (hundreds of thousands) that all get moved/deleted at once,
 			// the backend will not be able to read any live data from that list for a while.
 			// if that happens, user will not see incoming mails in their inbox folder for that time,
-			// this problem can still happen on other folders,
+			// this problem can still happen on other mailSets,
 			// but at least we won't block inbox ( incoming new mails )
 			const selectableFolders = folders.getIndentedList().filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX)
 
-			let targetFolders: SelectorItemList<MailFolder | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
+			let targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
 				return {
 					name: getIndentedFolderNameForDropdown(folderInfo),
 					value: folderInfo.folder,
@@ -97,7 +97,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 				disabled: this.mailImporter().shouldRenderImportStatus(),
 				selectedValue: selectedTargetFolder,
 				selectedValueDisplay: selectedTargetFolder ? getFolderName(selectedTargetFolder) : loadingMsg,
-				selectionChangedHandler: (newFolder: MailFolder | null) => (this.mailImporter().selectedTargetFolder = newFolder),
+				selectionChangedHandler: (newFolder: MailSet | null) => (this.mailImporter().selectedTargetFolder = newFolder),
 				helpLabel: () => helpLabel,
 			})
 		} else {

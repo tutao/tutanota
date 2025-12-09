@@ -303,10 +303,10 @@ export class ConversationViewModel {
 	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
 		const mailFolder = this.mailModel.getMailFolderForMail(mail)
-		if (mailFolder == null || mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
+		if (mailFolder == null || mailboxDetail == null) {
 			return
 		}
-		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 		return isOfTypeOrSubfolderOf(folders, mailFolder, MailSetKind.TRASH)
 	}
 

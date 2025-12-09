@@ -37,8 +37,8 @@ export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
 export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
-	} else if (mailBoxDetail && mailBoxDetail.mailbox.folders) {
-		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.folders._id)
+	} else if (mailBoxDetail) {
+		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
 		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedFolder) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),

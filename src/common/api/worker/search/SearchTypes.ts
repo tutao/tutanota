@@ -127,7 +127,7 @@ export type SearchRestriction = {
 	field: string | null
 	// must be kept in sync with attributeIds
 	attributeIds: number[] | null
-	// list of locations (calendars, folders, labels to search). if empty, match anything. otherwise it's an OR-match.
+	// list of locations (calendars, mailSets, labels to search). if empty, match anything. otherwise it's an OR-match.
 	folderIds: Array<Id>
 	// if true, include repeating events in the search
 	eventSeries: boolean | null

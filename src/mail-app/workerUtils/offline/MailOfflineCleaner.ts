@@ -13,7 +13,7 @@ import {
 	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -40,7 +40,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
 		for (const mailBox of mailBoxes) {
 			const currentMailBag = assertNotNull(mailBox.currentMailBag)
-			const folders = await offlineStorage.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
+			const folders = await offlineStorage.getWholeList(MailSetTypeRef, mailBox.mailSets.mailSets)
 			// Deleting MailSetEntries first to make sure that once we start deleting Mail
 			// we don't have any MailSetEntries that reference that Mail anymore.
 			for (const mailSet of folders) {

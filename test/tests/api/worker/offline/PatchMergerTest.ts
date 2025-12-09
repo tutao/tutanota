@@ -29,6 +29,7 @@ import {
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
+	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
 	MailDetailsBlob,

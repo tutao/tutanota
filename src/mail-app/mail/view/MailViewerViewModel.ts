@@ -5,7 +5,7 @@ import {
 	Mail,
 	MailAddress,
 	MailDetails,
-	MailFolder,
+	MailSet,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -231,10 +231,10 @@ export class MailViewerViewModel {
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then(async (mailboxDetails) => {
-				if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
+				if (mailboxDetails == null) {
 					return
 				}
-				const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+				const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetails.mailbox.mailSets._id)
 				const name = getPathToFolderString(folders, folder)
 				this.folderMailboxText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
@@ -563,10 +563,10 @@ export class MailViewerViewModel {
 		try {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
 			// We should always have a mailbox, the check above throws due AssertNotNull in response.
-			if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
+			if (mailboxDetail == null) {
 				return
 			}
-			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
 
 			if (reportType === MailReportType.PHISHING) {
@@ -682,6 +682,7 @@ export class MailViewerViewModel {
 			return encodedText
 		})
 	}
+
 	async determineUnsubscribeOrder(): Promise<Array<UnsubscribeAction>> {
 		const mailHeaders = await this.getHeaders()
 		const unsubscribeActions: Array<UnsubscribeAction> = []
@@ -1268,7 +1269,7 @@ export class MailViewerViewModel {
 		this.collapsed = true
 	}
 
-	getLabels(): readonly MailFolder[] {
+	getLabels(): readonly MailSet[] {
 		return this.mailModel.getLabelsForMail(this.mail).sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 	}
 

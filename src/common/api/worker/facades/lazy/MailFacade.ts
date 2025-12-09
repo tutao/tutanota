@@ -1,7 +1,6 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	ApplyLabelService,
-	ClientClassifierResultService,
 	DraftService,
 	ExternalUserService,
 	ListUnsubscribeService,
@@ -34,7 +33,6 @@ import {
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	PhishingMarkerStatus,
-	ProcessingState,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
 	SimpleMoveMailTarget,
@@ -44,7 +42,6 @@ import {
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
-	createClientClassifierResultPostIn,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
 	createDeleteMailData,
@@ -84,7 +81,7 @@ import {
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	MailFolder,
+	MailSet,
 	MailTypeRef,
 	MovedMails,
 	PopulateClientSpamTrainingDatum,
@@ -245,7 +242,7 @@ export class MailFacade {
 	 * @param folder to be updated
 	 * @param newName - if this is the same as the folder's current name, nothing is done
 	 */
-	async updateMailFolderName(folder: MailFolder, newName: string): Promise<void> {
+	async updateMailFolderName(folder: MailSet, newName: string): Promise<void> {
 		if (newName !== folder.name) {
 			folder.name = newName
 			await this.entityClient.update(folder)
@@ -264,7 +261,7 @@ export class MailFacade {
 	 * @param folder to be updated
 	 * @param newParent - if this is the same as the folder's current parent, nothing is done
 	 */
-	async updateMailFolderParent(folder: MailFolder, newParent: IdTuple | null): Promise<void> {
+	async updateMailFolderParent(folder: MailSet, newParent: IdTuple | null): Promise<void> {
 		const isOwnParent = isSameId(folder._id, newParent)
 		const isDifferentParent = folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)
 		const isNewParent = folder.parentFolder == null && newParent != null
@@ -750,7 +747,7 @@ export class MailFacade {
 		await this.serviceExecutor.delete(MailFolderService, deleteMailFolderData, { sessionKey: "dummy" as any })
 	}
 
-	async fixupCounterForFolder(groupId: Id, folder: MailFolder, unreadMails: number): Promise<void> {
+	async fixupCounterForFolder(groupId: Id, folder: MailSet, unreadMails: number): Promise<void> {
 		const counterId = getElementId(folder)
 		const data = createWriteCounterData({
 			counterType: CounterType.UnreadMails,
@@ -1132,7 +1129,7 @@ export class MailFacade {
 	}
 
 	/**
-	 * Create a label (aka MailSet aka {@link MailFolder} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
+	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
 	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
@@ -1162,7 +1159,7 @@ export class MailFacade {
 	 * @param name possible new name for label
 	 * @param color possible new color for label
 	 */
-	async updateLabel(label: MailFolder, name: string, color: string) {
+	async updateLabel(label: MailSet, name: string, color: string) {
 		if (name !== label.name || color !== label.color) {
 			label.name = name
 			label.color = color
@@ -1170,7 +1167,7 @@ export class MailFacade {
 		}
 	}
 
-	async deleteLabel(label: MailFolder) {
+	async deleteLabel(label: MailSet) {
 		await this.serviceExecutor.delete(
 			ManageLabelService,
 			createManageLabelServiceDeleteIn({
@@ -1179,7 +1176,7 @@ export class MailFacade {
 		)
 	}
 
-	async applyLabels(mailIds: IdTuple[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]) {
+	async applyLabels(mailIds: IdTuple[], addedLabels: readonly MailSet[], removedLabels: readonly MailSet[]) {
 		const postIn = createApplyLabelServicePostIn({
 			mails: mailIds,
 			addedLabels: addedLabels.map((label) => label._id),
@@ -1202,27 +1199,6 @@ export class MailFacade {
 					createUnreadMailStatePostIn({
 						unread,
 						mails,
-					}),
-				),
-			{ concurrency: 5 },
-		)
-	}
-
-	/**
-	 * Mark the given mails as read/unread
-	 * @param mails mail ids to mark as unread
-	 * @param processingState
-	 */
-	async updateMailPredictionState(mails: readonly IdTuple[], processingState: ProcessingState) {
-		const isPredictionMade = processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE
-		await promiseMap(
-			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
-			async (mails) =>
-				this.serviceExecutor.post(
-					ClientClassifierResultService,
-					createClientClassifierResultPostIn({
-						mails,
-						isPredictionMade: isPredictionMade,
 					}),
 				),
 			{ concurrency: 5 },
