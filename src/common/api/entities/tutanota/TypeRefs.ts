@@ -865,6 +865,7 @@ export type InboxRule = {
 	_id: Id;
 	type: string;
 	value: string;
+	excludeFromSpamFilter: null | boolean;
 
 	targetFolder: IdTuple;
 }
