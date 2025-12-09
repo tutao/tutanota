@@ -177,7 +177,25 @@ export class SearchViewModel {
 
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
-	private searchResult: SearchResult | null = null
+	private _searchResult: SearchResult | null = null
+	private searchResultIdToIndex: Map<Id, number> | null = null
+
+	private set searchResult(what: SearchResult | null) {
+		this._searchResult = what
+		if (this._searchResult == null) {
+			this.searchResultIdToIndex = null
+		} else if (isOfflineStorageAvailable()) {
+			this.searchResultIdToIndex = new Map()
+			for (let i = 0; i < this._searchResult.results.length; i++) {
+				this.searchResultIdToIndex.set(elementIdPart(this._searchResult.results[i]), i)
+			}
+		}
+	}
+
+	private get searchResult(): SearchResult | null {
+		return this._searchResult
+	}
+
 	private mailFilterType: ReadonlySet<MailFilterType> = new Set()
 	private latestMailRestriction: SearchRestriction | null = null
 	private latestCalendarRestriction: SearchRestriction | null = null
@@ -921,8 +939,20 @@ export class SearchViewModel {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
 				} else if (isSameTypeRef(o1.entry._type, MailTypeRef)) {
 					if (isOfflineStorageAvailable()) {
-						// SQLite results are already sorted, thus we don't need to do any further sorting here.
-						return 0
+						if (this.searchResultIdToIndex == null) {
+							return 0
+						}
+
+						// SQLite results are already sorted, thus we don't need to do any further sorting here (and we
+						// want to avoid changing sort order anyway)
+						const resultA = this.searchResultIdToIndex.get(getElementId(o1.entry))
+						const resultB = this.searchResultIdToIndex.get(getElementId(o2.entry))
+
+						if (resultA == null || resultB == null) {
+							return sortCompareByReverseId(o1.entry, o2.entry)
+						}
+
+						return resultA - resultB
 					} else {
 						// IndexedDb only loads a small amount of results at once, expanding the results as we scroll
 						// through the list, and since it's loaded by ID range, results can jump around mid-scroll.
