@@ -24,6 +24,7 @@ export interface DriveFolderContentEntryAttrs {
 	onSelect: (f: FolderItem) => unknown
 	checked: boolean
 	fileActions: FileActions
+	multiselect: boolean
 }
 
 const DriveFolderContentEntryRowStyle = {
@@ -69,8 +70,11 @@ const mimeTypeAsText = (mimeType: string) => {
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
+	private clickTimeout: TimeoutID | null = null
+
 	view({
 		attrs: {
+			multiselect,
 			item,
 			selected,
 			checked,
@@ -84,86 +88,111 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
-		return m("div.flex.row.folder-row", { style: { ...DriveFolderContentEntryRowStyle, background: selected ? theme.state_bg_hover : theme.surface } }, [
-			m("div", {}, m("input.checkbox", { type: "checkbox", checked, onchange: () => onSelect(item) })),
-			m(
-				"div",
-				{ style: {} },
-				m(Icon, {
-					icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
-					size: IconSize.PX24,
-					style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
-				}),
-			),
-			m(
-				"div",
-				{ style: {} },
+		return m(
+			"div.flex.row.folder-row.cursor-pointer",
+			{
+				style: { ...DriveFolderContentEntryRowStyle, background: selected ? theme.state_bg_hover : theme.surface },
+				onclick: (event: MouseEvent) => {
+					if (event.detail === 1) {
+						// if it's multiselect do select immediately, without delay
+						if (multiselect) {
+							onSelect(item)
+						} else {
+							// if we are not in multiselect, delay the selection so that
+							// it's not very noticeable
+							this.clickTimeout = setTimeout(() => {
+								this.clickTimeout = null
+								onSelect(item)
+							}, 150)
+						}
+					} else if (event.detail === 2) {
+						if (this.clickTimeout) {
+							clearTimeout(this.clickTimeout)
+							this.clickTimeout = null
+						}
+						onOpenItem(item)
+					}
+				},
+			},
+			[
 				m(
-					"span",
-					{
-						onclick: () => {
-							onOpenItem(item)
+					"div",
+					{},
+					m("input.checkbox", {
+						type: "checkbox",
+						checked,
+						onchange: () => onSelect(item),
+						onclick: (e: MouseEvent) => {
+							e.stopPropagation()
 						},
-						class: "cursor-pointer",
-					},
-					item.type === "file" ? item.file.name : item.folder.name,
+					}),
 				),
-			),
-			m("div", { style: {} }, thisFileMimeType),
-			m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-			m("div", { style: {} }, uploadDate.toLocaleString()),
-			m(
-				"div",
-				m("div", [
-					m(
-						IconButton,
-						attachDropdown({
-							mainButtonAttrs: {
-								icon: Icons.More,
-								title: "more_label",
-							},
-							childAttrs: () => [
-								{
-									label: "rename_action",
-									icon: Icons.Edit,
-									click: () => {
-										onRename(item)
-									},
+				m(
+					"div",
+					{ style: {} },
+					m(Icon, {
+						icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
+						size: IconSize.PX24,
+						style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
+					}),
+				),
+				m("div", { style: {} }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
+				m("div", { style: {} }, thisFileMimeType),
+				m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+				m("div", { style: {} }, uploadDate.toLocaleString()),
+				m(
+					"div",
+					m("div", [
+						m(
+							IconButton,
+							attachDropdown({
+								mainButtonAttrs: {
+									icon: Icons.More,
+									title: "more_label",
 								},
-								{
-									label: "copy_action",
-									icon: Icons.Copy,
-									click: () => {
-										onCopy(item)
-									},
-								},
-								{
-									label: "cut_action",
-									icon: Icons.Cut,
-									click: () => {
-										onCut(item)
-									},
-								},
-								(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
-									? {
-											label: "restoreFromTrash_action",
-											icon: Icons.Reply,
-											click: () => {
-												onRestore(item)
-											},
-										}
-									: {
-											label: "trash_action",
-											icon: Icons.Trash,
-											click: () => {
-												onDelete(item)
-											},
+								childAttrs: () => [
+									{
+										label: "rename_action",
+										icon: Icons.Edit,
+										click: () => {
+											onRename(item)
 										},
-							],
-						}),
-					),
-				]),
-			),
-		])
+									},
+									{
+										label: "copy_action",
+										icon: Icons.Copy,
+										click: () => {
+											onCopy(item)
+										},
+									},
+									{
+										label: "cut_action",
+										icon: Icons.Cut,
+										click: () => {
+											onCut(item)
+										},
+									},
+									(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+										? {
+												label: "restoreFromTrash_action",
+												icon: Icons.Reply,
+												click: () => {
+													onRestore(item)
+												},
+											}
+										: {
+												label: "trash_action",
+												icon: Icons.Trash,
+												click: () => {
+													onDelete(item)
+												},
+											},
+								],
+							}),
+						),
+					]),
+				),
+			],
+		)
 	}
 }
