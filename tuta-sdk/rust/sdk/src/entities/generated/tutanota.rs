@@ -1362,6 +1362,8 @@ pub struct InboxRule {
 	pub r#type: String,
 	#[serde(rename = "576")]
 	pub value: String,
+	#[serde(rename = "1783")]
+	pub excludeFromSpamFilter: Option<bool>,
 	#[serde(rename = "577")]
 	pub targetFolder: IdTupleGenerated,
 
