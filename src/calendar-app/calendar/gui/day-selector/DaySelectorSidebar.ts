@@ -3,7 +3,7 @@ import { formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
 import { incrementMonth, isSameDay } from "@tutao/tutanota-utils"
 import { DaySelector } from "./DaySelector.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
-import { isDesktop } from "../../../../common/api/common/Env"
+import { styles } from "../../../../common/gui/styles"
 
 export interface DaySelectorSidebarAttrs {
 	selectedDate: Date
@@ -33,7 +33,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 		const disableHighlight = !isSameDay(vnode.attrs.selectedDate, this.currentDate)
 
 		return m(
-			isDesktop() ? ".plr-12.mt-24" : ".plr-12.mt-8",
+			styles.isMobileDesktopLayout() ? ".plr-12.mt-8" : ".plr-12.mt-16",
 			m(".elevated-bg.pt-8.pb-12.border-radius.flex.flex-column", [
 				this.renderPickerHeader(this.currentDate),
 				m(".flex-grow.overflow-hidden", [
