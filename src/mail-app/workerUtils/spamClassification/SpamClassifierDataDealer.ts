@@ -55,6 +55,7 @@ export class SpamClassifierDataDealer {
 
 		// clientSpamTrainingData is NOT cached
 		let clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
+		console.log(`current clientSpamTrainingData list on the mailbox ${mailbox._id} has ${clientSpamTrainingData.length} members.`)
 		// if the clientSpamTrainingData is empty or does not include all relevant clientSpamTrainingData
 		// for this mailbox, we are aggregating the last INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS of mails
 		// and upload the missing clientSpamTrainingDatum entries
@@ -76,7 +77,7 @@ export class SpamClassifierDataDealer {
 				{ concurrency: 5 },
 			)
 			clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
-			console.log(`clientSpamTrainingData list on the mailbox ${mailbox._id} has ${clientSpamTrainingData.length} members.`)
+			console.log(`new clientSpamTrainingData list on the mailbox ${mailbox._id} has ${clientSpamTrainingData.length} members.`)
 		}
 
 		const { subsampledTrainingData, hamCount, spamCount } = this.subsampleHamAndSpamMails(clientSpamTrainingData)
@@ -140,23 +141,32 @@ export class SpamClassifierDataDealer {
 		hamCount: number
 		spamCount: number
 	} {
-		//  we always want to include clientSpamTrainingData with high confidence (usually 4), because these mails have been moved explicitly by the user
-		const hamDataHighConfidence = clientSpamTrainingData.filter((d) => Number(d.confidence) > 1 && d.spamDecision === SpamDecision.WHITELIST)
-		const spamDataHighConfidence = clientSpamTrainingData.filter((d) => Number(d.confidence) > 1 && d.spamDecision === SpamDecision.BLACKLIST)
+		// we always want to include clientSpamTrainingData with high confidence (usually 4), because these mails have been moved explicitly by the user
+		const HIGH_CONFIDENCE_THRESHOLD = 4
+		const hamDataHighConfidence = clientSpamTrainingData.filter(
+			(d) => Number(d.confidence) >= HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.WHITELIST,
+		)
+		const spamDataHighConfidence = clientSpamTrainingData.filter(
+			(d) => Number(d.confidence) >= HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.BLACKLIST,
+		)
 
-		const hamDataLowConfidence = clientSpamTrainingData.filter((d) => Number(d.confidence) === 1 && d.spamDecision === SpamDecision.WHITELIST)
-		const spamDataLowConfidence = clientSpamTrainingData.filter((d) => Number(d.confidence) === 1 && d.spamDecision === SpamDecision.BLACKLIST)
+		const hamDataLowConfidence = clientSpamTrainingData.filter(
+			(d) => Number(d.confidence) > 0 && Number(d.confidence) < HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.WHITELIST,
+		)
+		const spamDataLowConfidence = clientSpamTrainingData.filter(
+			(d) => Number(d.confidence) > 0 && Number(d.confidence) < HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.BLACKLIST,
+		)
 
 		const hamCount = hamDataHighConfidence.length + hamDataLowConfidence.length
 		const spamCount = spamDataHighConfidence.length + spamDataLowConfidence.length
 
-		if (hamCount === 0 || spamCount === 0) {
-			return { subsampledTrainingData: clientSpamTrainingData, hamCount, spamCount }
-		}
-
-		const ratio = hamCount / spamCount
 		const MAX_RATIO = 10
 		const MIN_RATIO = 1 / 10
+
+		// in case a mailbox has 0 ham mails or 0 spam mails we use the ratio DEFAULT_HAM_COUNT/x or x/DEFAULT_SPAM_COUNT
+		const DEFAULT_HAM_COUNT = 1
+		const DEFAULT_SPAM_COUNT = 1
+		const ratio = Math.max(hamCount, DEFAULT_HAM_COUNT) / Math.max(spamCount, DEFAULT_SPAM_COUNT)
 
 		let sampledHamLowConfidence = hamDataLowConfidence
 		let sampledSpamLowConfidence = spamDataLowConfidence
@@ -174,7 +184,7 @@ export class SpamClassifierDataDealer {
 
 		const balanced = [...finalHam, ...finalSpam]
 		console.log(
-			`Subsampled training data to ${finalHam.length} ham (${hamDataHighConfidence.length} are confidence > 1) and ${finalSpam.length} spam (${spamDataHighConfidence.length} are confidence > 1) (ratio ${(finalHam.length / finalSpam.length).toFixed(2)}).`,
+			`Subsampled training data to ${finalHam.length} ham (${hamDataHighConfidence.length} are confidence > ${HIGH_CONFIDENCE_THRESHOLD}) and ${finalSpam.length} spam (${spamDataHighConfidence.length} are confidence > ${HIGH_CONFIDENCE_THRESHOLD}) (ratio ${(finalHam.length / finalSpam.length).toFixed(2)}).`,
 		)
 
 		return { subsampledTrainingData: balanced, hamCount: finalHam.length, spamCount: finalSpam.length }

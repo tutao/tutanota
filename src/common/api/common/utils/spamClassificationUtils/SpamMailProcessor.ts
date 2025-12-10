@@ -23,7 +23,6 @@ import { assertNotNull, lazyAsync, lazyMemoized, tokenize } from "@tutao/tutanot
 import { Mail, MailAddress, MailDetails } from "../../../entities/tutanota/TypeRefs"
 import { getMailBodyText } from "../../CommonMailUtils"
 import { MailAuthenticationStatus } from "../../TutanotaConstants"
-import { ProgrammingError } from "../../error/ProgrammingError"
 
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean
