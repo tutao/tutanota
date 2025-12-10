@@ -18,6 +18,12 @@ import { Checkbox } from "../gui/base/Checkbox"
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	private acceptedWarning: boolean = false
 
+	private saveRecoveryCodeAsPdf(recoveryCode: string) {
+		showProgressDialog(
+			"pleaseWait_msg",
+			locator.customerFacade.generatePdfRecoveryDocument(recoveryCode).then((pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice)),
+		)
+	}
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
 		let { newAccountData } = attrs.viewModel
 		if (!newAccountData) {
@@ -89,11 +95,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 											icon: Icons.Download,
 											text: "Download PDF-File",
 											onclick: () => {
-												void showSnackBar({
-													message: "maybeLater_action",
-													showingTime: 3000,
-													leadingIcon: Icons.Clock,
-												})
+												this.saveRecoveryCodeAsPdf(newAccountData?.recoverCode)
 											},
 											class: "flex-grow",
 										} satisfies SecondaryButtonAttrs),
