@@ -178,7 +178,7 @@ function getSnackBarPosition() {
 		// The SnackBar is only shown at the right in single column layout
 		left: styles.isSingleColumnLayout() ? px(window.innerWidth - snackBarMargin - snackBarWidth) : px(leftOffset + snackBarMargin),
 		"max-width": px(snackBarWidth),
-		zIndex: LayerType.Overlay,
+		zIndex: LayerType.Modal,
 	}
 }
 
