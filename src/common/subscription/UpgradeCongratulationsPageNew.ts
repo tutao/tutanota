@@ -64,6 +64,8 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 												color: theme.on_surface_variant,
 												"border-radius": px(size.radius_8),
 												padding: px(size.spacing_16),
+												"font-size": px(20),
+												"font-weight": "bold",
 											},
 										},
 
@@ -115,14 +117,9 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 						m(".flex.justify-end", [
 							m(LoginButton, {
 								width: "flex",
-								label: "continue_action",
+								label: "recovery_kit_page_continue_label",
 								onclick: () => {
 									attrs.goNext()
-									// void showSnackBar({
-									// 	message: "maybeLater_action",
-									// 	showingTime: 3000,
-									// 	leadingIcon: Icons.Clock,
-									// })
 								},
 								disabled: !this.acceptedWarning,
 							}),

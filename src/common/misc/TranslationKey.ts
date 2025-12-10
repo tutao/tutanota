@@ -2140,3 +2140,4 @@ export type TranslationKeyType =
 	| "recovery_kit_page_title"
 	| "recovery_kit_page_subtitle"
 	| "recovery_kit_page_checkbox_msg"
+	| "recovery_kit_page_continue_label"
