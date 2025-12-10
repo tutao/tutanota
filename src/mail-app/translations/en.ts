@@ -1753,6 +1753,7 @@ export default {
 		"showAddress_alt": "Show this address in OpenStreetMap",
 		"showAllMailsInThread_label": "Show all emails together in thread",
 		"showBlockedContent_action": "Show",
+		"blockNewsletterBanner_action": "Don't show for this sender",
 		"showContact_action": "Show contact",
 		"showHeaders_action": "Show email headers",
 		"showHelp_action": "Show help",

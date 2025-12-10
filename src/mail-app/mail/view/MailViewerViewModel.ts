@@ -19,6 +19,7 @@ import {
 	MailReportType,
 	MailSetKind,
 	MailState,
+	NewsletterBannerRule,
 	OperationType,
 } from "../../../common/api/common/TutanotaConstants"
 import { EntityClient } from "../../../common/api/common/EntityClient"
@@ -148,6 +149,7 @@ export class MailViewerViewModel {
 	private loading: Promise<void> | null = null
 
 	private collapsed: boolean = true
+	private newsletterBannerRule: NewsletterBannerRule | null = null
 
 	get mail(): Mail {
 		return this._mail
@@ -505,6 +507,10 @@ export class MailViewerViewModel {
 		return this.contentBlockingStatus
 	}
 
+	getNewsletterBannerRule(): NewsletterBannerRule | null {
+		return this.newsletterBannerRule
+	}
+
 	private isWarningDismissed() {
 		return this.warningDismissed
 	}
@@ -537,6 +543,14 @@ export class MailViewerViewModel {
 		this.sanitizeResult = await this.sanitizeMailBody(this.mail, status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock)
 		//follow-up actions resulting from a changed blocking status must start after sanitization finished
 		this.contentBlockingStatus = status
+	}
+
+	async setNewsletterBannerRuleConfig(rule: NewsletterBannerRule): Promise<void> {
+		await this.configFacade.addNewsletterBannerRule(this.getSender().address, rule).catch(ofClass(IndexingNotSupportedError, noOp))
+	}
+
+	async updateNewsletterBannerRule(): Promise<void> {
+		this.newsletterBannerRule = await this.configFacade.getNewsletterBannerRule(this.mail.sender.address)
 	}
 
 	async updateMailPhishingStatus(newStatus: MailPhishingStatus): Promise<void> {
@@ -818,6 +832,8 @@ export class MailViewerViewModel {
 		if (!isDraft) {
 			this.checkMailForPhishing(mail, this.sanitizeResult.links)
 		}
+
+		await this.updateNewsletterBannerRule()
 
 		this.contentBlockingStatus =
 			externalImageRule === ExternalImageRule.Block
