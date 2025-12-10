@@ -1,9 +1,9 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -26,17 +26,172 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
+import { layout_size, px } from "../gui/size"
+import { theme } from "../gui/theme"
+import { LoginTextField } from "../gui/base/LoginTextField"
+import { Icons } from "../gui/base/icons/Icons"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { IconButton } from "../gui/base/IconButton"
 
 export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepContext<SignupViewModel>> {
-	private dom!: HTMLElement
-
-	oncreate(vnode: VnodeDOM<WizardStepContext<SignupViewModel>>) {
-		console.log(vnode.attrs.viewModel)
-		this.dom = vnode.dom as HTMLElement
-	}
-
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		return this.renderConfirmSubscription(attrs)
+		const data = attrs.viewModel
+		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
+		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
+
+		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
+		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
+
+		return m(
+			".flex.flex-column.full-width",
+			{
+				style: {
+					"max-width": px(layout_size.signup_wizard_content_max_width),
+				},
+			},
+			[
+				m("h1.font-mdio.line-height-1", lang.get("confirm_order_page_title")),
+				m("p", { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
+
+				m(".flex.gap-16", [
+					m(".flex-grow", [
+						m(
+							".flex.col.gap-16.pt-16.pb-16.plr-16.border-radius-16",
+							{
+								style: {
+									"background-color": theme.surface_container_high,
+									color: theme.on_surface_variant,
+								},
+							},
+							[
+								m(LoginTextField, {
+									label: "subscription_label",
+									value: getDisplayNameOfPlanType(data.targetPlanType),
+									isReadOnly: true,
+									class: "",
+									leadingIcon: {
+										icon: data.targetPlanType === PlanType.Revolutionary ? Icons.Revo : Icons.Legend,
+										color: theme.on_surface_variant,
+									},
+									injectionsRight: () => {
+										return m(IconButton, {
+											icon: Icons.Edit,
+											title: "edit_action",
+											click: () => {
+												attrs.controller.setStep(0)
+											},
+										})
+									},
+								}),
+
+								m(LoginTextField, {
+									label: "paymentMethod_label",
+									value: getPaymentMethodName(data.paymentData.paymentMethod),
+									isReadOnly: true,
+									class: "",
+									leadingIcon: {
+										icon: Icons.CreditCard,
+										color: theme.on_surface_variant,
+									},
+									injectionsRight: () => {
+										return m(IconButton, {
+											icon: Icons.Edit,
+											title: "edit_action",
+											click: () => {
+												attrs.controller.setStep(2)
+											},
+										})
+									},
+								}),
+								data.invoiceData.country &&
+									m(LoginTextField, {
+										label: "billingCountry_label",
+										value: data.invoiceData.country.n,
+										isReadOnly: true,
+										class: "",
+										leadingIcon: {
+											icon: Icons.Pin,
+											color: theme.on_surface_variant,
+										},
+										injectionsRight: () => {
+											return m(IconButton, {
+												icon: Icons.Edit,
+												title: "edit_action",
+												click: () => {
+													attrs.controller.setStep(2)
+												},
+											})
+										},
+									}),
+								m(LoginTextField, {
+									label: "paymentInterval_label",
+									value: subscription,
+									isReadOnly: true,
+									class: "",
+									leadingIcon: {
+										icon: BootIcons.Progress,
+										color: theme.on_surface_variant,
+									},
+
+									injectionsRight: () => {
+										return m(IconButton, {
+											icon: Icons.Edit,
+											title: "edit_action",
+											click: () => {
+												attrs.controller.setStep(0)
+											},
+										})
+									},
+								}),
+								!isAppStorePayment &&
+									m.fragment({}, [
+										isFirstMonthForFree &&
+											m(LoginTextField, {
+												label: lang.getTranslation("priceTill_label", {
+													"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
+												}),
+												value: formatPrice(0, true),
+												isReadOnly: true,
+												class: "",
+												leadingIcon: {
+													icon: Icons.Legend,
+													color: theme.on_surface_variant,
+												},
+											}),
+										m(LoginTextField, {
+											label: this.buildPriceLabel(isYearly, attrs),
+											value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
+											isReadOnly: true,
+											class: "",
+											leadingIcon: {
+												icon: Icons.Legend,
+												color: theme.on_surface_variant,
+											},
+										}),
+										this.renderPriceNextYear(data),
+									]),
+							],
+						),
+						m(
+							".flex-center.full-width.pt-32.pb-32",
+							m(LoginButton, {
+								size: "md",
+								label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
+								class: "small-login-button",
+								onclick: () => this.upgrade(attrs),
+							}),
+						),
+						m(
+							".small.text-left",
+							data.options.businessUse()
+								? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
+								: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
+						),
+					]),
+					m(".flex-grow", []),
+				]),
+			],
+		)
 	}
 
 	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {
@@ -124,66 +279,6 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 			null,
 			data.accountingInfo!,
 		)
-	}
-
-	private renderConfirmSubscription(attrs: WizardStepContext<SignupViewModel>) {
-		const data = attrs.viewModel
-		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
-
-		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
-		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
-
-		return [
-			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
-			m(".pt-16.pb-16.plr-16", [
-				m(TextField, {
-					label: "subscription_label",
-					value: getDisplayNameOfPlanType(data.targetPlanType),
-					isReadOnly: true,
-				}),
-				m(TextField, {
-					label: "paymentInterval_label",
-					value: subscription,
-					isReadOnly: true,
-				}),
-				!isAppStorePayment &&
-					m.fragment({}, [
-						isFirstMonthForFree &&
-							m(TextField, {
-								label: lang.getTranslation("priceTill_label", {
-									"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
-								}),
-								value: formatPrice(0, true),
-								isReadOnly: true,
-							}),
-						m(TextField, {
-							label: this.buildPriceLabel(isYearly, attrs),
-							value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
-							isReadOnly: true,
-						}),
-						this.renderPriceNextYear(data),
-					]),
-
-				m(TextField, {
-					label: "paymentMethod_label",
-					value: getPaymentMethodName(data.paymentData.paymentMethod),
-					isReadOnly: true,
-				}),
-			]),
-			m(
-				".smaller.center.pt-32",
-				data.options.businessUse() ? lang.get("pricing.subscriptionPeriodInfoBusiness_msg") : lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
-			),
-			m(
-				".flex-center.full-width.pt-32",
-				m(LoginButton, {
-					label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
-					class: "small-login-button",
-					onclick: () => this.upgrade(attrs),
-				}),
-			),
-		]
 	}
 
 	private renderPriceNextYear(data: SignupViewModel) {

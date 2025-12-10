@@ -90,7 +90,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		return m(
 			".full-width",
 			m(
-				".login-textfield.rel.overflow-hidden",
+				`.login-textfield.rel.overflow-hidden`,
 				{
 					id: vnode.attrs.id,
 					oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
@@ -125,7 +125,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 								left: a.leadingIcon ? px(size.icon_24 + size.spacing_16) : 0,
 								"padding-left": px(size.spacing_16),
 								"padding-right": px(size.spacing_16),
-								color: !this.active ? "inherit" : theme.primary,
+								color: !this.active && !a.isReadOnly ? "inherit" : theme.primary,
 							},
 						},
 						lang.getTranslationText(a.label),
