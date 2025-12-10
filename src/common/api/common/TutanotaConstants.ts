@@ -1231,6 +1231,11 @@ export const enum ExternalImageRule {
 	Block = "2",
 }
 
+export const enum NewsletterBannerRule {
+	Allow = "0",
+	Block = "1",
+}
+
 export type PayPalData = {
 	account: string
 }

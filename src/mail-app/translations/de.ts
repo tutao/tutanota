@@ -158,6 +158,7 @@ export default {
 		"birthdayEvent_title": "{name}s Geburtstag",
 		"birthdayEventAge_title": "{age} Jahre alt",
 		"blockExternalContentSender_action": "Bilder immer blockieren",
+		"blockNewsletterBanner_action": "Banner für Absender ausblenden",
 		"blue_label": "Blau",
 		"bluesky_label": "Bluesky",
 		"bonus_label": "Bonus",
