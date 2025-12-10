@@ -234,6 +234,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 				style: {
 					gridColumn: "1/-1",
 					gridTemplateColumns: "subgrid",
+					overflowX: "hidden", // explicitly set overflow-x to fix a layout issue for safari browser on macOS
 				} satisfies Partial<CSSStyleDeclaration>,
 				oncreate: (vnode: VnodeDOM) => {
 					const scrollToCurrentTime = attrs.headerComponentAttrs.dates.length === 1 && periodHasToday
