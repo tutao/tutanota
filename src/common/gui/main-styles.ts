@@ -3321,7 +3321,7 @@ styles.registerStyle("main", () => {
 			"transition-duration": `${DefaultAnimationTime / 2}ms`,
 			"transition-timing-function": "ease-out",
 		},
-		".login-textfield:hover:not(:has(input:focus))": {
+		".login-textfield:hover:has(input):not(:has(input:focus))": {
 			"background-color": theme.state_bg_focus,
 		},
 		".line-height-1": {

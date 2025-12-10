@@ -2141,3 +2141,5 @@ export type TranslationKeyType =
 	| "recovery_kit_page_subtitle"
 	| "recovery_kit_page_checkbox_msg"
 	| "recovery_kit_page_continue_label"
+	| "confirm_order_page_title"
+	| "confirm_order_page_subtitle"
