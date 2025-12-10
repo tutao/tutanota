@@ -49,7 +49,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 					m(".flex.col.flex-grow.gap-8", [
 						m(".flex.col.gap-8", [
 							m(
-								".flex.col.items-center.pt-24.pb-24.plr-64.border-radius-16.gap-16",
+								".flex.items-center.pt-24.pb-24.plr-64.border-radius-16.gap-24",
 								{
 									style: {
 										"background-color": theme.surface_container_high,
@@ -76,7 +76,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 											border: false,
 										}),
 									),
-									m(".flex.gap-16", [
+									m(".flex.col.items-start.full-width.justify-center.gap-16", [
 										m(SecondaryButton, {
 											label: "recoveryCode_label",
 											icon: Icons.Clipboard,
