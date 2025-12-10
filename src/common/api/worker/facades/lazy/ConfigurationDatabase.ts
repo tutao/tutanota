@@ -1,7 +1,7 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
-import { ExternalImageRule, OperationType } from "../../../common/TutanotaConstants.js"
+import { ExternalImageRule, NewsletterBannerRule, OperationType } from "../../../common/TutanotaConstants.js"
 import {
 	Aes128Key,
 	Aes256Key,
@@ -31,9 +31,10 @@ import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraf
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
 
-const VERSION: number = 4
+const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
+const NewsletterBannerListOS: ObjectStoreName = "NewsletterBannerListOS"
 
 export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
 type EncryptionMetadata = {
@@ -242,6 +243,30 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		return rule
 	}
 
+	async addNewsletterBannerRule(address: string, rule: NewsletterBannerRule): Promise<void> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		return addAddressToNewsletterBannerList(db, encryptedAddress, rule)
+	}
+
+	async getNewsletterBannerRule(address: string): Promise<NewsletterBannerRule> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) return NewsletterBannerRule.Allow
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		const transaction = await db.createTransaction(true, [NewsletterBannerListOS])
+		const entry = await transaction.get(NewsletterBannerListOS, encryptedAddress)
+		let rule = NewsletterBannerRule.Allow
+
+		if (entry != null) {
+			if (entry.rule != null) {
+				rule = entry.rule
+			}
+		}
+
+		return rule
+	}
+
 	async loadConfigDb(user: User, keyLoaderFacade: KeyLoaderFacade): Promise<ConfigDb> {
 		const id = this.getDbId(user._id)
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
@@ -258,6 +283,12 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 
 			if (event.oldVersion < 4) {
 				db.createObjectStore(SpamClassificationModelOS)
+			}
+
+			if (event.oldVersion < 5) {
+				db.createObjectStore(NewsletterBannerListOS, {
+					keyPath: "address",
+				})
 			}
 
 			// put all createObjectStore calls above this line because the version change transaction is not async
@@ -444,6 +475,22 @@ async function addAddressToImageList(db: DbFacade, encryptedAddress: Uint8Array,
 	} catch (e) {
 		if (e instanceof DbError) {
 			console.error("failed to add address to image list:", e.message)
+			return
+		}
+		throw e
+	}
+}
+
+async function addAddressToNewsletterBannerList(db: DbFacade, encryptedAddress: Uint8Array, rule: NewsletterBannerRule): Promise<void> {
+	try {
+		const transaction = await db.createTransaction(false, [NewsletterBannerListOS])
+		await transaction.put(NewsletterBannerListOS, null, {
+			address: encryptedAddress,
+			rule: rule,
+		})
+	} catch (e) {
+		if (e instanceof DbError) {
+			console.error("failed to add address to newsletter banner list:", e.message)
 			return
 		}
 		throw e

@@ -392,6 +392,7 @@ export type TranslationKeyType =
 	| "showHeaders_action"
 	| "showContact_action"
 	| "showBlockedContent_action"
+	| "blockNewsletterBanner_action"
 	| "showAllMailsInThread_label"
 	| "showAddress_alt"
 	| "shortcut_label"

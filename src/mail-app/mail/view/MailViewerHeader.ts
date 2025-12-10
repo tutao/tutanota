@@ -8,7 +8,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/b
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../common/api/common/TutanotaConstants.js"
+import { InboxRuleType, Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
@@ -672,7 +672,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderNewsletterBanner(viewModel: MailViewerViewModel): Children | null {
-		if (viewModel.hasListUnsubscribeHeader()) {
+		if (viewModel.hasListUnsubscribeHeader() && viewModel.getNewsletterBannerRule() === NewsletterBannerRule.Allow) {
 			return m(InfoBanner, {
 				message: viewModel.isListUnsubscribe() ? "newsletterBanner_msg" : "newsletterBannerUnsubscribed_msg",
 				icon: Icons.PricingMail,
@@ -682,6 +682,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							{
 								label: "unsubscribe_action",
 								click: () => unsubscribe(viewModel).then(() => m.redraw()),
+							},
+							{
+								label: "blockNewsletterBanner_action",
+								click: () => {
+									viewModel.setNewsletterBannerRuleConfig(NewsletterBannerRule.Block).then(async () => {
+										await viewModel.updateNewsletterBannerRule()
+										m.redraw()
+									})
+								},
 							},
 						]
 					: [],
