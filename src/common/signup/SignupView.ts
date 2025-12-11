@@ -32,6 +32,9 @@ import { InvoiceAndPaymentDataPageNew } from "./InvoiceAndPaymentDataPageNew"
 import { SignupOrderConfirmationPage } from "./SignupOrderConfirmationPage"
 import { SignupRecoveryKitPage } from "./SignupRecoveryKitPage"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
+import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
+import { theme } from "../gui/theme"
+import { BootIcons } from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -209,7 +212,21 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 			},
 			[
 				!this.wizardViewModel.isInitialized
-					? m("", "Loading spinner!")
+					? m(
+							".flex-grow.flex.col.justify-center",
+							/** FIXME:
+							 * - not showing a message at all may be preferrable because most of the
+							 * time, it's not shown long enough to read (but links should still be at the bottom)
+							 * - the pop-in of the wizard is quite jarring once the init is done,
+							 * compared to our previous slide-in. we should consider some kind of
+							 * animation.
+							 */
+							m(IconMessageBox, {
+								icon: BootIcons.Progress,
+								message: "pleaseWait_msg",
+								color: theme.on_surface_variant,
+							} satisfies InfoMessaggeBoxAttrs),
+						)
 					: m(this.SignupWizard, {
 							steps: [
 								// FIXME: Just for styling purpose
