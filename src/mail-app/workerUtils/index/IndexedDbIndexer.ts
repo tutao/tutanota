@@ -539,7 +539,7 @@ export class IndexedDbIndexer implements Indexer {
 				throw e
 			}
 			const batchesToQueue: QueuedBatch[] = await promiseMap(eventBatchesOnServer, async (entityEventBatch) => {
-				const updatesArray = await promiseMap(entityEventBatch.events, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+				const updatesArray = await promiseMap(entityEventBatch.events, (event) => entityUpdateToUpdateData(event))
 				return {
 					groupId: groupId,
 					batchId: getElementId(entityEventBatch),

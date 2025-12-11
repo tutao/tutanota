@@ -74,7 +74,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 	o("When there is at least one element per list - fetch all of em", async () => {
 		const updateTemplate = await entityUpdateToUpdateData(
-			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
 				_id: "eventBatch",
 				application: "tutanota",
@@ -250,7 +249,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			typeId: MailTypeRef.typeId.toString(),
 		})
 
-		const firstUpdate: EntityUpdateData<Mail> = await entityUpdateToUpdateData(typeModelResolver, testEntity, downcast({}))
+		const firstUpdate: EntityUpdateData<Mail> = await entityUpdateToUpdateData(testEntity, downcast({}))
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { instance: null, instanceId: id2 })
 
 		const allUpdates = Array.of(firstUpdate, secondUpdate)
@@ -269,7 +268,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 	o("When a update event have a patchList attached to it, still prefetches", async () => {
 		const firstUpdate: EntityUpdateData<Mail> = await entityUpdateToUpdateData(
-			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
 				operation: OperationType.UPDATE,
 				instanceListId: "firstListId",
@@ -299,7 +297,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 	o("Ignores update events for non list elements", async () => {
 		const firstUpdate = await entityUpdateToUpdateData(
-			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
 				operation: OperationType.UPDATE,
 				instanceListId: "",
