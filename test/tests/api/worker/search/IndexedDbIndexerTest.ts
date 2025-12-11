@@ -581,7 +581,7 @@ o.spec("IndexedDbIndexer", () => {
 					{
 						groupId,
 						batchId: getElementId(batches[0]),
-						events: await promiseMap(batches[0].events, (event) => entityUpdateToUpdateData(clientTypeModelResolver, event)),
+						events: await promiseMap(batches[0].events, (event) => entityUpdateToUpdateData(event)),
 					},
 				]),
 			)
@@ -638,7 +638,7 @@ o.spec("IndexedDbIndexer", () => {
 					{
 						groupId,
 						batchId: getElementId(batches[0]),
-						events: await promiseMap(batches[0].events, (event) => entityUpdateToUpdateData(clientTypeModelResolver, event)),
+						events: await promiseMap(batches[0].events, (event) => entityUpdateToUpdateData(event)),
 					},
 				]),
 			)
@@ -713,7 +713,7 @@ o.spec("IndexedDbIndexer", () => {
 					{
 						groupId,
 						batchId: getElementId(batches[0]),
-						events: await promiseMap(batches[0].events, (event) => entityUpdateToUpdateData(clientTypeModelResolver, event)),
+						events: await promiseMap(batches[0].events, (event) => entityUpdateToUpdateData(event)),
 					},
 				]),
 			)
@@ -767,7 +767,6 @@ o.spec("IndexedDbIndexer", () => {
 							operation: OperationType.CREATE,
 							instanceListId: "list",
 							instanceId: "event1",
-							type: "",
 							instance: null,
 							patch: null,
 						}),
@@ -777,7 +776,6 @@ o.spec("IndexedDbIndexer", () => {
 							operation: OperationType.CREATE,
 							instanceListId: "list",
 							instanceId: "event2",
-							type: "",
 							instance: null,
 							patch: null,
 						}),

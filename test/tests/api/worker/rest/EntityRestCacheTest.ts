@@ -149,7 +149,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			prefetchStatus: PrefetchStatus,
 		): Promise<EntityUpdateData<T>> {
 			const entityUpdate = createEntityUpdate({
-				type: undefined as any, // no need for type since we have passed typeId
 				instanceListId: listId,
 				instanceId: elementId,
 				operation: operation,
@@ -159,7 +158,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				instance: null, // will be added by entityUpdateToUpdateData
 			})
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
-			return await entityUpdateToUpdateData(downcast(undefined), entityUpdate, instanceParsed, prefetchStatus)
+			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, prefetchStatus)
 		}
 		let updateDataForCreate = function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
@@ -355,7 +354,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 					// CREATE entity update without instance
 					const entityUpdateContact1 = createEntityUpdate({
-						type: undefined as any, // no need for type since we have passed typeId
 						instanceListId: firstContactListId,
 						instanceId: id1,
 						operation: "0",
@@ -364,12 +362,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						patch: null,
 						instance: null, // will be added by entityUpdateToUpdateData
 					})
-					const contact1EntityUpdate = await entityUpdateToUpdateData(
-						downcast(undefined),
-						entityUpdateContact1,
-						null, // instance is null, trigger re-load
-						PrefetchStatus.NotPrefetched,
-					)
+					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, null, PrefetchStatus.NotPrefetched)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id2],
@@ -378,7 +371,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 					// CREATE entity update without instance
 					const entityUpdateContact3 = createEntityUpdate({
-						type: undefined as any, // no need for type since we have passed typeId
 						instanceListId: firstContactListId,
 						instanceId: id3,
 						operation: "0",
@@ -387,12 +379,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						patch: null,
 						instance: null, // will be added by entityUpdateToUpdateData
 					})
-					const contact3EntityUpdate = await entityUpdateToUpdateData(
-						downcast(undefined),
-						entityUpdateContact3,
-						null, // instance is null, trigger re-load
-						PrefetchStatus.NotPrefetched,
-					)
+					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, null, PrefetchStatus.NotPrefetched)
 
 					const batch: readonly EntityUpdateData[] = [
 						contact1EntityUpdate,
@@ -421,7 +408,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						_ownerGroup: ownerGroupId,
 					})
 					const entityUpdateContact1 = createEntityUpdate({
-						type: undefined as any, // no need for type since we have passed typeId
 						instanceListId: firstContactListId,
 						instanceId: id1,
 						operation: "0",
@@ -432,12 +418,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					})
 					const contact1Parsed = await toStorableInstance(contact1)
 					contact1Parsed._errors = { 12: "some error for contact 1" }
-					const contact1EntityUpdate = await entityUpdateToUpdateData(
-						downcast(undefined),
-						entityUpdateContact1,
-						contact1Parsed,
-						PrefetchStatus.NotPrefetched,
-					)
+					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, PrefetchStatus.NotPrefetched)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id2],
@@ -449,7 +430,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						_ownerGroup: ownerGroupId,
 					})
 					const entityUpdateContact3 = createEntityUpdate({
-						type: undefined as any, // no need for type since we have passed typeId
 						instanceListId: firstContactListId,
 						instanceId: id3,
 						operation: "0",
@@ -460,12 +440,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					})
 					const contact3Parsed = await toStorableInstance(contact3)
 					contact3Parsed._errors = { 12: "some error for contact 3" }
-					const contact3EntityUpdate = await entityUpdateToUpdateData(
-						downcast(undefined),
-						entityUpdateContact3,
-						contact3Parsed,
-						PrefetchStatus.NotPrefetched,
-					)
+					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, PrefetchStatus.NotPrefetched)
 
 					const batch: readonly EntityUpdateData[] = [
 						contact1EntityUpdate,

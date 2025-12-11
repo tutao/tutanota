@@ -128,21 +128,6 @@ export class ClientModelInfo {
 			return typeModel
 		}
 	}
-
-	/**
-	 * To be removed 45 days after attrIds server release
-	 * @param app
-	 * @param typeName
-	 */
-	public resolveTypeRefFromAppAndTypeNameLegacy(app: AppName, typeName: string): TypeRef<any> {
-		const typeModels = this.typeModels[app]
-		for (const [typeModelId, typeModel] of Object.entries(typeModels)) {
-			if (typeModel.name === typeName) {
-				return new TypeRef(app, parseInt(typeModelId))
-			}
-		}
-		throw new Error("Cannot find type with name " + typeName + " in app " + app)
-	}
 }
 
 export class ServerModelInfo {
@@ -364,8 +349,6 @@ export function _verifyType(typeModel: ClientTypeModel) {
 
 export interface ClientTypeModelResolver {
 	resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel>
-
-	resolveTypeRefFromAppAndTypeNameLegacy(app: AppName, typeName: string): TypeRef<any>
 }
 
 export interface ServerTypeModelResolver {
@@ -388,10 +371,6 @@ export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeMod
 
 	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
 		return this.serverModelInfo.resolveServerTypeReference(typeRef)
-	}
-
-	resolveTypeRefFromAppAndTypeNameLegacy(app: AppName, typeName: string): TypeRef<any> {
-		return this.clientModelInfo.resolveTypeRefFromAppAndTypeNameLegacy(app, typeName)
 	}
 
 	getServerApplicationTypesModelHash(): ApplicationTypesHash | null {

@@ -31,18 +31,14 @@ export enum PrefetchStatus {
 }
 
 export async function entityUpdateToUpdateData<T extends SomeEntity>(
-	clientTypeModelResolver: ClientTypeModelResolver,
 	update: EntityUpdate,
 	instance: Nullable<ServerModelParsedInstance> = null,
 	prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
 ): Promise<EntityUpdateData<T>> {
-	const typeId = update.typeId ? parseInt(update.typeId) : null
-	const typeIdOfEntityUpdateType = typeId
-		? new TypeRef<SomeEntity>(update.application as AppName, typeId)
-		: clientTypeModelResolver.resolveTypeRefFromAppAndTypeNameLegacy(update.application as AppName, update.type)
-
+	const typeId = parseInt(update.typeId)
+	const typeRefOfEntityUpdateType = new TypeRef<T>(update.application as AppName, typeId)
 	return {
-		typeRef: typeIdOfEntityUpdateType,
+		typeRef: typeRefOfEntityUpdateType,
 		instanceListId: (update.instanceListId === "" ? null : update.instanceListId) as EntityUpdateData<T>["instanceListId"],
 		instanceId: update.instanceId,
 		operation: update.operation as OperationType,
