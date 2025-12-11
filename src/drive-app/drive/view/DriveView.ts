@@ -24,7 +24,6 @@ import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { noOp } from "@tutao/tutanota-utils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -181,8 +180,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems)),
 									onDelete:
 										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
-											? // FIXME
-												noOp
+											? () => this.driveViewModel.deleteFromTrash(Array.from(listState.selectedItems))
 											: null,
 									onRestore:
 										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0

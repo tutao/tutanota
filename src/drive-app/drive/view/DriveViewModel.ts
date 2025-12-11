@@ -149,7 +149,7 @@ export class DriveViewModel {
 		private readonly eventController: EventController,
 		private readonly updateUi: () => unknown,
 	) {
-		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade)
+		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade, updateUi)
 		this.userMailAddress = getDefaultSenderFromUser(locator.logins.getUserController())
 	}
 
@@ -227,8 +227,13 @@ export class DriveViewModel {
 				if (this.currentFolder == null) {
 					continue
 				}
-				const item = await this.loadItem(isUpdateForTypeRef(DriveFolderTypeRef, update) ? "folder" : "file", [update.instanceListId, update.instanceId])
-				this.listModel.updateLoadedItem(item)
+				if (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE) {
+					const item = await this.loadItem(isUpdateForTypeRef(DriveFolderTypeRef, update) ? "folder" : "file", [
+						update.instanceListId,
+						update.instanceId,
+					])
+					this.listModel.updateLoadedItem(item)
+				}
 			}
 		}
 	}
@@ -278,6 +283,11 @@ export class DriveViewModel {
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
 		await this.driveFacade.restoreFromTrash(items.map(folderItemEntity))
+		this.selectNone()
+	}
+
+	async deleteFromTrash(items: readonly FolderItem[]) {
+		await this.driveFacade.deleteFromTrash(items.map(folderItemEntity))
 		this.selectNone()
 	}
 

@@ -13,6 +13,7 @@ import { UploadProgressListener } from "../../main/UploadProgressListener"
 import {
 	createDriveCopyServicePostIn,
 	createDriveCreateData,
+	createDriveDeleteIn,
 	createDriveFolderServiceDeleteIn,
 	createDriveFolderServicePostIn,
 	createDriveFolderServicePutIn,
@@ -138,6 +139,16 @@ export class DriveFacade {
 			})
 			await this.serviceExecutor.delete(DriveFolderService, restoreData)
 		}
+	}
+
+	public async deleteFromTrash(items: (DriveFile | DriveFolder)[]) {
+		const [files, folders] = partition(items, isDriveFile)
+
+		const deleteData = createDriveDeleteIn({
+			files: files.map((f) => f._id),
+			folders: folders.map((f) => f._id),
+		})
+		await this.serviceExecutor.delete(DriveService, deleteData)
 	}
 
 	public async loadRootFolders(): Promise<{ root: IdTuple; trash: IdTuple }> {

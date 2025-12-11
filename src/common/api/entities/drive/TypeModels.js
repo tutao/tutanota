@@ -706,69 +706,63 @@ export const typeModels = {
 		"associations": {
 			"78": {
 				"final": false,
-				"name": "fileToDelete",
+				"name": "files",
 				"id": 78,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
+				"cardinality": "Any",
 				"refTypeId": 14,
+				"dependency": null
+			},
+			"79": {
+				"final": false,
+				"name": "folders",
+				"id": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 0,
 				"dependency": null
 			}
 		}
 	},
-	"79": {
-		"name": "DriveDeleteOut",
-		"app": "drive",
-		"version": 1,
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 79,
-		"rootId": "BWRyaXZlAE8",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"80": {
-				"final": false,
-				"name": "_format",
-				"id": 80,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {}
-	},
-	"82": {
+	"81": {
 		"name": "DriveFolderServicePostIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 82,
-		"rootId": "BWRyaXZlAFI",
+		"id": 81,
+		"rootId": "BWRyaXZlAFE",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"83": {
+			"82": {
 				"final": false,
 				"name": "_format",
-				"id": 83,
+				"id": 82,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"84": {
+			"83": {
 				"final": true,
 				"name": "folderName",
-				"id": 84,
+				"id": 83,
 				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"84": {
+				"final": true,
+				"name": "createdDate",
+				"id": 84,
+				"type": "Date",
 				"cardinality": "One",
 				"encrypted": true
 			},
 			"85": {
 				"final": true,
-				"name": "createdDate",
+				"name": "updatedDate",
 				"id": 85,
 				"type": "Date",
 				"cardinality": "One",
@@ -776,26 +770,18 @@ export const typeModels = {
 			},
 			"86": {
 				"final": true,
-				"name": "updatedDate",
-				"id": 86,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"87": {
-				"final": true,
 				"name": "ownerEncSessionKey",
-				"id": 87,
+				"id": 86,
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"88": {
+			"87": {
 				"final": true,
 				"name": "parent",
-				"id": 88,
+				"id": 87,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
@@ -803,32 +789,32 @@ export const typeModels = {
 			}
 		}
 	},
-	"89": {
+	"88": {
 		"name": "DriveFolderServicePostOut",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 89,
-		"rootId": "BWRyaXZlAFk",
+		"id": 88,
+		"rootId": "BWRyaXZlAFg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"90": {
+			"89": {
 				"final": false,
 				"name": "_format",
-				"id": 90,
+				"id": 89,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"91": {
+			"90": {
 				"final": true,
 				"name": "folder",
-				"id": 91,
+				"id": 90,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
@@ -836,50 +822,50 @@ export const typeModels = {
 			}
 		}
 	},
-	"92": {
+	"91": {
 		"name": "DriveFolderServicePutIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 92,
-		"rootId": "BWRyaXZlAFw",
+		"id": 91,
+		"rootId": "BWRyaXZlAFs",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"93": {
+			"92": {
 				"final": false,
 				"name": "_format",
-				"id": 93,
+				"id": 92,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"94": {
+			"93": {
 				"final": true,
 				"name": "files",
-				"id": 94,
+				"id": 93,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 14,
 				"dependency": null
 			},
-			"95": {
+			"94": {
 				"final": true,
 				"name": "folders",
-				"id": 95,
+				"id": 94,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 0,
 				"dependency": null
 			},
-			"96": {
+			"95": {
 				"final": true,
 				"name": "destination",
-				"id": 96,
+				"id": 95,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
@@ -887,49 +873,49 @@ export const typeModels = {
 			}
 		}
 	},
-	"97": {
+	"96": {
 		"name": "DriveFolderServiceDeleteIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 97,
-		"rootId": "BWRyaXZlAGE",
+		"id": 96,
+		"rootId": "BWRyaXZlAGA",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"98": {
+			"97": {
 				"final": false,
 				"name": "_format",
-				"id": 98,
+				"id": 97,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"101": {
+			"100": {
 				"final": false,
 				"name": "restore",
-				"id": 101,
+				"id": 100,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"99": {
+			"98": {
 				"final": true,
 				"name": "files",
-				"id": 99,
+				"id": 98,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 14,
 				"dependency": null
 			},
-			"100": {
+			"99": {
 				"final": true,
 				"name": "folders",
-				"id": 100,
+				"id": 99,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 0,
@@ -937,57 +923,57 @@ export const typeModels = {
 			}
 		}
 	},
-	"103": {
+	"102": {
 		"name": "DriveRenameData",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 103,
-		"rootId": "BWRyaXZlAGc",
+		"id": 102,
+		"rootId": "BWRyaXZlAGY",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"104": {
+			"103": {
 				"final": true,
 				"name": "_id",
-				"id": 104,
+				"id": 103,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"105": {
+			"104": {
 				"final": true,
 				"name": "encNewName",
-				"id": 105,
+				"id": 104,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"106": {
+			"105": {
 				"final": true,
 				"name": "encNewDate",
-				"id": 106,
+				"id": 105,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"107": {
+			"106": {
 				"final": true,
 				"name": "file",
-				"id": 107,
+				"id": 106,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 14,
 				"dependency": null
 			},
-			"108": {
+			"107": {
 				"final": true,
 				"name": "folder",
-				"id": 108,
+				"id": 107,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
@@ -995,41 +981,41 @@ export const typeModels = {
 			}
 		}
 	},
-	"109": {
+	"108": {
 		"name": "DriveCopyServicePostIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 109,
-		"rootId": "BWRyaXZlAG0",
+		"id": 108,
+		"rootId": "BWRyaXZlAGw",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"110": {
+			"109": {
 				"final": false,
 				"name": "_format",
-				"id": 110,
+				"id": 109,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"111": {
+			"110": {
 				"final": false,
 				"name": "items",
-				"id": 111,
+				"id": 110,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 103,
+				"refTypeId": 102,
 				"dependency": null
 			},
-			"112": {
+			"111": {
 				"final": false,
 				"name": "destination",
-				"id": 112,
+				"id": 111,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,

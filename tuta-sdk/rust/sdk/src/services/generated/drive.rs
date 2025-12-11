@@ -14,7 +14,6 @@ use crate::entities::generated::drive::DriveCreateData;
 use crate::entities::generated::drive::DriveCreateReturn;
 use crate::entities::generated::drive::DrivePutIn;
 use crate::entities::generated::drive::DriveDeleteIn;
-use crate::entities::generated::drive::DriveDeleteOut;
 pub struct DriveCopyService;
 
 crate::service_impl!(declare, DriveCopyService, "drive/drivecopyservice", 1);
@@ -34,4 +33,4 @@ pub struct DriveService;
 crate::service_impl!(declare, DriveService, "drive/driveservice", 1);
 crate::service_impl!(POST, DriveService, DriveCreateData, DriveCreateReturn);
 crate::service_impl!(PUT, DriveService, DrivePutIn, ());
-crate::service_impl!(DELETE, DriveService, DriveDeleteIn, DriveDeleteOut);
+crate::service_impl!(DELETE, DriveService, DriveDeleteIn, ());
