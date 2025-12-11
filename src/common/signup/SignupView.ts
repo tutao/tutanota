@@ -256,6 +256,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									title: "Order Confirmation",
 									content: SignupOrderConfirmationPage,
 									onNext: () => console.log("another next action"),
+									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},
 								{
 									title: "Recovery Kit",

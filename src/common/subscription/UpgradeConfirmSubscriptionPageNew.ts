@@ -30,7 +30,6 @@ import { layout_size, px } from "../gui/size"
 import { theme } from "../gui/theme"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { IconButton } from "../gui/base/IconButton"
 
 export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepContext<SignupViewModel>> {
@@ -90,7 +89,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 									isReadOnly: true,
 									class: "",
 									leadingIcon: {
-										icon: Icons.CreditCard,
+										icon: data.paymentData.paymentMethod === PaymentMethodType.Paypal ? Icons.Paypal : Icons.CreditCard,
 										color: theme.on_surface_variant,
 									},
 									injectionsRight: () => {
@@ -129,7 +128,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 									isReadOnly: true,
 									class: "",
 									leadingIcon: {
-										icon: BootIcons.Progress,
+										icon: Icons.Refresh,
 										color: theme.on_surface_variant,
 									},
 
@@ -143,33 +142,33 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 										})
 									},
 								}),
-								!isAppStorePayment &&
-									m.fragment({}, [
-										isFirstMonthForFree &&
-											m(LoginTextField, {
-												label: lang.getTranslation("priceTill_label", {
-													"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
-												}),
-												value: formatPrice(0, true),
-												isReadOnly: true,
-												class: "",
-												leadingIcon: {
-													icon: Icons.Legend,
-													color: theme.on_surface_variant,
-												},
-											}),
-										m(LoginTextField, {
-											label: this.buildPriceLabel(isYearly, attrs),
-											value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
-											isReadOnly: true,
-											class: "",
-											leadingIcon: {
-												icon: Icons.Legend,
-												color: theme.on_surface_variant,
-											},
+								// !isAppStorePayment &&
+								m.fragment({}, [
+									// isFirstMonthForFree &&
+									m(LoginTextField, {
+										label: lang.getTranslation("priceTill_label", {
+											"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
 										}),
-										this.renderPriceNextYear(data),
-									]),
+										value: formatPrice(0, true),
+										isReadOnly: true,
+										class: "",
+										leadingIcon: {
+											icon: Icons.WalletOutline,
+											color: theme.on_surface_variant,
+										},
+									}),
+									m(LoginTextField, {
+										label: this.buildPriceLabel(isYearly, attrs),
+										value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
+										isReadOnly: true,
+										class: "",
+										leadingIcon: {
+											icon: Icons.WalletOutline,
+											color: theme.on_surface_variant,
+										},
+									}),
+									this.renderPriceNextYear(data),
+								]),
 							],
 						),
 						m(
