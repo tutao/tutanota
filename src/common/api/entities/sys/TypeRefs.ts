@@ -797,11 +797,10 @@ export type EntityUpdate = {
 
 	_id: Id;
 	application: string;
-	type: string;
 	instanceListId: string;
 	instanceId: string;
 	operation: NumberString;
-	typeId: null | NumberString;
+	typeId: NumberString;
 	instance: null | string;
 
 	patch: null | PatchList;

@@ -134,12 +134,4 @@ o.spec("EntityFunctionsTest", function () {
 			await serverModelInfo.resolveServerTypeReference(MailTypeRef)
 		})
 	})
-
-	o("resolveTypeRefFromAppAndTypeNameLegacy resolves the TypeRef successfully", async () => {
-		const app = "tutanota" as AppName
-		const mailTypeId = 97
-		const mailTypeName = clientModelInfo.typeModels.tutanota[mailTypeId].name
-		const mailTypeRef = ClientModelInfo.getNewInstanceForTestsOnly().resolveTypeRefFromAppAndTypeNameLegacy(app, mailTypeName)
-		o(mailTypeId).equals(mailTypeRef.typeId)
-	})
 })

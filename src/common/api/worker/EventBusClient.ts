@@ -306,7 +306,7 @@ export class EventBusClient {
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
 				const updates = await promiseMap(entityUpdateData.entityUpdates, async (event) => {
 					let instance = await this.getInstanceFromEntityEvent(event)
-					return entityUpdateToUpdateData(this.typeModelResolver, event, instance)
+					return entityUpdateToUpdateData(event, instance)
 				})
 
 				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, updates)
@@ -343,7 +343,7 @@ export class EventBusClient {
 	}
 
 	private async getInstanceFromEntityEvent(event: EntityUpdate): Promise<Nullable<ServerModelParsedInstance>> {
-		const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId!))
+		const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId))
 		if (event.instance != null) {
 			try {
 				const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -563,7 +563,7 @@ export class EventBusClient {
 		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
 			const updates = await promiseMap(batch.events, async (event) => {
-				return entityUpdateToUpdateData(this.typeModelResolver, event)
+				return entityUpdateToUpdateData(event)
 			})
 			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), updates, eventQueue)
 
