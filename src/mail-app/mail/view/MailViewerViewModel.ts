@@ -323,8 +323,8 @@ export class MailViewerViewModel {
 		return isMailScheduled(this.mail)
 	}
 
-	unscheduleMail() {
-		this.mailModel.unscheduleMail(this.mail)
+	async unscheduleMail(): Promise<void> {
+		await this.mailModel.unscheduleMail(this.mail)
 	}
 
 	isEditableDraft() {

@@ -372,7 +372,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					buttons: [
 						{
 							label: "cancelSend_action",
-							click: () => viewModel.unscheduleMail(),
+							click: async () => {
+								await viewModel.unscheduleMail()
+								editDraft(viewModel)
+							},
 						},
 					],
 				}),
@@ -876,7 +879,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				if (viewModel.isScheduled()) {
 					actionButtons.push({
 						label: "cancelSend_action",
-						click: () => viewModel.unscheduleMail(),
+						click: async () => {
+							await viewModel.unscheduleMail()
+							editDraft(viewModel)
+						},
 						icon: Icons.XCross,
 					})
 				} else if (viewModel.isDraftMail()) {
