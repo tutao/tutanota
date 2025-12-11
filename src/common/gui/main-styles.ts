@@ -1477,6 +1477,12 @@ styles.registerStyle("main", () => {
 			"max-width": px(component_size.button_height),
 			"max-height": px(component_size.button_height),
 		},
+		".wizard-page": {
+			transition: `opacity ${DefaultAnimationTime}ms ease-out`,
+		},
+		".wizard-page-transition": {
+			opacity: 0,
+		},
 		".wizard-next-button": {
 			"margin-top": "auto",
 			"margin-bottom": px(size.spacing_16),

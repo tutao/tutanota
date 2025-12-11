@@ -1,3 +1,6 @@
+import m from "mithril"
+import { DefaultAnimationTime } from "../../animation/Animations"
+
 export interface WizardProgressItem {
 	label: string
 	isCompleted: boolean
@@ -14,6 +17,7 @@ export interface WizardProgressViewItem extends WizardProgressItem {
 export class WizardController {
 	private _currentStep = 0
 	private _steps: WizardProgressItem[] = []
+	private _isInTransition = false
 
 	constructor(initialLabels?: string[]) {
 		if (initialLabels) this.initSteps(initialLabels)
@@ -38,10 +42,19 @@ export class WizardController {
 	get progressItems(): WizardProgressItem[] {
 		return this._steps
 	}
+
+	get isInTransition() {
+		return this._isInTransition
+	}
+
 	public setStep(target: number): void {
 		if (target < 0 || target >= this._steps.length) return
-		// if (!this._steps[target].isReachable) return
-		this._currentStep = target
+		this._isInTransition = true
+		setTimeout(() => {
+			this._currentStep = target
+			m.redraw()
+			this._isInTransition = false
+		}, DefaultAnimationTime * 2)
 	}
 
 	public next(): void {

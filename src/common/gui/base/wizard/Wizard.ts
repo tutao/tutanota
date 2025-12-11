@@ -138,7 +138,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 								}),
 						),
 					]),
-					m(".flex.height-100p.full-width", m(currentStep.content, { ctx })),
+					m(`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`, m(currentStep.content, { ctx })),
 				],
 			)
 		},
