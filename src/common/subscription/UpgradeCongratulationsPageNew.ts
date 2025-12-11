@@ -6,7 +6,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
-import { layout_size, px, size } from "../gui/size"
+import { layout_size, px } from "../gui/size"
 import { theme } from "../gui/theme"
 import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
 import { LoginButton, SecondaryButton, SecondaryButtonAttrs } from "../gui/base/buttons/LoginButton"
@@ -14,6 +14,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { Checkbox } from "../gui/base/Checkbox"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	private acceptedWarning: boolean = false
@@ -25,14 +26,15 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 		)
 	}
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		let { newAccountData } = attrs.viewModel
-		if (!newAccountData) {
-			newAccountData = {
-				recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
-				mailAddress: "placeholder@tuta.de",
-				password: "dfkjkdfjkdfjkjdf:w",
-			}
-		}
+		const { newAccountData } = attrs.viewModel
+		assertNotNull(newAccountData)
+		// if (!newAccountData) {
+		// 	newAccountData = {
+		// 		recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
+		// 		mailAddress: "placeholder@tuta.de",
+		// 		password: "dfkjkdfjkdfjkjdf:w",
+		// 	}
+		// }
 
 		return m(
 			".flex.flex-column.full-width",
@@ -49,7 +51,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 					m(".flex.col.flex-grow.gap-8", [
 						m(".flex.col.gap-8", [
 							m(
-								".flex.items-center.pt-24.pb-24.plr-64.border-radius-16.gap-24",
+								".flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24",
 								{
 									style: {
 										"background-color": theme.surface_container_high,
@@ -57,32 +59,29 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 								},
 								[
 									m(
-										"",
+										".plr-24.pt-16.pb-16.border-radius-8.b",
 										{
 											style: {
 												"background-color": theme.surface_container_highest,
 												color: theme.on_surface_variant,
-												"border-radius": px(size.radius_8),
-												padding: px(size.spacing_16),
 												"font-size": px(20),
-												"font-weight": "bold",
 											},
 										},
 
 										m(MonospaceTextDisplay, {
-											text: newAccountData.recoverCode,
+											text: newAccountData!.recoverCode,
 											chunksPerLine: 4,
 											chunkSize: 4,
 											border: false,
 										}),
 									),
-									m(".flex.col.items-start.full-width.justify-center.gap-16", [
+									m(".flex.col.items-start.full-width.gap-16", [
 										m(SecondaryButton, {
 											label: "recoveryCode_label",
 											icon: Icons.Clipboard,
 											text: "Copy Recovery Code",
 											onclick: () => {
-												copyToClipboard(newAccountData?.recoverCode)
+												copyToClipboard(newAccountData!.recoverCode)
 												void showSnackBar({
 													message: "copied_msg",
 													showingTime: 3000,
@@ -97,7 +96,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 											icon: Icons.Download,
 											text: "Download PDF-File",
 											onclick: () => {
-												this.saveRecoveryCodeAsPdf(newAccountData?.recoverCode)
+												this.saveRecoveryCodeAsPdf(newAccountData!.recoverCode)
 											},
 											class: "flex-grow",
 										} satisfies SecondaryButtonAttrs),
@@ -118,8 +117,8 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 							m(LoginButton, {
 								width: "flex",
 								label: "recovery_kit_page_continue_label",
-								onclick: () => {
-									attrs.goNext()
+								onclick: async () => {
+									await this.close(attrs.viewModel)
 								},
 								disabled: !this.acceptedWarning,
 							}),
