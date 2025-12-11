@@ -15,7 +15,10 @@ type InternalMapState = Record<FileId, DriveUploadState>
 export class DriveUploadStackModel {
 	state: InternalMapState = {}
 
-	constructor(private readonly driveFacade: DriveFacade) {}
+	constructor(
+		private readonly driveFacade: DriveFacade,
+		private readonly updateUi: () => unknown,
+	) {}
 
 	addUpload(fileId: FileId, filename: string, totalSize: number) {
 		this.state[fileId] = {
@@ -34,6 +37,10 @@ export class DriveUploadStackModel {
 
 			if (stateForThisFile.uploadedSize >= stateForThisFile.totalSize) {
 				stateForThisFile.isFinished = true
+				setTimeout(() => {
+					delete this.state[fileId]
+					this.updateUi()
+				}, 2000)
 			}
 		} else {
 			console.debug(`${fileId} is not part of the state. This can be due to an upload being canceled`)
