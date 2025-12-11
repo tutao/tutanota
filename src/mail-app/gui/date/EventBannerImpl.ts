@@ -304,6 +304,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			],
 		)
 	}
+
 	private toggleConflictingAgenda() {
 		this.displayConflictingAgenda = !this.displayConflictingAgenda
 	}

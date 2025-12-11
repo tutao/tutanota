@@ -29,7 +29,6 @@ import {
 	extractCalendarEventModifierKey,
 	getCalendarMonth,
 	getDateFromMousePos,
-	getEventColor,
 	layOutEvents,
 	SELECTED_DATE_INDICATOR_THICKNESS,
 	TEMPORARY_EVENT_OPACITY,
@@ -513,7 +512,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				eventWrapper: eventWrapper,
 				startsBefore: eventStart < firstDayOfWeek,
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.flags?.isGhost),
+				color: eventWrapper.color,
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {
