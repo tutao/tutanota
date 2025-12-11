@@ -49,8 +49,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated
 	 */
-	encryptValueDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
-		// TODO
+	encryptValueDeprecatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.AesCbcThenHmac)
 	}
 
