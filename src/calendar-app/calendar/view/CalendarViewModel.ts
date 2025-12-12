@@ -276,7 +276,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		calendarInvitationsModel.init()
 
-		this.eventsRepository.getEventsForMonths().map(() => {
+		this.eventsRepository.getDaysToEvents().map(() => {
 			this.doRedraw()
 		})
 
@@ -415,7 +415,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get eventsForDays(): DaysToEvents {
-		return this.eventsRepository.getEventsForMonths()()
+		return this.eventsRepository.getDaysToEvents()()
 	}
 
 	get redraw(): Stream<void> {
@@ -579,7 +579,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		for (const day of days) {
 			const shortEventsForDay: EventWrapper[] = []
-			const eventsForDay: ReadonlyArray<EventWrapper> = this.eventsRepository.getEventsForMonths()().get(day.getTime()) || []
+			const eventsForDay: ReadonlyArray<EventWrapper> = this.eventsRepository.getDaysToEvents()().get(day.getTime()) || []
 
 			for (const eventWrapper of eventsForDay) {
 				if (transientEventUidsByCalendar.get(getListId(eventWrapper.event))?.has(eventWrapper.event.uid)) {

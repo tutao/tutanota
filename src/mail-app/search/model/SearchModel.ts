@@ -141,7 +141,7 @@ export class SearchModel {
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
 			monitor.completed()
 
-			const eventsForDays = calendarModel.getEventsForMonths()()
+			const eventsForDays = calendarModel.getDaysToEvents()()
 
 			assertNonNull(restriction.start)
 			assertNonNull(restriction.end)
