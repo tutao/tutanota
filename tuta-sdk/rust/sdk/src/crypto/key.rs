@@ -110,10 +110,7 @@ impl GenericAesKey {
 		Ok(decrypted.data)
 	}
 
-	pub fn decrypt_data_and_iv(
-		&self,
-		ciphertext: &[u8],
-	) -> Result<PlaintextAndIv, AesDecryptError> {
+	pub fn decrypt_data_and_iv(&self, ciphertext: &[u8]) -> Result<Plaintext, AesDecryptError> {
 		let decrypted = match self {
 			Self::Aes128(key) => aes_128_decrypt(key, ciphertext)?,
 			Self::Aes256(key) => aes_256_decrypt(key, ciphertext)?,

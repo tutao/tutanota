@@ -41,16 +41,15 @@ pub enum ValueType {
 }
 
 impl ValueType {
-	pub fn get_default(&self) -> ElementValue {
+	pub const fn get_default(&self) -> ElementValue {
 		match self {
 			ValueType::String | ValueType::CompressedString => ElementValue::String(String::new()),
 			ValueType::Number => ElementValue::Number(0),
 			ValueType::Bytes => ElementValue::Bytes(Vec::new()),
-			ValueType::Date => ElementValue::Date(DateTime::default()),
+			ValueType::Date => ElementValue::Date(DateTime::from_millis(0)),
 			ValueType::Boolean => ElementValue::Bool(false),
-			ValueType::GeneratedId | ValueType::CustomId => {
-				panic!("Can not have default value: {self:?}")
-			},
+			ValueType::GeneratedId => panic!("Can not have default value for GeneratedId"),
+			ValueType::CustomId => panic!("Can not have default value for CustomId"),
 		}
 	}
 }

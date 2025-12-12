@@ -146,11 +146,7 @@ export class PatchMerger {
 					const aggregationsWithCommonIdsButDifferentValues = associationArray.filter((aggregate: ParsedInstance) =>
 						valuesToAdd.some((item: ParsedInstance) => {
 							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
-							const itemWithoutFinalIvs = removeTechnicalFields(structuredClone(item))
-							const aggregateWithoutFinalIvs = removeTechnicalFields(structuredClone(aggregate))
-							return (
-								aggregate[aggregateIdAttributeId] === item[aggregateIdAttributeId] && !deepEqual(itemWithoutFinalIvs, aggregateWithoutFinalIvs)
-							)
+							return aggregate[aggregateIdAttributeId] === item[aggregateIdAttributeId] && !deepEqual(item, aggregate)
 						}),
 					)
 					if (!isEmpty(aggregationsWithCommonIdsButDifferentValues)) {
@@ -255,22 +251,7 @@ export class PatchMerger {
 		const isAggregation = typeModel.associations[attributeId] !== undefined && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		if (isValue) {
 			const encryptedValueInfo = typeModel.values[attributeId] as ModelValue & { encrypted: true }
-			const encryptedValue = value
-			if (encryptedValue == null) {
-				delete pathResult.instanceToChange._finalIvs[attributeId]
-			} else if (encryptedValue === "") {
-				// the encrypted value is "" if the decrypted value is the default value
-				// storing this marker lets us restore that empty string when we re-encrypt the instance.
-				// check out encrypt in CryptoMapper to see the other side of this.
-				pathResult.instanceToChange._finalIvs[attributeId] = null
-			} else if (encryptedValueInfo.final && encryptedValue) {
-				// the server needs to be able to check if an encrypted final field changed.
-				// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
-				// the IV or the value changes.
-				// storing the IV we used for the initial encryption lets us reuse it later.
-				pathResult.instanceToChange._finalIvs[attributeId] = extractIvFromCipherText(encryptedValue as Base64)
-			}
-			return decryptValue(encryptedValueInfo, encryptedValue as Base64, sk)
+			return decryptValue(encryptedValueInfo, value as Base64, sk)
 		} else if (isAggregation) {
 			const encryptedAggregatedEntities = value as Array<ServerModelEncryptedParsedInstance>
 			const modelAssociation = typeModel.associations[attributeId]
@@ -335,16 +316,7 @@ export class PatchMerger {
 
 export function distinctAssociations(associationArray: ParsedAssociation) {
 	return associationArray.reduce((acc: Array<any>, current) => {
-		if (
-			!acc.some((item) => {
-				if (item._finalIvs !== undefined) {
-					const itemWithoutFinalIvs = removeTechnicalFields(structuredClone(item) as ParsedInstance)
-					const currentWithoutFinalIvs = removeTechnicalFields(structuredClone(current) as ParsedInstance)
-					return deepEqual(itemWithoutFinalIvs, currentWithoutFinalIvs)
-				}
-				return deepEqual(item, current)
-			})
-		) {
+		if (!acc.some((item) => deepEqual(item, current))) {
 			if (current != null) {
 				acc.push(current)
 			}
