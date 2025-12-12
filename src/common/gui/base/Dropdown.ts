@@ -168,8 +168,6 @@ export class Dropdown implements ModalComponent {
 				}
 			})
 
-			if (this._renderDirection === "up") visibleChildren.reverse()
-
 			return m(
 				".dropdown-content.scroll",
 				{
@@ -198,12 +196,6 @@ export class Dropdown implements ModalComponent {
 						const newViewportHeight = Math.round(visualViewport?.height ?? 0)
 						const viewportChanged = this.viewportHeight !== newViewportHeight
 						this.viewportHeight = newViewportHeight
-
-						if (this._renderDirection === "up") {
-							const buttons = (vnode.dom as HTMLElement).getElementsByTagName("button")
-							const firstButton = buttons.item(buttons.length - 1)
-							firstButton?.scrollIntoView(false)
-						}
 
 						if (this.origin && (firstRender || heightChanged || viewportChanged)) {
 							const keyboardHeight = this._initialInnerHeight - newViewportHeight
