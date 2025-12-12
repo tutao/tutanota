@@ -2124,3 +2124,4 @@ export type TranslationKeyType =
 	| "matrix_label"
 	| "emptyString_msg"
 	| "newDriveItem_action"
+	| "driveView_action"

@@ -11,8 +11,7 @@ import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
-import { layout_size, size as sizes } from "./size"
-import { lang } from "../misc/LanguageViewModel"
+import { layout_size } from "./size"
 import { Icons } from "./base/icons/Icons"
 
 assertMainOrNode()
@@ -89,7 +88,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 				: null,
 			locator.logins.isInternalUserLoggedIn()
 				? m(NavButton, {
-						label: lang.makeTranslation("drive_label", () => "Drive"),
+						label: "driveView_action",
 						icon: () => Icons.Drive,
 						href: DRIVE_PREFIX,
 						colors: NavButtonColor.Header,

@@ -5,8 +5,12 @@ import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { ListState } from "../../../common/gui/base/List"
+import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { px, size } from "../../../common/gui/size"
+import { isEmpty } from "@tutao/tutanota-utils"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { theme } from "../../../common/gui/theme"
+import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -22,9 +26,12 @@ export interface DriveFolderViewAttrs {
 	parents: readonly DriveFolder[]
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
+	onDropFiles: (files: File[]) => unknown
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
+	private draggedOver: boolean = false
+
 	view({
 		attrs: {
 			driveViewModel,
@@ -35,6 +42,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			onCut,
 			onPaste,
 			onUploadClick,
+			onDropFiles,
 			currentFolder,
 			parents,
 			selection,
@@ -44,7 +52,41 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
 			"div.col.flex.plr-8.fill-absolute",
-			{ style: { gap: px(size.spacing_12) } },
+			{
+				style: { gap: px(size.spacing_12) },
+				ondragover: (event: DragEvent) => {
+					event.preventDefault()
+					this.draggedOver = true
+				},
+				ondrop: (event: DragEvent) => {
+					event.preventDefault()
+					this.draggedOver = false
+
+					if (event.dataTransfer) {
+						// directories have type "" but so do some files. We need some fancier code to read the
+						// directories
+						const definitelyFiles = Array.from(event.dataTransfer.files).filter((f) => f.type)
+						onDropFiles(definitelyFiles)
+					}
+				},
+				ondragleave: (event: DragEvent) => {
+					console.log("ondragleave")
+					this.draggedOver = false
+				},
+				ondragend: (event: DragEvent) => {
+					console.log("ondragend")
+				},
+			},
+			// FIXME: doesn't work yet
+			this.draggedOver
+				? m(
+						".fill-absolute",
+						{
+							style: theme.scrim,
+						},
+						"",
+					)
+				: null,
 			m(DriveFolderNav, {
 				onTrash,
 				onDelete,
@@ -59,48 +101,65 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					driveViewModel.navigateToFolder(folder._id)
 				},
 			}),
-			m(DriveFolderContent, {
-				sortOrder: driveViewModel.getCurrentColumnSortOrder(),
-				fileActions: {
-					onOpenItem: (item) => {
-						if (item.type === "folder") {
-							driveViewModel.navigateToFolder(item.folder._id)
-						} else {
-							driveViewModel.downloadFile(item.file)
-						}
-					},
-					onCopy: (item) => {
-						driveViewModel.copy([item])
-					},
-					onCut: (item) => {
-						driveViewModel.cut([item])
-					},
-					onDelete: (item) => {
-						driveViewModel.moveToTrash([item])
-					},
-					onRestore: (item) => {
-						driveViewModel.restoreFromTrash([item])
-					},
-					onRename: (item) => {
-						Dialog.showProcessTextInputDialog(
-							{
-								title: lang.makeTranslation("asdf", "Rename item"), // FIXME,
-								label: lang.makeTranslation("asdf2", "Enter new name:"), // FIXME
-								defaultValue: item.type === "file" ? item.file.name : item.folder.name,
+			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
+				? m(
+						"",
+						{
+							style: {
+								// FIXME: better positioning once we figure out the layout more
+								marginTop: "6.4rem",
 							},
-							async (newName: string) => {
-								driveViewModel.rename(item, newName)
+						},
+						m(IconMessageBox, {
+							// FIXME: translate
+							message: lang.makeTranslation("", "Drop files or folders here"),
+							icon: Icons.Drive,
+							color: theme.on_surface_variant,
+							bottomContent: "Or use 'new' button",
+						}),
+					)
+				: m(DriveFolderContent, {
+						sortOrder: driveViewModel.getCurrentColumnSortOrder(),
+						fileActions: {
+							onOpenItem: (item) => {
+								if (item.type === "folder") {
+									driveViewModel.navigateToFolder(item.folder._id)
+								} else {
+									driveViewModel.downloadFile(item.file)
+								}
 							},
-						)
-					},
-				},
-				onSort: (newSortingOrder) => {
-					driveViewModel.sort(newSortingOrder)
-				},
-				selection,
-				listState,
-				selectionEvents,
-			} satisfies DriveFolderContentAttrs),
+							onCopy: (item) => {
+								driveViewModel.copy([item])
+							},
+							onCut: (item) => {
+								driveViewModel.cut([item])
+							},
+							onDelete: (item) => {
+								driveViewModel.moveToTrash([item])
+							},
+							onRestore: (item) => {
+								driveViewModel.restoreFromTrash([item])
+							},
+							onRename: (item) => {
+								Dialog.showProcessTextInputDialog(
+									{
+										title: lang.makeTranslation("asdf", "Rename item"), // FIXME,
+										label: lang.makeTranslation("asdf2", "Enter new name:"), // FIXME
+										defaultValue: item.type === "file" ? item.file.name : item.folder.name,
+									},
+									async (newName: string) => {
+										driveViewModel.rename(item, newName)
+									},
+								)
+							},
+						},
+						onSort: (newSortingOrder) => {
+							driveViewModel.sort(newSortingOrder)
+						},
+						selection,
+						listState,
+						selectionEvents,
+					} satisfies DriveFolderContentAttrs),
 		)
 	}
 }

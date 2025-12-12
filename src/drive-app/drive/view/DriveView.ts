@@ -189,6 +189,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									onCut: listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
 									onCopy: listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
 									onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
+									onDropFiles: (files) => {
+										this.driveViewModel.uploadFiles(files)
+									},
 									currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
 									parents: this.driveViewModel.parents,
 									selection: listState.inMultiselect
