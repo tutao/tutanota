@@ -4,6 +4,7 @@ use tutasdk::bindings::test_file_client::TestFileClient;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::crypto::{Aes256Key, IV_BYTE_SIZE};
+use tutasdk::date::DateTime;
 use tutasdk::entities::generated::sys::PushIdentifier;
 use tutasdk::entities::generated::tutanota::Mail;
 use tutasdk::net::native_rest_client::NativeRestClient;
@@ -64,7 +65,7 @@ async fn can_create_remote_instance() {
 		identifier: "map-free@tutanota.de".to_string(),
 		language: "en".to_string(),
 		lastNotificationDate: None,
-		lastUsageTime: Default::default(),
+		lastUsageTime: DateTime::from_millis(0),
 		pushServiceType: 2, // PushServiceType.EMAIL
 		// when this is returned and deserialized, this will be set but empty
 		_errors: Default::default(),

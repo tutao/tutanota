@@ -5,7 +5,7 @@ use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A wrapper around `SystemTime` so we can change how it is serialised by serde.
-#[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Debug)]
 pub struct DateTime(u64);
 
 pub const DATETIME_STRUCT_NAME: &str = "DateTime";
@@ -21,12 +21,12 @@ impl DateTime {
 	}
 
 	#[must_use]
-	pub fn from_millis(millis: u64) -> Self {
+	pub const fn from_millis(millis: u64) -> Self {
 		Self(millis)
 	}
 
 	#[must_use]
-	pub fn from_seconds(seconds: u64) -> Self {
+	pub const fn from_seconds(seconds: u64) -> Self {
 		Self(seconds * 1000)
 	}
 
@@ -94,11 +94,9 @@ mod tests {
 
 	#[test]
 	fn initializing_datetime_default() {
-		let default = crate::date::DateTime::default();
+		let default = crate::date::DateTime::from_millis(0);
 		let epoch = crate::date::DateTime::from_system_time(SystemTime::UNIX_EPOCH);
-		let zero = crate::date::DateTime::from_millis(0);
 		assert_eq!(default, epoch);
-		assert_eq!(default, zero);
 	}
 
 	#[test]
