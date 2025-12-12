@@ -1296,24 +1296,22 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let windowCloseUnsubscribe = () => {}
 
 	const headerBarAttrs: DialogHeaderBarAttrs = {
-		left: [
-			{
-				label: "close_alt",
-				click: () => minimize(),
-				type: ButtonType.Secondary,
-			},
-		],
-		leftChildren: styles.isMobileLayout()
-			? m(
-					".ml-negative-8",
-					m(IconButton, {
-						title: "close_alt",
+		leftChildren: () =>
+			styles.isMobileLayout()
+				? m(
+						".ml-negative-8",
+						m(IconButton, {
+							title: "close_alt",
+							click: () => minimize(),
+							icon: Icons.XCross,
+							colors: ButtonColor.Primary,
+						}),
+					)
+				: m(Button, {
+						label: "close_alt",
 						click: () => minimize(),
-						icon: Icons.XCross,
-						colors: ButtonColor.Primary,
+						type: ButtonType.Secondary,
 					}),
-				)
-			: null,
 		rightChildren: () => {
 			const scheduledMail = model.getSendLaterDate() != null
 
