@@ -109,7 +109,7 @@ export class CalendarSearchModel {
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
 			monitor.completed()
 
-			const eventsForDays: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = calendarModel.getEventsForMonths()()
+			const eventsForDays: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = calendarModel.getDaysToEvents()()
 
 			assertNonNull(restriction.start)
 			assertNonNull(restriction.end)
