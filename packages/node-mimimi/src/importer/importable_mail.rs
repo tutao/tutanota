@@ -599,7 +599,7 @@ impl ImportableMail {
 
 		// if no date is provided, use UNIX_EPOCH (01.01.1970) as fallback
 		// this makes it more obvious to user that this mail date was not right
-		let date = date.unwrap_or_default();
+		let date = date.unwrap_or_else(|| DateTime::from_millis(0));
 
 		ImportMailData {
 			_format: 0,

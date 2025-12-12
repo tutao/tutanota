@@ -625,7 +625,6 @@ mod tests {
 	use crate::instance_mapper::InstanceMapper;
 	use crate::util::test_utils::*;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
-	use serde::de::Unexpected::Str;
 
 	#[test]
 	fn test_parse_mail() {
@@ -812,7 +811,7 @@ mod tests {
 
 		let entity_to_serialize = HelloEncOutput {
 			answer: "".to_string(),
-			timestamp: Default::default(),
+			timestamp: DateTime::from_millis(0),
 		};
 
 		let instance_mapper = InstanceMapper::new(type_provider.clone());
