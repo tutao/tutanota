@@ -5,6 +5,8 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { ClickHandler } from "./base/GuiUtils.js"
 import { MainCreateButton } from "./MainCreateButton.js"
+import { styles } from "./styles"
+import { isAndroidApp } from "../api/common/Env"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
@@ -16,7 +18,7 @@ export type Attrs = {
 
 export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
-		return m(".flex.height-100p.nav-bg", [
+		return m(`.flex.height-100p.nav-bg` + (styles.isSingleColumnLayout() && isAndroidApp() ? ".pb-safe-inset" : ""), [
 			m(DrawerMenu, attrs.drawer),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)), [
 				this.renderMainButton(attrs),

@@ -27,6 +27,8 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
+import { overlayBottomMargin } from "./Overlay"
+import { getSafeAreaInsetBottom } from "../HtmlUtils"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -113,6 +115,7 @@ export class Dialog implements ModalComponent {
 			const marginPx = px(size.spacing_12)
 			const isEditLarge = dialogType === DialogType.EditLarge
 			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
+			const bottomMargin = overlayBottomMargin()
 			return m(
 				this.getDialogWrapperClasses(dialogType),
 				{
@@ -120,6 +123,7 @@ export class Dialog implements ModalComponent {
 						paddingTop: "var(--safe-area-inset-top)",
 						paddingLeft: "var(--safe-area-inset-left)",
 						paddingRight: "var(--safe-area-inset-right)",
+						paddingBottom: "var(--safe-area-inset-bottom)",
 					},
 				},
 				/** controls vertical alignment
@@ -134,7 +138,7 @@ export class Dialog implements ModalComponent {
 							marginTop: marginPx,
 							marginLeft: sidesMargin,
 							marginRight: sidesMargin,
-							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight) : isEditLarge ? 0 : marginPx,
+							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight - getSafeAreaInsetBottom()) : isEditLarge ? 0 : marginPx,
 						},
 					},
 					[

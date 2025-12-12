@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { isApp, isDesktop } from "../api/common/Env.js"
+import { isAndroidApp, isApp, isDesktop } from "../api/common/Env.js"
 import { ExternalLink } from "./base/ExternalLink.js"
 import { InfoLink, lang } from "../misc/LanguageViewModel.js"
 import { createDropdown } from "./base/Dropdown.js"
@@ -9,13 +9,14 @@ import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
 import { showLogsDialog } from "./LogDialogUtils.js"
 import { LanguageDropdown } from "./LanguageDropdown"
+import { styles } from "./styles"
 
 export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
 	const imprintLink = getImprintLink()
 
 	return m(
-		".flex.col.mt-32",
+		".flex.col.mt-32" + (styles.isSingleColumnLayout() && isAndroidApp() ? ".pb-safe-inset" : ""),
 		m(
 			".flex.wrap.justify-center.gap-16",
 			!isApp() && privacyPolicyLink
