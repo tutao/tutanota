@@ -445,6 +445,7 @@ export class CalendarEventsRepository {
 			invitedConfidentially: null,
 			repeatRule: createRepeatRuleWithValues(RepeatPeriod.ANNUALLY, 1),
 			uid,
+			sender: null,
 		})
 
 		newEvent._id = [calendarId, `${generateLocalEventElementId(newEvent.startTime.getTime(), contact._id.join("/"))}#${encodedContactId}`]

@@ -4555,6 +4555,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"1788": {
+				"final": false,
+				"name": "sender",
+				"id": 1788,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
 			}
 		},
 		"associations": {
@@ -4683,6 +4691,15 @@ export const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 1100,
+				"dependency": null
+			},
+			"1786": {
+				"final": false,
+				"name": "pendingEvents",
+				"id": 1786,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1783,
 				"dependency": null
 			}
 		}
@@ -4985,11 +5002,20 @@ export const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 968,
 				"dependency": null
+			},
+			"1787": {
+				"final": false,
+				"name": "defaultCalendar",
+				"id": 1787,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 947,
+				"dependency": null
 			}
 		}
 	},
 	"982": {
-		"name": "CalendarDeleteData",
+		"name": "CalendarDeleteIn",
 		"app": "tutanota",
 		"version": 99,
 		"since": 34,
@@ -5005,6 +5031,14 @@ export const typeModels = {
 				"name": "_format",
 				"id": 983,
 				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1789": {
+				"final": false,
+				"name": "deleteEventsOnly",
+				"id": 1789,
+				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
@@ -9689,6 +9723,39 @@ export const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1770,
+				"dependency": null
+			}
+		}
+	},
+	"1783": {
+		"name": "CalendarEventsRef",
+		"app": "tutanota",
+		"version": 99,
+		"since": 99,
+		"type": "AGGREGATED_TYPE",
+		"id": 1783,
+		"rootId": "CHR1dGFub3RhAAb3",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1784": {
+				"final": true,
+				"name": "_id",
+				"id": 1784,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1785": {
+				"final": true,
+				"name": "list",
+				"id": 1785,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 933,
 				"dependency": null
 			}
 		}

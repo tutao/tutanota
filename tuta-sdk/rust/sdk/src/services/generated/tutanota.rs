@@ -8,7 +8,7 @@ use crate::services::hidden::Nothing;
 use crate::entities::generated::tutanota::ApplyLabelServicePostIn;
 use crate::entities::generated::tutanota::UserAreaGroupPostData;
 use crate::entities::generated::tutanota::CreateGroupPostReturn;
-use crate::entities::generated::tutanota::CalendarDeleteData;
+use crate::entities::generated::tutanota::CalendarDeleteIn;
 use crate::entities::generated::tutanota::ChangePrimaryAddressServicePutIn;
 use crate::entities::generated::tutanota::ClientClassifierResultPostIn;
 use crate::entities::generated::tutanota::UserAreaGroupDeleteData;
@@ -69,7 +69,7 @@ pub struct CalendarService;
 
 crate::service_impl!(declare, CalendarService, "tutanota/calendarservice", 99);
 crate::service_impl!(POST, CalendarService, UserAreaGroupPostData, CreateGroupPostReturn);
-crate::service_impl!(DELETE, CalendarService, CalendarDeleteData, ());
+crate::service_impl!(DELETE, CalendarService, CalendarDeleteIn, ());
 
 
 pub struct ChangePrimaryAddressService;
