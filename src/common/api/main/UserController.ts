@@ -13,7 +13,6 @@ import { CloseSessionService, PlanService } from "../entities/sys/Services"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	createCloseSessionServicePost,
 	Customer,
 	CustomerInfo,
 	CustomerInfoTypeRef,
@@ -256,27 +255,22 @@ export class UserController {
 	}
 
 	deleteSessionSync(): Promise<void> {
-		return newPromise((resolve, reject) => {
+		return newPromise(async (resolve, reject) => {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
 
 			if (sendBeacon) {
 				try {
 					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
-					apiUrl.pathname += `/rest/sys/${CloseSessionService.name.toLowerCase()}`
-					const requestObject = createCloseSessionServicePost({
-						accessToken: this.accessToken,
-						sessionId: this.sessionId,
+					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
+					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
+					const requestObject = JSON.stringify({
+						[1596]: "0", // _format
+						[1597]: this.accessToken, // accessToken
+						[1598]: [this.sessionId], // sessionId
 					})
-					delete downcast(requestObject)["_type"] // Remove extra field which is not part of the data model
 
 					// Send as Blob to be able to set content type otherwise sends 'text/plain'
-					const queued = sendBeacon.call(
-						navigator,
-						apiUrl,
-						new Blob([JSON.stringify(requestObject)], {
-							type: MediaType.Json,
-						}),
-					)
+					const queued = sendBeacon.call(navigator, apiUrl, new Blob([requestObject], { type: MediaType.Json }))
 					console.log("queued closing session: ", queued)
 					resolve()
 				} catch (e) {
