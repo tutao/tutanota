@@ -88,6 +88,24 @@ o.spec("InboxRuleHandlerTest", function () {
 				o(_equalTupels(rule.targetFolder, ["ruleTarget", "ruleTarget"])).equals(true)
 			}
 		})
+
+		o("checks all rules independent of excludeFromSpamFilter is true", async function () {
+			const subject = "Excluded Rule"
+			const rules: InboxRule[] = [
+				_createRule(subject, InboxRuleType.SUBJECT_CONTAINS, ["ruleTarget", "ruleTarget"], true),
+				_createRule(subject, InboxRuleType.SUBJECT_CONTAINS, ["invalidTarget", "invalidTarget"], false),
+			]
+
+			const mail = _createMailWithDifferentEnvelopeSender()
+			mail.subject = subject
+
+			const rule = await _findMatchingRule(this.mailFacade, mail, rules)
+			o(rule).notEquals(null)
+
+			if (rule) {
+				o(_equalTupels(rule.targetFolder, ["ruleTarget", "ruleTarget"])).equals(true)
+			}
+		})
 	})
 })
 
@@ -100,11 +118,12 @@ function _createMailWithDifferentEnvelopeSender(): Mail {
 	return mail
 }
 
-function _createRule(value: string, type?: string, targetFolder?: IdTuple): InboxRule {
+function _createRule(value: string, type?: string, targetFolder?: IdTuple, excludeFromSpamFilter = false): InboxRule {
 	let rule = createTestEntity(InboxRuleTypeRef)
 	rule.value = value
 	rule.type = type ? type : InboxRuleType.SUBJECT_CONTAINS
 	rule.targetFolder = targetFolder ? targetFolder : ["empty", "empty"]
+	rule.excludeFromSpamFilter = excludeFromSpamFilter
 	return rule
 }
 

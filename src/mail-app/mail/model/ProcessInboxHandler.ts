@@ -63,16 +63,22 @@ export class ProcessInboxHandler {
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: MailSet = sourceFolder
 
-		if (isSpamClassificationFeatureEnabled) {
-			const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
-			moveToFolder = targetFolder
+		// We process rules which are excluded from spam list first and if none apply then we run spam prediction.
+		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
+		if (result) {
+			const { targetFolder, processInboxDatum } = result
 			finalProcessInboxDatum = processInboxDatum
-		}
+			moveToFolder = targetFolder
+		} else {
+			if (isSpamClassificationFeatureEnabled) {
+				const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
+				moveToFolder = targetFolder
+				finalProcessInboxDatum = processInboxDatum
+			}
 
-		// apply inbox rules only if the mail is classified as ham by the spam classifier
-		if (moveToFolder.folderType === MailSetKind.INBOX) {
-			if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
-				const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)
+			// apply regular inbox rules only if the mail is classified as ham by the spam classifier
+			if (moveToFolder.folderType === MailSetKind.INBOX) {
+				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
 				if (result) {
 					const { targetFolder, processInboxDatum } = result
 					finalProcessInboxDatum = processInboxDatum
