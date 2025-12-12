@@ -11,6 +11,12 @@
     <string name="sendLogs_action">Send loggene</string>
     <string name="account_label">Bruker</string>
     <string name="calendars_label">Kalendere</string>
+    <string name="widgetNoCredentialsInfo_msg">Ingen tilgjengelige innloggingsdetaljer</string>
+    <string name="widgetUnexpectedError_msg">Ops! Noe gikk galt.</string>
+    <string name="widgetCredentialsError_msg">Logg inn i kalender-appen</string>
+    <string name="widgetOpenApp_action">Åpne appen</string>
+    <string name="widgetNoEvents_msg">Ingen hendelser</string>
+    <string name="widgetDescription_msg">Vis dagens kommende hendelser</string>
     <string name="birthdayCalendar_label">Fødselsdager</string>
     <string name="birthdayEvent_title">Fødselsdag for {name}</string>
     <string name="birthdayEventAge_title">{age} år gammel</string>

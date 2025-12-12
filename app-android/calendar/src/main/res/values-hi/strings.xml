@@ -9,4 +9,7 @@
     <string name="delete_action">मिटाएँ</string>
     <string name="markRead_action">पढ़ा हुआ चिह्नित करें</string>
     <string name="account_label">उपयोगकर्ता</string>
+    <string name="widgetUnexpectedError_msg">अरे! अप्प माँ कुछ गलत होगय।</string>
+    <string name="widgetNoEvents_msg">कोही आयोजन नहीं है</string>
+    <string name="widgetDescription_msg">आजका आता हुआ आयोजन दिखाए ।</string>
 </resources>

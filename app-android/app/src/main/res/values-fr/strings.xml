@@ -11,6 +11,12 @@
     <string name="sendLogs_action">Envoyer les journaux</string>
     <string name="account_label">Utilisateur</string>
     <string name="calendars_label">Calendriers</string>
+    <string name="widgetNoCredentialsInfo_msg">Aucune référence disponible</string>
+    <string name="widgetUnexpectedError_msg">Oups ! Une erreur s\'est produite.</string>
+    <string name="widgetCredentialsError_msg">Veuillez vous connecter à l\'application Calendrier.</string>
+    <string name="widgetOpenApp_action">Ouvrez l\'application</string>
+    <string name="widgetNoEvents_msg">Aucun événement</string>
+    <string name="widgetDescription_msg">Afficher les événements à venir aujourd\'hui</string>
     <string name="birthdayCalendar_label">Anniversaires</string>
     <string name="birthdayEvent_title">Anniversaire de {name}</string>
     <string name="birthdayEventAge_title">{age} an(s)</string>

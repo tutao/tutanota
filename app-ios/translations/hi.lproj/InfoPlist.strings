@@ -16,7 +16,10 @@ TutaoUnlockCredentialsAction = "क्रेडेंशियल अनलॉ�
 TutaoPushNewMail = "नया संदेश प्राप्त हुआ ! ";
 TutaoDeleteAction = "मिटाएँ";
 TutaoMarkReadAction = "पढ़ा हुआ चिह्नित करें";
+TutaoWidgetUnexpectedErrorMsg = "अरे! अप्प माँ कुछ गलत होगय।";
+TutaoWidgetNoEventsMsg = "कोही आयोजन नहीं है";
 TutaoAccountLabel = "उपयोगकर्ता";
+TutaoWidgetDescription = "आजका आता हुआ आयोजन दिखाए ।";
 TutaoDefaultCalendarNameTitle = "प्राइवेट
 ";
 TutaoAllDayLabel = "पूरे दिन";

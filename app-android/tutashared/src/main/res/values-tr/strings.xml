@@ -12,11 +12,11 @@
     <string name="account_label">Kullanıcı</string>
     <string name="calendars_label">Takvimler</string>
     <string name="widgetNoCredentialsInfo_msg">Giriş bilgileri yok</string>
-    <string name="widgetUnexpectedError_msg">Olamaz, bir şeyler ters gitti.</string>
+    <string name="widgetUnexpectedError_msg">Hay aksi! Bir şeyler ters gitti.</string>
     <string name="widgetCredentialsError_msg">Lütfen Takvim uygulamasında oturum açın</string>
     <string name="widgetOpenApp_action">Uygulamayı aç</string>
     <string name="widgetNoEvents_msg">Etkinlik yok</string>
-    <string name="widgetDescription_msg">Bugünün yaklaşan etkinliklerini görüntüleyin</string>
+    <string name="widgetDescription_msg">Günün sıradaki etkinliklerini görüntüleyin</string>
     <string name="birthdayCalendar_label">Doğum günleri</string>
     <string name="birthdayEvent_title">{name} doğum günü</string>
     <string name="birthdayEventAge_title">{age} yaşında</string>
