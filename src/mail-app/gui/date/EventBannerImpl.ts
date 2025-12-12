@@ -559,7 +559,7 @@ export async function loadEventsAroundInvite(
 	} else {
 		await eventsRepository.loadMonthsIfNeeded(datesToLoad, stream(false), null)
 	}
-	const events = eventsRepository.getEventsForMonths()() // Short and long events
+	const events = eventsRepository.getDaysToEvents()() // Short and long events
 
 	for (const iCalEvent of iCalContents.events) {
 		const startOfDay = getStartOfDay(iCalEvent.startTime)

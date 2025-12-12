@@ -103,7 +103,7 @@ export class CalendarEventsRepository {
 		})
 	}
 
-	getEventsForMonths(): Stream<DaysToEvents> {
+	getDaysToEvents(): Stream<DaysToEvents> {
 		return this.daysToEvents
 	}
 
