@@ -20,6 +20,7 @@ import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
+import { isDesktop } from "../../../common/api/common/Env"
 
 //Visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000
@@ -175,12 +176,18 @@ export class SpamClassifierDataDealer {
 		const finalHam = hamDataHighConfidence.concat(sampledHamLowConfidence)
 		const finalSpam = spamDataHighConfidence.concat(sampledSpamLowConfidence)
 
-		const balanced = [...finalHam, ...finalSpam]
+		const MAX_MAILS_CAP_DESKTOP = 1000
+		const MAX_MAILS_CAP_WEB_AND_MOBILE = 300
+		const MAX_MAILS_CAP = isDesktop() ? MAX_MAILS_CAP_DESKTOP : MAX_MAILS_CAP_WEB_AND_MOBILE
+		const finalHamCapped = finalHam.slice(0, MAX_MAILS_CAP)
+		const finalSpamCapped = finalSpam.slice(0, MAX_MAILS_CAP)
+
+		const balanced = [...finalHamCapped, ...finalSpamCapped]
 		console.log(
-			`Subsampled training data to ${finalHam.length} ham (${hamDataHighConfidence.length} are confidence > ${HIGH_CONFIDENCE_THRESHOLD}) and ${finalSpam.length} spam (${spamDataHighConfidence.length} are confidence > ${HIGH_CONFIDENCE_THRESHOLD}) (ratio ${(finalHam.length / finalSpam.length).toFixed(2)}).`,
+			`Subsampled training data to ${finalHam.length} ham (${hamDataHighConfidence.length} are confidence > ${HIGH_CONFIDENCE_THRESHOLD} ; capped to: ${finalHamCapped.length}) and ${finalSpam.length} spam (${spamDataHighConfidence.length} are confidence > ${HIGH_CONFIDENCE_THRESHOLD} ; capped to: ${finalSpamCapped.length}) (ratio ${(finalHam.length / finalSpam.length).toFixed(2)}).`,
 		)
 
-		return { subsampledTrainingData: balanced, hamCount: finalHam.length, spamCount: finalSpam.length }
+		return { subsampledTrainingData: balanced, hamCount: finalHamCapped.length, spamCount: finalSpamCapped.length }
 	}
 
 	// Visible for testing
