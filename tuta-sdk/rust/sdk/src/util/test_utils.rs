@@ -399,7 +399,7 @@ fn create_test_entity_dict_with_provider(
 				},
 				ValueType::Number => ElementValue::Number(Default::default()),
 				ValueType::Bytes => ElementValue::Bytes(Default::default()),
-				ValueType::Date => ElementValue::Date(Default::default()),
+				ValueType::Date => ElementValue::Date(DateTime::from_millis(0)),
 				ValueType::Boolean => ElementValue::Bool(Default::default()),
 				ValueType::GeneratedId => {
 					if value_name == ID_FIELD
@@ -511,7 +511,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 						},
 						ValueType::Number => ElementValue::Number(Default::default()),
 						ValueType::Bytes => ElementValue::Bytes(Default::default()),
-						ValueType::Date => ElementValue::Date(Default::default()),
+						ValueType::Date => ElementValue::Date(DateTime::from_millis(0)),
 						ValueType::Boolean => ElementValue::Bool(Default::default()),
 						ValueType::GeneratedId => {
 							if value_name == ID_FIELD
