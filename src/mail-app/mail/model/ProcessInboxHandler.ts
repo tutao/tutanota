@@ -63,8 +63,8 @@ export class ProcessInboxHandler {
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: MailFolder = sourceFolder
 
-		if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
-			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)
+		if (sourceFolder.folderType === MailSetKind.INBOX) {
+			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, true)
 			if (result) {
 				const { targetFolder, processInboxDatum } = result
 				finalProcessInboxDatum = processInboxDatum
@@ -84,6 +84,14 @@ export class ProcessInboxHandler {
 					classifierType: null,
 					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
 				}
+			}
+		}
+		if (moveToFolder.folderType === MailSetKind.INBOX) {
+			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)
+			if (result) {
+				const { targetFolder, processInboxDatum } = result
+				finalProcessInboxDatum = processInboxDatum
+				moveToFolder = targetFolder
 			}
 		}
 

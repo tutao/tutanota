@@ -64,6 +64,7 @@ export class InboxRuleHandler {
 	async findAndApplyMatchingRule(
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
+		whitelistOnly: boolean = false,
 	): Promise<Nullable<{ targetFolder: MailFolder; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		const shouldApply =
 			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
@@ -80,7 +81,7 @@ export class InboxRuleHandler {
 			return null
 		}
 
-		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
+		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules, whitelistOnly)
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 		if (inboxRule) {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
@@ -109,12 +110,15 @@ export class InboxRuleHandler {
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
-	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule)).then((v) => v ?? null)
+export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rules: InboxRule[], whitelistingOnly: boolean): Promise<InboxRule | null> {
+	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule, whitelistingOnly)).then((v) => v ?? null)
 }
 
-async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
+async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule, whitelistingOnly: boolean): Promise<boolean> {
 	const ruleType = inboxRule.type
+	if (whitelistingOnly && !inboxRule.excludeFromSpamFilter) {
+		return false
+	}
 	try {
 		if (ruleType === InboxRuleType.FROM_EQUALS) {
 			let mailAddresses = [mail.sender.address]
