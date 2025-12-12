@@ -70,7 +70,7 @@ o.spec("CalendarViewModel", function () {
 		const eventMapStream: Stream<DaysToEvents> = stream(new Map())
 		const calendarInfosStream: Stream<ReadonlyMap<Id, CalendarInfo>> = stream(new Map())
 		const eventsRepository: CalendarEventsRepository = object()
-		when(eventsRepository.getEventsForMonths()).thenReturn(eventMapStream)
+		when(eventsRepository.getDaysToEvents()).thenReturn(eventMapStream)
 		when(calendarModel.getCalendarInfosStream()).thenReturn(calendarInfosStream)
 		const userController = makeUserController()
 		const isNewPaidPlan = async () => true
@@ -333,7 +333,7 @@ o.spec("CalendarViewModel", function () {
 				longEvents: [inputEvents[0], inputEvents[1]],
 			}
 
-			eventsRepository.getEventsForMonths()(eventsForDays)
+			eventsRepository.getDaysToEvents()(eventsForDays)
 
 			const { shortEventsPerDay, longEvents } = viewModel.getEventsOnDaysToRender(days)
 			o({
@@ -351,7 +351,7 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays } = init(inputEvents)
 
-			eventsRepository.getEventsForMonths()(eventsForDays)
+			eventsRepository.getDaysToEvents()(eventsForDays)
 
 			simulateDrag(inputEvents[2], getDateInZone("2021-01-04T13:00"), viewModel)
 			const expected = {
@@ -372,7 +372,7 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays } = init(inputEvents)
 
-			eventsRepository.getEventsForMonths()(eventsForDays)
+			eventsRepository.getDaysToEvents()(eventsForDays)
 
 			//drag 2nd event to the 4th
 			simulateDrag(inputEvents[2], getDateInZone("2021-01-04T13:00"), viewModel)
@@ -405,7 +405,7 @@ o.spec("CalendarViewModel", function () {
 			]
 			const { days, eventsForDays, month } = init(inputEvents)
 
-			eventsRepository.getEventsForMonths()(eventsForDays)
+			eventsRepository.getDaysToEvents()(eventsForDays)
 
 			//drag
 			simulateDrag(inputEvents[2], new Date(2021, 0, 4, 13, 0), viewModel)
