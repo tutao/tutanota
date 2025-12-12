@@ -9,12 +9,13 @@ import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
 
 import { showLogsDialog } from "./LogDialogUtils.js"
+import { styles } from "./styles"
 
 export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
 	const imprintLink = getImprintLink()
 	return m(
-		".flex.col.mt-l",
+		".flex.col.mt-l" + (styles.isSingleColumnLayout() ? ".pb-safe-inset" : ""),
 		m(
 			".flex.wrap.justify-center",
 			!isApp() && privacyPolicyLink

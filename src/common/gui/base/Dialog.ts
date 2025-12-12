@@ -120,6 +120,7 @@ export class Dialog implements ModalComponent {
 						paddingTop: "var(--safe-area-inset-top)",
 						paddingLeft: "var(--safe-area-inset-left)",
 						paddingRight: "var(--safe-area-inset-right)",
+						paddingBottom: "var(--safe-area-inset-bottom)",
 					},
 				},
 				/** controls vertical alignment
@@ -134,7 +135,7 @@ export class Dialog implements ModalComponent {
 							marginTop: marginPx,
 							marginLeft: sidesMargin,
 							marginRight: sidesMargin,
-							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight) : isEditLarge ? 0 : marginPx,
+							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight - size.bottom_nav_bar) : isEditLarge ? 0 : marginPx,
 						},
 					},
 					[

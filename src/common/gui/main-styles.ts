@@ -1657,6 +1657,9 @@ styles.registerStyle("main", () => {
 		".mt-safe-inset": {
 			"margin-top": "var(--safe-area-inset-top)",
 		},
+		".pb-safe-inset": {
+			"padding-bottom": "var(--safe-area-inset-bottom)",
+		},
 		// header
 		".header-nav": {
 			height: px(size.navbar_height),

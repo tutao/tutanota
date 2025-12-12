@@ -10,6 +10,5 @@
 		<item name="android:windowSplashScreenAnimatedIcon">
 			@drawable/ic_logo
 		</item>
-		<item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
 	</style>
 </resources>
