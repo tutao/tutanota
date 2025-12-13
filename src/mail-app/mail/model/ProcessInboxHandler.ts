@@ -2,7 +2,7 @@ import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, debounce, isEmpty, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, debounce, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -16,7 +16,7 @@ export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum
 	vector: Uint8Array
 }
 
-const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 1000
+const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
 
 export class ProcessInboxHandler {
 	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
@@ -29,7 +29,7 @@ export class ProcessInboxHandler {
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
 		private readonly debounceTimeout: number = DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
-		this.sendProcessInboxServiceRequest = debounce(this.debounceTimeout, async (mailFacade: MailFacade) => {
+		this.sendProcessInboxServiceRequest = throttle(this.debounceTimeout, async (mailFacade: MailFacade) => {
 			// we debounce the requests to a rate of DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS
 			if (this.processedMailsByMailGroup.size > 0) {
 				// copy map to prevent inserting into map while we await the server

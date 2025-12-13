@@ -1,5 +1,5 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
-import { Mail, MailSet, MailSetTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailSet, MailSetEntry, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import {
 	CUSTOM_MAX_ID,
 	customIdToUint8array,
@@ -95,7 +95,7 @@ export class MailListModel implements MailSetListModel {
 			stateStream.map((state) => {
 				const newState: ListState<Mail> = {
 					...state,
-					items: this.items,
+					items: this.items.filter((mail) => !mail.processNeeded),
 					selectedItems: new Set(this.getSelectedAsArray()),
 				}
 				return newState
