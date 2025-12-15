@@ -9,7 +9,6 @@ import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
 import type { WizardPageAttrs } from "../gui/base/WizardDialog.js"
-import { TextField } from "../gui/base/TextField.js"
 import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
@@ -292,10 +291,15 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 
 	private renderPriceNextYear(data: SignupViewModel) {
 		return data.nextYearPrice
-			? m(TextField, {
+			? m(LoginTextField, {
 					label: "priceForNextYear_label",
 					value: buildPriceString(data.nextYearPrice.displayPrice, data.options),
 					isReadOnly: true,
+					class: "",
+					leadingIcon: {
+						icon: Icons.WalletOutline,
+						color: theme.on_surface_variant,
+					},
 				})
 			: null
 	}
