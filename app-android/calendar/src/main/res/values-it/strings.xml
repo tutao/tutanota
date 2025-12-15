@@ -10,6 +10,7 @@
     <string name="markRead_action">Segnala come letto</string>
     <string name="sendLogs_action">Invia log</string>
     <string name="account_label">Utente</string>
+    <string name="widgetNoEvents_msg">Nessun evento</string>
     <string name="birthdayCalendar_label">Compleanni</string>
     <string name="birthdayEvent_title">Compleanno di {name}</string>
     <string name="noTitle_label">&lt;Nessun titolo&gt;</string>

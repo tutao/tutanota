@@ -16,6 +16,7 @@ TutaoPushNewMail = "Nuova email ricevuta.";
 TutaoDeleteAction = "Elimina";
 TutaoMarkReadAction = "Segnala come letto";
 TutaoWidgetSendLogsAction = "Invia log";
+TutaoWidgetNoEventsMsg = "Nessun evento";
 TutaoAccountLabel = "Utente";
 TutaoNoTitleLabel = "<Nessun titolo>";
 TutaoDefaultCalendarNameTitle = "Privato";

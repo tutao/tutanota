@@ -2115,7 +2115,7 @@ export default {
 		"wrongUserCsvFormat_msg": "Lütfen CSV formatınızın doğruluğunu kontrol edin {format}",
 		"xing_label": "XING",
 		"year_label": "Yıl",
-		"years_label": "yaş",
+		"years_label": "yıllar",
 		"yes_label": "Evet",
 		"yesterday_label": "dün",
 		"you_label": "Sen",

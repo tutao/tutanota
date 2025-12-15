@@ -10,5 +10,11 @@
     <string name="markRead_action">Σήμανση ως αναγνωσμένου</string>
     <string name="sendLogs_action">Αποστολή αρχείων καταγραφής</string>
     <string name="account_label">Χρήστης</string>
+    <string name="widgetNoCredentialsInfo_msg">Χωρίς στοιχεία σύνδεσης</string>
+    <string name="widgetUnexpectedError_msg">Ουπς! Κάτι πήγε στραβά.</string>
+    <string name="widgetCredentialsError_msg">Συνδεθείτε στο Ημερολόγιο</string>
+    <string name="widgetOpenApp_action">Άνοιγμα εφαρμογής</string>
+    <string name="widgetNoEvents_msg">Κανένα συμβάν</string>
+    <string name="widgetDescription_msg">Προβολή σημερινών συμβάντων</string>
     <string name="noTitle_label">&lt;Χωρίς τίτλο&gt;</string>
 </resources>

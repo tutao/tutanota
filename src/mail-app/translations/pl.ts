@@ -1499,6 +1499,7 @@ export default {
 		"privateCalendar_label": "Prywatny",
 		"privateUse_action": "Użytek prywatny",
 		"progressDeleting_msg": "Usuwanie...",
+		"promotion.ctAdventCalendarDiscount_msg": "Kalendarz adwentowy c't: Korzystaj z Tuta przez 12 miesięcy za darmo",
 		"promotion.oneYear_msg": "Oferta specjalna: Prywatna i bezpieczna poczta e-mail przez rok za darmo",
 		"pronouns_label": "Zaimki",
 		"providePaymentDetails_msg": "Proszę podać szczegóły płatności ",
