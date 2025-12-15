@@ -6,6 +6,7 @@ import { PlanType } from "../api/common/TutanotaConstants"
 import { SignupFormNew } from "./components/SignupFormNew"
 import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
+import { layout_size, px } from "../gui/size"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -16,42 +17,59 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 
 		return m(
-			"div.flex.items-start",
-			m(
-				".flex.flex-column",
+			".flex.flex-column.full-width",
+			{
+				style: {
+					"max-width": px(layout_size.signup_wizard_content_max_width),
+				},
+			},
+			[
+				m("h1.font-mdio.line-height-1", lang.get("signup_page_title")),
+				m("p", { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
+				m("div.flex.items-start.gap-64", [
+					m(
+						".flex-grow",
+						m(SignupFormNew, {
+							onComplete: async (result) => {
+								if (result.type === "success") {
+									data.registrationCode = result.registrationCode
+									data.powChallengeSolutionPromise = result.powChallengeSolutionPromise
+									data.emailInputStore = result.emailInputStore
+									data.passwordInputStore = result.passwordInputStore
 
-				[
-					m("h1.font-mdio.line-height-1", lang.get("signup_page_title")),
-					m("p", { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
-					m(SignupFormNew, {
-						onComplete: async (result) => {
-							if (result.type === "success") {
-								data.registrationCode = result.registrationCode
-								data.powChallengeSolutionPromise = result.powChallengeSolutionPromise
-								data.emailInputStore = result.emailInputStore
-								data.passwordInputStore = result.passwordInputStore
-
-								await createAccount(data, () => m.route.set("/login"))
-								ctx.setLabel(result.emailInputStore)
-								ctx.controller.progressItems[ctx.index].isReachable = false
-								ctx.goNext()
-							} else {
-								m.route.set("/login")
-							}
-						},
-						onChangePlan: () => {
-							ctx.goPrev()
-						},
-						isBusinessUse: data.options.businessUse,
-						isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
-						campaignToken: () => data.registrationDataId,
-						prefilledMailAddress: mailAddress,
-						newAccountData: data.newAccountData,
-						emailInputStore: data.emailInputStore,
-						passwordInputStore: data.passwordInputStore,
-					}),
-				],
-			),
+									await createAccount(data, () => m.route.set("/login"))
+									ctx.setLabel(result.emailInputStore)
+									ctx.controller.progressItems[ctx.index].isReachable = false
+									ctx.goNext()
+								} else {
+									m.route.set("/login")
+								}
+							},
+							onChangePlan: () => {
+								ctx.goPrev()
+							},
+							isBusinessUse: data.options.businessUse,
+							isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
+							campaignToken: () => data.registrationDataId,
+							prefilledMailAddress: mailAddress,
+							newAccountData: data.newAccountData,
+							emailInputStore: data.emailInputStore,
+							passwordInputStore: data.passwordInputStore,
+						}),
+					),
+					m(
+						".flex-grow",
+						m("img.block.full-width", {
+							style: { "max-width": px(400), "margin-inline": "auto" },
+							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+						}),
+					),
+				]),
+			],
 		)
 	}
 }

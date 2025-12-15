@@ -15,7 +15,9 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 		return m(
 			".flex.col.justify-start",
 			{
-				style: { flex: 1 },
+				style: {
+					flex: 1,
+				},
 			},
 			m(
 				".flex.col.flex-space-around.items-start",

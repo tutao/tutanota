@@ -154,7 +154,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetails,
 				}),
 				m(
-					"#continue-wrapper.flex-v-start.items-center.plr-12.pt-16",
+					"#continue-wrapper.flex-v-start.items-center.pt-16",
 					{
 						style: this.shouldFixButtonPos() && {
 							position: "fixed",

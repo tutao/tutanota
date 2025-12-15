@@ -27,7 +27,6 @@ import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } f
 import { LoginTextField } from "../../gui/base/LoginTextField"
 import { SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
 import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
-import { px } from "../../gui/size"
 
 export type SignupFormAttrs = {
 	onComplete: (
@@ -206,7 +205,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-start",
-			m(".flex.flex-column.max-width-l.pt-16.pb-16.gap-16", { style: { width: px(450) } }, [
+			m(".flex.flex-column.max-width-l.pt-16.pb-16.gap-16.full-width", [
 				this.readonly
 					? m(LoginTextField, {
 							label: "mailAddress_label",

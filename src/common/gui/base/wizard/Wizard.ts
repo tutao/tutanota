@@ -103,6 +103,10 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				const step = steps[index]
 				return step.isBackButtonEnabled ? step.isBackButtonEnabled(ctx) : true
 			}
+			const showProgress = (index: number): boolean => {
+				const step = steps[index]
+				return step.showProgress ? step.showProgress(ctx) : true
+			}
 			const progressState: WizardProgressViewItem[] = rawProgress.map((item, index) => ({
 				...item,
 				index,
@@ -120,14 +124,18 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				},
 				[
 					m(".flex.flex-column.flex-space-between", [
-						m(WizardProgress, {
-							progressState,
-							onClick: (index) => controller.setStep(index),
-						}),
+						showProgress(controller.currentStep) &&
+							m(WizardProgress, {
+								progressState,
+								onClick: (index) => controller.setStep(index),
+							}),
 						m(
 							"",
 							{
-								style: { height: px(component_size.button_height) },
+								style: {
+									height: px(component_size.button_height),
+									"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
+								},
 							},
 							isBackButtonEnabled(controller.currentStep) &&
 								m(TertiaryButton, {

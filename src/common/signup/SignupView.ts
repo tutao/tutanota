@@ -240,6 +240,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									content: PlanSelectorPage,
 									onNext: () => console.log("another next action"),
 									isBackButtonEnabled: () => false,
+									showProgress: () => false,
 								},
 								{
 									title: "Create Account",
