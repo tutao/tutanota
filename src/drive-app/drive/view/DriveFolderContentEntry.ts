@@ -21,22 +21,13 @@ export interface FileActions {
 export interface DriveFolderContentEntryAttrs {
 	item: FolderItem
 	selected: boolean
-	onSelect: (f: FolderItem) => unknown
+	onSingleSelection: (f: FolderItem) => unknown
+	onRangeSelectionTowards: (f: FolderItem) => unknown
+	onSingleInclusiveSelection: (f: FolderItem) => unknown
+	onSingleExclusiveSelection: (f: FolderItem) => unknown
 	checked: boolean
 	fileActions: FileActions
 	multiselect: boolean
-}
-
-const DriveFolderContentEntryRowStyle = {
-	background: "white",
-	"border-radius": "10px",
-	"align-items": "center",
-	"margin-bottom": "4px",
-	padding: "6px 12px 6px 24px",
-	"grid-column-start": "1",
-	"grid-column-end": "8",
-	display: "grid",
-	"grid-template-columns": "subgrid",
 }
 
 const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
@@ -70,15 +61,16 @@ const mimeTypeAsText = (mimeType: string) => {
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
-	private clickTimeout: TimeoutID | null = null
-
 	view({
 		attrs: {
 			multiselect,
 			item,
 			selected,
 			checked,
-			onSelect,
+			onSingleSelection,
+			onSingleInclusiveSelection,
+			onSingleExclusiveSelection,
+			onRangeSelectionTowards,
 			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
@@ -91,25 +83,29 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		return m(
 			"div.flex.row.folder-row.cursor-pointer",
 			{
-				style: { ...DriveFolderContentEntryRowStyle, background: selected ? theme.state_bg_hover : theme.surface },
+				style: {
+					"border-radius": "10px",
+					"align-items": "center",
+					"margin-bottom": "4px",
+					padding: "6px 12px 6px 24px",
+					"grid-column-start": "1",
+					"grid-column-end": "8",
+					display: "grid",
+					"grid-template-columns": "subgrid",
+					background: selected ? theme.state_bg_hover : theme.surface,
+				},
 				onclick: (event: MouseEvent) => {
 					if (event.detail === 1) {
-						// if it's multiselect do select immediately, without delay
-						if (multiselect) {
-							onSelect(item)
+						if (event.shiftKey) {
+							onRangeSelectionTowards(item)
+						} else if (event.ctrlKey) {
+							onSingleInclusiveSelection(item)
 						} else {
 							// if we are not in multiselect, delay the selection so that
 							// it's not very noticeable
-							this.clickTimeout = setTimeout(() => {
-								this.clickTimeout = null
-								onSelect(item)
-							}, 150)
+							onSingleSelection(item)
 						}
 					} else if (event.detail === 2) {
-						if (this.clickTimeout) {
-							clearTimeout(this.clickTimeout)
-							this.clickTimeout = null
-						}
 						onOpenItem(item)
 					}
 				},
@@ -117,11 +113,10 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			[
 				m(
 					"div",
-					{},
 					m("input.checkbox", {
 						type: "checkbox",
 						checked,
-						onchange: () => onSelect(item),
+						onchange: () => onSingleExclusiveSelection(item),
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
 						},

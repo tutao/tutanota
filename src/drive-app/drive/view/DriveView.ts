@@ -24,6 +24,7 @@ import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
+import { Keys } from "../../../common/api/common/TutanotaConstants"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -90,7 +91,36 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			return Promise.resolve()
 		})
 
-		this.shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel)
+		this.shortcuts = [
+			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel),
+			{
+				key: Keys.C,
+				enabled: () => true,
+				help: "copy_action",
+				ctrlOrCmd: true,
+				exec: () => {
+					this.driveViewModel.copySelectedItems()
+				},
+			},
+			{
+				key: Keys.X,
+				enabled: () => true,
+				help: "cut_action",
+				ctrlOrCmd: true,
+				exec: () => {
+					this.driveViewModel.cutSelectedItems()
+				},
+			},
+			{
+				key: Keys.V,
+				enabled: () => true,
+				help: "paste_action",
+				ctrlOrCmd: true,
+				exec: () => {
+					this.driveViewModel.paste()
+				},
+			},
+		]
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -194,13 +224,14 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									},
 									currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
 									parents: this.driveViewModel.parents,
-									selection: listState.inMultiselect
-										? {
-												type: "multiselect",
-												selectedAll: this.driveViewModel.areAllSelected(),
-												selectedItemCount: listState.selectedItems.size,
-											}
-										: { type: "none" },
+									selection:
+										listState.inMultiselect || listState.selectedItems.size > 0
+											? {
+													type: "multiselect",
+													selectedAll: this.driveViewModel.areAllSelected(),
+													selectedItemCount: listState.selectedItems.size,
+												}
+											: { type: "none" },
 									listState: listState,
 									selectionEvents: {
 										onSelectAll: () => {
@@ -208,10 +239,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										},
 										onSelectNext: () => {},
 										onSelectPrevious: () => {},
+										onSingleSelection: (item) => {
+											this.driveViewModel.onSingleSelection(item)
+										},
 										onSingleInclusiveSelection: (item) => {
 											this.driveViewModel.onSingleInclusiveSelection(item)
 										},
-										onSingleExclusiveSelection: () => {},
+										onSingleExclusiveSelection: (item) => {
+											this.driveViewModel.onSingleExclusiveSelection(item)
+										},
+										onRangeSelectionTowards: (item) => {
+											this.driveViewModel.onRangeSelectionTowards(item)
+										},
 									},
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),

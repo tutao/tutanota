@@ -9,11 +9,13 @@ import { ListState } from "../../../common/gui/base/List"
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
 export interface DriveFolderSelectionEvents {
+	onSingleSelection: (item: FolderItem) => unknown
 	onSingleExclusiveSelection: (item: FolderItem) => unknown
 	onSingleInclusiveSelection: (item: FolderItem) => unknown
 	onSelectPrevious: (item: FolderItem) => unknown
 	onSelectNext: (item: FolderItem) => unknown
 	onSelectAll: () => unknown
+	onRangeSelectionTowards: (item: FolderItem) => unknown
 }
 
 export interface DriveFolderContentAttrs {
@@ -82,7 +84,10 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						m(DriveFolderContentEntry, {
 							item: item,
 							selected: listState.selectedItems.has(item),
-							onSelect: selectionEvents.onSingleInclusiveSelection,
+							onSingleSelection: selectionEvents.onSingleSelection,
+							onRangeSelectionTowards: selectionEvents.onRangeSelectionTowards,
+							onSingleInclusiveSelection: selectionEvents.onSingleInclusiveSelection,
+							onSingleExclusiveSelection: selectionEvents.onSingleExclusiveSelection,
 							checked: listState.inMultiselect && listState.selectedItems.has(item),
 							multiselect: listState.inMultiselect,
 							fileActions,

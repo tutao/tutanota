@@ -74,37 +74,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					this.draggedOver = false
 				},
 			},
-			this.draggedOver
-				? m(
-						".fill-absolute.flex.items-center.justify-center",
-						{
-							style: { backgroundColor: "#00000080", zIndex: LayerType.Overlay },
-						},
-						m(
-							".center.flex.col.items-center.justify-center.border-radius-12",
-							{
-								style: {
-									backgroundColor: theme.surface,
-									color: theme.on_surface,
-									padding: `${size.spacing_32}px ${size.spacing_16}px`,
-									fontSize: "1.4em",
-									gap: px(size.core_16),
-								},
-							},
-							[
-								m(Icon, {
-									icon: Icons.Upload,
-									size: IconSize.PX64,
-									style: {
-										fill: theme.outline,
-									},
-								}),
-								// FIXME: change this text, please
-								"Drop files here or something idk",
-							],
-						),
-					)
-				: null,
+			this.draggedOver ? this.renderDropView() : null,
 			m(DriveFolderNav, {
 				onTrash,
 				onDelete,
@@ -178,6 +148,37 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						listState,
 						selectionEvents,
 					} satisfies DriveFolderContentAttrs),
+		)
+	}
+	private renderDropView() {
+		return m(
+			".fill-absolute.flex.items-center.justify-center",
+			{
+				style: { backgroundColor: "#00000080", zIndex: LayerType.Overlay },
+			},
+			m(
+				".center.flex.col.items-center.justify-center.border-radius-12",
+				{
+					style: {
+						backgroundColor: theme.surface,
+						color: theme.on_surface,
+						padding: `${size.spacing_32}px ${size.spacing_16}px`,
+						fontSize: "1.4em",
+						gap: px(size.core_16),
+					},
+				},
+				[
+					m(Icon, {
+						icon: Icons.Upload,
+						size: IconSize.PX64,
+						style: {
+							fill: theme.outline,
+						},
+					}),
+					// FIXME: change this text, please
+					"Drop files here or something idk",
+				],
+			),
 		)
 	}
 }

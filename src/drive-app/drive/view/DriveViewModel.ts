@@ -258,6 +258,18 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
+	copySelectedItems() {
+		if (!this.listModel.isSelectionEmpty()) {
+			this.copy(this.listModel.getSelectedAsArray())
+		}
+	}
+
+	cutSelectedItems() {
+		if (!this.listModel.isSelectionEmpty()) {
+			this.cut(this.listModel.getSelectedAsArray())
+		}
+	}
+
 	async paste() {
 		if (this.currentFolder == null) return
 
@@ -412,8 +424,20 @@ export class DriveViewModel {
 		this.driveFacade.rename(folderItemEntity(item), newName)
 	}
 
+	onSingleSelection(item: FolderItem) {
+		this.listModel.onSingleSelection(item)
+	}
+
 	onSingleInclusiveSelection(item: FolderItem) {
 		this.listModel.onSingleInclusiveSelection(item)
+	}
+
+	onSingleExclusiveSelection(item: FolderItem) {
+		this.listModel.onSingleExclusiveSelection(item)
+	}
+
+	onRangeSelectionTowards(item: FolderItem) {
+		this.listModel.selectRangeTowards(item)
 	}
 
 	areAllSelected(): boolean {
@@ -421,10 +445,10 @@ export class DriveViewModel {
 	}
 
 	selectAll() {
-		if (this.areAllSelected()) {
-			this.listModel.selectNone()
-		} else {
+		if (this.listModel.isSelectionEmpty()) {
 			this.listModel.selectAll()
+		} else {
+			this.listModel.selectNone()
 		}
 	}
 
