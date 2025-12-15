@@ -43,11 +43,13 @@ export interface AllDaySectionAttrs {
 }
 
 export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
-	private rowCount = 0
 	private bubbleSize = layout_size.calendar_line_height + 4 // 4 = innerPadding
 
 	view({ attrs }: Vnode<AllDaySectionAttrs>) {
-		const sectionGaps = this.rowCount - 1
+		const rows = AllDaySection.layoutEvents(attrs.allDayEventWrappers, attrs.dates)
+		const rowCount = rows.length
+
+		const sectionGaps = rowCount - 1
 		const bottomPadding = size.spacing_4
 
 		return m(
@@ -55,9 +57,9 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 			{
 				style: {
 					gridTemplateColumns: `repeat(${attrs.dates.length}, 1fr)`,
-					gridTemplateRows: `repeat(${this.rowCount}, ${px(this.bubbleSize)})`,
+					gridTemplateRows: `repeat(${rowCount}, ${px(this.bubbleSize)})`,
 					transition: `${DefaultAnimationTime}ms linear`,
-					height: this.rowCount > 0 ? px(this.rowCount * this.bubbleSize + bottomPadding + sectionGaps) : "0px",
+					height: rowCount > 0 ? px(rowCount * this.bubbleSize + bottomPadding + sectionGaps) : "0px",
 					gap: "1px",
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: (mouseEvent: MouseEvent) => {
@@ -67,14 +69,11 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 					attrs.eventBubbleHandlers?.drag?.setTimeUnderMouse(new Time(0, 0), date)
 				},
 			},
-			this.renderEvents(attrs.dates, attrs.allDayEventWrappers, attrs.eventBubbleHandlers),
+			this.renderEvents(rows, attrs.dates, attrs.eventBubbleHandlers),
 		)
 	}
 
-	private renderEvents(dates: Date[], allDayEventWrappers: EventWrapper[], eventBubbleHandlers: EventBubbleInteractions & CalendarEventBubbleDragProperties) {
-		const rows = AllDaySection.layoutEvents(allDayEventWrappers, dates)
-		this.rowCount = rows.length
-
+	private renderEvents(rows: Array<RowLayoutData>, dates: Date[], eventBubbleHandlers: EventBubbleInteractions & CalendarEventBubbleDragProperties) {
 		return rows.flatMap((rowData, rowIndex) =>
 			Array.from(rowData.events.entries()).map(([eventWrapper, columnBounds]) => {
 				return m(
