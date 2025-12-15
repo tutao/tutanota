@@ -258,7 +258,7 @@ export async function loadSignupWizard(
 			if (locator.logins.isUserLoggedIn()) {
 				// this ensures that all created sessions during signup process are closed
 				// either by clicking on `cancel`, closing the window, or confirm on the UpgradeCongratulationsPage
-				await locator.logins.logout(true)
+				await locator.logins.logout(false)
 			}
 
 			// ensure that we reload the client in order to reset any state of the client that has been set when creating a session during signup.

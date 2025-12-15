@@ -48,23 +48,11 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 					disabled: this.disabled,
 					onclick: () => {
 						this.disabled = true
-						this.close(attrs.data, this.dom)
+						emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 					},
 				}),
 			),
 		]
-	}
-
-	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
-		let promise = Promise.resolve()
-
-		if (data.newAccountData && locator.logins.isUserLoggedIn()) {
-			promise = locator.logins.logout(false)
-		}
-
-		promise.then(async () => {
-			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
-		})
 	}
 }
 
@@ -85,14 +73,18 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 	}
 
 	async nextAction(_showDialogs: boolean): Promise<boolean> {
-		await locator.logins.logout(true)
+		await locator.logins.logout(false)
 		const loginViewModel = this.loginViewModelFactory()
 		loginViewModel.displayMode = DisplayMode.Form
 		loginViewModel.password(this.data.newAccountData!.password)
 		loginViewModel.mailAddress(this.data.newAccountData!.mailAddress)
 		loginViewModel.savePassword(true)
 		loginViewModel.skipPostLoginActions = true
-		await showProgressDialog("pleaseWait_msg", loginViewModel.login())
+		// TODO: This is a bandaid solution, investigate the root cause of the auto login failure
+		await showProgressDialog(
+			"pleaseWait_msg",
+			loginViewModel.login().then(() => locator.logins.logout(false)),
+		)
 		return true
 	}
 
