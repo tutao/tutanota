@@ -7,10 +7,12 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { px, size } from "../../../common/gui/size"
-import { isEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { theme } from "../../../common/gui/theme"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
+import { LayerType } from "../../../RootView"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -63,28 +65,44 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					this.draggedOver = false
 
 					if (event.dataTransfer) {
-						// directories have type "" but so do some files. We need some fancier code to read the
-						// directories
-						const definitelyFiles = Array.from(event.dataTransfer.files).filter((f) => f.type)
-						onDropFiles(definitelyFiles)
+						// We need some fancier code to read the directories.
+						const definitelyFileItems = Array.from(event.dataTransfer.items).filter((item) => item.webkitGetAsEntry()?.isFile)
+						onDropFiles(definitelyFileItems.map((item) => assertNotNull(item.getAsFile())))
 					}
 				},
 				ondragleave: (event: DragEvent) => {
-					console.log("ondragleave")
 					this.draggedOver = false
 				},
-				ondragend: (event: DragEvent) => {
-					console.log("ondragend")
-				},
 			},
-			// FIXME: doesn't work yet
 			this.draggedOver
 				? m(
-						".fill-absolute",
+						".fill-absolute.flex.items-center.justify-center",
 						{
-							style: theme.scrim,
+							style: { backgroundColor: "#00000080", zIndex: LayerType.Overlay },
 						},
-						"",
+						m(
+							".center.flex.col.items-center.justify-center.border-radius-12",
+							{
+								style: {
+									backgroundColor: theme.surface,
+									color: theme.on_surface,
+									padding: `${size.spacing_32}px ${size.spacing_16}px`,
+									fontSize: "1.4em",
+									gap: px(size.core_16),
+								},
+							},
+							[
+								m(Icon, {
+									icon: Icons.Upload,
+									size: IconSize.PX64,
+									style: {
+										fill: theme.outline,
+									},
+								}),
+								// FIXME: change this text, please
+								"Drop files here or something idk",
+							],
+						),
 					)
 				: null,
 			m(DriveFolderNav, {
