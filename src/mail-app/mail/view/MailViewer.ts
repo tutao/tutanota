@@ -1,4 +1,4 @@
-import { component_size, font_size, px, size } from "../../../common/gui/size"
+import { component_size, font_size, px } from "../../../common/gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
@@ -369,7 +369,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.pinchZoomable?.remove()
 
 		this.pinchZoomable = new PinchZoom(zoomable, viewport, true, (e, target) => {
-			this.handleAnchorClick(e, target, true)
+			if (!this.handleAnchorClick(e, target, true)) {
+				// dispatch a synthetic click event if not already handled as anchor click, so stuff like expanding <details> work on mobile
+				target?.dispatchEvent(new MouseEvent("click"))
+			}
 		})
 	}
 
@@ -702,7 +705,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private handleAnchorClick(event: Event, eventTarget: EventTarget | null, shouldDispatchSyntheticClick: boolean): void {
+	private handleAnchorClick(event: Event, eventTarget: EventTarget | null, shouldDispatchSyntheticClick: boolean): boolean {
+		let handled = false
 		const href = (eventTarget as Element | null)?.closest("a")?.getAttribute("href") ?? null
 		if (href) {
 			if (href.startsWith("mailto:")) {
@@ -716,11 +720,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							.catch(ofClass(CancelledError, noOp))
 					})
 				}
+				handled = true
 			} else if (isSettingsLink(href, this.viewModel.mail)) {
 				// Navigate to the settings menu if they are linked within an email.
 				const newRoute = href.substring(href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
+				handled = true
 			} else if (shouldDispatchSyntheticClick) {
 				const syntheticTag = document.createElement("a")
 				syntheticTag.setAttribute("href", href)
@@ -728,8 +734,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				syntheticTag.setAttribute("rel", "noopener noreferrer")
 				const newClickEvent = new MouseEvent("click")
 				syntheticTag.dispatchEvent(newClickEvent)
+				handled = true
 			}
 		}
+
+		return handled
 	}
 
 	/**
