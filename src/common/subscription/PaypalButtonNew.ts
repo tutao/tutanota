@@ -50,7 +50,7 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 	view({ attrs: { data, onclick, disabled } }: Vnode<PaypalButtonNewAttrs>): Children {
 		return [
 			m(
-				".flex-center.full-width.justify-center",
+				".flex-center.justify-center",
 				m(BaseButton, {
 					label: lang.makeTranslation("PayPal", "PayPal"),
 					text: m(".flex.gap-8.items-center.justify-center", [

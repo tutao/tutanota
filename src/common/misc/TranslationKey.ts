@@ -2143,3 +2143,5 @@ export type TranslationKeyType =
 	| "recovery_kit_page_continue_label"
 	| "confirm_order_page_title"
 	| "confirm_order_page_subtitle"
+	| "paymentDataPayPalConnected_msg"
+	| "paymentDataPayPalChangeAccount_msg"

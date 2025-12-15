@@ -35,6 +35,7 @@ import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditC
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
 import { theme } from "../gui/theme"
 import { BootIcons } from "../gui/base/icons/BootIcons"
+import { Country } from "../api/common/CountryList"
 
 assertMainOrNode()
 
@@ -132,19 +133,16 @@ export class SignupViewModel {
 		locator.logins.logout(true)
 	}
 
-	oncreate() {
-		window.addEventListener("beforeunload", this.beforeUnloadHandler)
-	}
-
-	onremove() {
-		this.runBeforeUnload()
-		window.removeEventListener("beforeunload", this.beforeUnloadHandler)
-	}
-
 	public updatePrice() {
 		this.price = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanActualPrice, this)
 		const nextYear = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, this)
 		this.nextYearPrice = this.price.rawPrice !== nextYear.rawPrice ? nextYear : null
+	}
+
+	public updateInvoiceCountry(country: Country) {
+		this.invoiceData.country = country
+		// FIXME: Implement proper cleanup of accounting info if necessary
+		if (this.accountingInfo) this.accountingInfo.paypalBillingAgreement = null
 	}
 
 	async init() {

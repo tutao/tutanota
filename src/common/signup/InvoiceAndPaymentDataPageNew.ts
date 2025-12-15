@@ -25,13 +25,12 @@ import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { theme } from "../gui/theme"
 import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
-import { PaypalButtonNew, PaypalButtonNewAttrs } from "../subscription/PaypalButtonNew"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { layout_size, px } from "../gui/size"
 import { LocationService } from "../api/entities/sys/Services"
-import { Icons } from "../gui/base/icons/Icons"
-import { IconButton } from "../gui/base/IconButton"
-import { ButtonSize } from "../gui/base/ButtonSize"
+import { LoginTextField } from "../gui/base/LoginTextField"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 
 export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private SignupFlowUsageTestController: any
@@ -133,7 +132,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			}),
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country) => (ctx.viewModel.invoiceData.country = country),
+				onSelectionChanged: (country: Country) => ctx.viewModel.updateInvoiceCountry(country),
 				label: "billingCountry_label",
 			}),
 			m(
@@ -215,69 +214,54 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 		}
 	}
 	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {
+		const isPaypalConnected = !!ctx.viewModel.accountingInfo?.paypalBillingAgreement
 		return m(".flex.col.gap-24", [
-			ctx.viewModel.accountingInfo?.paypalBillingAgreement
-				? m(".flex.col.items-end.gap-16", [
+			m(".flex.col.items-end.gap-24", [
+				renderCountryDropdownNew({
+					selectedCountry: ctx.viewModel.invoiceData.country,
+					onSelectionChanged: (country: Country) => ctx.viewModel.updateInvoiceCountry(country),
+					label: "billingCountry_label",
+				}),
+				m(".flex.justify-between.full-width.gap-24.wrap", [
+					isPaypalConnected &&
 						m(
-							".flex.justify-between.items-center.plr-16.pt-8.pb-8.border-radius-8.full-width",
-							{
-								style: {
-									border: `${px(1)} solid ${theme.outline_variant}`,
-								},
-							},
-							[
-								m("", `Connected Account: ${ctx.viewModel.accountingInfo!.paymentMethodInfo}`),
-								m(IconButton, {
-									size: ButtonSize.Compact,
-									icon: Icons.TrashBin,
-									click: () => (ctx.viewModel.accountingInfo!.paypalBillingAgreement = null),
-									title: "remove_action",
-								}),
-							],
-						),
-						m(LoginButton, {
-							label: "continue_action",
-							size: "md",
-							width: "flex",
-							onclick: () => {
-								ctx.goNext()
-							},
-							disabled: !ctx.viewModel.invoiceData.country,
-						}),
-					])
-				: m(".flex.col.items-center.gap-16", [
-						renderCountryDropdownNew({
-							selectedCountry: ctx.viewModel.invoiceData.country,
-							onSelectionChanged: (country: Country) => (ctx.viewModel.invoiceData.country = country),
-							label: "billingCountry_label",
-						}),
-						m(
-							"div.p-16.border-radius-8",
-							{
-								style: {
-									border: `${px(1)} solid ${theme.outline_variant}`,
+							".flex-grow",
+							{ style: { "min-width": "fit-content" } },
+							m(LoginTextField, {
+								label: "paymentDataPayPalConnected_msg",
+								value: ctx.viewModel.accountingInfo!.paymentMethodInfo!,
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: BootIcons.Mail,
 									color: theme.on_surface_variant,
 								},
-							},
-							lang.get("paymentDataPayPalLogin_msg"),
+							}),
 						),
+					m(
+						"",
+						{ style: isPaypalConnected ? { "margin-left": "auto" } : { width: "100%" } },
 						m(PaypalButtonNew, {
 							data: ctx.viewModel,
 							onclick: () => this.onPaypalButtonClick(),
 							oncomplete: () => this.onAddPaymentData(ctx),
-
 							disabled: !ctx.viewModel.invoiceData.country,
-						} satisfies PaypalButtonNewAttrs),
-						// m(".small", ctx.viewModel.accountingInfo?.paypalBillingAgreement && ctx.viewModel.accountingInfo!.paymentMethodInfo),
-					]),
-			// ctx.viewModel.accountingInfo?.paypalBillingAgreement &&
-			// 	m(TertiaryButton, {
-			// 		label: lang.getTranslation("continue_action"),
-			// 		text: lang.getTranslationText("continue_action"),
-			// 		icon: Icons.ArrowForward,
-			// 		onclick: () => ctx.goNext(),
-			// 		style: { "margin-left": "auto" },
-			// 	}),
+						}),
+					),
+				]),
+				m(
+					"div.border-radius-8.smaller.align-self-start",
+					lang.getTranslationText(isPaypalConnected ? "paymentDataPayPalChangeAccount_msg" : "paymentDataPayPalLogin_msg"),
+				),
+				isPaypalConnected &&
+					m(LoginButton, {
+						label: "continue_action",
+						size: "md",
+						width: "flex",
+						onclick: () => ctx.goNext(),
+						disabled: !ctx.viewModel.invoiceData.country,
+					}),
+			]),
 		])
 	}
 

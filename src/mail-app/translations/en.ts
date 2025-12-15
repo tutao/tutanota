@@ -2144,6 +2144,8 @@ export default {
 		"recovery_kit_page_checkbox_msg": "I understand the risks and importance of saving this code for recovering my account. Without this code my account can not be recovered.",
 		"recovery_kit_page_continue_label": "Let's get started",
 		"confirm_order_page_title": "You're Ready to Take Back What's Yours",
-		"confirm_order_page_subtitle": "Take back the ownership of your data"
+		"confirm_order_page_subtitle": "Take back the ownership of your data",
+		"paymentDataPayPalConnected_msg": "Connected Account",
+		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order."
 	}
 }

@@ -208,6 +208,8 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 					style: {
 						marginTop: px(inputMarginTop),
 						lineHeight: px(font_size.line_height_input),
+						position: "relative",
+						bottom: px(size.spacing_4),
 					},
 					"data-testid": `tfi:${lang.getTestId(a.label)}`,
 				},
