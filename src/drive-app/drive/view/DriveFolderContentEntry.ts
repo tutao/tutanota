@@ -2,12 +2,13 @@ import m, { Children, Component, Vnode } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { FolderItem } from "./DriveViewModel"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { filterInt } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { attachDropdown } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"
+import { size } from "../../../common/gui/size"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -30,6 +31,8 @@ export interface DriveFolderContentEntryAttrs {
 	multiselect: boolean
 	onDragStart: (f: FolderItem, event: DragEvent) => unknown
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
+	onDragEnd: () => unknown
+	isCut: boolean
 }
 
 const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
@@ -38,7 +41,7 @@ const isMusicMimeType = (mimeType: string) => ["audio/mpeg", "audio/wav", "audio
 
 const isDocumentMimeType = (mimeType: string) => ["text/plain", "application/pdf"].includes(mimeType)
 
-const iconPerMimeType = (mimeType: string) => {
+export function iconPerMimeType(mimeType: string): AllIcons {
 	if (isImageMimeType(mimeType)) {
 		return Icons.PictureFile
 	} else if (isMusicMimeType(mimeType)) {
@@ -63,6 +66,8 @@ const mimeTypeAsText = (mimeType: string) => {
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
+	private isDraggedOver: boolean = false
+
 	view({
 		attrs: {
 			multiselect,
@@ -74,14 +79,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			onSingleExclusiveSelection,
 			onRangeSelectionTowards,
 			onDragStart,
+			onDragEnd,
 			onDropInto,
+			isCut,
 			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
-
-		const thisFileIsAFolder = item.type === "folder"
-
 		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
 		return m(
@@ -98,20 +102,23 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					display: "grid",
 					"grid-template-columns": "subgrid",
 					background: selected ? theme.state_bg_hover : theme.surface,
+					border: item.type === "folder" && this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent`,
+				},
+				ondragover: () => {
+					this.isDraggedOver = true
+				},
+				ondragleave: () => {
+					this.isDraggedOver = false
 				},
 				ondragstart: (event: DragEvent) => {
 					onDragStart(item, event)
 				},
+				ondragend: () => {
+					onDragEnd()
+				},
 				ondrop: (event: DragEvent) => {
+					this.isDraggedOver = false
 					onDropInto(item, event)
-					// if (item.type !== "folder") {
-					// 	return
-					// }
-					// const driveFile = event.dataTransfer?.getData(DropType.DriveFile)
-					// const driveFileId = driveFile && parseIdTuple(driveFile)
-					// if (driveFileId) {
-					// 	onMove(driveFileId, item)
-					// }
 				},
 				onclick: (event: MouseEvent) => {
 					if (event.detail === 1) {
@@ -143,11 +150,15 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 				m(
 					"div",
-					{ style: {} },
 					m(Icon, {
-						icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
+						icon: item.type === "folder" ? Icons.Folder : iconPerMimeType(item.file.mimeType),
 						size: IconSize.PX24,
-						style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
+						style: {
+							fill: theme.on_surface,
+							display: "block",
+							margin: "0 auto",
+							opacity: isCut ? "0.5" : undefined,
+						},
 					}),
 				),
 				m("div", { style: {} }, m("span", item.type === "file" ? item.file.name : item.folder.name)),

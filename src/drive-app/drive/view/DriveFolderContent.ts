@@ -1,12 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { FolderItem, folderItemEntity, SortColumn, SortingPreference } from "./DriveViewModel"
-import { DriveFolderContentEntry, FileActions } from "./DriveFolderContentEntry"
+import { ClipboardAction, DriveClipboard, FolderFolderItem, FolderItem, folderItemEntity, SortColumn, SortingPreference } from "./DriveViewModel"
+import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { component_size, px, size } from "../../../common/gui/size"
+import { component_size, font_size, px, size } from "../../../common/gui/size"
 import { ListState } from "../../../common/gui/base/List"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { DropType } from "../../../common/gui/base/GuiUtils"
+import { theme } from "../../../common/gui/theme"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -27,6 +30,8 @@ export interface DriveFolderContentAttrs {
 	onSort: (column: SortColumn) => unknown
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
+	onMove: (items: DragFolderItem[], into: FolderFolderItem) => unknown
+	clipboard: DriveClipboard | null
 }
 
 const columnStyle = {
@@ -58,22 +63,37 @@ function renderHeaderCell(
 	)
 }
 
-function serializeIdTuple(idTuple: IdTuple): string {
-	return idTuple.join("/")
+interface DragFolderItem {
+	type: "file" | "folder"
+	id: IdTuple
 }
 
-function parseIdTuple(string: string): IdTuple | null {
-	const parts = string.split("/")
-	if (parts.length === 2) {
-		const [listId, elementId] = parts
-		return [listId, elementId]
-	} else {
-		return null
+function serializeDragItems(items: readonly DragFolderItem[]): string {
+	return JSON.stringify(items)
+}
+
+function isIdTuple(item: unknown): item is IdTuple {
+	return Array.isArray(item) && item.length === 2 && typeof item[0] === "string" && typeof item[1] === "string"
+}
+
+function parseDragItems(str: string): DragFolderItem[] | null {
+	const parsed = JSON.parse(str, (k, v) => (k === "__proto__" ? undefined : v))
+	if (Array.isArray(parsed)) {
+		for (const value of parsed) {
+			if (typeof value === "object" && (value.type === "file" || value.type === "folder") && isIdTuple(value.id)) {
+				continue
+			} else {
+				return null
+			}
+		}
 	}
+	return parsed
 }
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
-	view({ attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState } }: Vnode<DriveFolderContentAttrs>): Children {
+	private dragImageEl: Element | null = null
+
+	view({ attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, onMove, clipboard } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden.column-gap-12",
 			{
@@ -96,7 +116,6 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						},
 					},
 					listState.items.map((item) =>
-						// FIXME: give them an id
 						m(DriveFolderContentEntry, {
 							key: getElementId(folderItemEntity(item)),
 							item: item,
@@ -107,34 +126,124 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							onSingleExclusiveSelection: selectionEvents.onSingleExclusiveSelection,
 							checked: listState.inMultiselect && listState.selectedItems.has(item),
 							multiselect: listState.inMultiselect,
+							// FIXME: should we match by id? I guess clipboard itself should have only IDs
+							isCut: clipboard != null && clipboard.action === ClipboardAction.Cut && clipboard.items.includes(item),
 							fileActions,
 							onDragStart: (item, event) => {
-								if (listState.selectedItems.has(item)) {
-									for (const selectedItem of listState.selectedItems) {
-										if (selectedItem.type === "folder") {
-											event.dataTransfer?.items.add(serializeIdTuple(selectedItem.folder._id), DropType.DriveItems)
-										} else {
-											event.dataTransfer?.items.add(serializeIdTuple(selectedItem.file._id), DropType.DriveFile)
-										}
+								const itemsToDrag = listState.selectedItems.has(item) ? Array.from(listState.selectedItems) : [item]
+
+								const el = this.renderDragElement(item, itemsToDrag.length)
+								event.dataTransfer?.setDragImage(el, 10, 10)
+								this.dragImageEl = el
+
+								const dragItems: DragFolderItem[] = itemsToDrag.map((item) => {
+									return {
+										type: item.type,
+										id: folderItemEntity(item)._id,
 									}
-								} else {
-									// FIXME
+								})
+								event.dataTransfer?.setData(DropType.DriveItems, serializeDragItems(dragItems))
+							},
+							onDragEnd: () => {
+								if (this.dragImageEl) {
+									this.dragImageEl.remove()
+									this.dragImageEl = null
 								}
 							},
 							onDropInto: (item, event) => {
 								console.log(event.dataTransfer)
-								if (event.dataTransfer) {
-									for (const item of Array.from(event.dataTransfer.items)) {
-										console.log("item type", item.type, item)
-									}
+								const itemsData = event.dataTransfer?.getData(DropType.DriveItems)
+								if (item.type === "folder" && itemsData) {
+									const dragItems = parseDragItems(itemsData)
+									if (dragItems) onMove(dragItems, item)
 								}
 							},
-						}),
+						} satisfies DriveFolderContentEntryAttrs & { key: string }),
 					),
 				),
 			],
 		)
 	}
+
+	private renderDragElement(item: FolderItem, count: number) {
+		const el = document.createElement("div")
+		document.body.append(el)
+		// FIXME: theme
+		const boxShadow = `#D5D5D5 1px 1px 1px`
+		m.render(
+			el,
+			m(
+				".rel",
+				{
+					style: {
+						padding: px(size.spacing_8),
+						width: "200px",
+						translate: "-100%",
+						// position: "absolute",
+						// zIndex: 100,
+						// top: 0,
+					},
+				},
+				[
+					count > 1
+						? m(".abs.border-radius-12", {
+								style: {
+									// FIXME: need to use the theme somehow
+									background: "#EAEAEA",
+									width: `calc(100% - ${size.spacing_8}px * 2)`,
+									height: `calc(100% - ${size.spacing_8}px * 2)`,
+									right: px(size.spacing_8 / 2),
+									bottom: px(size.spacing_8 / 2),
+									boxShadow,
+								},
+							})
+						: null,
+					m(
+						".flex.items-center.overflow-hidden.border-radius-12.rel",
+						{
+							style: {
+								color: theme.on_surface,
+								padding: `${size.spacing_16}px ${size.spacing_8}px`,
+								background: theme.surface,
+								boxShadow,
+							},
+						},
+						m(Icon, {
+							icon: item.type === "folder" ? Icons.Folder : iconPerMimeType(item.file.mimeType),
+							size: IconSize.PX24,
+							style: {
+								fill: theme.on_surface,
+								display: "block",
+								margin: `0 ${size.core_8}px`,
+							},
+						}),
+						m(".text-ellipsis", item.type === "folder" ? item.folder.name : item.file.name),
+					),
+					count > 1
+						? m(
+								".abs.small.text-center",
+								{
+									style: {
+										top: 0,
+										right: 0,
+										backgroundColor: theme.primary,
+										color: theme.on_primary,
+										aspectRatio: "1 / 1",
+										borderRadius: "100%",
+										padding: px(size.base_4),
+										lineHeight: px(font_size.small),
+										height: `calc(1em + ${size.base_4}px * 2)`,
+									},
+								},
+								count,
+							)
+						: null,
+				],
+			),
+		)
+		return el
+	}
+
 	private renderHeader(selection: SelectionState, sortOrder: SortingPreference, onSort: (column: SortColumn) => unknown, onSelectAll: () => unknown) {
 		return m(
 			"div.flex.row.folder-row",
@@ -168,9 +277,6 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, onSort),
 							renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, onSort),
 							renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, onSort),
-							// m("div", { style: { ...columnStyle, width: columnSizes.type } }, "Type"),
-							// m("div", { style: { ...columnStyle, width: columnSizes.size } }, "Size"),
-							// m("div", { style: { ...columnStyle, width: columnSizes.date } }, "Date"),
 							m("div", { style: { ...columnStyle, width: px(component_size.button_height) } }, null),
 						],
 			],

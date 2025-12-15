@@ -30,7 +30,7 @@ import {
 } from "../../entities/drive/TypeRefs"
 import { DriveCopyService, DriveFolderService, DriveService } from "../../entities/drive/Services"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { getListId, listIdPart } from "../../common/utils/EntityUtils"
+import { getListId, isSameId, listIdPart } from "../../common/utils/EntityUtils"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -75,14 +75,16 @@ export class DriveFacade {
 		return { fileGroupId, fileGroupKey }
 	}
 
-	public async move(filesById: IdTuple[], foldersById: IdTuple[], destination: IdTuple) {
+	public async move(filesById: readonly IdTuple[], foldersById: readonly IdTuple[], destination: IdTuple) {
 		// FIXME: chunk by 50
 		const filesByListId = Array.from(groupBy(filesById, listIdPart).values())
 		const foldersByListId = Array.from(groupBy(foldersById, listIdPart).values())
 
 		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
 			const fileIds = filesByListId.at(i) ?? []
-			const folderIds = foldersByListId.at(i) ?? []
+			const unfilteredFolderIds = foldersByListId.at(i) ?? []
+			// prevent folder from being moved into itself
+			const folderIds = unfilteredFolderIds.filter((f) => !isSameId(f, destination))
 			const data = createDriveFolderServicePutIn({
 				files: fileIds,
 				folders: folderIds,

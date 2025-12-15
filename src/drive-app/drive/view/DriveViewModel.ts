@@ -103,7 +103,10 @@ function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
 	return item.type === "folder"
 }
 
-type DriveClipboard = { items: readonly FolderItem[]; action: ClipboardAction }
+export interface DriveClipboard {
+	items: readonly FolderItem[]
+	action: ClipboardAction
+}
 
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	return new ListModel({
@@ -429,8 +432,8 @@ export class DriveViewModel {
 		this.listModel.sort()
 	}
 
-	move(fileId: IdTuple, folder: FolderFolderItem) {
-		this.driveFacade.move([fileId], [], folder.folder._id)
+	move(files: readonly IdTuple[], folders: readonly IdTuple[], into: FolderFolderItem) {
+		this.driveFacade.move(files, folders, into.folder._id)
 	}
 
 	rename(item: FolderItem, newName: string) {

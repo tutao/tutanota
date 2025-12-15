@@ -7,7 +7,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { px, size } from "../../../common/gui/size"
-import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, partition } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { theme } from "../../../common/gui/theme"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
@@ -59,10 +59,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				style: { gap: px(size.spacing_12) },
 				ondragover: (event: DragEvent) => {
 					event.preventDefault()
-					const driveFile = event.dataTransfer?.getData(DropType.DriveFile)
-					const driveFolder = event.dataTransfer?.getData(DropType.DriveItems)
-					console.log("dragover", driveFile, event, event.dataTransfer)
-					if (event.dataTransfer && driveFile === "" && driveFolder === "") {
+					const driveItems = event.dataTransfer?.getData(DropType.DriveItems)
+					if (event.dataTransfer && driveItems === "") {
 						this.draggedOver = true
 					}
 				},
@@ -77,6 +75,9 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					}
 				},
 				ondragleave: (event: DragEvent) => {
+					this.draggedOver = false
+				},
+				ondragend: () => {
 					this.draggedOver = false
 				},
 			},
@@ -146,16 +147,22 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 									},
 								)
 							},
-							// onMove: (fileId, folder) => {
-							// 	driveViewModel.move(fileId, folder)
-							// },
 						},
 						onSort: (newSortingOrder) => {
 							driveViewModel.sort(newSortingOrder)
 						},
+						onMove: (items, into) => {
+							const [files, folders] = partition(items, (item) => item.type === "file")
+							driveViewModel.move(
+								files.map((item) => item.id),
+								folders.map((item) => item.id),
+								into,
+							)
+						},
 						selection,
 						listState,
 						selectionEvents,
+						clipboard: driveViewModel.clipboard,
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
