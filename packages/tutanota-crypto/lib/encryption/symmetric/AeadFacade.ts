@@ -1,84 +1,60 @@
-// package de.tutao.common.crypto.symmetric;
-//
-// import com.google.inject.Inject;
-// import com.google.inject.Singleton;
-// import de.tutao.common.crypto.HMacFacade;
-// import de.tutao.common.util.ArrayUtils;
-// import de.tutao.common.util.NotNullByDefault;
-// import de.tutao.common.util.TutaDbException;
-//
-// import javax.crypto.BadPaddingException;
-// import javax.crypto.Cipher;
-// import javax.crypto.IllegalBlockSizeException;
-// import javax.crypto.NoSuchPaddingException;
-// import javax.crypto.spec.IvParameterSpec;
-// import javax.crypto.spec.SecretKeySpec;
-// import java.security.InvalidAlgorithmParameterException;
-// import java.security.InvalidKeyException;
-// import java.security.NoSuchAlgorithmException;
-// import java.util.Arrays;
-//
-// import static de.tutao.common.crypto.symmetric.SymmetricCipherUtils.*;
-//
-// /**
-//  * This facade contains all methods for encryption/ decryption for Authenticated Encryption with Associated Data (AEAD).
-//  *
-//  * We use AES-CBC then HMAC-SHA-256, where the tag is computed over: version byte, IV, ciphertext and associated data.
-//  */
-// @NotNullByDefault
-// @Singleton
-// public class AeadFacade {
-// 	private final SymmetricKeyDeriver symmetricKeyDeriver;
-//
-// 	@Inject
-// 	public AeadFacade(SymmetricKeyDeriver symmetricKeyDeriver) {
-// 		this.symmetricKeyDeriver = symmetricKeyDeriver;
-// 	}
-//
-// 	byte[] encrypt(SecretKeySpec key, byte[] plainText, byte[] iv, boolean padding, byte[] associatedData) throws InvalidKeyException,
-// 			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
-//
-// 		Cipher cipher = Cipher.getInstance((padding) ? AES_ENCRYPTION_MODE_PADDING : AES_ENCRYPTION_MODE_NO_PADDING);
-// 		IvParameterSpec params = new IvParameterSpec(iv);
-//
-// 		var subKeys = symmetricKeyDeriver.deriveSubKeys(key, SymmetricCipherVersion.Aead);
-// 		assert subKeys.authenticationKey() != null;
-//
-// 		//C ←  AESCBC,E (EK , IV , M)
-// 		cipher.init(Cipher.ENCRYPT_MODE, subKeys.encryptionKey(), params);
-// 		byte[] aesCbcCiphertext = cipher.doFinal(plainText);
-//
-// 		//T ← HMAC(AK , VAEAD ||IV ||C||AD
-// 		byte[] unauthenticatedData = ArrayUtils.merge(SymmetricCipherVersion.Aead.asBytes(), iv, aesCbcCiphertext);
-//
-// 		byte[] tag = HMacFacade.hmac256(subKeys.authenticationKey(), unauthenticatedData, associatedData);
-//
-// 		//CT ← VAEAD ||IV ||C||T
-// 		return ArrayUtils.merge(unauthenticatedData, tag);
-// 	}
-//
-// 	byte[] decrypt(SecretKeySpec key, byte[] cipherText, boolean padding, byte[] associatedData) {
-// 		try {
-// 			var subKeys = symmetricKeyDeriver.deriveSubKeys(key, SymmetricCipherVersion.Aead);
-// 			assert subKeys.authenticationKey() != null;
-//
-// 			//T ′ ← HMAC(AK , VAEAD ||IV ||C||AD)
-// 			byte[] cipherTextWithoutMac = Arrays.copyOfRange(cipherText, 0, cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES);
-// 			byte[] authenticationTag = Arrays.copyOfRange(cipherText, cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, cipherText.length);
-// 			HMacFacade.verifyHmacSha256(authenticationTag, subKeys.authenticationKey(), cipherTextWithoutMac, associatedData);
-//
-// 			byte[] iv = Arrays.copyOfRange(cipherTextWithoutMac, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
-// 					SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + IV_LENGTH_BYTES);
-// 			byte[] aesCbcCiphertext = Arrays.copyOfRange(cipherTextWithoutMac, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + IV_LENGTH_BYTES,
-// 					cipherTextWithoutMac.length);
-//
-// 			Cipher cipher = Cipher.getInstance((padding) ? AES_ENCRYPTION_MODE_PADDING : AES_ENCRYPTION_MODE_NO_PADDING);
-// 			IvParameterSpec params = new IvParameterSpec(iv);
-// 			cipher.init(Cipher.DECRYPT_MODE, subKeys.encryptionKey(), params);
-// 			return cipher.doFinal(aesCbcCiphertext);
-// 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | NoSuchPaddingException
-// 				 | InvalidAlgorithmParameterException e) {
-// 			throw new TutaDbException(e);
-// 		}
-// 	}
-// }
+/**
+ * This facade contains all methods for encryption/ decryption for Authenticated Encryption with Associated Data (AEAD).
+ *
+ * We use AES-CBC then HMAC-SHA-256, where the tag is computed over: version byte, IV, ciphertext and associated data.
+ */
+import { SymmetricKeyDeriver } from "./SymmetricKeyDeriver"
+import { AesKey, bitArrayToUint8Array, SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
+import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion"
+import { assertNotNull, concat } from "@tutao/tutanota-utils"
+import sjcl from "../../internal/sjcl"
+import { hmacSha256, verifyHmacSha256 } from "../Hmac"
+
+export class AeadFacade {
+	constructor(private readonly symmetricKeyDeriver: SymmetricKeyDeriver) {}
+	encrypt(key: AesKey, plainText: Uint8Array, iv: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		// Cipher cipher = Cipher.getInstance((padding) ? AES_ENCRYPTION_MODE_PADDING : AES_ENCRYPTION_MODE_NO_PADDING);
+		// IvParameterSpec params = new IvParameterSpec(iv);
+
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, SymmetricCipherVersion.Aead)
+
+		//C ←  AESCBC,E (EK , IV , M)
+		const aesCbcCiphertext = bitArrayToUint8Array(
+			sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plainText), uint8ArrayToBitArray(iv), [], true),
+		)
+
+		//T ← HMAC(AK , VAEAD ||IV ||C||AD
+		const unauthenticatedData = concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.Aead), iv, aesCbcCiphertext, associatedData)
+
+		const tag = hmacSha256(assertNotNull(subKeys.authenticationKey), unauthenticatedData)
+
+		//CT ← VAEAD ||IV ||C||T
+		return concat(unauthenticatedData, tag)
+	}
+
+	// 	decrypt( key: AesKey, cipherText: Uint8Array,  associatedData: Uint8Array) {
+	// 		try {
+	// 			const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, SymmetricCipherVersion.Aead);
+	//
+	// 			//T ′ ← HMAC(AK , VAEAD ||IV ||C||AD)
+	// 			const cipherTextWithoutMac = cipherText.subarray(0, cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES);
+	// 			const authenticationTag = cipherText.subarray(cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, cipherText.length);
+	// 			const ciphertextWithoutMacWithData = concat(cipherTextWithoutMac, associatedData)
+	// 			verifyHmacSha256(assertNotNull(subKeys.authenticationKey),  ciphertextWithoutMacWithData, associatedData);
+	//
+	// 			byte[] iv = Arrays.copyOfRange(cipherTextWithoutMac, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
+	// 					SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + IV_LENGTH_BYTES);
+	// 			byte[] aesCbcCiphertext = Arrays.copyOfRange(cipherTextWithoutMac, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + IV_LENGTH_BYTES,
+	// 					cipherTextWithoutMac.length);
+	//
+	// 			Cipher cipher = Cipher.getInstance((padding) ? AES_ENCRYPTION_MODE_PADDING : AES_ENCRYPTION_MODE_NO_PADDING);
+	// 			IvParameterSpec params = new IvParameterSpec(iv);
+	// 			cipher.init(Cipher.DECRYPT_MODE, subKeys.encryptionKey(), params);
+	// 			return cipher.doFinal(aesCbcCiphertext);
+	// 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | NoSuchPaddingException
+	// 				 | InvalidAlgorithmParameterException e) {
+	// 			throw new TutaDbException(e);
+	// 		}
+	// 	}
+	// }
+}
