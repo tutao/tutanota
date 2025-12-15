@@ -169,18 +169,21 @@ export class SpamClassifierDataDealer {
 			const targetHamCount = Math.floor(spamCount * MAX_RATIO)
 			sampledHamLowConfidence = this.sampleEntriesFromArray(hamDataLowConfidence, targetHamCount)
 		} else if (ratio < MIN_RATIO) {
-			const targetSpamCount = Math.floor(hamCount * MAX_RATIO)
+			const targetSpamCount = Math.floor(hamCount * (1 / MIN_RATIO))
 			sampledSpamLowConfidence = this.sampleEntriesFromArray(spamDataLowConfidence, targetSpamCount)
 		}
 
 		const finalHam = hamDataHighConfidence.concat(sampledHamLowConfidence)
 		const finalSpam = spamDataHighConfidence.concat(sampledSpamLowConfidence)
+		const finalHamSize = finalHam.length
+		const finalSpamSize = finalSpam.length
+		const finalSize = finalHamSize + finalSpamSize
 
-		const MAX_MAILS_CAP_DESKTOP = 1000
-		const MAX_MAILS_CAP_WEB_AND_MOBILE = 300
+		const MAX_MAILS_CAP_DESKTOP = 4000
+		const MAX_MAILS_CAP_WEB_AND_MOBILE = 1000
 		const MAX_MAILS_CAP = isDesktop() ? MAX_MAILS_CAP_DESKTOP : MAX_MAILS_CAP_WEB_AND_MOBILE
-		const finalHamCapped = finalHam.slice(0, MAX_MAILS_CAP)
-		const finalSpamCapped = finalSpam.slice(0, MAX_MAILS_CAP)
+		const finalHamCapped = finalHam.slice(0, Math.floor((finalHamSize / finalSize) * MAX_MAILS_CAP))
+		const finalSpamCapped = finalSpam.slice(0, Math.floor((finalSpamSize / finalSize) * MAX_MAILS_CAP))
 
 		const balanced = [...finalHamCapped, ...finalSpamCapped]
 		console.log(
