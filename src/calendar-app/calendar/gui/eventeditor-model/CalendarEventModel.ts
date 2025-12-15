@@ -500,6 +500,7 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
 			// fields related to the event instance's identity are excluded.
 			// reminders. will be set up separately.
 			alarmInfos: [],
+			sender: null,
 		},
 		newAlarms: alarmResult.alarms,
 		sendModels: whoResult,
@@ -572,6 +573,7 @@ function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 		attendees: [],
 		organizer: null,
 		sequence: "",
+		sender: null,
 	}
 }
 
