@@ -117,9 +117,9 @@ export class Dialog implements ModalComponent {
 				this.getDialogWrapperClasses(dialogType),
 				{
 					style: {
-						paddingTop: "var(--safe-area-inset-top)",
-						paddingLeft: "var(--safe-area-inset-left)",
-						paddingRight: "var(--safe-area-inset-right)",
+						paddingTop: "env(safe-area-inset-top)",
+						paddingLeft: "env(safe-area-inset-left)",
+						paddingRight: "env(safe-area-inset-right)",
 					},
 				},
 				/** controls vertical alignment

@@ -68,16 +68,11 @@ export function displayOverlay(
 	}) as () => void
 }
 
-export function overlayBottomMargin(): number | null {
-	return styles.isUsingBottomNavigation() ? component_size.bottom_nav_bar + getSafeAreaInsetBottom() : null
-}
-
 export const overlay: Component<OverlayParentAttrs> = {
 	view: (vnode): Children => {
 		const visible = overlays.size > 0
 		const inertBelow = vnode.attrs.inertBelow
 
-		const bottomMargin = overlayBottomMargin()
 		return m(
 			// we want the overlays to position relative to the overlay parent
 			// the overlay parent also should fill the root
@@ -86,12 +81,12 @@ export const overlay: Component<OverlayParentAttrs> = {
 				inert: !visible,
 				style: {
 					display: visible ? "" : "none",
-					"margin-top": "var(--safe-area-inset-top)", // insets for iPhone X
+					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 					// keep the bottom nav bar clear & inset for iOS
-					"margin-bottom": bottomMargin ? px(bottomMargin) : "unset",
+					"margin-bottom": styles.isUsingBottomNavigation() ? px(component_size.bottom_nav_bar + getSafeAreaInsetBottom()) : "unset",
 					// we would need to change this if we wanted something to appear from the side
-					"margin-left": "var(--safe-area-inset-left)",
-					"margin-right": "var(--safe-area-inset-right)",
+					"margin-left": "env(safe-area-inset-left)",
+					"margin-right": "env(safe-area-inset-right)",
 				},
 				"aria-hidden": !visible,
 			},
