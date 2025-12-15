@@ -120,6 +120,22 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					this.driveViewModel.paste()
 				},
 			},
+			{
+				key: Keys.DELETE,
+				enabled: () => true,
+				help: "trash_action",
+				exec: () => {
+					this.driveViewModel.trashSelectedItems()
+				},
+			},
+			{
+				key: Keys.BACKSPACE,
+				enabled: () => true,
+				help: "trash_action",
+				exec: () => {
+					this.driveViewModel.trashSelectedItems()
+				},
+			},
 		]
 	}
 

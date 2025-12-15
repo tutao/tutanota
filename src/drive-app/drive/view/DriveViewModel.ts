@@ -467,6 +467,10 @@ export class DriveViewModel {
 	listState(): ListState<FolderItem> {
 		return this.listModel.state
 	}
+
+	trashSelectedItems() {
+		this.moveToTrash(this.listModel.getSelectedAsArray())
+	}
 }
 
 export type SortOrder = "asc" | "desc"

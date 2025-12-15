@@ -1,10 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { FolderItem, SortColumn, SortingPreference } from "./DriveViewModel"
+import { FolderItem, folderItemEntity, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { component_size, px, size } from "../../../common/gui/size"
 import { ListState } from "../../../common/gui/base/List"
+import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -82,6 +83,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					listState.items.map((item) =>
 						// FIXME: give them an id
 						m(DriveFolderContentEntry, {
+							key: getElementId(folderItemEntity(item)),
 							item: item,
 							selected: listState.selectedItems.has(item),
 							onSingleSelection: selectionEvents.onSingleSelection,
