@@ -56,7 +56,7 @@ async fn can_create_remote_instance() {
 		_ownerKeyVersion: Some(_owner_enc_session_key.version as i64),
 		_id: Some(IdTupleGenerated {
 			list_id: user_push_identifier_list_id.clone(),
-			element_id: Default::default(),
+			element_id: GeneratedId::MIN_ID.clone(),
 		}),
 		app: 1, // AppType.Mail
 		disabled: false,
@@ -69,7 +69,7 @@ async fn can_create_remote_instance() {
 		// when this is returned and deserialized, this will be set but empty
 		_errors: Default::default(),
 		// none of these need to be set
-		_permissions: Default::default(),
+		_permissions: GeneratedId::MIN_ID.clone(),
 		_finalIvs: Default::default(),
 		_format: 0,
 	};
@@ -125,7 +125,7 @@ async fn can_update_remote_instance() {
 	let mut sample_mail = crypto_entity_client
 		.load_range::<Mail, GeneratedId>(
 			&current_mailbag_mail_list,
-			&GeneratedId::max_id(),
+			GeneratedId::MAX_ID,
 			1,
 			ListLoadDirection::DESC,
 		)

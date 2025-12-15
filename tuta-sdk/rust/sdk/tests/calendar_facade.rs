@@ -125,7 +125,7 @@ async fn load_birthday_events() {
 
 	let events = calendar_facade
 		.get_calendar_events(
-			&GeneratedId("clientOnly_birthdays".to_string()),
+			&GeneratedId::from_str("clientOnly_birthdays"),
 			DateTime::from_millis(start_date * 1000),
 			DateTime::from_millis(end_date * 1000),
 		)

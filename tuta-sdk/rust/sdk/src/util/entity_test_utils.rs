@@ -26,8 +26,8 @@ pub fn generate_email_entity(
 ) -> (ParsedEntity, ParsedEntity) {
 	let original_mail = Mail {
 		_id: Some(IdTupleGenerated {
-			list_id: GeneratedId("O1RT1m6-0R-0".to_string()),
-			element_id: GeneratedId("O1RT2Dj----0".to_string()),
+			list_id: GeneratedId::from_str("O1RT1m6-0R-0"),
+			element_id: GeneratedId::from_str("O1RT2Dj----0"),
 		}),
 		receivedDate: DateTime::from_millis(1470039025474),
 		confidential,

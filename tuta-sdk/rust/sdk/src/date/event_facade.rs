@@ -1631,7 +1631,7 @@ impl EventFacade {
 		let encoded_contact_id =
 			BASE64_STANDARD.encode(format!("{}/{}", contact_id.list_id, contact_id.element_id));
 
-		let birthday_calendar_id = GeneratedId(format!(
+		let birthday_calendar_id = GeneratedId::from_string(format!(
 			"{}#{}",
 			user_id.as_str(),
 			BIRTHDAY_CALENDAR_BASE_ID
@@ -1728,7 +1728,7 @@ impl EventFacade {
 				list_id: birthday_calendar_id.clone(),
 				element_id: CustomId(format!("{}#{}", encoded_event_id, encoded_contact_id)),
 			}),
-			_permissions: GeneratedId::min_id(),
+			_permissions: GeneratedId::MIN_ID.to_owned(),
 			_format: 0,
 			_ownerGroup: Some(birthday_calendar_id),
 			_ownerEncSessionKey: None,

@@ -170,7 +170,7 @@ pub fn generate_former_keys(
 			GroupKey {
 				_format: 0,
 				_id: Some(IdTupleCustom {
-					list_id: GeneratedId("list".to_owned()),
+					list_id: GeneratedId::from_str("list"),
 					element_id: CustomId::from_custom_string(&i.to_string()),
 				}),
 				_ownerGroup: None,
@@ -275,7 +275,7 @@ pub fn generate_group_with_keys(
 		Some(current_keys),
 		GroupKeysRef {
 			_id: Default::default(),
-			list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+			list: GeneratedId::from_str("list"), // Refers to `former_keys`
 		},
 	);
 	group.groupKeyVersion = current_group_key.version as i64;

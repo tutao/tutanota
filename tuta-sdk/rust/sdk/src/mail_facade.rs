@@ -76,7 +76,7 @@ impl MailFacade {
 			.crypto_entity_client
 			.load_range(
 				folders_list,
-				&GeneratedId::min_id(),
+				GeneratedId::MIN_ID,
 				100,
 				ListLoadDirection::ASC,
 			)

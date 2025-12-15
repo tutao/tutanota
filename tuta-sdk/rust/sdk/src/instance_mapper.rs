@@ -365,15 +365,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 	{
 		match self.value {
 			ElementValue::String(str) => visitor.visit_string(str),
-			ElementValue::IdGeneratedId(GeneratedId(id))
-			| ElementValue::IdCustomId(CustomId(id)) => visitor.visit_string(id),
+			ElementValue::IdGeneratedId(id) => visitor.visit_string(id.into()),
+			ElementValue::IdCustomId(CustomId(id)) => visitor.visit_string(id),
 
 			// associated ids will be wrapped around by an array for all cardinalities
 			ElementValue::Array(ref arr) => match arr.first() {
 				Some(ElementValue::String(str)) => visitor.visit_string(str.clone()),
-				Some(ElementValue::IdGeneratedId(GeneratedId(id)))
-				| Some(ElementValue::IdCustomId(CustomId(id))) => visitor.visit_string(id.clone()),
-
+				Some(ElementValue::IdGeneratedId(id)) => visitor.visit_str(id.as_str()),
+				Some(ElementValue::IdCustomId(CustomId(id))) => visitor.visit_string(id.clone()),
 				_ => Err(self.wrong_type_err("string")),
 			},
 			_ => Err(self.wrong_type_err("string")),
@@ -497,13 +496,16 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			match self.value {
 				ElementValue::Array(mut arr) if is_association => {
 					if let Some(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
-						list_id: GeneratedId(list_id_str),
-						element_id: GeneratedId(element_id_str),
+						list_id,
+						element_id,
 					})) = arr.pop()
 					{
 						visitor.visit_map(IdTupleMapAccess {
-							iter: [("list_id", list_id_str), ("element_id", element_id_str)]
-								.into_iter(),
+							iter: [
+								("list_id", String::from(list_id)),
+								("element_id", String::from(element_id)),
+							]
+							.into_iter(),
 							value: None,
 						})
 					} else {
@@ -512,10 +514,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 				},
 
 				ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
-					list_id: GeneratedId(list_id_str),
-					element_id: GeneratedId(element_id_str),
+					list_id,
+					element_id,
 				}) => visitor.visit_map(IdTupleMapAccess {
-					iter: [("list_id", list_id_str), ("element_id", element_id_str)].into_iter(),
+					iter: [
+						("list_id", String::from(list_id)),
+						("element_id", String::from(element_id)),
+					]
+					.into_iter(),
 					value: None,
 				}),
 
@@ -525,13 +531,16 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			match self.value {
 				ElementValue::Array(mut array) if is_association => {
 					if let Some(ElementValue::IdTupleCustomElementId(IdTupleCustom {
-						list_id: GeneratedId(list_id_str),
+						list_id,
 						element_id: CustomId(element_id_str),
 					})) = array.pop()
 					{
 						visitor.visit_map(IdTupleMapAccess {
-							iter: [("list_id", list_id_str), ("element_id", element_id_str)]
-								.into_iter(),
+							iter: [
+								("list_id", String::from(list_id)),
+								("element_id", element_id_str),
+							]
+							.into_iter(),
 							value: None,
 						})
 					} else {
@@ -540,10 +549,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 				},
 
 				ElementValue::IdTupleCustomElementId(IdTupleCustom {
-					list_id: GeneratedId(list_id_str),
+					list_id,
 					element_id: CustomId(element_id_str),
 				}) => visitor.visit_map(IdTupleMapAccess {
-					iter: [("list_id", list_id_str), ("element_id", element_id_str)].into_iter(),
+					iter: [
+						("list_id", String::from(list_id)),
+						("element_id", element_id_str),
+					]
+					.into_iter(),
 					value: None,
 				}),
 
@@ -953,7 +966,9 @@ impl<'t> Serializer for ElementValueSerializer<'t> {
 				let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
 					unreachable!("should've serialized GeneratedId as a string");
 				};
-				Ok(ElementValue::IdGeneratedId(GeneratedId(id_string)))
+				Ok(ElementValue::IdGeneratedId(GeneratedId::from_string(
+					id_string,
+				)))
 			},
 			crate::id::custom_id::CUSTOM_ID_STRUCT_NAME => {
 				let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
@@ -1525,8 +1540,8 @@ mod tests {
 		assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
 		assert_eq!(
 			IdTupleGenerated {
-				list_id: GeneratedId("LIopQQI--k-0".to_owned()),
-				element_id: GeneratedId("LIopQQN--c-0".to_owned())
+				list_id: GeneratedId::from_str("LIopQQI--k-0"),
+				element_id: GeneratedId::from_str("LIopQQN--c-0")
 			},
 			group.groupInfo
 		);
@@ -1547,14 +1562,14 @@ mod tests {
 		let uid_index: CalendarEventUidIndex = mapper.parse_entity(parsed_entity).unwrap();
 		assert_eq!(
 			Some(IdTupleCustom {
-				list_id: GeneratedId("O9AJe4k--w-0".to_string()),
+				list_id: GeneratedId::from_str("O9AJe4k--w-0"),
 				element_id: CustomId("K-DUa41Th796YcV5RwMBtonQBn04PmCaSBSSfmeMUoE".to_string())
 			}),
 			uid_index._id
 		);
 		assert_eq!(
 			Some(IdTupleCustom {
-				list_id: GeneratedId("O9AJe4l--3-0".to_string()),
+				list_id: GeneratedId::from_str("O9AJe4l--3-0"),
 				element_id: CustomId("MTcyODI4NjMwNTMwMA".to_string())
 			}),
 			uid_index.progenitor
@@ -1616,7 +1631,7 @@ mod tests {
 			group_type_model
 				.get_attribute_id_by_attribute_name("_id")
 				.unwrap(),
-			ElementValue::IdGeneratedId(GeneratedId("id".to_owned())),
+			ElementValue::IdGeneratedId(GeneratedId::from_str("id")),
 		)]
 		.into();
 		let mapper = InstanceMapper::new(type_model_provider);
@@ -1656,7 +1671,7 @@ mod tests {
 					oofn_type_model
 						.get_attribute_id_by_attribute_name(ID_FIELD)
 						.unwrap(),
-					ElementValue::IdGeneratedId(GeneratedId("id".to_owned())),
+					ElementValue::IdGeneratedId(GeneratedId::from_str("id")),
 				),
 				(
 					oofn_type_model
@@ -1668,7 +1683,7 @@ mod tests {
 					oofn_type_model
 						.get_attribute_id_by_attribute_name(PERMISSIONS_FIELD)
 						.unwrap(),
-					ElementValue::IdGeneratedId(GeneratedId("permissions".to_owned())),
+					ElementValue::IdGeneratedId(GeneratedId::from_str("permissions")),
 				),
 				(
 					oofn_type_model

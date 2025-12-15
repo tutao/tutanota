@@ -593,7 +593,7 @@ impl CalendarFacade {
 		);
 
 		HashMap::from([(
-			GeneratedId(birthday_calendar_id),
+			GeneratedId::from_string(birthday_calendar_id),
 			CalendarRenderData {
 				name: String::from(BIRTHDAY_TRANSLATION_KEY),
 				color: user_settings_group_root
@@ -757,7 +757,7 @@ impl CalendarFacade {
 		start: DateTime,
 		end: DateTime,
 	) -> CalendarEventsList {
-		if calendar_id.0.contains(BIRTHDAY_CALENDAR_BASE_ID) {
+		if calendar_id.as_str().contains(BIRTHDAY_CALENDAR_BASE_ID) {
 			return self.fetch_birthday_events(start, end).await.unwrap();
 		}
 
@@ -1563,7 +1563,7 @@ mod calendar_facade_unit_tests {
 		);
 
 		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
-		let birthday_calendar_id = GeneratedId(formated_id);
+		let birthday_calendar_id = GeneratedId::from_string(formated_id);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
@@ -1621,7 +1621,7 @@ mod calendar_facade_unit_tests {
 		);
 
 		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
-		let birthday_calendar_id = GeneratedId(formated_id);
+		let birthday_calendar_id = GeneratedId::from_string(formated_id);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let render_data = calendars_render_data.get(&birthday_calendar_id);
@@ -1669,7 +1669,7 @@ mod calendar_facade_unit_tests {
 		);
 
 		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
-		let birthday_calendar_id = GeneratedId(formated_id);
+		let birthday_calendar_id = GeneratedId::from_string(formated_id);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let render_data = calendars_render_data.get(&birthday_calendar_id);

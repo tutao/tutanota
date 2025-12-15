@@ -165,7 +165,7 @@ impl JsonSerializer {
 							.map(|j| {
 								if let JsonElement::String(id) = j {
 									// Note: it's not always generated id, but it's fine probably
-									ElementValue::IdGeneratedId(GeneratedId(id))
+									ElementValue::IdGeneratedId(GeneratedId::from_string(id))
 								} else {
 									panic!("id not a string? wow")
 								}
@@ -488,8 +488,8 @@ impl JsonSerializer {
 			(Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
 				// would like to consume the array here but oh well
 				Some(IdTupleGenerated::new(
-					GeneratedId(list_id),
-					GeneratedId(element_id),
+					GeneratedId::from_string(list_id),
+					GeneratedId::from_string(element_id),
 				))
 			},
 			_ => None,
@@ -503,7 +503,7 @@ impl JsonSerializer {
 			(Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
 				// would like to consume the array here but oh well
 				Some(IdTupleCustom::new(
-					GeneratedId(list_id),
+					GeneratedId::from_string(list_id),
 					CustomId(element_id),
 				))
 			},
@@ -594,7 +594,7 @@ impl JsonSerializer {
 				_ => invalid_value(),
 			},
 			(ValueType::GeneratedId, JsonElement::String(v)) => {
-				Ok(ElementValue::IdGeneratedId(GeneratedId(v)))
+				Ok(ElementValue::IdGeneratedId(GeneratedId::from_string(v)))
 			},
 			(ValueType::CustomId, JsonElement::String(v)) => {
 				Ok(ElementValue::IdCustomId(CustomId(v)))
@@ -675,8 +675,8 @@ mod tests {
 		assert_eq!(
 			&ElementValue::Array(vec![ElementValue::IdTupleGeneratedElementId(
 				IdTupleGenerated::new(
-					GeneratedId("O3lYN71--J-0".to_owned()),
-					GeneratedId("O3lYUQI----0".to_owned()),
+					GeneratedId::from_str("O3lYN71--J-0"),
+					GeneratedId::from_str("O3lYUQI----0"),
 				)
 			)]),
 			parsed

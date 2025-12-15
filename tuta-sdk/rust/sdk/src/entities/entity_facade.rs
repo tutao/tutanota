@@ -154,7 +154,7 @@ impl EntityFacadeImpl {
 				.to_vec(),
 
 			ValueType::Boolean => if value.assert_bool() { b"1" } else { b"0" }.to_vec(),
-			ValueType::GeneratedId => value.assert_generated_id().0.as_bytes().to_vec(),
+			ValueType::GeneratedId => value.assert_generated_id().as_str().as_bytes().to_vec(),
 			ValueType::CustomId => value.assert_custom_id().0.as_bytes().to_vec(),
 			ValueType::CompressedString => {
 				Self::lz4_compress_plain_bytes(value.assert_string().as_bytes())

@@ -96,7 +96,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn request_write_token_with_uncached_and_cached() {
-		let owner_group_id = GeneratedId(String::from("hallo"));
+		let owner_group_id = GeneratedId::from_str("hallo");
 		let expected_access_info = BlobServerAccessInfo {
 			_id: Some(CustomId(String::from("123"))),
 			expires: DateTime::from_millis(1_000),

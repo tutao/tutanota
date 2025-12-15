@@ -310,7 +310,10 @@ mod tests {
 
 	#[test]
 	fn ids_from_generated_id_tuple_string() {
-		let id_tuple = IdTupleGenerated::new(GeneratedId::min_id(), GeneratedId::max_id());
+		let id_tuple = IdTupleGenerated::new(
+			GeneratedId::MIN_ID.to_owned(),
+			GeneratedId::MAX_ID.to_owned(),
+		);
 
 		assert_eq!("------------/zzzzzzzzzzzz", id_tuple.to_string());
 

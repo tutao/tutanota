@@ -1,4 +1,7 @@
 use crate::id::id_tuple::{BaseIdType, IdType};
+use crate::util::{array_cast_slice, BASE64_EXT};
+use crate::UniffiCustomTypeConverter;
+use base64::Engine;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::ToOwned;
@@ -6,16 +9,64 @@ use std::fmt::{Debug, Display, Formatter};
 
 pub const GENERATED_ID_STRUCT_NAME: &str = "GeneratedId";
 pub const GENERATED_ID_BYTES_LENGTH: usize = 9;
+pub const GENERATED_ID_BASE64_BYTES_LENGTH: usize = 12;
+
+#[derive(Clone, PartialEq, PartialOrd, Eq, Hash)]
+enum GeneratedIdRepresentation {
+	Base64([u8; GENERATED_ID_BASE64_BYTES_LENGTH]),
+	String(String),
+}
 
 /// A fixed nine byte length generated ID of an entity/instance
-#[derive(Clone, Default, PartialEq, PartialOrd, Eq, Hash)]
+#[derive(Clone, PartialEq, PartialOrd, Eq, Hash)]
 #[repr(transparent)]
-pub struct GeneratedId(pub String);
+pub struct GeneratedId(GeneratedIdRepresentation);
 
 impl GeneratedId {
+	pub const MIN_ID: &'static GeneratedId =
+		&GeneratedId(GeneratedIdRepresentation::Base64(*b"------------"));
+	pub const MAX_ID: &'static GeneratedId =
+		&GeneratedId(GeneratedIdRepresentation::Base64(*b"zzzzzzzzzzzz"));
+
 	#[must_use]
 	pub fn as_str(&self) -> &str {
-		&self.0
+		match &self.0 {
+			GeneratedIdRepresentation::Base64(base64) => std::str::from_utf8(base64.as_slice())
+				.expect("GeneratedId was not encoded as UTF-8 for some reason"),
+			GeneratedIdRepresentation::String(string) => string.as_str(),
+		}
+	}
+
+	#[must_use]
+	pub fn from_str(string: &str) -> Self {
+		if let Some(b64) = Self::try_base64_ext_str(string) {
+			b64
+		} else {
+			Self(GeneratedIdRepresentation::String(string.to_owned()))
+		}
+	}
+
+	#[must_use]
+	pub fn from_string(string: String) -> Self {
+		if let Some(b64) = Self::try_base64_ext_str(&string) {
+			b64
+		} else {
+			Self(GeneratedIdRepresentation::String(string))
+		}
+	}
+
+	fn try_base64_ext_str(str: &str) -> Option<Self> {
+		let str_bytes: [u8; GENERATED_ID_BASE64_BYTES_LENGTH] =
+			array_cast_slice(str.as_bytes(), "generated id").ok()?;
+
+		if BASE64_EXT
+			.decode_slice(&str_bytes, &mut [0u8; GENERATED_ID_BYTES_LENGTH])
+			.is_ok_and(|s| s == GENERATED_ID_BYTES_LENGTH)
+		{
+			Some(Self(GeneratedIdRepresentation::Base64(str_bytes)))
+		} else {
+			None
+		}
 	}
 
 	/// Generates and returns a random `CustomId`
@@ -24,19 +75,9 @@ impl GeneratedId {
 	pub fn test_random() -> Self {
 		use crate::util::test_utils::generate_random_string;
 		// not the actual alphabet we use in real generated IDs, but we aren't dealing with parsing generated IDs yet, so it's fine
-		Self(generate_random_string::<9>())
-	}
-
-	#[must_use]
-	pub fn min_id() -> Self {
-		// ideally should return a ref to a static id
-		GeneratedId("------------".to_owned())
-	}
-
-	#[must_use]
-	pub fn max_id() -> Self {
-		// ideally should return a ref to a static id
-		GeneratedId("zzzzzzzzzzzz".to_owned())
+		Self(GeneratedIdRepresentation::String(
+			generate_random_string::<9>(),
+		))
 	}
 
 	#[cfg(test)]
@@ -51,9 +92,19 @@ impl GeneratedId {
 	}
 }
 
+#[cfg(test)]
+impl Default for GeneratedId {
+	fn default() -> Self {
+		Self::MIN_ID.to_owned()
+	}
+}
+
 impl From<GeneratedId> for String {
 	fn from(value: GeneratedId) -> Self {
-		value.0
+		if let GeneratedId(GeneratedIdRepresentation::String(s)) = value {
+			return s;
+		}
+		value.as_str().to_owned()
 	}
 }
 
@@ -61,7 +112,7 @@ impl From<GeneratedId> for String {
 /// format is not checked).
 impl From<String> for GeneratedId {
 	fn from(value: String) -> Self {
-		Self(value)
+		Self::from_string(value)
 	}
 }
 
@@ -80,14 +131,26 @@ impl Debug for GeneratedId {
 impl IdType for GeneratedId {}
 impl BaseIdType for GeneratedId {}
 
-uniffi::custom_newtype!(GeneratedId, String);
+impl UniffiCustomTypeConverter for GeneratedId {
+	type Builtin = String;
+
+	fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+		Ok(GeneratedId::from_string(val))
+	}
+
+	fn from_custom(obj: Self) -> Self::Builtin {
+		String::from(obj)
+	}
+}
+
+uniffi::custom_type!(GeneratedId, String);
 
 impl Serialize for GeneratedId {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 	{
-		serializer.serialize_newtype_struct(GENERATED_ID_STRUCT_NAME, &self.0)
+		serializer.serialize_newtype_struct(GENERATED_ID_STRUCT_NAME, self.as_str())
 	}
 }
 
@@ -113,13 +176,13 @@ impl Visitor<'_> for IdVisitor {
 	where
 		E: Error,
 	{
-		Ok(GeneratedId(s))
+		Ok(GeneratedId::from_string(s))
 	}
 
 	fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
 	where
 		E: Error,
 	{
-		Ok(GeneratedId(s.to_owned()))
+		Ok(GeneratedId::from_str(s))
 	}
 }

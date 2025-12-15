@@ -192,7 +192,7 @@ fn parse_session_id(access_token: &str) -> Result<IdTupleCustom, DecodeError> {
 		return Err(DecodeError::InvalidLength(bytes.len()));
 	}
 	let (list_id_bytes, element_id_bytes) = bytes.split_at(GENERATED_ID_BYTES_LENGTH);
-	let list_id = GeneratedId(BASE64_EXT.encode(list_id_bytes));
+	let list_id = GeneratedId::from_string(BASE64_EXT.encode(list_id_bytes));
 	let element_id = CustomId(BASE64_URL_SAFE_NO_PAD.encode(sha256(element_id_bytes)));
 	Ok(IdTupleCustom {
 		list_id,
@@ -250,7 +250,7 @@ mod tests {
 		let parsed_session = typed_entity_to_parsed_entity(session.clone());
 
 		let session_id = IdTupleCustom {
-			list_id: GeneratedId("O0yKEOU-1B-0".to_owned()),
+			list_id: GeneratedId::from_str("O0yKEOU-1B-0"),
 			element_id: CustomId("jlv3AEmnv8rvtZe38u2dk-U1kzxpkMXWNusNz-NhnMI".to_owned()),
 		};
 		let mut mock_entity_client = MockEntityClient::default();
@@ -333,12 +333,12 @@ mod tests {
 				admin: false,
 				capability: None,
 				groupKeyVersion: 0,
-				group: GeneratedId("groupId".to_string()),
+				group: GeneratedId::from_str("groupId"),
 				symEncGKey: GenericAesKey::Aes256(passphrase_key)
 					.encrypt_key(&user_group_key.into(), Iv::generate(randomizer)),
 				groupInfo: IdTupleGenerated {
-					list_id: GeneratedId("groupInfoListId".to_string()),
-					element_id: GeneratedId("groupInfoElId".to_string()),
+					list_id: GeneratedId::from_str("groupInfoListId"),
+					element_id: GeneratedId::from_str("groupInfoElId"),
 				},
 				groupType: None,
 				symKeyVersion: 0,

@@ -137,7 +137,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 
@@ -154,7 +154,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 
@@ -182,7 +182,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 
@@ -190,7 +190,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 
@@ -208,7 +208,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 
@@ -216,7 +216,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 
@@ -248,7 +248,7 @@ mod tests {
 				None,
 				GroupKeysRef {
 					_id: Default::default(),
-					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+					list: GeneratedId::from_str("list"), // Refers to `former_keys`
 				},
 			);
 

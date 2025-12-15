@@ -572,7 +572,7 @@ mod tests {
 	/// * request 1: [a1: 2 KiB, a2: 2 MiB, a3: 2 KiB, a4: 2 KiB] -> [a1:token1, a2:token1, a3:token1, a4:token1]
 	#[tokio::test]
 	async fn encrypt_and_upload_multiple_attachments() {
-		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let owner_group_id = GeneratedId::from_str("ownerGroupId");
 		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
 
 		let first_attachment: Vec<u8> = vec![0; 2048];
@@ -705,7 +705,7 @@ mod tests {
 	/// * request 2: [a1.2: 2MiB, a2: 2 MiB, a3: 2 MiB, a4: 2 MiB] -> [a1:token2, a2:token1, a3:token1, a4:token1]
 	#[tokio::test]
 	async fn encrypt_and_upload_multiple_attachments_including_one_large() {
-		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let owner_group_id = GeneratedId::from_str("ownerGroupId");
 		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
 
 		let first_attachment: Vec<u8> = vec![0; 12 * 1024 * 1024];
@@ -864,7 +864,7 @@ mod tests {
 	/// * request 4: [a3: 2MiB] -> [a3:token1]
 	#[tokio::test]
 	async fn encrypt_and_upload_multiple_attachments_worst_case() {
-		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let owner_group_id = GeneratedId::from_str("ownerGroupId");
 		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
 
 		let first_attachment: Vec<u8> = vec![0; 14 * 1024 * 1024];
@@ -1050,7 +1050,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn encrypt_and_upload_single_blob_legacy() {
-		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let owner_group_id = GeneratedId::from_str("ownerGroupId");
 		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
 
 		let blob_data: Vec<u8> = Vec::from([1, 2, 3]);

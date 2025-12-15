@@ -95,7 +95,7 @@ mod tests {
 	async fn get_cached() {
 		let cache = BlobAccessTokenCache::new(Arc::new(DateProviderStub::new(0)));
 		let key = BlobWriteTokenKey::new(
-			&GeneratedId("group".to_owned()),
+			&GeneratedId::from_str("group"),
 			ArchiveDataType::Attachments,
 		);
 		let test_token = BlobServerAccessInfo {
@@ -117,7 +117,7 @@ mod tests {
 	async fn get_uncached() {
 		let cache = BlobAccessTokenCache::new(Arc::new(DateProviderStub::new(0)));
 		let key = BlobWriteTokenKey::new(
-			&GeneratedId("group".to_owned()),
+			&GeneratedId::from_str("group"),
 			ArchiveDataType::Attachments,
 		);
 		let test_token = BlobServerAccessInfo {
@@ -134,7 +134,7 @@ mod tests {
 	async fn get_expired() {
 		let cache = BlobAccessTokenCache::new(Arc::new(DateProviderStub::new(20)));
 		let key = BlobWriteTokenKey::new(
-			&GeneratedId("group".to_owned()),
+			&GeneratedId::from_str("group"),
 			ArchiveDataType::Attachments,
 		);
 		let expired_token = BlobServerAccessInfo {
@@ -176,7 +176,7 @@ mod tests {
 	fn evict() {
 		let cache = BlobAccessTokenCache::new(Arc::new(DateProviderStub::new(20)));
 		let key = BlobWriteTokenKey::new(
-			&GeneratedId("group".to_owned()),
+			&GeneratedId::from_str("group"),
 			ArchiveDataType::Attachments,
 		);
 		let expired_token = BlobServerAccessInfo {

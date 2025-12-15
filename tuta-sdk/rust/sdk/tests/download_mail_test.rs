@@ -20,7 +20,7 @@ async fn download_mail_with_logged_in_client() {
 
 	let credentials = Credentials {
 		login: "bed-free@tutanota.de".to_string(),
-		user_id: GeneratedId("O1qC700----0".to_owned()),
+		user_id: GeneratedId::from_str("O1qC700----0"),
 		access_token: "ZC2NIBDACUABAdJhibIwclzaPU3fEu-NzQ".to_string(),
 		encrypted_passphrase_key,
 		credential_type: CredentialType::Internal,
@@ -34,8 +34,8 @@ async fn download_mail_with_logged_in_client() {
 	let mail_facade = logged_in_sdk.mail_facade();
 	let mail: Mail = mail_facade
 		.load_untyped_mail(&IdTupleGenerated {
-			list_id: GeneratedId("O1qC705-17-0".to_string()),
-			element_id: GeneratedId("O1qC7an--3-0".to_string()),
+			list_id: GeneratedId::from_str("O1qC705-17-0"),
+			element_id: GeneratedId::from_str("O1qC7an--3-0"),
 		})
 		.await
 		.map(|decrypted| {

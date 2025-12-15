@@ -109,9 +109,9 @@ impl EntityClient {
 		direction: ListLoadDirection,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
 		let mut min_id: String = if direction == ListLoadDirection::ASC {
-			GeneratedId::min_id()
+			GeneratedId::MIN_ID
 		} else {
-			GeneratedId::max_id()
+			GeneratedId::MAX_ID
 		}
 		.to_string();
 		let mut done = false;
@@ -515,7 +515,7 @@ mod stests {
 	async fn test_load_range_generated_element_id() {
 		let type_provider = Arc::new(mock_type_model_provider());
 
-		let list_id = GeneratedId("list_id".to_owned());
+		let list_id = GeneratedId::from_str("list_id");
 		let list_id_field_id = type_provider
 			.resolve_server_type_ref(&TestListGeneratedElementIdEntity::type_ref())
 			.expect("missing listentity")
@@ -527,7 +527,7 @@ mod stests {
 			.get_attribute_id_by_attribute_name("field")
 			.unwrap();
 		let entity_map: ParsedEntity = collection! {
-			 list_id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
+			 list_id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId::from_str("element_id"))),
 			element_id_field_id => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		println!("{}", serde_json::to_string_pretty(&entity_map).unwrap());
@@ -563,7 +563,7 @@ mod stests {
 			.load_range(
 				&TestListGeneratedElementIdEntity::type_ref(),
 				&list_id,
-				&GeneratedId::max_id(),
+				GeneratedId::MAX_ID,
 				100,
 				ListLoadDirection::DESC,
 			)
@@ -576,7 +576,7 @@ mod stests {
 	async fn test_load_range_custom_element_id() {
 		let type_model_provider = Arc::new(mock_type_model_provider());
 
-		let list_id = GeneratedId("list_id".to_owned());
+		let list_id = GeneratedId::from_str("list_id");
 		let id_field_id = type_model_provider
 			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
 			.expect("custom id type not found")
@@ -645,9 +645,9 @@ mod stests {
 			.expect("element type not found")
 			.get_attribute_id_by_attribute_name("field")
 			.unwrap();
-		let list_id = GeneratedId("list_id".to_owned());
+		let list_id = GeneratedId::from_str("list_id");
 		let entity_map: ParsedEntity = collection! {
-			id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
+			id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId::from_str("element_id"))),
 			field_field_id => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
@@ -682,7 +682,7 @@ mod stests {
 			.load_range(
 				&TestListGeneratedElementIdEntity::type_ref(),
 				&list_id,
-				&GeneratedId::min_id(),
+				GeneratedId::MIN_ID,
 				100,
 				ListLoadDirection::ASC,
 			)
@@ -695,7 +695,7 @@ mod stests {
 	async fn test_load_range_asc_custom_element_id() {
 		let type_model_provider = Arc::new(mock_type_model_provider());
 
-		let list_id = GeneratedId("list_id".to_owned());
+		let list_id = GeneratedId::from_str("list_id");
 		let id_field_id = type_model_provider
 			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
 			.expect("list type not found")
@@ -755,7 +755,7 @@ mod stests {
 	async fn test_load_all_list_entries_asc() {
 		let type_model_provider = Arc::new(mock_type_model_provider());
 
-		let list_id = GeneratedId("list_id".to_owned());
+		let list_id = GeneratedId::from_str("list_id");
 		let id_field_id = type_model_provider
 			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
 			.expect("list type not found")
@@ -848,7 +848,7 @@ mod stests {
 	async fn test_load_all_list_entries_desc() {
 		let type_model_provider = Arc::new(mock_type_model_provider());
 
-		let list_id = GeneratedId("list_id".to_owned());
+		let list_id = GeneratedId::from_str("list_id");
 		let id_field_id = type_model_provider
 			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
 			.expect("list type not found")

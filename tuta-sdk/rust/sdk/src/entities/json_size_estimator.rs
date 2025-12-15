@@ -553,11 +553,11 @@ mod tests {
 
 		let foo2: FooBarBaz<IdTupleGenerated, IdTupleCustom, DateTime> = FooBarBaz {
 			field_a: IdTupleGenerated {
-				list_id: GeneratedId("moo".to_string()),
-				element_id: GeneratedId("wuff".to_string()),
+				list_id: GeneratedId::from_str("moo"),
+				element_id: GeneratedId::from_str("wuff"),
 			},
 			field_b: IdTupleCustom {
-				list_id: GeneratedId("meow".to_string()),
+				list_id: GeneratedId::from_str("meow"),
 				element_id: CustomId("123".to_string()),
 			},
 			field_c: DateTime::from_millis(1753355555555),
@@ -684,10 +684,7 @@ mod tests {
 
 	#[test]
 	fn estimate_id_tuple() {
-		let id = IdTupleGenerated::new(
-			GeneratedId("abc".to_string()),
-			GeneratedId("defg".to_string()),
-		);
+		let id = IdTupleGenerated::new(GeneratedId::from_str("abc"), GeneratedId::from_str("defg"));
 		assert_eq!(
 			r#"["abc","defg"]"#.len(),
 			id.serialize(&mut SizeEstimatingSerializer).unwrap()
