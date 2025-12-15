@@ -6,7 +6,7 @@ import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { VersionedKey } from "../crypto/CryptoWrapper"
-import { assertNotNull, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
@@ -30,7 +30,7 @@ import {
 } from "../../entities/drive/TypeRefs"
 import { DriveCopyService, DriveFolderService, DriveService } from "../../entities/drive/Services"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { getListId } from "../../common/utils/EntityUtils"
+import { getListId, listIdPart } from "../../common/utils/EntityUtils"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -75,9 +75,11 @@ export class DriveFacade {
 		return { fileGroupId, fileGroupKey }
 	}
 
-	public async move(items: (DriveFile | DriveFolder)[], destination: IdTuple) {
+	public async move(filesById: IdTuple[], foldersById: IdTuple[], destination: IdTuple) {
 		// FIXME: chunk by 50
-		const { filesByListId, foldersByListId } = this.sortIntoFilesAndFolderLists(items)
+		const filesByListId = Array.from(groupBy(filesById, listIdPart).values())
+		const foldersByListId = Array.from(groupBy(foldersById, listIdPart).values())
+
 		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
 			const fileIds = filesByListId.at(i) ?? []
 			const folderIds = foldersByListId.at(i) ?? []

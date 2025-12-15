@@ -28,6 +28,8 @@ export interface DriveFolderContentEntryAttrs {
 	checked: boolean
 	fileActions: FileActions
 	multiselect: boolean
+	onDragStart: (f: FolderItem, event: DragEvent) => unknown
+	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 }
 
 const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
@@ -71,6 +73,8 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			onSingleInclusiveSelection,
 			onSingleExclusiveSelection,
 			onRangeSelectionTowards,
+			onDragStart,
+			onDropInto,
 			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
@@ -83,6 +87,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		return m(
 			"div.flex.row.folder-row.cursor-pointer",
 			{
+				draggable: true,
 				style: {
 					"border-radius": "10px",
 					"align-items": "center",
@@ -93,6 +98,20 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					display: "grid",
 					"grid-template-columns": "subgrid",
 					background: selected ? theme.state_bg_hover : theme.surface,
+				},
+				ondragstart: (event: DragEvent) => {
+					onDragStart(item, event)
+				},
+				ondrop: (event: DragEvent) => {
+					onDropInto(item, event)
+					// if (item.type !== "folder") {
+					// 	return
+					// }
+					// const driveFile = event.dataTransfer?.getData(DropType.DriveFile)
+					// const driveFileId = driveFile && parseIdTuple(driveFile)
+					// if (driveFileId) {
+					// 	onMove(driveFileId, item)
+					// }
 				},
 				onclick: (event: MouseEvent) => {
 					if (event.detail === 1) {

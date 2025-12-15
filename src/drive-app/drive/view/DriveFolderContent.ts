@@ -6,6 +6,7 @@ import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { component_size, px, size } from "../../../common/gui/size"
 import { ListState } from "../../../common/gui/base/List"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -57,6 +58,20 @@ function renderHeaderCell(
 	)
 }
 
+function serializeIdTuple(idTuple: IdTuple): string {
+	return idTuple.join("/")
+}
+
+function parseIdTuple(string: string): IdTuple | null {
+	const parts = string.split("/")
+	if (parts.length === 2) {
+		const [listId, elementId] = parts
+		return [listId, elementId]
+	} else {
+		return null
+	}
+}
+
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view({ attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
@@ -93,6 +108,27 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							checked: listState.inMultiselect && listState.selectedItems.has(item),
 							multiselect: listState.inMultiselect,
 							fileActions,
+							onDragStart: (item, event) => {
+								if (listState.selectedItems.has(item)) {
+									for (const selectedItem of listState.selectedItems) {
+										if (selectedItem.type === "folder") {
+											event.dataTransfer?.items.add(serializeIdTuple(selectedItem.folder._id), DropType.DriveItems)
+										} else {
+											event.dataTransfer?.items.add(serializeIdTuple(selectedItem.file._id), DropType.DriveFile)
+										}
+									}
+								} else {
+									// FIXME
+								}
+							},
+							onDropInto: (item, event) => {
+								console.log(event.dataTransfer)
+								if (event.dataTransfer) {
+									for (const item of Array.from(event.dataTransfer.items)) {
+										console.log("item type", item.type, item)
+									}
+								}
+							},
 						}),
 					),
 				),

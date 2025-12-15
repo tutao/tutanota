@@ -5,7 +5,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
+import { assertNotNull, memoizedWithHiddenArgument, partition } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -97,6 +97,10 @@ export const enum ClipboardAction {
 
 export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
 	return folderItem.type === "file" ? folderItem.file : folderItem.folder
+}
+
+function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
+	return item.type === "folder"
 }
 
 type DriveClipboard = { items: readonly FolderItem[]; action: ClipboardAction }
@@ -283,8 +287,13 @@ export class DriveViewModel {
 		}
 	}
 
-	private async moveItems(folderItems: readonly FolderItem[], destination: IdTuple) {
-		await this.driveFacade.move(folderItems.map(folderItemEntity), destination)
+	async moveItems(folderItems: readonly FolderItem[], destination: IdTuple) {
+		const [folderFolderItems, fileFolderItems] = partition(folderItems, isFolderFolderItem)
+		await this.driveFacade.move(
+			fileFolderItems.map((item) => item.file._id),
+			folderFolderItems.map((item) => item.folder._id),
+			destination,
+		)
 		this.selectNone()
 	}
 
@@ -418,6 +427,10 @@ export class DriveViewModel {
 
 		if (this.currentFolder == null) return
 		this.listModel.sort()
+	}
+
+	move(fileId: IdTuple, folder: FolderFolderItem) {
+		this.driveFacade.move([fileId], [], folder.folder._id)
 	}
 
 	rename(item: FolderItem, newName: string) {

@@ -13,6 +13,7 @@ import { theme } from "../../../common/gui/theme"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../RootView"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -58,7 +59,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				style: { gap: px(size.spacing_12) },
 				ondragover: (event: DragEvent) => {
 					event.preventDefault()
-					this.draggedOver = true
+					const driveFile = event.dataTransfer?.getData(DropType.DriveFile)
+					const driveFolder = event.dataTransfer?.getData(DropType.DriveItems)
+					console.log("dragover", driveFile, event, event.dataTransfer)
+					if (event.dataTransfer && driveFile === "" && driveFolder === "") {
+						this.draggedOver = true
+					}
 				},
 				ondrop: (event: DragEvent) => {
 					event.preventDefault()
@@ -140,6 +146,9 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 									},
 								)
 							},
+							// onMove: (fileId, folder) => {
+							// 	driveViewModel.move(fileId, folder)
+							// },
 						},
 						onSort: (newSortingOrder) => {
 							driveViewModel.sort(newSortingOrder)
