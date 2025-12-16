@@ -141,7 +141,8 @@ export class SignupViewModel {
 
 	public updateInvoiceCountry(country: Country) {
 		this.invoiceData.country = country
-		// FIXME: Implement proper cleanup of accounting info if necessary
+		// We overwrite this flag only for th UI change, this does not affect anything for the stored data in the server.
+		// Actual paymentBillingAgreement is removed in PaymentDataService.put if the updated payment method is not PayPal.
 		if (this.accountingInfo) this.accountingInfo.paypalBillingAgreement = null
 	}
 
