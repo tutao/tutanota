@@ -138,6 +138,70 @@ o.spec("SpamClassificationDataDealer", () => {
 			o(spamCount).equals(10)
 			o(subsampledTrainingData.length).equals(11)
 		})
+
+		o("respects ratio when # of mails > MAX_MAIL_CAP", () => {
+			const hamData = Array.from({ length: 60 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST))
+			const spamData = Array.from({ length: 40 }, () =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST),
+			)
+			const DUMMY_MAX_MAIL_CAP = 20
+
+			const { subsampledTrainingData, hamCount, spamCount } = spamClassificationDataDealer.subsampleHamAndSpamMails(
+				[...hamData, ...spamData],
+				DUMMY_MAX_MAIL_CAP,
+			)
+			o(hamCount).equals(12)
+			o(spamCount).equals(8)
+			o(subsampledTrainingData.length).equals(20)
+		})
+
+		o("respects ratio when # of mails > MAX_MAIL_CAP (ratio > MAX_RATIO)", () => {
+			const hamData = Array.from({ length: 50 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST))
+			const spamData = Array.from({ length: 2 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST))
+			const DUMMY_MAX_MAIL_CAP = 11
+
+			const { subsampledTrainingData, hamCount, spamCount } = spamClassificationDataDealer.subsampleHamAndSpamMails(
+				[...hamData, ...spamData],
+				DUMMY_MAX_MAIL_CAP,
+			)
+			o(hamCount).equals(10)
+			o(spamCount).equals(1)
+			o(subsampledTrainingData.length).equals(11)
+		})
+
+		o("respects ratio when # of mails > MAX_MAIL_CAP (ratio < MIN_RATIO)", () => {
+			const hamData = Array.from({ length: 2 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST))
+			const spamData = Array.from({ length: 50 }, () =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST),
+			)
+			const DUMMY_MAX_MAIL_CAP = 11
+
+			const { subsampledTrainingData, hamCount, spamCount } = spamClassificationDataDealer.subsampleHamAndSpamMails(
+				[...hamData, ...spamData],
+				DUMMY_MAX_MAIL_CAP,
+			)
+			o(hamCount).equals(1)
+			o(spamCount).equals(10)
+			o(subsampledTrainingData.length).equals(11)
+		})
+
+		o("prioritizes high confidence mails when capping", () => {
+			const hamData = Array.from({ length: 50 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST))
+			const hamDataWithHighConfidence = Array.from({ length: 50 }, () => createSpamTrainingDatumByConfidenceAndDecision("4", SpamDecision.WHITELIST))
+			const spamData = Array.from({ length: 5 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST))
+			const spamDataWithHighConfidence = Array.from({ length: 5 }, () => createSpamTrainingDatumByConfidenceAndDecision("4", SpamDecision.BLACKLIST))
+
+			const DUMMY_MAX_MAIL_CAP = 11
+
+			const { subsampledTrainingData, hamCount, spamCount } = spamClassificationDataDealer.subsampleHamAndSpamMails(
+				[...hamData, ...spamData, ...hamDataWithHighConfidence, ...spamDataWithHighConfidence],
+				DUMMY_MAX_MAIL_CAP,
+			)
+			o(hamCount).equals(10)
+			o(spamCount).equals(1)
+			o(subsampledTrainingData.length).equals(11)
+			o(subsampledTrainingData.every((datum) => datum.confidence === "4")).equals(true)
+		})
 	})
 
 	o.spec("fetchAllTrainingData", () => {

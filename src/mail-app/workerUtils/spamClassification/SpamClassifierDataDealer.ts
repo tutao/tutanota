@@ -26,6 +26,9 @@ import { isDesktop } from "../../../common/api/common/Env"
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000
 const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 90
 const TRAINING_DATA_TIME_LIMIT: number = INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS * -1
+const MAX_MAILS_CAP_DESKTOP = 4000
+const MAX_MAILS_CAP_WEB_AND_MOBILE = 1000
+const MAX_MAILS_CAP = isDesktop() ? MAX_MAILS_CAP_DESKTOP : MAX_MAILS_CAP_WEB_AND_MOBILE
 
 export type TrainingDataset = {
 	trainingData: ClientSpamTrainingDatum[]
@@ -130,7 +133,10 @@ export class SpamClassifierDataDealer {
 	}
 
 	// Visible for testing
-	subsampleHamAndSpamMails(clientSpamTrainingData: ClientSpamTrainingDatum[]): {
+	subsampleHamAndSpamMails(
+		clientSpamTrainingData: ClientSpamTrainingDatum[],
+		maxMailsCap: number = MAX_MAILS_CAP,
+	): {
 		subsampledTrainingData: ClientSpamTrainingDatum[]
 		hamCount: number
 		spamCount: number
@@ -179,11 +185,8 @@ export class SpamClassifierDataDealer {
 		const finalSpamSize = finalSpam.length
 		const finalSize = finalHamSize + finalSpamSize
 
-		const MAX_MAILS_CAP_DESKTOP = 4000
-		const MAX_MAILS_CAP_WEB_AND_MOBILE = 1000
-		const MAX_MAILS_CAP = isDesktop() ? MAX_MAILS_CAP_DESKTOP : MAX_MAILS_CAP_WEB_AND_MOBILE
-		const finalHamCapped = finalHam.slice(0, Math.floor((finalHamSize / finalSize) * MAX_MAILS_CAP))
-		const finalSpamCapped = finalSpam.slice(0, Math.floor((finalSpamSize / finalSize) * MAX_MAILS_CAP))
+		const finalHamCapped = finalHam.slice(0, Math.floor((finalHamSize / finalSize) * maxMailsCap))
+		const finalSpamCapped = finalSpam.slice(0, Math.floor((finalSpamSize / finalSize) * maxMailsCap))
 
 		const balanced = [...finalHamCapped, ...finalSpamCapped]
 		console.log(
