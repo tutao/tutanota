@@ -2127,6 +2127,19 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		// FIXME: add
-		"driveView_action": "Drive"
+		"driveView_action": "Drive",
+		"driveHome_label": "Home",
+		"driveTrash_label": "Trash",
+		"itemsSelected_label": "{number} items selected",
+		"size_label": "Size",
+		"renameItem_action": "Rename item",
+		"enterNewName_label": "Enter new name:",
+		"trashIsEmpty_msg": "Trash is empty",
+		"dropFilesHere_msg": "Drop files or folders here",
+		"uploadFile_action": "Upload file",
+		"createFolder_action": "Create folder",
+		"sortDescending_label": "Descending",
+		"sortAscending_label": "Ascending",
+		"sortNeutral_label": "Unsorted"
 	}
 }

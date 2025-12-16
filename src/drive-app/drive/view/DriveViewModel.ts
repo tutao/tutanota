@@ -150,7 +150,6 @@ export class DriveViewModel {
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
-	// FIXME: should probably be a part of current folder?
 	parents: readonly DriveFolder[] = []
 	roots!: DriveRootFolders
 

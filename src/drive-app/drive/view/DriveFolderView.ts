@@ -147,8 +147,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 							onRename: (item) => {
 								Dialog.showProcessTextInputDialog(
 									{
-										title: lang.makeTranslation("asdf", "Rename item"), // FIXME,
-										label: lang.makeTranslation("asdf2", "Enter new name:"), // FIXME
+										title: "renameItem_action",
+										label: "enterNewName_label",
 										defaultValue: item.type === "file" ? item.file.name : item.folder.name,
 									},
 									async (newName: string) => {
@@ -180,20 +180,17 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			"",
 			{
 				style: {
-					// FIXME: better positioning once we figure out the layout more
 					marginTop: "6.4rem",
 				},
 			},
 			folder && folder.type === DriveFolderType.Trash
 				? m(IconMessageBox, {
-						// FIXME: translate
-						message: lang.makeTranslation("", "Trash is empty"),
+						message: lang.getTranslation("trashIsEmpty_msg"),
 						icon: Icons.TrashEmpty,
 						color: theme.on_surface_variant,
 					})
 				: m(IconMessageBox, {
-						// FIXME: translate
-						message: lang.makeTranslation("", "Drop files or folders here"),
+						message: lang.getTranslation("dropFilesHere_msg"),
 						icon: Icons.Drive,
 						color: theme.on_surface_variant,
 						bottomContent: "Or use 'new' button",
@@ -226,8 +223,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 							fill: theme.outline,
 						},
 					}),
-					// FIXME: change this text, please
-					"Drop files here or something idk",
+					lang.getTranslationText("dropFilesHere_msg"),
 				],
 			),
 		)

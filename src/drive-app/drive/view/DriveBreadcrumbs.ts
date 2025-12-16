@@ -55,14 +55,14 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbAttrs> {
 								]
 							: null,
 						m(BreadcrumbLink, {
-							label: lang.makeTranslation(`nav:${entry.name}`, folderName(entry)),
+							label: folderName(entry),
 							href: folderRoute(entry),
 						}),
 						m("", "/"),
 					]
 				})
 				.flat(),
-			currentFolder ? [m("", " " + folderName(currentFolder))] : null,
+			currentFolder ? [m("", " " + folderName(currentFolder).text)] : null,
 		])
 	}
 	private onLoadParents(dom: HTMLElement, loadParents: () => Promise<DriveFolder[]>) {
@@ -71,9 +71,8 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbAttrs> {
 			lazyButtons: async () => {
 				const loadedParents = await loadParents()
 				return loadedParents.map((parent) => {
-					const name = folderName(parent)
 					return {
-						label: lang.makeTranslation(name, name),
+						label: folderName(parent),
 						click: () => {
 							m.route.set(folderRoute(parent))
 						},
@@ -84,15 +83,13 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbAttrs> {
 	}
 }
 
-function folderName(folder: DriveFolder): string {
+function folderName(folder: DriveFolder): Translation {
 	switch (folder.type) {
 		case DriveFolderType.Root:
-			// FIXME
-			return "Home"
+			return lang.getTranslation("driveHome_label")
 		case DriveFolderType.Trash:
-			// FIXME
-			return "Trash"
+			return lang.getTranslation("driveTrash_label")
 		default:
-			return folder.name
+			return lang.makeTranslation(`${folder.name}`, folder.name)
 	}
 }

@@ -7,15 +7,13 @@ export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => un
 			click: (event, dom) => {
 				onNewFile()
 			},
-			// FIXME
-			label: lang.makeTranslation("UploadFile", () => "Upload file"),
+			label: lang.getTranslation("uploadFile_action"),
 		},
 		{
 			click: (event, dom) => {
 				onNewFolder()
 			},
-			// FIXME
-			label: lang.makeTranslation("CreateFolder", () => "Create folder"),
+			label: lang.getTranslation("createFolder_action"),
 		},
 	]
 }

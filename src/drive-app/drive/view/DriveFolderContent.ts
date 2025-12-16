@@ -268,18 +268,13 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					m("input.checkbox", { type: "checkbox", checked: selection.type === "multiselect" && selection.selectedAll, onchange: onSelectAll }),
 				),
 				selection.type === "multiselect"
-					? [
-							m(""),
-							// FIXME translate
-							m(".b", `${selection.selectedItemCount} items selected`),
-						]
+					? [m(""), m(".b", lang.getTranslation("itemsSelected_label", { "{number}": selection.selectedItemCount }).text)]
 					: [
 							m("div", { style: { ...columnStyle } }, []),
-							// FIXME: translations
-							renderHeaderCell(lang.makeTranslation("name", "Name"), SortColumn.name, sortOrder, onSort),
-							renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, onSort),
-							renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, onSort),
-							renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, onSort),
+							renderHeaderCell(lang.getTranslation("name_label"), SortColumn.name, sortOrder, onSort),
+							renderHeaderCell(lang.getTranslation("type_label"), SortColumn.mimeType, sortOrder, onSort),
+							renderHeaderCell(lang.getTranslation("size_label"), SortColumn.size, sortOrder, onSort),
+							renderHeaderCell(lang.getTranslation("date_label"), SortColumn.date, sortOrder, onSort),
 							m("div", { style: { ...columnStyle, width: px(component_size.button_height) } }, null),
 						],
 			],
