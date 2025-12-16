@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ClipboardAction, DriveClipboard, FolderFolderItem, FolderItem, folderItemEntity, SortColumn, SortingPreference } from "./DriveViewModel"
+import { ClipboardAction, DriveClipboard, FolderFolderItem, FolderItem, folderItemEntity, FolderItemId, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { component_size, font_size, px, size } from "../../../common/gui/size"
 import { ListState } from "../../../common/gui/base/List"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { theme } from "../../../common/gui/theme"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
@@ -30,7 +30,7 @@ export interface DriveFolderContentAttrs {
 	onSort: (column: SortColumn) => unknown
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
-	onMove: (items: DragFolderItem[], into: FolderFolderItem) => unknown
+	onMove: (items: FolderItemId[], into: FolderFolderItem) => unknown
 	clipboard: DriveClipboard | null
 }
 
@@ -63,12 +63,7 @@ function renderHeaderCell(
 	)
 }
 
-interface DragFolderItem {
-	type: "file" | "folder"
-	id: IdTuple
-}
-
-function serializeDragItems(items: readonly DragFolderItem[]): string {
+function serializeDragItems(items: readonly FolderItemId[]): string {
 	return JSON.stringify(items)
 }
 
@@ -76,7 +71,7 @@ function isIdTuple(item: unknown): item is IdTuple {
 	return Array.isArray(item) && item.length === 2 && typeof item[0] === "string" && typeof item[1] === "string"
 }
 
-function parseDragItems(str: string): DragFolderItem[] | null {
+function parseDragItems(str: string): FolderItemId[] | null {
 	const parsed = JSON.parse(str, (k, v) => (k === "__proto__" ? undefined : v))
 	if (Array.isArray(parsed)) {
 		for (const value of parsed) {
@@ -126,8 +121,10 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							onSingleExclusiveSelection: selectionEvents.onSingleExclusiveSelection,
 							checked: listState.inMultiselect && listState.selectedItems.has(item),
 							multiselect: listState.inMultiselect,
-							// FIXME: should we match by id? I guess clipboard itself should have only IDs
-							isCut: clipboard != null && clipboard.action === ClipboardAction.Cut && clipboard.items.includes(item),
+							isCut:
+								clipboard != null &&
+								clipboard.action === ClipboardAction.Cut &&
+								clipboard.items.some((clipboardItem) => isSameId(clipboardItem.id, folderItemEntity(item)._id)),
 							fileActions,
 							onDragStart: (item, event) => {
 								const itemsToDrag = listState.selectedItems.has(item) ? Array.from(listState.selectedItems) : [item]
@@ -138,7 +135,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 								event.dataTransfer?.setDragImage(el, 10, 10)
 								this.dragImageEl = el
 
-								const dragItems: DragFolderItem[] = itemsToDrag.map((item) => {
+								const dragItems: FolderItemId[] = itemsToDrag.map((item) => {
 									return {
 										type: item.type,
 										id: folderItemEntity(item)._id,

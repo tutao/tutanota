@@ -1,4 +1,4 @@
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
@@ -73,10 +73,6 @@ const compareNumber = (n1: number | bigint, n2: number | bigint) => {
 		return 0
 	}
 }
-interface FolderWithItems {
-	folder: DriveFolder
-	items: FolderItem[]
-}
 
 export const enum SortColumn {
 	name = "name",
@@ -103,9 +99,21 @@ function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
 	return item.type === "folder"
 }
 
+export interface FolderItemId {
+	type: "file" | "folder"
+	id: IdTuple
+}
+
 export interface DriveClipboard {
-	items: readonly FolderItem[]
+	items: readonly FolderItemId[]
 	action: ClipboardAction
+}
+
+export function folderItemToId(item: FolderItem): FolderItemId {
+	return {
+		id: folderItemEntity(item)._id,
+		type: item.type,
+	}
 }
 
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
@@ -256,12 +264,12 @@ export class DriveViewModel {
 	}
 
 	cut(items: readonly FolderItem[]) {
-		this._clipboard = { items, action: ClipboardAction.Cut }
+		this._clipboard = { items: items.map(folderItemToId), action: ClipboardAction.Cut }
 		this.selectNone()
 	}
 
 	copy(items: readonly FolderItem[]) {
-		this._clipboard = { items, action: ClipboardAction.Copy }
+		this._clipboard = { items: items.map(folderItemToId), action: ClipboardAction.Copy }
 		this.selectNone()
 	}
 
@@ -286,15 +294,26 @@ export class DriveViewModel {
 			this._clipboard = null
 			this.updateUi()
 		} else if (this._clipboard?.action === ClipboardAction.Copy) {
-			await this.driveFacade.copyItems(this._clipboard.items.map(folderItemEntity), this.currentFolder.folder)
+			const [fileItems, folderItems] = partition(this._clipboard.items, (item) => item.type === "file")
+			const files = await loadMultipleFromLists(
+				DriveFileTypeRef,
+				this.entityClient,
+				fileItems.map((item) => item.id),
+			)
+			const folders = await loadMultipleFromLists(
+				DriveFolderTypeRef,
+				this.entityClient,
+				folderItems.map((item) => item.id),
+			)
+			await this.driveFacade.copyItems(files, folders, this.currentFolder.folder)
 		}
 	}
 
-	async moveItems(folderItems: readonly FolderItem[], destination: IdTuple) {
-		const [folderFolderItems, fileFolderItems] = partition(folderItems, isFolderFolderItem)
+	async moveItems(folderItems: readonly FolderItemId[], destination: IdTuple) {
+		const [fileFolderItems, folderFolderItems] = partition(folderItems, (item) => item.type === "file")
 		await this.driveFacade.move(
-			fileFolderItems.map((item) => item.file._id),
-			folderFolderItems.map((item) => item.folder._id),
+			fileFolderItems.map((item) => item.id),
+			folderFolderItems.map((item) => item.id),
 			destination,
 		)
 		this.selectNone()

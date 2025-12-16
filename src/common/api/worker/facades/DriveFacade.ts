@@ -258,8 +258,7 @@ export class DriveFacade {
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
-	public async copyItems(items: readonly (DriveFile | DriveFolder)[], destination: DriveFolder): Promise<void> {
-		const [files, folders] = partition(items, isDriveFile)
+	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder): Promise<void> {
 		const date = new Date()
 
 		const fileItems = await promiseMap(files, async (file) => {
