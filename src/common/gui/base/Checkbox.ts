@@ -17,6 +17,7 @@ export type CheckboxAttrs = {
 export class Checkbox implements Component<CheckboxAttrs> {
 	private focused: boolean = false
 	private _domInput: HTMLElement | null = null
+	private labelLineHeight: number = 0
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
@@ -53,10 +54,13 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					m(".flex.gap-8", [
 						m("input.checkbox.list-checkbox", {
 							style: {
-								top: px(5),
+								transform: "translateY(-50%)",
+								top: px(this.labelLineHeight / 2),
 							},
 							type: "checkbox",
-							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
+							oncreate: (vnode) => {
+								this.labelLineHeight = parseInt(getComputedStyle(vnode.dom as HTMLElement).lineHeight)
+							},
 							onchange: (e: Event) => this.toggle(e, a),
 							checked: a.checked,
 							onfocus: () => (this.focused = true),
@@ -66,7 +70,13 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						}),
 						a.label(),
 					]),
-					helpLabel,
+					m(
+						"span",
+						{
+							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
+						},
+						helpLabel,
+					),
 				],
 			),
 		)
