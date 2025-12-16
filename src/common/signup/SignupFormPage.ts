@@ -38,9 +38,8 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 								m.route.set("/login")
 							}
 						},
-						onChangePlan: () => {
-							ctx.goPrev()
-						},
+						onNext: () => ctx.goNext(),
+						onChangePlan: () => ctx.goPrev(),
 						isBusinessUse: data.options.businessUse,
 						isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
 						campaignToken: () => data.registrationDataId,

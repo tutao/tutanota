@@ -20,7 +20,6 @@ import { EmailDomainData, isPaidPlanDomain } from "../../settings/mailaddress/Ma
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { deviceConfig } from "../../misc/DeviceConfig"
 import { PowSolution } from "../../api/common/pow-worker"
-import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog"
 import { NewAccountData } from "../../subscription/UpgradeSubscriptionWizard"
 import { runPowChallenge } from "../../subscription/captcha/Captcha"
 import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../subscription/TermsAndConditions"
@@ -41,6 +40,7 @@ export type SignupFormAttrs = {
 			  }
 			| { type: "failure" },
 	) => void
+	onNext: () => void
 	onChangePlan: () => void
 	isBusinessUse: lazy<boolean>
 	isPaidSubscription: lazy<boolean>
@@ -180,7 +180,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 			if (this.readonly) {
 				// Email field is read-only, account has already been created but user switched from different subscription.
 				// return a.onComplete({ type: "success", newAccountData: null })
-				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+				a.onNext()
 				return
 			}
 			if (this._isMailVerificationBusy) return
@@ -233,7 +233,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 				m(
 					".mt-32.mb-32.flex.flex-end",
 					m(LoginButton, {
-						label: "create_new_account_label",
+						label: this.readonly ? "continue_action" : "create_new_account_label",
 						onclick: submit,
 						disabled: !this._confirmTerms(),
 						width: "flex",
