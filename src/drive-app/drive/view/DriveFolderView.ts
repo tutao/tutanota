@@ -33,7 +33,7 @@ export interface DriveFolderViewAttrs {
 }
 
 function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
-	return currentFolder && currentFolder.type !== DriveFolderType.Trash
+	return currentFolder != null && currentFolder.type !== DriveFolderType.Trash
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {

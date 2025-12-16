@@ -35,6 +35,14 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			},
 			m(DriveBreadcrumb, { currentFolder, parents, onNavigateToFolder }),
 			m(".flex.items-center.column-gap-4", [
+				onPaste
+					? m(IconButton, {
+							title: "paste_action",
+							click: onPaste,
+							icon: Icons.Clipboard,
+						})
+					: null,
+				[onPaste].some(isNotNull) ? m(".nav-bar-spacer") : null,
 				onTrash
 					? m(IconButton, {
 							title: "trash_action",
@@ -56,13 +64,6 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							icon: Icons.Reply,
 						})
 					: null,
-				onPaste
-					? m(IconButton, {
-							title: "paste_action",
-							click: onPaste,
-							icon: Icons.Clipboard,
-						})
-					: null,
 				onCopy
 					? m(IconButton, {
 							title: "copy_action",
@@ -77,7 +78,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							icon: Icons.Cut,
 						})
 					: null,
-				[onPaste, onCopy, onCopy].some(isNotNull) ? m(".nav-bar-spacer") : null,
+				[onTrash, onDelete, onRestore, onCopy, onCut].some(isNotNull) ? m(".nav-bar-spacer") : null,
 				m(IconButton, {
 					title: lang.makeTranslation("Upload file", () => "Upload file"),
 					click: (ev, dom) => onUploadClick(dom),
