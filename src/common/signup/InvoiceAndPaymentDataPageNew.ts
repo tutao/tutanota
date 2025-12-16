@@ -26,7 +26,7 @@ import { theme } from "../gui/theme"
 import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { px } from "../gui/size"
+import { px, size } from "../gui/size"
 import { LocationService } from "../api/entities/sys/Services"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { BootIcons } from "../gui/base/icons/BootIcons"
@@ -75,7 +75,11 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			m(".flex.gap-16", [
 				m(
 					".flex-grow",
-
+					{
+						style: {
+							width: `calc(50% - ${px(size.spacing_32)})`,
+						},
+					},
 					m(RadioSelector, {
 						groupName: "credentialsEncryptionMode_label",
 						options,
@@ -85,12 +89,20 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 								// fixme: should actually not happen...
 								return
 							}
-							ctx.viewModel.paymentData.paymentMethod = method
+							if (method !== ctx.viewModel.paymentData.paymentMethod) {
+								ctx.viewModel.paymentData.paymentMethod = method
+								ctx.markComplete(false)
+							}
 						},
 					} satisfies RadioSelectorAttrs<PaymentMethodType | null>),
 				),
 				m(
 					".flex-grow",
+					{
+						style: {
+							width: `calc(50% - ${px(size.spacing_32)})`,
+						},
+					},
 					m("img.block.full-width", {
 						style: { "max-width": px(400), "margin-inline": "auto" },
 						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
@@ -124,7 +136,10 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			}),
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country) => ctx.viewModel.updateInvoiceCountry(country),
+				onSelectionChanged: (country: Country) => {
+					ctx.viewModel.updateInvoiceCountry(country)
+					ctx.markComplete(false)
+				},
 				label: "billingCountry_label",
 			}),
 			m(
@@ -211,7 +226,10 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			m(".flex.col.items-end.gap-24", [
 				renderCountryDropdownNew({
 					selectedCountry: ctx.viewModel.invoiceData.country,
-					onSelectionChanged: (country: Country) => ctx.viewModel.updateInvoiceCountry(country),
+					onSelectionChanged: (country: Country) => {
+						ctx.viewModel.updateInvoiceCountry(country)
+						ctx.markComplete(false)
+					},
 					label: "billingCountry_label",
 				}),
 				m(".flex.justify-between.full-width.gap-24.wrap", [

@@ -25,6 +25,11 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 			locator.customerFacade.generatePdfRecoveryDocument(recoveryCode).then((pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice)),
 		)
 	}
+
+	oncreate({ attrs }: Vnode<WizardStepContext<SignupViewModel>>) {
+		attrs.lockAllPreviousSteps()
+	}
+
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
 		const { newAccountData } = attrs.viewModel
 		assertNotNull(newAccountData)

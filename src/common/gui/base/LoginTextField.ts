@@ -186,7 +186,6 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 					),
 				],
 			),
-			//fixme
 			a.helpLabel &&
 				m(
 					"small.noselect",
@@ -203,7 +202,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 	_getInputField(a: LoginTextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
-				".text-break.selectable",
+				".text-break.selectable.text-ellipsis.block",
 				{
 					style: {
 						marginTop: px(inputMarginTop),

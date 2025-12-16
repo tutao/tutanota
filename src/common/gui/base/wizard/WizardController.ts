@@ -57,6 +57,14 @@ export class WizardController {
 		}, DefaultAnimationTime * 2)
 	}
 
+	public lockAllPreviousSteps(index: number): void {
+		if (index >= this._steps.length) return
+		for (let i = 0; i < index; i++) {
+			this._steps[i].isReachable = false
+		}
+		m.redraw()
+	}
+
 	public next(): void {
 		this.setStep(this._currentStep + 1)
 	}
@@ -81,6 +89,8 @@ export class WizardController {
 
 		if (isCompleted && index + 1 < this._steps.length) {
 			this._steps[index + 1].isReachable = true
+		} else if (!isCompleted && index + 1 < this._steps.length) {
+			this._steps[index + 1].isReachable = false
 		}
 	}
 }
@@ -95,4 +105,5 @@ export interface WizardStepContext<TViewModel> {
 	markComplete(isCompleted?: boolean): void
 	goNext(): void
 	goPrev(): void
+	lockAllPreviousSteps(): void
 }

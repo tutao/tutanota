@@ -6,7 +6,7 @@ import { PlanType } from "../api/common/TutanotaConstants"
 import { SignupFormNew } from "./components/SignupFormNew"
 import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
-import { px } from "../gui/size"
+import { px, size } from "../gui/size"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -22,6 +22,11 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 			m("div.flex.items-start.gap-64", [
 				m(
 					".flex-grow",
+					{
+						style: {
+							width: `calc(50% - ${px(size.spacing_32)})`,
+						},
+					},
 					m(SignupFormNew, {
 						onComplete: async (result) => {
 							if (result.type === "success") {
@@ -51,6 +56,11 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 				),
 				m(
 					".flex-grow",
+					{
+						style: {
+							width: `calc(50% - ${px(size.spacing_32)})`,
+						},
+					},
 					m("img.block.full-width", {
 						style: { "max-width": px(400), "margin-inline": "auto" },
 						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,

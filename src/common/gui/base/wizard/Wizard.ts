@@ -91,6 +91,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				markComplete: (isCompleted: boolean = true) => controller.markStepComplete(currentIndex, isCompleted),
 				goNext: () => handleNavigation("next", currentStep.onNext),
 				goPrev: () => handleNavigation("prev", currentStep.onPrev),
+				lockAllPreviousSteps: () => controller.lockAllPreviousSteps(currentIndex),
 			}
 
 			const rawProgress = controller.progressItems
