@@ -35,7 +35,7 @@ export type PlanSelectorAttr = {
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
 	private readonly selectedPlan: Stream<PlanType>
-	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
+	private shouldFixButtonPos: boolean = false
 
 	constructor({ attrs }: Vnode<PlanSelectorAttr>) {
 		this.selectedPlan = stream(attrs.targetPlan)
@@ -130,7 +130,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		return m(
 			"#plan-selector.flex.flex-column.gap-32",
 			{
-				style: this.shouldFixButtonPos() && {
+				style: this.shouldFixButtonPos && {
 					"padding-bottom": px(component_size.button_height + size.spacing_16 + getSafeAreaInsetBottom()),
 				},
 				lang: lang.code,
@@ -154,9 +154,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetails,
 				}),
 				m(
-					"#continue-wrapper.flex-v-start.items-center.pt-16",
+					"#continue-wrapper.flex-v-start.items-center.pt-16.plr-16",
 					{
-						style: this.shouldFixButtonPos() && {
+						style: this.shouldFixButtonPos && {
 							position: "fixed",
 							height: px(component_size.button_height + size.spacing_16 + bottomPad),
 							bottom: 0,
@@ -193,12 +193,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	 */
 	private readonly handleResize = () => {
 		const planSelectorEl = document.querySelector("#plan-selector")
-		const containerEl = document.querySelector(".dialog-container")
-		if (planSelectorEl && containerEl) {
+		if (planSelectorEl) {
 			const contentHeight = parseInt(getComputedStyle(planSelectorEl).height)
-			const containerHeight = parseInt(getComputedStyle(containerEl).height)
-
-			this.shouldFixButtonPos(contentHeight + component_size.button_floating_size > containerHeight)
+			this.shouldFixButtonPos = contentHeight + component_size.button_floating_size > window.innerHeight
 		}
 	}
 }

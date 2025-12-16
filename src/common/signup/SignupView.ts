@@ -5,7 +5,6 @@ import { windowFacade } from "../misc/WindowFacade.js"
 import { LoginViewModel } from "../login/LoginViewModel.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { createWizard, WizardAttrs } from "../gui/base/wizard/Wizard"
 import { px } from "../gui/size"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
@@ -266,7 +265,6 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							],
 							viewModel: this.wizardViewModel,
 						} satisfies WizardAttrs<SignupViewModel>),
-				renderInfoLinks(),
 			],
 		)
 	}

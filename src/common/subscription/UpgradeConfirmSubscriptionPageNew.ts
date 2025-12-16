@@ -182,7 +182,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 				m(
 					".flex-grow",
 					m("img.block.full-width", {
-						style: { "max-width": px(400), "margin-inline": "auto" },
+						style: { "max-width": px(200), "margin-inline": "auto" },
 						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
 						alt: "",
 						rel: "noreferrer",

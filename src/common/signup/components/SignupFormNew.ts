@@ -26,6 +26,7 @@ import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } f
 import { LoginTextField } from "../../gui/base/LoginTextField"
 import { SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
 import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
+import { styles } from "../../gui/styles"
 
 export type SignupFormAttrs = {
 	onComplete: (
@@ -225,13 +226,13 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 										label: "whitelabelRegistrationCode_label",
 									})
 								: null,
-							m(".flex.flex-column.gap-4", [
+							m(".flex.gap-4.smaller.items-center", [
 								m(Checkbox, confirmTermsCheckBoxAttrs),
 								m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							]),
 						],
 				m(
-					".mt-32.mb-32.flex.flex-end",
+					`.mt-32.mb-32.flex.${styles.isMobileLayout() ? "flex-center" : "flex-end"}`,
 					m(LoginButton, {
 						label: this.readonly ? "continue_action" : "create_new_account_label",
 						onclick: submit,

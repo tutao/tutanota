@@ -1927,8 +1927,6 @@ export default {
 		"terminationSuccessful_msg": "Your termination request for the account {accountName} was received on {receivedDate} and your account will be deleted on {deletionDate}.",
 		"terminationUseAccountUntilTermination_msg": "You can use the account until it is terminated.",
 		"termsAcceptedNeutral_msg": "Please accept the terms & conditions.",
-		"termsAndConditions_label": "I have read and agree to the following documents:",
-		"termsAndConditionsLink_label": "General terms and conditions",
 		"textTooLong_msg": "The entered text is too long",
 		"theme_label": "Theme",
 		"theme_title": "Which theme would you like to use?",
@@ -2146,6 +2144,8 @@ export default {
 		"confirm_order_page_title": "You're Ready to Take Back What's Yours",
 		"confirm_order_page_subtitle": "Take back the ownership of your data",
 		"paymentDataPayPalConnected_msg": "Connected Account",
-		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order."
+		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order.",
+		"termsAndConditions_label": "I have read and agree to the ",
+		"termsAndConditionsLink_label": "Terms and Conditions",
 	}
 }

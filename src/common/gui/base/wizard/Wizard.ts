@@ -118,7 +118,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 			}))
 
 			return m(
-				".full-width.height-100p",
+				`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
 				{ style: { margin: "auto", "max-height": px(layout_size.wizard_max_height), "max-width": px(layout_size.wizard_max_width) } },
 				m(
 					".flex.height-100p.full-width.gap-64",

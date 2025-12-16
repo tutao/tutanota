@@ -8,6 +8,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
 import { px, size } from "../gui/size"
 import { styles } from "../gui/styles"
+import { getTutaLogo } from "../gui/base/Logo"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -18,8 +19,9 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 
 		return m(".flex.flex-column.full-width", [
-			m("h1.font-mdio.line-height-1", lang.get("signup_page_title")),
-			m("p", { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
+			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
+			m(`h1.font-mdio.line-height-1.${styles.isMobileLayout() ? "text-center" : "left"}`, lang.get("signup_page_title")),
+			m(`p.${styles.isMobileLayout() ? "text-center" : "left"}`, { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
 			m("div.flex.items-start.gap-64", [
 				m(
 					".flex-grow",

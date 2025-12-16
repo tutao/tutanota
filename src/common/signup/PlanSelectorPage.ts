@@ -12,6 +12,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { px } from "../gui/size"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { PlanSelectorHeadlineNew } from "../subscription/components/PlanSelectorHeadlineNew"
+import { styles } from "../gui/styles"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -87,17 +88,18 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 								},
 							} satisfies PlanSelectorAttr),
 						),
-						m(
-							".flex-grow",
-							m("img.block.full-width", {
-								style: { "max-width": px(400), "margin-inline": "auto" },
-								src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-								alt: "",
-								rel: "noreferrer",
-								loading: "lazy",
-								decoding: "async",
-							}),
-						),
+						!styles.isMobileLayout() &&
+							m(
+								".flex-grow",
+								m("img.block.full-width", {
+									style: { "max-width": px(400), "margin-inline": "auto" },
+									src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+									alt: "",
+									rel: "noreferrer",
+									loading: "lazy",
+									decoding: "async",
+								}),
+							),
 					),
 				],
 			),
