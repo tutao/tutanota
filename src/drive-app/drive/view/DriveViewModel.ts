@@ -536,6 +536,22 @@ export class DriveViewModel {
 		return this.storage
 	}
 
+	async getMoreParents(): Promise<DriveFolder[]> {
+		if (this.currentFolder == null) {
+			return []
+		}
+
+		let currentParent = this.parents[0]
+		if (currentParent == null) return []
+		const result: DriveFolder[] = []
+		while (currentParent.parent != null) {
+			const grandparent = await this.entityClient.load(DriveFolderTypeRef, currentParent.parent)
+			result.unshift(grandparent)
+			currentParent = grandparent
+		}
+		return result
+	}
+
 	/**
 	 * Update the used storage. Debounce it so that we don't request it too frequently.
 	 */

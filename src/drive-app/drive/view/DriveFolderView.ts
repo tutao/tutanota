@@ -29,6 +29,7 @@ export interface DriveFolderViewAttrs {
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
 	onDropFiles: (files: File[]) => unknown
+	loadParents: () => Promise<DriveFolder[]>
 }
 
 function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
@@ -58,6 +59,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			selection,
 			selectionEvents,
 			listState,
+			loadParents,
 		},
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
@@ -103,9 +105,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				onUploadClick,
 				currentFolder,
 				parents,
-				onNavigateToFolder: (folder) => {
-					driveViewModel.navigateToFolder(folder._id)
-				},
+				loadParents,
 			}),
 			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
 				? this.renderEmptyView(currentFolder)

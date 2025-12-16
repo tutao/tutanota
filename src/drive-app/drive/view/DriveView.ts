@@ -296,6 +296,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											this.driveViewModel.onRangeSelectionTowards(item)
 										},
 									},
+									loadParents: () => this.driveViewModel.getMoreParents(),
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
 							],

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveBreadcrumb } from "./DriveBreadcrumb"
+import { DriveBreadcrumbs } from "./DriveBreadcrumbs"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
@@ -18,12 +18,12 @@ export interface DriveFolderNavAttrs {
 	onCopy: (() => unknown) | null
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
-	onNavigateToFolder: (folder: DriveFolder) => unknown
+	loadParents: () => Promise<DriveFolder[]>
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view({
-		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, onNavigateToFolder },
+		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, loadParents },
 	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			".flex.items-center.justify-between.border-radius-12",
@@ -33,7 +33,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 					padding: `${size.base_4}px ${size.spacing_12}px ${size.base_4}px ${size.spacing_24}px`,
 				},
 			},
-			m(DriveBreadcrumb, { currentFolder, parents, onNavigateToFolder }),
+			m(DriveBreadcrumbs, { currentFolder, parents, loadParents }),
 			m(".flex.items-center.column-gap-4", [
 				onPaste
 					? m(IconButton, {
