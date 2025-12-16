@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
-import { FolderItem } from "./DriveViewModel"
+import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveViewModel"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { filterInt } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton"
-import { attachDropdown } from "../../../common/gui/base/Dropdown"
+import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"
-import { size } from "../../../common/gui/size"
+import { modal } from "../../../common/gui/base/Modal"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -135,6 +135,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						onOpenItem(item)
 					}
 				},
+				oncontextmenu: (e: MouseEvent) => {
+					e.preventDefault()
+					e.stopPropagation()
+					const dropdown = new Dropdown(() => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete), 300)
+					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
+					modal.displayUnique(dropdown, false)
+				},
 			},
 			[
 				m(
@@ -175,49 +182,60 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 									icon: Icons.More,
 									title: "more_label",
 								},
-								childAttrs: () => [
-									{
-										label: "rename_action",
-										icon: Icons.Edit,
-										click: () => {
-											onRename(item)
-										},
-									},
-									{
-										label: "copy_action",
-										icon: Icons.Copy,
-										click: () => {
-											onCopy(item)
-										},
-									},
-									{
-										label: "cut_action",
-										icon: Icons.Cut,
-										click: () => {
-											onCut(item)
-										},
-									},
-									(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
-										? {
-												label: "restoreFromTrash_action",
-												icon: Icons.Reply,
-												click: () => {
-													onRestore(item)
-												},
-											}
-										: {
-												label: "trash_action",
-												icon: Icons.Trash,
-												click: () => {
-													onDelete(item)
-												},
-											},
-								],
+								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete),
 							}),
 						),
 					]),
 				),
 			],
 		)
+	}
+
+	private getContextActions(
+		item: FileFolderItem | FolderFolderItem,
+		onRename: (f: FolderItem) => unknown,
+		onCopy: (f: FolderItem) => unknown,
+		onCut: (f: FolderItem) => unknown,
+		onRestore: (f: FolderItem) => unknown,
+		onDelete: (f: FolderItem) => unknown,
+	): DropdownChildAttrs[] {
+		return [
+			{
+				label: "rename_action",
+				icon: Icons.Edit,
+				click: () => {
+					onRename(item)
+				},
+			},
+			{
+				label: "copy_action",
+				icon: Icons.Copy,
+				click: () => {
+					onCopy(item)
+				},
+			},
+			{
+				label: "cut_action",
+				icon: Icons.Cut,
+				click: () => {
+					onCut(item)
+				},
+			},
+			(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+				? {
+						label: "restoreFromTrash_action",
+						icon: Icons.Reply,
+						click: () => {
+							onRestore(item)
+						},
+					}
+				: {
+						label: "trash_action",
+						icon: Icons.Trash,
+						click: () => {
+							onDelete(item)
+						},
+					},
+		]
 	}
 }

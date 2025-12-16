@@ -13,6 +13,9 @@ import { theme } from "../../../common/gui/theme"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../RootView"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../common/gui/base/Dropdown"
+import { newItemActions } from "./DriveGuiUtils"
+import { modal } from "../../../common/gui/base/Modal"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -30,6 +33,8 @@ export interface DriveFolderViewAttrs {
 	selectionEvents: DriveFolderSelectionEvents
 	onDropFiles: (files: File[]) => unknown
 	loadParents: () => Promise<DriveFolder[]>
+	onNewFile: () => unknown
+	onNewFolder: () => unknown
 }
 
 function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
@@ -60,6 +65,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			selectionEvents,
 			listState,
 			loadParents,
+			onNewFile,
+			onNewFolder,
 		},
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
@@ -92,6 +99,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				},
 				ondragend: () => {
 					this.draggedOver = false
+				},
+				oncontextmenu: (e: MouseEvent) => {
+					e.preventDefault()
+					const dropdown = new Dropdown(() => newItemActions({ onNewFile, onNewFolder }), 300)
+					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
+					modal.displayUnique(dropdown, false)
 				},
 			},
 			this.draggedOver ? this.renderDropView() : null,

@@ -15,7 +15,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { createDropdown, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
+import { createDropdown, Dropdown } from "../../../common/gui/base/Dropdown"
 import { DriveUploadStack } from "./DriveUploadStack"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
@@ -28,6 +28,7 @@ import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { getMoveMailBounds } from "../../../mail-app/mail/view/MailGuiUtils"
 import { modal } from "../../../common/gui/base/Modal"
+import { newItemActions } from "./DriveGuiUtils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -143,7 +144,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				enabled: () => true,
 				help: "newDriveItem_action",
 				exec: () => {
-					const dropdown = new Dropdown(() => this.newItemActions(), 300)
+					const dropdown = new Dropdown(() => newItemActions({ onNewFile: () => this.onNewFile(), onNewFolder: () => this.onNewFolder() }), 300)
 					dropdown.setOrigin(getMoveMailBounds())
 					modal.displayUnique(dropdown, false)
 				},
@@ -176,7 +177,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								click: (ev, dom) => {
 									//
 									createDropdown({
-										lazyButtons: () => this.newItemActions(),
+										lazyButtons: () => newItemActions({ onNewFile: () => this.onNewFile(), onNewFolder: () => this.onNewFolder() }),
 									})(ev, ev.target as HTMLElement)
 								},
 							},
@@ -200,25 +201,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				headerCenter: "folderTitle_label",
 			},
 		)
-	}
-
-	private newItemActions(): DropdownChildAttrs[] {
-		return [
-			{
-				click: (event, dom) => {
-					this.onNewFile_Click(dom)
-				},
-				// FIXME
-				label: lang.makeTranslation("UploadFile", () => "Upload file"),
-			},
-			{
-				click: (event, dom) => {
-					this.onNewFolder_Click(dom)
-				},
-				// FIXME
-				label: lang.makeTranslation("CreateFolder", () => "Create folder"),
-			},
-		]
 	}
 
 	private renderStorage(): Children {
@@ -246,7 +228,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							desktopToolbar: () => [],
 							columnLayout: [
 								m(DriveFolderView, {
-									onUploadClick: this.onNewFile_Click,
+									onUploadClick: this.onNewFile,
 									driveViewModel: this.driveViewModel,
 									onTrash:
 										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash || listState.selectedItems.size === 0
@@ -297,6 +279,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										},
 									},
 									loadParents: () => this.driveViewModel.getMoreParents(),
+									onNewFile: () => this.onNewFile(),
+									onNewFolder: () => this.onNewFolder(),
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
 							],
@@ -314,7 +298,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		)
 	}
 
-	async onNewFile_Click(dom: HTMLElement): Promise<void> {
+	async onNewFile(): Promise<void> {
 		const files = await showStandardsFileChooser(true)
 
 		if (files) {
@@ -322,7 +306,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		}
 	}
 
-	async onNewFolder_Click(dom: HTMLElement): Promise<void> {
+	async onNewFolder(): Promise<void> {
 		Dialog.showProcessTextInputDialog(
 			{
 				title: lang.makeTranslation("newFolder_title", () => "New folder"),
