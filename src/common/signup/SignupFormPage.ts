@@ -7,6 +7,7 @@ import { SignupFormNew } from "./components/SignupFormNew"
 import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
 import { px, size } from "../gui/size"
+import { styles } from "../gui/styles"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -54,22 +55,23 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 						passwordInputStore: data.passwordInputStore,
 					}),
 				),
-				m(
-					".flex-grow",
-					{
-						style: {
-							width: `calc(50% - ${px(size.spacing_32)})`,
+				!styles.isMobileLayout() &&
+					m(
+						".flex-grow",
+						{
+							style: {
+								width: `calc(50% - ${px(size.spacing_32)})`,
+							},
 						},
-					},
-					m("img.block.full-width", {
-						style: { "max-width": px(400), "margin-inline": "auto" },
-						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-					}),
-				),
+						m("img.block.full-width", {
+							style: { "max-width": px(400), "margin-inline": "auto" },
+							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+						}),
+					),
 			]),
 		])
 	}

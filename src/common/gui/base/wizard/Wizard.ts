@@ -6,6 +6,7 @@ import { component_size, layout_size, px } from "../../size"
 import { TertiaryButton } from "../buttons/LoginButton"
 import { lang } from "../../../misc/LanguageViewModel"
 import { Icons } from "../icons/Icons"
+import { styles } from "../../styles"
 
 export interface WizardAttrs<TViewModel> {
 	steps: WizardStepAttrs<TViewModel>[]
@@ -128,30 +129,31 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 						},
 					},
 					[
-						m(".flex.flex-column.flex-space-between", [
-							showProgress(controller.currentStep) &&
-								m(WizardProgress, {
-									progressState,
-									onClick: (index) => controller.setStep(index),
-								}),
-							m(
-								"",
-								{
-									style: {
-										height: px(component_size.button_height),
-										"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
-									},
-								},
-								isBackButtonEnabled(controller.currentStep) &&
-									m(TertiaryButton, {
-										text: lang.getTranslationText("back_action"),
-										label: lang.getTranslation("back_action"),
-										icon: Icons.ArrowBackward,
-										onclick: ctx.goPrev,
-										width: "flex",
+						!styles.isMobileLayout() &&
+							m(".flex.flex-column.flex-space-between", [
+								showProgress(controller.currentStep) &&
+									m(WizardProgress, {
+										progressState,
+										onClick: (index) => controller.setStep(index),
 									}),
-							),
-						]),
+								m(
+									"",
+									{
+										style: {
+											height: px(component_size.button_height),
+											"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
+										},
+									},
+									isBackButtonEnabled(controller.currentStep) &&
+										m(TertiaryButton, {
+											text: lang.getTranslationText("back_action"),
+											label: lang.getTranslation("back_action"),
+											icon: Icons.ArrowBackward,
+											onclick: ctx.goPrev,
+											width: "flex",
+										}),
+								),
+							]),
 						m(
 							`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`,
 							m(currentStep.content, { ctx }),
