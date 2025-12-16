@@ -13,7 +13,6 @@ import { theme } from "../../../common/gui/theme"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../RootView"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -34,6 +33,10 @@ export interface DriveFolderViewAttrs {
 
 function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
 	return currentFolder != null && currentFolder.type !== DriveFolderType.Trash
+}
+
+function isValidDataTransferItem(item: DataTransferItem): boolean {
+	return item.kind === "file"
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
@@ -63,8 +66,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				style: { gap: px(size.spacing_12) },
 				ondragover: (event: DragEvent) => {
 					event.preventDefault()
-					const driveItems = event.dataTransfer?.getData(DropType.DriveItems)
-					if (canDropFilesToFolder(currentFolder) && event.dataTransfer && driveItems === "") {
+					if (
+						canDropFilesToFolder(currentFolder) &&
+						event.dataTransfer &&
+						event.dataTransfer.items.length > 0 &&
+						Array.from(event.dataTransfer.items).every(isValidDataTransferItem)
+					) {
 						this.draggedOver = true
 					}
 				},
