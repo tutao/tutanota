@@ -53,6 +53,11 @@ function isDriveFile(source: DriveFile | DriveFolder): source is DriveFile {
 	return isSameTypeRef(source._type, DriveFileTypeRef)
 }
 
+export interface DriveRootFolders {
+	root: IdTuple
+	trash: IdTuple
+}
+
 export class DriveFacade {
 	private readonly onCancelListener: EventTarget
 
@@ -155,7 +160,7 @@ export class DriveFacade {
 		await this.serviceExecutor.delete(DriveService, deleteData)
 	}
 
-	public async loadRootFolders(): Promise<{ root: IdTuple; trash: IdTuple }> {
+	public async loadRootFolders(): Promise<DriveRootFolders> {
 		const { fileGroupId } = await this.getCryptoInfo()
 
 		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)

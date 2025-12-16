@@ -1,9 +1,9 @@
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
-import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
+import { BreadcrumbEntry, DriveFacade, DriveRootFolders, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
-import { NotFoundError } from "../../../common/api/common/error/RestError"
+import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertNotNull, debounceStart, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
@@ -152,7 +152,7 @@ export class DriveViewModel {
 	currentFolder: DisplayFolder | null = null
 	// FIXME: should probably be a part of current folder?
 	parents: readonly DriveFolder[] = []
-	roots!: Awaited<ReturnType<DriveFacade["loadRootFolders"]>>
+	roots!: DriveRootFolders
 
 	private _clipboard: DriveClipboard | null = null
 
@@ -265,19 +265,7 @@ export class DriveViewModel {
 		}
 	}
 
-	/**
-	 * Update the used storage. Debounce it so that we don't request it too frequently.
-	 */
-	private readonly refreshStorage = debounceStart(60 * SECOND_IN_MILLIS, async () => {
-		const customerInfo = await this.loginController.getUserController().loadCustomerInfo()
-		this.storage = {
-			usedBytes: await this.userManagementFacade.readUsedUserStorage(this.loginController.getUserController().user),
-			totalBytes: Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR,
-		}
-		this.updateUi()
-	})
-
-	async loadItem(type: "file" | "folder", id: IdTuple): Promise<FolderItem> {
+	private async loadItem(type: "file" | "folder", id: IdTuple): Promise<FolderItem> {
 		if (type === "file") {
 			const file = await this.entityClient.load(DriveFileTypeRef, id)
 			return { type, file }
@@ -386,7 +374,7 @@ export class DriveViewModel {
 		}
 	}
 
-	async loadFolder(folderId: IdTuple): Promise<void> {
+	async displayFolder(folderId: IdTuple): Promise<void> {
 		try {
 			const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 			if (folder.type === DriveFolderType.Regular) {
@@ -406,7 +394,7 @@ export class DriveViewModel {
 			this.listModel.loadInitial()
 			await this.loadParents(folder)
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 				this.navigateToRootFolder()
 			} else {
 				throw e
@@ -547,6 +535,18 @@ export class DriveViewModel {
 	getUsedStorage(): DriveStorage | null {
 		return this.storage
 	}
+
+	/**
+	 * Update the used storage. Debounce it so that we don't request it too frequently.
+	 */
+	private readonly refreshStorage = debounceStart(60 * SECOND_IN_MILLIS, async () => {
+		const customerInfo = await this.loginController.getUserController().loadCustomerInfo()
+		this.storage = {
+			usedBytes: await this.userManagementFacade.readUsedUserStorage(this.loginController.getUserController().user),
+			totalBytes: Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR,
+		}
+		this.updateUi()
+	})
 }
 
 export type SortOrder = "asc" | "desc"

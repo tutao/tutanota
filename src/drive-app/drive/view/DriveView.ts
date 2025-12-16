@@ -19,7 +19,6 @@ import { createDropdown } from "../../../common/gui/base/Dropdown"
 import { DriveUploadStack } from "./DriveUploadStack"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
@@ -45,19 +44,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
-
-		if (args.virtualFolder === "trash") {
-			this.driveViewModel.loadSpecialFolder(DriveFolderType.Trash).then(() => m.redraw())
-			return
-		} else if (args.virtualFolder) {
-			throw new ProgrammingError("No implementation for special folder: " + args.virtualFolder)
-		}
-
 		// /drive/folderId/listElementId
 		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
 
 		if (folderListId && folderElementId) {
-			this.driveViewModel.loadFolder([folderListId, folderElementId]).then(() => m.redraw())
+			this.driveViewModel.displayFolder([folderListId, folderElementId]).then(() => m.redraw())
 		} else {
 			// /drive
 			// No folder given, load the drive root

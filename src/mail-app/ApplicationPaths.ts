@@ -64,7 +64,6 @@ export function applicationPaths({
 		"/calendar/:view/:date": calendar,
 		"/calendar/:view/:date/:eventId": calendar,
 		"/drive": drive,
-		"/drive/:virtualFolder": drive,
 		"/drive/:folderListId/:folderElementId": drive,
 		"/giftcard/": giftcard,
 		"/webauthn": webauthn,
