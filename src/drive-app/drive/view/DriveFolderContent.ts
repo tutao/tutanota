@@ -132,6 +132,8 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							onDragStart: (item, event) => {
 								const itemsToDrag = listState.selectedItems.has(item) ? Array.from(listState.selectedItems) : [item]
 
+								// provide the element that will be displayed as a dragged item
+								// it has to be in the DOM
 								const el = this.renderDragElement(item, itemsToDrag.length)
 								event.dataTransfer?.setDragImage(el, 10, 10)
 								this.dragImageEl = el
@@ -176,15 +178,18 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				".rel",
 				{
 					style: {
+						// give some padding so we have the space to put the stack card and counter outside of the
+						// primary card
 						padding: px(size.spacing_8),
 						width: "200px",
+						// drag image element has to be in the DOM but we don't want it to be visible, shift it out of
+						// the view
 						translate: "-100%",
-						// position: "absolute",
-						// zIndex: 100,
-						// top: 0,
 					},
 				},
 				[
+					// when multiple elements are dragged render another card behind to create a "stack"
+					// it is offset almost to the edge of the container
 					count > 1
 						? m(".abs.border-radius-12", {
 								style: {
@@ -219,6 +224,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						}),
 						m(".text-ellipsis", item.type === "folder" ? item.folder.name : item.file.name),
 					),
+					// render counter in the corner
 					count > 1
 						? m(
 								".abs.small.text-center",
