@@ -5,19 +5,21 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, memoizedWithHiddenArgument, partition } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { ArchiveDataType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { ArchiveDataType, Const, OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
+import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
+import { LoginController } from "../../../common/api/main/LoginController"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -134,6 +136,11 @@ function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	})
 }
 
+export interface DriveStorage {
+	usedBytes: number
+	totalBytes: number
+}
+
 type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
@@ -155,6 +162,7 @@ export class DriveViewModel {
 
 	private listModel: ListModel<FolderItem, Id> = emptyListModel()
 	private listStateSubscription: Stream<unknown> | null = null
+	private storage: DriveStorage | null = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -162,10 +170,12 @@ export class DriveViewModel {
 		private readonly router: Router,
 		public readonly uploadProgressListener: UploadProgressListener,
 		private readonly eventController: EventController,
+		private readonly loginController: LoginController,
+		private readonly userManagementFacade: UserManagementFacade,
 		private readonly updateUi: () => unknown,
 	) {
 		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade, updateUi)
-		this.userMailAddress = getDefaultSenderFromUser(locator.logins.getUserController())
+		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 	}
 
 	async initialize() {
@@ -173,6 +183,7 @@ export class DriveViewModel {
 			await this.entityEventsReceived(events)
 		})
 		this.roots = await this.driveFacade.loadRootFolders()
+		this.refreshStorage()
 	}
 
 	private newListModel(folder: DriveFolder): ListModel<FolderItem, Id> {
@@ -249,9 +260,22 @@ export class DriveViewModel {
 					])
 					this.listModel.updateLoadedItem(item)
 				}
+				this.refreshStorage()
 			}
 		}
 	}
+
+	/**
+	 * Update the used storage. Debounce it so that we don't request it too frequently.
+	 */
+	private readonly refreshStorage = debounceStart(60 * SECOND_IN_MILLIS, async () => {
+		const customerInfo = await this.loginController.getUserController().loadCustomerInfo()
+		this.storage = {
+			usedBytes: await this.userManagementFacade.readUsedUserStorage(this.loginController.getUserController().user),
+			totalBytes: Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR,
+		}
+		this.updateUi()
+	})
 
 	async loadItem(type: "file" | "folder", id: IdTuple): Promise<FolderItem> {
 		if (type === "file") {
@@ -518,6 +542,10 @@ export class DriveViewModel {
 
 	trashSelectedItems() {
 		this.moveToTrash(this.listModel.getSelectedAsArray())
+	}
+
+	getUsedStorage(): DriveStorage | null {
+		return this.storage
 	}
 }
 

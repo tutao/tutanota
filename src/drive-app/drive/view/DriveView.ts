@@ -25,6 +25,8 @@ import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUti
 import { MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Keys } from "../../../common/api/common/TutanotaConstants"
+import { formatStorageSize } from "../../../common/misc/Formatter"
+import { DriveProgressBar } from "./DriveProgressBar"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -199,6 +201,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									{ rootFolderId: this.driveViewModel.roots.root, trashFolderId: this.driveViewModel.roots.trash },
 									this.driveViewModel.userMailAddress,
 								),
+								m(".flex-grow"),
+								this.renderStorage(),
 							],
 							ariaLabel: "folderTitle_label",
 						}),
@@ -212,6 +216,19 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				headerCenter: "folderTitle_label",
 			},
 		)
+	}
+
+	private renderStorage(): Children {
+		let storage = this.driveViewModel.getUsedStorage()
+		if (storage == null) {
+			return null
+		}
+
+		const usedStorage = formatStorageSize(storage.usedBytes)
+		const totalStorage = formatStorageSize(storage.totalBytes)
+		const usedPercentage = Math.max(2, (storage.usedBytes / storage.totalBytes) * 100)
+
+		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
 	private createCurrentFolderColumn() {
