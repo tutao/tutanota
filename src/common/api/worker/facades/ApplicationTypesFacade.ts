@@ -10,6 +10,7 @@ import { getServiceRestPath } from "../rest/ServiceExecutor"
 import { ApplicationTypesService } from "../../entities/base/Services"
 import { ServiceDefinition } from "../../common/ServiceRequest"
 import { ServerModelsUnavailableError } from "../../common/error/ServerModelsUnavailableError"
+import ModelInfo from "../../entities/base/ModelInfo"
 
 assertWorkerOrNode()
 
@@ -55,6 +56,9 @@ export class ApplicationTypesFacade {
 			getServiceRestPath(ApplicationTypesService as ServiceDefinition),
 			HttpMethod.GET,
 			{
+				headers: {
+					v: String(ModelInfo.version),
+				},
 				responseType: MediaType.Binary,
 			},
 		)

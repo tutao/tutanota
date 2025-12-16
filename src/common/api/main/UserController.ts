@@ -263,6 +263,7 @@ export class UserController {
 					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
 					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
+					apiUrl.searchParams.append("cv", env.versionNumber)
 					const requestObject = JSON.stringify({
 						[1596]: "0", // _format
 						[1597]: this.accessToken, // accessToken
@@ -286,6 +287,7 @@ export class UserController {
 
 				xhr.setRequestHeader("accessToken", this.accessToken)
 				xhr.setRequestHeader("v", sysTypeModels[SessionTypeRef.typeId].version)
+				xhr.setRequestHeader("cv", env.versionNumber)
 
 				xhr.onload = function () {
 					// XMLHttpRequestProgressEvent, but not needed
