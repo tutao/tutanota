@@ -15,7 +15,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { createDropdown } from "../../../common/gui/base/Dropdown"
+import { createDropdown, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { DriveUploadStack } from "./DriveUploadStack"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
@@ -26,6 +26,8 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
+import { getMoveMailBounds } from "../../../mail-app/mail/view/MailGuiUtils"
+import { modal } from "../../../common/gui/base/Modal"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -43,7 +45,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private readonly currentFolderColumn: ViewColumn
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
-		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
 		// /drive/folderId/listElementId
 		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
 
@@ -137,13 +138,20 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					this.driveViewModel.openActiveItem()
 				},
 			},
+			{
+				key: Keys.N,
+				enabled: () => true,
+				help: "newDriveItem_action",
+				exec: () => {
+					const dropdown = new Dropdown(() => this.newItemActions(), 300)
+					dropdown.setOrigin(getMoveMailBounds())
+					modal.displayUnique(dropdown, false)
+				},
+			},
 		]
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
-		// if (attrs.driveViewModel.currentFolder == null) {
-		// 	return m("", "Drive is loading...")
-		// }
 		return m("#drive.main-view", {}, [
 			m(this.viewSlider, {
 				header: m(Header, {
@@ -168,22 +176,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								click: (ev, dom) => {
 									//
 									createDropdown({
-										lazyButtons: () => [
-											{
-												click: (event, dom) => {
-													this.onNewFile_Click(dom)
-												},
-												// FIXME
-												label: lang.makeTranslation("UploadFile", () => "Upload file"),
-											},
-											{
-												click: (event, dom) => {
-													this.onNewFolder_Click(dom)
-												},
-												// FIXME
-												label: lang.makeTranslation("CreateFolder", () => "Create folder"),
-											},
-										],
+										lazyButtons: () => this.newItemActions(),
 									})(ev, ev.target as HTMLElement)
 								},
 							},
@@ -207,6 +200,25 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				headerCenter: "folderTitle_label",
 			},
 		)
+	}
+
+	private newItemActions(): DropdownChildAttrs[] {
+		return [
+			{
+				click: (event, dom) => {
+					this.onNewFile_Click(dom)
+				},
+				// FIXME
+				label: lang.makeTranslation("UploadFile", () => "Upload file"),
+			},
+			{
+				click: (event, dom) => {
+					this.onNewFolder_Click(dom)
+				},
+				// FIXME
+				label: lang.makeTranslation("CreateFolder", () => "Create folder"),
+			},
+		]
 	}
 
 	private renderStorage(): Children {

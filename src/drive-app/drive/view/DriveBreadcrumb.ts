@@ -4,6 +4,8 @@ import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
 import { pureComponent } from "../../../common/gui/base/PureComponent"
+import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { Keys } from "../../../common/api/common/TutanotaConstants"
 
 export interface DriveBreadcrumbAttrs {
 	currentFolder: DriveFolder | null
@@ -16,9 +18,14 @@ const BreadcrumbLink = pureComponent<{ label: Translation; href: string }>(({ la
 		m.route.Link,
 		{
 			href,
-			selector: "a.noselect.click.no-text-decoration",
+			selector: "a.click.no-text-decoration",
 			"data-testid": `btn:${lang.getTestId(label)}`,
 			// FIXME: some aria attrs
+			onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
+				if (isKeyPressed(e.key, Keys.SPACE)) {
+					m.route.set(href)
+				}
+			},
 		},
 		label.text,
 	)
