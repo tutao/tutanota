@@ -12,9 +12,10 @@ import {
 	EventWrapperFlags,
 } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { formatEventTime, getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { TabIndex } from "../../api/common/TutanotaConstants"
-import { EventWrapperFlagKeys, FlagKeyToIcon, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
+import { EventTextTimeOption, TabIndex } from "../../api/common/TutanotaConstants"
+import { EventWrapperFlagKeys, FlagKeyToIcon, getDiffIn60mIntervals, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
 import { Time } from "../date/Time"
+import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 
 export const MIN_ROW_SPAN = 3
 
@@ -39,10 +40,10 @@ export type CalendarEventBubbleAttrs = {
 	interactions?: EventBubbleInteractions & CalendarEventBubbleDragProperties
 	gridInfo: EventGridData
 	eventWrapper: EventWrapper
-	rowOverflowInfo: RangeOverflowData
-	columnOverflowInfo: RangeOverflowData
+	verticalOverflowInfo: RangeOverflowData
+	horizontalOverflowInfo: RangeOverflowData
 	canReceiveFocus: boolean
-	baseDate?: Date
+	baseDate: Date
 	height?: number
 }
 const lineHeight = layout_size.calendar_line_height
@@ -54,10 +55,18 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
 		// const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
 		// const enablePointerEvents = attrs.enablePointerEvents
-		const { gridInfo, eventWrapper, rowOverflowInfo, interactions, canReceiveFocus, baseDate, columnOverflowInfo, height } = attrs
-		const zone = getTimeZone()
-		const timeFormat = baseDate ? getTimeTextFormatForLongEvent(eventWrapper.event, baseDate, baseDate, zone) : null
-		const formatedEventTime = timeFormat ? formatEventTime(eventWrapper.event, timeFormat) : ""
+		const { gridInfo, eventWrapper, verticalOverflowInfo, interactions, canReceiveFocus, baseDate, horizontalOverflowInfo, height } = attrs
+
+		const calendarEvent = eventWrapper.event
+
+		const isLongNormalEvent = !isAllDayEvent(calendarEvent) && getDiffIn60mIntervals(calendarEvent.startTime, calendarEvent.endTime) >= 24
+
+		const timeFormat = isLongNormalEvent
+			? EventTextTimeOption.START_END_TIME
+			: getTimeTextFormatForLongEvent(calendarEvent, baseDate, baseDate, getTimeZone())
+
+		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat) : ""
+		const eventTitle = isLongNormalEvent ? `${eventTime} ${getDisplayEventTitle(calendarEvent.summary)}` : getDisplayEventTitle(calendarEvent.summary)
 
 		return m(
 			".flex.z2.b.darker-hover.small",
@@ -73,7 +82,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
 			[
-				columnOverflowInfo.start
+				horizontalOverflowInfo.start
 					? m(".event-continues-left-indicator.height-100p", {
 							style: {
 								backgroundColor: `#${eventWrapper.color}`,
@@ -89,11 +98,11 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
 							if (!eventWrapper.flags?.isTransientEvent) {
-								interactions?.click(attrs.eventWrapper.event, e)
+								interactions?.click(calendarEvent, e)
 							}
 						},
 						onkeydown: (e: KeyboardEvent) => {
-							interactions?.keyDown(attrs.eventWrapper.event, e)
+							interactions?.keyDown(calendarEvent, e)
 						},
 						onmousedown: () => {
 							if (!eventWrapper.flags?.isTransientEvent) {
@@ -104,13 +113,13 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 						class: interactions?.click ? "cursor-pointer" : "",
 						style: {
 							height: height ? px(height) : undefined,
-							borderTop: rowOverflowInfo.start ? "none" : undefined,
-							borderBottom: rowOverflowInfo.end ? "none" : undefined,
+							borderTop: verticalOverflowInfo.start ? "none" : undefined,
+							borderBottom: verticalOverflowInfo.end ? "none" : undefined,
 
-							"border-top-left-radius": rowOverflowInfo.start || columnOverflowInfo.start ? "0" : undefined,
-							"border-top-right-radius": rowOverflowInfo.start || columnOverflowInfo.end ? "0" : undefined,
-							"border-bottom-left-radius": rowOverflowInfo.end || columnOverflowInfo.start ? "0" : undefined,
-							"border-bottom-right-radius": rowOverflowInfo.end || columnOverflowInfo.end ? "0" : undefined,
+							"border-top-left-radius": verticalOverflowInfo.start || horizontalOverflowInfo.start ? "0" : undefined,
+							"border-top-right-radius": verticalOverflowInfo.start || horizontalOverflowInfo.end ? "0" : undefined,
+							"border-bottom-left-radius": verticalOverflowInfo.end || horizontalOverflowInfo.start ? "0" : undefined,
+							"border-bottom-right-radius": verticalOverflowInfo.end || horizontalOverflowInfo.end ? "0" : undefined,
 
 							backgroundColor: eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`,
 
@@ -140,12 +149,18 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 											color: eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container,
 										},
 									},
-									getDisplayEventTitle(eventWrapper.event.summary),
+									eventTitle,
 								),
 							])
-						: this.renderNonFeaturedTexts(eventWrapper.event.summary, eventWrapper.color, gridInfo.row, formatedEventTime, eventWrapper.flags),
+						: this.renderNonFeaturedTexts(
+								eventTitle,
+								eventWrapper.color,
+								gridInfo.row,
+								isAllDayEvent(eventWrapper.event) || isLongNormalEvent ? "" : eventTime,
+								eventWrapper.flags,
+							),
 				),
-				columnOverflowInfo.end
+				horizontalOverflowInfo.end
 					? m(".event-continues-right-indicator.height-100p", {
 							style: {
 								backgroundColor: `#${eventWrapper.color}`,
@@ -158,56 +173,58 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		)
 	}
 
-	private renderNonFeaturedTexts(summary: string, color: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
+	private renderNonFeaturedTexts(title: string, color: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
 		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
 		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
 
-		return m(".flex", [
-			Object.entries(flags).map(([key, value]: [EventWrapperFlagKeys, boolean]) => {
-				return value && FlagKeyToIcon[key]
+		const iconFill = colorForBg(`#${color}`)
+		const hasEventTime = eventTime !== ""
+
+		const flagIcons = Object.entries(flags)
+			.filter(([key, value]) => value && FlagKeyToIcon[key as EventWrapperFlagKeys])
+			.map(([key]) =>
+				m(Icon, {
+					icon: FlagKeyToIcon[key as EventWrapperFlagKeys],
+					class: "icon-small",
+					style: {
+						fill: iconFill,
+						marginTop: "2px",
+						marginRight: "2px",
+					},
+				}),
+			)
+
+		const renderEventTime = () =>
+			m(".flex.items-center.text-ellipsis", [
+				!showSecondLine
 					? m(Icon, {
-							icon: FlagKeyToIcon[key],
+							icon: Icons.Time,
+							class: "icon-small ml-4 mr-4",
 							style: {
-								fill: colorForBg("#" + color),
-								"margin-top": "2px",
-								"margin-right": "2px",
+								fill: iconFill,
+								marginTop: "-2px",
 							},
-							class: "icon-small",
 						})
-					: null
-			}),
-			m(
-				".flex.overflow-hidden",
-				{
-					class: showSecondLine ? "col" : "",
-				},
-				[
-					m(
-						"span",
-						{
-							class: showSecondLine ? "text-ellipsis-multi-line" : "text-no-wrap",
-							style: {
-								"-webkit-line-clamp": maxLines, // This helps resizing the text to show as much as possible of its contents
-							},
+					: null,
+				eventTime,
+			])
+
+		return m(".flex", [
+			...flagIcons,
+			m(".flex.overflow-hidden", { class: showSecondLine ? "col" : "" }, [
+				m(
+					"span",
+					{
+						class: showSecondLine ? "text-ellipsis-multi-line" : "text-no-wrap",
+						style: {
+							"-webkit-line-clamp": maxLines,
 						},
-						getDisplayEventTitle(summary),
-					),
-					m(".flex.items-center.text-ellipsis", [
-						!showSecondLine && eventTime !== ""
-							? m(Icon, {
-									class: "icon-small ml-4 mr-4",
-									icon: Icons.Time,
-									style: {
-										fill: colorForBg("#" + color),
-										marginTop: "-2px",
-									},
-								})
-							: null,
-						`${eventTime}`,
-					]),
-				],
-			),
+					},
+					title,
+				),
+				hasEventTime ? renderEventTime() : null,
+			]),
 		])
 	}
 }

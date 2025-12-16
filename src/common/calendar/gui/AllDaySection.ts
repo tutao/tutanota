@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
-import { downcast, getStartOfDay } from "@tutao/tutanota-utils"
+import { downcast, getFirstOrThrow, getStartOfDay } from "@tutao/tutanota-utils"
 import {
 	CalendarEventBubble,
 	CalendarEventBubbleAttrs,
@@ -87,13 +87,14 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 							},
 							column: columnBounds,
 						},
-						rowOverflowInfo: {
+						verticalOverflowInfo: {
 							start: false,
 							end: false,
 						},
-						columnOverflowInfo: this.findColumnOverflowInfo(dates, eventWrapper),
+						horizontalOverflowInfo: this.findColumnOverflowInfo(dates, eventWrapper),
 						canReceiveFocus: true,
 						interactions: eventBubbleHandlers,
+						baseDate: getFirstOrThrow(dates),
 						height: this.bubbleSize,
 					} satisfies CalendarEventBubbleAttrs,
 					eventWrapper.event.summary,
