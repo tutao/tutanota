@@ -403,6 +403,17 @@ export class DriveViewModel {
 		return crypto.randomUUID()
 	}
 
+	openActiveItem() {
+		const activeItem = this.listModel.getActiveItem()
+		if (activeItem != null) {
+			if (activeItem.type === "folder") {
+				this.navigateToFolder(activeItem.folder._id)
+			} else {
+				this.downloadFile(activeItem.file)
+			}
+		}
+	}
+
 	async uploadFiles(files: File[]): Promise<void> {
 		const targetFolderId: IdTuple =
 			this.currentFolder == null || this.currentFolder.type === DriveFolderType.Trash ? this.roots?.root : this.currentFolder.folder._id

@@ -136,6 +136,14 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					this.driveViewModel.trashSelectedItems()
 				},
 			},
+			{
+				key: Keys.RETURN,
+				enabled: () => true,
+				help: "open_action",
+				exec: () => {
+					this.driveViewModel.openActiveItem()
+				},
+			},
 		]
 	}
 

@@ -619,6 +619,15 @@ export class ListModel<ItemType, IdType> {
 		})
 	}
 
+	getActiveItem(): ItemType | null {
+		const activeIndex = this.state.activeIndex
+		if (activeIndex != null) {
+			return this.state.items[activeIndex] ?? null
+		} else {
+			return null
+		}
+	}
+
 	getLastItem(): ItemType | null {
 		if (this.rawState.unfilteredItems.length > 0) {
 			return lastThrow(this.rawState.unfilteredItems)
