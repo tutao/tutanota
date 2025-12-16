@@ -1549,7 +1549,19 @@ export function getDateIndicator(day: Date, selectedDate: Date | null): string {
 }
 
 /**
- * Determine what format the time of an event should be rendered in given a surrounding time period
+ * Determine what format the time of an event should be rendered, given a surrounding time period.
+ *
+ * Desired behavior:
+ * - "All day" events do not show start/end times.
+ * - Events longer than 24 hrs that have set start and end times should show start and end time.
+ * - Events that overflows to the next day but are smaller than 24 hrs that have set start and end times should show start and/or end time if it starts and/or ends in the visible time period
+ *
+ * @param {CalendarEvent} ev - The calendar event being operated on.
+ * @param {Date} startDay - The start of the time period displayed.
+ * @param {Date} endDay - The end of the time period displayed.
+ * @param {string} zone - String code indicating current time zone selected.
+ *
+ * @returns {EventTextTimeOption}
  */
 export function getTimeTextFormatForLongEvent(ev: CalendarEvent, startDay: Date, endDay: Date, zone: string): EventTextTimeOption | null {
 	const startsBefore = eventStartsBefore(startDay, zone, ev)

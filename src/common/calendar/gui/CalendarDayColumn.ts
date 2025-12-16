@@ -122,13 +122,13 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 				interactions: eventInteractions,
 				gridInfo: evData,
 				eventWrapper,
-				rowOverflowInfo: {
+				verticalOverflowInfo: {
 					start: eventWrapper.event.startTime < timeRangeStartAsDate,
 					end: eventWrapper.event.endTime > timeRangeEndAsDate,
 				},
-				baseDate,
+				baseDate: baseDate,
 				canReceiveFocus: Boolean(eventInteractions),
-				columnOverflowInfo: {
+				horizontalOverflowInfo: {
 					start: false,
 					end: false,
 				},
