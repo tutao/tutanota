@@ -126,7 +126,7 @@ export const layout_size = {
 	second_col_max_width: 350,
 	second_col_min_width: 300,
 	wizard_content_max_width: 1400,
-	wizard_progress_width: 300,
+	wizard_progress_width: 260,
 	wizard_max_width: 1800,
 	wizard_max_height: 1200,
 	third_col_max_width: 2400,

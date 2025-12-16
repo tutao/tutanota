@@ -119,7 +119,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				".full-width.height-100p",
 				{ style: { margin: "auto", "max-height": px(layout_size.wizard_max_height), "max-width": px(layout_size.wizard_max_width) } },
 				m(
-					".flex.height-100p.full-width",
+					".flex.height-100p.full-width.gap-64",
 					{
 						style: {
 							"padding-inline": "5svw",
