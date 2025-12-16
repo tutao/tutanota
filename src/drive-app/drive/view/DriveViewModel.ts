@@ -404,11 +404,13 @@ export class DriveViewModel {
 	}
 
 	async uploadFiles(files: File[]): Promise<void> {
+		const targetFolderId: IdTuple =
+			this.currentFolder == null || this.currentFolder.type === DriveFolderType.Trash ? this.roots?.root : this.currentFolder.folder._id
 		for (const file of files) {
 			const fileId = this.generateUploadGuid()
 			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
 
-			this.driveFacade.uploadFile(file, fileId, assertNotNull(this.currentFolder?.folder)._id)
+			this.driveFacade.uploadFile(file, fileId, targetFolderId)
 		}
 	}
 

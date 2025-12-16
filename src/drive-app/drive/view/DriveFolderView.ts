@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveViewModel, FolderItem } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel, FolderItem } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
 import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
@@ -32,6 +32,10 @@ export interface DriveFolderViewAttrs {
 	onDropFiles: (files: File[]) => unknown
 }
 
+function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
+	return currentFolder && currentFolder.type !== DriveFolderType.Trash
+}
+
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	private draggedOver: boolean = false
 
@@ -60,7 +64,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				ondragover: (event: DragEvent) => {
 					event.preventDefault()
 					const driveItems = event.dataTransfer?.getData(DropType.DriveItems)
-					if (event.dataTransfer && driveItems === "") {
+					if (canDropFilesToFolder(currentFolder) && event.dataTransfer && driveItems === "") {
 						this.draggedOver = true
 					}
 				},
@@ -68,7 +72,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					event.preventDefault()
 					this.draggedOver = false
 
-					if (event.dataTransfer) {
+					if (canDropFilesToFolder(currentFolder) && event.dataTransfer) {
 						// We need some fancier code to read the directories.
 						const definitelyFileItems = Array.from(event.dataTransfer.items).filter((item) => item.webkitGetAsEntry()?.isFile)
 						onDropFiles(definitelyFileItems.map((item) => assertNotNull(item.getAsFile())))
@@ -97,22 +101,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				},
 			}),
 			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
-				? m(
-						"",
-						{
-							style: {
-								// FIXME: better positioning once we figure out the layout more
-								marginTop: "6.4rem",
-							},
-						},
-						m(IconMessageBox, {
-							// FIXME: translate
-							message: lang.makeTranslation("", "Drop files or folders here"),
-							icon: Icons.Drive,
-							color: theme.on_surface_variant,
-							bottomContent: "Or use 'new' button",
-						}),
-					)
+				? this.renderEmptyView(currentFolder)
 				: m(DriveFolderContent, {
 						sortOrder: driveViewModel.getCurrentColumnSortOrder(),
 						fileActions: {
@@ -166,6 +155,32 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
+	private renderEmptyView(folder: DriveFolder | null): Children {
+		return m(
+			"",
+			{
+				style: {
+					// FIXME: better positioning once we figure out the layout more
+					marginTop: "6.4rem",
+				},
+			},
+			folder && folder.type === DriveFolderType.Trash
+				? m(IconMessageBox, {
+						// FIXME: translate
+						message: lang.makeTranslation("", "Trash is empty"),
+						icon: Icons.TrashEmpty,
+						color: theme.on_surface_variant,
+					})
+				: m(IconMessageBox, {
+						// FIXME: translate
+						message: lang.makeTranslation("", "Drop files or folders here"),
+						icon: Icons.Drive,
+						color: theme.on_surface_variant,
+						bottomContent: "Or use 'new' button",
+					}),
+		)
+	}
+
 	private renderDropView() {
 		return m(
 			".fill-absolute.flex.items-center.justify-center",
