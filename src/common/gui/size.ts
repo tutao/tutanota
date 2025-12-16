@@ -125,7 +125,10 @@ export const layout_size = {
 	only_show_in_single_column_min_max_width: 10000, // viewport >= every mobile device viewport
 	second_col_max_width: 350,
 	second_col_min_width: 300,
-	signup_wizard_content_max_width: 1400,
+	wizard_content_max_width: 1400,
+	wizard_progress_width: 300,
+	wizard_max_width: 1800,
+	wizard_max_height: 1200,
 	third_col_max_width: 2400,
 	third_col_min_width: 600,
 

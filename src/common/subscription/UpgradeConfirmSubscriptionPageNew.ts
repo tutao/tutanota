@@ -25,7 +25,7 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
-import { layout_size, px } from "../gui/size"
+import { px } from "../gui/size"
 import { theme } from "../gui/theme"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
@@ -40,55 +40,68 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
 		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
 
-		return m(
-			".flex.flex-column.full-width",
-			{
-				style: {
-					"max-width": px(layout_size.signup_wizard_content_max_width),
-				},
-			},
-			[
-				m("h1.font-mdio.line-height-1", lang.get("confirm_order_page_title")),
-				m("p", { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
+		return m(".flex.flex-column.full-width", [
+			m("h1.font-mdio.line-height-1", lang.get("confirm_order_page_title")),
+			m("p", { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
 
-				m(".flex.gap-16", [
-					m(".flex-grow", [
-						m(
-							".flex.col.gap-16.pt-16.pb-16.plr-16.border-radius-16",
-							{
-								style: {
-									"background-color": theme.surface_container_high,
+			m(".flex.gap-16", [
+				m(".flex-grow", [
+					m(
+						".flex.col.gap-16.pt-16.pb-16.plr-16.border-radius-16",
+						{
+							style: {
+								"background-color": theme.surface_container_high,
+								color: theme.on_surface_variant,
+							},
+						},
+						[
+							m(LoginTextField, {
+								label: "subscription_label",
+								value: getDisplayNameOfPlanType(data.targetPlanType),
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: data.targetPlanType === PlanType.Revolutionary ? Icons.Revo : Icons.Legend,
 									color: theme.on_surface_variant,
 								},
-							},
-							[
-								m(LoginTextField, {
-									label: "subscription_label",
-									value: getDisplayNameOfPlanType(data.targetPlanType),
-									isReadOnly: true,
-									class: "",
-									leadingIcon: {
-										icon: data.targetPlanType === PlanType.Revolutionary ? Icons.Revo : Icons.Legend,
-										color: theme.on_surface_variant,
-									},
-									injectionsRight: () => {
-										return m(IconButton, {
-											icon: Icons.Edit,
-											title: "edit_action",
-											click: () => {
-												attrs.controller.setStep(0)
-											},
-										})
-									},
-								}),
+								injectionsRight: () => {
+									return m(IconButton, {
+										icon: Icons.Edit,
+										title: "edit_action",
+										click: () => {
+											attrs.controller.setStep(0)
+										},
+									})
+								},
+							}),
 
+							m(LoginTextField, {
+								label: "paymentMethod_label",
+								value: getPaymentMethodName(data.paymentData.paymentMethod),
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: data.paymentData.paymentMethod === PaymentMethodType.Paypal ? Icons.Paypal : Icons.CreditCard,
+									color: theme.on_surface_variant,
+								},
+								injectionsRight: () => {
+									return m(IconButton, {
+										icon: Icons.Edit,
+										title: "edit_action",
+										click: () => {
+											attrs.controller.setStep(2)
+										},
+									})
+								},
+							}),
+							data.invoiceData.country &&
 								m(LoginTextField, {
-									label: "paymentMethod_label",
-									value: getPaymentMethodName(data.paymentData.paymentMethod),
+									label: "billingCountry_label",
+									value: data.invoiceData.country.n,
 									isReadOnly: true,
 									class: "",
 									leadingIcon: {
-										icon: data.paymentData.paymentMethod === PaymentMethodType.Paypal ? Icons.Paypal : Icons.CreditCard,
+										icon: Icons.Pin,
 										color: theme.on_surface_variant,
 									},
 									injectionsRight: () => {
@@ -101,105 +114,84 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 										})
 									},
 								}),
-								data.invoiceData.country &&
-									m(LoginTextField, {
-										label: "billingCountry_label",
-										value: data.invoiceData.country.n,
-										isReadOnly: true,
-										class: "",
-										leadingIcon: {
-											icon: Icons.Pin,
-											color: theme.on_surface_variant,
+							m(LoginTextField, {
+								label: "paymentInterval_label",
+								value: subscription,
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: Icons.Refresh,
+									color: theme.on_surface_variant,
+								},
+
+								injectionsRight: () => {
+									return m(IconButton, {
+										icon: Icons.Edit,
+										title: "edit_action",
+										click: () => {
+											attrs.controller.setStep(0)
 										},
-										injectionsRight: () => {
-											return m(IconButton, {
-												icon: Icons.Edit,
-												title: "edit_action",
-												click: () => {
-													attrs.controller.setStep(2)
-												},
-											})
-										},
-									}),
+									})
+								},
+							}),
+							// !isAppStorePayment &&
+							m.fragment({}, [
+								// isFirstMonthForFree &&
 								m(LoginTextField, {
-									label: "paymentInterval_label",
-									value: subscription,
+									label: lang.getTranslation("priceTill_label", {
+										"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
+									}),
+									value: formatPrice(0, true),
 									isReadOnly: true,
 									class: "",
 									leadingIcon: {
-										icon: Icons.Refresh,
+										icon: Icons.WalletOutline,
 										color: theme.on_surface_variant,
 									},
-
-									injectionsRight: () => {
-										return m(IconButton, {
-											icon: Icons.Edit,
-											title: "edit_action",
-											click: () => {
-												attrs.controller.setStep(0)
-											},
-										})
+								}),
+								m(LoginTextField, {
+									label: this.buildPriceLabel(isYearly, attrs),
+									value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
+									isReadOnly: true,
+									class: "",
+									leadingIcon: {
+										icon: Icons.WalletOutline,
+										color: theme.on_surface_variant,
 									},
 								}),
-								// !isAppStorePayment &&
-								m.fragment({}, [
-									// isFirstMonthForFree &&
-									m(LoginTextField, {
-										label: lang.getTranslation("priceTill_label", {
-											"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
-										}),
-										value: formatPrice(0, true),
-										isReadOnly: true,
-										class: "",
-										leadingIcon: {
-											icon: Icons.WalletOutline,
-											color: theme.on_surface_variant,
-										},
-									}),
-									m(LoginTextField, {
-										label: this.buildPriceLabel(isYearly, attrs),
-										value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
-										isReadOnly: true,
-										class: "",
-										leadingIcon: {
-											icon: Icons.WalletOutline,
-											color: theme.on_surface_variant,
-										},
-									}),
-									this.renderPriceNextYear(data),
-								]),
-							],
-						),
-						m(
-							".flex-center.full-width.pt-32.pb-32",
-							m(LoginButton, {
-								size: "md",
-								label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
-								class: "small-login-button",
-								onclick: () => this.upgrade(attrs),
-							}),
-						),
-						m(
-							".small.text-left",
-							data.options.businessUse()
-								? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
-								: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
-						),
-					]),
+								this.renderPriceNextYear(data),
+							]),
+						],
+					),
 					m(
-						".flex-grow",
-						m("img.block.full-width", {
-							style: { "max-width": px(400), "margin-inline": "auto" },
-							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
+						".flex-center.full-width.pt-32.pb-32",
+						m(LoginButton, {
+							size: "md",
+							label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
+							class: "small-login-button",
+							onclick: () => this.upgrade(attrs),
 						}),
 					),
+					m(
+						".small.text-left",
+						data.options.businessUse()
+							? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
+							: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
+					),
 				]),
-			],
-		)
+				m(
+					".flex-grow",
+					m("img.block.full-width", {
+						style: { "max-width": px(400), "margin-inline": "auto" },
+						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+						alt: "",
+						rel: "noreferrer",
+						loading: "lazy",
+						decoding: "async",
+					}),
+				),
+			]),
+		])
 	}
 
 	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {

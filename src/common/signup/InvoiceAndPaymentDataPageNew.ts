@@ -26,7 +26,7 @@ import { theme } from "../gui/theme"
 import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { layout_size, px } from "../gui/size"
+import { px } from "../gui/size"
 import { LocationService } from "../api/entities/sys/Services"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { BootIcons } from "../gui/base/icons/BootIcons"
@@ -69,47 +69,39 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			renderChild: () => this.renderPaymentMethodForm(ctx, value),
 		}))
 
-		return m(
-			".flex.flex-column.full-width",
-			{
-				style: {
-					"max-width": px(layout_size.signup_wizard_content_max_width),
-				},
-			},
-			[
-				m("h1.font-mdio.line-height-1", lang.get("payment_page_title")),
-				m("p", { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
-				m(".flex.gap-16", [
-					m(
-						".flex-grow",
+		return m(".flex.flex-column.full-width", [
+			m("h1.font-mdio.line-height-1", lang.get("payment_page_title")),
+			m("p", { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+			m(".flex.gap-16", [
+				m(
+					".flex-grow",
 
-						m(RadioSelector, {
-							groupName: "credentialsEncryptionMode_label",
-							options,
-							selectedOption: ctx.viewModel.paymentData.paymentMethod,
-							onOptionSelected: (method: PaymentMethodType | null) => {
-								if (method == null) {
-									// fixme: should actually not happen...
-									return
-								}
-								ctx.viewModel.paymentData.paymentMethod = method
-							},
-						} satisfies RadioSelectorAttrs<PaymentMethodType | null>),
-					),
-					m(
-						".flex-grow",
-						m("img.block.full-width", {
-							style: { "max-width": px(400), "margin-inline": "auto" },
-							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-						}),
-					),
-				]),
-			],
-		)
+					m(RadioSelector, {
+						groupName: "credentialsEncryptionMode_label",
+						options,
+						selectedOption: ctx.viewModel.paymentData.paymentMethod,
+						onOptionSelected: (method: PaymentMethodType | null) => {
+							if (method == null) {
+								// fixme: should actually not happen...
+								return
+							}
+							ctx.viewModel.paymentData.paymentMethod = method
+						},
+					} satisfies RadioSelectorAttrs<PaymentMethodType | null>),
+				),
+				m(
+					".flex-grow",
+					m("img.block.full-width", {
+						style: { "max-width": px(400), "margin-inline": "auto" },
+						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+						alt: "",
+						rel: "noreferrer",
+						loading: "lazy",
+						decoding: "async",
+					}),
+				),
+			]),
+		])
 	}
 
 	private renderPaymentMethodForm(ctx: WizardStepContext<SignupViewModel>, method: PaymentMethodType): Children {

@@ -3,7 +3,7 @@ import type { WizardProgressViewItem } from "./WizardController"
 import { Icon, IconSize } from "../Icon"
 import { Icons } from "../icons/Icons"
 import { theme } from "../../theme"
-import { px } from "../../size"
+import { layout_size, px } from "../../size"
 
 export interface WizardProgressAttrs {
 	progressState: WizardProgressViewItem[]
@@ -17,6 +17,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 			{
 				style: {
 					flex: 1,
+					"max-width": px(layout_size.wizard_progress_width),
 				},
 			},
 			m(
@@ -24,8 +25,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 				{
 					style: {
 						height: "75%",
-						"padding-inline": `${px(64)}`,
-						"min-width": `${px(300)}`,
+						width: `${px(layout_size.wizard_progress_width)}`,
 					},
 				},
 				progressState

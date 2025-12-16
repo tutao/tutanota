@@ -2,7 +2,7 @@ import m, { Vnode } from "mithril"
 import { WizardStepAttrs } from "./WizardStep"
 import { WizardController, WizardProgressViewItem, WizardStepContext } from "./WizardController"
 import { WizardProgress } from "./WizardProgress"
-import { component_size, px, size } from "../../size"
+import { component_size, layout_size, px } from "../../size"
 import { TertiaryButton } from "../buttons/LoginButton"
 import { lang } from "../../../misc/LanguageViewModel"
 import { Icons } from "../icons/Icons"
@@ -116,38 +116,47 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 			}))
 
 			return m(
-				".flex.height-100p.full-width",
-				{
-					style: {
-						"padding-top": px(size.core_128),
+				".full-width.height-100p",
+				{ style: { margin: "auto", "max-height": px(layout_size.wizard_max_height), "max-width": px(layout_size.wizard_max_width) } },
+				m(
+					".flex.height-100p.full-width",
+					{
+						style: {
+							"padding-inline": "5svw",
+							"padding-block": "7svh",
+						},
 					},
-				},
-				[
-					m(".flex.flex-column.flex-space-between", [
-						showProgress(controller.currentStep) &&
-							m(WizardProgress, {
-								progressState,
-								onClick: (index) => controller.setStep(index),
-							}),
-						m(
-							"",
-							{
-								style: {
-									height: px(component_size.button_height),
-									"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
-								},
-							},
-							isBackButtonEnabled(controller.currentStep) &&
-								m(TertiaryButton, {
-									text: lang.getTranslationText("back_action"),
-									label: lang.getTranslation("back_action"),
-									icon: Icons.ArrowBackward,
-									onclick: ctx.goPrev,
+					[
+						m(".flex.flex-column.flex-space-between", [
+							showProgress(controller.currentStep) &&
+								m(WizardProgress, {
+									progressState,
+									onClick: (index) => controller.setStep(index),
 								}),
+							m(
+								"",
+								{
+									style: {
+										height: px(component_size.button_height),
+										"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
+									},
+								},
+								isBackButtonEnabled(controller.currentStep) &&
+									m(TertiaryButton, {
+										text: lang.getTranslationText("back_action"),
+										label: lang.getTranslation("back_action"),
+										icon: Icons.ArrowBackward,
+										onclick: ctx.goPrev,
+										width: "flex",
+									}),
+							),
+						]),
+						m(
+							`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`,
+							m(currentStep.content, { ctx }),
 						),
-					]),
-					m(`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`, m(currentStep.content, { ctx })),
-				],
+					],
+				),
 			)
 		},
 	}

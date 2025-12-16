@@ -6,7 +6,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
-import { layout_size, px } from "../gui/size"
+import { px } from "../gui/size"
 import { theme } from "../gui/theme"
 import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
 import { LoginButton, SecondaryButton, SecondaryButtonAttrs } from "../gui/base/buttons/LoginButton"
@@ -36,108 +36,100 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 		// 	}
 		// }
 
-		return m(
-			".flex.flex-column.full-width",
-			{
-				style: {
-					"max-width": px(layout_size.signup_wizard_content_max_width),
-				},
-			},
-			[
-				m("h1.font-mdio.line-height-1", lang.get("recovery_kit_page_title")),
-				m("p", { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
+		return m(".flex.flex-column.full-width", [
+			m("h1.font-mdio.line-height-1", lang.get("recovery_kit_page_title")),
+			m("p", { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
 
-				m(".flex.gap-16", [
-					m(".flex.col.flex-grow.gap-8", [
-						m(".flex.col.gap-8", [
-							m(
-								".flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24",
-								{
-									style: {
-										"background-color": theme.surface_container_high,
-									},
+			m(".flex.gap-16", [
+				m(".flex.col.flex-grow.gap-8", [
+					m(".flex.col.gap-8", [
+						m(
+							".flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24",
+							{
+								style: {
+									"background-color": theme.surface_container_high,
 								},
-								[
-									m(
-										".plr-24.pt-16.pb-16.border-radius-8.b",
-										{
-											style: {
-												"background-color": theme.surface_container_highest,
-												color: theme.on_surface_variant,
-												"font-size": px(20),
-											},
+							},
+							[
+								m(
+									".plr-24.pt-16.pb-16.border-radius-8.b",
+									{
+										style: {
+											"background-color": theme.surface_container_highest,
+											color: theme.on_surface_variant,
+											"font-size": px(20),
 										},
+									},
 
-										m(MonospaceTextDisplay, {
-											text: newAccountData!.recoverCode,
-											chunksPerLine: 4,
-											chunkSize: 4,
-											border: false,
-										}),
-									),
-									m(".flex.col.items-start.full-width.gap-16", [
-										m(SecondaryButton, {
-											label: "recoveryCode_label",
-											icon: Icons.Clipboard,
-											text: "Copy Recovery Code",
-											onclick: () => {
-												copyToClipboard(newAccountData!.recoverCode)
-												void showSnackBar({
-													message: "copied_msg",
-													showingTime: 3000,
-													leadingIcon: Icons.Clipboard,
-												})
-											},
-											class: "flex-grow",
-										}),
+									m(MonospaceTextDisplay, {
+										text: newAccountData!.recoverCode,
+										chunksPerLine: 4,
+										chunkSize: 4,
+										border: false,
+									}),
+								),
+								m(".flex.col.items-start.full-width.gap-16", [
+									m(SecondaryButton, {
+										label: "recoveryCode_label",
+										icon: Icons.Clipboard,
+										text: "Copy Recovery Code",
+										onclick: () => {
+											copyToClipboard(newAccountData!.recoverCode)
+											void showSnackBar({
+												message: "copied_msg",
+												showingTime: 3000,
+												leadingIcon: Icons.Clipboard,
+											})
+										},
+										class: "flex-grow",
+									}),
 
-										m(SecondaryButton, {
-											label: "recoveryCode_label",
-											icon: Icons.Download,
-											text: "Download PDF-File",
-											onclick: () => {
-												this.saveRecoveryCodeAsPdf(newAccountData!.recoverCode)
-											},
-											class: "flex-grow",
-										} satisfies SecondaryButtonAttrs),
-									]),
-								],
-							),
-						]),
-						m(".flex.full-width.justify-start", [
-							m(Checkbox, {
-								label: () => lang.get("recovery_kit_page_checkbox_msg"),
-								checked: this.acceptedWarning,
-								onChecked: (value) => {
-									this.acceptedWarning = value
-								},
-							}),
-						]),
-						m(".flex.justify-end", [
-							m(LoginButton, {
-								width: "flex",
-								label: "recovery_kit_page_continue_label",
-								onclick: async () => {
-									await this.close(attrs.viewModel)
-								},
-								disabled: !this.acceptedWarning,
-							}),
-						]),
+									m(SecondaryButton, {
+										label: "recoveryCode_label",
+										icon: Icons.Download,
+										text: "Download PDF-File",
+										onclick: () => {
+											this.saveRecoveryCodeAsPdf(newAccountData!.recoverCode)
+										},
+										class: "flex-grow",
+									} satisfies SecondaryButtonAttrs),
+								]),
+							],
+						),
 					]),
-					m(
-						".flex-grow",
-						m("img.block.full-width", {
-							style: { "max-width": px(400), "margin-inline": "auto" },
-							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
+					m(".flex.full-width.justify-start", [
+						m(Checkbox, {
+							label: () => lang.get("recovery_kit_page_checkbox_msg"),
+							checked: this.acceptedWarning,
+							onChecked: (value) => {
+								this.acceptedWarning = value
+							},
 						}),
-					),
+					]),
+					m(".flex.justify-end", [
+						m(LoginButton, {
+							width: "flex",
+							label: "recovery_kit_page_continue_label",
+							onclick: async () => {
+								await this.close(attrs.viewModel)
+							},
+							disabled: !this.acceptedWarning,
+						}),
+					]),
 				]),
-			],
-		)
+				m(
+					".flex-grow",
+					m("img.block.full-width", {
+						style: { "max-width": px(400), "margin-inline": "auto" },
+						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+						alt: "",
+						rel: "noreferrer",
+						loading: "lazy",
+						decoding: "async",
+					}),
+				),
+			]),
+		])
 	}
 
 	private async close(data: SignupViewModel) {
