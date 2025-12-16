@@ -13,6 +13,7 @@ import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/Se
 import { ServiceDefinition } from "../../../../../src/common/api/common/ServiceRequest"
 import { compressString, decompressString } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { withOverriddenEnv } from "../../../TestUtils"
+import ModelInfo from "../../../../../src/common/api/entities/base/ModelInfo"
 
 const { anything } = matchers
 
@@ -78,7 +79,10 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		o.timeout(200)
 
 		when(
-			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				headers: { v: ModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
 		).thenResolve(mockResponse)
 
 		const promise1 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
@@ -89,9 +93,15 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		await promise2
 		await promise3
 
-		verify(restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }), {
-			times: 1,
-		})
+		verify(
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				headers: { v: ModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
+			{
+				times: 1,
+			},
+		)
 	})
 
 	o("getServerApplicationTypesJson makes multiple service requests when called with a timeout in between", async function () {
@@ -99,7 +109,10 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		applicationTypesFacade.applicationTypesGetInTimeout = 100
 
 		when(
-			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				headers: { v: ModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
 		).thenResolve(mockResponse)
 
 		const promise1 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
@@ -109,9 +122,15 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		await promise1
 		await promise2
 
-		verify(restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }), {
-			times: 2,
-		})
+		verify(
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				headers: { v: ModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
+			{
+				times: 2,
+			},
+		)
 	})
 
 	function createApplicationTypesGetOutFromResponse(applicationTypesGetOut: Uint8Array) {
@@ -120,7 +139,10 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 	o("should attempt to write file but not propagate write error", async () => {
 		when(
-			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				headers: { v: ModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
 		).thenResolve(mockResponse)
 
 		let expectedReturn = createApplicationTypesGetOutFromResponse(mockResponse)
@@ -141,7 +163,10 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
 			when(
-				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+					headers: { v: ModelInfo.version.toString() },
+					responseType: MediaType.Binary,
+				}),
 			).thenResolve(mockResponse)
 			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
 			let expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
@@ -153,7 +178,10 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		o(`Server model should be initialised from file for native platforms: ${targetEnv}`, async () => {
 			when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array(mockModel.applicationTypesJson))
 			when(
-				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+					headers: { v: ModelInfo.version.toString() },
+					responseType: MediaType.Binary,
+				}),
 			).thenResolve(mockResponse)
 			await withOverriddenEnv({ mode: targetEnv }, () =>
 				new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).getServerApplicationTypesJson(null),
@@ -165,7 +193,10 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	o("AAAA Server model should be fetched from server if local copy hash does not match", async () => {
 		when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array("{}"))
 		when(
-			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				headers: { v: ModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
 		).thenResolve(mockResponse)
 
 		await withOverriddenEnv({ mode: Mode.Desktop }, async () => {

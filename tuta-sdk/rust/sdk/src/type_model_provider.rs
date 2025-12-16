@@ -7,7 +7,7 @@ use crate::metamodel::{AppName, ApplicationModel, ApplicationModels, TypeModel};
 use crate::rest_error::HttpError;
 use crate::services::generated::base::ApplicationTypesService;
 use crate::services::Service;
-use crate::{ApiCallError, TypeRef};
+use crate::{ApiCallError, TypeRef, CLIENT_VERSION};
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use std::borrow::{Borrow, Cow};
@@ -27,7 +27,19 @@ macro_rules! read_type_models {
             let types = ::serde_json::from_str::<HashMap<TypeId, Arc<TypeModel>>>(&json)
                 .expect(concat!("Could not parse type model ", $app_name));
 
-            map.insert($app_name.try_into().unwrap(), $crate::metamodel::ApplicationModel { types, version: "0".to_string() , name: $app_name.try_into().expect("invalid app name") });
+			// The type_model json files (in type_models) are generated, so all typeIds of
+			// a specific application always have the same version for the client type models.
+			let version = if let Some((_, type_model)) = types.iter().next() {
+				type_model.version
+			} else if $app_name == AppName::Gossip.to_string() {
+				// gossip is not guaranteed to have items, so we return zero for the version
+			    // this may cause an error on the server but the other models remain correct
+				0
+			} else {
+				panic!(concat!("No version found in type model json file for application ", $app_name));
+			};
+
+            map.insert($app_name.try_into().unwrap(), $crate::metamodel::ApplicationModel { types, version: version.to_string() , name: $app_name.try_into().expect("invalid app name") });
         )*
 
         $crate::metamodel::ApplicationModels {apps: map}
@@ -188,9 +200,28 @@ impl TypeModelProvider {
 	) -> Result<(String, ApplicationModels), ApiCallError> {
 		let service_path = ApplicationTypesService::PATH;
 		let url = format!("{}/rest/{}", self.base_url, service_path);
-		let headers = [(String::from("cv"), String::from(crate::CLIENT_VERSION))]
-			.into_iter()
-			.collect();
+
+		println!(
+			"Attempting to get base model version?  {}",
+			CLIENT_TYPE_MODEL
+				.apps
+				.get(&AppName::Base)
+				.expect("base application not found")
+				.version
+				.clone()
+		);
+		let headers = HashMap::from([
+			("cv".to_owned(), CLIENT_VERSION.to_string()),
+			(
+				"v".to_owned(),
+				CLIENT_TYPE_MODEL
+					.apps
+					.get(&AppName::Base)
+					.expect("base application not found")
+					.version
+					.clone(),
+			),
+		]);
 
 		let options = RestClientOptions {
 			headers,
