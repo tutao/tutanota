@@ -30,6 +30,8 @@ import { theme } from "../gui/theme"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { IconButton } from "../gui/base/IconButton"
+import { styles } from "../gui/styles"
+import { getTutaLogo } from "../gui/base/Logo"
 
 export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
@@ -41,8 +43,13 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
 
 		return m(".flex.flex-column.full-width", [
-			m("h1.font-mdio.line-height-1", lang.get("confirm_order_page_title")),
-			m("p", { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
+			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
+			m(`h1.font-mdio.line-height-1${styles.isMobileLayout() ? ".text-center" : ".left"}`, lang.get("confirm_order_page_title")),
+			m(
+				`p${styles.isMobileLayout() ? ".text-center" : ".left"}`,
+				{ style: { color: theme.on_surface_variant } },
+				lang.get("confirm_order_page_subtitle"),
+			),
 
 			m(".flex.gap-16", [
 				m(".flex-grow", [
@@ -179,17 +186,18 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 							: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
 					),
 				]),
-				m(
-					".flex-grow",
-					m("img.block.full-width", {
-						style: { "max-width": px(200), "margin-inline": "auto" },
-						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-					}),
-				),
+				!styles.isMobileLayout() &&
+					m(
+						".flex-grow",
+						m("img.block.full-width", {
+							style: { "max-width": px(200), "margin-inline": "auto" },
+							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+						}),
+					),
 			]),
 		])
 	}

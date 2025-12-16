@@ -57,7 +57,6 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 						m("span", { style: { color: "#253B80" } }, "Redirect to"),
 						m(".payment-logo.flex.p-8.rel", { style: { top: px(2) } }, m.trust(PayPalLogo)),
 					]),
-					// fixme: figma says border-radius should be 6, but we're using 8 everywhere
 					class: "border border-radius button-height plr-16",
 					style: {
 						height: px(component_size.button_height_lg),

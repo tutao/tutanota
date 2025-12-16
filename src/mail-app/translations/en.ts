@@ -1282,7 +1282,6 @@ export default {
 		"passwordFor_label": "Password for {1}",
 		"passwordImportance_msg": "Please store this password in a secure place. We are not able to restore your password or to reset your account because all of your data is end-to-end encrypted.",
 		"passwordResetFailed_msg": "An error occurred. The password was not changed.",
-		"passwordValid_msg": "Password ok.",
 		"passwordWrongInvalid_msg": "Your password is wrong.",
 		"paste_action": "Paste",
 		"pasteWithoutFormatting_action": "Paste without formatting",
@@ -2145,7 +2144,8 @@ export default {
 		"confirm_order_page_subtitle": "Take back the ownership of your data",
 		"paymentDataPayPalConnected_msg": "Connected Account",
 		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order.",
-		"termsAndConditions_label": "I have read and agree to the ",
+		"termsAndConditions_label": "I have read and agree to the following documents:",
 		"termsAndConditionsLink_label": "Terms and Conditions",
+		"passwordValid_msg": "Great!",
 	}
 }

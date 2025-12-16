@@ -7,6 +7,7 @@ import { component_size, px, size } from "../size"
 import { ExpanderPanel } from "./Expander"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
+import { styles } from "../styles"
 
 export type RadioSelectorOption<T> = {
 	readonly name: MaybeTranslation
@@ -76,7 +77,8 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					m("label.left.pt-4.pb-4", { for: optionId, style: { cursor } }, lang.getTranslationText(option.name)),
 				],
 			),
-			option.renderChild && m(ExpanderPanel, { expanded: isSelected }, m(".plr-16.pt-32.pb-32", option.renderChild?.())),
+			option.renderChild &&
+				m(ExpanderPanel, { expanded: isSelected }, m(`${styles.isMobileLayout() ? ".pt-16.pb-16" : ".plr-16.pt-32.pb-32"}`, option.renderChild?.())),
 		)
 	}
 }

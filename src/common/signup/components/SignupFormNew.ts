@@ -226,7 +226,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 										label: "whitelabelRegistrationCode_label",
 									})
 								: null,
-							m(".flex.gap-4.smaller.items-center", [
+							m(".flex.col.gap-4.smaller.justify-start", [
 								m(Checkbox, confirmTermsCheckBoxAttrs),
 								m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							]),

@@ -15,6 +15,8 @@ import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { Checkbox } from "../gui/base/Checkbox"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { styles } from "../gui/styles"
+import { getTutaLogo } from "../gui/base/Logo"
 
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	private acceptedWarning: boolean = false
@@ -42,8 +44,9 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 		// }
 
 		return m(".flex.flex-column.full-width", [
-			m("h1.font-mdio.line-height-1", lang.get("recovery_kit_page_title")),
-			m("p", { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
+			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
+			m(`h1.font-mdio.line-height-1.${styles.isMobileLayout() ? ".text-center" : ".left"}`, lang.get("recovery_kit_page_title")),
+			m(`p${styles.isMobileLayout() ? ".text-center" : ".left"}`, { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
 
 			m(".flex.gap-16", [
 				m(".flex.col.flex-grow.gap-8", [
@@ -122,17 +125,18 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 						}),
 					]),
 				]),
-				m(
-					".flex-grow",
-					m("img.block.full-width", {
-						style: { "max-width": px(400), "margin-inline": "auto" },
-						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-					}),
-				),
+				styles.isMobileLayout() &&
+					m(
+						".flex-grow",
+						m("img.block.full-width", {
+							style: { "max-width": px(400), "margin-inline": "auto" },
+							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+						}),
+					),
 			]),
 		])
 	}

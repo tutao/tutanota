@@ -31,6 +31,8 @@ import { LocationService } from "../api/entities/sys/Services"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
+import { styles } from "../gui/styles"
+import { getTutaLogo } from "../gui/base/Logo"
 
 export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private SignupFlowUsageTestController: any
@@ -70,8 +72,9 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 		}))
 
 		return m(".flex.flex-column.full-width", [
-			m("h1.font-mdio.line-height-1", lang.get("payment_page_title")),
-			m("p", { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
+			m(`h1.font-mdio.line-height-1${styles.isMobileLayout() ? ".text-center" : ".left"}`, lang.get("payment_page_title")),
+			m(`p${styles.isMobileLayout() ? ".text-center" : ".left"}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
 			m(".flex.gap-16", [
 				m(
 					".flex-grow",
@@ -96,22 +99,24 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 						},
 					} satisfies RadioSelectorAttrs<PaymentMethodType | null>),
 				),
-				m(
-					".flex-grow",
-					{
-						style: {
-							width: `calc(50% - ${px(size.spacing_32)})`,
+				!styles.isMobileLayout() &&
+					m(
+						".flex-grow",
+						{
+							style: {
+								width: `calc(50% - ${px(size.spacing_32)})`,
+							},
 						},
-					},
-					m("img.block.full-width", {
-						style: { "max-width": px(200), "margin-inline": "auto" },
-						src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-					}),
-				),
+
+						m("img.block.full-width", {
+							style: { "max-width": px(200), "margin-inline": "auto" },
+							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+						}),
+					),
 			]),
 		])
 	}
@@ -250,7 +255,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 						),
 					m(
 						"",
-						{ style: isPaypalConnected ? { "margin-left": "auto" } : { width: "100%" } },
+						{ style: isPaypalConnected || styles.isMobileLayout() ? { "margin-left": "auto" } : { width: "100%" } },
 						m(PaypalButtonNew, {
 							data: ctx.viewModel,
 							onclick: () => this.onPaypalButtonClick(),
