@@ -137,9 +137,19 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		this.layoutState.rowCountPerDay = SUBROWS_PER_INTERVAL * this.viewConfig.intervals.length
 	}
 
-	oncreate() {
+	oncreate(vnode: VnodeDOM<CalendarTimeBasedViewComponentAttrs>) {
 		document.addEventListener("keydown", this.handleKeyDown)
 		document.addEventListener("keyup", this.handleKeyUp)
+
+		/*
+		 * Workaround for weird interaction in grid layout calculation behavior in Safari 26.
+		 * Forcing a new animation frame seems to ensure css grid styling is applied correctly.
+		 * See Issue #10072
+		 */
+		window.requestAnimationFrame(() => {
+			const domelement = vnode.dom as HTMLElement
+			domelement.style.minWidth = "0px"
+		})
 	}
 
 	onremove(): any {
@@ -156,7 +166,6 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		this.eventDragHandler.pressedDragKey = undefined
 		m.redraw()
 	}
-
 	view({ attrs }: Vnode<CalendarTimeBasedViewComponentAttrs>) {
 		const resolveClasses = (): string => {
 			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-l", "border-radius-12"] : ["mlr-safe-inset"]
@@ -234,7 +243,6 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 				style: {
 					gridColumn: "1/-1",
 					gridTemplateColumns: "subgrid",
-					overflowX: "hidden", // explicitly set overflow-x to fix a layout issue for safari browser on macOS
 				} satisfies Partial<CSSStyleDeclaration>,
 				oncreate: (vnode: VnodeDOM) => {
 					const scrollToCurrentTime = attrs.headerComponentAttrs.dates.length === 1 && periodHasToday
