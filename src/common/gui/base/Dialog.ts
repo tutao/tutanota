@@ -115,7 +115,6 @@ export class Dialog implements ModalComponent {
 			const marginPx = px(size.spacing_12)
 			const isEditLarge = dialogType === DialogType.EditLarge
 			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
-			const bottomMargin = overlayBottomMargin()
 			return m(
 				this.getDialogWrapperClasses(dialogType),
 				{
@@ -123,7 +122,7 @@ export class Dialog implements ModalComponent {
 						paddingTop: "var(--safe-area-inset-top)",
 						paddingLeft: "var(--safe-area-inset-left)",
 						paddingRight: "var(--safe-area-inset-right)",
-						paddingBottom: "var(--safe-area-inset-bottom)",
+						marginBottom: "var(--safe-area-inset-bottom)",
 					},
 				},
 				/** controls vertical alignment
