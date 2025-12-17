@@ -9,7 +9,7 @@ import { arrayEquals, hexToUint8Array } from "@tutao/tutanota-utils"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/Services"
 import { PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import testData from "../crypto/CompatibilityTestData.json"
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
@@ -248,6 +248,17 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 				identifierType: PublicKeyIdentifierType.GROUP_ID,
 			}
 			await assertThrows(Error, async () => await publicIdentityKeyProvider.loadPublicIdentityKey(identifier))
+		})
+
+		o("return null when identifier is system group mail address", async function () {
+			const identifier: PublicKeyIdentifier = {
+				identifier: SYSTEM_GROUP_MAIL_ADDRESS,
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			}
+			o(await publicIdentityKeyProvider.loadPublicIdentityKey(identifier)).equals(null)
+			verify(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported(), { times: 0 })
+			verify(identityKeyTrustDatabase.getTrustedEntry(matchers.anything()), { times: 0 })
+			verify(serviceExecutor.get(IdentityKeyService, matchers.anything()), { times: 0 })
 		})
 
 		o("not found handled gracefully", async function () {
