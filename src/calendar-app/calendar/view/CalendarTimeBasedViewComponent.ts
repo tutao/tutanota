@@ -3,21 +3,21 @@ import { styles } from "../../../common/gui/styles"
 import { WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { calendarWeek, extractCalendarEventModifierKey } from "../gui/CalendarGuiUtils"
 import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
-import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
+import { CalendarTimeColumn, CalendarTimeColumnAttrs, getTimeColumnWidth } from "../../../common/calendar/gui/CalendarTimeColumn"
 import { Time } from "../../../common/calendar/date/Time"
-import { layout_size } from "../../../common/gui/size"
+import { px } from "../../../common/gui/size"
 import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "../../../common/calendar/gui/CalendarTimeGrid"
 import { EventWrapper, ScrollByListener } from "./CalendarViewModel"
-import { AllDaySection, AllDaySectionAttrs } from "../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../../../common/calendar/gui/CalendarEventBubble"
-import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
 import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "./EventDragHandler"
 import { isEmpty, isToday, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { UserError } from "../../../common/api/main/UserError"
-import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { combineDateWithTime } from "../../../common/calendar/date/CalendarUtils"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { PageView } from "../../../common/gui/base/PageView"
+import { AllDaySection, AllDaySectionAttrs } from "../../../common/calendar/gui/AllDaySection"
+import { combineDateWithTime } from "../../../common/calendar/date/CalendarUtils"
+import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
+import { UserError } from "../../../common/api/main/UserError"
+import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 
 /**
  * Represents a single page (previous/current/next) in the calendar sliding view.
@@ -82,8 +82,6 @@ export interface CalendarTimeBasedViewComponentAttrs {
  * | Time Column | Calendar Grid     |
  * +-------------+-------------------+
  * ```
- * @see CalendarTimeBasedViewComponent.GRID_TEMPLATE_AREAS
- * @see CalendarTimeBasedViewComponent.GRID_AREA
  */
 export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTimeBasedViewComponentAttrs> {
 	private layoutState: {
@@ -117,19 +115,6 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 	}
 
 	private eventDragHandler: EventDragHandler
-
-	private static readonly GRID_AREA = {
-		WEEK_NUMBER: "weekNumber",
-		WEEK_DAYS_SECTION: "weekDaysSection",
-		ALL_DAY_SECTION: "allDaySection",
-		TIME_COLUMN: "timeColumn",
-		CALENDAR_GRID: "calendarGrid",
-	} as const
-
-	private readonly GRID_TEMPLATE_AREAS =
-		`"${CalendarTimeBasedViewComponent.GRID_AREA.WEEK_NUMBER} 	${CalendarTimeBasedViewComponent.GRID_AREA.WEEK_DAYS_SECTION}"` +
-		` "empty											${CalendarTimeBasedViewComponent.GRID_AREA.ALL_DAY_SECTION}"` +
-		` "${CalendarTimeBasedViewComponent.GRID_AREA.TIME_COLUMN} 	${CalendarTimeBasedViewComponent.GRID_AREA.CALENDAR_GRID}"`
 
 	constructor({ attrs }: Vnode<CalendarTimeBasedViewComponentAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
@@ -166,9 +151,10 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		this.eventDragHandler.pressedDragKey = undefined
 		m.redraw()
 	}
+
 	view({ attrs }: Vnode<CalendarTimeBasedViewComponentAttrs>) {
 		const resolveClasses = (): string => {
-			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-l", "border-radius-12"] : ["mlr-safe-inset"]
+			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-24", "border-radius-12"] : ["mlr-safe-inset"]
 			return classes.join(" ")
 		}
 
@@ -177,9 +163,8 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			{
 				class: resolveClasses(),
 				style: {
-					gridTemplateAreas: this.GRID_TEMPLATE_AREAS,
+					marginLeft: px(5), // keep in sync with toolbar definition
 					gridTemplateRows: "auto auto 1fr",
-					gridTemplateColumns: "auto 1fr",
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
 			[this.renderWeekDaysSection(attrs.headerComponentAttrs), this.renderAllDaySection(attrs), this.renderCalendarGridSection(attrs)],
@@ -193,8 +178,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			{
 				class: styles.isDesktopLayout() ? "content-bg" : "nav-bg",
 				style: {
-					gridColumn: "1/-1",
-					gridTemplateColumns: "subgrid",
+					gridTemplateColumns: `${px(getTimeColumnWidth())} 1fr`,
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
@@ -208,18 +192,13 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 					".b.text-center.calendar-day-indicator",
 					{
 						class: styles.isDesktopLayout() ? undefined : "text-fade",
-						style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.WEEK_NUMBER },
 					},
 					styles.isDesktopLayout()
 						? calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, false)
 						: calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, true),
 				),
 				weekDaysComponentAttrs.showWeekDays
-					? m(
-							".min-width-0",
-							{ style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.WEEK_DAYS_SECTION } },
-							m(WeekDaysComponent, { ...weekDaysComponentAttrs } satisfies WeekDaysComponentAttrs),
-						)
+					? m(".min-width-0", m(WeekDaysComponent, { ...weekDaysComponentAttrs } satisfies WeekDaysComponentAttrs))
 					: null,
 			],
 		)
@@ -232,18 +211,19 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		}
 
 		const periodHasToday = attrs.headerComponentAttrs.dates.some((date) => isToday(date))
-		const timeColumnWidth = styles.isDesktopLayout() ? layout_size.calendar_hour_width : layout_size.calendar_hour_width_mobile + 5
+		const timeColumnWidth = getTimeColumnWidth()
 		const shouldRenderTimeIndicator = periodHasToday && this.layoutState.dayHeight && this.layoutState.pageViewWidth
 		const currentTime = Time.fromDate(new Date())
 
 		return m(
-			".grid.scroll.rel",
+			/* z1 is required so webkit can properly render the scrollbar over absolute positioned the content after a 3d transformation
+			 * See: https://github.com/emberjs/list-view/issues/54
+			 */
+			".grid.scroll.z1",
 			{
 				class: styles.isDesktopLayout() ? "border-top" : "",
 				style: {
-					gridColumn: "1/-1",
-					gridTemplateColumns: "subgrid",
-					overflowX: "hidden",
+					gridTemplateColumns: `${px(getTimeColumnWidth())} 1fr`,
 				} satisfies Partial<CSSStyleDeclaration>,
 				oncreate: (vnode: VnodeDOM) => {
 					const scrollToCurrentTime = attrs.headerComponentAttrs.dates.length === 1 && periodHasToday
@@ -265,9 +245,6 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			[
 				m(
 					".content-bg.border-radius-top-left-12",
-					{
-						style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.TIME_COLUMN },
-					},
 					m(CalendarTimeColumn, {
 						intervals: this.viewConfig.intervals,
 						baseDate: attrs.headerComponentAttrs?.selectedDate,
@@ -283,10 +260,8 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 					} satisfies CalendarTimeColumnAttrs),
 				),
 				m(
-					".content-bg.border-radius-top-right-12.min-width-0",
-
+					".content-bg.border-radius-top-right-12.min-width-0.overflow-x-hidden",
 					{
-						style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.CALENDAR_GRID },
 						onupdate: (vnode) => {
 							const newHeight = vnode.dom.clientHeight
 							const newWidth = vnode.dom.clientWidth
@@ -351,29 +326,21 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			".grid.overflow-hidden.rel.scrollbar-gutter-stable-or-fallback",
 			{
 				style: {
-					gridColumn: "1/-1",
-					gridTemplateColumns: "subgrid",
+					gridTemplateColumns: `${px(getTimeColumnWidth())} 1fr`,
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: this.handleMouseMove,
 				onmouseup: this.handleMouseUp,
 			},
 			[
-				m(
-					"",
-					{
-						style: {
-							gridArea: CalendarTimeBasedViewComponent.GRID_AREA.ALL_DAY_SECTION,
-						} satisfies Partial<CSSStyleDeclaration>,
+				m(""), // empty diff to satisfy grid definition
+				m(AllDaySection, {
+					dates: attrs.bodyComponentAttrs.current.dates,
+					allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
+					eventBubbleHandlers: {
+						...attrs.eventBubbleHandlers,
+						drag: this.createDragHandlers(true),
 					},
-					m(AllDaySection, {
-						dates: attrs.bodyComponentAttrs.current.dates,
-						allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
-						eventBubbleHandlers: {
-							...attrs.eventBubbleHandlers,
-							drag: this.createDragHandlers(true),
-						},
-					} satisfies AllDaySectionAttrs),
-				),
+				} satisfies AllDaySectionAttrs),
 			],
 		)
 	}

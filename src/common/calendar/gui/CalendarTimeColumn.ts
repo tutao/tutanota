@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { clone, lastIndex } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
-import { px } from "../../gui/size"
+import { layout_size, px, size } from "../../gui/size"
 import { Time } from "../date/Time"
 import { styles } from "../../gui/styles"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
@@ -83,6 +83,7 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 						interactions: { onCellPressed: attrs.onCellPressed },
 						text: formatedTime,
 						showBorderBottom,
+						showBorderRight: true,
 					} as CalendarTimeCellAttrs)
 				}),
 			],
@@ -105,4 +106,11 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 
 		return timeKeys
 	}
+}
+
+/**
+ * Returns the widht of the time column depending if it is a desktop layout or not.
+ */
+export function getTimeColumnWidth(): number {
+	return styles.isDesktopLayout() ? layout_size.calendar_hour_width : layout_size.calendar_hour_width_mobile + size.spacing_8
 }

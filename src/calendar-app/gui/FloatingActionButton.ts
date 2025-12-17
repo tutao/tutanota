@@ -16,7 +16,7 @@ export type FloatingActionButtonAttrs = {
 export class FloatingActionButton implements Component<FloatingActionButtonAttrs> {
 	view({ attrs: { title, colors, icon, action } }: Vnode<FloatingActionButtonAttrs>): Children {
 		return m(
-			"span.float-action-button.posb-ml.posr-ml.accent-bg.fab-shadow",
+			"span.float-action-button.posb-ml.posr-ml.accent-bg.fab-shadow.z4",
 			m(IconButton, {
 				colors,
 				icon,

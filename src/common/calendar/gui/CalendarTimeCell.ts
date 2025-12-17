@@ -33,6 +33,7 @@ export interface CalendarTimeCellAttrs {
 		onCellContextMenuPressed?: CellActionHandler
 	}
 	showBorderBottom: boolean
+	showBorderRight?: boolean // ensures right border doesnt disappear on hover for time column cells
 }
 
 /**
@@ -83,6 +84,10 @@ export class CalendarTimeCell implements ClassComponent<CalendarTimeCellAttrs> {
 		}
 		if (attrs.text) {
 			classes.push("pl-8", "pr-8")
+		}
+
+		if (attrs.showBorderRight) {
+			classes.push("border-right")
 		}
 		return classes.join(" ")
 	}
