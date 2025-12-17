@@ -176,6 +176,10 @@ o.spec("MailViewerViewModel", function () {
 
 			o("no banner", async function () {
 				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+
+				mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+				viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
 			})
 
 			o("is phishing", async function () {
@@ -209,10 +213,6 @@ o.spec("MailViewerViewModel", function () {
 				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
 
 				mailDetails.authStatus = MailAuthenticationStatus.MISSING_MAIL_FROM
-				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
-
-				mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
-				viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
 			})
 

@@ -374,10 +374,9 @@ export class MailViewerViewModel {
 
 	private isHardMailAuthenticationFailure(): boolean {
 		return (
-			(this.mailDetails != null &&
-				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
-				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
-			this.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			this.mailDetails != null &&
+			!this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
+			!this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)
 		)
 	}
 
