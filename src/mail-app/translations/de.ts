@@ -15,7 +15,7 @@ export default {
 		"account_label": "Benutzer",
 		"accountCongratulations_msg": "Herzlichen Glückwunsch",
 		"accountCreationCongratulation_msg": "Dein Account wurde erstellt! Willkommen in deiner verschlüsselten Mailbox. 🔒",
-		"accountSwitchAliases_msg": "Bitte lösche alle dir zugeordneten E-Mail-Adressen.",
+		"accountSwitchAliases_msg": "Bitte deaktiviere alle E-Mail-Adressen deines Nutzers.",
 		"accountSwitchCustomMailAddress_msg": "Bitte deaktiviere alle E-Mail-Adressen mit eigener Domain.",
 		"accountSwitchMultipleCalendars_msg": "Bitte lösche alle zusätzlichen Kalender.",
 		"accountSwitchNotPossible_msg": "Der Wechsel des Abonnements ist momentan nicht möglich. {detailMsg}",
