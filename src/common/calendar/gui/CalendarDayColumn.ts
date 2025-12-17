@@ -37,11 +37,13 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 
 	view({ attrs }: Vnode<CalendarDayColumnAttrs>) {
 		return m(
-			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap-1",
+			".grid.z1.grid-auto-columns.rel.min-width-0.gap-1",
 			{
 				class: this.resolveClasses(attrs.layout),
 				style: {
 					gridTemplateRows: `repeat(${attrs.layout.rowCount}, ${px(attrs.layout.gridRowHeight)})`,
+					paddingLeft: px(1),
+					paddingRight: px(1),
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
