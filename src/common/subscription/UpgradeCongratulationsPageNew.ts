@@ -14,17 +14,16 @@ import { Icons } from "../gui/base/icons/Icons"
 import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { Checkbox } from "../gui/base/Checkbox"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
 
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	private acceptedWarning: boolean = false
 
-	private saveRecoveryCodeAsPdf(recoveryCode: string) {
+	private saveRecoveryCodeAsPdf(recoveryCode: string, email: string) {
 		showProgressDialog(
 			"pleaseWait_msg",
-			locator.customerFacade.generatePdfRecoveryDocument(recoveryCode).then((pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice)),
+			locator.customerFacade.generatePdfRecoveryDocument(recoveryCode, email).then((pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice)),
 		)
 	}
 
@@ -33,15 +32,16 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 	}
 
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		const { newAccountData } = attrs.viewModel
-		assertNotNull(newAccountData)
-		// if (!newAccountData) {
-		// 	newAccountData = {
-		// 		recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
-		// 		mailAddress: "placeholder@tuta.de",
-		// 		password: "dfkjkdfjkdfjkjdf:w",
-		// 	}
-		// }
+		// const { newAccountData } = attrs.viewModel
+		// assertNotNull(newAccountData)
+		let newAccountData
+		if (!newAccountData) {
+			newAccountData = {
+				recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
+				mailAddress: "placeholder@tuta.de",
+				password: "dfkjkdfjkdfjkjdf:w",
+			}
+		}
 
 		return m(".flex.flex-column.full-width", [
 			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
@@ -97,7 +97,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 										icon: Icons.Download,
 										text: "Download PDF-File",
 										onclick: () => {
-											this.saveRecoveryCodeAsPdf(newAccountData!.recoverCode)
+											this.saveRecoveryCodeAsPdf(newAccountData!.recoverCode, newAccountData!.mailAddress)
 										},
 										class: "flex-grow",
 									} satisfies SecondaryButtonAttrs),

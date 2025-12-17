@@ -432,10 +432,10 @@ export class CustomerFacade {
 		}
 	}
 
-	async generatePdfRecoveryDocument(recoveryCode: string): Promise<DataFile> {
+	async generatePdfRecoveryDocument(recoveryCode: string, email: string): Promise<DataFile> {
 		const writer = await this.pdfWriter()
 		const { PdfRecoveryDocumentGenerator } = await import("../../recoveryDocumentGenerator/RecoveryDocumentGenerator.js")
-		const pdfGenerator = new PdfRecoveryDocumentGenerator(writer, recoveryCode)
+		const pdfGenerator = new PdfRecoveryDocumentGenerator(writer, recoveryCode, email)
 		const pdfFile = await pdfGenerator.generate()
 		return {
 			_type: "DataFile",

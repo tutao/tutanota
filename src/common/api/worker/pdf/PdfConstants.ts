@@ -34,6 +34,7 @@ export const boldFontWidths: number[] = [
 	684, 684, 684, 684, 528, 684, 665, 665, 665, 665, 525, 617, 632, 527, 527, 527, 527, 527, 527, 781, 467, 518, 518, 518, 518, 276, 276, 276, 276, 558, 572,
 	555, 555, 555, 555, 555, 528, 555, 568, 568, 568, 568, 521, 573, 521,
 ]
+export const monoFontWidths: number[] = new Array(255 - 32).fill(625)
 
 /**
  * All PDF documents require "default objects" which define many basic aspects for PDF. These objects are defined here as constants
@@ -81,6 +82,8 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 				new Map<string, PdfDictValue>([
 					["Im1", { refId: "IMG_TUTA_LOGO" }],
 					["Im2", { refId: "IMG_ADDRESS" }],
+					["Im3", { refId: "IMG_EDIT_ICON" }],
+					["Im4", { refId: "IMG_CLOUD_ICON" }],
 				]),
 			],
 			[
@@ -89,6 +92,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 					["F1", { refId: "FONT_REGULAR" }],
 					["F2", { refId: "FONT_BOLD" }],
 					["F3", { refId: "FONT_INVISIBLE_CID" }],
+					["F4", { refId: "FONT_MONO_BOLD" }],
 				]),
 			],
 		]),
@@ -139,6 +143,32 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["Type", "/FontDescriptor"],
 			["FontName", "/SourceSans3-Bold"],
 			["FontFile2", { refId: "FONT_BOLD_FILE" }],
+			["Subtype", "/TrueType"],
+			["Flags", "64"],
+		]),
+	}),
+
+	Object.freeze({
+		// Bold font
+		refId: "FONT_MONO_BOLD",
+		dictionary: new Map<string, PdfDictValue>([
+			["Type", "/Font"],
+			["Subtype", "/TrueType"],
+			["FontDescriptor", { refId: "FONT_MONO_BOLD_DESCRIPTOR" }],
+			["Name", "/F4"],
+			["BaseFont", "/NotoSansMono-Bold"],
+			["Encoding", "/WinAnsiEncoding"],
+			["FirstChar", "32"],
+			["LastChar", "255"],
+			["Widths", monoFontWidths.map((width) => width.toString())],
+		]),
+	}),
+	Object.freeze({
+		refId: "FONT_MONO_BOLD_DESCRIPTOR",
+		dictionary: new Map<string, PdfDictValue>([
+			["Type", "/FontDescriptor"],
+			["FontName", "/NotoSansMono-Bold"],
+			["FontFile2", { refId: "FONT_MONO_BOLD_FILE" }],
 			["Subtype", "/TrueType"],
 			["Flags", "64"],
 		]),

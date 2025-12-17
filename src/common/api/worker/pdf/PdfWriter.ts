@@ -191,15 +191,23 @@ export class PdfWriter {
 		const baseUrl = typeof location === "undefined" ? "" : location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 		if (!this.cachedResources) {
 			this.cachedResources = await Promise.all(
-				["/pdf/SourceSans3-Regular.ttf", "/pdf/SourceSans3-Bold.ttf", "/pdf/sRGB2014.icc", "/pdf/identity_h.cmap", "/pdf/tutanota_logo_en.jpg"].map(
-					(url) =>
-						typeof this.customFetch !== "undefined"
-							? this.customFetch(baseUrl + url).then((r) => r.arrayBuffer())
-							: fetch(baseUrl + url).then((r) => r.arrayBuffer()),
+				[
+					"/pdf/SourceSans3-Regular.ttf",
+					"/pdf/SourceSans3-Bold.ttf",
+					"/pdf/NotoSansMono-Bold.ttf",
+					"/pdf/sRGB2014.icc",
+					"/pdf/identity_h.cmap",
+					"/pdf/tutanota_logo_en.jpg",
+					"/pdf/edit.jpg",
+					"/pdf/cloud.jpg",
+				].map((url) =>
+					typeof this.customFetch !== "undefined"
+						? this.customFetch(baseUrl + url).then((r) => r.arrayBuffer())
+						: fetch(baseUrl + url).then((r) => r.arrayBuffer()),
 				),
 			)
 		}
-		const [fontRegular, fontBold, colorProfile, cmap, tutaImage] = this.cachedResources
+		const [fontRegular, fontBold, fontMonoBold, colorProfile, cmap, tutaImage, editImage, cloudImage] = this.cachedResources
 
 		// Regular font file
 		this.createStreamObject(
@@ -214,6 +222,13 @@ export class PdfWriter {
 			await this.deflater.deflate(fontBold),
 			PdfStreamEncoding.FLATE,
 			"FONT_BOLD_FILE",
+		)
+		// Bold Mono font file
+		this.createStreamObject(
+			new Map([["Length1", fontMonoBold.byteLength.toString()]]),
+			await this.deflater.deflate(fontMonoBold),
+			PdfStreamEncoding.FLATE,
+			"FONT_MONO_BOLD_FILE",
 		)
 		// Identity CMap
 		this.createStreamObject(
@@ -250,6 +265,34 @@ export class PdfWriter {
 			new Uint8Array(tutaImage),
 			PdfStreamEncoding.DCT,
 			"IMG_TUTA_LOGO",
+		)
+		this.createStreamObject(
+			new Map([
+				["Name", "/Im3"],
+				["Type", "/XObject"],
+				["Subtype", "/Image"],
+				["Width", "512"],
+				["Height", "512"],
+				["BitsPerComponent", "8"],
+				["ColorSpace", "/DeviceRGB"],
+			]),
+			new Uint8Array(editImage),
+			PdfStreamEncoding.DCT,
+			"IMG_EDIT_ICON",
+		)
+		this.createStreamObject(
+			new Map([
+				["Name", "/Im4"],
+				["Type", "/XObject"],
+				["Subtype", "/Image"],
+				["Width", "512"],
+				["Height", "512"],
+				["BitsPerComponent", "8"],
+				["ColorSpace", "/DeviceRGB"],
+			]),
+			new Uint8Array(cloudImage),
+			PdfStreamEncoding.DCT,
+			"IMG_CLOUD_ICON",
 		)
 		// Metadata
 		const todayDate = new Date()
