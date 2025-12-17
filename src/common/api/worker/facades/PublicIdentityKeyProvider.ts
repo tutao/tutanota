@@ -3,7 +3,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { IdentityKeyService } from "../../entities/sys/Services.js"
 import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import { Versioned } from "@tutao/tutanota-utils"
-import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { bytesToEd25519PublicKey } from "@tutao/tutanota-crypto"
@@ -92,6 +92,10 @@ export class PublicIdentityKeyProvider {
 			// users should load their own identity keys by loading the group not by using the identityKeyService
 			// see this.loadPublicIdentityKeyFromGroup
 			throw new Error("currently identity keys must be loaded via mail address")
+		}
+		if (pubKeyIdentifier.identifier === SYSTEM_GROUP_MAIL_ADDRESS) {
+			// There is no identity key for the system customer yet, and we can prevent a lot of unnecessary requests
+			return null
 		}
 		if (await this.identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()) {
 			const trustedIdentity = await this.identityKeyTrustDatabase.getTrustedEntry(pubKeyIdentifier.identifier)
