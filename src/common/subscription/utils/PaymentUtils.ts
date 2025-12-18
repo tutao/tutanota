@@ -11,7 +11,7 @@ import { getPreconditionFailedPaymentMsg, PaymentErrorCode, SubscriptionApp } fr
 import { SessionType } from "../../api/common/SessionType"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError"
-import { assertNotNull, neverNull, newPromise, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { SignupViewModel } from "../../signup/SignupView"
 import { PaymentInterval } from "./PriceUtils"
