@@ -128,7 +128,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const bottomPad = Math.max(size.spacing_16, getSafeAreaInsetBottom())
 		return m(
-			"#plan-selector.flex.flex-column.gap-32",
+			".flex.flex-column.gap-32",
 			{
 				style: this.shouldFixButtonPos && {
 					"padding-bottom": px(component_size.button_height + size.spacing_16 + getSafeAreaInsetBottom()),
@@ -194,8 +194,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	private readonly handleResize = () => {
 		const planSelectorEl = document.querySelector("#plan-selector")
 		if (planSelectorEl) {
-			const contentHeight = parseInt(getComputedStyle(planSelectorEl).height)
-			this.shouldFixButtonPos = contentHeight + component_size.button_floating_size > window.innerHeight
+			const planSelectorBottom = planSelectorEl.getBoundingClientRect().bottom
+			this.shouldFixButtonPos = planSelectorBottom + size.spacing_32 + component_size.button_floating_size > window.innerHeight
 		}
 	}
 }

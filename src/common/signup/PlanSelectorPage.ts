@@ -13,6 +13,7 @@ import { px } from "../gui/size"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { PlanSelectorHeadlineNew } from "../subscription/components/PlanSelectorHeadlineNew"
 import { styles } from "../gui/styles"
+import { getTutaLogo } from "../gui/base/Logo"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -23,6 +24,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const isApplePrice = shouldShowApplePrices(accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
 		const promotionMessage = planPrices!.getRawPricingData().messageTextId as TranslationKeyType
+		const titleTextPos = styles.isMobileLayout() ? ".text-center" : ".left"
 
 		const button: LoginButtonAttrs = {
 			label: "pricing.select_action",
@@ -37,6 +39,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 
 		return m(
 			".full-width",
+			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
 			// Headline for a global campaign
 			!data.options!.businessUse() &&
 				anyHasGlobalFirstYearCampaign(discountDetails) &&
@@ -58,8 +61,8 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 					},
 				},
 				[
-					m("h1.font-mdio.line-height-1", lang.getTranslationText("planselector_page_title")),
-					m("p", lang.getTranslationText("planselector_page_subtitle")),
+					m(`h1.font-mdio${styles.isMobileLayout() ? ".lh.h3" : ".lh-s.h1"}${titleTextPos}`, lang.getTranslationText("planselector_page_title")),
+					m(`p${styles.isMobileLayout() ? ".mb-32" : ""}${titleTextPos}`, lang.getTranslationText("planselector_page_subtitle")),
 					m(
 						".flex.gap-64.full-width",
 						m(

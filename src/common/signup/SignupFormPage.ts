@@ -17,11 +17,12 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 		const newAccountData = data.newAccountData
 		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
+		const titleTextPos = styles.isMobileLayout() ? ".text-center" : ".left"
 
 		return m(".flex.flex-column.full-width", [
 			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
-			m(`h1.font-mdio.line-height-1.${styles.isMobileLayout() ? "text-center" : "left"}`, lang.get("signup_page_title")),
-			m(`p.${styles.isMobileLayout() ? "text-center" : "left"}`, { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
+			m(`h1.font-mdio${styles.isMobileLayout() ? ".lh.h3" : ".lh-s.h1"}${titleTextPos}`, lang.get("signup_page_title")),
+			m(`p.${styles.isMobileLayout() ? ".mb-32" : ""}${titleTextPos}`, { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
 			m("div.flex.items-start.gap-64", [
 				m(
 					".flex-grow",

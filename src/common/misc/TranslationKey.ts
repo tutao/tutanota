@@ -2145,3 +2145,4 @@ export type TranslationKeyType =
 	| "confirm_order_page_subtitle"
 	| "paymentDataPayPalConnected_msg"
 	| "paymentDataPayPalChangeAccount_msg"
+	| "confirmAndPay_action"

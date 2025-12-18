@@ -2147,5 +2147,6 @@ export default {
 		"termsAndConditions_label": "I have read and agree to the following documents:",
 		"termsAndConditionsLink_label": "Terms and Conditions",
 		"passwordValid_msg": "Great!",
+		"confirmAndPay_action": "Confirm and Pay",
 	}
 }

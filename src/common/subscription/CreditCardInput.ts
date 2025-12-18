@@ -6,6 +6,7 @@ import { CreditCard } from "../api/entities/sys/TypeRefs.js"
 import { LoginTextField, LoginTextFieldAttrs } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
+import { styles } from "../gui/styles"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
@@ -40,8 +41,9 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 
 	view(vnode: Vnode<SimplifiedCreditCardAttrs>): Children {
 		let { viewModel } = vnode.attrs
+		const formGap = styles.isMobileLayout() ? ".gap-16" : ".gap-24"
 
-		return m(".flex.col.gap-24.mtb-16", [
+		return m(`.flex.col.mtb-16${formGap}`, [
 			m(LoginTextField, {
 				label: "creditCardNumber_label",
 				class: "", // fixme: removes mt-16
@@ -59,7 +61,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 					color: theme.on_surface_variant,
 				},
 			} satisfies LoginTextFieldAttrs),
-			m(".flex.row.gap-24.flex-grow", [
+			m(`.flex.row.flex-grow${formGap}`, [
 				m(LoginTextField, {
 					label: "creditCardExpirationDateWithFormat_label",
 					class: "", // fixme: removes mt-16

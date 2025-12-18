@@ -3330,9 +3330,6 @@ styles.registerStyle("main", () => {
 		".login-textfield:hover:has(input):not(:has(input:focus))": {
 			"background-color": theme.state_bg_focus,
 		},
-		".line-height-1": {
-			"line-height": 1,
-		},
 		".snackbar": {
 			"background-color": theme.surface_container_high,
 			"border-radius": px(size.radius_8),

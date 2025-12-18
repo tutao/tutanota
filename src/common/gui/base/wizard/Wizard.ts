@@ -127,7 +127,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 					},
 				},
 				m(
-					`.flex.height-100p.full-width.${styles.isMobileLayout() ? ".col.gap-8" : ".gap-64"}`,
+					`.flex.height-100p.full-width.${styles.isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
 					{
 						style: {
 							"padding-inline": "5vw",

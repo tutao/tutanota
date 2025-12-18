@@ -36,6 +36,7 @@ import { getTutaLogo } from "../gui/base/Logo"
 export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
 	private paypalRequestUrl: LazyLoaded<string>
+	private readonly formGap = styles.isMobileLayout() ? ".gap-16" : ".gap-24"
 
 	constructor() {
 		this.paypalRequestUrl = getLazyLoadedPayPalUrl()
@@ -67,11 +68,12 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			value,
 			renderChild: () => this.renderPaymentMethodForm(ctx, value),
 		}))
+		const titleTextPos = styles.isMobileLayout() ? ".text-center" : ".left"
 
 		return m(".flex.flex-column.full-width", [
 			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
-			m(`h1.font-mdio.line-height-1${styles.isMobileLayout() ? ".text-center" : ".left"}`, lang.get("payment_page_title")),
-			m(`p${styles.isMobileLayout() ? ".text-center" : ".left"}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+			m(`h1.font-mdio${styles.isMobileLayout() ? ".lh.h3" : ".lh-s.h1"}${titleTextPos}`, lang.get("payment_page_title")),
+			m(`p${styles.isMobileLayout() ? ".mb-32" : ""}${titleTextPos}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
 			m(".flex.gap-16", [
 				m(
 					".flex-grow",
@@ -134,7 +136,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 	}
 
 	private renderCreditCardForm(ctx: WizardStepContext<SignupViewModel>): Children {
-		return m(".flex.col.gap-24", [
+		return m(`.flex.col${this.formGap}`, [
 			m(CreditCardInput, {
 				viewModel: ctx.viewModel.ccViewModel,
 			}),
@@ -147,7 +149,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 				label: "billingCountry_label",
 			}),
 			m(
-				".flex-shrink.align-self-end",
+				`.flex-shrink${styles.isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
 				m(LoginButton, {
 					label: "verifyCreditCard_action",
 					size: "md",
@@ -227,8 +229,8 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 	}
 	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {
 		const isPaypalConnected = !!ctx.viewModel.accountingInfo?.paypalBillingAgreement
-		return m(".flex.col.gap-24", [
-			m(".flex.col.items-end.gap-24", [
+		return m(`.flex.col${this.formGap}`, [
+			m(`.flex.col${styles.isMobileLayout() ? ".items-center" : ".items-end"}${this.formGap}`, [
 				renderCountryDropdownNew({
 					selectedCountry: ctx.viewModel.invoiceData.country,
 					onSelectionChanged: (country: Country) => {
@@ -237,7 +239,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 					},
 					label: "billingCountry_label",
 				}),
-				m(".flex.justify-between.full-width.gap-24.wrap", [
+				m(`.flex.justify-between.full-width${this.formGap}.wrap`, [
 					isPaypalConnected &&
 						m(
 							".flex-grow",
@@ -255,7 +257,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 						),
 					m(
 						"",
-						{ style: isPaypalConnected || styles.isMobileLayout() ? { "margin-left": "auto" } : { width: "100%" } },
+						{ style: isPaypalConnected || styles.isMobileLayout() ? { width: "100%" } : { "margin-left": "auto" } },
 						m(PaypalButtonNew, {
 							data: ctx.viewModel,
 							onclick: () => this.onPaypalButtonClick(),

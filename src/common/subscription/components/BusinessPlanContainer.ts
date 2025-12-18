@@ -149,7 +149,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 				}
 
 		return m(
-			`${styles.isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
+			`#plan-selector${styles.isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
 			{
 				"data-testid": "dialog:select-subscription-business",
 				style: { position: "relative", paddingInline: px(8), ...container },

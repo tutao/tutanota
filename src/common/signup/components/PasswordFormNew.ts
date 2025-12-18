@@ -18,6 +18,7 @@ import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { delay } from "@tutao/tutanota-utils"
 import { showSnackBar } from "../../gui/base/SnackBar"
 import { Icons } from "../../gui/base/icons/Icons"
+import { styles } from "../../gui/styles"
 
 assertMainOrNode()
 
@@ -233,7 +234,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 	}
 	view({ attrs }: Vnode<PasswordFormAttrs>): Children {
 		return m(
-			".flex.flex-column.gap-24",
+			`.flex.flex-column.${styles.isMobileLayout() ? ".gap-8" : ".gap-24"}`,
 			{
 				onremove: () => attrs.model.clear(),
 			},

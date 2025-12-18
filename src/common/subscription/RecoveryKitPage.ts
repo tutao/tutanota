@@ -44,17 +44,22 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 				password: "dfkjkdfjkdfjkjdf:w",
 			}
 		}
+		const titleTextPos = styles.isMobileLayout() ? ".text-center" : ".left"
 
 		return m(".flex.flex-column.full-width", [
 			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
-			m(`h1.font-mdio.line-height-1.${styles.isMobileLayout() ? ".text-center" : ".left"}`, lang.get("recovery_kit_page_title")),
-			m(`p${styles.isMobileLayout() ? ".text-center" : ".left"}`, { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
+			m(`h1.font-mdio${styles.isMobileLayout() ? ".lh.h3" : ".lh-s.h1"}${titleTextPos}`, lang.get("recovery_kit_page_title")),
+			m(
+				`p${styles.isMobileLayout() ? ".mb-32" : ""}${titleTextPos}`,
+				{ style: { color: theme.on_surface_variant } },
+				lang.get("recovery_kit_page_subtitle"),
+			),
 
 			m(".flex.gap-16", [
 				m(".flex.col.flex-grow.gap-8", [
 					m(".flex.col.gap-8", [
 						m(
-							".flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24",
+							`.flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24${styles.isMobileLayout() ? ".col" : ""}`,
 							{
 								style: {
 									"background-color": theme.surface_container_high,
@@ -62,7 +67,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 							},
 							[
 								m(
-									".plr-24.pt-16.pb-16.border-radius-8.b",
+									`.plr-24.pt-16.pb-16.border-radius-8.b${styles.isMobileLayout() ? ".full-width" : ".flex-grow"}`,
 									{
 										style: {
 											"background-color": theme.surface_container_highest,
@@ -78,7 +83,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 										border: false,
 									}),
 								),
-								m(".flex.col.items-start.full-width.gap-16", [
+								m(".flex.col.items-start.full-width.gap-16.flex-grow", [
 									m(SecondaryButton, {
 										label: "recoveryCode_label",
 										icon: Icons.Clipboard,
@@ -116,7 +121,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 							},
 						}),
 					]),
-					m(".flex.justify-end", [
+					m(`.flex${styles.isMobileLayout() ? ".justify-center" : ".justify-end"}`, [
 						m(LoginButton, {
 							width: "flex",
 							label: "recovery_kit_page_continue_label",

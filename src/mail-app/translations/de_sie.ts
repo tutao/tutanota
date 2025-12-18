@@ -2129,6 +2129,7 @@ export default {
 		"creditCardExpirationDateValid_msg": "Valid Expiration date",
 		"creditCardSpecificCVVValid_msg": "Valid {securityCode}",
 		"paymentDataPayPalConnected_msg": "Connected Account",
-		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order."
+		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order.",
+		"confirmAndPay_action": "Confirm and Pay",
 	}
 }

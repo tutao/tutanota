@@ -206,7 +206,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-start",
-			m(".flex.flex-column.max-width-l.pt-16.pb-16.gap-16.full-width", [
+			m(`.flex.flex-column.max-width-l.pt-16.pb-16.full-width${styles.isMobileLayout() ? ".gap-8" : ".gap-16"}`, [
 				this.readonly
 					? m(LoginTextField, {
 							label: "mailAddress_label",
@@ -226,13 +226,13 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 										label: "whitelabelRegistrationCode_label",
 									})
 								: null,
-							m(".flex.col.gap-4.smaller.justify-start", [
+							m(".flex.col.gap-4.smaller.justify-start.mt-16", [
 								m(Checkbox, confirmTermsCheckBoxAttrs),
 								m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							]),
 						],
 				m(
-					`.mt-32.mb-32.flex.${styles.isMobileLayout() ? "flex-center" : "flex-end"}`,
+					`.flex${styles.isMobileLayout() ? ".flex-center.mt-24.mb-24" : ".flex-end.mt-32.mb-32"}`,
 					m(LoginButton, {
 						label: this.readonly ? "continue_action" : "create_new_account_label",
 						onclick: submit,

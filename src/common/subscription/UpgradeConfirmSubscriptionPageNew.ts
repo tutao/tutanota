@@ -39,11 +39,13 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
 		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
 
+		const titleTextPos = styles.isMobileLayout() ? ".text-center" : ".left"
+
 		return m(".flex.flex-column.full-width", [
 			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
-			m(`h1.font-mdio.line-height-1${styles.isMobileLayout() ? ".text-center" : ".left"}`, lang.get("confirm_order_page_title")),
+			m(`h1.font-mdio${styles.isMobileLayout() ? ".lh.h3" : ".lh-s.h1"}${titleTextPos}`, lang.get("confirm_order_page_title")),
 			m(
-				`p${styles.isMobileLayout() ? ".text-center" : ".left"}`,
+				`p${styles.isMobileLayout() ? ".mb-32" : ""}${titleTextPos}`,
 				{ style: { color: theme.on_surface_variant } },
 				lang.get("confirm_order_page_subtitle"),
 			),
@@ -51,7 +53,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			m(".flex.gap-16", [
 				m(".flex-grow", [
 					m(
-						".flex.col.gap-16.pt-16.pb-16.plr-16.border-radius-16",
+						`.flex.col.gap-16.pt-16.pb-16.border-radius-16${styles.isMobileLayout() ? "" : ".plr-16"}`,
 						{
 							style: {
 								"background-color": theme.surface_container_high,
@@ -171,8 +173,9 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 						".flex-center.full-width.pt-32.pb-32",
 						m(LoginButton, {
 							size: "md",
-							label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
+							label: isAppStorePayment ? "checkoutWithAppStore_action" : "confirmAndPay_action",
 							class: "small-login-button",
+							width: "flex",
 							onclick: () => this.upgrade(ctx),
 						}),
 					),
