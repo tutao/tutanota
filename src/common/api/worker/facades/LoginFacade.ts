@@ -245,6 +245,10 @@ export class LoginFacade {
 
 	/**
 	 * Create session and log in. Changes internal state to refer to the logged in user.
+	 * if createSessionOnly == true, the app will not continue to initialize app-specific state
+	 * aftrer the session is created + stored and will also not create a persistent offline DB,
+	 * but still store the database key with the credentials so the offline DB can be created when the
+	 * credentials are first used.
 	 */
 	async createSession(
 		mailAddress: string,
@@ -252,7 +256,7 @@ export class LoginFacade {
 		clientIdentifier: string,
 		sessionType: SessionType,
 		databaseKey: Uint8Array | null,
-		skipPostLoginActions: boolean = false,
+		createSessionOnly: boolean = false,
 	): Promise<NewSessionData> {
 		if (this.userFacade.isPartiallyLoggedIn()) {
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
@@ -290,7 +294,8 @@ export class LoginFacade {
 
 		const cacheInfo = await this.initCache({
 			userId: sessionData.userId,
-			databaseKey,
+			// don't create a persistent storage just yet if we're just storing credentials after signup
+			databaseKey: createSessionOnly ? null : databaseKey,
 			timeRangeDate: null,
 			forceNewDatabase,
 		})
@@ -310,7 +315,7 @@ export class LoginFacade {
 			type: CredentialType.Internal,
 		}
 
-		if (!skipPostLoginActions) {
+		if (!createSessionOnly) {
 			this.triggerPartialLoginSuccess(sessionType, cacheInfo, credentials).finally(() =>
 				this.triggerFullLoginSuccess(sessionType, cacheInfo, credentials),
 			)
@@ -322,10 +327,8 @@ export class LoginFacade {
 			user,
 			userGroupInfo,
 			sessionId: sessionData.sessionId,
-			credentials: credentials,
-			// we always try to make a persistent cache with a key for persistent session, but this
-			// falls back to ephemeral cache in browsers. no point storing the key then.
-			databaseKey: cacheInfo.isPersistent ? databaseKey : null,
+			credentials,
+			databaseKey,
 		}
 	}
 
