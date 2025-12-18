@@ -25,7 +25,7 @@ import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
-import { FileReference } from "../../../common/utils/FileUtils.js"
+import { FileReference, splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
 import { handleRestError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { BlobGetInTypeRef, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn, createBlobId } from "../../../entities/storage/TypeRefs.js"
@@ -134,7 +134,6 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		abortSignal: AbortSignal,
 	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number }, BlobReferenceTokenWrapper[], void> {
-		let offset = 0
 		const fileSize = file.size
 
 		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
@@ -147,19 +146,8 @@ export class BlobFacade {
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 		const blobReferenceTokenWrappers: BlobReferenceTokenWrapper[] = []
 
-		while (offset < fileSize) {
-			// Determine the end of the current chunk (exclusive)
-			const chunkEnd = Math.min(offset + chunkSizeBytes, fileSize)
-			// Use File.slice() to get the chunk as a Blob
-			const chunkBlob = file.slice(offset, chunkEnd)
+		for (const chunkBlob of splitFileIntoChunks(chunkSizeBytes, file)) {
 			const chunkData = await chunkBlob.arrayBuffer()
-			// 'chunkData' now holds the raw data for the chunk
-
-			console.log(`Read chunk from byte ${offset} to ${chunkEnd - 1}. Size: ${chunkBlob.size} bytes.`)
-
-			// Increment the offset for the next iteration
-			offset = chunkEnd
-
 			// Process the chunkData here (e.g., upload it to a server)
 			const tokenWrapper = await doBlobRequestWithRetry(() => {
 				if (abortSignal.aborted) {

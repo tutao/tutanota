@@ -166,3 +166,19 @@ export function fileListToArray(fileList: FileList): Array<File> {
 
 	return nativeFiles
 }
+
+export function* splitFileIntoChunks(chunkSize: number, file: File): Generator<globalThis.Blob, void> {
+	if (chunkSize < 1) {
+		return
+	}
+
+	let chunkNum = 0
+	let end
+
+	do {
+		let start = chunkNum * chunkSize
+		end = start + chunkSize
+		yield file.slice(start, end)
+		chunkNum++
+	} while (end < file.size)
+}
