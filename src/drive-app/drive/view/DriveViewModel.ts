@@ -12,7 +12,7 @@ import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/Shar
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { ArchiveDataType, Const, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { ArchiveDataType, Const, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
@@ -183,6 +183,10 @@ export class DriveViewModel {
 		})
 		this.roots = await this.driveFacade.loadRootFolders()
 		this.refreshStorage()
+	}
+
+	isDriveEnabledForCustomer(): boolean {
+		return this.loginController.isEnabled(FeatureType.DriveInternalBeta)
 	}
 
 	private newListModel(folder: DriveFolder): ListModel<FolderItem, Id> {

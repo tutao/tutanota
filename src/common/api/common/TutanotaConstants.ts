@@ -590,6 +590,7 @@ export enum FeatureType {
 	KeyVerification = "18", // Enables key verification for internal testing and volunteers
 	SpamClientClassification = "19",
 	QuickActions = "20",
+	DriveInternalBeta = "21", // Enables drive access for internal testing
 }
 
 export const FULL_INDEXED_TIMESTAMP: number = 0

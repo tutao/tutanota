@@ -29,7 +29,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 
 		{
 			key: Keys.P,
-			enabled: () => logins.isInternalUserLoggedIn(),
+			enabled: () => logins.isInternalUserLoggedIn() && logins.isEnabled(FeatureType.DriveInternalBeta),
 			exec: () => m.route.set(DRIVE_PREFIX),
 			help: "driveView_action",
 		},

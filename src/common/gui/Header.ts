@@ -86,7 +86,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						click: () => m.route.get().startsWith(CALENDAR_PREFIX),
 					})
 				: null,
-			locator.logins.isInternalUserLoggedIn()
+			locator.logins.isInternalUserLoggedIn() && locator.logins.isEnabled(FeatureType.DriveInternalBeta)
 				? m(NavButton, {
 						label: "driveView_action",
 						icon: () => Icons.Drive,

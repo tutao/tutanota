@@ -46,6 +46,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private readonly currentFolderColumn: ViewColumn
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
+		if (!this.driveViewModel.isDriveEnabledForCustomer()) {
+			m.route.set("/mail")
+			return
+		}
+
 		// /drive/folderId/listElementId
 		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
 

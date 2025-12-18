@@ -807,6 +807,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			{
 				key: Keys.P,
+				ctrlOrCmd: true,
+				shift: true,
 				exec: () => {
 					this.pressRelease()
 					return true
