@@ -1,8 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
-import { SignupFlowStage } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { lang, TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
 import { getClientType, InvoiceData, Keys, PaymentData, PaymentDataResultType, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { Countries, Country } from "../api/common/CountryList"
@@ -35,8 +34,6 @@ import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
 
 export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
-	private SignupFlowUsageTestController: any
-
 	private _hasClickedNext: boolean = false
 	private paypalRequestUrl: LazyLoaded<string>
 
@@ -281,30 +278,6 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 					}),
 			]),
 		])
-	}
-
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		// fixme
-		// SignupFlowUsageTestController.completeStage(
-		// 	SignupFlowStage.SELECT_PAYMENT_METHOD,
-		// 	this.data.targetPlanType,
-		// 	this.data.options.paymentInterval(),
-		// 	this.data.paymentData.paymentMethod,
-		// )
-		return Promise.resolve(true)
-	}
-
-	prevAction(showErrorDialog: boolean): Promise<boolean> {
-		this.SignupFlowUsageTestController.deletePing(SignupFlowStage.CREATE_ACCOUNT)
-		return Promise.resolve(true)
-	}
-
-	headerTitle(): TranslationKey {
-		return "adminPayment_action"
-	}
-
-	isSkipAvailable(): boolean {
-		return false
 	}
 }
 

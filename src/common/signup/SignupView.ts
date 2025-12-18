@@ -35,6 +35,8 @@ import { BootIcons } from "../gui/base/icons/BootIcons"
 import { Country } from "../api/common/CountryList"
 import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
+import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 
 assertMainOrNode()
 
@@ -186,6 +188,11 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	async oncreate() {
 		await this.wizardViewModel.init()
+		let referralConversion: ReferralType = "not_referred"
+		if (this.wizardViewModel.referralData && this.wizardViewModel.referralData.isCalledBySatisfactionDialog)
+			referralConversion = "satisfactiondialog_referral"
+		else if (this.wizardViewModel.referralData && !this.wizardViewModel.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
+		SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
 		m.redraw()
 	}
 
@@ -236,25 +243,64 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 								{
 									title: "Select Plan",
 									content: PlanSelectorPage,
-									onNext: () => console.log("another next action"),
+									onNext: () =>
+										SignupFlowUsageTestController.completeStage(
+											SignupFlowStage.SELECT_PLAN,
+											this.wizardViewModel.targetPlanType,
+											this.wizardViewModel.options.paymentInterval(),
+										),
 									isBackButtonEnabled: () => false,
 									showProgress: () => false,
 								},
 								{
 									title: "Create Account",
 									content: SignupFormPage,
-									onNext: () => console.log("another next action"),
+									onNext: () =>
+										SignupFlowUsageTestController.completeStage(
+											SignupFlowStage.CREATE_ACCOUNT,
+											this.wizardViewModel.targetPlanType,
+											this.wizardViewModel.options.paymentInterval(),
+										),
+									onPrev: () => SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PLAN),
 								},
 								{
 									title: "Payment",
 									content: InvoiceAndPaymentDataPageNew,
-									onNext: () => console.log("another next action"),
+									onNext: () => {
+										SignupFlowUsageTestController.completeStage(
+											SignupFlowStage.SELECT_PAYMENT_METHOD,
+											this.wizardViewModel.targetPlanType,
+											this.wizardViewModel.options.paymentInterval(),
+											this.wizardViewModel.paymentData.paymentMethod,
+										)
+									},
+									onPrev: () => {
+										SignupFlowUsageTestController.deletePing(SignupFlowStage.CREATE_ACCOUNT)
+									},
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},
 								{
 									title: "Order Confirmation",
 									content: UpgradeConfirmSubscriptionPageNew,
-									onNext: () => console.log("another next action"),
+									onNext: () => {
+										let referralConversion: ReferralType = "not_referred"
+										if (this.wizardViewModel.referralData && this.wizardViewModel.referralData.isCalledBySatisfactionDialog)
+											referralConversion = "satisfactiondialog_referral"
+										else if (this.wizardViewModel.referralData && !this.wizardViewModel.referralData.isCalledBySatisfactionDialog)
+											referralConversion = "organic_referral"
+										SignupFlowUsageTestController.completeStage(
+											SignupFlowStage.CONFIRM_PAYMENT,
+											this.wizardViewModel.targetPlanType,
+											this.wizardViewModel.options.paymentInterval(),
+											this.wizardViewModel.paymentData.paymentMethod,
+											referralConversion,
+										)
+
+										if (this.wizardViewModel.isCalledBySatisfactionDialog) {
+											completeUpgradeStage(this.wizardViewModel.currentPlan!, this.wizardViewModel.targetPlanType)
+										}
+									},
+									onPrev: () => SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD),
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},
 								{

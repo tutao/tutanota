@@ -1,14 +1,12 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
-import type { WizardPageAttrs } from "../gui/base/WizardDialog.js"
 import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
@@ -21,8 +19,6 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
-import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
 import { px } from "../gui/size"
@@ -223,11 +219,8 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
-			.then(() => {
-				// Order confirmation (click on Buy), send selected payment method as an enum
-
-				return this.close(ctx)
-			})
+			// Order confirmation (click on Buy), send selected payment method as an enum
+			.then(() => ctx.controller.next())
 			.catch(
 				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
@@ -326,63 +319,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		return "price_label"
 	}
 
-	private close(ctx: WizardStepContext<SignupViewModel>) {
-		ctx.controller.next()
-	}
-}
-
-// fixme: migrate usage test calls
-export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
-	data: UpgradeSubscriptionData
-	_enabled: () => boolean = () => true
-
-	constructor(upgradeData: UpgradeSubscriptionData) {
-		this.data = upgradeData
-	}
-
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		let referralConversion: ReferralType = "not_referred"
-		if (this.data.referralData && this.data.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
-		else if (this.data.referralData && !this.data.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
-		SignupFlowUsageTestController.completeStage(
-			SignupFlowStage.CONFIRM_PAYMENT,
-			this.data.targetPlanType,
-			this.data.options.paymentInterval(),
-			this.data.paymentData.paymentMethod,
-			referralConversion,
-		)
-
-		if (this.data.isCalledBySatisfactionDialog) {
-			completeUpgradeStage(this.data.currentPlan!, this.data.targetPlanType)
-		}
-
-		return Promise.resolve(true)
-	}
-
-	prevAction(showErrorDialog: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD)
-		return Promise.resolve(true)
-	}
-
-	headerTitle(): TranslationKey {
-		return "adminPayment_action"
-	}
-
-	isSkipAvailable(): boolean {
-		return false
-	}
-
-	isEnabled(): boolean {
-		return this._enabled()
-	}
-
-	/**
-	 * Set the enabled function for isEnabled
-	 * @param enabled
-	 */
-	setEnabledFunction<T>(enabled: () => boolean) {
-		this._enabled = enabled
-	}
+	private close(ctx: WizardStepContext<SignupViewModel>) {}
 }
 
 function buildPriceString(price: string, options: SelectedSubscriptionOptions): string {
