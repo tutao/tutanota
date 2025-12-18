@@ -793,6 +793,7 @@ export default {
 		"inboxRuleBCCRecipientEquals_action": "Viestin piilokopio",
 		"inboxRuleCCRecipientEquals_action": "Viestin kopio",
 		"inboxRuleEnterValue_msg": "Anna arvo.",
+		"inboxRuleExcludedFromSpamFilter_msg": "Älä koskaan merkitse roskapostiksi",
 		"inboxRuleField_label": "Kenttä",
 		"inboxRuleInvalidEmailAddress_msg": "Sähköpostiosoite tai verkkotunnus ei ole oikein.",
 		"inboxRuleMailHeaderContains_action": "Otsakkeet sisältävät",
