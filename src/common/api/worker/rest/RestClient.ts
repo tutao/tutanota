@@ -12,6 +12,7 @@ const TAG = "[RestClient]"
 
 // visibleForTesting
 export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
+const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 
 interface ProgressListener {
 	upload(percent: number): void
@@ -109,7 +110,8 @@ export class RestClient {
 				}
 
 				const t = abortAfterTimeout()
-				let timeout = setTimeout(t.abortFunction, env.timeout)
+				const isBlobRequest = options.body instanceof Uint8Array
+				let timeout = setTimeout(t.abortFunction, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : env.timeout)
 				t.timeoutId = timeout
 
 				if (verbose) {
