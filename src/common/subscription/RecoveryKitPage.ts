@@ -1,9 +1,8 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { DisplayMode } from "../login/LoginViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
 import { px } from "../gui/size"
@@ -17,9 +16,9 @@ import { Checkbox } from "../gui/base/Checkbox"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 
-// fixme: rename component
-export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
+export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private acceptedWarning: boolean = false
 
 	private saveRecoveryCodeAsPdf(recoveryCode: string, email: string) {
@@ -29,12 +28,12 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 		)
 	}
 
-	oncreate({ attrs }: Vnode<WizardStepContext<SignupViewModel>>) {
-		attrs.lockAllPreviousSteps()
+	oncreate({ attrs }: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
+		attrs.ctx.lockAllPreviousSteps()
 	}
 
-	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		const { newAccountData } = attrs.viewModel
+	view({ attrs }: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
+		const { newAccountData } = attrs.ctx.viewModel
 		assertNotNull(newAccountData)
 
 		// fixme: remove before release
@@ -123,7 +122,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 							width: "flex",
 							label: "recovery_kit_page_continue_label",
 							onclick: async () => {
-								await this.close(attrs.viewModel)
+								await this.close(attrs.ctx.viewModel)
 							},
 							disabled: !this.acceptedWarning,
 						}),

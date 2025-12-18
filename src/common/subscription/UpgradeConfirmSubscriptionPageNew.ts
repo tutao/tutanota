@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
@@ -32,10 +32,11 @@ import { Icons } from "../gui/base/icons/Icons"
 import { IconButton } from "../gui/base/IconButton"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
+import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 
-export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepContext<SignupViewModel>> {
-	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		const data = attrs.viewModel
+export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
+	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
+		const data = ctx.viewModel
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
 		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
 
@@ -76,7 +77,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											attrs.controller.setStep(0)
+											ctx.controller.setStep(0)
 										},
 									})
 								},
@@ -96,7 +97,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											attrs.controller.setStep(2)
+											ctx.controller.setStep(2)
 										},
 									})
 								},
@@ -116,7 +117,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 											icon: Icons.Edit,
 											title: "edit_action",
 											click: () => {
-												attrs.controller.setStep(2)
+												ctx.controller.setStep(2)
 											},
 										})
 									},
@@ -136,7 +137,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											attrs.controller.setStep(0)
+											ctx.controller.setStep(0)
 										},
 									})
 								},
@@ -157,7 +158,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 											},
 										}),
 									m(LoginTextField, {
-										label: this.buildPriceLabel(isYearly, attrs),
+										label: this.buildPriceLabel(isYearly, ctx),
 										value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
 										isReadOnly: true,
 										class: "",
@@ -176,7 +177,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 							size: "md",
 							label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
 							class: "small-login-button",
-							onclick: () => this.upgrade(attrs),
+							onclick: () => this.upgrade(ctx),
 						}),
 					),
 					m(
@@ -239,7 +240,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 				}),
 			)
 			.catch(
-				ofClass(BadGatewayError, (e) => {
+				ofClass(BadGatewayError, () => {
 					Dialog.message(
 						lang.makeTranslation(
 							"payment_failed",

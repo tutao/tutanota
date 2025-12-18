@@ -28,13 +28,13 @@ import { PowSolution } from "../api/common/pow-worker"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
 import { InvoiceAndPaymentDataPageNew } from "./InvoiceAndPaymentDataPageNew"
-import { SignupOrderConfirmationPage } from "./SignupOrderConfirmationPage"
-import { SignupRecoveryKitPage } from "./SignupRecoveryKitPage"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
 import { theme } from "../gui/theme"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { Country } from "../api/common/CountryList"
+import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
+import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
 
 assertMainOrNode()
 
@@ -253,13 +253,13 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 								},
 								{
 									title: "Order Confirmation",
-									content: SignupOrderConfirmationPage,
+									content: UpgradeConfirmSubscriptionPageNew,
 									onNext: () => console.log("another next action"),
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},
 								{
 									title: "Recovery Kit",
-									content: SignupRecoveryKitPage,
+									content: RecoveryKitPage,
 									onNext: () => console.log("another next action"),
 								},
 							],
