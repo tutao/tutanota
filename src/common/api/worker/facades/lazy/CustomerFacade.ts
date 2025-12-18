@@ -439,7 +439,7 @@ export class CustomerFacade {
 		const pdfFile = await pdfGenerator.generate()
 		return {
 			_type: "DataFile",
-			name: "MyCoolRecoveryCode.pdf",
+			name: `Recovery Kit ${email}.pdf`,
 			mimeType: "application/pdf",
 			data: pdfFile,
 			size: pdfFile.byteLength,

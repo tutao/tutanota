@@ -112,7 +112,18 @@ export class PdfRecoveryDocumentGenerator {
 		this.doc.addText("account, because it is so safe. Also this text should explain how to use this kit.", [pxToMm(112), pxToMm(457.62)])
 
 		this.doc.addImage(PDF_IMAGES.EDIT_ICON, [pxToMm(114), pxToMm(597.25)], [pxToMm(21.33), pxToMm(21.33)])
-		this.doc.addImage(PDF_IMAGES.CLOUD_ICON, [pxToMm(338), pxToMm(597.25)], [pxToMm(21.33), pxToMm(21.33)])
+		this.doc.addImage(PDF_IMAGES.CLOUD_ICON, [pxToMm(337.96), pxToMm(597.25)], [pxToMm(21.33), pxToMm(21.33)])
+
+		this.doc.changeFont(PDF_FONTS.REGULAR, 9.71)
+		this.doc.addText("Write down or print copy of", [pxToMm(160.58), pxToMm(597.25)])
+		this.doc.addText("RC, store it in a safe or where", [pxToMm(160.58), pxToMm(610.25)])
+		this.doc.addText("you're important documents", [pxToMm(160.58), pxToMm(623.25)])
+		this.doc.addText("are, making this text this long", [pxToMm(160.58), pxToMm(636.25)])
+
+		this.doc.addText("Digital: encrypted password", [pxToMm(383.17), pxToMm(597.25)])
+		this.doc.addText("manager or cloud storage, not", [pxToMm(383.17), pxToMm(610.25)])
+		this.doc.addText("Tuta Drive because would lock", [pxToMm(383.17), pxToMm(623.25)])
+		this.doc.addText("if access to the account is lost", [pxToMm(383.17), pxToMm(636.25)])
 
 		this.doc.addQrSvg(qrCode.svg(), [pxToMm(168), pxToMm(306.12)])
 		console.log(this.doc.graphicsStream)

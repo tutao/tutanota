@@ -89,7 +89,9 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 						selectedOption: ctx.viewModel.paymentData.paymentMethod,
 						onOptionSelected: (method: PaymentMethodType | null) => {
 							if (method == null) {
-								// fixme: should actually not happen...
+								// Theoretically this can never happen. We fall back to Credit Card just in case
+								ctx.viewModel.paymentData.paymentMethod = PaymentMethodType.CreditCard
+								ctx.markComplete(false)
 								return
 							}
 							if (method !== ctx.viewModel.paymentData.paymentMethod) {
@@ -109,7 +111,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 						},
 
 						m("img.block.full-width", {
-							style: { "max-width": px(200), "margin-inline": "auto" },
+							style: { "max-width": px(400), "margin-inline": "auto" },
 							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
 							alt: "",
 							rel: "noreferrer",
@@ -168,6 +170,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 		const data = ctx.viewModel
 
 		const error =
+			// fixme: validate invoice data
 			// validateInvoiceData({
 			// 	address: invoiceDataInput.getAddress(),
 			// 	isBusiness: data.options.businessUse(),
@@ -305,6 +308,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 	}
 }
 
+// fixme: move to utils file
 export async function updatePaymentData(
 	paymentInterval: PaymentInterval,
 	invoiceData: InvoiceData,

@@ -190,7 +190,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 					m(
 						".flex-grow",
 						m("img.block.full-width", {
-							style: { "max-width": px(200), "margin-inline": "auto" },
+							style: { "max-width": px(400), "margin-inline": "auto" },
 							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
 							alt: "",
 							rel: "noreferrer",
@@ -330,6 +330,7 @@ export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepCo
 	}
 }
 
+// fixme: migrate usage test calls
 export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
 	_enabled: () => boolean = () => true

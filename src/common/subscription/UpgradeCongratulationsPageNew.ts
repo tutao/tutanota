@@ -16,7 +16,9 @@ import { showSnackBar } from "../gui/base/SnackBar"
 import { Checkbox } from "../gui/base/Checkbox"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
+// fixme: rename component
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	private acceptedWarning: boolean = false
 
@@ -32,16 +34,18 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 	}
 
 	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		// const { newAccountData } = attrs.viewModel
-		// assertNotNull(newAccountData)
-		let newAccountData
-		if (!newAccountData) {
-			newAccountData = {
-				recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
-				mailAddress: "placeholder@tuta.de",
-				password: "dfkjkdfjkdfjkjdf:w",
-			}
-		}
+		const { newAccountData } = attrs.viewModel
+		assertNotNull(newAccountData)
+
+		// fixme: remove before release
+		// let newAccountData
+		// if (!newAccountData) {
+		// 	newAccountData = {
+		// 		recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
+		// 		mailAddress: "placeholder@tuta.de",
+		// 		password: "dfkjkdfjkdfjkjdf:w",
+		// 	}
+		// }
 
 		return m(".flex.flex-column.full-width", [
 			styles.isMobileLayout() && m(".center.logo-height.mb-32", m.trust(getTutaLogo())),
@@ -125,7 +129,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 						}),
 					]),
 				]),
-				styles.isMobileLayout() &&
+				!styles.isMobileLayout() &&
 					m(
 						".flex-grow",
 						m("img.block.full-width", {
