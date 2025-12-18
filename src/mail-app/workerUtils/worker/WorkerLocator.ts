@@ -866,9 +866,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
-			mainInterface.progressTracker,
 			locator.crypto,
+			locator.cryptoWrapper,
 			mainInterface.uploadProgressListener,
+			dateProvider,
 		)
 	})
 }

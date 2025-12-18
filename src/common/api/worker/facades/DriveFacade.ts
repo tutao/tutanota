@@ -1,14 +1,12 @@
 import { KeyLoaderFacade } from "./KeyLoaderFacade"
 import { EntityClient, loadMultipleFromLists } from "../../common/EntityClient"
 import { IServiceExecutor } from "../../common/ServiceRequest"
-import { ArchiveDataType, CANCEL_UPLOAD_EVENT, GroupType } from "../../common/TutanotaConstants"
+import { ArchiveDataType, GroupType } from "../../common/TutanotaConstants"
 import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { VersionedKey } from "../crypto/CryptoWrapper"
+import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper"
 import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
-import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
-import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
 import {
 	createDriveCopyServicePostIn,
@@ -31,6 +29,9 @@ import {
 import { DriveCopyService, DriveFolderService, DriveService } from "../../entities/drive/Services"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { getListId, isSameId, listIdPart } from "../../common/utils/EntityUtils"
+import { BlobReferenceTokenWrapper } from "../../entities/sys/TypeRefs"
+import { getCleanedMimeType } from "../../common/DataFile"
+import { DateProvider } from "../../common/DateProvider"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -59,7 +60,7 @@ export interface DriveRootFolders {
 }
 
 export class DriveFacade {
-	private readonly onCancelListener: EventTarget
+	private readonly abortControllers: Map<UploadGuid, AbortController> = new Map()
 
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
@@ -67,12 +68,11 @@ export class DriveFacade {
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly progressTracker: ExposedProgressTracker,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly uploadProgressListener: UploadProgressListener,
-	) {
-		this.onCancelListener = new EventTarget()
-	}
+		private readonly dateProvider: DateProvider,
+	) {}
 
 	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
 		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
@@ -191,37 +191,47 @@ export class DriveFacade {
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
-	public async uploadFile(file: File, fileId: UploadGuid, to: IdTuple) {
+	public async uploadFile(file: File, fileId: UploadGuid, to: IdTuple): Promise<unknown> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
-		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
-		const blobRefTokens = await this.blobFacade.streamEncryptAndUpload(
-			ArchiveDataType.DriveFile,
-			file,
-			assertNotNull(fileGroupId),
-			sessionKey,
-			this.uploadProgressListener.onChunkUploaded,
-			fileId,
-			this.onCancelListener,
-		)
+		const abortController = new AbortController()
+		this.abortControllers.set(fileId, abortController)
+
+		let blobRefTokens: BlobReferenceTokenWrapper[]
+		try {
+			const uploadChunkGenerator = this.blobFacade.streamEncryptAndUpload(
+				ArchiveDataType.DriveFile,
+				file,
+				assertNotNull(fileGroupId),
+				sessionKey,
+				abortController.signal,
+			)
+
+			let step: IteratorResult<{ uploadedBytes: number; totalBytes: number }, BlobReferenceTokenWrapper[]>
+			while (!(step = await uploadChunkGenerator.next()).done) {
+				const chunk = step.value
+				this.uploadProgressListener.onChunkUploaded({ fileId, ...chunk })
+			}
+			blobRefTokens = step.value
+		} finally {
+			this.abortControllers.delete(fileGroupId)
+		}
 
 		if (blobRefTokens.length === 0) {
 			console.debug("No blob reference tokens, looks like this upload has been cancelled.")
 			return null
 		}
 
-		// FIXME: Do better
-		const createdDate = new Date()
-		const updatedDate = new Date()
+		const createdDate = new Date(this.dateProvider.now())
+		const updatedDate = new Date(this.dateProvider.now())
 
-		/* TODO: call convertToDataFile() again maybe to detect the mime type */
-		// FIXME: encryption should be automatic
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
 			fileName: file.name,
-			mimeType: file.type,
+			mimeType: getCleanedMimeType(file.type),
 			ownerEncSessionKey: ownerEncSessionKey,
 			_ownerGroup: assertNotNull(fileGroupId),
 			createdDate,
@@ -230,12 +240,11 @@ export class DriveFacade {
 		const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
 		const response = await this.serviceExecutor.post(DriveService, data, { sessionKey })
 
-		const createdFile = this.entityClient.load(DriveFileTypeRef, response.createdFile)
-		return createdFile
+		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
 	}
 
 	public async cancelCurrentUpload(fileId: UploadGuid) {
-		this.onCancelListener.dispatchEvent(new CustomEvent(CANCEL_UPLOAD_EVENT, { detail: fileId }))
+		this.abortControllers.get(fileId)?.abort()
 	}
 
 	/**
@@ -246,7 +255,7 @@ export class DriveFacade {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
-		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
 		const newFolder = createDriveFolderServicePostIn({
 			createdDate: new Date(),
@@ -264,8 +273,8 @@ export class DriveFacade {
 
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
-			const encNewDate = locator.cryptoWrapper.encryptString(sk, date.getTime().toString())
-			const encNewName = locator.cryptoWrapper.encryptString(sk, file.name)
+			const encNewDate = this.cryptoWrapper.encryptString(sk, date.getTime().toString())
+			const encNewName = this.cryptoWrapper.encryptString(sk, file.name)
 			return createDriveRenameData({
 				file: file._id,
 				folder: null,
@@ -275,8 +284,8 @@ export class DriveFacade {
 		})
 		const folderItems = await promiseMap(folders, async (folder) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))
-			const encNewDate = locator.cryptoWrapper.encryptString(sk, date.getTime().toString())
-			const encNewName = locator.cryptoWrapper.encryptString(sk, folder.name)
+			const encNewDate = this.cryptoWrapper.encryptString(sk, date.getTime().toString())
+			const encNewName = this.cryptoWrapper.encryptString(sk, folder.name)
 			return createDriveRenameData({
 				file: null,
 				folder: folder._id,

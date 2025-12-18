@@ -5,7 +5,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, debounceStart, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -21,6 +21,7 @@ import Stream from "mithril/stream"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
+import { CancelledError } from "../../../common/api/common/error/CancelledError"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -438,7 +439,11 @@ export class DriveViewModel {
 			const fileId = this.generateUploadGuid()
 			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
 
-			this.driveFacade.uploadFile(file, fileId, targetFolderId)
+			this.driveFacade.uploadFile(file, fileId, targetFolderId).catch(
+				ofClass(CancelledError, (e) => {
+					console.log("Upload canceled", fileId)
+				}),
+			)
 		}
 	}
 
