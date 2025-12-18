@@ -13,6 +13,7 @@ import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
 import { layout_size } from "./size"
 import { Icons } from "./base/icons/Icons"
+import { isDriveEnabled } from "../api/common/drive/DriveUtils"
 
 assertMainOrNode()
 
@@ -86,7 +87,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						click: () => m.route.get().startsWith(CALENDAR_PREFIX),
 					})
 				: null,
-			locator.logins.isInternalUserLoggedIn() && locator.logins.isEnabled(FeatureType.DriveInternalBeta)
+			isDriveEnabled(locator.logins)
 				? m(NavButton, {
 						label: "driveView_action",
 						icon: () => Icons.Drive,

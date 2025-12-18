@@ -5,6 +5,7 @@ import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, LogoutUrl, MAIL_PREFIX,
 import { showQuickActionBar } from "./quickactions/QuickActionBar"
 import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
+import { isDriveEnabled } from "../api/common/drive/DriveUtils"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
 	keyManager.registerShortcuts([
@@ -29,7 +30,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 
 		{
 			key: Keys.P,
-			enabled: () => logins.isInternalUserLoggedIn() && logins.isEnabled(FeatureType.DriveInternalBeta),
+			enabled: () => isDriveEnabled(logins),
 			exec: () => m.route.set(DRIVE_PREFIX),
 			help: "driveView_action",
 		},
