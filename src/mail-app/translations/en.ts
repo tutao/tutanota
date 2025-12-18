@@ -2148,5 +2148,6 @@ export default {
 		"termsAndConditionsLink_label": "Terms and Conditions",
 		"passwordValid_msg": "Great!",
 		"confirmAndPay_action": "Confirm and Pay",
+		"businessUse_action": "Business use",
 	}
 }

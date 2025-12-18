@@ -19,7 +19,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
 		const ctx = vnode.attrs.ctx
 		const data = ctx.viewModel
-		const { planPrices, acceptedPlans, newAccountData, targetPlanType, accountingInfo } = data
+		const { planPrices, acceptedPlans, accountingInfo } = data
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowApplePrices(accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
@@ -36,6 +36,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 			[PlanType.Revolutionary]: getAsLazy(button),
 			[PlanType.Legend]: getAsLazy(button),
 		}
+		const isBusiness = ctx.viewModel.options.businessUse()
 
 		return m(
 			".full-width",
@@ -67,6 +68,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 						".flex.gap-64.full-width",
 						m(
 							".flex-grow",
+							// FIXME: consider having transition private <-> business switching
 							m(PlanSelector, {
 								options: data.options!,
 								actionButtons: actionButtons,
@@ -89,9 +91,11 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 										ctx.goNext()
 									}
 								},
+								showBusinessToggle: true,
 							} satisfies PlanSelectorAttr),
 						),
 						!styles.isMobileLayout() &&
+							!isBusiness &&
 							m(
 								".flex-grow",
 								m("img.block.full-width", {

@@ -2131,5 +2131,6 @@ export default {
 		"paymentDataPayPalConnected_msg": "Connected Account",
 		"paymentDataPayPalChangeAccount_msg": "If you would like to change the account you are connected to, please click on the PayPal button to be redirected to the PayPal website. You can then confirm your order.",
 		"confirmAndPay_action": "Confirm and Pay",
+		"businessUse_action": "Business use",
 	}
 }

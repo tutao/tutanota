@@ -5,7 +5,7 @@ import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
 import { component_size, px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { LoginButton, LoginButtonAttrs, TertiaryButton, TertiaryButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
@@ -31,6 +31,7 @@ export type PlanSelectorAttr = {
 	discountDetails?: DiscountDetails
 	targetPlan: PlanType
 	onContinue?: any
+	showBusinessToggle?: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -63,6 +64,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			showMultiUser,
 			discountDetails,
 			onContinue,
+			showBusinessToggle = false,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
@@ -95,15 +97,30 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const renderActionButton = (onContinue: any): Children => {
 			let temp = (event: any, dom: any) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom)
+			let isBusiness = options.businessUse()
 			if (onContinue) {
 				temp = () => onContinue(this.selectedPlan())
 			}
-			return m(LoginButton, {
-				// The label text for go european campaign shall not be translated.
-				label: "continue_action",
-				width: "full",
-				onclick: temp,
-			})
+			return m(
+				".flex.col.gap-8.full-width",
+				{
+					style: {
+						"max-width": px(400), // FIXME: this is not thoroughly tested in all device widths
+						"margin-inline": "auto",
+					},
+				},
+				m(LoginButton, {
+					// The label text for go european campaign shall not be translated.
+					label: "continue_action",
+					width: "full",
+					onclick: temp,
+				}),
+				showBusinessToggle &&
+					m(TertiaryButton, {
+						label: isBusiness ? "privateUse_action" : "businessUse_action",
+						onclick: () => options.businessUse(!isBusiness),
+					} satisfies TertiaryButtonAttrs),
+			)
 		}
 
 		const renderPaymentIntervalSwitch = () => {
