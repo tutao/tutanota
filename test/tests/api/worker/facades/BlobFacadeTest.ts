@@ -10,7 +10,7 @@ import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
-import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, noOp, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/common/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
@@ -77,6 +77,7 @@ o.spec("BlobFacade", function () {
 			instancePipelineMock,
 			cryptoFacadeMock,
 			blobAccessTokenFacade,
+			object(),
 		)
 		previousNetworkDebugging = env.networkDebugging
 	})
@@ -99,6 +100,7 @@ o.spec("BlobFacade", function () {
 				realInstancePipeline,
 				cryptoFacadeMock,
 				blobAccessTokenFacade,
+				object(),
 			)
 
 			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
@@ -370,7 +372,7 @@ o.spec("BlobFacade", function () {
 			const size = 3
 
 			when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
-			when(fileAppMock.download(anything(), anything(), anything())).thenResolve({
+			when(fileAppMock.download(anything(), anything(), anything(), anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
 			})
@@ -396,10 +398,15 @@ o.spec("BlobFacade", function () {
 			}
 			o(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
-				fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobs[0].blobId + ".blob", {
-					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
-					cv: env.versionNumber,
-				}),
+				fileAppMock.download(
+					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					blobs[0].blobId + ".blob",
+					{
+						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						cv: env.versionNumber,
+					},
+					anything(),
+				),
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
@@ -440,11 +447,11 @@ o.spec("BlobFacade", function () {
 			const size = 3
 
 			when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
-			when(fileAppMock.download(anything(), blobId1 + ".blob", anything())).thenResolve({
+			when(fileAppMock.download(anything(), blobId1 + ".blob", anything(), anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
 			})
-			when(fileAppMock.download(anything(), blobId2 + ".blob", anything())).thenResolve({
+			when(fileAppMock.download(anything(), blobId2 + ".blob", anything(), anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri: encryptedFileUri2,
 			})
@@ -472,16 +479,26 @@ o.spec("BlobFacade", function () {
 			}
 			o(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
-				fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobId1 + ".blob", {
-					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
-					cv: env.versionNumber,
-				}),
+				fileAppMock.download(
+					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					blobId1 + ".blob",
+					{
+						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						cv: env.versionNumber,
+					},
+					anything(),
+				),
 			)
 			verify(
-				fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobId2 + ".blob", {
-					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
-					cv: env.versionNumber,
-				}),
+				fileAppMock.download(
+					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					blobId2 + ".blob",
+					{
+						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						cv: env.versionNumber,
+					},
+					anything(),
+				),
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
@@ -506,11 +523,11 @@ o.spec("BlobFacade", function () {
 			const size = 3
 
 			when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
-			when(fileAppMock.download(anything(), blobs[0].blobId + ".blob", anything())).thenResolve({
+			when(fileAppMock.download(anything(), blobs[0].blobId + ".blob", anything(), anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
 			})
-			when(fileAppMock.download(anything(), blobs[1].blobId + ".blob", anything())).thenReject(new ProgrammingError("test download error"))
+			when(fileAppMock.download(anything(), blobs[1].blobId + ".blob", anything(), anything())).thenReject(new ProgrammingError("test download error"))
 			when(aesAppMock.aesDecryptFile(sessionKey, encryptedFileUri)).thenResolve(decryptedChunkUri)
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)

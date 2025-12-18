@@ -131,6 +131,11 @@
 				}
 			],
 			"ret": "void"
+		},
+		"downloadProgress": {
+			"doc": "Download has progressed",
+			"arg": [{ "fileId": "string" }, { "bytes": "number" }],
+			"ret": "void"
 		}
 	}
 }

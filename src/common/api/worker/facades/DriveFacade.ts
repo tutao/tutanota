@@ -7,7 +7,6 @@ import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper"
 import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
-import { UploadProgressListener } from "../../main/UploadProgressListener"
 import {
 	createDriveCopyServicePostIn,
 	createDriveCreateData,
@@ -32,13 +31,13 @@ import { getListId, isSameId, listIdPart } from "../../common/utils/EntityUtils"
 import { BlobReferenceTokenWrapper } from "../../entities/sys/TypeRefs"
 import { getCleanedMimeType } from "../../common/DataFile"
 import { DateProvider } from "../../common/DateProvider"
+import { UploadProgressController } from "../../main/UploadProgressController"
+import { UploadId } from "../../common/drive/DriveTypes"
 
 export interface BreadcrumbEntry {
 	folderName: string
 	folder: IdTuple
 }
-
-export type UploadGuid = string
 
 export type DriveCryptoInfo = {
 	fileGroupId: string
@@ -60,7 +59,8 @@ export interface DriveRootFolders {
 }
 
 export class DriveFacade {
-	private readonly abortControllers: Map<UploadGuid, AbortController> = new Map()
+	private readonly abortControllers: Map<UploadId, AbortController> = new Map()
+	private latestUploadId: number = 0
 
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
@@ -70,7 +70,7 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
-		private readonly uploadProgressListener: UploadProgressListener,
+		private readonly uploadProgressListener: UploadProgressController,
 		private readonly dateProvider: DateProvider,
 	) {}
 
@@ -191,7 +191,7 @@ export class DriveFacade {
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
-	public async uploadFile(file: File, fileId: UploadGuid, to: IdTuple): Promise<unknown> {
+	public async uploadFile(file: File, fileId: UploadId, to: IdTuple): Promise<unknown> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
@@ -217,7 +217,7 @@ export class DriveFacade {
 			}
 			blobRefTokens = step.value
 		} finally {
-			this.abortControllers.delete(fileGroupId)
+			this.abortControllers.delete(fileId)
 		}
 
 		if (blobRefTokens.length === 0) {
@@ -243,7 +243,7 @@ export class DriveFacade {
 		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
 	}
 
-	public async cancelCurrentUpload(fileId: UploadGuid) {
+	public async cancelCurrentUpload(fileId: UploadId) {
 		this.abortControllers.get(fileId)?.abort()
 	}
 
@@ -296,5 +296,9 @@ export class DriveFacade {
 			destination: destination._id,
 		})
 		await this.serviceExecutor.post(DriveCopyService, copyData)
+	}
+
+	async generateUploadId(): Promise<UploadId> {
+		return String(this.latestUploadId++) as UploadId
 	}
 }

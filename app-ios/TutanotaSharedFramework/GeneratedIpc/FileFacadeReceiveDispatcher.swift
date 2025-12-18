@@ -84,10 +84,12 @@ public class FileFacadeReceiveDispatcher {
 			let sourceUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let filename = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let headers = try! JSONDecoder().decode([String : String].self, from: arg[2].data(using: .utf8)!)
+			let fileId = try! JSONDecoder().decode(String.self, from: arg[3].data(using: .utf8)!)
 			let result = try await self.facade.download(
 				sourceUrl,
 				filename,
-				headers
+				headers,
+				fileId
 			)
 			return toJson(result)
 		case "hashFile":

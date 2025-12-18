@@ -84,12 +84,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.driveViewModel = vnode.attrs.driveViewModel
-
-		this.driveViewModel.uploadProgressListener.addListener(async (info: ChunkedUploadInfo) => {
-			this.driveViewModel.driveUploadStackModel.onChunkUploaded(info.fileId, info.uploadedBytes)
-			m.redraw()
-			return Promise.resolve()
-		})
+		this.driveViewModel.init()
 
 		this.shortcuts = [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel),

@@ -115,8 +115,8 @@ export class NativeFileApp {
 	 * Downloads the binary data of a file from tutadb and stores it in the internal memory.
 	 * @returns Resolves to the URI of the downloaded file
 	 */
-	download(sourceUrl: FileUri, filename: string, headers: Dict): Promise<DownloadTaskResponse> {
-		return this.fileFacade.download(sourceUrl, filename, headers)
+	download(sourceUrl: FileUri, filename: string, headers: Dict, fileId: Id): Promise<DownloadTaskResponse> {
+		return this.fileFacade.download(sourceUrl, filename, headers, fileId)
 	}
 
 	/**
