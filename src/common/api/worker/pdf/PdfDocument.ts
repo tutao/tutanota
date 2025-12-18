@@ -276,6 +276,27 @@ export class PdfDocument {
 		return this
 	}
 
+	addTextCenterAlignAutoScaled(text: string, position: [centerX: number, y: number], maxWidthMM: number) {
+		const oldFontSize = this.currentFontSize
+		if (text === "") return this
+		const unicodePoints = toUnicodePoint(text)
+		const textWidthMM = pspointToMM(getWordLengthInPoints(unicodePoints, this.currentFont, this.currentFontSize))
+
+		if (textWidthMM > maxWidthMM) {
+			const scalingFactor = maxWidthMM / textWidthMM
+			const newFontSize = this.currentFontSize * scalingFactor
+			this.changeFont(this.currentFont, newFontSize)
+		}
+		const textWidthPts = getWordLengthInPoints(unicodePoints, this.currentFont, this.currentFontSize)
+		const xPts = mmToPSPoint(position[0]) - textWidthPts / 2
+		const yPts = mmToPSPoint(position[1]) + this.currentFontSize
+
+		this.textStream += `1 0 0 -1 ${xPts} ${yPts} Tm <${unicodePoints.join("")}> Tj `
+		this.changeFont(this.currentFont, oldFontSize)
+
+		return this
+	}
+
 	/**
 	 * Add a linebreak in the text
 	 */
@@ -584,4 +605,8 @@ export function getWordLengthInPoints(codePoints: string[], font: PDF_FONTS, fon
  */
 function mmToPSPoint(mm: number) {
 	return mm * 2.834645688
+}
+
+function pspointToMM(pspoint: number) {
+	return pspoint / 2.834645688
 }

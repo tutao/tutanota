@@ -53,7 +53,7 @@ export class PdfRecoveryDocumentGenerator {
 		this.doc.addText(`created on ${formatSortableDate(new Date())}`, [pxToMm(90), pxToMm(105)])
 		this.doc.changeFont(PDF_FONTS.BOLD, 20)
 		this.doc.changeTextGrayscale(0)
-		this.doc.addTextCenterAlign(`${this.emailAddress}`, [pxToMm(323), pxToMm(230)])
+		this.doc.addTextCenterAlignAutoScaled(`${this.emailAddress}`, [pxToMm(323), pxToMm(230)], pxToMm(422))
 
 		this.doc.changeFont(PDF_FONTS.MONO_BOLD, 12)
 		this.doc.changeTextGrayscale(0)
