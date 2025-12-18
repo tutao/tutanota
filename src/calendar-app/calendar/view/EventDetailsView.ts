@@ -75,7 +75,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	}
 
 	private renderDuplicateButton(): Children {
-		if (this.model == null || styles.isSingleColumnLayout()) return null
+		if (this.model == null || !this.model.canEdit || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "duplicateEvent_label",
 			click: () => handleEventDuplicate(this.model!),
