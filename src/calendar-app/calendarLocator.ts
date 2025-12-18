@@ -120,7 +120,7 @@ import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
-import { UploadProgressListener } from "../common/api/main/UploadProgressListener"
+import { UploadProgressController } from "../common/api/main/UploadProgressController"
 
 assertMainOrNode()
 
@@ -180,7 +180,7 @@ class CalendarLocator implements CommonLocator {
 	identityKeyCreator!: IdentityKeyCreator
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
-	uploadProgressListener!: UploadProgressListener
+	uploadProgressListener!: UploadProgressController
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -772,8 +772,8 @@ class CalendarLocator implements CommonLocator {
 
 		this.fileController =
 			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, guiDownload)
-				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
+				? new FileControllerBrowser(blobFacade, guiDownload, this.uploadProgressListener)
+				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp, this.uploadProgressListener)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, null)

@@ -1,4 +1,5 @@
-import { DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { UploadId } from "../../../common/api/common/drive/DriveTypes"
 
 export interface DriveUploadState {
 	filename: string
@@ -8,7 +9,7 @@ export interface DriveUploadState {
 	totalSize: number // bytes
 }
 
-type FileId = UploadGuid
+type FileId = UploadId
 
 export class DriveUploadStackModel {
 	private _state: Map<FileId, DriveUploadState> = new Map()

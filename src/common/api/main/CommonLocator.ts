@@ -78,7 +78,7 @@ import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyPr
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 import { LoginViewModel } from "../../login/LoginViewModel"
 import { DriveFacade } from "../worker/facades/DriveFacade.js"
-import { UploadProgressListener } from "./UploadProgressListener"
+import { UploadProgressController } from "./UploadProgressController"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -142,7 +142,7 @@ export interface CommonLocator {
 	usageTestModel: UsageTestModel
 	webMobileFacade: WebMobileFacade
 	operationProgressTracker: OperationProgressTracker
-	uploadProgressListener: UploadProgressListener
+	uploadProgressListener: UploadProgressController
 	Const: Record<string, any>
 
 	domainConfigProvider(): DomainConfigProvider

@@ -16,7 +16,7 @@ export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 interface ProgressListener {
 	upload(percent: number): void
 
-	download(percent: number): void
+	download(percent: number, bytes: number): void
 }
 
 export const enum SuspensionBehavior {
@@ -247,7 +247,7 @@ export class RestClient {
 
 					if (options.progressListener != null && pe.lengthComputable) {
 						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-						options.progressListener.download((1 / pe.total) * pe.loaded)
+						options.progressListener.download((1 / pe.total) * pe.loaded, pe.loaded)
 					}
 				}
 

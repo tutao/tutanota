@@ -1,7 +1,7 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataFile"
 import { assertMainOrNode, isApp } from "../api/common/Env"
-import { assertNotNull, neverNull, newPromise, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
 import { client } from "../misc/ClientDetector.js"
@@ -20,6 +20,9 @@ import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { createReferencingInstance, DownloadableFileEntity } from "../api/common/utils/BlobUtils.js"
+import { ChunkedDownloadInfo } from "../api/common/drive/DriveTypes"
+import { getElementId } from "../api/common/utils/EntityUtils"
+import { UploadProgressController } from "../api/main/UploadProgressController"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -48,6 +51,7 @@ export type ProgressObserver = (somePromise: Promise<void>, progress?: Stream<nu
 export abstract class FileController {
 	protected constructor(
 		protected readonly blobFacade: BlobFacade,
+		protected readonly loadController: UploadProgressController,
 		protected readonly observeProgress: ProgressObserver,
 	) {}
 
@@ -66,15 +70,21 @@ export abstract class FileController {
 		const downloadedFiles: Array<FileReference | DataFile> = []
 		try {
 			let isOffline = false
+			const totalSize = tutanotaFiles.reduce((acc, file) => acc + filterInt(file.size), 0)
+			let downloadFilesBytes = 0
 			for (const file of tutanotaFiles) {
+				const listener = (info: ChunkedDownloadInfo) => {
+					if (info.fileId === getElementId(file)) {
+						progress?.(((downloadFilesBytes + info.downloadedBytes) / totalSize) * 100)
+					}
+				}
 				try {
+					this.loadController.addDownloadListener(listener)
 					const downloadedFile = await this.downloadAndDecrypt(file, archiveType)
 					downloadedFiles.push(downloadedFile)
-					if (progress != null) {
-						progress(((tutanotaFiles.indexOf(file) + 1) / tutanotaFiles.length) * 100)
-					}
+					downloadFilesBytes += filterInt(file.size)
 				} catch (e) {
-					await handleDownloadErrors(e, (msg) => {
+					handleDownloadErrors(e, (msg) => {
 						if (msg === "couldNotAttachFile_msg") {
 							isOffline = true
 						} else {
@@ -82,6 +92,8 @@ export abstract class FileController {
 						}
 					})
 					if (isOffline) break // don't try to download more files, but the previous ones (if any) will still be downloaded
+				} finally {
+					this.loadController.removeDownloadListener(listener)
 				}
 			}
 			if (downloadedFiles.length > 0) {
@@ -117,8 +129,9 @@ export abstract class FileController {
 	/**
 	 * Download a file from the server to the filesystem
 	 */
-	async download(file: DownloadableFileEntity) {
-		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Write))
+	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
+		const progress = stream(0)
+		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Write, { progress, archiveType }), progress)
 	}
 
 	/**
@@ -136,7 +149,8 @@ export abstract class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
-		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open, { archiveType }))
+		const progress = stream(0)
+		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open, { progress, archiveType }), progress)
 	}
 
 	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>

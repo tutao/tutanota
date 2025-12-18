@@ -1,12 +1,11 @@
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
-import { BreadcrumbEntry, DriveFacade, DriveRootFolders, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
+import { BreadcrumbEntry, DriveFacade, DriveRootFolders } from "../../../common/api/worker/facades/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, debounceStart, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
-import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
+import { assertNotNull, debounceStart, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -22,6 +21,8 @@ import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/Us
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
+import { UploadProgressController } from "../../../common/api/main/UploadProgressController"
+import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -169,7 +170,7 @@ export class DriveViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly driveFacade: DriveFacade,
 		private readonly router: Router,
-		public readonly uploadProgressListener: UploadProgressListener,
+		public readonly uploadProgressListener: UploadProgressController,
 		private readonly eventController: EventController,
 		private readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
@@ -179,13 +180,19 @@ export class DriveViewModel {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 	}
 
-	async initialize() {
+	readonly init = lazyMemoized(async () => {
 		this.eventController.addEntityListener(async (events) => {
 			await this.entityEventsReceived(events)
 		})
 		this.roots = await this.driveFacade.loadRootFolders()
+
+		this.uploadProgressListener.addUploadListener((info: ChunkedUploadInfo) => {
+			this.driveUploadStackModel.onChunkUploaded(info.fileId, info.uploadedBytes)
+			this.updateUi()
+		})
+
 		this.refreshStorage()
-	}
+	})
 
 	isDriveEnabledForCustomer(): boolean {
 		return isDriveEnabled(this.loginController)
@@ -351,24 +358,6 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
-	async loadSpecialFolder(specialFolderType: SpecialFolderType) {
-		let folder: DriveFolder
-		switch (specialFolderType) {
-			case DriveFolderType.Trash:
-				folder = await this.entityClient.load(DriveFolderTypeRef, this.roots.trash)
-				break
-			case DriveFolderType.Root:
-				folder = await this.entityClient.load(DriveFolderTypeRef, this.roots.root)
-				break
-		}
-
-		this.currentFolder = {
-			folder: folder,
-			type: specialFolderType,
-		}
-		await this.loadParents(folder)
-	}
-
 	private async loadParents(folder: DriveFolder) {
 		if (folder.parent != null) {
 			const directParent = await this.entityClient.load(DriveFolderTypeRef, folder.parent)
@@ -416,11 +405,6 @@ export class DriveViewModel {
 		return items
 	}
 
-	public generateUploadGuid(): UploadGuid {
-		// FIXME: not always available
-		return crypto.randomUUID()
-	}
-
 	openActiveItem() {
 		const activeItem = this.listModel.getActiveItem()
 		if (activeItem != null) {
@@ -436,7 +420,7 @@ export class DriveViewModel {
 		const targetFolderId: IdTuple =
 			this.currentFolder == null || this.currentFolder.type === DriveFolderType.Trash ? this.roots?.root : this.currentFolder.folder._id
 		for (const file of files) {
-			const fileId = this.generateUploadGuid()
+			const fileId = await this.driveFacade.generateUploadId()
 			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
 
 			this.driveFacade.uploadFile(file, fileId, targetFolderId).catch(

@@ -160,7 +160,7 @@ import { ProcessInboxHandler } from "./mail/model/ProcessInboxHandler"
 import type { QuickActionsModel } from "../common/misc/quickactions/QuickActionsModel"
 import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
-import { UploadProgressListener } from "../common/api/main/UploadProgressListener"
+import { UploadProgressController } from "../common/api/main/UploadProgressController"
 
 assertMainOrNode()
 
@@ -231,7 +231,7 @@ class MailLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
-	uploadProgressListener!: UploadProgressListener
+	uploadProgressListener!: UploadProgressController
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -1017,10 +1017,12 @@ class MailLocator implements CommonLocator {
 			}
 		})
 
+		this.uploadProgressListener = new UploadProgressController()
+
 		this.fileController =
 			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, guiDownload)
-				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
+				? new FileControllerBrowser(blobFacade, guiDownload, this.uploadProgressListener)
+				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp, this.uploadProgressListener)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, this.contactSearchFacade)
@@ -1056,8 +1058,6 @@ class MailLocator implements CommonLocator {
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => mailLocator.themeController.reloadTheme())
 		}
-
-		this.uploadProgressListener = new UploadProgressListener()
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
@@ -1315,7 +1315,7 @@ class MailLocator implements CommonLocator {
 			this.userManagementFacade,
 			redraw,
 		)
-		await model.initialize()
+		await model.init()
 
 		return model
 	})

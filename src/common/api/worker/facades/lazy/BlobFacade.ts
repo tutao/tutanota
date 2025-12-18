@@ -5,6 +5,7 @@ import {
 	assertNotNull,
 	base64ToBase64Ext,
 	concat,
+	filterInt,
 	getFirstOrThrow,
 	groupBy,
 	isEmpty,
@@ -38,9 +39,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { ChunkedUploadInfo } from "../../../common/drive/DriveTypes"
-import { UploadGuid } from "../DriveFacade"
+import { ChunkedUploadInfo, UploadId } from "../../../common/drive/DriveTypes"
 import { CancelledError } from "../../../common/error/CancelledError"
+import { UploadProgressController } from "../../../main/UploadProgressController"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -70,6 +71,7 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+		private readonly loadListener: UploadProgressController,
 	) {}
 
 	/**
@@ -84,7 +86,7 @@ export class BlobFacade {
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		onChunkUploaded?: (info: ChunkedUploadInfo) => void,
-		fileId?: UploadGuid,
+		fileId?: UploadId,
 		onCancelListener?: EventTarget,
 	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
@@ -203,11 +205,19 @@ export class BlobFacade {
 		blobLoadOptions: BlobLoadOptions = {},
 	): Promise<Uint8Array> {
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
+
+		const totalSize = referencingInstance.blobs.reduce((acc, blob) => acc + filterInt(blob.size), 0)
+		let bytesDownloadedSoFar = 0
+		const onProgress = (bytes: number) => {
+			bytesDownloadedSoFar += bytes
+			this.loadListener.onChunkDownloaded({ fileId: referencingInstance.elementId, totalBytes: totalSize, downloadedBytes: bytes })
+		}
+
 		// Currently assumes that all the blobs of the instance are in the same archive.
 		// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
-			return this.downloadAndDecryptMultipleBlobsOfArchives(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions)
+			return this.downloadAndDecryptMultipleBlobsOfArchives(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions, onProgress)
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
@@ -251,7 +261,7 @@ export class BlobFacade {
 			const allBlobs = instances.flatMap((instance) => instance.blobs)
 			const doBlobRequest = async () => {
 				const accessInfo = await this.blobAccessTokenFacade.requestReadTokenMultipleInstances(archiveDataType, instances, blobLoadOptions)
-				return this.downloadBlobsOfOneArchive(allBlobs, accessInfo, blobLoadOptions)
+				return this.downloadBlobsOfOneArchive(allBlobs, accessInfo, blobLoadOptions, noOp)
 			}
 			const doEvictToken = () => {
 				for (const instance of instances) {
@@ -451,12 +461,13 @@ export class BlobFacade {
 		blobServerAccessInfos: Map<Id, BlobServerAccessInfo>,
 		sessionKey: AesKey,
 		blobLoadOptions: BlobLoadOptions,
+		onProgress: (bytes: number) => unknown,
 	): Promise<Map<Id, Uint8Array>> {
 		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
 		let mapWithEncryptedBlobs: Map<Id, Uint8Array> = new Map()
-		for (const [archiveId, blobs] of archiveIdToBlobs) {
+		for (const [archiveId, archiveBlobs] of archiveIdToBlobs) {
 			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
-			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(blobs, blobServerAccessInfo, blobLoadOptions)
+			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(archiveBlobs, blobServerAccessInfo, blobLoadOptions, onProgress)
 			for (const [k, v] of mapWithEncryptedBlobsOfArchive) {
 				mapWithEncryptedBlobs.set(k, v)
 			}
@@ -472,6 +483,7 @@ export class BlobFacade {
 		blobs: readonly Blob[],
 		blobServerAccessInfo: BlobServerAccessInfo,
 		blobLoadOptions: BlobLoadOptions,
+		onProgress: (bytes: number) => unknown,
 	): Promise<Map<Id, Uint8Array>> {
 		if (isEmpty(blobs)) {
 			throw new ProgrammingError("Blobs are empty")
@@ -501,7 +513,7 @@ export class BlobFacade {
 			const concatBinaryData = await tryServers(
 				blobServerAccessInfo.servers,
 				async (serverUrl) => {
-					return await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
+					const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
 						queryParams: queryParams,
 						body,
 						responseType: MediaType.Binary,
@@ -509,7 +521,14 @@ export class BlobFacade {
 						noCORS: true,
 						headers: blobLoadOptions.extraHeaders,
 						suspensionBehavior: blobLoadOptions.suspensionBehavior,
+						progressListener: {
+							upload(_: number) {},
+							download(_: number, bytes: number) {
+								onProgress(bytes)
+							},
+						},
 					})
+					return response
 				},
 				`can't download from server `,
 			)

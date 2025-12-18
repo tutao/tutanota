@@ -11,6 +11,7 @@ import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, ProgressObserver, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
+import { UploadProgressController } from "../api/main/UploadProgressController"
 
 assertMainOrNode()
 
@@ -22,9 +23,10 @@ export class FileControllerNative extends FileController {
 		blobFacade: BlobFacade,
 		guiDownload: ProgressObserver,
 		private readonly fileApp: NativeFileApp,
+		loadListener: UploadProgressController,
 	) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
-		super(blobFacade, guiDownload)
+		super(blobFacade, loadListener, guiDownload)
 	}
 
 	protected async cleanUp(files: Array<FileReference | DataFile>) {
