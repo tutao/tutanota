@@ -40,7 +40,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 		if (!newAccountData) {
 			newAccountData = {
 				recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
-				mailAddress: "placeholderplaceholderplaceholderplaceholderplaceholderplaceholder@tuta.de",
+				mailAddress: "placeholderplaceholderplaceholder@tuta.de",
 				password: "dfkjkdfjkdfjkjdf:w",
 			}
 		}

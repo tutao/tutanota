@@ -262,21 +262,11 @@ export class PdfDocument {
 		return this
 	}
 
-	addTextCenterAlign(text: string, position: [centerX: number, y: number]): PdfDocument {
-		if (text === "") return this
-
-		const unicodePoints = toUnicodePoint(text)
-
-		const textWidthPts = getWordLengthInPoints(unicodePoints, this.currentFont, this.currentFontSize)
-
-		const xPts = mmToPSPoint(position[0]) - textWidthPts / 2
-		const yPts = mmToPSPoint(position[1]) + this.currentFontSize
-
-		this.textStream += `1 0 0 -1 ${xPts} ${yPts} Tm <${unicodePoints.join("")}> Tj `
-		return this
-	}
-
-	addTextCenterAlignAutoScaled(text: string, position: [centerX: number, y: number], maxWidthMM: number) {
+	/**
+	 * Add a horizontally center aligned text at the provided X position.
+	 * When the text becomes wider than maxWidthMM, the font size will shrink to fit within maxWidthMM.
+	 */
+	addTextCenterAlignAutoScaled(text: string, position: [centerX: number, y: number], maxWidthMM: number = PAPER_WIDTH) {
 		const oldFontSize = this.currentFontSize
 		if (text === "") return this
 		const unicodePoints = toUnicodePoint(text)
@@ -285,14 +275,14 @@ export class PdfDocument {
 		if (textWidthMM > maxWidthMM) {
 			const scalingFactor = maxWidthMM / textWidthMM
 			const newFontSize = this.currentFontSize * scalingFactor
-			this.changeFont(this.currentFont, newFontSize)
+			this.changeFontSize(newFontSize)
 		}
 		const textWidthPts = getWordLengthInPoints(unicodePoints, this.currentFont, this.currentFontSize)
 		const xPts = mmToPSPoint(position[0]) - textWidthPts / 2
 		const yPts = mmToPSPoint(position[1]) + this.currentFontSize
 
 		this.textStream += `1 0 0 -1 ${xPts} ${yPts} Tm <${unicodePoints.join("")}> Tj `
-		this.changeFont(this.currentFont, oldFontSize)
+		this.changeFontSize(oldFontSize)
 
 		return this
 	}

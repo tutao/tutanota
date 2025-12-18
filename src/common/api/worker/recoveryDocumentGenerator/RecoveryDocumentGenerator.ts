@@ -64,7 +64,7 @@ export class PdfRecoveryDocumentGenerator {
 
 		// Bottom Text
 		this.doc.changeFont(PDF_FONTS.REGULAR, 10)
-		this.doc.addTextCenterAlign("Need help? Contact us at hello@tutao.de", [pxToMm(323), pxToMm(717.62)])
+		this.doc.addTextCenterAlignAutoScaled("Need help? Contact us at hello@tutao.de", [pxToMm(323), pxToMm(717.62)])
 
 		// top box
 		this.doc.addRoundedRectangle({
@@ -104,9 +104,9 @@ export class PdfRecoveryDocumentGenerator {
 		})
 
 		this.doc.changeFont(PDF_FONTS.BOLD, 16)
-		this.doc.addTextCenterAlign(`Storage Tips`, [pxToMm(323), pxToMm(554.62)])
+		this.doc.addTextCenterAlignAutoScaled(`Storage Tips`, [pxToMm(323), pxToMm(554.62)])
 
-		this.doc.changeFont(PDF_FONTS.REGULAR, 11)
+		this.doc.changeFont(PDF_FONTS.REGULAR, 12.5)
 		this.doc.addText("If you get locked out of your Tuta Account, use this Recovery Code to log in and", [pxToMm(112), pxToMm(421.62)])
 		this.doc.addText("recover your data. This is the only way, because Tuta is not able to recover your", [pxToMm(112), pxToMm(439.62)])
 		this.doc.addText("account, because it is so safe. Also this text should explain how to use this kit.", [pxToMm(112), pxToMm(457.62)])
@@ -114,7 +114,7 @@ export class PdfRecoveryDocumentGenerator {
 		this.doc.addImage(PDF_IMAGES.EDIT_ICON, [pxToMm(114), pxToMm(597.25)], [pxToMm(21.33), pxToMm(21.33)])
 		this.doc.addImage(PDF_IMAGES.CLOUD_ICON, [pxToMm(337.96), pxToMm(597.25)], [pxToMm(21.33), pxToMm(21.33)])
 
-		this.doc.changeFont(PDF_FONTS.REGULAR, 9.71)
+		this.doc.changeFont(PDF_FONTS.REGULAR, 11)
 		this.doc.addText("Write down or print copy of", [pxToMm(160.58), pxToMm(597.25)])
 		this.doc.addText("RC, store it in a safe or where", [pxToMm(160.58), pxToMm(610.25)])
 		this.doc.addText("you're important documents", [pxToMm(160.58), pxToMm(623.25)])
@@ -126,7 +126,6 @@ export class PdfRecoveryDocumentGenerator {
 		this.doc.addText("if access to the account is lost", [pxToMm(383.17), pxToMm(636.25)])
 
 		this.doc.addQrSvg(qrCode.svg(), [pxToMm(168), pxToMm(306.12)])
-		console.log(this.doc.graphicsStream)
 		return await this.doc.create()
 	}
 }
