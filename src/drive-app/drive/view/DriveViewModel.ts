@@ -416,6 +416,7 @@ export class DriveViewModel {
 	}
 
 	public generateUploadGuid(): UploadGuid {
+		// FIXME: not always available
 		return crypto.randomUUID()
 	}
 

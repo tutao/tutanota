@@ -52,11 +52,6 @@ export interface BlobLoadOptions {
 	baseUrl?: string
 }
 
-// FIXME: Just for testing. Remove me later!
-function timeout(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 /**
  * The BlobFacade uploads and downloads blobs to/from the blob store.
  *

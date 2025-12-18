@@ -196,10 +196,6 @@ export class DriveFacade {
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
-		let uploadMonitorId: number | null = null
-
-		// amount of work (in relation to progress monitor) the server still has to do after uploading
-		const serverProcessingSteps = 1
 
 		const blobRefTokens = await this.blobFacade.streamEncryptAndUpload(
 			ArchiveDataType.DriveFile,

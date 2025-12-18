@@ -10,10 +10,12 @@ export interface DriveUploadState {
 
 type FileId = UploadGuid
 
-type InternalMapState = Record<FileId, DriveUploadState>
-
 export class DriveUploadStackModel {
-	state: InternalMapState = {}
+	private _state: Map<FileId, DriveUploadState> = new Map()
+
+	get state(): ReadonlyMap<FileId, DriveUploadState> {
+		return this._state
+	}
 
 	constructor(
 		private readonly driveFacade: DriveFacade,
@@ -21,24 +23,24 @@ export class DriveUploadStackModel {
 	) {}
 
 	addUpload(fileId: FileId, filename: string, totalSize: number) {
-		this.state[fileId] = {
+		this._state.set(fileId, {
 			filename,
 			isPaused: false,
 			isFinished: false,
 			uploadedSize: 0,
 			totalSize,
-		}
+		})
 	}
 
 	async onChunkUploaded(fileId: FileId, uploadedSizeDelta: number): Promise<void> {
-		const stateForThisFile = this.state[fileId]
+		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
 			stateForThisFile.uploadedSize += uploadedSizeDelta
 
 			if (stateForThisFile.uploadedSize >= stateForThisFile.totalSize) {
 				stateForThisFile.isFinished = true
 				setTimeout(() => {
-					delete this.state[fileId]
+					this._state.delete(fileId)
 					this.updateUi()
 				}, 2000)
 			}
@@ -49,9 +51,10 @@ export class DriveUploadStackModel {
 
 	async cancelUpload(fileId: FileId): Promise<void> {
 		await this.driveFacade.cancelCurrentUpload(fileId)
+		this._state.delete(fileId)
+	}
 
-		const stateForThisFile = this.state[fileId]
-
-		delete this.state[fileId]
+	uploadStateFor(fileId: FileId): DriveUploadState | null {
+		return this._state.get(fileId) ?? null
 	}
 }
