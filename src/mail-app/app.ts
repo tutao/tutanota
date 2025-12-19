@@ -42,7 +42,7 @@ import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { FeatureType } from "../common/api/common/TutanotaConstants"
 import { SignupFlowUsageTestController } from "../common/subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { SignupView, SignupViewAttrs } from "../common/signup/SignupView"
+import SignupView, { SignupViewAttrs } from "../common/signup/SignupView"
 
 assertMainOrNodeBoot()
 bootFinished()

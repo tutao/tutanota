@@ -11,7 +11,7 @@ import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
 import { getLazyLoadedPayPalUrl, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { RadioSelectorOption } from "../gui/base/RadioSelectorItem"
 import { RadioSelector, RadioSelectorAttrs } from "../gui/base/RadioSelector"
-import { getVisiblePaymentMethods, updatePaymentData, validatePaymentData } from "../subscription/utils/PaymentUtils"
+import { getVisiblePaymentMethods, updatePaymentData, validateInvoiceData, validatePaymentData } from "../subscription/utils/PaymentUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
@@ -26,13 +26,18 @@ import { BootIcons } from "../gui/base/icons/BootIcons"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
+import { TextArea, TextAreaAttrs } from "../gui/base/TextArea"
 
-export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
+class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
 	private paypalRequestUrl: LazyLoaded<string>
 	private readonly formGap = styles.isMobileLayout() ? ".gap-16" : ".gap-24"
 
-	constructor() {
+	constructor({
+		attrs: {
+			ctx: { viewModel },
+		},
+	}: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
 		this.paypalRequestUrl = getLazyLoadedPayPalUrl()
 	}
 
@@ -51,8 +56,14 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
 		const ctx = vnode.attrs.ctx
+		// const visiblePaymentMethods = getVisiblePaymentMethods({
+		// 	isBusiness: ctx.viewModel.options.businessUse(),
+		// 	isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
+		// 	accountingInfo: ctx.viewModel.accountingInfo,
+		// })
+		// FIXME: only for testing
 		const visiblePaymentMethods = getVisiblePaymentMethods({
-			isBusiness: ctx.viewModel.options.businessUse(),
+			isBusiness: true,
 			isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
 			accountingInfo: ctx.viewModel.accountingInfo,
 		})
@@ -119,7 +130,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 	private renderPaymentMethodForm(ctx: WizardStepContext<SignupViewModel>, method: PaymentMethodType): Children {
 		switch (method) {
 			case PaymentMethodType.Invoice:
-				return m("", "Invoice")
+				return this.renderInvoiceForm(ctx)
 			case PaymentMethodType.CreditCard:
 				return this.renderCreditCardForm(ctx)
 			case PaymentMethodType.Paypal:
@@ -164,10 +175,10 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 
 		const error =
 			// fixme: validate invoice data
-			// validateInvoiceData({
-			// 	address: invoiceDataInput.getAddress(),
-			// 	isBusiness: data.options.businessUse(),
-			// }) ||
+			validateInvoiceData({
+				address: data.invoiceData.invoiceAddress,
+				isBusiness: data.options.businessUse(),
+			}) ||
 			validatePaymentData({
 				country: data.invoiceData.country,
 				isBusiness: data.options.businessUse(),
@@ -275,4 +286,36 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			]),
 		])
 	}
+
+	private renderInvoiceForm({ viewModel }: WizardStepContext<SignupViewModel>): Children {
+		return m(
+			"",
+			m("", [
+				m(
+					".pt-16",
+					// m(LoginTextField, {
+					// 	label: "invoiceAddress_label",
+					// 	value: viewModel.invoiceData.invoiceAddress,
+					// 	oninput: (value) => (viewModel.invoiceData = { ...viewModel.invoiceData, invoiceAddress: value }),
+					// 	type: TextFieldType.Area,
+					// }),
+					m(TextArea, {
+						ariaLabel: lang.getTranslationText("invoiceAddress_label"),
+						value: viewModel.invoiceData.invoiceAddress,
+						oninput: (value) => (viewModel.invoiceData = { ...viewModel.invoiceData, invoiceAddress: value }),
+					} satisfies TextAreaAttrs),
+					m(".small", lang.getTranslationText("invoiceAddressInfoBusiness_msg")),
+				),
+			]),
+			m(LoginTextField, {
+				label: "invoiceVatIdNo_label",
+				value: viewModel.invoiceData.vatNumber,
+				// FIXME: only available for EU countries
+				oninput: (value) => (viewModel.invoiceData = { ...viewModel.invoiceData, vatNumber: value }),
+				helpLabel: () => lang.getTranslationText("invoiceVatIdNoInfoBusiness_msg"),
+			}),
+		)
+	}
 }
+
+export default InvoiceAndPaymentDataPageNew

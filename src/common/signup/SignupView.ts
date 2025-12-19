@@ -27,7 +27,7 @@ import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs"
 import { PowSolution } from "../api/common/pow-worker"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
-import { InvoiceAndPaymentDataPageNew } from "./InvoiceAndPaymentDataPageNew"
+import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
 import { theme } from "../gui/theme"
@@ -235,11 +235,11 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					: m(this.SignupWizard, {
 							steps: [
 								// FIXME: Just for styling purpose
-								// {
-								// 	title: "Recovery Kit",
-								// 	content: RecoveryKitPage,
-								// 	onNext: () => console.log("another next action"),
-								// },
+								{
+									title: "UI testing",
+									content: InvoiceAndPaymentDataPageNew,
+									onNext: () => console.log("another next action"),
+								},
 								{
 									title: "Select Plan",
 									content: PlanSelectorPage,
@@ -315,3 +315,5 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		)
 	}
 }
+
+export default SignupView
