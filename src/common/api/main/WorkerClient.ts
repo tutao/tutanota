@@ -3,7 +3,7 @@ import { MessageDispatcher, Request } from "../common/threading/MessageDispatche
 import { Transport, WebWorkerTransport } from "../common/threading/Transport.js"
 import { assertMainOrNode } from "../common/Env"
 import { client } from "../../misc/ClientDetector"
-import type { DeferredObject } from "@tutao/tutanota-utils"
+import { DeferredObject, newPromise } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
@@ -49,6 +49,7 @@ export class WorkerClient {
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl, { type: "module" })
+			await newPromise((resolve) => (worker.onmessage = resolve))
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 

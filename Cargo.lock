@@ -563,17 +563,23 @@ dependencies = [
 name = "crypto-primitives"
 version = "315.251204.0"
 dependencies = [
+ "aes",
  "base64",
+ "cbc",
  "console_error_panic_hook",
  "const-hex",
  "crypto-primitives",
  "ed25519-dalek",
  "getrandom 0.2.16",
+ "hmac",
+ "rand",
  "rand_core",
  "serde",
  "serde-big-array",
  "serde-wasm-bindgen 0.6.5",
  "serde_json",
+ "sha2",
+ "sha3",
  "thiserror 2.0.12",
  "tsify",
  "wasm-bindgen",

@@ -30,9 +30,16 @@ import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
 import { assertThrows, throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
 import sjcl from "../lib/internal/sjcl.js"
-import { hmacSha256 } from "../lib/index.js"
+import { hmacSha256, initEd25519 } from "../lib/index.js"
+import fs from "node:fs"
 
 o.spec("aes", function () {
+	o.before(async function () {
+		// Use the readFileSync function to read the contents of the "add.wasm" file
+		const wasmBuffer = fs.readFileSync("../lib/encryption/ed25519wasm/crypto_primitives_bg.wasm")
+		await initEd25519(wasmBuffer)
+	})
+
 	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, _aes128RandomKey(), false))
 	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, _aes128RandomKey(), true))
 	o("encryption roundtrip 256 without mac throws", async () => {

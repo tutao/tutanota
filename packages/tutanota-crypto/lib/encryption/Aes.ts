@@ -6,6 +6,7 @@ import { sha256Hash } from "../hashes/Sha256.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha512Hash } from "../hashes/Sha512.js"
 import { hmacSha256, MacTag, verifyHmacSha256 } from "./Hmac.js"
+import __wbg_init, { aes_256_decrypt } from "./ed25519wasm/crypto_primitives.js"
 
 export const ENABLE_MAC = true
 export const IV_BYTE_LENGTH = 16
@@ -19,6 +20,8 @@ const MAC_LENGTH_BYTES = 32
 export type Aes256Key = BitArray
 export type Aes128Key = BitArray
 export type AesKey = Aes128Key | Aes256Key
+
+await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
 
 /**
  * @return the key length in bytes
@@ -89,7 +92,6 @@ export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array,
 
 	return data
 }
-
 /**
  * Decrypts the given words with AES-128/256 in CBC mode (with HMAC-SHA-256 as mac). The mac is enforced for AES-256 but optional for AES-128.
  * @param key The key to use for the decryption.
@@ -101,8 +103,14 @@ export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: 
 	const keyLength = getKeyLengthBytes(key)
 	if (keyLength === KEY_LENGTH_BYTES_AES_128) {
 		return aesDecryptImpl(key, encryptedBytes, usePadding, false)
-	} else {
+	} else if (!usePadding) {
 		return aesDecryptImpl(key, encryptedBytes, usePadding, true)
+	} else {
+		const result = aes_256_decrypt(Array.from(bitArrayToUint8Array(key)), encryptedBytes)
+		if (result === undefined) {
+			throw new CryptoError("oh no!!!")
+		}
+		return new Uint8Array(result.data)
 	}
 }
 

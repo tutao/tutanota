@@ -891,6 +891,8 @@ class MailLocator implements CommonLocator {
 		this.Const = Const
 		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
 		this.spamClassifier = spamClassifier
+		this.uploadProgressListener = new UploadProgressController()
+
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
@@ -910,8 +912,6 @@ class MailLocator implements CommonLocator {
 
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
-
-			this.uploadProgressListener = new UploadProgressController()
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,

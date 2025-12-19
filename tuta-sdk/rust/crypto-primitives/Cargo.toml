@@ -38,7 +38,14 @@ thiserror = "2.0"
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.7", optional = true }
 
+aes = { version = "0.8.4", features = ["zeroize"] }
+cbc = { version = "0.1.2", features = ["std", "zeroize"] }
+sha2 = "0.10.8"
+sha3 = "0.10.8"
+hmac = "0.12.1"
+
 [dev-dependencies]
 # Allow enabling features for testing see: https://github.com/kartva/cargo-optional-features-for-testing-and-examples?tab=readme-ov-file
 crypto-primitives = { path = ".", default-features = false, features = ["test_utils"] }
 wasm-bindgen-test = "0.3.34"
+rand = { workspace = true }

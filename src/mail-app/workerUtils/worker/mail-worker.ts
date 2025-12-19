@@ -44,3 +44,5 @@ self.onmessage = function (msg) {
 		throw new Error("worker not yet ready. Request type: " + data.requestType)
 	}
 }
+
+self.postMessage("ready")
