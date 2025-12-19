@@ -1,5 +1,4 @@
 use crate::crypto::hkdf;
-use crate::crypto::key::GenericAesKey;
 use crate::crypto::key::VersionedAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
@@ -12,6 +11,7 @@ use crate::ApiCallError;
 use crate::GeneratedId;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use crypto_primitives::key::GenericAesKey;
 use std::borrow::ToOwned;
 use std::sync::{Arc, RwLock};
 

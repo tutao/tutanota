@@ -1,4 +1,6 @@
 use crate::importer::ImportEssential;
+use crypto_primitives::aes;
+use crypto_primitives::key::GenericAesKey;
 use extend_mail_parser::MakeString;
 use mail_parser::decoders::base64::base64_decode;
 use mail_parser::decoders::quoted_printable::quoted_printable_decode;
@@ -8,8 +10,6 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use tutasdk::blobs::blob_facade::FileData;
-use tutasdk::crypto::aes;
-use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::date::DateTime;
 use tutasdk::entities::generated::sys::BlobReferenceTokenWrapper;
 use tutasdk::entities::generated::tutanota::{

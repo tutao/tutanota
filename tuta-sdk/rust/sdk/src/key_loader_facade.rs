@@ -1,4 +1,4 @@
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError, VersionedAesKey};
+use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError, VersionedAesKey};
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::generated::sys::{Group, GroupKey, KeyPair};
 #[cfg_attr(test, mockall_double::double)]
@@ -12,6 +12,7 @@ use crate::CustomId;
 use crate::GeneratedId;
 use crate::IdTupleCustom;
 use crate::ListLoadDirection;
+use crypto_primitives::key::GenericAesKey;
 use futures::future::BoxFuture;
 use std::cmp::Ordering;
 use std::sync::Arc;
@@ -401,7 +402,7 @@ struct FormerGroupKey {
 mod tests {
 	use super::*;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crate::crypto::{aes::Iv, TutaCryptKeyPairs};
+	use crate::crypto::TutaCryptKeyPairs;
 	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership};
 	use crate::key_cache::MockKeyCache;
 	use crate::typed_entity_client::MockTypedEntityClient;
@@ -413,6 +414,7 @@ mod tests {
 	use crate::util::{convert_version_to_i64, get_vec_reversed};
 	use crate::CustomId;
 	use crate::IdTupleGenerated;
+	use crypto_primitives::aes::Iv;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate;
@@ -1038,7 +1040,7 @@ mod tests {
 				match keypair {
                     GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
                     GenericAesKey::Aes256(returned_group_key) => {
-                        assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
+                        assert_eq!(&returned_group_key, former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
                     }
                 }
 			}

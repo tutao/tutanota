@@ -4,10 +4,10 @@
 
 use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey, SeedBufferRng};
 use crate::crypto::{argon2_id, kyber};
-use crate::util::{array_cast_slice, ArrayCastingError};
 use base64::prelude::*;
 use crypto_primitives::ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use util::array::{array_cast_slice, ArrayCastingError};
 use zeroize::Zeroizing;
 
 /// Error occurred from trying to encapsulate/decapsulate with Kyber

@@ -289,10 +289,9 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "tuta-sdk") }
 					}
 					steps {
-						// once we spin local http server, we should also include more test by:
+						// once we spin local http server, we should also include more tuta sdk tests by:
 						// --features test-with-local-http-server
-						sh "cargo test --package tuta-sdk"
-						sh "cargo test --package crypto-primitives"
+						sh "cargo test --all"
 					}
 				}
 

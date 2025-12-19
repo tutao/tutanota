@@ -1,5 +1,4 @@
 use crate::crypto::x25519::X25519KeyPair;
-use crate::join_slices;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use rand_core::impls::{next_u32_via_fill, next_u64_via_fill};
 use rand_core::{CryptoRng, Error, RngCore};
@@ -7,6 +6,7 @@ use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use rsa::{BigUint, Oaep};
 use sha2::Sha256;
 use std::ops::Deref;
+use util::join_slices;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 
 #[cfg(test)]

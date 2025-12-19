@@ -402,7 +402,6 @@ mod tests {
 	#[mockall_double::double]
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
-	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::AES_256_KEY_SIZE;
 	use crate::date::DateTime;
 	use crate::element_value::ElementValue;
@@ -418,6 +417,7 @@ mod tests {
 	use crate::{HeadersProvider, CLIENT_VERSION};
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
+	use crypto_primitives::key::GenericAesKey;
 	use std::collections::HashMap;
 	use std::sync::Arc;
 

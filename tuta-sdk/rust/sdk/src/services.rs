@@ -1,7 +1,7 @@
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
-use crate::crypto::key::GenericAesKey;
 use crate::services::hidden::Executor;
 use crate::ApiCallError;
+use crypto_primitives::key::GenericAesKey;
 use std::collections::HashMap;
 
 pub mod generator;

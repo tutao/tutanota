@@ -1,6 +1,6 @@
-use crate::crypto::key::GenericAesKey;
 #[cfg(test)]
 use crate::id::generated_id::GENERATED_ID_BYTES_LENGTH;
+use crypto_primitives::key::GenericAesKey;
 use thiserror::Error;
 
 ///
@@ -243,9 +243,9 @@ mod tests {
 		serialize_new_blobs_in_binary_chunks, BinaryBlobWrapperSerializationError, BlobWrapper,
 		KeyedNewBlobWrapper, NewBlobWrapper, MAX_NUMBER_OF_BLOBS_IN_BINARY,
 	};
-	use crate::crypto::key::GenericAesKey;
 	use crate::tutanota_constants::MAX_BLOB_SERVICE_BYTES;
-	use crate::{crypto, GeneratedId};
+	use crate::GeneratedId;
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
@@ -596,13 +596,13 @@ mod tests {
 		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(20));
 		let first_session_key = GenericAesKey::from_bytes(
 			randomizer_facade
-				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
+				.generate_random_array::<{ crypto_primitives::aes::AES_256_KEY_SIZE }>()
 				.as_slice(),
 		)
 		.unwrap();
 		let second_session_key = GenericAesKey::from_bytes(
 			randomizer_facade
-				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
+				.generate_random_array::<{ crypto_primitives::aes::AES_256_KEY_SIZE }>()
 				.as_slice(),
 		)
 		.unwrap();
@@ -669,13 +669,13 @@ mod tests {
 		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(20));
 		let first_session_key = GenericAesKey::from_bytes(
 			randomizer_facade
-				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
+				.generate_random_array::<{ crypto_primitives::aes::AES_256_KEY_SIZE }>()
 				.as_slice(),
 		)
 		.unwrap();
 		let second_session_key = GenericAesKey::from_bytes(
 			randomizer_facade
-				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
+				.generate_random_array::<{ crypto_primitives::aes::AES_256_KEY_SIZE }>()
 				.as_slice(),
 		)
 		.unwrap();

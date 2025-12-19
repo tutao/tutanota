@@ -608,14 +608,15 @@ macro_rules! collection {
         }};
     }
 
-use crate::crypto::aes::Iv;
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, VersionedAesKey};
+use crate::crypto::key::{AsymmetricKeyPair, VersionedAesKey};
 use crate::date::DateTime;
 use crate::entities::generated::tutanota::Contact;
 use crate::entities::Entity;
 use crate::metamodel::TypeModel;
 use crate::type_model_provider::TypeModelProvider;
 use crate::TypeRef;
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

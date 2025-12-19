@@ -194,16 +194,18 @@ pub struct CompressionTestData {
 pub struct AeadTest {
 	#[serde(with = "Base64")]
 	pub plain_text_base64: Vec<u8>,
-	#[serde(with = "const_hex")]
-	pub seed: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub cipher_text_base64: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub plaintext_key: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub encryption_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub authentication_key: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub encrypted_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub seed: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub associated_data: Vec<u8>,
 }

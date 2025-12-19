@@ -1,12 +1,12 @@
 //! Contains code to handle Kyber-1024 encapsulation and decapsulation.
 
-use crate::join_slices;
-use crate::util::{array_cast_slice, decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
 use pqcrypto_mlkem::{mlkem1024_decapsulate, mlkem1024_encapsulate};
 use std::fmt::Debug;
+use util::array::{array_cast_slice, decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
+use util::join_slices;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
-use crate::crypto::sha;
+use crypto_primitives::sha;
 use pqcrypto_mlkem::mlkem1024::Ciphertext as PQCryptoMlKem1024Ciphertext;
 use pqcrypto_mlkem::mlkem1024::PublicKey as PQCryptoMlKem1024PublicKey;
 use pqcrypto_mlkem::mlkem1024::SecretKey as PQCryptoMlKem1024SecretKey;

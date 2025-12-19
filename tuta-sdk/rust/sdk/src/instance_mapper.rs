@@ -2079,9 +2079,6 @@ mod tests {
 		let json_serializer = JsonSerializer::new(type_model_provider.clone());
 		let type_ref = T::type_ref();
 		let parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
-		let type_model = type_model_provider
-			.resolve_server_type_ref(&type_ref)
-			.unwrap();
 		parsed_entity
 	}
 }
