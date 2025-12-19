@@ -149,4 +149,16 @@ class CommonNativeFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun downloadProgress(
+		fileId: String,
+		bytes: Int,
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("downloadProgress")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(fileId))
+		args.add(json.encodeToString(bytes))
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 }

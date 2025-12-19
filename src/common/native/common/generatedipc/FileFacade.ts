@@ -49,7 +49,7 @@ export interface FileFacade {
 	/**
 	 * download an encrypted file to the file system and return the location of the data
 	 */
-	download(sourceUrl: string, filename: string, headers: Record<string, string>): Promise<DownloadTaskResponse>
+	download(sourceUrl: string, filename: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse>
 
 	/**
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.

@@ -8,7 +8,16 @@ import { FileUri } from "../../native/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { sha256Hash } from "@tutao/tutanota-crypto"
-import { assertNotNull, newPromise, splitUint8ArrayInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	debounce,
+	delay,
+	newPromise,
+	splitUint8ArrayInChunks,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+} from "@tutao/tutanota-utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
 import type { WriteStream } from "node:fs"
@@ -28,6 +37,7 @@ import { HttpMethod } from "../../api/common/EntityFunctions"
 import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
+import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -46,6 +56,7 @@ export class DesktopFileFacade implements FileFacade {
 		private readonly path: PathExports,
 		private readonly commandExecutor: CommandExecutor,
 		private readonly process: NodeJS.Process,
+		private readonly progressTracker: Pick<CommonNativeFacade, "downloadProgress">,
 	) {
 		this.lastOpenedFileManagerAt = null
 	}
@@ -59,7 +70,7 @@ export class DesktopFileFacade implements FileFacade {
 		return await this.fs.promises.unlink(filename)
 	}
 
-	async download(sourceUrl: string, fileName: string, headers: Record<string, string>): Promise<DownloadTaskResponse> {
+	async download(sourceUrl: string, fileName: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse> {
 		const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers })
 
 		let encryptedFilePath
@@ -67,7 +78,13 @@ export class DesktopFileFacade implements FileFacade {
 			const downloadDirectory = await this.tfs.ensureEncryptedDir()
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			const readable: stream.Readable = bodyToReadable(body)
-			await this.pipeIntoFile(readable, encryptedFilePath)
+			// debounce so that we don't post the message too often
+			const onProgress =
+				// FIXME
+				// debounce(1000,
+				(bytes: number) => this.progressTracker.downloadProgress(fileId, bytes)
+			// )
+			await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
 		} else {
 			encryptedFilePath = null
 		}
@@ -84,10 +101,10 @@ export class DesktopFileFacade implements FileFacade {
 		return result
 	}
 
-	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string) {
+	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {
 		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, { emitClose: true })
 		try {
-			await pipeStream(response, fileStream)
+			await pipeStream(response, fileStream, progress)
 			await closeFileStream(fileStream)
 		} catch (e) {
 			// Close first, delete second
@@ -379,10 +396,25 @@ function getHttpHeader(headers: Headers, name: string): string | null {
 	return headers.get(name.toLowerCase())
 }
 
-function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<void> {
+function pipeStream(stream: stream.Readable, into: stream.Writable, onProgress: (bytes: number) => unknown): Promise<void> {
 	return newPromise((resolve, reject) => {
 		stream.on("error", reject)
-		stream.pipe(into)
+		// stream.pipe(into)
+		let downloadedBytes = 0
+		stream.on("readable", async () => {
+			log.debug("readable")
+			let chunk: Buffer
+			// Use a loop to make sure we read all currently available data
+			while (null !== (chunk = stream.read(10 * 1024))) {
+				downloadedBytes += chunk.length
+				// log.debug("read chunk, total: ", downloadedBytes
+				into.write(chunk)
+				onProgress(downloadedBytes)
+				// FIXME
+				await delay(10)
+			}
+		})
+		stream.on("end", () => into.end())
 		into.on("finish", resolve)
 		into.on("error", reject)
 	})

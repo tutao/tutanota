@@ -80,6 +80,7 @@ import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { SuspensionHandler } from "../api/worker/SuspensionHandler"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
+import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade"
 
 mp()
 
@@ -325,12 +326,18 @@ async function createComponents(): Promise<Components> {
 				await sqlCipherFacade.closeDb()
 			},
 		}
+		// re-wrapping it because commonNativeFacade will be re-created after reload to it should be lazy but FileFacade doesn't have to know that
+		const progressTracker: Pick<CommonNativeFacade, "downloadProgress"> = {
+			async downloadProgress(fileId: string, bytes: number) {
+				await window.commonNativeFacade.downloadProgress(fileId, bytes)
+			},
+		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
 			new DesktopExternalCalendarFacade(electron.app.userAgentFallback),
-			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path, commandExecutor, process),
+			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path, commandExecutor, process, progressTracker),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,

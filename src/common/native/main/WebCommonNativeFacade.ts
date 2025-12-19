@@ -18,6 +18,8 @@ import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { isDesktop } from "../../api/common/Env"
 import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
+import { UploadProgressController } from "../../api/main/UploadProgressController"
+import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -31,6 +33,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		readonly openCalendar: (userId: string, action: CalendarOpenAction, date: string | null, eventId: string | null) => Promise<void>,
 		private readonly appType: AppType,
 		readonly openSettings: (path: string) => Promise<void>,
+		private readonly blobFacade: BlobFacade,
 	) {}
 
 	async sendLogs(logs: string): Promise<void> {
@@ -246,5 +249,9 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		// Since we might be handling calendar files, we must wait for full login
 		await this.logins.waitForFullLogin()
 		await this.fileImportHandler(filesUris)
+	}
+
+	async downloadProgress(fileId: string, bytes: number): Promise<void> {
+		await this.blobFacade.nativeDownloadProgress(fileId, bytes)
 	}
 }

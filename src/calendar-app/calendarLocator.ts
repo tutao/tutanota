@@ -677,6 +677,8 @@ class CalendarLocator implements CommonLocator {
 			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
+			this.uploadProgressListener = new UploadProgressController()
+
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -693,6 +695,7 @@ class CalendarLocator implements CommonLocator {
 					(userId, action, date, eventId) => openCalendarHandler.openCalendar(userId, action, date, eventId),
 					AppType.Calendar,
 					(path) => openSettingsHandler.openSettings(path),
+					this.blobFacade,
 				),
 				cryptoFacade,
 				calendarFacade,

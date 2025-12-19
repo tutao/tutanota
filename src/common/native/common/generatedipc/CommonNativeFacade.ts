@@ -55,4 +55,9 @@ export interface CommonNativeFacade {
 	 * Open the Send Logs dialog
 	 */
 	sendLogs(logs: string): Promise<void>
+
+	/**
+	 * Download has progressed
+	 */
+	downloadProgress(fileId: string, bytes: number): Promise<void>
 }

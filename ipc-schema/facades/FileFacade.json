@@ -115,7 +115,8 @@
 				},
 				{
 					"headers": "Map<string, string>"
-				}
+				},
+				{ "fileId": "string" }
 			],
 			"ret": "DownloadTaskResponse"
 		},

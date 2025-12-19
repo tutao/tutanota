@@ -911,6 +911,8 @@ class MailLocator implements CommonLocator {
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
 
+			this.uploadProgressListener = new UploadProgressController()
+
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
@@ -926,6 +928,7 @@ class MailLocator implements CommonLocator {
 					(userId, action, date, eventId) => openCalendarHandler.openCalendar(userId, action, date, eventId),
 					AppType.Integrated,
 					(path) => openSettingsHandler.openSettings(path),
+					this.blobFacade,
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -1016,8 +1019,6 @@ class MailLocator implements CommonLocator {
 					return null
 			}
 		})
-
-		this.uploadProgressListener = new UploadProgressController()
 
 		this.fileController =
 			this.nativeInterfaces == null

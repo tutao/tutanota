@@ -66,7 +66,8 @@ public protocol FileFacade {
 	func download(
 		_ sourceUrl: String,
 		_ filename: String,
-		_ headers: [String : String]
+		_ headers: [String : String],
+		_ fileId: String
 	) async throws -> DownloadTaskResponse
 	/**
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.

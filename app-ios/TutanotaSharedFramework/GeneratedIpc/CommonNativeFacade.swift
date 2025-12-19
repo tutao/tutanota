@@ -78,4 +78,11 @@ public protocol CommonNativeFacade {
 	func sendLogs(
 		_ logs: String
 	) async throws -> Void
+	/**
+	 * Download has progressed
+	 */
+	func downloadProgress(
+		_ fileId: String,
+		_ bytes: Int
+	) async throws -> Void
 }

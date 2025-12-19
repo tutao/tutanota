@@ -157,4 +157,17 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	 public func downloadProgress(
+		_ fileId: String,
+		_ bytes: Int
+	) async throws -> Void
+		{
+		var args = [String]()
+		args.append(toJson(fileId))
+		args.append(toJson(bytes))
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("downloadProgress")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 }

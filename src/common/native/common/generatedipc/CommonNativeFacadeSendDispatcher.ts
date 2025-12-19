@@ -43,4 +43,7 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async sendLogs(...args: Parameters<CommonNativeFacade["sendLogs"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "sendLogs", ...args])
 	}
+	async downloadProgress(...args: Parameters<CommonNativeFacade["downloadProgress"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "downloadProgress", ...args])
+	}
 }
