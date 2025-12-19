@@ -10,8 +10,6 @@ use crate::blobs::binary_blob_wrapper_serializer::{
 use crate::blobs::blob_access_token_cache::BlobWriteTokenKey;
 #[cfg_attr(test, mockall_double::double)]
 use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
-use crate::crypto::aes::Iv;
-use crate::crypto::key::GenericAesKey;
 use crate::entities::generated::storage::{BlobGetIn, BlobPostOut, BlobServerAccessInfo};
 use crate::entities::generated::sys::BlobReferenceTokenWrapper;
 use crate::entities::Entity;
@@ -27,6 +25,8 @@ use crate::GeneratedId;
 use crate::{crypto, ApiCallError, HeadersProvider};
 use base64::Engine;
 use crypto::sha256;
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -507,10 +507,10 @@ mod tests {
 	use crate::util::test_utils::create_test_entity;
 	use crate::CustomId;
 	use crate::GeneratedId;
-	use crate::GenericAesKey;
 	use crate::HeadersProvider;
 	use crate::InstanceMapper;
 	use crate::JsonSerializer;
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use hyper::Uri;
@@ -560,7 +560,7 @@ mod tests {
 	fn make_session_key(randomizer_facade: RandomizerFacade) -> GenericAesKey {
 		GenericAesKey::from_bytes(
 			randomizer_facade
-				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
+				.generate_random_array::<{ crypto_primitives::aes::AES_256_KEY_SIZE }>()
 				.as_slice(),
 		)
 		.unwrap()

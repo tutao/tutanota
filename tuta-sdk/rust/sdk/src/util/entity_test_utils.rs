@@ -1,5 +1,3 @@
-use crate::crypto::aes::Iv;
-use crate::crypto::key::GenericAesKey;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::generated::sys::BucketKey;
@@ -12,6 +10,8 @@ use crate::util::test_utils::{
 };
 use crate::GeneratedId;
 use crate::{IdTupleGenerated, TypeRef};
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::GenericAesKey;
 
 /// Generates and returns an encrypted Mail ParsedEntity. It also returns the decrypted Mail for comparison
 #[must_use]

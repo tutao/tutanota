@@ -1,9 +1,16 @@
-mod utils;
+pub mod utils;
 
+pub mod aead_facade;
+pub mod aes;
 pub mod blake3;
 pub mod compatibility_test_utils;
 pub mod ed25519;
+pub mod hmac;
+pub mod key;
 pub mod randomizer_facade;
+pub mod sha;
+#[cfg(test)]
+mod test_utils;
 
 use ed25519::Ed25519KeyPair;
 use randomizer_facade::RandomizerFacade;

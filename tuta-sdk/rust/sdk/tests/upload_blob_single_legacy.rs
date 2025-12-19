@@ -1,8 +1,8 @@
+use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::error::Error;
 use std::sync::Arc;
 use tutasdk::bindings::test_file_client::TestFileClient;
-use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::tutanota_constants::ArchiveDataType;
 use tutasdk::Sdk;
@@ -35,7 +35,7 @@ async fn sdk_can_upload_single_blob_legacy() -> Result<(), Box<dyn Error>> {
 
 	let new_aes_256_key = GenericAesKey::from_bytes(
 		randomizer_facade
-			.generate_random_array::<{ tutasdk::crypto::aes::AES_256_KEY_SIZE }>()
+			.generate_random_array::<{ crypto_primitives::aes::AES_256_KEY_SIZE }>()
 			.as_slice(),
 	)
 	.unwrap();

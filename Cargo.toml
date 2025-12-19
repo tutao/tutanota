@@ -19,7 +19,8 @@ members = [
     # https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary
     # note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
     "tuta-sdk/rust/uniffi-bindgen",
-    "tuta-sdk/rust/crypto-primitives"
+    "tuta-sdk/rust/crypto-primitives",
+    "tuta-sdk/rust/util",
 ]
 
 # in most cases, we don't want to build everything.
@@ -30,6 +31,7 @@ default-members = []
 [workspace.dependencies]
 tuta-sdk = { path = "tuta-sdk/rust/sdk", default-features = false }
 crypto-primitives = { path = "tuta-sdk/rust/crypto-primitives", default-features = false }
+util = { path = "tuta-sdk/rust/util", default-features = false }
 thiserror = { version = "2.0" }
 base64 = { version = "0.22.1" }
 log = { version = "0.4.22" }

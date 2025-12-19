@@ -1,8 +1,7 @@
-use crate::crypto::aes::Iv;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, DecapsulatedAesKey};
-use crate::crypto::key::{GenericAesKey, KeyLoadError};
+use crate::crypto::key::KeyLoadError;
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::TutaCryptError;
 use crate::crypto::x25519::X25519PublicKey;
@@ -23,14 +22,17 @@ use crate::metamodel::TypeModel;
 use crate::tutanota_constants::{CryptoProtocolVersion, EncryptionAuthStatus, PermissionType};
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::{convert_version_to_u64, ArrayCastingError};
+use crate::util::convert_version_to_u64;
 use crate::IdTupleGenerated;
 use crate::{GeneratedId, ListLoadDirection};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::{GenericAesKey, KeyDecryptError};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use num_enum::TryFromPrimitive;
 use std::sync::Arc;
+use util::array::ArrayCastingError;
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
@@ -467,6 +469,8 @@ impl<T: SessionKeyResolutionErrorSubtype> From<T> for SessionKeyResolutionError 
 
 impl SessionKeyResolutionErrorSubtype for KeyLoadError {}
 
+impl SessionKeyResolutionErrorSubtype for KeyDecryptError {}
+
 impl SessionKeyResolutionErrorSubtype for ArrayCastingError {}
 
 impl SessionKeyResolutionErrorSubtype for TutaCryptError {}
@@ -476,7 +480,7 @@ impl SessionKeyResolutionErrorSubtype for AsymmetricCryptoError {}
 
 #[must_use]
 pub fn create_auth_verifier(user_passphrase_key: Aes256Key) -> String {
-	let sha_user_passphrase = crate::crypto::sha::sha256(user_passphrase_key.as_bytes());
+	let sha_user_passphrase = crypto_primitives::sha::sha256(user_passphrase_key.as_bytes());
 	BASE64_URL_SAFE_NO_PAD.encode(sha_user_passphrase)
 }
 
@@ -484,10 +488,9 @@ pub fn create_auth_verifier(user_passphrase_key: Aes256Key) -> String {
 mod test {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
-	use crate::crypto::aes::{Aes256Key, Iv};
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
-	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
+	use crate::crypto::key::VersionedAesKey;
 	use crate::crypto::x25519::X25519KeyPair;
 	use crate::element_value::ParsedEntity;
 	use crate::entities::generated::sys::{BucketKey, GroupInfo, InstanceSessionKey, Permission};
@@ -503,6 +506,8 @@ mod test {
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
 	use crate::TypeModelProvider;
+	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate::eq;

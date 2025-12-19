@@ -6,7 +6,7 @@ use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+use crate::crypto::key::AsymmetricKeyPair;
 use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError};
 use crate::crypto::X25519PublicKey;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -29,6 +29,7 @@ use crate::tutanota_constants::{
 use crate::util::{convert_version_to_u64, Versioned};
 use crate::{ApiCallError, ListLoadDirection};
 use crate::{GeneratedId, TypeRef};
+use crypto_primitives::key::GenericAesKey;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -481,10 +482,10 @@ mod tests {
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::asymmetric_crypto_facade::MockAsymmetricCryptoFacade;
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
-	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+	use crate::crypto::key::AsymmetricKeyPair;
 	use crate::crypto::public_key_provider::PublicKeyIdentifier;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs, X25519PublicKey};
+	use crate::crypto::{TutaCryptKeyPairs, X25519PublicKey};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
 	use crate::entities::entity_facade::{EntityFacadeImpl, MockEntityFacade, ID_FIELD};
@@ -502,6 +503,8 @@ mod tests {
 	use crate::util::test_utils::{create_test_entity_dict, leak, mock_type_model_provider};
 	use crate::util::Versioned;
 	use crate::{GeneratedId, IdTupleGenerated};
+	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 

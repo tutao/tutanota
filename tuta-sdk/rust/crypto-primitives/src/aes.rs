@@ -1,16 +1,20 @@
 //! Contains code to handle AES128/AES256 encryption and decryption
 
-use crate::crypto::hmac::HMAC_SHA256_SIZE;
-use crate::crypto::key::GenericAesKey;
-use crate::join_slices;
-use crate::util::{array_cast_size, array_cast_slice, ArrayCastingError};
+use crate::blake3::MacError;
+use crate::hmac::HMAC_SHA256_SIZE;
+use crate::key::GenericAesKey;
+use crate::randomizer_facade::RandomizerFacade;
 use aes::cipher::block_padding::Pkcs7;
+use aes::cipher::StreamCipher;
 use aes::cipher::{BlockCipher, BlockSizeUser};
 use cbc::cipher::block_padding::UnpadError;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
-use crypto_primitives::blake3::MacError;
-use crypto_primitives::randomizer_facade::RandomizerFacade;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use tsify::Tsify;
+use util::array::{array_cast_size, array_cast_slice, ArrayCastingError};
+use util::join_slices;
+use wasm_bindgen::prelude::wasm_bindgen;
 use zeroize::ZeroizeOnDrop;
 
 /// Denotes whether a text is/should be padded
@@ -49,15 +53,18 @@ pub enum EnforceMac {
 /// - $cbc: The type from the `aes` dependency.
 /// - $subkey_digest: The type of SHA hasher from the `sha2` dependency to use.
 macro_rules! aes_key {
-	($name:tt, $type_name:literal, $size:expr, $cbc:ty, $subkey_digest:ty) => {
-		#[derive(Clone, ZeroizeOnDrop, PartialEq, Eq, Hash)]
-		#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
+	($name:tt, $type_name:literal, $size:expr, $aes_key_type:ty, $subkey_digest:ty) => {
+		#[derive(Clone, ZeroizeOnDrop, PartialEq, Eq, Hash, Tsify, Serialize, Deserialize)]
+		#[cfg_attr(any(test, feature = "test_utils"), derive(Debug))] // only allow Debug in tests because this prints the key!
+		#[tsify(into_wasm_abi, from_wasm_abi)]
 		pub struct $name([u8; $size]);
 
 		impl $name {
 			/// Generate an AES key.
 			#[must_use]
-			pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+			pub fn generate(
+				randomizer_facade: &crate::randomizer_facade::RandomizerFacade,
+			) -> Self {
 				let key: [u8; $size] = randomizer_facade.generate_random_array();
 				Self(key)
 			}
@@ -97,7 +104,7 @@ macro_rules! aes_key {
 		}
 
 		impl AesKey for $name {
-			type CbcKeyType = $cbc;
+			type AesKeyType = $aes_key_type;
 			fn get_bytes(&self) -> &[u8] {
 				&self.0
 			}
@@ -111,7 +118,7 @@ macro_rules! aes_key {
 				let hashed_key = hasher.finalize();
 
 				let (c_key_slice, m_key_slice) =
-					hashed_key.split_at(<Self as AesKey>::CbcKeyType::key_size());
+					hashed_key.split_at(<Self as AesKey>::AesKeyType::key_size());
 				AesSubKeys {
 					c_key: Self::from_bytes(c_key_slice).unwrap(),
 					m_key: Self::from_bytes(m_key_slice).unwrap(),
@@ -139,7 +146,7 @@ aes_key!(
 
 trait AesKey: Clone {
 	/// The equivalent type in the RustCrypto packages to this key type
-	type CbcKeyType: BlockEncryptMut
+	type AesKeyType: BlockEncryptMut
 		+ BlockDecryptMut
 		+ BlockEncrypt
 		+ BlockDecrypt
@@ -151,8 +158,26 @@ trait AesKey: Clone {
 	fn derive_subkeys(&self) -> AesSubKeys<Self>;
 }
 
+pub struct Nonce([u8; NONCE_BYTE_SIZE]);
+
+impl Nonce {
+	pub fn get_bytes(&self) -> &[u8] {
+		&self.0
+	}
+	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+		let nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
+		Self(nonce)
+	}
+
+	pub fn try_from_slice(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
+		let array = array_cast_slice(bytes, "Nonce")?;
+		Ok(Self(array))
+	}
+}
+
 /// An initialisation vector for AES encryption
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Tsify, Serialize, Deserialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the iv
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
@@ -171,6 +196,11 @@ impl Iv {
 	#[must_use]
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
 		Self(randomizer_facade.generate_random_array())
+	}
+
+	#[must_use]
+	pub fn from_arr(arr: [u8; IV_BYTE_SIZE]) -> Self {
+		Self(arr)
 	}
 
 	pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
@@ -245,11 +275,21 @@ pub enum AesDecryptError {
 	MacError(#[from] MacError),
 }
 
+/// Result of decryption operation.
+/// IV is usually part of the ciphertext. Returned iv is a part of the provided ciphertext.
+#[derive(Tsify, Serialize, Deserialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct PlaintextAndIv {
+	pub data: Vec<u8>,
+	// IV is small enough that a copy is the same size as a reference
+	pub iv: Iv,
+}
+
 /// Decrypt using AES-128-CBC using prepended IV with PKCS7 padding and optional HMAC-SHA-256
 pub fn aes_128_decrypt(
 	key: &Aes128Key,
 	encrypted_bytes: &[u8],
-) -> Result<Vec<u8>, AesDecryptError> {
+) -> Result<PlaintextAndIv, AesDecryptError> {
 	aes_decrypt(
 		key,
 		encrypted_bytes,
@@ -277,7 +317,7 @@ pub fn aes_128_decrypt_no_padding_fixed_iv(
 pub fn aes_256_decrypt(
 	key: &Aes256Key,
 	encrypted_bytes: &[u8],
-) -> Result<Vec<u8>, AesDecryptError> {
+) -> Result<PlaintextAndIv, AesDecryptError> {
 	aes_decrypt(
 		key,
 		encrypted_bytes,
@@ -290,7 +330,7 @@ pub fn aes_256_decrypt(
 pub fn aes_256_decrypt_no_padding(
 	key: &Aes256Key,
 	encrypted_bytes: &[u8],
-) -> Result<Vec<u8>, AesDecryptError> {
+) -> Result<PlaintextAndIv, AesDecryptError> {
 	aes_decrypt(
 		key,
 		encrypted_bytes,
@@ -304,6 +344,9 @@ pub const AES_256_KEY_SIZE: usize = 32;
 
 /// The size of an AES initialisation vector in bytes
 pub const IV_BYTE_SIZE: usize = 16;
+
+/// The size of an AES-CTR nonce in bytes
+pub const NONCE_BYTE_SIZE: usize = 16;
 
 /// Encrypts a plaintext without adding padding and returns the encrypted text as a vector
 fn encrypt_unpadded_vec_mut<C: BlockCipher + BlockEncryptMut>(
@@ -333,7 +376,7 @@ type Aes256SubKeys = AesSubKeys<Aes256Key>;
 
 impl<Key: AesKey> AesSubKeys<Key> {
 	fn compute_mac(&self, iv_and_ciphertext: &[u8]) -> [u8; HMAC_SHA256_SIZE] {
-		use crate::crypto::hmac::hmac_sha256;
+		use crate::hmac::hmac_sha256;
 		let generic_aes_key =
 			GenericAesKey::from_bytes(self.m_key.get_bytes()).expect("unimplemented key length");
 		hmac_sha256(&generic_aes_key, iv_and_ciphertext)
@@ -343,7 +386,7 @@ impl<Key: AesKey> AesSubKeys<Key> {
 		&self,
 		ciphertext_with_authentication: &CiphertextWithAuthentication,
 	) -> Result<(), MacError> {
-		use crate::crypto::hmac::verify_hmac_sha256;
+		use crate::hmac::verify_hmac_sha256;
 		let generic_aes_key =
 			GenericAesKey::from_bytes(self.m_key.get_bytes()).expect("unimplemented key length");
 		verify_hmac_sha256(
@@ -352,6 +395,22 @@ impl<Key: AesKey> AesSubKeys<Key> {
 			ciphertext_with_authentication.mac,
 		)
 	}
+}
+
+pub(super) fn aes_ctr_encrypt(key: &Aes256Key, plaintext: &[u8], nonce: &Nonce) -> Vec<u8> {
+	aes_ctr_apply(key, plaintext, nonce)
+}
+
+pub(super) fn aes_ctr_decrypt(key: &Aes256Key, ciphertext: &[u8], nonce: &Nonce) -> Vec<u8> {
+	aes_ctr_apply(key, ciphertext, nonce)
+}
+fn aes_ctr_apply(key: &Aes256Key, text: &[u8], nonce: &Nonce) -> Vec<u8> {
+	let mut buffer = text.to_vec();
+	let mut cipher =
+		ctr::Ctr128BE::<aes::Aes256>::new(key.get_bytes().into(), nonce.get_bytes().into());
+	cipher.apply_keystream(&mut buffer);
+
+	buffer
 }
 
 /// Generic AES-CBC function with optional PKCS7 padding and with optional HMAC-SHA support
@@ -366,13 +425,13 @@ fn aes_encrypt<Key: AesKey>(
 	// whether `c` needs to be derived for MAC s (note that no mac means no sub keys)
 	let (mut encryptor, sub_keys) = match mac_mode {
 		MacMode::NoMac => (
-			cbc::Encryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), &iv.0).unwrap(),
+			cbc::Encryptor::<Key::AesKeyType>::new_from_slices(key.get_bytes(), &iv.0).unwrap(),
 			None,
 		),
 		MacMode::WithMac => {
 			let sub_keys = key.derive_subkeys();
 			(
-				cbc::Encryptor::<Key::CbcKeyType>::new_from_slices(
+				cbc::Encryptor::<Key::AesKeyType>::new_from_slices(
 					sub_keys.c_key.get_bytes(),
 					&iv.0,
 				)
@@ -383,7 +442,7 @@ fn aes_encrypt<Key: AesKey>(
 	};
 
 	// Pad/verify block size
-	let block_size = <Key::CbcKeyType as BlockSizeUser>::block_size();
+	let block_size = <Key::AesKeyType as BlockSizeUser>::block_size();
 	let encrypted_data = match padding_mode {
 		PaddingMode::NoPadding => {
 			if plaintext.len() % block_size != 0 {
@@ -497,7 +556,7 @@ fn aes_decrypt<Key: AesKey>(
 	encrypted_bytes: &[u8],
 	padding_mode: PaddingMode,
 	enforce_mac: EnforceMac,
-) -> Result<Vec<u8>, AesDecryptError> {
+) -> Result<PlaintextAndIv, AesDecryptError> {
 	if encrypted_bytes.len() < IV_BYTE_SIZE {
 		return Err(AesDecryptError::InvalidDataSizeError);
 	}
@@ -521,18 +580,24 @@ fn aes_decrypt<Key: AesKey>(
 
 	// Return early if there is nothing to decrypt
 	if encrypted_bytes.is_empty() {
-		return Ok(vec![]);
+		return Ok(PlaintextAndIv {
+			data: vec![],
+			iv: Iv(iv_bytes.try_into().expect("iv is correct size")),
+		});
 	}
 
 	let mut decryptor =
-		cbc::Decryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), iv_bytes).unwrap();
+		cbc::Decryptor::<Key::AesKeyType>::new_from_slices(key.get_bytes(), iv_bytes).unwrap();
 	let plaintext_data = match padding_mode {
 		// Unpadded encrypted texts do not include the IV
 		PaddingMode::NoPadding => decrypt_unpadded_vec_mut(&mut decryptor, encrypted_bytes),
 		PaddingMode::WithPadding => decryptor.decrypt_padded_vec_mut::<Pkcs7>(encrypted_bytes)?,
 	};
 
-	Ok(plaintext_data)
+	Ok(PlaintextAndIv {
+		data: plaintext_data,
+		iv: Iv(iv_bytes.try_into().expect("iv is correct size")),
+	})
 }
 
 #[cfg(test)]
@@ -540,8 +605,8 @@ mod tests {
 	use base64::engine::Engine;
 	use base64::prelude::BASE64_STANDARD;
 
-	use crypto_primitives::compatibility_test_utils::*;
-	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
+	use crate::compatibility_test_utils::*;
+	use crate::randomizer_facade::test_util::make_thread_rng_facade;
 
 	use super::*;
 
@@ -611,7 +676,7 @@ mod tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let ciphertext = td.cipher_text_base64;
 
-			let decrypted_bytes = aes_128_decrypt(&key, &ciphertext).unwrap();
+			let decrypted_bytes = aes_128_decrypt(&key, &ciphertext).unwrap().data;
 
 			let expected_plaintext = td.plain_text_base64;
 			assert_eq!(expected_plaintext, decrypted_bytes);
@@ -652,7 +717,7 @@ mod tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let ciphertext = td.cipher_text_base64;
 
-			let decrypted_bytes = aes_128_decrypt(&key, &ciphertext).unwrap();
+			let decrypted_bytes = aes_128_decrypt(&key, &ciphertext).unwrap().data;
 
 			let expected_plaintext = td.plain_text_base64;
 			assert_eq!(
@@ -683,7 +748,7 @@ mod tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let ciphertext = td.cipher_text_base64;
 
-			let decrypted_bytes = aes_256_decrypt(&key, &ciphertext).unwrap();
+			let decrypted_bytes = aes_256_decrypt(&key, &ciphertext).unwrap().data;
 
 			let expected_plaintext = td.plain_text_base64;
 			assert_eq!(
@@ -714,8 +779,9 @@ mod tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let encrypted_key = td.encrypted_key256;
 
-			let decrypted_bytes =
-				aes_256_decrypt_no_padding(&key, encrypted_key.as_slice()).unwrap();
+			let decrypted_bytes = aes_256_decrypt_no_padding(&key, encrypted_key.as_slice())
+				.unwrap()
+				.data;
 
 			let expected_plain_key = td.key_to_encrypt256;
 			assert_eq!(expected_plain_key, decrypted_bytes);
@@ -741,8 +807,9 @@ mod tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let encrypted_key = td.encrypted_key128;
 
-			let decrypted_bytes =
-				aes_256_decrypt_no_padding(&key, encrypted_key.as_slice()).unwrap();
+			let decrypted_bytes = aes_256_decrypt_no_padding(&key, encrypted_key.as_slice())
+				.unwrap()
+				.data;
 
 			let expected_plain_key = td.key_to_encrypt128;
 			assert_eq!(expected_plain_key, decrypted_bytes);
@@ -795,5 +862,16 @@ mod tests {
 
 	fn reproduce_iv_from_injected_seed(seed: &Vec<u8>) -> Iv {
 		Iv(seed[..IV_BYTE_SIZE].try_into().unwrap())
+	}
+
+	#[test]
+	fn test_aes_ctr_round_trip() {
+		let randomizer = make_thread_rng_facade();
+		let key_256 = Aes256Key::generate(&randomizer);
+		let nonce = Nonce::generate(&randomizer);
+		let plaintext = "plaintextsdtzduipojükdhg8uij9r8hg8ijeqw0ü".as_bytes();
+		let ciphertext = aes_ctr_encrypt(&key_256, plaintext, &nonce);
+		let decrypted = aes_ctr_decrypt(&key_256, &ciphertext, &nonce);
+		assert_eq!(plaintext, &decrypted);
 	}
 }

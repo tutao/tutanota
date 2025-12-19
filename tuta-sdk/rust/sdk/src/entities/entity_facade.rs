@@ -1,6 +1,4 @@
-use crate::crypto::aes::Iv;
 use crate::crypto::crypto_facade::ResolvedSessionKey;
-use crate::crypto::key::GenericAesKey;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Errors;
@@ -8,15 +6,17 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelAssociation, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::util::array_cast_slice;
 use crate::{ApiCallError, TypeRef};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use core::str;
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
 use std::sync::Arc;
+use util::array::array_cast_slice;
 
 /// The name of the field that contains the session key encrypted
 /// by the owner group's key in an entity
@@ -660,8 +660,6 @@ mod tests {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
-	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
 	use crate::entities::entity_facade::{
@@ -678,6 +676,8 @@ mod tests {
 	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::{collection, ApiCallError};
+	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use std::collections::BTreeMap;

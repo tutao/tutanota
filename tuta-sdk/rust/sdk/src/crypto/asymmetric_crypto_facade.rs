@@ -1,8 +1,6 @@
-use crate::crypto::aes::{AesEncryptError, Iv};
+use super::key::RsaX25519PublicKeys;
 use crate::crypto::key::PublicKey::{RsaX25519, TutaCrypt};
-use crate::crypto::key::{
-	AsymmetricKeyPair, GenericAesKey, KeyLoadError, PublicKey, VersionedAesKey,
-};
+use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError, PublicKey, VersionedAesKey};
 use crate::crypto::kyber::KyberKeyError;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::public_key_provider::PublicKeyProvider;
@@ -10,7 +8,6 @@ use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingEr
 use crate::crypto::rsa::{RSAEncryptionError, RSAKeyError, RSAX25519KeyPair};
 use crate::crypto::tuta_crypt::{TutaCryptError, TutaCryptMessage, TutaCryptPublicKeys};
 use crate::crypto::x25519::{X25519KeyPair, X25519PublicKey};
-use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::{PubEncKeyData, PublicKeyPutIn};
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
@@ -20,15 +17,17 @@ use crate::services::service_executor::ServiceExecutor;
 use crate::services::ExtraServiceParams;
 use crate::tutanota_constants::CryptoProtocolVersion;
 use crate::tutanota_constants::EncryptionAuthStatus;
-use crate::util::ArrayCastingError;
 use crate::util::{convert_version_to_u64, Versioned};
 use crate::ApiCallError;
 use crate::GeneratedId;
+use crypto_primitives::aes::Aes256Key;
+use crypto_primitives::aes::{AesEncryptError, Iv};
+use crypto_primitives::key::GenericAesKey;
+use crypto_primitives::key::KeyDecryptError;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::sync::Arc;
+use util::array::ArrayCastingError;
 use zeroize::Zeroizing;
-
-use super::key::RsaX25519PublicKeys;
 
 fn get_sender_ecc_key(public_key: Versioned<PublicKey>) -> Option<X25519PublicKey> {
 	match public_key.object {
@@ -66,6 +65,7 @@ pub enum AsymmetricCryptoError {
 	RsaEncrypt(#[from] RSAEncryptionError),
 	TutaCrypt(#[from] TutaCryptError),
 	ArrayCasting(#[from] ArrayCastingError),
+	KeyDecrypting(#[from] KeyDecryptError),
 	KeyLoading(#[from] KeyLoadError),
 	KeyParsing(String),
 	RsaKey(#[from] RSAKeyError),
@@ -600,11 +600,10 @@ mod tests {
 	}
 
 	mod decrypt_sym_key_with_key_pair_and_authenticate {
-		use crate::crypto::aes::Iv;
 		use crate::crypto::asymmetric_crypto_facade::tests::make_asymmetric_crypto_facade;
 		use crate::crypto::asymmetric_crypto_facade::tests::setup_authentication_test;
 		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
-		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, PublicKey};
+		use crate::crypto::key::{AsymmetricKeyPair, PublicKey};
 		use crate::crypto::kyber::KyberPublicKey;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::{TutaCryptMessage, TutaCryptPublicKeys};
@@ -616,6 +615,8 @@ mod tests {
 		use crate::tutanota_constants::PublicKeyIdentifierType;
 		use crate::util::test_utils::{get_kyber_pub_key_bytes, get_x25519_pub_key_bytes};
 		use crate::util::Versioned;
+		use crypto_primitives::aes::Iv;
+		use crypto_primitives::key::GenericAesKey;
 		use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 		use mockall::predicate::eq;
 
@@ -740,16 +741,17 @@ mod tests {
 	}
 
 	mod decrypt_sym_key_with_key_pair {
-		use crate::crypto::aes::Iv;
 		use crate::crypto::asymmetric_crypto_facade::{
 			AsymmetricCryptoError, AsymmetricCryptoFacade,
 		};
-		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+		use crate::crypto::key::AsymmetricKeyPair;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::TutaCryptMessage;
 		use crate::crypto::x25519::X25519KeyPair;
 		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 		use crate::tutanota_constants::CryptoProtocolVersion;
+		use crypto_primitives::aes::Iv;
+		use crypto_primitives::key::GenericAesKey;
 		use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 		#[tokio::test]

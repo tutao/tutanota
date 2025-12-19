@@ -1,0 +1,15 @@
+[package]
+name = "util"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+publish.workspace = true
+
+[dependencies]
+thiserror = "2.0.18"
+
+[lints]
+workspace = true
