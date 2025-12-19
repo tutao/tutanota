@@ -50,9 +50,10 @@ export type LoginTextFieldAttrs = {
 
 	/** This is called whenever the return key is pressed; overrides keyHandler */
 	onReturnKeyPressed?: () => unknown
+	minLineCount?: number // Only evaluated if type is Area
 }
 
-const inputMarginTop = font_size.small + size.spacing_4 + 3
+const inputMarginTop = font_size.small + size.spacing_12 + 2
 
 // this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
 const baseLabelPosition = "-50%"
@@ -77,7 +78,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 	view(vnode: CVnode<LoginTextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
-		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft
+		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft && a.type !== TextFieldType.Area
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = 3
@@ -345,14 +346,14 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement
 					this.domInput.value = a.value
-					this.domInput.style.height = px(Math.max(a.value.split("\n").length, 1) * font_size.line_height_input) // display all lines on creation of text area
+					this.domInput.style.height = px(Math.max(a.value.split("\n").length, a.minLineCount ?? 1) * font_size.line_height_input) // display all lines on creation of text area
 				},
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
 				onkeydown: (e: KeyboardEvent) => useKeyHandler(e, a.keyHandler),
 				oninput: () => {
 					this.domInput.style.height = "0px"
-					this.domInput.style.height = px(this.domInput.scrollHeight)
+					this.domInput.style.height = px(Math.max(this.domInput.scrollHeight, (a.minLineCount ?? 1) * font_size.line_height_input))
 					a.oninput?.(this.domInput.value, this.domInput)
 				},
 				onupdate: () => {

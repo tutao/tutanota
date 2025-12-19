@@ -235,11 +235,11 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					: m(this.SignupWizard, {
 							steps: [
 								// FIXME: Just for styling purpose
-								{
-									title: "UI testing",
-									content: InvoiceAndPaymentDataPageNew,
-									onNext: () => console.log("another next action"),
-								},
+								// {
+								// 	title: "UI testing",
+								// 	content: InvoiceAndPaymentDataPageNew,
+								// 	onNext: () => console.log("another next action"),
+								// },
 								{
 									title: "Select Plan",
 									content: PlanSelectorPage,

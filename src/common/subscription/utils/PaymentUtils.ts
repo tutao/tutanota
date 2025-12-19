@@ -281,7 +281,7 @@ export function getVisiblePaymentMethods({
 	// show bank transfer in case of business use, even if it is not available for the selected country
 	if ((isBusiness && isBankTransferAllowed) || accountingInfo?.paymentMethod === PaymentMethodType.Invoice) {
 		availablePaymentMethods.push({
-			name: lang.get("paymentMethodOnAccount_label"),
+			name: lang.get("invoice_label"),
 			value: PaymentMethodType.Invoice,
 		})
 	}

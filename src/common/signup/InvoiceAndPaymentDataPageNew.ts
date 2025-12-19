@@ -3,7 +3,7 @@ import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { lang } from "../misc/LanguageViewModel"
 import { PaymentMethodType } from "../api/common/TutanotaConstants"
-import { Countries, Country } from "../api/common/CountryList"
+import { Countries, Country, CountryType } from "../api/common/CountryList"
 import { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog } from "../gui/base/Dialog"
@@ -26,7 +26,7 @@ import { BootIcons } from "../gui/base/icons/BootIcons"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
-import { TextArea, TextAreaAttrs } from "../gui/base/TextArea"
+import { TextFieldType } from "../gui/base/TextField"
 
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
@@ -42,6 +42,9 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	}
 
 	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
+		// fixme: take out before relase - only for developing!
+		vnode.attrs.ctx.viewModel.options.businessUse(true)
+
 		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
 				const country = Countries.find((c) => c.a === location.country)
@@ -150,9 +153,15 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				onSelectionChanged: (country: Country) => {
 					ctx.viewModel.updateInvoiceCountry(country)
 					ctx.markComplete(false)
+
+					if (country.t !== CountryType.EU) {
+						ctx.viewModel.invoiceData.vatNumber = ""
+					}
 				},
 				label: "billingCountry_label",
 			}),
+
+			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
 			m(
 				`.flex-shrink${styles.isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
 				m(LoginButton, {
@@ -241,9 +250,14 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 					onSelectionChanged: (country: Country) => {
 						ctx.viewModel.updateInvoiceCountry(country)
 						ctx.markComplete(false)
+
+						if (country.t !== CountryType.EU) {
+							ctx.viewModel.invoiceData.vatNumber = ""
+						}
 					},
 					label: "billingCountry_label",
 				}),
+				ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
 				m(`.flex.justify-between.full-width${this.formGap}.wrap`, [
 					isPaypalConnected &&
 						m(
@@ -287,34 +301,64 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		])
 	}
 
-	private renderInvoiceForm({ viewModel }: WizardStepContext<SignupViewModel>): Children {
-		return m(
-			"",
-			m("", [
-				m(
-					".pt-16",
-					// m(LoginTextField, {
-					// 	label: "invoiceAddress_label",
-					// 	value: viewModel.invoiceData.invoiceAddress,
-					// 	oninput: (value) => (viewModel.invoiceData = { ...viewModel.invoiceData, invoiceAddress: value }),
-					// 	type: TextFieldType.Area,
-					// }),
-					m(TextArea, {
-						ariaLabel: lang.getTranslationText("invoiceAddress_label"),
-						value: viewModel.invoiceData.invoiceAddress,
-						oninput: (value) => (viewModel.invoiceData = { ...viewModel.invoiceData, invoiceAddress: value }),
-					} satisfies TextAreaAttrs),
-					m(".small", lang.getTranslationText("invoiceAddressInfoBusiness_msg")),
-				),
-			]),
-			m(LoginTextField, {
-				label: "invoiceVatIdNo_label",
-				value: viewModel.invoiceData.vatNumber,
-				// FIXME: only available for EU countries
-				oninput: (value) => (viewModel.invoiceData = { ...viewModel.invoiceData, vatNumber: value }),
-				helpLabel: () => lang.getTranslationText("invoiceVatIdNoInfoBusiness_msg"),
+	private renderInvoiceForm(ctx: WizardStepContext<SignupViewModel>): Children {
+		return m(`.flex.col${this.formGap}`, [
+			renderCountryDropdownNew({
+				selectedCountry: ctx.viewModel.invoiceData.country,
+				onSelectionChanged: (country: Country) => {
+					ctx.viewModel.updateInvoiceCountry(country)
+					ctx.markComplete(false)
+
+					if (country.t !== CountryType.EU) {
+						ctx.viewModel.invoiceData.vatNumber = ""
+					}
+				},
+				label: "billingCountry_label",
 			}),
-		)
+			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
+			m(
+				`.flex-shrink${styles.isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
+				m(LoginButton, {
+					label: "continue_action",
+					size: "md",
+					width: "flex",
+					onclick: () => {
+						this.onAddPaymentData(ctx)
+					},
+					disabled: !ctx.viewModel.invoiceData.country,
+				}),
+			),
+		])
+	}
+
+	private renderBusinessAddressFields(ctx: WizardStepContext<SignupViewModel>): Children {
+		return m(".full-width", [
+			m(
+				"",
+				m(LoginTextField, {
+					label: "invoiceAddress_label",
+					value: ctx.viewModel.invoiceData.invoiceAddress,
+					oninput: (value) => (ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, invoiceAddress: value }),
+					type: TextFieldType.Area,
+					minLineCount: 5,
+					class: "",
+				}),
+				m(".small", lang.getTranslationText("invoiceAddressInfoBusiness_msg")),
+			),
+			this.isVatIdFieldVisible(ctx) &&
+				m(LoginTextField, {
+					label: "invoiceVatIdNo_label",
+					value: ctx.viewModel.invoiceData.vatNumber,
+					// FIXME: only available for EU countries
+					oninput: (value) => (ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, vatNumber: value }),
+					helpLabel: () => lang.getTranslationText("invoiceVatIdNoInfoBusiness_msg"),
+				}),
+		])
+	}
+
+	private isVatIdFieldVisible(ctx: WizardStepContext<SignupViewModel>): boolean {
+		const selectedCountry = ctx.viewModel.invoiceData.country
+		return ctx.viewModel.options.businessUse() && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 }
 
