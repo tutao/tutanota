@@ -22,6 +22,7 @@ import android.util.Log
 import android.view.ContextMenu
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
 import android.webkit.PermissionRequest
@@ -33,6 +34,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
 import android.webkit.WebViewClient
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.annotation.MainThread
@@ -102,6 +104,7 @@ interface WebauthnHandler {
 
 
 class MainActivity : FragmentActivity() {
+	lateinit var linearLayout: LinearLayout
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -133,6 +136,8 @@ class MainActivity : FragmentActivity() {
 			createAndroidKeyStoreFacade()
 		)
 
+		linearLayout = LinearLayout(this)
+
 		// On top before CalendarFacade because we need the user agent to sync external calendars
 		webView = WebView(this)
 
@@ -161,7 +166,8 @@ class MainActivity : FragmentActivity() {
 		themeFacade = AndroidThemeFacade(this, this)
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
-		commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
+		commonSystemFacade =
+			AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
@@ -310,7 +316,19 @@ class MainActivity : FragmentActivity() {
 		// Handle long click on links in the WebView
 		registerForContextMenu(webView)
 
-		setContentView(webView)
+		//to make the webView edge-to-edge add the statusBar and bottomNavigation height as top and bottom padding to its parent linearLayout
+		val navigationBarHeight = getBarHeight("navigation_bar_height")
+		val statusBarHeight = getBarHeight("status_bar_height")
+
+		linearLayout.setPadding(0, statusBarHeight, 0, navigationBarHeight)
+
+		webView.setLayoutParams(
+			ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+		)
+
+		linearLayout.addView(webView)
+
+		setContentView(linearLayout)
 
 		// Set callback for back press
 		onBackPressedDispatcher.addCallback(this) {
@@ -357,6 +375,15 @@ class MainActivity : FragmentActivity() {
 		firstLoaded = true
 	}
 
+	// return the statusBar/BottomNavigationBar height
+	private fun getBarHeight(sectionName: String): Int {
+		var result = 0
+		val resourceId = resources.getIdentifier(sectionName, "dimen", "android")
+		if (resourceId > 0) {
+			result = resources.getDimensionPixelSize(resourceId)
+		}
+		return result
+	}
 
 	/** @return "result" extra value */
 	suspend fun startWebauthn(uri: Uri): String {
