@@ -205,9 +205,10 @@ class KeyManager {
 	}
 
 	private handleKeydown(e: KeyboardEvent): void {
-		// If we get a keyboard event while in a composition system (such as an input method editor),
-		// it should be ignored (since the system should be handling key commands for that).
+		if (m.route.get() === "/signup") return
 		if (!e.isComposing) {
+			// If we get a keyboard event while in a composition system (such as an input method editor),
+			// it should be ignored (since the system should be handling key commands for that).
 			const keysToShortcuts = this.keyToModalShortcut.size > 1 ? this.keyToModalShortcut : this.keyToShortcut
 			const keyPress = keyboardEventToKeyPress(e)
 			const shortcut = keyPress.key ? keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), keyPress)) : null

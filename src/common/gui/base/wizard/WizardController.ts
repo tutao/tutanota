@@ -65,12 +65,10 @@ export class WizardController {
 		m.redraw()
 	}
 
-	public next(): void {
-		this.setStep(this._currentStep + 1)
-	}
-
-	public prev(): void {
-		this.setStep(this._currentStep - 1)
+	public setStepUnreachable(index: number): void {
+		if (index >= this._steps.length) return
+		this._steps[index].isReachable = false
+		m.redraw()
 	}
 
 	public setStepLabel(index: number, label: string): void {

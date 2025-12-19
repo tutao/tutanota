@@ -42,9 +42,6 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	}
 
 	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
-		// fixme: take out before relase - only for developing!
-		vnode.attrs.ctx.viewModel.options.businessUse(true)
-
 		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
 				const country = Countries.find((c) => c.a === location.country)
@@ -55,18 +52,13 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				}
 			}
 		})
+		m.redraw()
 	}
 
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
 		const ctx = vnode.attrs.ctx
-		// const visiblePaymentMethods = getVisiblePaymentMethods({
-		// 	isBusiness: ctx.viewModel.options.businessUse(),
-		// 	isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
-		// 	accountingInfo: ctx.viewModel.accountingInfo,
-		// })
-		// FIXME: only for testing
 		const visiblePaymentMethods = getVisiblePaymentMethods({
-			isBusiness: true,
+			isBusiness: ctx.viewModel.options.businessUse(),
 			isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
 			accountingInfo: ctx.viewModel.accountingInfo,
 		})
@@ -93,7 +85,9 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 					m(RadioSelector, {
 						groupName: "credentialsEncryptionMode_label",
 						options,
-						selectedOption: ctx.viewModel.paymentData.paymentMethod,
+						selectedOption: options.some((e) => e.value === ctx.viewModel.paymentData.paymentMethod)
+							? ctx.viewModel.paymentData.paymentMethod
+							: options[0].value,
 						onOptionSelected: (method: PaymentMethodType | null) => {
 							if (method == null) {
 								// Theoretically this can never happen. We fall back to Credit Card just in case
@@ -224,6 +218,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				neverNull(data.price?.rawPrice),
 				neverNull(data.accountingInfo),
 			)
+			if (!success) ctx.viewModel.accountingInfo!.paypalBillingAgreement = null
 
 			if (success && !this._hasClickedNext) {
 				this._hasClickedNext = true
@@ -338,7 +333,10 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				m(LoginTextField, {
 					label: "invoiceAddress_label",
 					value: ctx.viewModel.invoiceData.invoiceAddress,
-					oninput: (value) => (ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, invoiceAddress: value }),
+					oninput: (value) => {
+						ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, invoiceAddress: value }
+						ctx.viewModel.accountingInfo!.paypalBillingAgreement = null
+					},
 					type: TextFieldType.Area,
 					minLineCount: 5,
 					class: "",
@@ -350,7 +348,10 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 					label: "invoiceVatIdNo_label",
 					value: ctx.viewModel.invoiceData.vatNumber,
 					// FIXME: only available for EU countries
-					oninput: (value) => (ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, vatNumber: value }),
+					oninput: (value) => {
+						ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, vatNumber: value }
+						ctx.viewModel.accountingInfo!.paypalBillingAgreement = null
+					},
 					helpLabel: () => lang.getTranslationText("invoiceVatIdNoInfoBusiness_msg"),
 				}),
 		])

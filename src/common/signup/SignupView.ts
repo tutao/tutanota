@@ -1,7 +1,6 @@
 import m, { Vnode } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
-import { windowFacade } from "../misc/WindowFacade.js"
 import { LoginViewModel } from "../login/LoginViewModel.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
@@ -37,6 +36,7 @@ import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
+import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -300,13 +300,17 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 											completeUpgradeStage(this.wizardViewModel.currentPlan!, this.wizardViewModel.targetPlanType)
 										}
 									},
-									onPrev: () => SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD),
+									onPrev: (ctx) => {
+										SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD)
+										ctx.controller.setStepUnreachable(ctx.controller.currentStep)
+									},
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},
 								{
 									title: "Recovery Kit",
 									content: RecoveryKitPage,
 									onNext: () => console.log("another next action"),
+									isBackButtonEnabled: () => false,
 								},
 							],
 							viewModel: this.wizardViewModel,

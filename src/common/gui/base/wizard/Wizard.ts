@@ -140,7 +140,12 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 								showProgress(controller.currentStep) &&
 								m(WizardProgress, {
 									progressState,
-									onClick: (index) => controller.setStep(index),
+									onClick: (index) => {
+										if (index < 3) {
+											controller.setStepUnreachable(3)
+										}
+										controller.setStep(index)
+									},
 								}),
 							m(
 								"",

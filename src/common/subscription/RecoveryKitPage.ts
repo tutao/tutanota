@@ -16,6 +16,7 @@ import { Checkbox } from "../gui/base/Checkbox"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private acceptedWarning: boolean = false
@@ -32,18 +33,18 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 	}
 
 	view({ attrs }: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
-		// const { newAccountData } = attrs.ctx.viewModel
-		// assertNotNull(newAccountData)
+		const { newAccountData } = attrs.ctx.viewModel
+		assertNotNull(newAccountData)
 
 		// fixme: remove before release
-		let newAccountData
-		if (!newAccountData) {
-			newAccountData = {
-				recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
-				mailAddress: "placeholderplaceholderplaceholder@tuta.de",
-				password: "dfkjkdfjkdfjkjdf:w",
-			}
-		}
+		// let newAccountData
+		// if (!newAccountData) {
+		// 	newAccountData = {
+		// 		recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
+		// 		mailAddress: "placeholderplaceholderplaceholder@tuta.de",
+		// 		password: "dfkjkdfjkdfjkjdf:w",
+		// 	}
+		// }
 		const titleTextPos = styles.isMobileLayout() ? ".text-center" : ".left"
 
 		return m(".flex.flex-column.full-width", [

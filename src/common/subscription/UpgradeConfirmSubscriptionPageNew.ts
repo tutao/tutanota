@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
+import { AccountType, AvailablePlanType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
@@ -29,8 +29,23 @@ import { IconButton } from "../gui/base/IconButton"
 import { styles } from "../gui/styles"
 import { getTutaLogo } from "../gui/base/Logo"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
+import { AllIcons } from "../gui/base/Icon"
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
+	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
+		[PlanType.Free]: Icons.Revo,
+		[PlanType.Revolutionary]: Icons.Revo,
+		[PlanType.Legend]: Icons.Legend,
+		[PlanType.Essential]: Icons.BusinessEssential,
+		[PlanType.Advanced]: Icons.BusinessAdvanced,
+		[PlanType.Unlimited]: Icons.BusinessUnlimited,
+	}
+
+	private _setStep(ctx: WizardStepContext<SignupViewModel>, index: number) {
+		ctx.controller.setStepUnreachable(ctx.controller.currentStep)
+		ctx.controller.setStep(index)
+	}
+
 	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
 		const data = ctx.viewModel
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
@@ -67,7 +82,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								isReadOnly: true,
 								class: "",
 								leadingIcon: {
-									icon: data.targetPlanType === PlanType.Revolutionary ? Icons.Revo : Icons.Legend,
+									icon: this.iconByPlanType[data.targetPlanType as AvailablePlanType],
 									color: theme.on_surface_variant,
 								},
 								injectionsRight: () => {
@@ -75,7 +90,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											ctx.controller.setStep(0)
+											this._setStep(ctx, 0)
 										},
 									})
 								},
@@ -95,7 +110,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											ctx.controller.setStep(2)
+											this._setStep(ctx, 2)
 										},
 									})
 								},
@@ -115,7 +130,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 											icon: Icons.Edit,
 											title: "edit_action",
 											click: () => {
-												ctx.controller.setStep(2)
+												this._setStep(ctx, 2)
 											},
 										})
 									},
@@ -135,7 +150,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											ctx.controller.setStep(0)
+											this._setStep(ctx, 0)
 										},
 									})
 								},
@@ -223,7 +238,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		})
 		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
 			// Order confirmation (click on Buy), send selected payment method as an enum
-			.then(() => ctx.controller.next())
+			.then(() => ctx.goNext())
 			.catch(
 				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
