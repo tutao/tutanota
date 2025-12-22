@@ -233,6 +233,10 @@ import("./translations/en.js")
 								return quickContactsActions(mailLocator.contactModel, mailLocator.throttledRouter(), mailLocator.entityClient)
 							})
 							model.register(async () => {
+								const { quickDriveActions } = await import("../drive-app/drive/model/DriveQuickActions.js")
+								return quickDriveActions(mailLocator.throttledRouter(), await mailLocator.driveViewModel())
+							})
+							model.register(async () => {
 								const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")
 								return quickSettingsActions(mailLocator.throttledRouter(), mailLocator.logins)
 							})

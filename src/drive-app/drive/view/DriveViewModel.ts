@@ -174,7 +174,7 @@ export class DriveViewModel {
 		private readonly eventController: EventController,
 		private readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
-		private readonly updateUi: () => unknown,
+		public readonly updateUi: () => unknown,
 	) {
 		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade, updateUi)
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
