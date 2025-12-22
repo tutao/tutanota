@@ -10,6 +10,8 @@ import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { isApp } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
 import { getTutaLogo } from "../gui/base/Logo.js"
+import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
+import { client } from "../misc/ClientDetector"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -50,7 +52,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 				m("p.text-center.mlr-12", "GPL-v3"),
 				m("p", "© 2025 Tutao GmbH"),
 			]),
-			this._sendLogsLink(),
+			this.logsLink(),
 			// wrap it in a div so that it's not filling the whole width
 			isApp()
 				? m(
@@ -65,12 +67,32 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 		])
 	}
 
-	_sendLogsLink(): Children {
+	logsLink(): Children {
+		if (client.isMailApp()) {
+			// Sending logs opens a mail editor, we only want to do this in an app that handles mail
+			return this.sendLogsLink()
+		} else {
+			return this.getLogsLink()
+		}
+	}
+
+	sendLogsLink(): Children {
 		return m(
 			".mt-16",
 			m(Button, {
 				label: "sendLogs_action",
 				click: () => this._sendDeviceLogs(),
+				type: ButtonType.Primary,
+			}),
+		)
+	}
+
+	getLogsLink(): Children {
+		return m(
+			".mt-16",
+			m(Button, {
+				label: "getLogs_action",
+				click: () => prepareLogContent().then((logInfo) => showLogsDialog(logInfo)),
 				type: ButtonType.Primary,
 			}),
 		)
