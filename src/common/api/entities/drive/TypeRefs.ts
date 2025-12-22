@@ -282,7 +282,7 @@ export type DriveRenameData = {
 
 	_id: Id;
 	encNewName: null | Uint8Array;
-	encNewDate: null | Uint8Array;
+	newDate: null | Date;
 
 	file: null | IdTuple;
 	folder: null | IdTuple;

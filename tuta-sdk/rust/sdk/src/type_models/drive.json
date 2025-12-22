@@ -81,7 +81,7 @@
 				"id": 10,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"11": {
 				"final": true,
@@ -89,7 +89,7 @@
 				"id": 11,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -212,7 +212,7 @@
 				"id": 25,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"26": {
 				"final": true,
@@ -220,7 +220,7 @@
 				"id": 26,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -511,7 +511,7 @@
 				"id": 59,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"60": {
 				"final": true,
@@ -519,7 +519,7 @@
 				"id": 60,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"61": {
 				"final": true,
@@ -651,7 +651,7 @@
 				"id": 73,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -751,7 +751,7 @@
 				"id": 84,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"85": {
 				"final": true,
@@ -759,7 +759,7 @@
 				"id": 85,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"86": {
 				"final": true,
@@ -946,9 +946,9 @@
 			},
 			"105": {
 				"final": true,
-				"name": "encNewDate",
+				"name": "newDate",
 				"id": 105,
-				"type": "Bytes",
+				"type": "Date",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}

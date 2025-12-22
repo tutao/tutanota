@@ -269,27 +269,25 @@ export class DriveFacade {
 	}
 
 	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder): Promise<void> {
-		const date = new Date()
+		const newDate = new Date()
 
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
-			const encNewDate = this.cryptoWrapper.encryptString(sk, date.getTime().toString())
 			const encNewName = this.cryptoWrapper.encryptString(sk, file.name)
 			return createDriveRenameData({
 				file: file._id,
 				folder: null,
-				encNewDate: encNewDate,
+				newDate,
 				encNewName,
 			})
 		})
 		const folderItems = await promiseMap(folders, async (folder) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))
-			const encNewDate = this.cryptoWrapper.encryptString(sk, date.getTime().toString())
 			const encNewName = this.cryptoWrapper.encryptString(sk, folder.name)
 			return createDriveRenameData({
 				file: null,
 				folder: folder._id,
-				encNewDate: encNewDate,
+				newDate,
 				encNewName,
 			})
 		})

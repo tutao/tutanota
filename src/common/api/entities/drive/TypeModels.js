@@ -88,7 +88,7 @@ export const typeModels = {
 				"id": 10,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"11": {
 				"final": true,
@@ -96,7 +96,7 @@ export const typeModels = {
 				"id": 11,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -219,7 +219,7 @@ export const typeModels = {
 				"id": 25,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"26": {
 				"final": true,
@@ -227,7 +227,7 @@ export const typeModels = {
 				"id": 26,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -518,7 +518,7 @@ export const typeModels = {
 				"id": 59,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"60": {
 				"final": true,
@@ -526,7 +526,7 @@ export const typeModels = {
 				"id": 60,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"61": {
 				"final": true,
@@ -658,7 +658,7 @@ export const typeModels = {
 				"id": 73,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -758,7 +758,7 @@ export const typeModels = {
 				"id": 84,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"85": {
 				"final": true,
@@ -766,7 +766,7 @@ export const typeModels = {
 				"id": 85,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"86": {
 				"final": true,
@@ -953,9 +953,9 @@ export const typeModels = {
 			},
 			"105": {
 				"final": true,
-				"name": "encNewDate",
+				"name": "newDate",
 				"id": 105,
-				"type": "Bytes",
+				"type": "Date",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}

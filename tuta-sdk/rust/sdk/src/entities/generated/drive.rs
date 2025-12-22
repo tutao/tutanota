@@ -419,8 +419,7 @@ pub struct DriveRenameData {
 	#[serde(with = "serde_bytes")]
 	pub encNewName: Option<Vec<u8>>,
 	#[serde(rename = "105")]
-	#[serde(with = "serde_bytes")]
-	pub encNewDate: Option<Vec<u8>>,
+	pub newDate: Option<DateTime>,
 	#[serde(rename = "106")]
 	pub file: Option<IdTupleGenerated>,
 	#[serde(rename = "107")]
