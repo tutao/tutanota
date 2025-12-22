@@ -1,13 +1,11 @@
 import m, { Children } from "mithril"
-import { isApp, isDesktop } from "../api/common/Env.js"
+import { isApp } from "../api/common/Env.js"
 import { ExternalLink } from "./base/ExternalLink.js"
 import { InfoLink, lang } from "../misc/LanguageViewModel.js"
 import { createDropdown } from "./base/Dropdown.js"
 import { mapNullable } from "@tutao/tutanota-utils"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { locator } from "../api/main/CommonLocator.js"
-import { clientInfoString } from "../misc/ErrorReporter.js"
-import { showLogsDialog } from "./LogDialogUtils.js"
+import { prepareLogContent, showLogsDialog } from "./LogDialogUtils.js"
 import { LanguageDropdown } from "./LanguageDropdown"
 
 export function renderInfoLinks(): Children {
@@ -68,30 +66,4 @@ function showVersionDropdown(e: MouseEvent) {
 			},
 		],
 	})(e, e.target as HTMLElement)
-}
-
-async function prepareLogContent() {
-	const entries: string[] = []
-	if (window.logger) {
-		entries.push(`== MAIN LOG ==
-${window.logger.getEntries().join("\n")}
-`)
-	}
-	const workerLog = await locator.workerFacade.getLog()
-	if (workerLog.length > 0) {
-		entries.push(`== WORKER LOG ==
-${workerLog.join("\n")}
-`)
-	}
-
-	if (isDesktop() || isApp()) {
-		entries.push(`== NATIVE LOG ==
-${await locator.commonSystemFacade.getLog()}
-`)
-	}
-	let { message, type, client } = clientInfoString(new Date(), false)
-	return `v${env.versionNumber} - ${client}
-${message}
-
-${entries.join("\n")}`
 }
