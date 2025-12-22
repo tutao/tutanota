@@ -104,6 +104,13 @@ export class ApplicationWindow {
 					help: "resetZoomFactor_action",
 				},
 				{
+					key: Keys.W,
+					ctrl: !isMac,
+					meta: isMac,
+					exec: () => this._browserWindow.close(),
+					help: "close_alt",
+				},
+				{
 					key: Keys.Q,
 					ctrl: !isMac,
 					meta: isMac,
