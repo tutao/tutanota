@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel, FolderItem } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel, FolderFolderItem, FolderItem, FolderItemId } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
 import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
@@ -14,8 +14,9 @@ import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../RootView"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../common/gui/base/Dropdown"
-import { newItemActions } from "./DriveGuiUtils"
+import { newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../common/gui/base/Modal"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -69,6 +70,24 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			onNewFolder,
 		},
 	}: Vnode<DriveFolderViewAttrs>): Children {
+		// FIXME: We need to depend on driveViewModel, but should still a better place for this.
+		const onMove = (items: FolderItemId[], into: FolderFolderItem) => {
+			const [files, folders] = partition(items, (item) => item.type === "file")
+			driveViewModel.move(
+				files.map((item) => item.id),
+				folders.map((item) => item.id),
+				into,
+			)
+		}
+		const onDropInto = (item: FolderItem, event: DragEvent) => {
+			console.log(event.dataTransfer)
+			const itemsData = event.dataTransfer?.getData(DropType.DriveItems)
+			if (item.type === "folder" && itemsData) {
+				const dragItems = parseDragItems(itemsData)
+				if (dragItems) onMove(dragItems, item)
+			}
+		}
+
 		return m(
 			"div.col.flex.plr-8.fill-absolute",
 			{
@@ -119,6 +138,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				currentFolder,
 				parents,
 				loadParents,
+				onDropInto,
 			}),
 			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
 				? this.renderEmptyView(currentFolder)
@@ -160,14 +180,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						onSort: (newSortingOrder) => {
 							driveViewModel.sort(newSortingOrder)
 						},
-						onMove: (items, into) => {
-							const [files, folders] = partition(items, (item) => item.type === "file")
-							driveViewModel.move(
-								files.map((item) => item.id),
-								folders.map((item) => item.id),
-								into,
-							)
-						},
+						onDropInto,
 						selection,
 						listState,
 						selectionEvents,
