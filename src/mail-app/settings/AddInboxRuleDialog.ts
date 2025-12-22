@@ -97,6 +97,9 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			const props = locator.logins.getUserController().props
 			const inboxRules = props.inboxRules
 			const ruleId = ruleOrTemplate._id
+			if (ruleId) {
+				rule._id = ruleId
+			}
 			props.inboxRules = ruleId == null ? [...inboxRules, rule] : inboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? rule : inboxRule))
 
 			locator.entityClient
