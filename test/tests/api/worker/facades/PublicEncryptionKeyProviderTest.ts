@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { matchers, object, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import {
 	MaybeSignedPublicKey,
@@ -28,6 +28,7 @@ import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/Ke
 import { PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
+import { PublicEncryptionKeyCache } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyCache"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
@@ -42,11 +43,13 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 	let x25519PublicKey: Uint8Array
 	let kyberPublicKey: Uint8Array
 	let keyVerificationFacade: KeyVerificationFacade
+	let publicEncryptionKeyCache: PublicEncryptionKeyCache
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		keyVerificationFacade = object()
-		publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade)
+		publicEncryptionKeyCache = object()
+		publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade, publicEncryptionKeyCache)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
@@ -152,10 +155,41 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		})
 	})
 
-	o.spec("loadPubKey", function () {
+	o.spec("loadPublicEncryptionKey", function () {
 		const requestedVersion = 1
 
 		o("success", async function () {
+			let publicKeyGetOut = createPublicKeyGetOut({
+				pubKeyVersion: String(requestedVersion),
+				pubRsaKey: null,
+				pubKyberKey: kyberPublicKey,
+				pubEccKey: x25519PublicKey,
+				signature: object(),
+			})
+			when(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything())).thenReturn(undefined)
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+
+			const expectedPublicKey: MaybeSignedPublicKey = {
+				publicKey: {
+					version: 1,
+					object: {
+						keyPairType: KeyPairType.TUTA_CRYPT,
+						x25519PublicKey: x25519PublicKey,
+						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
+					},
+				},
+				signature: publicKeyGetOut.signature,
+			}
+
+			let expectedResult: VerifiedPublicEncryptionKey = object()
+			when(keyVerificationFacade.verify(publicKeyIdentifier, expectedPublicKey)).thenResolve(expectedResult)
+
+			const pubKeys = await publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion)
+			o(pubKeys).deepEquals(expectedResult)
+			verify(publicEncryptionKeyCache.put(publicKeyIdentifier, expectedPublicKey))
+		})
+
+		o("no version provided bypasses the cache but still puts the result", async function () {
 			let publicKeyGetOut = createPublicKeyGetOut({
 				pubKeyVersion: String(requestedVersion),
 				pubRsaKey: null,
@@ -180,8 +214,43 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			let expectedResult: VerifiedPublicEncryptionKey = object()
 			when(keyVerificationFacade.verify(publicKeyIdentifier, expectedPublicKey)).thenResolve(expectedResult)
 
+			const pubKeys = await publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, null)
+			o(pubKeys).deepEquals(expectedResult)
+			verify(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(serviceExecutor.get(PublicKeyService, matchers.anything()))
+			verify(publicEncryptionKeyCache.put(publicKeyIdentifier, expectedPublicKey))
+		})
+
+		o("cache is used to prevent service requests", async function () {
+			let publicKeyGetOut = createPublicKeyGetOut({
+				pubKeyVersion: String(requestedVersion),
+				pubRsaKey: null,
+				pubKyberKey: kyberPublicKey,
+				pubEccKey: x25519PublicKey,
+				signature: object(),
+			})
+			const expectedPublicKey: MaybeSignedPublicKey = {
+				publicKey: {
+					version: 1,
+					object: {
+						keyPairType: KeyPairType.TUTA_CRYPT,
+						x25519PublicKey: x25519PublicKey,
+						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
+					},
+				},
+				signature: publicKeyGetOut.signature,
+			}
+			when(publicEncryptionKeyCache.get(publicKeyIdentifier, requestedVersion)).thenReturn(expectedPublicKey)
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+
+			let expectedResult: VerifiedPublicEncryptionKey = object()
+			when(keyVerificationFacade.verify(publicKeyIdentifier, expectedPublicKey)).thenResolve(expectedResult)
+
 			const pubKeys = await publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion)
 			o(pubKeys).deepEquals(expectedResult)
+			verify(publicEncryptionKeyCache.get(publicKeyIdentifier, requestedVersion))
+			verify(serviceExecutor.get(PublicKeyService, matchers.anything()), { times: 0 })
+			verify(publicEncryptionKeyCache.put(publicKeyIdentifier, expectedPublicKey))
 		})
 
 		o("invalid version returned", async function () {
@@ -257,6 +326,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let keyLoaderFacade: KeyLoaderFacade
 	let keyVerificationFacade: KeyVerificationFacade
+	let publicEncryptionKeyCache: PublicEncryptionKeyCache
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
@@ -264,8 +334,9 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 		keyAuthenticationFacade = object()
 		keyLoaderFacade = object()
 		keyVerificationFacade = object()
+		publicEncryptionKeyCache = object()
 
-		publicKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade)
+		publicKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade, publicEncryptionKeyCache)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)

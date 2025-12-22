@@ -1134,7 +1134,7 @@ export class MailFacade {
 
 	private keyProviderFromInstance(mail: Mail): OwnerEncSessionKeyProvider | undefined {
 		// only use the provider if there is an _ownerEncSessionKey
-		// this is not guaranteed in case of  (temporary) decryption failures!
+		// this is not guaranteed in case of (temporary) decryption failures!
 		return mail._ownerEncSessionKey != null
 			? async () => ({
 					key: assertNotNull(mail._ownerEncSessionKey),

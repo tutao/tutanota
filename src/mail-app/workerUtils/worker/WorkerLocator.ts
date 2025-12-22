@@ -116,6 +116,7 @@ import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/Ide
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 
 assertWorkerOrNode()
@@ -485,7 +486,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
 	})
 
-	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
+	const publicEncryptionKeyCache = new PublicEncryptionKeyCache() // should not expose this
+	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification, publicEncryptionKeyCache)
 	const adminKeyLoaderProvider = () => locator.adminKeyLoader
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
