@@ -5,6 +5,33 @@ import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import m from "mithril"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
+import { isApp, isDesktop } from "../api/common/Env"
+
+export async function prepareLogContent() {
+	const entries: string[] = []
+	if (window.logger) {
+		entries.push(`== MAIN LOG ==
+${window.logger.getEntries().join("\n")}
+`)
+	}
+	const workerLog = await locator.workerFacade.getLog()
+	if (workerLog.length > 0) {
+		entries.push(`== WORKER LOG ==
+${workerLog.join("\n")}
+`)
+	}
+
+	if (isDesktop() || isApp()) {
+		entries.push(`== NATIVE LOG ==
+${await locator.commonSystemFacade.getLog()}
+`)
+	}
+	let { message, type, client } = clientInfoString(new Date(), false)
+	return `v${env.versionNumber} - ${client}
+${message}
+
+${entries.join("\n")}`
+}
 
 export async function showLogsDialog(logContent: string) {
 	const { Dialog: dialog } = await import("./base/Dialog.js")
