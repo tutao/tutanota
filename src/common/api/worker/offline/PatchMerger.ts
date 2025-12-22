@@ -31,6 +31,7 @@ import { AesKey, extractIvFromCipherText } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 export class PatchMerger {
 	constructor(
@@ -257,7 +258,16 @@ export class PatchMerger {
 			const modelAssociation = typeModel.associations[attributeId]
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
-			return await this.instancePipeline.cryptoMapper.decryptAggregateAssociation(aggregationTypeModel, encryptedAggregatedEntities, sk)
+			const decryptedAggregates = await this.instancePipeline.cryptoMapper.decryptAggregateAssociation(
+				aggregationTypeModel,
+				encryptedAggregatedEntities,
+				sk,
+			)
+			if (this.instancePipeline.cryptoMapper.containErrors(decryptedAggregates)) {
+				// we do not want to apply a patch that failed decryption
+				throw new CryptoError("Failed to decrypt aggregate on patch")
+			}
+			return decryptedAggregates
 		} else {
 			return value
 		}
