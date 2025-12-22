@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ClipboardAction, DriveClipboard, FolderFolderItem, FolderItem, folderItemEntity, FolderItemId, SortColumn, SortingPreference } from "./DriveViewModel"
+import { ClipboardAction, DriveClipboard, FolderItem, folderItemEntity, FolderItemId, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -30,7 +30,7 @@ export interface DriveFolderContentAttrs {
 	onSort: (column: SortColumn) => unknown
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
-	onMove: (items: FolderItemId[], into: FolderFolderItem) => unknown
+	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 	clipboard: DriveClipboard | null
 }
 
@@ -67,28 +67,12 @@ function serializeDragItems(items: readonly FolderItemId[]): string {
 	return JSON.stringify(items)
 }
 
-function isIdTuple(item: unknown): item is IdTuple {
-	return Array.isArray(item) && item.length === 2 && typeof item[0] === "string" && typeof item[1] === "string"
-}
-
-function parseDragItems(str: string): FolderItemId[] | null {
-	const parsed = JSON.parse(str, (k, v) => (k === "__proto__" ? undefined : v))
-	if (Array.isArray(parsed)) {
-		for (const value of parsed) {
-			if (typeof value === "object" && (value.type === "file" || value.type === "folder") && isIdTuple(value.id)) {
-				continue
-			} else {
-				return null
-			}
-		}
-	}
-	return parsed
-}
-
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private dragImageEl: Element | null = null
 
-	view({ attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, onMove, clipboard } }: Vnode<DriveFolderContentAttrs>): Children {
+	view({
+		attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto },
+	}: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden.column-gap-12",
 			{
@@ -149,14 +133,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 									this.dragImageEl = null
 								}
 							},
-							onDropInto: (item, event) => {
-								console.log(event.dataTransfer)
-								const itemsData = event.dataTransfer?.getData(DropType.DriveItems)
-								if (item.type === "folder" && itemsData) {
-									const dragItems = parseDragItems(itemsData)
-									if (dragItems) onMove(dragItems, item)
-								}
-							},
+							onDropInto,
 						} satisfies DriveFolderContentEntryAttrs & { key: string }),
 					),
 				),

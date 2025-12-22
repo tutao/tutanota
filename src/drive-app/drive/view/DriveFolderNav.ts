@@ -7,6 +7,7 @@ import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { theme } from "../../../common/gui/theme"
 import { size } from "../../../common/gui/size"
+import { FolderItem } from "./DriveViewModel"
 
 export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null
@@ -19,11 +20,12 @@ export interface DriveFolderNavAttrs {
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
 	loadParents: () => Promise<DriveFolder[]>
+	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view({
-		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, loadParents },
+		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, loadParents, onDropInto },
 	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			".flex.items-center.justify-between.border-radius-12",
@@ -33,7 +35,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 					padding: `${size.base_4}px ${size.spacing_12}px ${size.base_4}px ${size.spacing_24}px`,
 				},
 			},
-			m(DriveBreadcrumbs, { currentFolder, parents, loadParents }),
+			m(DriveBreadcrumbs, { currentFolder, parents, loadParents, onDropInto }),
 			m(".flex.items-center.column-gap-4", [
 				onPaste
 					? m(IconButton, {
