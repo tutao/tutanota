@@ -96,6 +96,7 @@ import { typeModelToRestPath } from "../rest/EntityRestClient"
 import { AttributeModel } from "../../common/AttributeModel"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../facades/InstanceSessionKeysCache"
+import { isOfflineError } from "../../common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -532,7 +533,15 @@ export class CryptoFacade {
 
 			// we want an error that users can report
 			await this.sendError(e)
-
+			// we should do the following for all errors where we are sure that they are temporary
+			// but for now this will improve the situation...
+			if (isOfflineError(e)) {
+				// includes ConnectionErrors
+				// we do not want to display a warning if authentication fails, if this is only a temporary error
+				// in particular, we do not want to persist the error, but fail decryption now and retry later
+				throw new SessionKeyNotFoundError("authentication failed with temporary error")
+			}
+			// this will persist the error, and we cannot recover anymore as the bucketKey will be removed
 			return {
 				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
 				verificationState: PresentableKeyVerificationState.ALERT,
