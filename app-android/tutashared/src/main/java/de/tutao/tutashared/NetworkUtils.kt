@@ -19,6 +19,18 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.conscrypt.Conscrypt
 import java.io.IOException
+import java.net.BindException
+import java.net.ConnectException
+import java.net.HttpRetryException
+import java.net.MalformedURLException
+import java.net.NoRouteToHostException
+import java.net.PortUnreachableException
+import java.net.ProtocolException
+import java.net.SocketException
+import java.net.SocketTimeoutException
+import java.net.URISyntaxException
+import java.net.UnknownHostException
+import java.net.UnknownServiceException
 import java.security.Security
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -79,11 +91,12 @@ class SdkRestClient : RestClient {
 	companion object {
 		// See: SdkFileClient::mapExceptionToError
 		private fun mapExceptionToError(e: Throwable): RestClientException {
-			// note: we currently do not match against e, as we do not need specific error type
-			// in RustSide.
-			// Although it will be helpful at some point to match against e and return more concrete error.
 			Log.e("RestClient", "Got exception from SdkRestClient: ${e}. Assuming .Unknown")
-			return RestClientException.Unknown()
+			return when (e) {
+				is BindException, is ConnectException, is HttpRetryException, is NoRouteToHostException, is PortUnreachableException, is ProtocolException, is SocketException, is SocketTimeoutException, is UnknownHostException, is UnknownServiceException -> RestClientException.NetworkException()
+				is URISyntaxException, is MalformedURLException -> RestClientException.InvalidUrl()
+				else -> RestClientException.Unknown()
+			}
 		}
 	}
 
