@@ -8,10 +8,9 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeModel,
 } from "../../common/EntityTypes"
-import { assertNotNull, Base64, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, Nullable, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { Nullable } from "@tutao/tutanota-utils"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
@@ -135,11 +134,23 @@ export class CryptoMapper {
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
-				decrypted[associationId] = await this.decryptAggregateAssociation(
+				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
 					sk,
 				)
+				decrypted[associationId] = decryptedAggregates
+				if (this.containErrors(decryptedAggregates)) {
+					// we must propagate up to the top level of the instance that there is an error somewhere in an aggregated type.
+					// this indicates to the caller whether decryption succeeded.
+					// e.g. in order to decide whether an instance should be cached or not.
+					if (decrypted._errors == null) {
+						decrypted._errors = {}
+					}
+					// we cannot leave the object empty here, because empty objects are not consistently treated as errors
+					// see the _errors properties in the nested aggregates for more details about the error
+					decrypted._errors[associationId] = "Aggregated type decrypted with errors"
+				}
 			} else {
 				decrypted[associationId] = encryptedInstanceValue
 			}
@@ -147,6 +158,18 @@ export class CryptoMapper {
 		return decrypted
 	}
 
+	/**
+	 * Returns true if at least one of the instances contains _errors at the top level.
+	 * Useful for ATs.
+	 */
+	public containErrors(instances: ServerModelParsedInstance[]): boolean {
+		return instances.some((instance) => instance._errors != null)
+	}
+
+	/**
+	 * Returns an array of the decrypted aggregates, each of which may contain decryption errors.
+	 * The caller is responsible for handling the _errors property on each aggregate if it is set.
+	 */
 	public async decryptAggregateAssociation(
 		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
