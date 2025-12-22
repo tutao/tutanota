@@ -815,7 +815,8 @@ export class MailViewerViewModel {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
 		let isDraftMail = isDraft(mail)
-		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraftMail && this.sanitizeResult != null) {
+		// in case we got errors earlier we also want to retry, e.g. to fix temporary decryption failures (when the sender key cannot be fetched)
+		if (!this.didErrorsOccur() && this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraftMail && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids
 		}
 
