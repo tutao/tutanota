@@ -491,11 +491,7 @@ export class MailViewerViewModel {
 	}
 
 	didErrorsOccur(): boolean {
-		let bodyErrors = false
-		if (this.mailDetails) {
-			bodyErrors = typeof downcast(this.mailDetails.body)._errors !== "undefined"
-		}
-		return this.errorOccurredWhileLoadingMailDetails || typeof this.mail._errors !== "undefined" || bodyErrors
+		return this.errorOccurredWhileLoadingMailDetails || typeof this.mail._errors !== "undefined"
 	}
 
 	isTutanotaTeamMail(): boolean {
@@ -822,7 +818,7 @@ export class MailViewerViewModel {
 
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
-			this.errorOccurredWhileLoadingMailDetails = false
+			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
