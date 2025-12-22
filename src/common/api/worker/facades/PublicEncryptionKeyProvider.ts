@@ -2,9 +2,8 @@ import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeySig
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { parseKeyVersion } from "./KeyLoaderFacade.js"
-import { lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
-import { KeyVersion } from "@tutao/tutanota-utils"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import {
@@ -19,6 +18,7 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
+import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"
 
 export type PublicKeyIdentifier = {
 	identifier: string
@@ -46,6 +46,7 @@ export class PublicEncryptionKeyProvider {
 	constructor(
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
+		private readonly publicEncryptionKeyCache: PublicEncryptionKeyCache,
 	) {}
 
 	async loadCurrentPublicEncryptionKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<VerifiedPublicEncryptionKey> {
@@ -62,6 +63,18 @@ export class PublicEncryptionKeyProvider {
 	 * @throws KeyVerificationMismatchError in case of key verification failure
 	 */
 	async loadPublicEncryptionKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<VerifiedPublicEncryptionKey> {
+		const publicEncryptionKey =
+			(version != null && this.publicEncryptionKeyCache.get(pubKeyIdentifier, version)) ||
+			(await this.fetchAndValidatePublicEncryptionKey(version, pubKeyIdentifier))
+
+		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+		const verifiedPublicEncryptionKey = await keyVerificationFacade.verify(pubKeyIdentifier, publicEncryptionKey)
+		// we do not want to cache the verification result so that we can immediately benefit from a future identity key verification
+		this.publicEncryptionKeyCache.put(pubKeyIdentifier, publicEncryptionKey) // will only be effective in certain cases!
+		return verifiedPublicEncryptionKey
+	}
+
+	private async fetchAndValidatePublicEncryptionKey(version: any, pubKeyIdentifier: PublicKeyIdentifier): Promise<MaybeSignedPublicKey> {
 		const requestData = createPublicKeyGetIn({
 			version: version != null ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
@@ -73,9 +86,7 @@ export class PublicEncryptionKeyProvider {
 		if (version != null && publicEncryptionKey.publicKey.version !== version) {
 			throw new InvalidDataError("the server returned a key version that was not requested")
 		}
-
-		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-		return keyVerificationFacade.verify(pubKeyIdentifier, publicEncryptionKey)
+		return publicEncryptionKey
 	}
 
 	/**
