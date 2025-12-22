@@ -443,6 +443,7 @@ impl CryptoEntityClient {
 		match result {
 			Err(auth_error) => {
 				println!("Failed to authenticate sender: {auth_error}");
+				// TODO should fail the same way as in typescript for temporary errors here
 				// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
 				// in those cases we will just show a warning banner but still want to display the mail
 				EncryptionAuthStatus::TutacryptAuthenticationFailed
