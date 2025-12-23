@@ -640,28 +640,38 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 			}
 
-			if (defaultInboxRuleField && !locator.logins.isEnabled(FeatureType.InternalCommunication)) {
-				const rule = getExistingRuleForType(locator.logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
-				buttons.push({
-					label: rule ? "editInboxRule_action" : "addInboxRule_action",
-					click: async () => {
-						const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
-						if (mailboxDetails == null) {
-							return
-						}
-						const { show, createInboxRuleTemplate } = await import("../../settings/AddInboxRuleDialog")
-						const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
+			const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
 
-						show(mailboxDetails, newRule)
-					},
-				})
-			}
+			if (mailboxDetails && mailboxDetails.mailGroup.user) {
+				// Only allow the addition of inbox and spam rules if it is not a shared mailbox
+				// Shared mailboxes currently do not support inbox rules
+				if (defaultInboxRuleField && !locator.logins.isEnabled(FeatureType.InternalCommunication)) {
+					const rule = getExistingRuleForType(
+						locator.logins.getUserController().props,
+						mailAddress.address.trim().toLowerCase(),
+						defaultInboxRuleField,
+					)
+					buttons.push({
+						label: rule ? "editInboxRule_action" : "addInboxRule_action",
+						click: async () => {
+							const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+							if (mailboxDetails == null) {
+								return
+							}
+							const { show, createInboxRuleTemplate } = await import("../../settings/AddInboxRuleDialog")
+							const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
 
-			if (this.viewModel.canCreateSpamRule()) {
-				buttons.push({
-					label: "addSpamRule_action",
-					click: () => this.addSpamRule(defaultInboxRuleField, mailAddress.address),
-				})
+							show(mailboxDetails, newRule)
+						},
+					})
+				}
+
+				if (this.viewModel.canCreateSpamRule()) {
+					buttons.push({
+						label: "addSpamRule_action",
+						click: () => this.addSpamRule(defaultInboxRuleField, mailAddress.address),
+					})
+				}
 			}
 		}
 
