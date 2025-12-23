@@ -214,11 +214,13 @@ async function bundleServiceWorker(bundles, version, minify, buildDir, tsConfig)
 		// we always include English
 		// we still cache native-common even though we don't need it because worker has to statically depend on it
 		.concat(
-			bundles.filter(
-				(it) =>
-					it.startsWith("translation-en") ||
-					(!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")),
-			).sort(),
+			bundles
+				.filter(
+					(it) =>
+						it.startsWith("translation-en") ||
+						(!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")),
+				)
+				.sort(),
 		)
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/font.ttf"])
 	const swBundle = await rollup({
