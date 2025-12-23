@@ -218,7 +218,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir, tsConfig)
 				(it) =>
 					it.startsWith("translation-en") ||
 					(!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")),
-			),
+			).sort(),
 		)
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/font.ttf"])
 	const swBundle = await rollup({
