@@ -98,7 +98,7 @@ export class InboxRuleHandler {
 		}
 
 		const allInboxRules = this.logins.getUserController().props.inboxRules
-		const applicableInboxRules: InboxRule[] = allInboxRules.filter((rule) => rule.excludeFromSpamFilter === checkRulesExcludedFromSpamFilter)
+		const applicableInboxRules: InboxRule[] = allInboxRules.filter((rule) => !!rule.excludeFromSpamFilter === checkRulesExcludedFromSpamFilter)
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, applicableInboxRules)
 
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
