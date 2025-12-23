@@ -970,8 +970,7 @@ export class CalendarModel {
 	}
 
 	/**
-	 * Handles new Calendar Invitations, creating an entry for them in the pendingEventsList of the default
-	 * CalendarGroupRoot. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
+	 * Handles new Calendar Invitations. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
 	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData, destinationCalendarGroupRoot: CalendarGroupRoot) {
 		if (calendarData.method !== CalendarMethod.REQUEST) {
@@ -1022,7 +1021,7 @@ export class CalendarModel {
 				// - a single-instance update that created this altered instance
 				// - the user got the progenitor invite for a series. it's possible that there's
 				//   already altered instances of this series on the server.
-				return await this.processCalendarAccept(target, updateEvent, updateAlarms)
+				return await this.processNewCalendarEventRequest(target, updateEvent, updateAlarms, sender)
 			} else if (target.progenitor?.repeatRule != null && updateEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
 				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
 				// users delete a single instance from a series even though that instance was never published as altered.
@@ -1063,19 +1062,26 @@ export class CalendarModel {
 			console.log(TAG, "got update for outdated event version, ignoring.")
 			return
 		}
+
 		if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null) {
 			// the update is for a repeating progenitor. we need to exclude all known altered instances from its repeat rule.
-			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
-				updateEvent,
-				dbTarget.alteredInstances.map((r) => r.recurrenceId),
-				this.zone,
-			)
+			const alteredInstances = dbTarget.alteredInstances.map((r) => r.recurrenceId)
+			if (dbEvent.repeatRule?._id) {
+				updateEvent.repeatRule._id = dbEvent.repeatRule?._id // ensures the progenitor's repeat rule gets updated instead of replaced
+			}
+			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
+
+		updateEvent.pendingInvitation = dbEvent.pendingInvitation
+
+		const calendarEvent = await this.updateEventWithExternal(dbEvent, updateEvent)
+
 		// If the update is for the altered occurrence, we do not need to update the progenitor, it already has the exclusion.
 		// If we get into this function we already have the altered occurrence in db.
-
 		// write the progenitor back to the uid index entry so that the subsequent updates from the same file get the updated instance
-		dbTarget.progenitor = (await this.updateEventWithExternal(dbEvent, updateEvent)) as CalendarEventProgenitor
+		if (calendarEvent.recurrenceId === null) {
+			dbTarget.progenitor = calendarEvent as CalendarEventProgenitor
+		}
 	}
 
 	/**
@@ -1084,10 +1090,11 @@ export class CalendarModel {
 	 * @param updateEvent the event to create
 	 * @param alarms alarms to set up for this user/event
 	 */
-	private async processCalendarAccept(
+	private async processNewCalendarEventRequest(
 		dbTarget: CalendarEventUidIndexEntry,
 		updateEvent: Require<"uid", CalendarEvent>,
 		alarms: Array<AlarmInfoTemplate>,
+		sender: string,
 	): Promise<void> {
 		console.log(TAG, "processing new instance request")
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
@@ -1105,6 +1112,10 @@ export class CalendarModel {
 				this.zone,
 			)
 		}
+
+		updateEvent.pendingInvitation = true
+		updateEvent.sender = sender
+
 		let calendarGroupRoot
 		try {
 			calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, dbTarget.ownerGroup)
