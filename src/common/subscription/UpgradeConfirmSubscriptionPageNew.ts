@@ -21,7 +21,6 @@ import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
-import { px } from "../gui/size"
 import { theme } from "../gui/theme"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
@@ -201,18 +200,18 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 							: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
 					),
 				]),
-				!styles.isMobileLayout() &&
-					m(
-						".flex-grow",
-						m("img.block.full-width", {
-							style: { "max-width": px(400), "margin-inline": "auto" },
-							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-						}),
-					),
+				// !styles.isMobileLayout() &&
+				// 	m(
+				// 		".flex-grow",
+				// 		m("img.block.full-width", {
+				// 			style: { "max-width": px(400), "margin-inline": "auto" },
+				// 			src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+				// 			alt: "",
+				// 			rel: "noreferrer",
+				// 			loading: "lazy",
+				// 			decoding: "async",
+				// 		}),
+				// 	),
 			]),
 		])
 	}

@@ -1,4 +1,4 @@
-import m, { Vnode } from "mithril"
+import m, { ComponentTypes, Vnode } from "mithril"
 import { WizardStepAttrs } from "./WizardStep"
 import { WizardController, WizardProgressViewItem, WizardStepContext } from "./WizardController"
 import { WizardProgress } from "./WizardProgress"
@@ -8,11 +8,21 @@ import { lang } from "../../../misc/LanguageViewModel"
 import { Icons } from "../icons/Icons"
 import { styles } from "../../styles"
 
+export interface WizardLayoutAttrs<TViewModel> {
+	ctx: WizardStepContext<TViewModel>
+
+	progressState: WizardProgressViewItem[]
+	showProgress: boolean
+	backButton: m.Children
+}
+
 export interface WizardAttrs<TViewModel> {
 	steps: WizardStepAttrs<TViewModel>[]
 	controller?: WizardController
 	viewModel: TViewModel
 	onComplete?: (viewModel: TViewModel) => void
+
+	layout?: ComponentTypes<WizardLayoutAttrs<TViewModel>>
 }
 
 /**
@@ -117,6 +127,29 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				currentIndex: controller.currentStep,
 			}))
 
+			const backButton =
+				isBackButtonEnabled(controller.currentStep) &&
+				m(TertiaryButton, {
+					text: lang.getTranslationText("back_action"),
+					label: lang.getTranslation("back_action"),
+					icon: Icons.ArrowBackward,
+					onclick: ctx.goPrev,
+					width: "flex",
+				})
+
+			if (attrs.layout) {
+				return m(
+					attrs.layout,
+					{
+						ctx,
+						progressState,
+						showProgress: showProgress(controller.currentStep),
+						backButton,
+					},
+					m(currentStep.content, { ctx }),
+				)
+			}
+
 			return m(
 				`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
 				{
@@ -140,12 +173,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 								showProgress(controller.currentStep) &&
 								m(WizardProgress, {
 									progressState,
-									onClick: (index) => {
-										if (index < 3) {
-											controller.setStepUnreachable(3)
-										}
-										controller.setStep(index)
-									},
+									onClick: (index) => controller.setStep(index),
 								}),
 							m(
 								"",
@@ -155,14 +183,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 										"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
 									},
 								},
-								isBackButtonEnabled(controller.currentStep) &&
-									m(TertiaryButton, {
-										text: lang.getTranslationText("back_action"),
-										label: lang.getTranslation("back_action"),
-										icon: Icons.ArrowBackward,
-										onclick: ctx.goPrev,
-										width: "flex",
-									}),
+								backButton,
 							),
 						]),
 						m(

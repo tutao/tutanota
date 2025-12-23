@@ -37,6 +37,7 @@ import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfir
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
+import { SignupWizardLayout } from "./SignupWizardLayout"
 
 assertMainOrNode()
 
@@ -233,6 +234,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							} satisfies InfoMessaggeBoxAttrs),
 						)
 					: m(this.SignupWizard, {
+							layout: SignupWizardLayout,
 							steps: [
 								// FIXME: Just for styling purpose
 								// {

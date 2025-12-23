@@ -58,23 +58,23 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 						passwordInputStore: data.passwordInputStore,
 					}),
 				),
-				!styles.isMobileLayout() &&
-					m(
-						".flex-grow",
-						{
-							style: {
-								width: `calc(50% - ${px(size.spacing_32)})`,
-							},
-						},
-						m("img.block.full-width", {
-							style: { "max-width": px(400), "margin-inline": "auto" },
-							src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-						}),
-					),
+				// !styles.isMobileLayout() &&
+				// 	m(
+				// 		".flex-grow",
+				// 		{
+				// 			style: {
+				// 				width: `calc(50% - ${px(size.spacing_32)})`,
+				// 			},
+				// 		},
+				// 		m("img.block.full-width", {
+				// 			style: { "max-width": px(400), "margin-inline": "auto" },
+				// 			src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
+				// 			alt: "",
+				// 			rel: "noreferrer",
+				// 			loading: "lazy",
+				// 			decoding: "async",
+				// 		}),
+				// 	),
 			]),
 		])
 	}

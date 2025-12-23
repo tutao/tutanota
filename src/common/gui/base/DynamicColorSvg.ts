@@ -17,6 +17,8 @@ export class DynamicColorSvg implements Component<DynamicColorSvgAttrs> {
 			this.svg(content)
 		} catch (e) {
 			throw new ProgrammingError(`Failed to fetch SVG file: ${e}`)
+		} finally {
+			m.redraw()
 		}
 	}
 

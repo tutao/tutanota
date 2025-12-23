@@ -94,19 +94,6 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 								showBusinessToggle: true,
 							} satisfies PlanSelectorAttr),
 						),
-						!styles.isMobileLayout() &&
-							!isBusiness &&
-							m(
-								".flex-grow",
-								m("img.block.full-width", {
-									style: { "max-width": px(400), "margin-inline": "auto" },
-									src: `${window.tutao.appState.prefixWithoutFile}/images/signup/placeholder.svg`,
-									alt: "",
-									rel: "noreferrer",
-									loading: "lazy",
-									decoding: "async",
-								}),
-							),
 					),
 				],
 			),
