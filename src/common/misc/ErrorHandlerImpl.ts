@@ -90,6 +90,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		const { userId } = logins.getUserController()
 		if (isDesktop()) {
 			await interWindowEventSender?.localUserDataInvalidated(userId)
+			// FIXME why only purge desktop
 			await worker.getWorkerInterface().cacheStorage.purgeStorage()
 		}
 		await logins.logout(false)
