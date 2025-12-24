@@ -103,6 +103,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { RolloutFacade } from "./RolloutFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
+import { OutOfSyncError } from "../../common/error/OutOfSyncError"
 
 assertWorkerOrNode()
 
@@ -840,6 +841,12 @@ export class LoginFacade {
 
 	private async deInitCache(): Promise<void> {
 		return this.cacheInitializer.deInitialize()
+	}
+
+	async ensureInSyncCache(): Promise<void> {
+		if (await this.eventBusClient.isOutOfSync()) {
+			throw new OutOfSyncError("cache is out of sync")
+		}
 	}
 
 	/**

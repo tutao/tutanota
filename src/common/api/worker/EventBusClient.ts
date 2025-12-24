@@ -612,6 +612,10 @@ export class EventBusClient {
 		}
 	}
 
+	isOutOfSync(): Promise<boolean> {
+		return this.cache.isOutOfSync()
+	}
+
 	private async checkOutOfSync() {
 		// We try to detect whether event batches have already expired.
 		// If this happened we don't need to download anything, we need to purge the cache and start all over.

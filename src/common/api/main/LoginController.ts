@@ -15,6 +15,7 @@ import { UnencryptedCredentials } from "../../native/common/generatedipc/Unencry
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
+import { InvalidModelError } from "../common/error/InvalidModelError"
 
 assertMainOrNodeBoot()
 
@@ -53,6 +54,7 @@ export class LoginController {
 	init() {
 		this.waitForFullLogin().then(async () => {
 			this.fullyLoggedIn = true
+			// FIXME this seems accidental, we already waitForPartialLogin in waitForFullLogin
 			await this.waitForPartialLogin()
 			for (const lazyAction of this.postLoginActions) {
 				const action = await lazyAction()
@@ -189,9 +191,14 @@ export class LoginController {
 					SessionType.Persistent,
 				)
 			} catch (e) {
+				console.log("Error finishing login", e)
+				if (e instanceof InvalidModelError) {
+					await this.loginFacade.ensureInSyncCache()
+				}
+
 				// Some parts of initialization can fail and we should reset the state, both on this side and the worker
 				// side, otherwise login cannot be attempted again
-				console.log("Error finishing login, logging out now!", e)
+				console.log("logging out now!")
 				await this.logout(false)
 				throw e
 			}

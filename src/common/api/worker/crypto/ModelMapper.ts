@@ -16,6 +16,7 @@ import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation,
 import { assertWorkerOrNode, isWebClient } from "../../common/Env"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { random } from "@tutao/tutanota-crypto"
+import { InvalidModelError } from "../../common/error/InvalidModelError"
 
 assertWorkerOrNode()
 
@@ -37,7 +38,7 @@ export function assertCorrectValueCardinality(
 	if (cardinality === Cardinality.ZeroOrOne || (cardinality === Cardinality.One && parsedValue != null)) {
 		return parsedValue
 	}
-	throw new ProgrammingError(
+	throw new InvalidModelError(
 		`invalid value / cardinality combination for value ${attrId} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, isNull: ${!parsedValue}`,
 	)
 }
@@ -64,7 +65,7 @@ export function assertAndSupplyCorrectAssociationClientCardinality(
 	} else if (cardinality === Cardinality.ZeroOrOne && parsedValue.length < 2) {
 		return parsedValue[0] ?? null
 	} else if (cardinality === Cardinality.One && !parsedValue) {
-		throw new ProgrammingError(
+		throw new InvalidModelError(
 			`invalid association / cardinality combination for association ${attrId} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, no parsedValue`,
 		)
 	} else if (cardinality === Cardinality.One && parsedValue.length === 1) {
@@ -80,7 +81,7 @@ export function assertAndSupplyCorrectAssociationClientCardinality(
 		return parsedValue ?? []
 	}
 
-	throw new ProgrammingError(
+	throw new InvalidModelError(
 		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, val.len: ${parsedValue.length}`,
 	)
 }
@@ -118,7 +119,7 @@ function assertCompatibleModelTypesForApplyingClientModel(
 	) {
 		return
 	}
-	throw new ProgrammingError(
+	throw new InvalidModelError(
 		`cannot map from server to client type: types of field ${attrId} on type ${typeRef.app}/${typeRef.typeId} are incompatible. This client is not compatible with the current server model.`,
 	)
 }
