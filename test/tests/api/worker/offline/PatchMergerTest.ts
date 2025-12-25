@@ -19,7 +19,7 @@ import {
 	createTestEntity,
 	instancePipelineFromTypeModelResolver,
 	modelMapperFromTypeModelResolver,
-	removeFinalIvs,
+	removeOriginals,
 } from "../../../TestUtils"
 import {
 	CalendarEvent,
@@ -213,7 +213,7 @@ o.spec("PatchMergerTest", () => {
 			o(testMailPatched.subject).equals("new subject")
 		})
 
-		o.test("apply_replace_on_root_level_encrypted_value_populates_finalIvs", async () => {
+		o.test("apply_replace_on_root_level_encrypted_value", async () => {
 			const testMail = createSystemMail({
 				_id: ["listId", "elementId"],
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -245,10 +245,9 @@ o.spec("PatchMergerTest", () => {
 			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
 			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.encryptionAuthStatus).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
-			assertNotNull(testMailPatchedParsed._finalIvs[encryptionAuthStatusAttributeId])
 		})
 
-		o.test("apply_replace_on_root_level_encrypted_value_with_null_removes_finalIvs", async () => {
+		o.test("apply_replace_on_root_level_encrypted_value", async () => {
 			const testMail = createSystemMail({
 				_id: ["listId", "elementId"],
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -256,8 +255,6 @@ o.spec("PatchMergerTest", () => {
 				_ownerGroup: ownerGroupId,
 				encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
 			})
-			const finalIvEncryptionAuthStatus = new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233])
-			testMail["_finalIvs"] = { encryptionAuthStatus: finalIvEncryptionAuthStatus }
 
 			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
@@ -280,10 +277,9 @@ o.spec("PatchMergerTest", () => {
 			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
 			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o.check(testMailPatched.encryptionAuthStatus).equals(null)
-			o.check(testMailPatchedParsed._finalIvs[encryptionAuthStatusAttributeId]).equals(undefined)
 		})
 
-		o.test("apply_replace_on_root_level_encrypted_value_with_default_value_sets_finalIvs_to_null", async () => {
+		o.test("apply_replace_on_root_level_encrypted_value_with_default_value", async () => {
 			const testMail = createSystemMail({
 				_id: ["listId", "elementId"],
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -291,8 +287,6 @@ o.spec("PatchMergerTest", () => {
 				_ownerGroup: ownerGroupId,
 				listUnsubscribe: true,
 			})
-			const finalIvListUnsubscribe = new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233])
-			testMail["_finalIvs"] = { listUnsubscribe: finalIvListUnsubscribe }
 
 			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
@@ -310,7 +304,6 @@ o.spec("PatchMergerTest", () => {
 			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
 			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o.check(testMailPatched.listUnsubscribe).equals(false)
-			o.check(testMailPatchedParsed._finalIvs[listUnsubscribeAttributeId]).equals(null)
 		})
 
 		o.test("apply_replace_on_value_on_aggregation", async () => {
@@ -749,7 +742,7 @@ o.spec("PatchMergerTest", () => {
 				testMailDetailsBlobPatchedParsed,
 			)
 			const addedToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
-			o(removeFinalIvs(addedToRecipient)).deepEquals(removeFinalIvs(toRecipientToAdd))
+			o(removeOriginals(addedToRecipient)).deepEquals(removeOriginals(toRecipientToAdd))
 		})
 
 		o.test("apply_additem_on_Any_aggregation_multiple", async () => {
@@ -809,9 +802,9 @@ o.spec("PatchMergerTest", () => {
 				testMailDetailsBlobPatchedParsed,
 			)
 			const addedSecondToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
-			o(removeFinalIvs(addedSecondToRecipient)).deepEquals(removeFinalIvs(secondToRecipientToAdd))
+			o(removeOriginals(addedSecondToRecipient)).deepEquals(removeOriginals(secondToRecipientToAdd))
 			const addedFirstToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
-			o(removeFinalIvs(addedFirstToRecipient)).deepEquals(removeFinalIvs(firstToRecipientToAdd))
+			o(removeOriginals(addedFirstToRecipient)).deepEquals(removeOriginals(firstToRecipientToAdd))
 		})
 
 		o.test("apply_additem_on_Any_aggregation_multiple_existing_ignored", async () => {
