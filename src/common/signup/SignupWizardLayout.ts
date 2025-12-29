@@ -58,6 +58,13 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		const { controller, index } = ctx
 		const viewModel = ctx.viewModel as SignupViewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
+		const progressColumnStyle = styles.isMobileLayout()
+			? undefined
+			: {
+					width: px(layout_size.wizard_progress_width),
+					"min-width": px(layout_size.wizard_progress_width),
+					"flex-shrink": "0",
+				}
 
 		return m(
 			`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
@@ -77,7 +84,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 					},
 				},
 				[
-					m(".flex.flex-column.flex-space-between", [
+					m(".flex.flex-column.flex-space-between", { style: progressColumnStyle }, [
 						!styles.isMobileLayout() &&
 							showProgress &&
 							m(WizardProgress, {
