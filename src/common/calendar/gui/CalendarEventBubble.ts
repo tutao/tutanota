@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { layout_size, px } from "../../gui/size"
+import { px } from "../../gui/size"
 import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { colorForBg } from "../../gui/base/GuiUtils"
@@ -46,8 +46,6 @@ export type CalendarEventBubbleAttrs = {
 	baseDate: Date
 	height?: number
 }
-const lineHeight = layout_size.calendar_line_height
-const lineHeightPx = px(lineHeight)
 
 export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> {
 	view({ attrs }: Vnode<CalendarEventBubbleAttrs>): Children {
@@ -77,7 +75,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					minWidth: px(0),
 					gridColumn: `${gridInfo.column.start} / span ${gridInfo.column.span}`,
 					gridRow: `${gridInfo.row.start} / ${gridInfo.row.end}`,
-					color: !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined,
+					color: !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined, // Why is this logic only applied for Featured bubbles? (Or is it also applied elsewhere?)
 					opacity: `${eventWrapper.flags?.isTransientEvent ? TEMPORARY_EVENT_OPACITY : 1}`,
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
@@ -132,26 +130,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 						} satisfies Partial<CSSStyleDeclaration> & Record<string, any>,
 					},
 					eventWrapper.flags.isFeatured
-						? m(".flex.items-start", [
-								m(Icon, {
-									icon: eventWrapper.flags?.isConflict ? Icons.AlertCircle : Icons.Checkmark,
-									container: "div",
-									class: "mr-xxs",
-									style: {
-										fill: eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container,
-									},
-								}),
-								m(
-									".break-word.b.text-ellipsis-multi-line.lh",
-									{
-										style: {
-											"-webkit-line-clamp": 2,
-											color: eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container,
-										},
-									},
-									eventTitle,
-								),
-							])
+						? this.renderFeaturedTexts(eventTitle, eventWrapper.flags)
 						: this.renderNonFeaturedTexts(
 								eventTitle,
 								eventWrapper.color,
@@ -173,12 +152,43 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		)
 	}
 
+	private renderFeaturedTexts(title: string, flags: EventWrapperFlags) {
+		return m(".flex.items-start", [
+			m(Icon, {
+				icon: flags.isConflict ? Icons.AlertCircle : Icons.Checkmark,
+				container: "div",
+				class: "mr-xxs",
+				style: {
+					fill: flags.isConflict ? theme.on_warning_container : theme.on_success_container,
+				},
+			}),
+			m(
+				".break-word.b.text-ellipsis-multi-line.lh",
+				{
+					style: {
+						"-webkit-line-clamp": 2,
+						color: flags.isConflict ? theme.on_warning_container : theme.on_success_container,
+					},
+				},
+				title,
+			),
+		])
+	}
+
+	/**
+	 * Logic for rendering the text and Icon of a bubble that is NOT flagged as "featured".
+	 * "Non-featured" events are just regular event bubbles showing up in all different calendar views.
+	 *
+	 * Events are currently labeled "featured" for display in the event banner, where they have special
+	 * styling to distinguish them from events unrelated to the event invite.
+	 * @private
+	 */
 	private renderNonFeaturedTexts(title: string, color: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
 		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
 		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
 
-		const iconFill = colorForBg(`#${color}`)
+		const iconFillColor = colorForBg(`#${color}`)
 		const hasEventTime = eventTime !== ""
 
 		const flagIcons = Object.entries(flags)
@@ -188,27 +198,12 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					icon: FlagKeyToIcon[key as EventWrapperFlagKeys],
 					class: "icon-small",
 					style: {
-						fill: iconFill,
+						fill: iconFillColor,
 						marginTop: "2px",
 						marginRight: "2px",
 					},
 				}),
 			)
-
-		const renderEventTime = () =>
-			m(".flex.items-center.text-ellipsis", [
-				!showSecondLine
-					? m(Icon, {
-							icon: Icons.Time,
-							class: "icon-small ml-4 mr-4",
-							style: {
-								fill: iconFill,
-								marginTop: "-2px",
-							},
-						})
-					: null,
-				eventTime,
-			])
 
 		return m(".flex", [
 			...flagIcons,
@@ -223,8 +218,24 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					},
 					title,
 				),
-				hasEventTime ? renderEventTime() : null,
+				hasEventTime ? this.renderEventTime(eventTime, showSecondLine, iconFillColor) : null,
 			]),
+		])
+	}
+
+	private renderEventTime(eventTime: string, showSecondLine: boolean, iconFillColor: string): Children {
+		return m(".flex.items-center.text-ellipsis", [
+			!showSecondLine
+				? m(Icon, {
+						icon: Icons.Time,
+						class: "icon-small ml-4 mr-4",
+						style: {
+							fill: iconFillColor,
+							marginTop: "-2px",
+						},
+					})
+				: null,
+			eventTime,
 		])
 	}
 }

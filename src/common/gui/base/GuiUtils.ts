@@ -262,8 +262,14 @@ export function getContactTitle(contact: Contact) {
 	return (title + fullName + suffix).trim()
 }
 
-export function colorForBg(color: string): string {
-	return isColorLight(color) ? "black" : "white"
+/**
+ * Chooses light or dark color for text based on the background it will be displayed on.
+ *
+ * @param bgColor - Background color of the element containing text
+ * @returns Color for the text
+ */
+export function colorForBg(bgColor: string): string {
+	return isColorLight(bgColor) ? "black" : "white"
 }
 
 /**
