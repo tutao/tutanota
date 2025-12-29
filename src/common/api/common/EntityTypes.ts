@@ -1,8 +1,6 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { AppName, Nullable, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
-import { Nullable } from "@tutao/tutanota-utils"
-import { AppName } from "@tutao/tutanota-utils"
 import { BucketKey } from "../entities/sys/TypeRefs"
 
 /**
@@ -111,7 +109,11 @@ export type TypeModel = {
 	 * the model version this type is defined in.
 	 */
 	version: number
-	/** human-readable name */
+	/**
+	 * the version of another typeModel this type (and its corresponding application) depends on, if applicable.
+	 */
+	dependsOnVersion?: number
+	/** human-readable name. */
 	name: string
 	/** the type of entity. this defines how (and if) the type is persisted. */
 	type: Values<typeof Type>
