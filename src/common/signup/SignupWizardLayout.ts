@@ -9,6 +9,8 @@ import { InfoBoxItem, SignupWizardInfoBox, SignupWizardInfoBoxAttrs, SignupWizar
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 
+const INFO_BOX_TRANSITION_MS = 500
+
 export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
 	private lastSeenTransitionSeq = 0
 	readonly infoBox = new SignupWizardInfoBoxController()
@@ -18,44 +20,21 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		{ icon: Icons.Clipboard, text: "Ad-free" },
 		{ icon: Icons.Download, text: "Open source" },
 	]
+	private transitionIllustrationName: string | null = null
+	private transitionTimer: number | null = null
+	private readonly stepIllustrations = [
+		"signup-before-click.svg",
+		"signup-before-click.svg",
+		"signup-before-click.svg",
+		"signup-before-click.svg",
+		"signup-key.svg",
+	]
+	private readonly stepInfoBoxItems: InfoBoxItem[][] = [this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems]
 
-	onTransition(from: number, to: number) {
-		if (to === 0) {
-			this.infoBox.setItems([
-				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
-				{ icon: BootIcons.Mail, text: "Green energy" },
-				{ icon: Icons.Clipboard, text: "Ad-free" },
-				{ icon: Icons.Download, text: "Open source" },
-			])
-		} else if (to === 1) {
-			this.infoBox.setItems([
-				{ icon: BootIcons.Mail, text: "Green energy" },
-				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
-				{ icon: Icons.Clipboard, text: "Ad-free" },
-				{ icon: Icons.Download, text: "Open source" },
-			])
-		} else if (to === 2) {
-			this.infoBox.setItems([
-				{ icon: Icons.Clipboard, text: "Ad-free" },
-				{ icon: BootIcons.Mail, text: "Green energy" },
-				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
-				{ icon: Icons.Download, text: "Open source" },
-			])
-		} else if (to === 3) {
-			this.infoBox.setItems([
-				{ icon: BootIcons.Mail, text: "Green energy" },
-				{ icon: Icons.Clipboard, text: "Ad-free" },
-				{ icon: Icons.Download, text: "Open source" },
-				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
-			])
-		} else if (to === 4) {
-			this.infoBox.setItems([
-				{ icon: BootIcons.Mail, text: "Green energy" },
-				{ icon: Icons.Download, text: "Open source" },
-				{ icon: Icons.Clipboard, text: "Ad-free" },
-				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
-			])
-		}
+	onTransition(_from: number, to: number) {
+		const nextItems = this.getInfoBoxItemsForStep(to)
+		this.startIllustrationTransition()
+		this.infoBox.setItems(nextItems)
 	}
 
 	onbeforeupdate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
@@ -69,10 +48,16 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		return true
 	}
 
+	onremove() {
+		this.clearIllustrationTimer()
+		this.transitionIllustrationName = null
+	}
+
 	view(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
 		const { showProgress, progressState, backButton, ctx } = vnode.attrs
 		const { controller, index } = ctx
 		const viewModel = ctx.viewModel as SignupViewModel
+		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
 
 		return m(
 			`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
@@ -128,12 +113,11 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 								".flex-grow.align-self-center",
 								m(".rel", { style: { "max-width": px(400), "margin-inline": "auto" } }, [
 									m(DynamicColorSvg, {
-										path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/signup-before-click.svg`,
+										path: this.getIllustrationPath(illustrationName),
 									}),
 									m(SignupWizardInfoBox, {
 										controller: this.infoBox,
 										initialItems: this.defaultItems,
-										tickMs: 5,
 									} satisfies SignupWizardInfoBoxAttrs),
 								]),
 							),
@@ -141,5 +125,34 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 				],
 			),
 		)
+	}
+
+	private getInfoBoxItemsForStep(step: number): InfoBoxItem[] {
+		return this.stepInfoBoxItems[step] ?? this.stepInfoBoxItems[0] ?? this.defaultItems
+	}
+
+	private getStepIllustrationName(step: number): string {
+		return this.stepIllustrations[step] ?? this.stepIllustrations[0] ?? "signup-before-click.svg"
+	}
+
+	private getIllustrationPath(name: string): string {
+		return `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/${name}`
+	}
+
+	private startIllustrationTransition() {
+		this.clearIllustrationTimer()
+		this.transitionIllustrationName = "signup-click.svg"
+		this.transitionTimer = window.setTimeout(() => {
+			this.transitionIllustrationName = null
+			this.transitionTimer = null
+			m.redraw()
+		}, INFO_BOX_TRANSITION_MS)
+	}
+
+	private clearIllustrationTimer() {
+		if (this.transitionTimer !== null) {
+			window.clearTimeout(this.transitionTimer)
+			this.transitionTimer = null
+		}
 	}
 }

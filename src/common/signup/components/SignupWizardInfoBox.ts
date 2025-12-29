@@ -3,6 +3,7 @@ import { theme } from "../../gui/theme"
 import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
 
 const DEFAULT_SCRAMBLE_CHARS = "#$%&*?@/\\+=-_~<>[]{}"
+const DEFAULT_TRANSITION_MS = 500
 
 export interface InfoBoxItem {
 	icon: AllIcons
@@ -29,16 +30,9 @@ export interface SignupWizardInfoBoxAttrs {
 	controller?: SignupWizardInfoBoxController
 	initialItems?: InfoBoxItem[]
 
-	/** Animation speed per step. Default: 22ms */
-	tickMs?: number
-
-	/** Characters used during scrambling. */
+	transitionMs?: number
 	scrambleChars?: string
-
-	/** Optional extra class(es) on the outer box. */
 	class?: string
-
-	/** Optional style overrides for the outer box. */
 	style?: Record<string, string | number | undefined>
 }
 
@@ -47,10 +41,9 @@ type Pos = { r: number; c: number }
 export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> {
 	private currentItems: InfoBoxItem[] = []
 
-	// Animation state
 	private phase: "idle" | "scramble" | "reveal" = "idle"
 	private timer: number | null = null
-	private tickMs = 22
+	private transitionMs = DEFAULT_TRANSITION_MS
 	private scrambleChars = DEFAULT_SCRAMBLE_CHARS
 
 	private displayIcons: AllIcons[] = []
@@ -65,7 +58,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 	private readonly sink = (nextItems: InfoBoxItem[]) => this.animateTo(nextItems)
 
 	oninit(vnode: Vnode<SignupWizardInfoBoxAttrs>) {
-		this.tickMs = vnode.attrs.tickMs ?? 22
+		this.transitionMs = Math.max(1, vnode.attrs.transitionMs ?? DEFAULT_TRANSITION_MS)
 		this.scrambleChars = vnode.attrs.scrambleChars ?? DEFAULT_SCRAMBLE_CHARS
 
 		this.currentItems = vnode.attrs.initialItems ?? []
@@ -76,7 +69,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 	}
 
 	onbeforeupdate(vnode: Vnode<SignupWizardInfoBoxAttrs>, old: Vnode<SignupWizardInfoBoxAttrs>) {
-		this.tickMs = vnode.attrs.tickMs ?? 22
+		this.transitionMs = Math.max(1, vnode.attrs.transitionMs ?? DEFAULT_TRANSITION_MS)
 		this.scrambleChars = vnode.attrs.scrambleChars ?? DEFAULT_SCRAMBLE_CHARS
 
 		if (vnode.attrs.controller !== old.attrs.controller) {
@@ -175,6 +168,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 			for (let c = 0; c < n; c++) this.positions.push({ r, c })
 		}
 
+		const tickMs = this.computeTickMs(this.positions.length)
 		this.shufflePositions(this.positions)
 		this.step = 0
 		this.phase = "scramble"
@@ -190,7 +184,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 					this.phase = "reveal"
 					this.step = 0
 					m.redraw()
-					this.timer = window.setTimeout(tick, this.tickMs)
+					this.timer = window.setTimeout(tick, tickMs)
 					return
 				}
 
@@ -214,10 +208,16 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 
 			this.step += 1
 			m.redraw()
-			this.timer = window.setTimeout(tick, this.tickMs)
+			this.timer = window.setTimeout(tick, tickMs)
 		}
 
-		this.timer = window.setTimeout(tick, this.tickMs)
+		this.timer = window.setTimeout(tick, tickMs)
+	}
+
+	private computeTickMs(positionCount: number): number {
+		const totalSteps = Math.max(positionCount * 2 + 1, 1)
+		const desiredMs = Math.max(this.transitionMs, 1)
+		return Math.max(1, desiredMs / totalSteps)
 	}
 
 	private cancel() {
