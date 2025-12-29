@@ -93,6 +93,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 
 	view(vnode: Vnode<SignupWizardInfoBoxAttrs>) {
 		const items = this.phase === "idle" ? this.currentItems : this.buildDisplayItems()
+		const isTransitioning = this.phase !== "idle"
 
 		return m(
 			".abs.border-radius-16.flex.col.gap-16.plr-24.pt-24.pb-24",
@@ -107,7 +108,10 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 			},
 			items.map((it, idx) => {
 				const icon = it.icon ? m(Icon, { icon: it.icon, size: IconSize.PX24 }) : null
-				return m(".flex.row.gap-8.items-center", { key: idx }, [icon, m("span", it.text)])
+				return m(".flex.row.gap-8.items-center", { key: idx }, [
+					icon,
+					m("span", { style: isTransitioning ? { "white-space": "nowrap" } : undefined }, it.text),
+				])
 			}),
 		)
 	}
