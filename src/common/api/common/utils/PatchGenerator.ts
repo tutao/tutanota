@@ -106,6 +106,8 @@ export async function computePatches(
 		}
 
 		if (modelAssociation.type === AssociationType.Aggregation) {
+			// TODO: Alternatively here we know if an association has a dependency, would it be a good idea to add the
+			// aggregation version directly to the patch as some extra zeroOrOne Property?
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const typeId = modelAssociation.refTypeId
 			const aggregateTypeModel = await typeReferenceResolver(new TypeRef(appName, typeId))

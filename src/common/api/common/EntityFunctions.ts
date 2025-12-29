@@ -125,8 +125,18 @@ export class ClientModelInfo {
 		if (typeModel == null) {
 			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 		} else {
+			for (const association of Object.values(typeModel.associations)) {
+				if (association.dependency != null) {
+					typeModel.dependsOnVersion = this.resolveDependsOnVersion(association.dependency)
+					return typeModel
+				}
+			}
 			return typeModel
 		}
+	}
+
+	private resolveDependsOnVersion(dependency: AppName) {
+		return this.modelInfos[dependency].version
 	}
 }
 

@@ -10,7 +10,7 @@ import {
 	NotFoundError,
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
-import { assertNotNull, downcast, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type {
 	ClientModelUntypedInstance,
@@ -26,7 +26,7 @@ import type {
 	UntypedInstance,
 } from "../../common/EntityTypes"
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
-import { Type } from "../../common/EntityConstants.js"
+import { AssociationType, Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -35,7 +35,6 @@ import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { Nullable } from "@tutao/tutanota-utils"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { EntityAdapter } from "../crypto/EntityAdapter"
 import { AttributeModel } from "../../common/AttributeModel"
@@ -593,7 +592,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
 		const { listId, elementId } = expandId(instance._id)
-		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
+		const { path, queryParams, clientTypeModel, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
 			listId,
 			elementId,
@@ -605,16 +604,15 @@ export class EntityRestClient implements EntityRestInterface {
 		// map and encrypt instance._original and the instance
 		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
-		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
-		const encryptedParsedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, sessionKey)
-		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
+		const encryptedParsedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(clientTypeModel, parsedInstance, sessionKey)
+		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(clientTypeModel, encryptedParsedInstance)
 		// figure out differing fields and build the PATCH request payload
 		const patchList = await computePatchPayload(
 			originalParsedInstance,
 			parsedInstance,
 			untypedInstance,
-			typeModel,
+			clientTypeModel,
 			typeReferenceResolver,
 			env.networkDebugging,
 		)
@@ -707,6 +705,10 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 
 		headers.v = String(clientTypeModel.version)
+		if (clientTypeModel.dependsOnVersion) {
+			headers.dv = String(clientTypeModel.dependsOnVersion)
+		}
+
 		return {
 			path,
 			queryParams,
