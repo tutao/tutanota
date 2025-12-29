@@ -38,7 +38,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 									{
 										type: "button",
 										disabled: !step.isReachable || !onClick,
-										onclick: onClick ? () => onClick(step.index) : noOp,
+										onclick: onClick ? () => onClick(step.index) : () => {},
 									},
 									[
 										step.currentIndex > step.index

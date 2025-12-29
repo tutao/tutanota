@@ -9,7 +9,6 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
-import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { client } from "../../misc/ClientDetector.js"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { locator } from "../../api/main/CommonLocator"
@@ -19,6 +18,7 @@ import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { PasswordField } from "../../misc/passwords/PasswordField.js"
+import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -55,11 +55,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 			return lang.get("choose_label")
 		}
 	})
-	const editor = new HtmlEditor("recoveryCode_label")
-	editor.setMode(HtmlEditorMode.HTML)
-	editor.setHtmlMonospace(true)
-	editor.setMinHeight(80)
-	editor.showBorders()
+	const recoverCodeInput = new RecoverCodeInput()
 	const recoverDialog = Dialog.showActionDialog({
 		title: "recover_label",
 		type: DialogType.EditSmall,
@@ -73,7 +69,13 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						type: TextFieldType.Email,
 						oninput: emailAddressStream,
 					}),
-					m(editor),
+					m(recoverCodeInput, {
+						onQrPayload: (payload) => {
+							if (payload.mailAddress) {
+								emailAddressStream(payload.mailAddress)
+							}
+						},
+					}),
 					m(TextField, {
 						label: "action_label",
 						value: selectedValueLabelStream(),
@@ -95,7 +97,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		},
 		okAction: async () => {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
-			const cleanRecoverCodeValue = editor.getValue().replace(/\s/g, "").toLowerCase()
+			const cleanRecoverCodeValue = recoverCodeInput.getValue().replace(/\s/g, "").toLowerCase()
 
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.message("mailAddressInvalid_msg")

@@ -6,20 +6,16 @@ import { isMailAddress } from "../../misc/FormatValidator.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
-import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
 import { locator } from "../../api/main/CommonLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
+import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
 
 assertMainOrNode()
 
 export function showTakeOverDialog(mailAddress: string, password: string): Dialog {
 	const targetAccountAddress = stream("")
-	const editor = new HtmlEditor("recoveryCode_label")
-	editor.setMode(HtmlEditorMode.HTML)
-	editor.setHtmlMonospace(true)
-	editor.setMinHeight(80)
-	editor.showBorders()
+	const recoverCodeInput = new RecoverCodeInput()
 	const takeoverDialog = Dialog.showActionDialog({
 		title: "help_label",
 		type: DialogType.EditSmall,
@@ -35,14 +31,14 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 						type: TextFieldType.Email,
 						oninput: targetAccountAddress,
 					}),
-					m(editor),
+					m(recoverCodeInput),
 				]
 			},
 		},
 		okAction: () => {
 			const cleanTargetAccountAddress = targetAccountAddress().trim().toLowerCase()
 			const cleanMailAddress = mailAddress.trim().toLowerCase()
-			const cleanRecoveryCode = editor.getValue().replace(/\s/g, "").toLowerCase()
+			const cleanRecoveryCode = recoverCodeInput.getValue().replace(/\s/g, "").toLowerCase()
 
 			if (!isMailAddress(cleanMailAddress, true)) {
 				Dialog.message("mailAddressInvalid_msg")

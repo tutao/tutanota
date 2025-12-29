@@ -32,10 +32,14 @@ export class PdfRecoveryDocumentGenerator {
 	 * Generate the PDF document
 	 */
 	async generate(): Promise<Uint8Array> {
+		const qrCodePayload = JSON.stringify({
+			mailAddress: this.emailAddress,
+			recoveryCode: this.recoveryCode,
+		})
 		const qrCode = new QRCode({
 			height: pxToMm(63),
 			width: pxToMm(63),
-			content: this.recoveryCode,
+			content: qrCodePayload,
 			padding: 0,
 			xmlDeclaration: false,
 		})
