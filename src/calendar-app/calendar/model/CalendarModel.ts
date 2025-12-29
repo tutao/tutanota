@@ -719,6 +719,15 @@ export class CalendarModel {
 		return group
 	}
 
+	/**
+	 *
+	 * @param event
+	 * @param zone
+	 * @param groupRoot
+	 * @param alarmInfos
+	 * @param existingEvent
+	 * @private
+	 */
 	private async doCreate(
 		event: CalendarEvent,
 		zone: string,
@@ -836,8 +845,10 @@ export class CalendarModel {
 	private async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
 		try {
+			console.log("TRYING TO GET PARSED CALENDAR DATA")
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
 			if (parsedCalendarData != null) {
+				console.log("PARSED CALENDAR UPDATE FOUND, PROCESSING")
 				await this.processCalendarData(update.sender, parsedCalendarData)
 			}
 		} catch (e) {
@@ -898,6 +909,7 @@ export class CalendarModel {
 		}
 		// not doing this in parallel because we would get locked errors
 		for (const e of entry.alteredInstances) {
+			console.log("DELETING ALTERED INSTANCE IN LOOP!")
 			await this.deleteEvent(e)
 		}
 		if (entry.progenitor) {
