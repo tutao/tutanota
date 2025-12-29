@@ -14,6 +14,10 @@ export interface WizardLayoutAttrs<TViewModel> {
 	progressState: WizardProgressViewItem[]
 	showProgress: boolean
 	backButton: m.Children
+
+	transitionSeq: number
+	transitionFrom: number
+	transitionTo: number
 }
 
 export interface WizardAttrs<TViewModel> {
@@ -30,6 +34,16 @@ export interface WizardAttrs<TViewModel> {
  */
 export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>> {
 	let internalController: WizardController | undefined
+
+	let transitionSeq = 0
+	let transitionFrom = 0
+	let transitionTo = 0
+
+	const signalTransition = (from: number, to: number) => {
+		transitionSeq += 1
+		transitionFrom = from
+		transitionTo = to
+	}
 
 	return {
 		oninit({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
@@ -76,11 +90,13 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 								if (onComplete) onComplete(viewModel)
 							} else {
 								controller.markStepComplete(fromIndex, true)
+								signalTransition(fromIndex, nextIndex)
 								controller.setStep(nextIndex)
 							}
 						} else {
 							const prevIndex = findNextEnabledIndex(fromIndex, "prev")
 							if (prevIndex != null) {
+								signalTransition(fromIndex, prevIndex)
 								controller.setStep(prevIndex)
 							}
 						}
@@ -145,6 +161,9 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 						progressState,
 						showProgress: showProgress(controller.currentStep),
 						backButton,
+						transitionSeq,
+						transitionFrom,
+						transitionTo,
 					},
 					m(currentStep.content, { ctx }),
 				)
@@ -173,7 +192,10 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 								showProgress(controller.currentStep) &&
 								m(WizardProgress, {
 									progressState,
-									onClick: (index) => controller.setStep(index),
+									onClick: (index) => {
+										signalTransition(controller.currentStep, index)
+										controller.setStep(index)
+									},
 								}),
 							m(
 								"",

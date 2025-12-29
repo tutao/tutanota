@@ -5,12 +5,70 @@ import { styles } from "../gui/styles"
 import { component_size, layout_size, px, size } from "../gui/size"
 import { SignupViewModel } from "./SignupView"
 import { DynamicColorSvg } from "../gui/base/DynamicColorSvg"
-import { theme } from "../gui/theme"
-import { Icon, IconSize } from "../gui/base/Icon"
+import { InfoBoxItem, SignupWizardInfoBox, SignupWizardInfoBoxAttrs, SignupWizardInfoBoxController } from "./components/SignupWizardInfoBox"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 
 export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
+	private lastSeenTransitionSeq = 0
+	readonly infoBox = new SignupWizardInfoBoxController()
+	readonly defaultItems: InfoBoxItem[] = [
+		{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
+		{ icon: BootIcons.Mail, text: "Green energy" },
+		{ icon: Icons.Clipboard, text: "Ad-free" },
+		{ icon: Icons.Download, text: "Open source" },
+	]
+
+	onTransition(from: number, to: number) {
+		if (to === 0) {
+			this.infoBox.setItems([
+				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
+				{ icon: BootIcons.Mail, text: "Green energy" },
+				{ icon: Icons.Clipboard, text: "Ad-free" },
+				{ icon: Icons.Download, text: "Open source" },
+			])
+		} else if (to === 1) {
+			this.infoBox.setItems([
+				{ icon: BootIcons.Mail, text: "Green energy" },
+				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
+				{ icon: Icons.Clipboard, text: "Ad-free" },
+				{ icon: Icons.Download, text: "Open source" },
+			])
+		} else if (to === 2) {
+			this.infoBox.setItems([
+				{ icon: Icons.Clipboard, text: "Ad-free" },
+				{ icon: BootIcons.Mail, text: "Green energy" },
+				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
+				{ icon: Icons.Download, text: "Open source" },
+			])
+		} else if (to === 3) {
+			this.infoBox.setItems([
+				{ icon: BootIcons.Mail, text: "Green energy" },
+				{ icon: Icons.Clipboard, text: "Ad-free" },
+				{ icon: Icons.Download, text: "Open source" },
+				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
+			])
+		} else if (to === 4) {
+			this.infoBox.setItems([
+				{ icon: BootIcons.Mail, text: "Green energy" },
+				{ icon: Icons.Download, text: "Open source" },
+				{ icon: Icons.Clipboard, text: "Ad-free" },
+				{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
+			])
+		}
+	}
+
+	onbeforeupdate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
+		const { transitionSeq, transitionFrom, transitionTo } = vnode.attrs
+
+		if (transitionSeq !== this.lastSeenTransitionSeq && transitionSeq > 0) {
+			this.lastSeenTransitionSeq = transitionSeq
+			this.onTransition(transitionFrom, transitionTo)
+		}
+
+		return true
+	}
+
 	view(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
 		const { showProgress, progressState, backButton, ctx } = vnode.attrs
 		const { controller, index } = ctx
@@ -64,7 +122,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 							m(`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`, vnode.children),
 						),
 
-						!styles.isMobileLayout() &&
+						styles.bodyWidth >= 1500 &&
 							!viewModel.options.businessUse() &&
 							m(
 								".flex-grow.align-self-center",
@@ -72,25 +130,11 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 									m(DynamicColorSvg, {
 										path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/signup-before-click.svg`,
 									}),
-									m(
-										".abs.border-radius-16.flex.col.gap-16.plr-24.pt-24.pb-24",
-										{
-											style: {
-												width: "100%",
-												"background-color": theme.surface_container_high,
-												bottom: 0,
-											},
-										},
-										[
-											m(".flex.row.gap-8", [
-												m(Icon, { icon: Icons.PQLock, size: IconSize.PX24 }),
-												m("span", "Quantum-safe end-to-end encryption"),
-											]),
-											m(".flex.row.gap-8", [m(Icon, { icon: BootIcons.Mail, size: IconSize.PX24 }), m("span", "Green energy")]),
-											m(".flex.row.gap-8", [m(Icon, { icon: Icons.Clipboard, size: IconSize.PX24 }), m("span", "Ad-free")]),
-											m(".flex.row.gap-8", [m(Icon, { icon: Icons.Download, size: IconSize.PX24 }), m("span", "Open source")]),
-										],
-									),
+									m(SignupWizardInfoBox, {
+										controller: this.infoBox,
+										initialItems: this.defaultItems,
+										tickMs: 5,
+									} satisfies SignupWizardInfoBoxAttrs),
 								]),
 							),
 					]),
