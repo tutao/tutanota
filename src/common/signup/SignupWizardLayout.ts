@@ -58,6 +58,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		const { controller, index } = ctx
 		const viewModel = ctx.viewModel as SignupViewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
+		const showIllustration = styles.bodyWidth >= 1500 && !viewModel.options.businessUse()
 		const progressColumnStyle = styles.isMobileLayout()
 			? undefined
 			: {
@@ -65,6 +66,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 					"min-width": px(layout_size.wizard_progress_width),
 					"flex-shrink": "0",
 				}
+		const contentColumnStyle = !styles.isMobileLayout() && !showIllustration ? { "max-width": px(layout_size.wizard_content_max_width) } : undefined
 
 		return m(
 			`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
@@ -111,11 +113,11 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 					m(".flex.gap-64.full-width", [
 						m(
 							".flex-grow",
+							{ style: contentColumnStyle },
 							m(`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`, vnode.children),
 						),
 
-						styles.bodyWidth >= 1500 &&
-							!viewModel.options.businessUse() &&
+						showIllustration &&
 							m(
 								".flex-grow.align-self-center",
 								m(".rel", { style: { "max-width": px(400), "margin-inline": "auto" } }, [
