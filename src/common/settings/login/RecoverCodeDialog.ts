@@ -11,8 +11,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { User } from "../../api/entities/sys/TypeRefs.js"
 import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { Icon, IconSize } from "../../gui/base/Icon.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../gui/base/QrCodeScanner.js"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor.js"
@@ -20,6 +19,7 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
+import { BootIcons } from "../../gui/base/icons/BootIcons"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -200,15 +200,10 @@ export class RecoverCodeInput implements Component<RecoverCodeInputAttrs> {
 				: m(this.editor),
 			m(
 				".mt-8",
-				m(Button, {
+				m(LoginButton, {
 					label: this.isScanning ? "cancel_action" : "keyManagement.qrCode_label",
-					type: ButtonType.Secondary,
-					icon: m(Icon, {
-						icon: this.isScanning ? Icons.Close : Icons.Picture,
-						size: IconSize.PX20,
-						class: "mr-8 flex-center",
-					}),
-					click: () => {
+					icon: this.isScanning ? Icons.Close : BootIcons.QRCodeOutline,
+					onclick: () => {
 						this.isScanning = !this.isScanning
 					},
 				}),
