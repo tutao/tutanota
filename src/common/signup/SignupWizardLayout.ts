@@ -8,12 +8,17 @@ import { DynamicColorSvg } from "../gui/base/DynamicColorSvg"
 import { InfoBoxItem, SignupWizardInfoBox, SignupWizardInfoBoxAttrs, SignupWizardInfoBoxController } from "./components/SignupWizardInfoBox"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
+import { LoginButton } from "../gui/base/buttons/LoginButton"
+import { lang } from "../misc/LanguageViewModel"
+import { SignupInlinePlanSelector } from "./components/SignupInlinePlanSelector"
+import { DefaultAnimationTime } from "../gui/animation/Animations"
 
 const INFO_BOX_TRANSITION_MS = 500
 
 export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
 	private lastSeenTransitionSeq = 0
 	readonly infoBox = new SignupWizardInfoBoxController()
+	private readonly seeOtherPlansLabel = lang.makeTranslation("seeOtherPlans_action", "See other plans")
 	readonly defaultItems: InfoBoxItem[] = [
 		{ icon: Icons.PQLock, text: "Quantum-safe end-to-end encryption" },
 		{ icon: BootIcons.Mail, text: "Green energy" },
@@ -31,7 +36,8 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 	]
 	private readonly stepInfoBoxItems: InfoBoxItem[][] = [this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems]
 
-	onTransition(_from: number, to: number) {
+	onTransition(viewModel: SignupViewModel, _from: number, to: number) {
+		if (to === 0) viewModel.inlinePlanSelectorOpen(false)
 		const nextItems = this.getInfoBoxItemsForStep(to)
 		this.startIllustrationTransition()
 		this.infoBox.setItems(nextItems)
@@ -42,7 +48,8 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 
 		if (transitionSeq !== this.lastSeenTransitionSeq && transitionSeq > 0) {
 			this.lastSeenTransitionSeq = transitionSeq
-			this.onTransition(transitionFrom, transitionTo)
+			const viewModel = vnode.attrs.ctx.viewModel as SignupViewModel
+			this.onTransition(viewModel, transitionFrom, transitionTo)
 		}
 
 		return true
@@ -59,6 +66,28 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		const viewModel = ctx.viewModel as SignupViewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
 		const showIllustration = styles.bodyWidth >= 1500 && !viewModel.options.businessUse()
+		const canTogglePlanSelector = showIllustration && index !== 0
+		const showPlanSelector = canTogglePlanSelector && viewModel.inlinePlanSelectorOpen()
+		const panelTransitionMs = Math.round(DefaultAnimationTime * 1.5)
+		const panelTransition = `opacity ${panelTransitionMs}ms ease-out, transform ${panelTransitionMs}ms ease-out`
+		const infoPanelStyle = {
+			opacity: showPlanSelector ? 0 : 1,
+			transform: showPlanSelector ? `translateX(${px(-size.spacing_32)})` : "translateX(0)",
+			"max-height": showPlanSelector ? "0" : px(800),
+			overflow: showPlanSelector ? "hidden" : "visible",
+			transition: panelTransition,
+			"will-change": "opacity, transform",
+			"pointer-events": showPlanSelector ? "none" : "auto",
+		}
+		const selectorPanelStyle = {
+			opacity: showPlanSelector ? 1 : 0,
+			transform: showPlanSelector ? "translateX(0)" : `translateX(${px(size.spacing_32)})`,
+			"max-height": showPlanSelector ? px(1400) : "0",
+			overflow: "hidden",
+			transition: panelTransition,
+			"will-change": "opacity, transform",
+			"pointer-events": showPlanSelector ? "auto" : "none",
+		}
 		const showProgressLabels = !styles.isSingleColumnLayout()
 		const progressColumnStyle = styles.isMobileLayout()
 			? undefined
@@ -96,7 +125,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 									if (index < 3) {
 										controller.setStepUnreachable(3)
 									}
-									this.onTransition(controller.currentStep, index)
+									this.onTransition(viewModel, controller.currentStep, index)
 									controller.setStep(index)
 								},
 							}),
@@ -120,9 +149,18 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 						),
 
 						showIllustration &&
-							m(
-								".flex-grow.align-self-center",
-								m(".rel", { style: { "max-width": px(400), "margin-inline": "auto" } }, [
+							m(".flex-grow", { style: { alignSelf: "flex-start" } }, [
+								m(
+									".flex.flex-column.gap-16",
+									{ style: { "max-width": px(420), "margin-inline": "auto", width: "100%", ...selectorPanelStyle } },
+									m(SignupInlinePlanSelector, {
+										viewModel,
+										onPlanSelected: () => {
+											viewModel.inlinePlanSelectorOpen(false)
+										},
+									}),
+								),
+								m(".rel", { style: { "max-width": px(400), "margin-inline": "auto", ...infoPanelStyle } }, [
 									m(DynamicColorSvg, {
 										path: this.getIllustrationPath(illustrationName),
 									}),
@@ -130,8 +168,29 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 										controller: this.infoBox,
 										initialItems: this.defaultItems,
 									} satisfies SignupWizardInfoBoxAttrs),
+									canTogglePlanSelector &&
+										m(
+											".abs.flex.justify-center",
+											{
+												style: {
+													left: 0,
+													right: 0,
+													bottom: 0,
+													transform: "translateY(50%)",
+													"padding-inline": px(size.spacing_16),
+												},
+											},
+											m(LoginButton, {
+												label: this.seeOtherPlansLabel,
+												onclick: () => {
+													viewModel.inlinePlanSelectorOpen(true)
+												},
+												size: "sm",
+												width: "flex",
+											}),
+										),
 								]),
-							),
+							]),
 					]),
 				],
 			),

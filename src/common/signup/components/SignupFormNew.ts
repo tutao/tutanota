@@ -77,6 +77,15 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		return i >= 0 ? addr.slice(i + 1) : null
 	}
 
+	private getDefaultDomain(isPaid: boolean): EmailDomainData {
+		const preferredDomain = isPaid ? DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN : DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN
+		return (
+			this.availableDomains.find((domain) => domain.domain === preferredDomain) ??
+			this.availableDomains.find((domain) => domain.isPaid === isPaid) ??
+			getFirstOrThrow(this.availableDomains)
+		)
+	}
+
 	constructor(vnode: Vnode<SignupFormAttrs>) {
 		this.selectedDomain = getFirstOrThrow(this.availableDomains)
 
@@ -119,6 +128,13 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		return this.powChallengeSolution.promise
 	}
 
+	onbeforeupdate(vnode: Vnode<SignupFormAttrs>) {
+		if (!vnode.attrs.isPaidSubscription() && this.selectedDomain.isPaid) {
+			this.selectedDomain = this.getDefaultDomain(false)
+		}
+		return true
+	}
+
 	async oncreate(vnode: VnodeDOM<SignupFormAttrs>) {
 		this.dom = vnode.dom as HTMLElement
 		try {
@@ -148,6 +164,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 					Dialog.confirm(lang.makeTranslation("confirm_msg", `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`)).then(
 						(confirmed) => {
 							if (confirmed) {
+								this.selectedDomain = domain
 								vnode.attrs.onChangePlan()
 							}
 						},

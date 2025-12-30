@@ -48,7 +48,17 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 							}
 						},
 						onNext: () => ctx.goNext(),
-						onChangePlan: () => ctx.goPrev(),
+						onChangePlan: () => {
+							if (styles.bodyWidth >= 1500 && !data.options.businessUse()) {
+								if (data.targetPlanType === PlanType.Free) {
+									data.targetPlanType = PlanType.Revolutionary
+									data.updatePrice()
+								}
+								data.inlinePlanSelectorOpen(true)
+							} else {
+								ctx.goPrev()
+							}
+						},
 						isBusinessUse: data.options.businessUse,
 						isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
 						campaignToken: () => data.registrationDataId,

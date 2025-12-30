@@ -8,6 +8,7 @@ import { createWizard, WizardAttrs } from "../gui/base/wizard/Wizard"
 import { px } from "../gui/size"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "../subscription/utils/PriceUtils"
 import { AvailablePlanType, getDefaultPaymentMethod, InvoiceData, PaymentData, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { canSubscribeToPlan, queryAppStoreSubscriptionOwnership, UpgradeType } from "../subscription/utils/SubscriptionUtils"
@@ -79,6 +80,7 @@ export class SignupViewModel {
 	public emailInputStore?: string
 	public passwordInputStore?: string
 	public addressInputStore?: string
+	public inlinePlanSelectorOpen: Stream<boolean>
 	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
@@ -121,6 +123,7 @@ export class SignupViewModel {
 		this.currentPlan = null
 		this.multipleUsersAllowed = false
 		this.isCalledBySatisfactionDialog = false
+		this.inlinePlanSelectorOpen = stream(false)
 	}
 
 	private cleanupCalled = false
