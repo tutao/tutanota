@@ -8,7 +8,7 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { layout_size, size } from "../../../common/gui/size"
+import { layout_size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -680,6 +680,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						print: this.getPrintAction(),
 						reportSpam: null,
 						reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
+						reapplyInboxRules: null,
 					}),
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
 				})
@@ -728,6 +729,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								print: this.getPrintAction(),
 								reportSpam: this.getSingleMailSpamAction(mailViewerModel),
 								reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
+								reapplyInboxRules: null,
 							})
 						},
 					}),
@@ -972,6 +974,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					print: this.getPrintAction(),
 					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
 					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
+					reapplyInboxRules: null,
 				}),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {

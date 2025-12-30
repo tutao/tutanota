@@ -313,6 +313,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				print: this.getPrintAction(),
 				reportSpam: null,
 				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
+				reapplyInboxRules: null,
 			}),
 			reportSpamAction: this.getReportMailsAsSpamAction(viewModel.primaryViewModel()),
 		})
@@ -356,6 +357,61 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			: async () => {
 					await this.moveMailsToSystemFolder(MailSetKind.SPAM)
 				}
+	}
+
+	private getReapplyInboxRulesAction(): (() => void) | null {
+		const currentFolder = this.mailViewModel.getFolder()
+		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
+		if (!mailLocator.logins.getUserController().isPaidAccount() || currentFolder?.folderType !== MailSetKind.INBOX) {
+			return null
+		}
+
+		return this.reapplyInboxRulesForCurrentFolder()
+	}
+
+	private reapplyInboxRulesForCurrentFolder() {
+		return async () => {
+			const currentFolder = this.mailViewModel.getFolder()
+			if (currentFolder == null) {
+				return
+			}
+
+			const actionableMails = this.mailViewModel.getActionableMails()
+			if (isEmpty(actionableMails)) {
+				return
+			}
+
+			const inboxRuleHandler = mailLocator.processInboxHandler()
+			const mailboxDetails = await this.mailViewModel.getMailboxDetails()
+			const targetFolderToMailMap = new Map<MailSet, Mail[]>()
+			for (const mail of actionableMails) {
+				const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
+				if (!targetFolderToMailMap.has(folder)) {
+					targetFolderToMailMap.set(folder, [])
+				}
+				targetFolderToMailMap.get(folder)?.push(mail)
+			}
+
+			const foldersToMove = Array.from(targetFolderToMailMap.keys()).filter((folder) => folder.folderType !== MailSetKind.INBOX)
+			if (foldersToMove)
+				for (const targetFolder of foldersToMove) {
+					const mailsToMove = targetFolderToMailMap.get(targetFolder)
+					if (!mailsToMove) {
+						continue
+					}
+
+					const resolvedMails = await this.mailViewModel.getResolvedMails(mailsToMove)
+
+					moveMails({
+						mailboxModel: locator.mailboxModel,
+						mailModel: mailLocator.mailModel,
+						targetFolder,
+						mailIds: resolvedMails,
+						moveMode: this.mailViewModel.getMoveMode(currentFolder),
+						undoModel: this.undoModel,
+					})
+				}
+		}
 	}
 
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
@@ -412,6 +468,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						print: this.getPrintAction(),
 						reportSpam: this.getSingleMailSpamAction(mailViewerModel),
 						reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
+						reapplyInboxRules: null,
 					})
 				},
 			}),
@@ -433,7 +490,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			replyAction: null,
 			replyAllAction: null,
 			forwardAction: null,
-			mailViewerMoreActions: null,
+			mailViewerMoreActions: {
+				reapplyInboxRulesAction: this.getReapplyInboxRulesAction(),
+			},
 			reportSpamAction: this.getReportMailsAsSpamAction(null),
 		})
 	}
@@ -522,6 +581,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									print: this.getPrintAction(),
 									reportSpam: this.getReportMailsAsSpamAction(this.conversationViewModel.primaryViewModel()),
 									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
+									reapplyInboxRules: null,
 								}),
 							})
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()

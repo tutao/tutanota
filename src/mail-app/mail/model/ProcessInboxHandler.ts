@@ -2,7 +2,7 @@ import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, debounce, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -112,6 +112,30 @@ export class ProcessInboxHandler {
 			// noinspection ES6MissingAwait
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
+		return moveToFolder
+	}
+
+	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
+		// These should be in process by the regular handler and be eventually processed
+		if (mail.processNeeded) {
+			return sourceFolder
+		}
+		let moveToFolder: MailSet = sourceFolder
+		// process excluded rules first and then regular ones.
+		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+		if (result) {
+			const { targetFolder, processInboxDatum } = result
+			moveToFolder = targetFolder
+		} else {
+			if (moveToFolder.folderType === MailSetKind.INBOX) {
+				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+				if (result) {
+					const { targetFolder, processInboxDatum } = result
+					moveToFolder = targetFolder
+				}
+			}
+		}
+
 		return moveToFolder
 	}
 }

@@ -610,6 +610,7 @@ export type TranslationKeyType =
 	| "receiveCalendarNotifications_label"
 	| "reallySubmitContent_msg"
 	| "readResponse_action"
+	| "reapplyInboxRules_action"
 	| "ratingUpgrade_label"
 	| "ratingUpgradeFromRevo_label"
 	| "ratingSupportTuta_title"

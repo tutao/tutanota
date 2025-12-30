@@ -47,6 +47,7 @@ export type MailViewerMoreActions = {
 	printAction?: () => void
 	reportSpamAction?: () => void
 	reportPhishingAction?: () => void
+	reapplyInboxRulesAction?: (() => void) | null
 }
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
@@ -266,6 +267,7 @@ function handleExportEmailsResult(mailList: Mail[]) {
 	}
 }
 
+//Here to change more views
 export function multipleMailViewerMoreActions(exportAction: (() => void) | null, moreActions: MailViewerMoreActions | null): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
@@ -342,11 +344,13 @@ export function getMailViewerMoreActions({
 	reportSpam,
 	print,
 	reportPhishing,
+	reapplyInboxRules,
 }: {
 	viewModel: MailViewerViewModel
 	print: (() => unknown) | null
 	reportSpam: (() => unknown) | null
 	reportPhishing: (() => unknown) | null
+	reapplyInboxRules: (() => unknown) | null
 }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
@@ -373,6 +377,9 @@ export function getMailViewerMoreActions({
 	if (reportPhishing) {
 		actions.reportPhishingAction = reportPhishing
 	}
+	if (reapplyInboxRules) {
+		actions.reapplyInboxRulesAction = reapplyInboxRules
+	}
 
 	return actions
 }
@@ -384,6 +391,7 @@ function mailViewerMoreActions({
 	printAction,
 	reportSpamAction,
 	reportPhishingAction,
+	reapplyInboxRulesAction,
 }: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
@@ -416,6 +424,14 @@ function mailViewerMoreActions({
 			label: "print_action",
 			click: printAction,
 			icon: Icons.Print,
+		})
+	}
+
+	if (reapplyInboxRulesAction != null) {
+		moreButtons.push({
+			label: "reapplyInboxRules_action",
+			click: reapplyInboxRulesAction,
+			icon: Icons.Sync,
 		})
 	}
 
