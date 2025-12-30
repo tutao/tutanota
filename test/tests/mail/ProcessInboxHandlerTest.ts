@@ -201,6 +201,69 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
 	})
 
+	o("processInboxRulesOnly does nothing if mail needs processing", async function () {
+		mail.sets = [inboxFolder._id]
+		mail.processNeeded = true
+		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+
+		o(targetFolder).deepEquals(inboxFolder)
+		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(anything(), anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(anything(), anything(), anything(), anything()), { times: 0 })
+	})
+
+	o("processInboxRulesOnly applies only inbox rules, does not interact with classifier", async function () {
+		mail.sets = [inboxFolder._id]
+		mail.processNeeded = false
+		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve({
+			targetFolder: trashFolder,
+		})
+		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+
+		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true), { times: 1 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true), { times: 1 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, false), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, false), { times: 0 })
+		o(targetFolder).deepEquals(trashFolder)
+	})
+
+	o("processInboxRulesOnly applies rules excluded from spamFilter, does not interact with classifier", async function () {
+		mail.sets = [inboxFolder._id]
+		mail.processNeeded = false
+		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve({
+			targetFolder: trashFolder,
+		})
+		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+
+		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true), { times: 1 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, false), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, false), { times: 0 })
+		o(targetFolder).deepEquals(trashFolder)
+	})
+
+	o("processInboxRulesOnly returns inbox if no rule matches", async function () {
+		mail.sets = [inboxFolder._id]
+		mail.processNeeded = false
+		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+
+		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true), { times: 1 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, true), { times: 1 })
+		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, false), { times: 0 })
+		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder, false), { times: 0 })
+
+		o(targetFolder).deepEquals(inboxFolder)
+	})
+
 	o("handleIncomingMail does move mail from inbox to spam folder if mail is spam", async function () {
 		mail.sets = [inboxFolder._id]
 		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)

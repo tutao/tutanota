@@ -1536,6 +1536,7 @@ export default {
 		"ratingUpgrade_label": "Upgrade & Support Us",
 		"ratingUpgradeFromRevo_label": "Become a Legend",
 		"readResponse_action": "Read response",
+		"reapplyInboxRules_action": "Reapply inbox rules",
 		"reallySubmitContent_msg": "Do you really want to send the entered data to an external site?",
 		"receiveCalendarNotifications_label": "Receive calendar event notifications",
 		"received_action": "Inbox",

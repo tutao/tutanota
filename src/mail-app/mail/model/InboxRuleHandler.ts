@@ -61,22 +61,24 @@ export class InboxRuleHandler {
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
 		sourceFolder: MailSet,
+		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
 			return null
 		}
-		return this.findAndApplyMatchingRule(mailboxDetail, mail, true)
+		return this.findAndApplyMatchingRule(mailboxDetail, mail, true, ignoreProcessingState)
 	}
 
 	async findAndApplyRulesNotExcludedFromSpamFilter(
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
 		sourceFolder: MailSet,
+		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		if (sourceFolder.folderType !== MailSetKind.INBOX) {
 			return null
 		}
-		return this.findAndApplyMatchingRule(mailboxDetail, mail, false)
+		return this.findAndApplyMatchingRule(mailboxDetail, mail, false, ignoreProcessingState)
 	}
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
@@ -86,14 +88,14 @@ export class InboxRuleHandler {
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
 		checkRulesExcludedFromSpamFilter: boolean = false,
+		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		const shouldApply =
 			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
 				mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION) &&
 			mail.processNeeded
 
-		//remove isLandingFolder
-		if (mail._errors || !shouldApply || !this.logins.getUserController().isPaidAccount()) {
+		if (mail._errors || !this.logins.getUserController().isPaidAccount() || (!ignoreProcessingState && !shouldApply)) {
 			return null
 		}
 

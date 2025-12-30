@@ -1536,6 +1536,7 @@ export default {
 		"ratingUpgrade_label": "Machen Sie ein Upgrade & unterstützen Sie uns",
 		"ratingUpgradeFromRevo_label": "Wechseln Sie zu Legend",
 		"readResponse_action": "Antwort lesen",
+		"reapplyInboxRules_action": "Reapply inbox rules",
 		"reallySubmitContent_msg": "Möchten Sie die eingegebenen Daten wirklich an eine externe Seite senden?",
 		"receiveCalendarNotifications_label": "Kalender-Terminerinnerungen anzeigen",
 		"received_action": "Posteingang",
