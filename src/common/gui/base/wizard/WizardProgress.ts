@@ -3,7 +3,8 @@ import type { WizardProgressViewItem } from "./WizardController"
 import { Icon, IconSize } from "../Icon"
 import { Icons } from "../icons/Icons"
 import { theme } from "../../theme"
-import { layout_size, px, size } from "../../size"
+import { component_size, layout_size, px, size } from "../../size"
+import { styles } from "../../styles"
 
 export interface WizardProgressAttrs {
 	progressState: WizardProgressViewItem[]
@@ -12,12 +13,15 @@ export interface WizardProgressAttrs {
 
 export class WizardProgress implements Component<WizardProgressAttrs> {
 	view({ attrs: { progressState, onClick } }: Vnode<WizardProgressAttrs>) {
+		const showLabels = !styles.isSingleColumnLayout()
+		const progressWidth = showLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size
+
 		return m(
 			".flex.col.justify-start",
 			{
 				style: {
-					flex: 1,
-					"max-width": px(layout_size.wizard_progress_width),
+					flex: "1",
+					"max-width": px(progressWidth),
 				},
 			},
 			m(
@@ -25,18 +29,19 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 				{
 					style: {
 						height: "75%",
-						width: `${px(layout_size.wizard_progress_width)}`,
+						width: px(progressWidth),
 					},
 				},
 				progressState
 					.filter((step) => step.isEnabled)
 					.map((step, idx) => {
 						return [
-							m(".wizard-progress-wrap.flex.gap-16.items-start.full-width", [
+							m(`.wizard-progress-wrap.flex.items-start.full-width${showLabels ? ".gap-16" : ""}`, [
 								m(
 									`button.wizard-progress${step.isCurrent ? ".wizard-progress-active" : ""}${step.currentIndex > step.index ? ".wizard-progress-previous" : ""}`,
 									{
 										type: "button",
+										"aria-label": step.label,
 										disabled: !step.isReachable || !onClick,
 										onclick: onClick ? () => onClick(step.index) : () => {},
 									},
@@ -52,12 +57,12 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 											: m("", idx + 1),
 									],
 								),
-
-								m(
-									".flex.items-center",
-									{ style: { height: px(size.icon_32), width: `calc(100% - ${px(size.icon_32 + size.spacing_16)})` } },
-									m(".block.text-ellipsis.full-width", step.label),
-								),
+								showLabels &&
+									m(
+										".flex.items-center",
+										{ style: { height: px(size.icon_32), width: `calc(100% - ${px(size.icon_32 + size.spacing_16)})` } },
+										m(".block.text-ellipsis.full-width", step.label),
+									),
 							]),
 						]
 					}),

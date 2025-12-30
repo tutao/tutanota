@@ -59,11 +59,12 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		const viewModel = ctx.viewModel as SignupViewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
 		const showIllustration = styles.bodyWidth >= 1500 && !viewModel.options.businessUse()
+		const showProgressLabels = !styles.isSingleColumnLayout()
 		const progressColumnStyle = styles.isMobileLayout()
 			? undefined
 			: {
-					width: px(layout_size.wizard_progress_width),
-					"min-width": px(layout_size.wizard_progress_width),
+					width: px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
+					"min-width": px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
 					"flex-shrink": "0",
 				}
 		const contentColumnStyle = !styles.isMobileLayout() && !showIllustration ? { "max-width": px(layout_size.wizard_content_max_width) } : undefined
