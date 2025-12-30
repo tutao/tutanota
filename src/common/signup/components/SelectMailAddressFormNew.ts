@@ -30,6 +30,7 @@ export interface SelectMailAddressFormAttrs {
 	injectionsRightButtonAttrs?: IconButtonAttrs | null
 	onDomainChanged: (domain: EmailDomainData) => unknown
 	mailAddressNAError?: TranslationKey
+	messageIdOverride?: TranslationKey | null
 	signupToken?: string
 	username?: string
 }
@@ -88,7 +89,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 			},
 			autocompleteAs: Autocomplete.newPassword,
 			autocapitalize: Autocapitalize.none,
-			helpLabel: () => this.addressHelpLabel(),
+			helpLabel: () => this.addressHelpLabel(attrs.messageIdOverride),
 			fontSize: px(font_size.smaller),
 			oninput: (value) => {
 				this.username = value
@@ -132,10 +133,11 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 		return formatMailAddressFromParts(this.username, attrs.selectedDomain.domain)
 	}
 
-	private addressHelpLabel(): Children {
+	private addressHelpLabel(messageIdOverride?: TranslationKey | null): Children {
+		const messageId = messageIdOverride ?? this.messageId
 		return this.isVerificationBusy
 			? m(".flex.items-center.mt-8", [this.progressIcon(), lang.get("mailAddressBusy_msg")])
-			: m(".mt-8", lang.get(this.messageId ?? VALID_MESSAGE_ID))
+			: m(".mt-8", lang.get(messageId ?? VALID_MESSAGE_ID))
 	}
 
 	private progressIcon(): Children {

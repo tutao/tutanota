@@ -4,7 +4,6 @@ import Stream from "mithril/stream"
 import { Dialog } from "../../gui/base/Dialog"
 import { Autocomplete } from "../../gui/base/TextField.js"
 import { getWhitelabelRegistrationDomains } from "../../login/LoginView.js"
-import { SelectMailAddressFormAttrs } from "../../settings/SelectMailAddressForm"
 import {
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
@@ -24,9 +23,10 @@ import { NewAccountData } from "../../subscription/UpgradeSubscriptionWizard"
 import { runPowChallenge } from "../../subscription/captcha/Captcha"
 import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../subscription/TermsAndConditions"
 import { LoginTextField } from "../../gui/base/LoginTextField"
-import { SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
+import { SelectMailAddressFormAttrs, SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
 import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
 import { styles } from "../../gui/styles"
+import { AccessDeactivatedError } from "../../api/common/error/RestError"
 
 export type SignupFormAttrs = {
 	onComplete: (
@@ -61,6 +61,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 	private _mailAddressFormErrorId: TranslationKey | null = null
 	private _mailAddress!: string
 	private _isMailVerificationBusy: boolean
+	private _isFinalAvailabilityCheckBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private powChallengeSolution: DeferredObject<PowSolution> = defer()
 	private readonly: boolean = false
@@ -118,6 +119,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		this._confirmTerms = stream<boolean>(false)
 		this._code = stream("")
 		this._isMailVerificationBusy = false
+		this._isFinalAvailabilityCheckBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
 	}
 
@@ -186,6 +188,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 			onBusyStateChanged: (isBusy) => {
 				this._isMailVerificationBusy = isBusy
 			},
+			messageIdOverride: this._mailAddressFormErrorId,
 			signupToken: deviceConfig.getSignupToken(),
 			username: vnode.attrs.emailInputStore?.split("@")[0] ?? "",
 		}
@@ -194,14 +197,14 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 			checked: this._confirmTerms(),
 			onChecked: this._confirmTerms,
 		}
-		const submit = () => {
+		const submit = async () => {
 			if (this.readonly) {
 				// Email field is read-only, account has already been created but user switched from different subscription.
 				// return a.onComplete({ type: "success", newAccountData: null })
 				a.onNext()
 				return
 			}
-			if (this._isMailVerificationBusy) return
+			if (this._isMailVerificationBusy || this._isFinalAvailabilityCheckBusy) return
 
 			const errorMessage =
 				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
@@ -209,6 +212,29 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 			if (errorMessage) {
 				Dialog.message(errorMessage)
 				return
+			}
+
+			this._isFinalAvailabilityCheckBusy = true
+			try {
+				const available = await locator.mailAddressFacade.isMailAddressAvailable(this._mailAddress, deviceConfig.getSignupToken())
+				if (!available) {
+					this._mailAddressFormErrorId = "mailAddressNA_msg"
+					this.__mailValid(false)
+					m.redraw()
+					Dialog.message("mailAddressNA_msg")
+					return
+				}
+			} catch (e) {
+				if (e instanceof AccessDeactivatedError) {
+					this._mailAddressFormErrorId = "mailAddressDelay_msg"
+					this.__mailValid(false)
+					m.redraw()
+					Dialog.message("mailAddressDelay_msg")
+					return
+				}
+				throw e
+			} finally {
+				this._isFinalAvailabilityCheckBusy = false
 			}
 
 			a.onComplete({
