@@ -96,6 +96,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 									if (index < 3) {
 										controller.setStepUnreachable(3)
 									}
+									this.onTransition(controller.currentStep, index)
 									controller.setStep(index)
 								},
 							}),
