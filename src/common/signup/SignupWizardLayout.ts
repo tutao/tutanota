@@ -14,6 +14,7 @@ import { SignupInlinePlanSelector } from "./components/SignupInlinePlanSelector"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 
 const INFO_BOX_TRANSITION_MS = 500
+const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
 
 export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
 	private lastSeenTransitionSeq = 0
@@ -121,6 +122,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 							showProgress &&
 							m(WizardProgress, {
 								progressState,
+								labelMaxLength: SIGNUP_PROGRESS_LABEL_MAX_LENGTH,
 								onClick: (index) => {
 									if (index < 3) {
 										controller.setStepUnreachable(3)
