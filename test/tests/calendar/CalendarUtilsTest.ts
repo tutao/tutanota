@@ -105,6 +105,13 @@ o.spec("calendar utils tests", function () {
 			const result = getStartOfDayWithZone(date, "utc")
 			o(result.toISOString()).equals(expected)("the utc date was not kept the same")
 		})
+
+		o("it produces a date at the start of the day according to the time zone", function () {
+			const date = new Date("2023-01-29T22:30:00.000Z")
+			const expected = "2023-01-29T05:00:00.000Z"
+			const result = getStartOfDayWithZone(date, "America/New_York")
+			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
+		})
 	})
 
 	o.spec("getAllDayDateForTimezone", function () {
