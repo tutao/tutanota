@@ -6,10 +6,11 @@ import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calen
 import { ColumnBounds } from "../../../src/common/calendar/gui/CalendarTimeGrid"
 
 import { makeEventWrapper } from "./CalendarTestUtils"
+import { DateTime } from "luxon"
 
 o.spec("AllDaySection", function () {
 	const BASE_YEAR = 2025
-	const BASE_MONTH = 10 // November (JS Months are 0-indexed)
+	const BASE_MONTH = 10 // Nvoember (JS Months are 0-indexed)
 
 	const dates = [
 		new Date(BASE_YEAR, BASE_MONTH, 6, 0, 0),
@@ -18,6 +19,16 @@ o.spec("AllDaySection", function () {
 		new Date(BASE_YEAR, BASE_MONTH, 9, 0, 0),
 		new Date(BASE_YEAR, BASE_MONTH, 10, 0, 0),
 	]
+
+	function createColumnDates(zone: string) {
+		return [
+			DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 6, hour: 0, minute: 0 }, { zone }).toJSDate(),
+			DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 7, hour: 0, minute: 0 }, { zone }).toJSDate(),
+			DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 8, hour: 0, minute: 0 }, { zone }).toJSDate(),
+			DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 9, hour: 0, minute: 0 }, { zone }).toJSDate(),
+			DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 10, hour: 0, minute: 0 }, { zone }).toJSDate(),
+		]
+	}
 
 	const createAllDayEventStub = (id: string, startDate: Date, endDate: Date): CalendarEvent => {
 		return createTestEntity(CalendarEventTypeRef, {
@@ -42,10 +53,10 @@ o.spec("AllDaySection", function () {
 		return new Date(BASE_YEAR, BASE_MONTH, day, hour, minute)
 	}
 
-	const createEventsMapWithBounds = (eventWrappers: Array<any>) => {
+	const createEventsMapWithBounds = (eventWrappers: Array<any>, timeZone: string) => {
 		return new Map(
 			eventWrappers.map((wrapper) => {
-				const bounds = AllDaySection.getColumnBounds(wrapper.event, dates)
+				const bounds = AllDaySection.getColumnBounds(wrapper.event, dates, timeZone)
 				return [wrapper, bounds]
 			}),
 		)
@@ -56,16 +67,33 @@ o.spec("AllDaySection", function () {
 			o.test("Single day event", function () {
 				const event = createAllDayEventStub("single-day", makeDate(6), makeDate(7))
 
-				const bounds = AllDaySection.getColumnBounds(event, dates)
+				const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 				o(bounds).deepEquals({ start: 1, span: 1 })
+			})
+
+			o.test("Single all day events timezone", function () {
+				const event = createTestEntity(CalendarEventTypeRef, {
+					_id: ["short-events-list", "event-id"],
+					startTime: new Date(DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 6, hour: 0 }, { zone: "UTC" }).toMillis()),
+					endTime: new Date(DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 7, hour: 0 }, { zone: "UTC" }).toMillis()),
+					summary: "event-id",
+				})
+
+				// always display all day events on the same day across different timezones.
+				const boundsBerlin = AllDaySection.getColumnBounds(event, createColumnDates("Europe/Berlin"), "Europe/Berlin")
+				o(boundsBerlin).deepEquals({ start: 1, span: 1 })
+
+				const timezoneDates = createColumnDates("America/New_York")
+				const boundsNewYork = AllDaySection.getColumnBounds(event, timezoneDates, "America/New_York")
+				o(boundsNewYork).deepEquals({ start: 1, span: 1 })
 			})
 
 			o.spec("Multi day events", function () {
 				o.test("Spans two consecutive days", function () {
 					const event = createAllDayEventStub("two-days", makeDate(6), makeDate(8))
 
-					const bounds = AllDaySection.getColumnBounds(event, dates)
+					const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 					o(bounds).deepEquals({ start: 1, span: 2 })
 				})
@@ -73,7 +101,7 @@ o.spec("AllDaySection", function () {
 				o.test("Spans entire date range", function () {
 					const event = createAllDayEventStub("full-range", makeDate(6), makeDate(11))
 
-					const bounds = AllDaySection.getColumnBounds(event, dates)
+					const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 					o(bounds).deepEquals({ start: 1, span: dates.length })
 				})
@@ -81,7 +109,7 @@ o.spec("AllDaySection", function () {
 				o.test("Event starts before visible range", function () {
 					const event = createAllDayEventStub("starts-before", makeDate(5), makeDate(8))
 
-					const bounds = AllDaySection.getColumnBounds(event, dates)
+					const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 					o(bounds).deepEquals({ start: 1, span: 2 })("Should be clamped to start of range, showing only visible portion")
 				})
@@ -93,7 +121,7 @@ o.spec("AllDaySection", function () {
 						makeDate(15),
 					)
 
-					const bounds = AllDaySection.getColumnBounds(event, dates)
+					const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 					o(bounds).deepEquals({ start: 2, span: dates.length - 1 })("Should span from day 2 to end of range")
 				})
@@ -101,7 +129,7 @@ o.spec("AllDaySection", function () {
 				o.test("Event spans beyond both ends of range", function () {
 					const event = createAllDayEventStub("spans-through", makeDate(5), makeDate(15))
 
-					const bounds = AllDaySection.getColumnBounds(event, dates)
+					const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 					o(bounds).deepEquals({ start: 1, span: dates.length })("Should fill entire visible range")
 				})
@@ -112,7 +140,7 @@ o.spec("AllDaySection", function () {
 			o.test("Event exactly 24 hours long", function () {
 				const event = createMultidayEventStub("24hrs", makeDate(6, 11, 0), makeDate(7, 11, 0))
 
-				const bounds = AllDaySection.getColumnBounds(event, dates)
+				const bounds = AllDaySection.getColumnBounds(event, createColumnDates(getTimeZone()), getTimeZone())
 
 				o(bounds).deepEquals({ start: 1, span: 2 })
 			})
@@ -120,15 +148,35 @@ o.spec("AllDaySection", function () {
 			o.test("Event longer than 24 hours spanning two days", function () {
 				const event = createMultidayEventStub("28hrs", makeDate(6, 11, 0), makeDate(7, 15, 0))
 
-				const bounds = AllDaySection.getColumnBounds(event, dates)
+				const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 				o(bounds).deepEquals({ start: 1, span: 2 })
+			})
+
+			o.test("Event longer than 24 hours spanning two days - timezone", function () {
+				// const event = createMultidayEventStub("28hrs", makeDate(6, 11, 0), makeDate(7, 15, 0))
+				const event = createTestEntity(CalendarEventTypeRef, {
+					_id: ["short-events-list", "event-id"],
+					startTime: DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 7, hour: 2 }, { zone: "Europe/Berlin" }).toJSDate(),
+					endTime: DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 8, hour: 15 }, { zone: "Europe/Berlin" }).toJSDate(),
+					summary: "event-id",
+				})
+
+				// display events on different timezone
+				const boundsBerlin = AllDaySection.getColumnBounds(event, dates, "Europe/Berlin")
+				o(boundsBerlin).deepEquals({ start: 2, span: 2 })
+
+				const timezoneRefernceDates = createColumnDates("America/New_York")
+				const boundsNewYork = AllDaySection.getColumnBounds(event, timezoneRefernceDates, "America/New_York")
+
+				// Depending on start/end time, span might change when shifting time zones.
+				o(boundsNewYork).deepEquals({ start: 1, span: 3 })
 			})
 
 			o.test("Event spanning three calendar days", function () {
 				const event = createMultidayEventStub("48hrs", makeDate(6, 11, 0), makeDate(8, 11, 0))
 
-				const bounds = AllDaySection.getColumnBounds(event, dates)
+				const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 				o(bounds).deepEquals({ start: 1, span: 3 })
 			})
@@ -136,7 +184,7 @@ o.spec("AllDaySection", function () {
 			o.test("Event starts before range, ends on first day", function () {
 				const event = createMultidayEventStub("starts-before-range", makeDate(4, 11, 0), makeDate(6, 11, 0))
 
-				const bounds = AllDaySection.getColumnBounds(event, dates)
+				const bounds = AllDaySection.getColumnBounds(event, dates, getTimeZone())
 
 				o(bounds).deepEquals({ start: 1, span: 1 })
 			})
@@ -154,7 +202,7 @@ o.spec("AllDaySection", function () {
 			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(6), makeDate(7)))
 			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(6), makeDate(7)))
 			const events = [evA, evB]
-			const eventsMap = createEventsMapWithBounds(events)
+			const eventsMap = createEventsMapWithBounds(events, getTimeZone())
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 
@@ -176,7 +224,7 @@ o.spec("AllDaySection", function () {
 			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(6), makeDate(7)))
 			const evC = makeEventWrapper(createAllDayEventStub("evC", makeDate(6), makeDate(7)))
 			const events = [evA, evB, evC]
-			const eventsMap = createEventsMapWithBounds(events)
+			const eventsMap = createEventsMapWithBounds(events, getTimeZone())
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 
@@ -201,7 +249,7 @@ o.spec("AllDaySection", function () {
 			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(6), makeDate(7)))
 			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(7), makeDate(8)))
 			const events = [evA, evB]
-			const eventsMap = createEventsMapWithBounds(events)
+			const eventsMap = createEventsMapWithBounds(events, getTimeZone())
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 
@@ -223,7 +271,7 @@ o.spec("AllDaySection", function () {
 			const evC = makeEventWrapper(createAllDayEventStub("evC", makeDate(8), makeDate(9)))
 
 			const events = [evA, evB, evC]
-			const eventsMap = createEventsMapWithBounds(events)
+			const eventsMap = createEventsMapWithBounds(events, getTimeZone())
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 

@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
-import { downcast, getFirstOrThrow, getStartOfDay } from "@tutao/tutanota-utils"
+import { downcast, getFirstOrThrow } from "@tutao/tutanota-utils"
 import {
 	CalendarEventBubble,
 	CalendarEventBubbleAttrs,
@@ -10,7 +10,7 @@ import {
 	EventBubbleInteractions,
 	RangeOverflowData,
 } from "./CalendarEventBubble"
-import { eventEndsAfterDay, eventStartsBeforeDay, getTimeZone } from "../date/CalendarUtils"
+import { eventEndsAfterDay, eventStartsBeforeDay, getEventEnd, getEventStart, getStartOfDayWithZone, getTimeZone } from "../date/CalendarUtils"
 import { getRowDateFromMousePos, getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
@@ -132,7 +132,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 		// Step 1: Convert events to column-based coordinates
 		const eventsMap = new Map<EventWrapper, ColumnBounds>(
 			orderedEvents.map((wrapper) => {
-				return [wrapper, AllDaySection.getColumnBounds(wrapper.event, dates)]
+				return [wrapper, AllDaySection.getColumnBounds(wrapper.event, dates, getTimeZone())]
 			}),
 		)
 
@@ -180,6 +180,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	 *
 	 * @param event - The calendar event to position
 	 * @param dates - Array of visible dates in the calendar view
+	 * @param zone - the local timezone to convert start and end times to
 	 * @returns Column start position and span length for CSS Grid
 	 *
 	 * @example
@@ -188,9 +189,10 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	 *
 	 * @VisibleForTesting
 	 */
-	static getColumnBounds(event: CalendarEvent, dates: Date[]) {
-		const eventStartTimeStartOfDay = getStartOfDay(event.startTime).getTime()
-		const eventEndTimeStartOfDay = getStartOfDay(event.endTime).getTime()
+	static getColumnBounds(event: CalendarEvent, dates: Date[], zone: string) {
+		// need to convert start and end time of all day events into local start and end time in order to assign the events to the correct columns.
+		const eventStartTimeStartOfDay = getStartOfDayWithZone(getEventStart(event, zone), zone).getTime()
+		const eventEndTimeStartOfDay = getStartOfDayWithZone(getEventEnd(event, zone), zone).getTime()
 
 		const startDayIndex = dates.findIndex((date) => eventStartTimeStartOfDay <= date.getTime())
 		const endDayIndex = dates.findLastIndex((date) => eventEndTimeStartOfDay > date.getTime()) + 1
