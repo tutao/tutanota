@@ -966,15 +966,15 @@ export class CalendarModel {
 				throw new Error("Missing private calendar")
 			}
 			return await this.handleNewCalendarInvitation(sender, calendarData, firstCalendar.groupRoot)
-		}
-
-		const method = calendarData.method
-		for (const content of calendarData.contents) {
-			const updateAlarms = content.alarms
-			const updateEvent = content.event
-			// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
-			// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
-			await this.processCalendarEventMessage(sender, method, updateEvent, updateAlarms, dbEvents)
+		} else {
+			const method = calendarData.method
+			for (const content of calendarData.contents) {
+				const updateAlarms = content.alarms
+				const updateEvent = content.event
+				// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
+				// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
+				await this.processCalendarEventMessage(sender, method, updateEvent, updateAlarms, dbEvents)
+			}
 		}
 	}
 
@@ -1043,17 +1043,17 @@ export class CalendarModel {
 				console.log(TAG, `got something that's not a REQUEST for nonexistent server event on uid:`, method)
 				return
 			}
-		}
-
-		const sentByOrganizer: boolean = targetDbEvent.organizer != null && targetDbEvent.organizer.address === sender
-		if (method === CalendarMethod.REPLY) {
-			return this.processCalendarReply(sender, targetDbEvent, updateEvent)
-		} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
-			return await this.processCalendarUpdate(target, targetDbEvent, updateEvent)
-		} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
-			return await this.processCalendarCancellation(targetDbEvent)
 		} else {
-			console.log(TAG, `${method} update sent not by organizer, ignoring.`)
+			const sentByOrganizer: boolean = targetDbEvent.organizer != null && targetDbEvent.organizer.address === sender
+			if (method === CalendarMethod.REPLY) {
+				return this.processCalendarReply(sender, targetDbEvent, updateEvent)
+			} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
+				return await this.processCalendarUpdate(target, targetDbEvent, updateEvent)
+			} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
+				return await this.processCalendarCancellation(targetDbEvent)
+			} else {
+				console.log(TAG, `${method} update sent not by organizer, ignoring.`)
+			}
 		}
 	}
 
