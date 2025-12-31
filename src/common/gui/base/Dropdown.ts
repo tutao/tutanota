@@ -209,7 +209,7 @@ export class Dropdown implements ModalComponent {
 								p.then((renderDirection) => {
 									this._renderDirection = renderDirection
 									const buttons = (vnode.dom as HTMLElement).getElementsByTagName("button")
-									const firstButton = buttons.item(renderDirection === "down" ? 0 : buttons.length - 1)
+									const firstButton = buttons.item(0)
 									if (this.domInput && !client.isMobileDevice()) {
 										this.domInput.focus()
 									} else if (firstButton !== null) {
