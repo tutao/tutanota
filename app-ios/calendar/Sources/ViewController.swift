@@ -73,7 +73,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 				chooser: TUTFileChooser(viewController: self),
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
-				urlSession: urlSession
+				urlSession: urlSession,
+				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.downloadProgress(fileId, bytes) } }
 			),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,

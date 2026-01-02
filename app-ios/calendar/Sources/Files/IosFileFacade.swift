@@ -1,22 +1,26 @@
+import Combine
 import Foundation
 import MobileCoreServices
 import TutanotaSharedFramework
 import UniformTypeIdentifiers
 
+typealias ProgressUpdater = (String, Int) -> Void
+
 class IosFileFacade: FileFacade {
-	func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
+	private let chooser: TUTFileChooser
+	private let viewer: FileViewer
+	private let schemeHandler: ApiSchemeHandler
+	private let urlSession: URLSession
+	private let downloadProgress: ProgressUpdater
 
-	let chooser: TUTFileChooser
-	let viewer: FileViewer
-	let schemeHandler: ApiSchemeHandler
-	let urlSession: URLSession
-
-	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
+	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession, downloadProgress: @escaping ProgressUpdater) {
 		self.chooser = chooser
 		self.viewer = viewer
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
+		self.downloadProgress = downloadProgress
 	}
+	func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
 
 	func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
 
@@ -91,13 +95,29 @@ class IosFileFacade: FileFacade {
 		return UploadTaskResponse(httpResponse: httpResponse, responseBody: data)
 	}
 
-	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String]) async throws -> DownloadTaskResponse {
+	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String], _ fileId: String) async throws -> DownloadTaskResponse {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
 		request.allHTTPHeaderFields = headers
 
-		let (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request))
+		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
+		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+			private var progressCancellable: AnyCancellable?
+			private let reporter: (_ bytesReceived: Int) -> Void
+			init(reporter: @escaping (_ bytesReceived: Int) -> Void) { self.reporter = reporter }
+			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+				// We observe .fractionCompleted, as that changes frequently and accurately reacts to download progress.
+				// Other properties, such as .completedUnitCount are more abstract and do not immediately reflect progress.
+				// Progress handed into this method as task.progress internally consists of two progress trackers, the second
+				// one of which is the *actual* download progress. It seems inaccessible however, which is why we ask task
+				// directly for the bytes received.
+				self.progressCancellable = task.progress.publisher(for: \.fractionCompleted)
+					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true).sink { _ in self.reporter(Int(task.countOfBytesReceived)) }
+			}
+		}
+		let downloadDelegate = DownloadDelegate { bytesReceived in self.downloadProgress(fileId, bytesReceived) }
+		let (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request), delegate: downloadDelegate)
 		let httpResponse = response as! HTTPURLResponse
 		let encryptedFileUri: String?
 		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
