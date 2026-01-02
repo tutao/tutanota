@@ -146,10 +146,15 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 
 								injectionsRight: () => {
 									return m(IconButton, {
-										icon: Icons.Edit,
+										icon: Icons.SwapHorizontal,
 										title: "edit_action",
 										click: () => {
-											this._setStep(ctx, 0)
+											if (isYearly) {
+												data.options.paymentInterval(PaymentInterval.Monthly)
+											} else {
+												data.options.paymentInterval(PaymentInterval.Yearly)
+											}
+											data.updatePrice()
 										},
 									})
 								},
