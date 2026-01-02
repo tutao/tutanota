@@ -1,6 +1,6 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { File as TutanotaFile, Mail, MailSet, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
+import { BadRequestError, LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -174,6 +174,10 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 		//LockedError should no longer be thrown!?!
 		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
 			await Dialog.message("operationStillActive_msg")
+			return false
+		} else if (e instanceof BadRequestError) {
+			// This will be thrown when a mail is attempted to be moved between two different mailboxes
+			await Dialog.message("couldNotMoveMail_msg")
 			return false
 		} else {
 			throw e
