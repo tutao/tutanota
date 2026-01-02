@@ -90,14 +90,18 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 			"pointer-events": showPlanSelector ? "auto" : "none",
 		}
 		const showProgressLabels = !styles.isSingleColumnLayout()
-		const progressColumnStyle = styles.isMobileLayout()
-			? undefined
-			: {
-					width: px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
-					"min-width": px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
-					"flex-shrink": "0",
-				}
-		const contentColumnStyle = !styles.isMobileLayout() && !showIllustration ? { "max-width": px(layout_size.wizard_content_max_width) } : undefined
+		const isBusinessPlanSelector = viewModel.options.businessUse() && index === 0
+		const hideProgressColumn = isBusinessPlanSelector
+		const progressColumnStyle =
+			styles.isMobileLayout() || hideProgressColumn
+				? undefined
+				: {
+						width: px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
+						"min-width": px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
+						"flex-shrink": "0",
+					}
+		const contentColumnStyle =
+			!styles.isMobileLayout() && !showIllustration && !isBusinessPlanSelector ? { "max-width": px(layout_size.wizard_content_max_width) } : undefined
 
 		return m(
 			`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
@@ -117,32 +121,33 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 					},
 				},
 				[
-					m(".flex.flex-column.flex-space-between", { style: progressColumnStyle }, [
-						!styles.isMobileLayout() &&
-							showProgress &&
-							m(WizardProgress, {
-								progressState,
-								labelMaxLength: SIGNUP_PROGRESS_LABEL_MAX_LENGTH,
-								onClick: (index) => {
-									if (index < 3) {
-										controller.setStepUnreachable(3)
-									}
-									this.onTransition(viewModel, controller.currentStep, index)
-									controller.setStep(index)
-								},
-							}),
+					!hideProgressColumn &&
+						m(".flex.flex-column.flex-space-between", { style: progressColumnStyle }, [
+							!styles.isMobileLayout() &&
+								showProgress &&
+								m(WizardProgress, {
+									progressState,
+									labelMaxLength: SIGNUP_PROGRESS_LABEL_MAX_LENGTH,
+									onClick: (index) => {
+										if (index < 3) {
+											controller.setStepUnreachable(3)
+										}
+										this.onTransition(viewModel, controller.currentStep, index)
+										controller.setStep(index)
+									},
+								}),
 
-						m(
-							"",
-							{
-								style: {
-									height: px(component_size.button_height),
-									"margin-inline": showProgress ? "initial" : "auto",
+							m(
+								"",
+								{
+									style: {
+										height: px(component_size.button_height),
+										"margin-inline": showProgress ? "initial" : "auto",
+									},
 								},
-							},
-							backButton,
-						),
-					]),
+								backButton,
+							),
+						]),
 					m(".flex.gap-64.full-width", [
 						m(
 							".flex-grow",
