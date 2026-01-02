@@ -89,7 +89,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										icon: Icons.Edit,
 										title: "edit_action",
 										click: () => {
-											this._setStep(ctx, 0)
+											data.inlinePlanSelectorOpen(!data.inlinePlanSelectorOpen())
 										},
 									})
 								},

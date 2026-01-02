@@ -81,6 +81,7 @@ export class SignupViewModel {
 	public passwordInputStore?: string
 	public addressInputStore?: string
 	public inlinePlanSelectorOpen: Stream<boolean>
+	public inlinePlanSelectorToggleSteps: number[]
 	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
@@ -124,6 +125,7 @@ export class SignupViewModel {
 		this.multipleUsersAllowed = false
 		this.isCalledBySatisfactionDialog = false
 		this.inlinePlanSelectorOpen = stream(false)
+		this.inlinePlanSelectorToggleSteps = [1, 2, 3]
 	}
 
 	private cleanupCalled = false

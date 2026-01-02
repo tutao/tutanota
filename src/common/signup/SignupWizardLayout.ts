@@ -38,7 +38,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 	private readonly stepInfoBoxItems: InfoBoxItem[][] = [this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems]
 
 	onTransition(viewModel: SignupViewModel, _from: number, to: number) {
-		if (to === 0) viewModel.inlinePlanSelectorOpen(false)
+		if (!this.isInlinePlanSelectorToggleEnabled(viewModel, to)) viewModel.inlinePlanSelectorOpen(false)
 		const nextItems = this.getInfoBoxItemsForStep(to)
 		this.startIllustrationTransition()
 		this.infoBox.setItems(nextItems)
@@ -67,7 +67,7 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 		const viewModel = ctx.viewModel as SignupViewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
 		const showIllustration = styles.bodyWidth >= 1500 && !viewModel.options.businessUse()
-		const canTogglePlanSelector = showIllustration && index !== 0
+		const canTogglePlanSelector = showIllustration && this.isInlinePlanSelectorToggleEnabled(viewModel, index)
 		const showPlanSelector = canTogglePlanSelector && viewModel.inlinePlanSelectorOpen()
 		const panelTransitionMs = Math.round(DefaultAnimationTime * 1.5)
 		const panelTransition = `opacity ${panelTransitionMs}ms ease-out, transform ${panelTransitionMs}ms ease-out`
@@ -209,6 +209,11 @@ export class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAtt
 
 	private getIllustrationPath(name: string): string {
 		return `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/${name}`
+	}
+
+	private isInlinePlanSelectorToggleEnabled(viewModel: SignupViewModel, step: number): boolean {
+		const enabledSteps = viewModel.inlinePlanSelectorToggleSteps ?? []
+		return enabledSteps.includes(step)
 	}
 
 	private startIllustrationTransition() {
