@@ -409,7 +409,7 @@ export class ConversationListModel implements MailSetListModel {
 				}
 				const newState: ListState<Mail> = {
 					...state,
-					items: this.items.filter((mail) => !mail.processNeeded),
+					items: this.items,
 					selectedItems: new Set(this.getSelectedAsArray()),
 				}
 				return newState
