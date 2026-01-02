@@ -153,7 +153,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		},
 	}: Vnode<SelectAttributes<U, T>, this>) {
 		return m(
-			".rel.flex.full-width.height-100p",
+			".rel.flex.full-width",
 			{
 				class: responsive && this.dropdownContainer?.dom ? "justify-end" : "",
 				style: {

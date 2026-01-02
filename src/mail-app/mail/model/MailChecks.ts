@@ -3,7 +3,7 @@
 import { Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailModel } from "./MailModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { isFolderReadOnly, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 
 export function isSubfolderOfType(system: FolderSystem, folder: MailSet, type: SystemFolderType): boolean {
 	const systemFolder = system.getSystemFolderByType(type)
@@ -11,7 +11,26 @@ export function isSubfolderOfType(system: FolderSystem, folder: MailSet, type: S
 }
 
 export function isDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft != null
+	return mail.state === MailState.DRAFT
+}
+
+export function isMailScheduled(mail: Mail): boolean {
+	return mail.sendAt != null
+}
+
+/**
+ * Draft mails that are scheduled to be sent are not editable
+ */
+export function isEditableDraft(mail: Mail): boolean {
+	return isDraft(mail) && !isMailScheduled(mail)
+}
+
+/**
+ * Scheduled mails cannot be moved
+ */
+export function isMailMovable(mail: Mail, mailModel: MailModel): boolean {
+	const folder = mailModel.getMailFolderForMail(mail)
+	return folder != null && !isFolderReadOnly(folder)
 }
 
 export async function isMailInSpamOrTrash(mail: Mail, mailModel: MailModel): Promise<boolean> {

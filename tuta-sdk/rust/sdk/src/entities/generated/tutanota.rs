@@ -403,6 +403,8 @@ pub struct Mail {
 	pub processingState: i64,
 	#[serde(rename = "1769")]
 	pub processNeeded: bool,
+	#[serde(rename = "1784")]
+	pub sendAt: Option<DateTime>,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]
@@ -1332,6 +1334,8 @@ pub struct SendDraftData {
 	#[serde(rename = "1444")]
 	#[serde(with = "serde_bytes")]
 	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
+	#[serde(rename = "1809")]
+	pub sendAt: Option<DateTime>,
 	#[serde(rename = "553")]
 	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
 	#[serde(rename = "554")]
@@ -1342,6 +1346,8 @@ pub struct SendDraftData {
 	pub mail: IdTupleGenerated,
 	#[serde(rename = "1353")]
 	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
+	#[serde(rename = "1810")]
+	pub parameters: Option<SendDraftParameters>,
 }
 
 impl Entity for SendDraftData {
@@ -4312,6 +4318,67 @@ impl Entity for PopulateClientSpamTrainingDataPostIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1778),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SendDraftDeleteIn {
+	#[serde(rename = "1786")]
+	pub _format: i64,
+	#[serde(rename = "1787")]
+	pub mail: IdTupleGenerated,
+}
+
+impl Entity for SendDraftDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1785),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SendDraftParameters {
+	#[serde(rename = "1789")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1791")]
+	pub language: String,
+	#[serde(rename = "1792")]
+	#[serde(with = "serde_bytes")]
+	pub mailSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "1793")]
+	#[serde(with = "serde_bytes")]
+	pub bucketEncMailSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "1794")]
+	pub senderNameUnencrypted: Option<String>,
+	#[serde(rename = "1795")]
+	pub plaintext: bool,
+	#[serde(rename = "1796")]
+	pub calendarMethod: bool,
+	#[serde(rename = "1801")]
+	#[serde(with = "serde_bytes")]
+	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
+	#[serde(rename = "1790")]
+	pub mail: IdTupleGenerated,
+	#[serde(rename = "1797")]
+	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
+	#[serde(rename = "1798")]
+	pub secureExternalRecipientKeyData: Vec<SecureExternalRecipientKeyData>,
+	#[serde(rename = "1799")]
+	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
+	#[serde(rename = "1800")]
+	pub attachmentKeyData: Vec<AttachmentKeyData>,
+}
+
+impl Entity for SendDraftParameters {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1788),
 		}
 	}
 }

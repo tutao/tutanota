@@ -78,7 +78,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
-import { isDraft } from "../model/MailChecks"
+import { isDraft, isEditableDraft, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -317,8 +317,24 @@ export class MailViewerViewModel {
 		return this.forceLightMode
 	}
 
-	isDraftMail() {
-		return this.mail.state === MailState.DRAFT
+	isDraftMail(): boolean {
+		return isDraft(this.mail)
+	}
+
+	isScheduled(): boolean {
+		return isMailScheduled(this.mail)
+	}
+
+	async unscheduleMail(): Promise<void> {
+		await this.mailModel.unscheduleMail(this.mail)
+	}
+
+	isEditableDraft() {
+		return isEditableDraft(this.mail)
+	}
+
+	isMovableMail() {
+		return isMailMovable(this.mail, this.mailModel)
 	}
 
 	isDeletableMail() {
@@ -616,8 +632,14 @@ export class MailViewerViewModel {
 		return !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
 
-	canReport(): boolean {
-		return this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail() && this.logins.isInternalUserLoggedIn()
+	canReportSpam(): boolean {
+		return this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getFolderInfo()?.folderType !== MailSetKind.SPAM
+	}
+
+	canReportPhishing(): boolean {
+		return (
+			this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail()
+		)
 	}
 
 	canShowHeaders(): boolean {
@@ -793,8 +815,8 @@ export class MailViewerViewModel {
 	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
-		let isDraft = mail.state === MailState.DRAFT
-		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraft && this.sanitizeResult != null) {
+		let isDraftMail = isDraft(mail)
+		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraftMail && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids
 		}
 
@@ -829,7 +851,7 @@ export class MailViewerViewModel {
 
 		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender)
 
-		if (!isDraft) {
+		if (!isDraftMail) {
 			this.checkMailForPhishing(mail, this.sanitizeResult.links)
 		}
 
@@ -1247,18 +1269,19 @@ export class MailViewerViewModel {
 	}
 
 	canReply(): boolean {
-		return !isDraft(this.mail) && !this.isAnnouncement()
+		return !this.isDraftMail() && !this.isAnnouncement()
 	}
 
 	canReplyAll(): boolean {
 		return (
+			this.canReply() &&
 			this.logins.getUserController().isInternalUser() &&
 			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1
 		)
 	}
 
 	canForward(): boolean {
-		return !isDraft(this.mail) && !this.isAnnouncement() && this.logins.getUserController().isInternalUser()
+		return !this.isDraftMail() && !this.isAnnouncement() && this.logins.getUserController().isInternalUser()
 	}
 
 	shouldDelayRendering(): boolean {

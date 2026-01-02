@@ -877,6 +877,7 @@ function createMailInstances({
 		_ownerEncSessionKey: new Uint8Array(),
 		mailDetails: mailDetailsBlobId,
 		attachments: attachmentIds,
+		//state: MailState.RECEIVED,
 	})
 	let mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 		_id: mailDetailsBlobId,

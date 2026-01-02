@@ -627,7 +627,7 @@ o.spec("SendMailModel", () => {
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o.check(e?.message).equals(lang.get("noRecipients_msg"))
 			verify(getConfirmation(), { times: 0 })
-			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
+			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
@@ -643,7 +643,7 @@ o.spec("SendMailModel", () => {
 			const r = await model.send(method, getConfirmation)
 			o.check(r).equals(false)
 			verify(getConfirmation(), { times: 0 })
-			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
+			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
@@ -662,7 +662,7 @@ o.spec("SendMailModel", () => {
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o.check(e?.message).equals(lang.get("noPreSharedPassword_msg"))
 
-			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
+			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
@@ -681,7 +681,7 @@ o.spec("SendMailModel", () => {
 			when(getConfirmation(anything())).thenResolve(false)
 			const r = await model.send(method, getConfirmation)
 			o.check(r).equals(false)
-			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
+			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
@@ -702,7 +702,7 @@ o.spec("SendMailModel", () => {
 			const r = await model.send(method, getConfirmation)
 			o.check(r).equals(true)
 
-			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 1 })
+			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything()), { times: 1 })
 			verify(mailFacade.createDraft(anything()), { times: 1 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 
@@ -737,7 +737,7 @@ o.spec("SendMailModel", () => {
 
 			verify(getConfirmation(anything), { times: 0 })
 
-			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 1 })
+			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything()), { times: 1 })
 			verify(mailFacade.createDraft(anything()), { times: 1 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 

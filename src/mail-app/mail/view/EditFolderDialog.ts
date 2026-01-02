@@ -7,7 +7,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { isFolderReadOnly, MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
@@ -30,6 +30,8 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 		.getIndentedList(editedFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (mailSets can only be moved there, not created there)
 		.filter((folderInfo: IndentedFolder) => !(editedFolder === null && isSpamOrTrashFolder(folders, folderInfo.folder)))
+		// avoid read only folders
+		.filter((folderInfo) => !isFolderReadOnly(folderInfo.folder))
 		.map((folderInfo: IndentedFolder) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
