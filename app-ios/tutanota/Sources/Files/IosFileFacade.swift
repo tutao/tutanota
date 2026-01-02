@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import MobileCoreServices
 import TutanotaSharedFramework
@@ -10,12 +11,20 @@ class IosFileFacade: FileFacade {
 	let viewer: FileViewer
 	let schemeHandler: ApiSchemeHandler
 	let urlSession: URLSession
+	let commonNativeFacade: () -> CommonNativeFacade
 
-	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
+	init(
+		chooser: TUTFileChooser,
+		viewer: FileViewer,
+		schemeHandler: ApiSchemeHandler,
+		urlSession: URLSession,
+		commonNativeFacade: @escaping () -> CommonNativeFacade
+	) {
 		self.chooser = chooser
 		self.viewer = viewer
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
+		self.commonNativeFacade = commonNativeFacade
 	}
 
 	func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
@@ -90,13 +99,52 @@ class IosFileFacade: FileFacade {
 		return UploadTaskResponse(httpResponse: httpResponse, responseBody: data)
 	}
 
-	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String]) async throws -> DownloadTaskResponse {
+	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String], _ fileId: String) async throws -> DownloadTaskResponse {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
 		request.allHTTPHeaderFields = headers
+		final class DownloadProgressDelegate: NSObject, URLSessionTaskDelegate, URLSessionDownloadDelegate {
+			func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) { print("I finished!!") }
+			func urlSession(
+				_ session: URLSession,
+				downloadTask: URLSessionDownloadTask,
+				didWriteData bytesWritten: Int64,
+				totalBytesWritten: Int64,
+				totalBytesExpectedToWrite: Int64
+			) { print("I made progress!! \(totalBytesWritten)") }
+		}
+		let del = DownloadProgressDelegate()
+		let (response, data) = withCheckedThrowingContinuation<URLResponse, Data?> { cont in
+			let task = self.urlSession.dataTask(with: self.schemeHandler.rewriteRequest(request)) { data, response, error in
+				if let error { cont.resume(throwing: error) } else { cont.resume(returning: (response, data)) }
+			}
+		}
 
-		let (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request))
+		//	let (data, response) = try await self.urlSession.data(
+		//	  for: self.schemeHandler.rewriteRequest(request),
+		//	  delegate: del
+		//	)
+		//	let length = response.expectedContentLength
+		//	var data: Data = Data()
+		//	data.reserveCapacity(Int(length))
+
+		//	let subject = PassthroughSubject<Int, Never>()
+		//
+		//	Task {
+		//	  let throttled = subject
+		//		.throttle(for: .milliseconds(125), scheduler: RunLoop.main, latest: true)
+		//
+		//	  for await totalBytes in throttled.values {
+		//		try await self.commonNativeFacade().downloadProgress(fileId, totalBytes)
+		//	  }
+		//	}
+		//
+		//	for try await byte in asyncBytes {
+		//	  data.append(byte)
+		//	  subject.send(data.count)
+		//	}
+
 		let httpResponse = response as! HTTPURLResponse
 		let encryptedFileUri: String?
 		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
@@ -211,3 +259,15 @@ func getFileMIMEType(path: String) -> String? {
 /// From iOS13 we have a method to read headers case-insensitively: HTTPURLResponse.value(forHTTPHeaderField:)
 /// For older iOS we use this NSDictionary cast workaround as suggested by a commenter in the bug report.
 extension HTTPURLResponse { public func valueForHeaderField(_ headerField: String) -> String? { value(forHTTPHeaderField: headerField) } }
+
+//func throttle<T>(period: TimeInterval, fn: @escaping (T) -> Void) -> ((T) -> Void) {
+//  var currentValue: T? = nil
+//  var calledAt: Date? = nil
+//  return { val in
+//	if let calledAt, calledAt.timeIntervalSinceNow < period {
+//	  fn(currentValue!)
+//	} else {
+//
+//	}
+//  }
+//}

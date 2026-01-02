@@ -75,7 +75,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 				chooser: TUTFileChooser(viewController: self),
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
-				urlSession: urlSession
+				urlSession: urlSession,
+				commonNativeFacade: { self.bridge.commonNativeFacade }
 			),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
