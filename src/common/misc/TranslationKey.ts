@@ -2124,3 +2124,4 @@ export type TranslationKeyType =
 	| "inboxRuleExcludedFromSpamFilter_msg"
 	| "blockNewsletterBanner_action"
 	| "emptyString_msg"
+	| "couldNotMoveMail_msg"
