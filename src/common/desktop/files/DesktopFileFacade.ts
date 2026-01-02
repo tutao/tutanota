@@ -1,3 +1,5 @@
+import { default as stream } from "node:stream"
+import { pipeline } from "node:stream/promises"
 import { FileFacade } from "../../native/common/generatedipc/FileFacade.js"
 import { DownloadTaskResponse } from "../../native/common/generatedipc/DownloadTaskResponse.js"
 import { IpcClientRect } from "../../native/common/generatedipc/IpcClientRect.js"
@@ -10,11 +12,10 @@ import { ApplicationWindow } from "../ApplicationWindow.js"
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import {
 	assertNotNull,
-	debounce,
-	delay,
 	newPromise,
 	splitUint8ArrayInChunks,
 	stringToUtf8Uint8Array,
+	throttle,
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 } from "@tutao/tutanota-utils"
@@ -23,7 +24,6 @@ import url from "node:url"
 import type { WriteStream } from "node:fs"
 import FsModule from "node:fs"
 import { Buffer } from "node:buffer"
-import { default as stream } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { lang } from "../../misc/LanguageViewModel.js"
@@ -79,11 +79,9 @@ export class DesktopFileFacade implements FileFacade {
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			const readable: stream.Readable = bodyToReadable(body)
 			// debounce so that we don't post the message too often
-			const onProgress =
-				// FIXME
-				// debounce(1000,
-				(bytes: number) => this.progressTracker.downloadProgress(fileId, bytes)
-			// )
+			const onProgress = throttle(100, (bytes: number) => {
+				this.progressTracker.downloadProgress(fileId, bytes)
+			})
 			await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
 		} else {
 			encryptedFilePath = null
@@ -104,15 +102,19 @@ export class DesktopFileFacade implements FileFacade {
 	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {
 		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, { emitClose: true })
 		try {
-			await pipeStream(response, fileStream, progress)
-			await closeFileStream(fileStream)
+			await pipeline(
+				response,
+				async function* (source) {
+					let downloadedBytes = 0
+					for await (const chunk of source) {
+						downloadedBytes += chunk.length
+						progress(downloadedBytes)
+						yield chunk
+					}
+				},
+				fileStream,
+			)
 		} catch (e) {
-			// Close first, delete second
-			// Also yes, we do need to close it manually:
-			// > One important caveat is that if the Readable stream emits an error during processing, the Writable destination is not closed automatically.
-			// > If an error occurs, it will be necessary to manually close each stream in order to prevent memory leaks.
-			// see https://nodejs.org/api/stream.html#readablepipedestination-options
-			await closeFileStream(fileStream)
 			await this.fs.promises.unlink(encryptedFilePath)
 			throw e
 		}
@@ -394,30 +396,6 @@ export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8
 function getHttpHeader(headers: Headers, name: string): string | null {
 	// All headers are in lowercase. Lowercase them just to be sure
 	return headers.get(name.toLowerCase())
-}
-
-function pipeStream(stream: stream.Readable, into: stream.Writable, onProgress: (bytes: number) => unknown): Promise<void> {
-	return newPromise((resolve, reject) => {
-		stream.on("error", reject)
-		// stream.pipe(into)
-		let downloadedBytes = 0
-		stream.on("readable", async () => {
-			log.debug("readable")
-			let chunk: Buffer
-			// Use a loop to make sure we read all currently available data
-			while (null !== (chunk = stream.read(10 * 1024))) {
-				downloadedBytes += chunk.length
-				// log.debug("read chunk, total: ", downloadedBytes
-				into.write(chunk)
-				onProgress(downloadedBytes)
-				// FIXME
-				await delay(10)
-			}
-		})
-		stream.on("end", () => into.end())
-		into.on("finish", resolve)
-		into.on("error", reject)
-	})
 }
 
 function bodyToReadable(body: ReadableStream<unknown>): stream.Readable {
