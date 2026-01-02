@@ -108,13 +108,11 @@ export class DriveFacade {
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
-		const updatedDate = new Date()
 
 		const data = createDrivePutIn({
 			file: isSameTypeRef(item._type, DriveFileTypeRef) ? item._id : null,
 			folder: isSameTypeRef(item._type, DriveFolderTypeRef) ? item._id : null,
 			newName,
-			updatedDate,
 		})
 
 		await this.serviceExecutor.put(DriveService, data, { sessionKey })
@@ -225,17 +223,12 @@ export class DriveFacade {
 			return null
 		}
 
-		const createdDate = new Date(this.dateProvider.now())
-		const updatedDate = new Date(this.dateProvider.now())
-
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
 			fileName: file.name,
 			mimeType: getCleanedMimeType(file.type),
 			ownerEncSessionKey: ownerEncSessionKey,
 			_ownerGroup: assertNotNull(fileGroupId),
-			createdDate,
-			updatedDate,
 		})
 		const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
 		const response = await this.serviceExecutor.post(DriveService, data, { sessionKey })
@@ -258,8 +251,6 @@ export class DriveFacade {
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
 		const newFolder = createDriveFolderServicePostIn({
-			createdDate: new Date(),
-			updatedDate: new Date(),
 			folderName,
 			parent: parentFolder,
 			ownerEncSessionKey,
@@ -269,15 +260,12 @@ export class DriveFacade {
 	}
 
 	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder): Promise<void> {
-		const newDate = new Date()
-
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 			const encNewName = this.cryptoWrapper.encryptString(sk, file.name)
 			return createDriveRenameData({
 				file: file._id,
 				folder: null,
-				newDate,
 				encNewName,
 			})
 		})
@@ -287,7 +275,6 @@ export class DriveFacade {
 			return createDriveRenameData({
 				file: null,
 				folder: folder._id,
-				newDate,
 				encNewName,
 			})
 		})
