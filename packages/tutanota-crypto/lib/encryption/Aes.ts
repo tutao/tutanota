@@ -21,7 +21,10 @@ export type Aes256Key = BitArray
 export type Aes128Key = BitArray
 export type AesKey = Aes128Key | Aes256Key
 
-await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
+// a hack for having a single bundle with all the code in debug mode
+if (typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) {
+	await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
+}
 
 /**
  * @return the key length in bytes
