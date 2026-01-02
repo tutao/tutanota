@@ -95,7 +95,7 @@ export class MailListModel implements MailSetListModel {
 			stateStream.map((state) => {
 				const newState: ListState<Mail> = {
 					...state,
-					items: this.items.filter((mail) => !mail.processNeeded),
+					items: this.items,
 					selectedItems: new Set(this.getSelectedAsArray()),
 				}
 				return newState
