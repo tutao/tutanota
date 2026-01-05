@@ -255,7 +255,7 @@ export class RestClient {
 
 				xhr.onabort = () => {
 					clearTimeout(timeout)
-					reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+					reject(new ConnectionError(`Reached timeout of ${timeout}ms ${xhr.statusText} | ${method} ${path}`))
 				}
 
 				if (options.body instanceof Uint8Array) {
