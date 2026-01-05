@@ -2125,3 +2125,4 @@ export type TranslationKeyType =
 	| "blockNewsletterBanner_action"
 	| "emptyString_msg"
 	| "couldNotMoveMail_msg"
+	| "importContactDuplicates_msg"
