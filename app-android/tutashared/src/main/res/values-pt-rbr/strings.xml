@@ -10,5 +10,11 @@
     <string name="markRead_action">Marcar como lido</string>
     <string name="sendLogs_action">Enviar registros</string>
     <string name="account_label">Usuário</string>
+    <string name="widgetNoCredentialsInfo_msg">Sem credenciais disponíveis</string>
+    <string name="widgetUnexpectedError_msg">Opa! Alguma coisa deu errado.</string>
+    <string name="widgetCredentialsError_msg">Faça login no app Calendário</string>
+    <string name="widgetOpenApp_action">Abrir o app</string>
+    <string name="widgetNoEvents_msg">Sem eventos</string>
+    <string name="widgetDescription_msg">Mostrar os próximos eventos de hoje</string>
     <string name="noTitle_label">&lt;Sem título&gt;</string>
 </resources>

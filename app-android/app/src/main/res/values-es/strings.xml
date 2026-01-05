@@ -15,7 +15,7 @@
     <string name="widgetUnexpectedError_msg">¡Uy! Algo ha salido mal.</string>
     <string name="widgetCredentialsError_msg">Inicia sesión en la aplicación Calendario</string>
     <string name="widgetOpenApp_action">Abrir la aplicación</string>
-    <string name="widgetNoEvents_msg">Ningún acontecimiento</string>
+    <string name="widgetNoEvents_msg">Sin eventos</string>
     <string name="widgetDescription_msg">Mostrar los próximos eventos de hoy</string>
     <string name="birthdayCalendar_label">Cumpleaños</string>
     <string name="birthdayEvent_title">cumpleaños de {name}</string>
