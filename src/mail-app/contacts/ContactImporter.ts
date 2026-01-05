@@ -8,6 +8,7 @@ import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../../common/api/worker/facades/lazy/ContactFacade.js"
 import {
 	Contact,
+	ContactTypeRef,
 	createContact,
 	createContactAddress,
 	createContactCustomDate,
@@ -19,7 +20,7 @@ import {
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
-import { component_size, size } from "../../common/gui/size.js"
+import { component_size } from "../../common/gui/size.js"
 import { UserError } from "../../common/api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -38,6 +39,8 @@ import { NativeFileApp } from "../../common/native/common/FileApp.js"
 import { MobileContactsFacade } from "../../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
 import { isIOSApp } from "../../common/api/common/Env"
+import { _compareContactsForMerge } from "./ContactMergeUtils"
+import { ContactComparisonResult } from "../../common/api/common/TutanotaConstants"
 
 export class ContactImporter {
 	constructor(
@@ -148,11 +151,17 @@ export class ContactImporter {
 		const mobileContactsFacade = assertNotNull(this.mobileContactsFacade)
 		const nativeContactSyncManager = assertNotNull(this.nativeContactSyncManager)
 
-		const selectedStructuredContacts: StructuredContact[] = selectedContacts.map((selectedContact) =>
+		const allContacts = await locator.contactModel.getContactListId().then((contactListId) => {
+			return contactListId ? locator.entityClient.loadAll(ContactTypeRef, contactListId) : []
+		})
+
+		const genuineContacts = this.getImportableContacts(allContacts, selectedContacts)
+
+		const selectedStructuredContacts: StructuredContact[] = genuineContacts.map((selectedContact) =>
 			assertNotNull(allImportableContacts.get(selectedContact)),
 		)
 
-		await importer.importContacts(selectedContacts, assertNotNull(contactListId))
+		await importer.importContacts(genuineContacts, assertNotNull(contactListId))
 		const imported = nativeContactSyncManager.isEnabled() && (await nativeContactSyncManager.syncContacts())
 
 		// On iOS, we want to give the option to remove the contacts locally, but we obviously only want to do
@@ -166,6 +175,22 @@ export class ContactImporter {
 				await showProgressDialog("progressDeleting_msg", mobileContactsFacade.deleteLocalContacts(contactsWeJustImported))
 			}
 		}
+	}
+
+	getImportableContacts(allContacts: Contact[], selectedContacts: Contact[]): Contact[] {
+		let genuineContacts: Contact[] = selectedContacts
+
+		for (const serverContact of allContacts) {
+			let index = 0
+			for (const selectedContact of selectedContacts) {
+				let result = _compareContactsForMerge(serverContact, selectedContact)
+				if (result === ContactComparisonResult.Equal) {
+					genuineContacts.splice(index, 1)
+				}
+				index++
+			}
+		}
+		return genuineContacts
 	}
 
 	private async selectContactBooks(mobileContactsFacade: MobileContactsFacade): Promise<readonly ContactBook[] | null> {
