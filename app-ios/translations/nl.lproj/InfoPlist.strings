@@ -18,6 +18,7 @@ TutaoMarkReadAction = "Gelezen";
 TutaoWidgetOpenAppAction = "Open de app";
 TutaoWidgetUnexpectedErrorMsg = "Oeps! Er is iets fout gegaan.";
 TutaoWidgetSendLogsAction = "Verstuur de logbestanden";
+TutaoWidgetNoEventsMsg = "Geen evenementen";
 TutaoAccountLabel = "Account";
 TutaoCalendarsLabel = "Kalenders";
 TutaoNoTitleLabel = "<Geen titel>";

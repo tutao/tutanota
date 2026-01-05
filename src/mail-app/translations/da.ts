@@ -19,6 +19,7 @@ export default {
 		"accountSwitchSharedCalendar_msg": "Fjern venligst alle kalendere delt med dig.",
 		"accountSwitchTooManyActiveUsers_msg": "Deaktiver venligst alle yderligere brugere inden du skifter abonnement.",
 		"accountWasStillCreated_msg": "Din konto er allerede oprettet som en gratis konto. Du kan også annullere betalingen nu, log ind på din konto og opgradere der senere.",
+		"accountWillBeDeactivatedIn6Month_label": "Din konto vil blive ",
 		"action_label": "Handling",
 		"activate_action": "Aktiver",
 		"activated_label": "Aktiveret",

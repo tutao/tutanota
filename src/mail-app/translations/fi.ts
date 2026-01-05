@@ -158,6 +158,7 @@ export default {
 		"birthdayEvent_title": "Henkilön {name} syntymäpäivä",
 		"birthdayEventAge_title": "{age}-vuotias",
 		"blockExternalContentSender_action": "Estä kuvat aina",
+		"blockNewsletterBanner_action": "Piilota lähettäjän palkki",
 		"blue_label": "Sininen",
 		"bluesky_label": "Bluesky",
 		"bonus_label": "Bonus",
