@@ -15,6 +15,7 @@ import { UnencryptedCredentials } from "../../native/common/generatedipc/Unencry
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
+import { InvalidModelError } from "../common/error/InvalidModelError"
 
 assertMainOrNodeBoot()
 
@@ -189,9 +190,15 @@ export class LoginController {
 					SessionType.Persistent,
 				)
 			} catch (e) {
+				console.log("Error finishing login", e)
+				if (e instanceof InvalidModelError) {
+					// It's possible for the model to be invalid when logging in with a new model and a very old cache
+					await this.loginFacade.checkOutOfSyncCache()
+				}
+
 				// Some parts of initialization can fail and we should reset the state, both on this side and the worker
 				// side, otherwise login cannot be attempted again
-				console.log("Error finishing login, logging out now!", e)
+				console.log("logging out now!")
 				await this.logout(false)
 				throw e
 			}

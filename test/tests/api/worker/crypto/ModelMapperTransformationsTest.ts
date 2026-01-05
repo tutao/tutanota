@@ -8,6 +8,7 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { removeOriginals } from "../../../TestUtils"
+import { InvalidModelError } from "../../../../../src/common/api/common/error/InvalidModelError"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {
@@ -1138,7 +1139,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an empty array to one
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change aggregation from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -1350,7 +1351,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an array with multiple elements to ZeroOrOne
-			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change aggregation from Any to ZeroOrOne null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -1785,7 +1786,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an empty array to one
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change list element association from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2002,7 +2003,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an array with multiple elements to ZeroOrOne
-			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change list element association from Any to ZeroOrOne null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2463,7 +2464,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
-			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 	})
 	o.spec("NumberToStringValue", function () {
@@ -2708,7 +2709,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't create the instance since One aggregation is removed
-			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("remove ZeroOrOne aggregation", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2985,7 +2986,7 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't create the instance since One association is removed
-			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("remove ZeroOrOne list element association", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {

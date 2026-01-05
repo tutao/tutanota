@@ -243,6 +243,10 @@ export class LoginFacade {
 		this.userFacade.reset()
 	}
 
+	async checkOutOfSyncCache(): Promise<void> {
+		await this.eventBusClient.checkOutOfSync()
+	}
+
 	/**
 	 * Create session and log in. Changes internal state to refer to the logged in user.
 	 * if createSessionOnly == true, the app will not continue to initialize app-specific state

@@ -18,6 +18,7 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { GENERATED_MIN_ID } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { removeOriginals } from "../../../TestUtils"
+import { InvalidModelError } from "../../../../../src/common/api/common/error/InvalidModelError"
 
 o.spec("ModelMapper", function () {
 	const modelMapper: ModelMapper = new ModelMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)
@@ -216,11 +217,11 @@ o.spec("ModelMapper", function () {
 			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, [["listId", "listElementId"]])).deepEquals([["listId", "listElementId"]])
 			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, [])).deepEquals([])
 
-			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["v", "v1", "v2"]))
-			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
-			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, []))
-			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, ["v", "v2"]))
-			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["v", "v1", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(AssociationType.ListAssociation, Cardinality.One, []))
+			await assertThrows(InvalidModelError, async () => f(AssociationType.ListAssociation, Cardinality.One, ["v", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v", "v2"]))
 		})
 
 		o("assertCorrectValueCardinality", async function () {
@@ -229,9 +230,9 @@ o.spec("ModelMapper", function () {
 			o(f(Cardinality.ZeroOrOne, "v")).deepEquals("v")
 			o(f(Cardinality.ZeroOrOne, null)).deepEquals(null)
 
-			await assertThrows(ProgrammingError, async () => f(Cardinality.One, null))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.Any, null))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.Any, "v"))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.One, null))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.Any, null))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.Any, "v"))
 		})
 	})
 })
