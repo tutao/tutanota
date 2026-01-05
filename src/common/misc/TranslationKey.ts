@@ -2211,3 +2211,4 @@ export type TranslationKeyType =
 	| "folderIsEmpty_msg"
 	| "movingItem_title"
 	| "emptyString_msg"
+	| "importContactDuplicates_msg"
