@@ -2126,6 +2126,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
+		"importContactDuplicates_msg": "Found {1} duplicate contact(s) while importing. {2} contact(s) successfully imported!",
 		"couldNotMoveMail_msg": "Could not move mail."
 	}
 }
