@@ -17,6 +17,7 @@ import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../common/gui/base/Dr
 import { newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../common/gui/base/Modal"
 import { DropType } from "../../../common/gui/base/GuiUtils"
+import { DriveSidebarInfo, DriveSidebarInfoAttrs } from "./DriveSidebarInfo"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -48,6 +49,7 @@ function isValidDataTransferItem(item: DataTransferItem): boolean {
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	private draggedOver: boolean = false
+	private sidebarExpanded: boolean = false
 
 	view({
 		attrs: {
@@ -88,105 +90,116 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			}
 		}
 
-		return m(
-			"div.col.flex.plr-8.fill-absolute",
-			{
-				style: { gap: px(size.spacing_12) },
-				ondragover: (event: DragEvent) => {
-					event.preventDefault()
-					if (
-						canDropFilesToFolder(currentFolder) &&
-						event.dataTransfer &&
-						event.dataTransfer.items.length > 0 &&
-						Array.from(event.dataTransfer.items).every(isValidDataTransferItem)
-					) {
-						this.draggedOver = true
-					}
-				},
-				ondrop: (event: DragEvent) => {
-					event.preventDefault()
-					this.draggedOver = false
+		return m("div.flex.plr-8.fill-absolute.gap-8", [
+			m(
+				"div.col.flex.flex-grow",
+				{
+					style: { gap: px(size.spacing_12) },
+					ondragover: (event: DragEvent) => {
+						event.preventDefault()
+						if (
+							canDropFilesToFolder(currentFolder) &&
+							event.dataTransfer &&
+							event.dataTransfer.items.length > 0 &&
+							Array.from(event.dataTransfer.items).every(isValidDataTransferItem)
+						) {
+							this.draggedOver = true
+						}
+					},
+					ondrop: (event: DragEvent) => {
+						event.preventDefault()
+						this.draggedOver = false
 
-					if (canDropFilesToFolder(currentFolder) && event.dataTransfer) {
-						// We need some fancier code to read the directories.
-						const definitelyFileItems = Array.from(event.dataTransfer.items).filter((item) => item.webkitGetAsEntry()?.isFile)
-						onDropFiles(definitelyFileItems.map((item) => assertNotNull(item.getAsFile())))
-					}
+						if (canDropFilesToFolder(currentFolder) && event.dataTransfer) {
+							// We need some fancier code to read the directories.
+							const definitelyFileItems = Array.from(event.dataTransfer.items).filter((item) => item.webkitGetAsEntry()?.isFile)
+							onDropFiles(definitelyFileItems.map((item) => assertNotNull(item.getAsFile())))
+						}
+					},
+					ondragleave: (event: DragEvent) => {
+						this.draggedOver = false
+					},
+					ondragend: () => {
+						this.draggedOver = false
+					},
+					oncontextmenu: (e: MouseEvent) => {
+						e.preventDefault()
+						const dropdown = new Dropdown(() => newItemActions({ onNewFile, onNewFolder }), 300)
+						dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
+						modal.displayUnique(dropdown, false)
+					},
 				},
-				ondragleave: (event: DragEvent) => {
-					this.draggedOver = false
-				},
-				ondragend: () => {
-					this.draggedOver = false
-				},
-				oncontextmenu: (e: MouseEvent) => {
-					e.preventDefault()
-					const dropdown = new Dropdown(() => newItemActions({ onNewFile, onNewFolder }), 300)
-					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
-					modal.displayUnique(dropdown, false)
-				},
-			},
-			this.draggedOver ? this.renderDropView() : null,
-			m(DriveFolderNav, {
-				onTrash,
-				onDelete,
-				onRestore,
-				onCopy,
-				onCut,
-				onPaste,
-				onUploadClick,
-				currentFolder,
-				parents,
-				loadParents,
-				onDropInto,
-			}),
-			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
-				? this.renderEmptyView(currentFolder)
-				: m(DriveFolderContent, {
-						sortOrder: driveViewModel.getCurrentColumnSortOrder(),
-						fileActions: {
-							onOpenItem: (item) => {
-								if (item.type === "folder") {
-									driveViewModel.navigateToFolder(item.folder._id)
-								} else {
-									driveViewModel.downloadFile(item.file)
-								}
+				this.draggedOver ? this.renderDropView() : null,
+				m(DriveFolderNav, {
+					onTrash,
+					onDelete,
+					onRestore,
+					onCopy,
+					onCut,
+					onPaste,
+					onUploadClick,
+					currentFolder,
+					parents,
+					loadParents,
+					onDropInto,
+					showingFileInfo: this.sidebarExpanded,
+					onShowFileInfo: (showInfo) => {
+						this.sidebarExpanded = showInfo
+					},
+				}),
+				listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
+					? this.renderEmptyView(currentFolder)
+					: m(DriveFolderContent, {
+							sortOrder: driveViewModel.getCurrentColumnSortOrder(),
+							fileActions: {
+								onOpenItem: (item) => {
+									if (item.type === "folder") {
+										driveViewModel.navigateToFolder(item.folder._id)
+									} else {
+										driveViewModel.downloadFile(item.file)
+									}
+								},
+								onCopy: (item) => {
+									driveViewModel.copy([item])
+								},
+								onCut: (item) => {
+									driveViewModel.cut([item])
+								},
+								onDelete: (item) => {
+									driveViewModel.moveToTrash([item])
+								},
+								onRestore: (item) => {
+									driveViewModel.restoreFromTrash([item])
+								},
+								onRename: (item) => {
+									Dialog.showProcessTextInputDialog(
+										{
+											title: "renameItem_action",
+											label: "enterNewName_label",
+											defaultValue: item.type === "file" ? item.file.name : item.folder.name,
+										},
+										async (newName: string) => {
+											driveViewModel.rename(item, newName)
+										},
+									)
+								},
 							},
-							onCopy: (item) => {
-								driveViewModel.copy([item])
+							onSort: (newSortingOrder) => {
+								driveViewModel.sort(newSortingOrder)
 							},
-							onCut: (item) => {
-								driveViewModel.cut([item])
-							},
-							onDelete: (item) => {
-								driveViewModel.moveToTrash([item])
-							},
-							onRestore: (item) => {
-								driveViewModel.restoreFromTrash([item])
-							},
-							onRename: (item) => {
-								Dialog.showProcessTextInputDialog(
-									{
-										title: "renameItem_action",
-										label: "enterNewName_label",
-										defaultValue: item.type === "file" ? item.file.name : item.folder.name,
-									},
-									async (newName: string) => {
-										driveViewModel.rename(item, newName)
-									},
-								)
-							},
-						},
-						onSort: (newSortingOrder) => {
-							driveViewModel.sort(newSortingOrder)
-						},
-						onDropInto,
-						selection,
-						listState,
-						selectionEvents,
-						clipboard: driveViewModel.clipboard,
-					} satisfies DriveFolderContentAttrs),
-		)
+							onDropInto,
+							selection,
+							listState,
+							selectionEvents,
+							clipboard: driveViewModel.clipboard,
+						} satisfies DriveFolderContentAttrs),
+			),
+			this.sidebarExpanded
+				? m(DriveSidebarInfo, {
+						items: listState.selectedItems,
+					} satisfies DriveSidebarInfoAttrs)
+				: null,
+		])
 	}
 	private renderEmptyView(folder: DriveFolder | null): Children {
 		return m(

@@ -8,6 +8,7 @@ import { isNotNull } from "@tutao/tutanota-utils"
 import { theme } from "../../../common/gui/theme"
 import { size } from "../../../common/gui/size"
 import { FolderItem } from "./DriveViewModel"
+import { ToggleButton, ToggleButtonAttrs } from "../../../common/gui/base/buttons/ToggleButton"
 
 export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null
@@ -21,11 +22,27 @@ export interface DriveFolderNavAttrs {
 	onPaste: (() => unknown) | null
 	loadParents: () => Promise<DriveFolder[]>
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
+	showingFileInfo: boolean
+	onShowFileInfo: (showInfo: boolean) => unknown
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view({
-		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, loadParents, onDropInto },
+		attrs: {
+			onTrash,
+			onDelete,
+			onRestore,
+			onCopy,
+			onCut,
+			onPaste,
+			onUploadClick,
+			currentFolder,
+			parents,
+			loadParents,
+			onDropInto,
+			showingFileInfo,
+			onShowFileInfo,
+		},
 	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			".flex.items-center.justify-between.border-radius-12",
@@ -82,10 +99,17 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 					: null,
 				[onTrash, onDelete, onRestore, onCopy, onCut].some(isNotNull) ? m(".nav-bar-spacer") : null,
 				m(IconButton, {
+					// FIXME translate
 					title: lang.makeTranslation("Upload file", () => "Upload file"),
 					click: (ev, dom) => onUploadClick(dom),
 					icon: Icons.Upload,
 				}),
+				m(ToggleButton, {
+					title: lang.makeTranslation("btn:fileInfo", () => "Show file info"),
+					icon: Icons.InfoCircleOutline,
+					toggled: showingFileInfo,
+					onToggled: onShowFileInfo,
+				} satisfies ToggleButtonAttrs),
 			]),
 		)
 	}
