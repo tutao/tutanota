@@ -17,18 +17,34 @@ import androidx.core.net.toUri
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.showDownloadNotification
 import de.tutao.tutashared.HashingInputStream
+import de.tutao.tutashared.ProgressResponseBody
 import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.bytes
 import de.tutao.tutashared.getFileInfo
 import de.tutao.tutashared.getNonClobberingFileName
-import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.ipc.DataFile
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.DownloadTaskResponse
+import de.tutao.tutashared.ipc.FileFacade
+import de.tutao.tutashared.ipc.IpcClientRect
+import de.tutao.tutashared.ipc.UploadTaskResponse
+import de.tutao.tutashared.ipc.wrap
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toHexString
 import de.tutao.tutashared.writeBytes
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.buffer
 import okio.source
@@ -37,18 +53,26 @@ import org.apache.commons.io.input.BoundedInputStream
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.SequenceInputStream
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 class AndroidFileFacade(
 	private val activity: MainActivity,
 	private val localNotificationsFacade: LocalNotificationsFacade,
 	private val random: SecureRandom,
-	private val defaultClient: OkHttpClient
+	private val defaultClient: OkHttpClient,
+	private val downloadProgress: (fileId: String, bytesDownloaded: Int) -> Unit
 ) : FileFacade {
 
 	val tempDir = TempDir(activity, random)
@@ -326,45 +350,93 @@ class AndroidFileFacade(
 			}
 		}
 
+	@OptIn(FlowPreview::class)
 	@Throws(IOException::class, JSONException::class)
 	override suspend fun download(
 		sourceUrl: String,
 		filename: String,
-		headers: Map<String, String>
-	): DownloadTaskResponse =
-		withContext(Dispatchers.IO) {
-			val requestBuilder = Request.Builder()
-				.url(sourceUrl)
-				.method("GET", null)
-				.header("Content-Type", "application/json")
-				.header("Cache-Control", "no-cache")
-			addHeadersToRequest(requestBuilder, JSONObject(headers))
+		headers: Map<String, String>,
+		fileId: String
+	): DownloadTaskResponse {
+		// Create a new child coroutine scope so that if the request fails it cancels our progress job as well
+		// Also if the whole operation is canceled the child scope also gets canceled
+		return coroutineScope {
+			// Create a holder for the progress value that can be observed.
+			// We create it with buffer of 1 so that we can put values into it without suspending and we only care about
+			// the latest value
+			val flow = MutableSharedFlow<Int>(0, 1, BufferOverflow.DROP_OLDEST)
+			// Start a child parallel job that will periodically report the progress
+			val progressJob = launch(Dispatchers.Default) {
+				flow
+					// Only take the value every 50ms so that we don't report progress too often
+					.sample(50)
+					// Collect will pause this coroutine and will invoke the block for each value. As we are collecting
+					// MutableSharedFlow it never actually ends (so we cancel the progress job manually below)
+					.collect { bytes ->
+						this@AndroidFileFacade.downloadProgress(fileId, bytes)
+					}
+			}
 
-			val response = defaultClient.newBuilder()
-				.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-				.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-				.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-				.build()
-				.newCall(requestBuilder.build())
-				.execute()
+			// Start the network request with IO context (on IO thread pool)
+			withContext(Dispatchers.IO) {
+				val requestBuilder = Request.Builder()
+					.url(sourceUrl)
+					.method("GET", null)
+					.header("Content-Type", "application/json")
+					.header("Cache-Control", "no-cache")
+				addHeadersToRequest(requestBuilder, JSONObject(headers))
 
-			response.use { response ->
-				var encryptedFile: File? = null
-				if (response.code == 200) {
-					val inputStream = response.body!!.byteStream()
-					encryptedFile = File(tempDir.encrypt, filename)
-					writeFileStream(encryptedFile, inputStream)
+				val response = defaultClient.newBuilder()
+					.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+					.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+					.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+					// Intercept the request to wrap the body with our progress reporter
+					.addNetworkInterceptor { chain ->
+						val originalResponse = chain.proceed(chain.request())
+						originalResponse.newBuilder()
+							.body(ProgressResponseBody(originalResponse.body, { bytesRead, contentLength, done ->
+								if (!done) {
+									// Post current progress.
+									// Normally to emit into FlowCollector we would have to be in a suspending function
+									// (because it might not be able to accept it due to backpressure) but we are not
+									// in a suspending function and we actually don't care about backpressure because
+									// the progress is a "hot" stream and will keep the latest value only anyway.
+									// So we use tryEmit which is sync.
+									flow.tryEmit(bytesRead.toInt())
+								}
+							}))
+							.build()
+					}
+					.build()
+					.newCall(requestBuilder.build())
+					.execute()
+				// By this point we got the response header but we might not have read the body yet.
+
+				response.use { response ->
+					var encryptedFile: File? = null
+					if (response.code == 200) {
+						val inputStream = response.body.byteStream()
+						encryptedFile = File(tempDir.encrypt, filename)
+						writeFileStream(encryptedFile, inputStream)
+					}
+
+					DownloadTaskResponse(
+						statusCode = response.code,
+						errorId = response.header("Error-Id"),
+						precondition = response.header("Precondition"),
+						suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
+						encryptedFileUri = encryptedFile?.toUri().toString(),
+					)
+				}.also {
+					// Cancel the progress job manually.
+					// Important to do it after we actually read the whole body.
+					// In case of an error it would get canceled automatically so we don't need to do anything.
+					// Canceling the child job will not cancel the parent as if it was an error.
+					progressJob.cancel()
 				}
-
-				DownloadTaskResponse(
-					statusCode = response.code,
-					errorId = response.header("Error-Id"),
-					precondition = response.header("Precondition"),
-					suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
-					encryptedFileUri = encryptedFile?.toUri().toString(),
-				)
 			}
 		}
+	}
 
 	@Throws(IOException::class)
 	override suspend fun readDataFile(filePath: String): DataFile? {
@@ -456,6 +528,7 @@ class AndroidFileFacade(
 		}
 	}
 }
+
 
 class FileOpenException(message: String) : Exception(message)
 
