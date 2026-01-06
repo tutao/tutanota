@@ -90,34 +90,34 @@ interface MoveMailsParams {
 	moveMode: MoveMode
 }
 
-enum MoveMailSnackbarResult {
-	/** Undo moving the mail. */
+enum UndoSnackbarResult {
+	/** Undo moving or sending the mail. */
 	Undo,
 
-	/** The snackbar timed out. Prompt the user if they want to report mails. */
+	/** The snackbar timed out. Prompt the user if they want to report mails (if it was a move action). */
 	Timeout,
 
-	/** The snackbar was cleared. Automatically report mails without showing a snackbar. */
+	/** The snackbar was cleared. If it was a move action, automatically report mails without showing a snackbar. */
 	Replaced,
 }
 
-async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => Promise<void>, undoMoveText: string): Promise<MoveMailSnackbarResult> {
+export async function showUndoMailSnackbar(undoModel: UndoModel, onUndo: () => Promise<void>, undoText: string): Promise<UndoSnackbarResult> {
 	return new Promise((resolve) => {
-		let result: MoveMailSnackbarResult | null = null
+		let result: UndoSnackbarResult | null = null
 
 		let cancelSnackbar: () => void
 
 		const undoAction = {
 			exec: async () => {
-				result = MoveMailSnackbarResult.Undo
+				result = UndoSnackbarResult.Undo
 				resolve(result)
 
 				cancelSnackbar?.()
-				await onUndoMove()
+				await onUndo()
 			},
 			onClear: () => {
 				if (result == null) {
-					result = MoveMailSnackbarResult.Replaced
+					result = UndoSnackbarResult.Replaced
 					resolve(result)
 					cancelSnackbar?.()
 				}
@@ -127,7 +127,7 @@ async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => 
 		const clearUndoAction = lazyMemoized(() => undoModel.clearUndoActionIfPresent(undoAction))
 		const undoMessage: Translation = {
 			testId: "undoMoveMail_msg",
-			text: undoMoveText,
+			text: undoText,
 		}
 		cancelSnackbar = showSnackBar({
 			message: undoMessage,
@@ -153,7 +153,7 @@ async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => 
 			},
 			onClose: (timedOut: boolean) => {
 				if (result == null) {
-					result = timedOut ? MoveMailSnackbarResult.Timeout : MoveMailSnackbarResult.Replaced
+					result = timedOut ? UndoSnackbarResult.Timeout : UndoSnackbarResult.Replaced
 					resolve(result)
 
 					// if this times out, we don't want to let the user undo this move anymore
@@ -254,9 +254,9 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 		}
 	}
 
-	const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveText)
+	const undoResult = await showUndoMailSnackbar(undoModel, onUndoMove, undoMoveText)
 
-	if (shouldReportMails && undoResult !== MoveMailSnackbarResult.Undo) {
+	if (shouldReportMails && undoResult !== UndoSnackbarResult.Undo) {
 		const reportableMails = (await mailModel.loadAllMails(reportableMailIds)).filter((mail) => !isTutanotaTeamMail(mail))
 		await mailModel.reportMails(MailReportType.SPAM, reportableMails)
 	}

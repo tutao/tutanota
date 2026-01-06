@@ -1019,7 +1019,7 @@ export class SendMailModel {
 			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage, sendAt)
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
-			await this.updateExternalLanguage()
+			this.updateExternalLanguage()
 			return true
 		}
 
