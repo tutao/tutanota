@@ -65,7 +65,7 @@ import {
 	throttle,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
+import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids, showUndoMailSnackbar } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -126,6 +126,7 @@ import { Time } from "../../../common/calendar/date/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
+import { UndoModel } from "../../UndoModel"
 
 // Interval where we save drafts locally.
 //
@@ -1254,6 +1255,16 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			if (success) {
 				dispose()
 				dialog.close()
+
+				// FIXME: this should probably not be here, this is just getting it working quicking
+				// also should not create a new undo model here, should be passed down
+				const undoResult = await showUndoMailSnackbar(
+					new UndoModel(),
+					async () => {
+						noOp()
+					},
+					"Message sent",
+				)
 
 				const { handleRatingByEvent } = await import("../../../common/ratings/UserSatisfactionDialog.js")
 				void handleRatingByEvent("Mail")
