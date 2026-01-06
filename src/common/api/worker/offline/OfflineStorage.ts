@@ -615,28 +615,30 @@ export class OfflineStorage implements CacheStorage {
 		storableInstances: StorableInstance[],
 	): Promise<void> {
 		const ids = storableInstances.map((dbRefs) => dbRefs.encodedElementId)
-		let formattedQuery: FormattedQuery
-		if (typeModel.type === TypeId.Element) {
-			formattedQuery = sql`SELECT elementId, rowid
+
+		const resultRows = await this.allChunked(1000, ids, (idsChunk) => {
+			if (typeModel.type === TypeId.Element) {
+				return sql`SELECT elementId, rowid
                                  FROM element_entities
                                  WHERE type = ${typeString}
-                                   and elementId IN ${paramList(ids)}`
-		} else if (typeModel.type === TypeId.ListElement) {
-			formattedQuery = sql`SELECT elementId, listId, rowid
+                                   and elementId IN ${paramList(idsChunk)}`
+			} else if (typeModel.type === TypeId.ListElement) {
+				return sql`SELECT elementId, listId, rowid
                                  FROM list_entities
                                  WHERE type = ${typeString}
                                    and listId = ${listId}
-                                   and elementId IN ${paramList(ids)}`
-		} else if (typeModel.type === TypeId.BlobElement) {
-			formattedQuery = sql`SELECT elementId, listId, rowid
+                                   and elementId IN ${paramList(idsChunk)}`
+			} else if (typeModel.type === TypeId.BlobElement) {
+				return sql`SELECT elementId, listId, rowid
                                  FROM blob_element_entities
                                  WHERE type = ${typeString}
                                    and listId = ${listId}
-                                   and elementId IN ${paramList(ids)}`
-		} else {
-			throw new Error("Can't fetch row ids for invalid type")
-		}
-		const resultRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
+                                   and elementId IN ${paramList(idsChunk)}`
+			} else {
+				throw new Error("Can't fetch row ids for invalid type")
+			}
+		})
+
 		// important: rowid is all-lowercase how SQLite names it. It is important that it is consistent with the query.
 		type Row = { elementId: Id; listId: Id; rowid: Id }
 		const rows = resultRows.map((row) => untagSqlObject(row) as Row)
