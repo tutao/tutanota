@@ -30,6 +30,7 @@ import { SignupViewModel } from "../SignupView"
 import { getWhitelabelRegistrationDomains } from "../../misc/WhitelabelCustomizations"
 
 export type SignupFormAttrs = {
+	// will return an error message that needs to be displayed in case of recoverable errors.
 	onComplete: (
 		result:
 			| {
@@ -41,7 +42,7 @@ export type SignupFormAttrs = {
 					registrationDataId: string
 			  }
 			| { type: "failure" },
-	) => void
+	) => Promise<null | TranslationKey>
 	onNext: () => void
 	onChangePlan: () => void
 	isBusinessUse: lazy<boolean>
@@ -64,7 +65,6 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 	private _mailAddressFormErrorId: TranslationKey | null = null
 	private _mailAddress!: string
 	private _isMailVerificationBusy: boolean
-	private _isFinalAvailabilityCheckBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private powChallengeSolution: DeferredObject<PowSolution> = defer()
 	private readonly: boolean = false
@@ -123,7 +123,6 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		this._confirmPersonalAccountLimit = false
 		this._code = stream("")
 		this._isMailVerificationBusy = false
-		this._isFinalAvailabilityCheckBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
 	}
 
@@ -213,7 +212,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 				a.onNext()
 				return
 			}
-			if (this._isMailVerificationBusy || this._isFinalAvailabilityCheckBusy) return
+			if (this._isMailVerificationBusy) return
 
 			const errorMessage =
 				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
@@ -223,30 +222,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 				return
 			}
 
-			this._isFinalAvailabilityCheckBusy = true
-			try {
-				const available = await locator.mailAddressFacade.isMailAddressAvailable(this._mailAddress, deviceConfig.getSignupToken())
-				if (!available) {
-					this._mailAddressFormErrorId = "mailAddressNA_msg"
-					this.__mailValid(false)
-					m.redraw()
-					Dialog.message("mailAddressNA_msg")
-					return
-				}
-			} catch (e) {
-				if (e instanceof AccessDeactivatedError) {
-					this._mailAddressFormErrorId = "mailAddressDelay_msg"
-					this.__mailValid(false)
-					m.redraw()
-					Dialog.message("mailAddressDelay_msg")
-					return
-				}
-				throw e
-			} finally {
-				this._isFinalAvailabilityCheckBusy = false
-			}
-
-			a.onComplete({
+			this._mailAddressFormErrorId = await a.onComplete({
 				type: "success",
 				registrationCode: this._code(),
 				powChallengeSolutionPromise: this.powChallengeSolution.promise,
@@ -254,6 +230,10 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 				passwordInputStore: this.passwordModel.getNewPassword(),
 				registrationDataId: deviceConfig.getSignupToken(),
 			})
+
+			if (this._mailAddressFormErrorId != null) {
+				Dialog.message(this._mailAddressFormErrorId)
+			}
 		}
 
 		return m(

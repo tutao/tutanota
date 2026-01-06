@@ -325,6 +325,20 @@ export function getInvoiceData({
 	}
 }
 
+type NewAccountFailure =
+	// this is an error we (or the user) can recover from
+	| { variant: "recoverableFailure"; errorMessageId: TranslationKey }
+	// we don't know what went wrong exactly. in this case we abort the signup flow
+	| { variant: "fatalFailure"; errorMessageId: TranslationKey | null }
+
+type NewAccountSuccess =
+	// we successfully created a new account
+	{ variant: "success"; newAccountData: NewAccountData }
+
+// creating an account can fail for numerous reasons that need to be handled differently.
+// if successful, we pass the new account data in the result.
+type NewAccountResult = NewAccountFailure | NewAccountSuccess
+
 /**
  * @return Signs the user up, if no captcha is needed or it has been solved correctly
  */
@@ -336,11 +350,11 @@ export async function signup(
 	isPaidSubscription: boolean,
 	campaignToken: string | null,
 	powChallengeSolution: Promise<PowSolution>,
-): Promise<NewAccountData | void> {
+): Promise<NewAccountResult> {
 	const { customerFacade, logins, identityKeyCreator } = locator
 
 	const operation = locator.operationProgressTracker.startNewOperation()
-	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
+	const signupActionPromise: Promise<NewAccountResult> = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
 		const regDataId = await runCaptchaFlow({
 			mailAddress,
 			isBusinessUse,
@@ -374,33 +388,57 @@ export async function signup(
 			)
 
 			return {
-				mailAddress,
-				password,
-				recoverCode,
+				variant: "success",
+				newAccountData: {
+					mailAddress,
+					password,
+					recoverCode,
+				},
+			}
+		} else {
+			return {
+				variant: "fatalFailure",
+				errorMessageId: null,
 			}
 		}
 	})
+
 	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
 		.catch(
-			ofClass(InvalidDataError, () => {
-				Dialog.message("invalidRegistrationCode_msg")
-			}),
+			ofClass(
+				InvalidDataError,
+				() =>
+					({
+						variant: "fatalFailure",
+						errorMessageId: "invalidRegistrationCode_msg",
+					}) as const,
+			),
 		)
 		.catch(
-			ofClass(PreconditionFailedError, (e) => {
-				Dialog.message("invalidSignup_msg")
-			}),
+			ofClass(PreconditionFailedError, (e) =>
+				e.data === "registration-mail-address-unavailable"
+					? ({
+							variant: "recoverableFailure",
+							errorMessageId: "mailAddressNA_msg",
+						} as const)
+					: ({
+							variant: "fatalFailure",
+							errorMessageId: "invalidSignup_msg",
+						} as const),
+			),
 		)
 		.finally(() => operation.done())
 }
 
-export async function createAccount(data: UpgradeSubscriptionData | SignupViewModel, onFailure?: () => void) {
-	if (data.customer) return
+// returns an error message if we had a failure and the user can fix the problem
+export async function createAccount(data: UpgradeSubscriptionData | SignupViewModel): Promise<NewAccountFailure | null> {
+	// this is true if we trigger an upgrade while logged in
+	if (data.customer) return null
 	data.emailInputStore = assertNotNull(data.emailInputStore)
 	data.passwordInputStore = assertNotNull(data.passwordInputStore)
 	data.powChallengeSolutionPromise = assertNotNull(data.powChallengeSolutionPromise)
 	data.registrationCode = assertNotNull(data.registrationCode)
-	const newAccountData = await signup(
+	const newAccountResult = await signup(
 		data.emailInputStore,
 		data.passwordInputStore,
 		data.registrationCode,
@@ -410,12 +448,11 @@ export async function createAccount(data: UpgradeSubscriptionData | SignupViewMo
 		data.powChallengeSolutionPromise,
 	)
 
-	if (newAccountData == null) {
-		if (onFailure) onFailure()
-		return
+	if (newAccountResult.variant !== "success") {
+		return newAccountResult
 	}
 
-	data.newAccountData = newAccountData
+	data.newAccountData = newAccountResult.newAccountData
 
 	if (!data.customer || !data.accountingInfo) {
 		const userController = locator.logins.getUserController()
@@ -427,4 +464,5 @@ export async function createAccount(data: UpgradeSubscriptionData | SignupViewMo
 	// If the user has selected a paid plan we want to prevent them from selecting a free plan at this point,
 	// since the account will be PAID_SUBSCRIPTION_NEEDED state if the user selects free
 	data.acceptedPlans = data.acceptedPlans.filter((plan) => plan !== PlanType.Free)
+	return null
 }

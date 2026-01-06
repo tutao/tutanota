@@ -115,9 +115,17 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								label: "next_action",
 								class: "small-login-button",
 								onclick: async () => {
-									await createAccount(data, () => {
-										emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
-									})
+									const createResult = await createAccount(data)
+									if (createResult != null) {
+										const { errorMessageId, variant } = createResult
+										if (errorMessageId != null) {
+											Dialog.message(errorMessageId)
+										}
+										if (variant === "fatalFailure") {
+											emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
+										}
+										return
+									}
 									this.onAddPaymentData(data)
 								},
 								disabled:

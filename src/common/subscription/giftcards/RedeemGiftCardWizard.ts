@@ -57,6 +57,7 @@ class RedeemGiftCardModel {
 			key: string
 			premiumPrice: number
 			storedCredentials: ReadonlyArray<CredentialsInfo>
+			hashFromUrl: string
 		},
 		private readonly giftCardFacade: GiftCardFacade,
 		private readonly credentialsProvider: CredentialsProvider,
@@ -75,6 +76,10 @@ class RedeemGiftCardModel {
 
 	get key(): string {
 		return this.config.key
+	}
+
+	get hashFromUrl(): string {
+		return this.config.hashFromUrl
 	}
 
 	get premiumPrice(): number {
@@ -322,9 +327,8 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 		return m(SignupForm, {
 			// After having an account created we log them in to be in the same state as if they had selected an existing account
 			onComplete: async (result) => {
-				console.log(result)
 				if (result.type === "success") {
-					const newAccountData = await signup(
+					const newAccountResult = await signup(
 						result.emailInputStore,
 						result.passwordInputStore,
 						result.registrationCode,
@@ -333,15 +337,19 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 						result.registrationDataId,
 						result.powChallengeSolutionPromise,
 					)
-					if (!newAccountData) {
+
+					if (newAccountResult.variant !== "success") {
+						if (newAccountResult.errorMessageId != null) {
+							await Dialog.message(newAccountResult.errorMessageId)
+						}
 						emitWizardEvent(this.domElement, WizardEventType.CLOSE_DIALOG)
+						m.route.set(`/giftcard${model.hashFromUrl}`)
 						return
 					}
-
 					showProgressDialog(
 						"pleaseWait_msg",
 						model
-							.handleNewSignup(newAccountData)
+							.handleNewSignup(newAccountResult.newAccountData)
 							.then(() => {
 								emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
 								m.redraw()
@@ -573,6 +581,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 			key,
 			premiumPrice: pricesDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice),
 			storedCredentials,
+			hashFromUrl,
 		},
 		locator.giftCardFacade,
 		locator.credentialsProvider,

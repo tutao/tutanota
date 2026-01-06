@@ -3,7 +3,7 @@ import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { createAccount } from "../subscription/utils/PaymentUtils"
 import { PlanType } from "../api/common/TutanotaConstants"
-import { SignupFormNew } from "./components/SignupFormNew"
+import { SignupFormAttrs, SignupFormNew } from "./components/SignupFormNew"
 import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
 import { layout_size, px, size } from "../gui/size"
@@ -41,19 +41,28 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 						},
 					},
 					m(SignupFormNew, {
-						onComplete: async (result) => {
-							if (result.type === "success") {
-								data.registrationCode = result.registrationCode
-								data.powChallengeSolutionPromise = result.powChallengeSolutionPromise
-								data.emailInputStore = result.emailInputStore
-								data.passwordInputStore = result.passwordInputStore
+						onComplete: async (formResult) => {
+							if (formResult.type === "success") {
+								data.registrationCode = formResult.registrationCode
+								data.powChallengeSolutionPromise = formResult.powChallengeSolutionPromise
+								data.emailInputStore = formResult.emailInputStore
+								data.passwordInputStore = formResult.passwordInputStore
 
-								await createAccount(data, () => m.route.set("/login"))
-								ctx.setLabel(result.emailInputStore)
+								const createResult = await createAccount(data)
+								if (createResult != null) {
+									const { errorMessageId, variant } = createResult
+									if (variant === "fatalFailure") {
+										m.route.set("/login")
+									}
+									return errorMessageId
+								}
+								ctx.setLabel(formResult.emailInputStore)
 								ctx.controller.progressItems[ctx.index].isReachable = false
 								ctx.goNext()
+								return null
 							} else {
 								m.route.set("/login")
+								return null
 							}
 						},
 						onNext: () => ctx.goNext(),
