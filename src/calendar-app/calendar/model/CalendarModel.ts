@@ -296,7 +296,16 @@ export class CalendarModel {
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
 	}
 
-	/** Update existing event when time did not change */
+	/**
+	 * Process an update to an CalendarEvent entity.
+	 * Event will be deleted & remade if there is a change to event start time, ownerGroup, or long/short list.
+	 *
+	 * @param newEvent
+	 * @param newAlarms
+	 * @param zone
+	 * @param groupRoot
+	 * @param existingEvent
+	 */
 	async updateEvent(
 		newEvent: CalendarEvent,
 		newAlarms: ReadonlyArray<AlarmInfoTemplate>,
@@ -317,17 +326,17 @@ export class CalendarModel {
 		if (
 			existingEvent._ownerGroup !== groupRoot._id ||
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
-			(await didLongStateChange(newEvent, existingEvent, zone))
+			(await didLongStateChange(newEvent, existingEvent, zone)) // why async?
 		) {
-			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+			//
+			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms) // this was originally the ONLY place where a new event was being passed to doCreate
 
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = groupRoot._id
-			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
-			// version
-			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
+			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest version
+			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent) // this is the ONLY usage of calendarFacade.updateCalendarEvent
 			this.requestWidgetRefresh()
 			return newEvent
 		}
@@ -721,6 +730,7 @@ export class CalendarModel {
 
 	/**
 	 *
+	 *
 	 * @param event
 	 * @param zone
 	 * @param groupRoot
@@ -729,11 +739,11 @@ export class CalendarModel {
 	 * @private
 	 */
 	private async doCreate(
+		// consider rename "createCalendarEvent"
 		event: CalendarEvent,
 		zone: string,
 		groupRoot: CalendarGroupRoot,
 		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
-		existingEvent?: CalendarEvent,
 	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(event)
@@ -750,7 +760,32 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
-		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
+		return await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null).then(this.requestWidgetRefresh) // this is the ONLY place where saveCalendarEvent is used
+	}
+
+	private async replaceEvent(
+		oldEvent: CalendarEvent,
+		newEvent: CalendarEvent,
+		zone: string,
+		groupRoot: CalendarGroupRoot,
+		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
+	) {
+		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
+		removeTechnicalFields(newEvent)
+		const { assignEventId } = await import("../../../common/calendar/date/CalendarUtils")
+		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
+		// one.
+		assignEventId(newEvent, zone, groupRoot)
+		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+		newEvent._ownerEncSessionKey = null
+		if (newEvent.repeatRule != null) {
+			newEvent.repeatRule.excludedDates = newEvent.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+		}
+		// Reset permissions because server will assign them
+		downcast(newEvent)._permissions = null
+		newEvent._ownerGroup = groupRoot._id
+
+		return await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null).then(this.requestWidgetRefresh) // this is the ONLY place where saveCalendarEvent is used
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
@@ -993,7 +1028,7 @@ export class CalendarModel {
 				pendingInvitation: true,
 			}
 
-			return this.doCreate(calendarEvent, this.zone, destinationCalendarGroupRoot, [])
+			return this.doCreate(calendarEvent, this.zone, destinationCalendarGroupRoot, []) // existingEvent is undefined when trying to reschedule a pending event.  should it be?
 		})
 
 		await Promise.all(eventsPromises)
@@ -1194,6 +1229,20 @@ export class CalendarModel {
 		return await this.doUpdateEvent(dbEvent, newEvent)
 	}
 
+	/**
+	 * TODO: Consider rename.
+	 * Gets alarms from server for an event that is being updated
+	 * (so they can be reapplied to the event if there is a deletion and recreation)
+	 *
+	 * Updates the new event and returns it.
+	 *
+	 * Also triggers a widget refresh (why?)
+	 *
+	 * @param dbEvent
+	 * @param newEvent
+	 *
+	 * @return Promise<CalendarEvent> - A promise with the newly updated event
+	 */
 	async doUpdateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<CalendarEvent> {
 		const [alarms, groupRoot] = await Promise.all([
 			this.loadAlarms(dbEvent.alarmInfos, this.logins.getUserController().user),
@@ -1232,13 +1281,21 @@ export class CalendarModel {
 		}
 	}
 
+	/**
+	 * Load the logged-in user's alarms for a given event. (TODO: Confirm this is correct)
+	 *
+	 * @param alarmInfos - Array of IdTuples representing the alarms on a calendar event. (from CalendarEvent.alarmInfos)
+	 * @param user - The currently logged in user.
+	 *
+	 * @return Promise<Array<UserAlarmInfo>>
+	 */
 	async loadAlarms(alarmInfos: Array<IdTuple>, user: User): Promise<Array<UserAlarmInfo>> {
 		const { alarmInfoList } = user
 
 		if (alarmInfoList == null) {
 			return []
 		}
-
+		// Why?
 		const ids = alarmInfos.filter((alarmInfoId) => isSameId(listIdPart(alarmInfoId), alarmInfoList.alarms))
 
 		if (ids.length === 0) {
