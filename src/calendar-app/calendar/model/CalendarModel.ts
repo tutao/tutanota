@@ -292,6 +292,9 @@ export class CalendarModel {
 		return calendars.get(calendarId)
 	}
 
+	/**
+	 * Provides public access to this.doCreate, so it can be used by Strategies.
+	 */
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
 	}
@@ -328,15 +331,14 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone)) // why async?
 		) {
-			//
-			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms) // this was originally the ONLY place where a new event was being passed to doCreate
+			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms)
 
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest version
-			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent) // this is the ONLY usage of calendarFacade.updateCalendarEvent
+			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
 			this.requestWidgetRefresh()
 			return newEvent
 		}
@@ -729,13 +731,12 @@ export class CalendarModel {
 	}
 
 	/**
-	 *
+	 * Creates a brand new CalendarEvent entity.
 	 *
 	 * @param event
 	 * @param zone
 	 * @param groupRoot
 	 * @param alarmInfos
-	 * @param existingEvent
 	 * @private
 	 */
 	private async doCreate(
@@ -760,7 +761,8 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
-		return await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null).then(this.requestWidgetRefresh) // this is the ONLY place where saveCalendarEvent is used
+		await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
+		return this.requestWidgetRefresh() // Decoupled from calendarFacade.replaceCalendarEvent for testing purposes
 	}
 
 	private async replaceEvent(
@@ -769,7 +771,7 @@ export class CalendarModel {
 		zone: string,
 		groupRoot: CalendarGroupRoot,
 		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
-	) {
+	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(newEvent)
 		const { assignEventId } = await import("../../../common/calendar/date/CalendarUtils")
@@ -785,7 +787,8 @@ export class CalendarModel {
 		downcast(newEvent)._permissions = null
 		newEvent._ownerGroup = groupRoot._id
 
-		return await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null).then(this.requestWidgetRefresh) // this is the ONLY place where saveCalendarEvent is used
+		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
+		return this.requestWidgetRefresh() // decoupled from calendarFacade.replaceCalendarEvent for testing purposes
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
@@ -1230,13 +1233,10 @@ export class CalendarModel {
 	}
 
 	/**
-	 * TODO: Consider rename.
 	 * Gets alarms from server for an event that is being updated
 	 * (so they can be reapplied to the event if there is a deletion and recreation)
 	 *
 	 * Updates the new event and returns it.
-	 *
-	 * Also triggers a widget refresh (why?)
 	 *
 	 * @param dbEvent
 	 * @param newEvent
@@ -1282,10 +1282,10 @@ export class CalendarModel {
 	}
 
 	/**
-	 * Load the logged-in user's alarms for a given event. (TODO: Confirm this is correct)
+	 * Load a user's alarms for a given event.
 	 *
 	 * @param alarmInfos - Array of IdTuples representing the alarms on a calendar event. (from CalendarEvent.alarmInfos)
-	 * @param user - The currently logged in user.
+	 * @param user - A User entity.
 	 *
 	 * @return Promise<Array<UserAlarmInfo>>
 	 */
