@@ -35,7 +35,7 @@ o.spec("FileControllerTest", function () {
 
 		o.beforeEach(function () {
 			fileAppMock = object()
-			fileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock)
+			fileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock, object())
 		})
 
 		o("should download non-legacy file natively using the blob service", async function () {
@@ -64,7 +64,7 @@ o.spec("FileControllerTest", function () {
 
 		o.spec("download with connection errors", function () {
 			o("immediately no connection", async function () {
-				const testableFileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock)
+				const testableFileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock, object())
 				const blobs = [createTestEntity(BlobTypeRef)]
 				const file = createTestEntity(FileTypeRef, {
 					blobs: blobs,
@@ -77,7 +77,7 @@ o.spec("FileControllerTest", function () {
 				verify(fileAppMock.deleteFile(anything()), { times: 0 }) // mock for cleanup
 			})
 			o("connection lost after 1 already downloaded attachment- already downloaded attachments are processed", async function () {
-				const testableFileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock)
+				const testableFileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock, object())
 				const blobs = [createTestEntity(BlobTypeRef)]
 				const fileWorks = createTestEntity(FileTypeRef, {
 					blobs: blobs,
@@ -114,7 +114,7 @@ o.spec("FileControllerTest", function () {
 		let fileController: FileControllerBrowser
 
 		o.beforeEach(function () {
-			fileController = new FileControllerBrowser(blobFacadeMock, guiDownload)
+			fileController = new FileControllerBrowser(blobFacadeMock, guiDownload, object())
 		})
 
 		o("should download non-legacy file non-natively using the blob service", async function () {

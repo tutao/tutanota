@@ -56,7 +56,7 @@ o.spec("DesktopFileFacade", function () {
 		dp = object()
 		executor = object()
 
-		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path, executor, process as NodeJS.Process)
+		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path, executor, process as NodeJS.Process, { downloadProgress: async () => {} })
 	})
 	o.spec("saveDataFile", function () {
 		o("when there's no existing file it will be simply written", async function () {
@@ -96,7 +96,7 @@ o.spec("DesktopFileFacade", function () {
 			when(ws.on("finish")).thenCallback(undefined, undefined)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
 
-			const downloadResult = await ff.download("some://url/file", "nativelyDownloadedFile", headers)
+			const downloadResult = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 			o(downloadResult.statusCode).equals(200)
 			o(downloadResult.encryptedFileUri).equals(expectedFilePath)
 		})
@@ -114,7 +114,7 @@ o.spec("DesktopFileFacade", function () {
 				},
 			})
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
-			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers)
+			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
 				statusCode: 404,
@@ -139,7 +139,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 
 			const headers = { v: "foo", accessToken: "bar" }
-			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers)
+			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
 				statusCode: TooManyRequestsError.CODE,
@@ -163,7 +163,7 @@ o.spec("DesktopFileFacade", function () {
 			})
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 
-			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers)
+			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
 				statusCode: TooManyRequestsError.CODE,
@@ -187,7 +187,7 @@ o.spec("DesktopFileFacade", function () {
 			})
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 
-			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers)
+			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
 				statusCode: PreconditionFailedError.CODE,
@@ -209,7 +209,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
 
-			const e = await assertThrows(Error, () => ff.download("some://url/file", "nativelyDownloadedFile", headers))
+			const e = await assertThrows(Error, () => ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId"))
 			o(e).equals(error)
 			verify(fs.promises.unlink("/tutanota/tmp/path/encrypted/nativelyDownloadedFile"), { times: 1 })
 		})
