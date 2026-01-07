@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Headers.Companion.toHeaders
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -50,9 +51,6 @@ import okio.buffer
 import okio.source
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BoundedInputStream
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -282,7 +280,7 @@ class AndroidFileFacade(
 		return getFileInfo(activity, Uri.parse(file)).name
 	}
 
-	@Throws(IOException::class, JSONException::class)
+	@Throws(IOException::class)
 	override suspend fun upload(
 		fileUrl: String,
 		targetUrl: String,
@@ -313,9 +311,9 @@ class AndroidFileFacade(
 				val requestBuilder = Request.Builder()
 					.url(targetUrl)
 					.method(method, requestBody)
+					.headers(headers.toHeaders())
 					.header("Content-Type", "application/octet-stream")
 					.header("Cache-Control", "no-cache")
-				addHeadersToRequest(requestBuilder, JSONObject(headers))
 
 				// infinite timeout
 				// - the server stops listening after 10 minutes -> SocketException
@@ -351,7 +349,7 @@ class AndroidFileFacade(
 		}
 
 	@OptIn(FlowPreview::class)
-	@Throws(IOException::class, JSONException::class)
+	@Throws(IOException::class)
 	override suspend fun download(
 		sourceUrl: String,
 		filename: String,
@@ -382,9 +380,9 @@ class AndroidFileFacade(
 				val requestBuilder = Request.Builder()
 					.url(sourceUrl)
 					.method("GET", null)
+					.headers(headers.toHeaders())
 					.header("Content-Type", "application/json")
 					.header("Cache-Control", "no-cache")
-				addHeadersToRequest(requestBuilder, JSONObject(headers))
 
 				val response = defaultClient.newBuilder()
 					.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
@@ -531,21 +529,6 @@ class AndroidFileFacade(
 
 
 class FileOpenException(message: String) : Exception(message)
-
-@Throws(JSONException::class)
-private fun addHeadersToRequest(request: Request.Builder, headers: JSONObject) {
-	for (headerKey in headers.keys()) {
-		var headerValues = headers.optJSONArray(headerKey)
-		if (headerValues == null) {
-			headerValues = JSONArray()
-			headerValues.put(headers.getString(headerKey))
-		}
-		request.header(headerKey, headerValues.getString(0))
-		for (i in 1 until headerValues.length()) {
-			request.addHeader(headerKey, headerValues.getString(i))
-		}
-	}
-}
 
 fun getMimeType(fileUri: Uri, context: Context): String {
 	val scheme = fileUri.scheme
