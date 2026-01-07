@@ -90,7 +90,7 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 assertWorkerOrNode()
 

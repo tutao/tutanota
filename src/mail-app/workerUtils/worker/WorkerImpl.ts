@@ -50,7 +50,7 @@ import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/Iden
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 assertWorkerOrNode()
 

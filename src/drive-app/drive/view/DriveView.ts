@@ -22,9 +22,9 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
-import { getMoveMailBounds } from "../../../mail-app/mail/view/MailGuiUtils"
 import { modal } from "../../../common/gui/base/Modal"
 import { newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
+import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -148,7 +148,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							}),
 						300,
 					)
-					dropdown.setOrigin(getMoveMailBounds())
+					dropdown.setOrigin(getDetachedDropdownBounds())
 					modal.displayUnique(dropdown, false)
 				},
 			},

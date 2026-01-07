@@ -128,6 +128,7 @@ export const allowedImports = {
 	linkify: [],
 	invoice: ["common-min"],
 	"material-color-utilities": [],
+	drive: ["common-min", "common", "boot", "gui-base", "main"],
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
@@ -321,6 +322,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "jszip"
 	} else if (isIn("node_modules/@material/material-color-utilities")) {
 		return "material-color-utilities"
+	} else if (isIn("src/drive-app")) {
+		return "drive"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

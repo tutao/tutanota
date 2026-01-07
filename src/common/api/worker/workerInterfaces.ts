@@ -34,7 +34,7 @@ import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 import { PublicEncryptionKeyProvider } from "./facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "./facades/PublicIdentityKeyProvider"
-import { DriveFacade } from "./facades/DriveFacade"
+import { DriveFacade } from "./facades/lazy/DriveFacade"
 import { UploadProgressController } from "../main/UploadProgressController"
 
 export interface WorkerRandomizer {

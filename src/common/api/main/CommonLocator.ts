@@ -77,7 +77,7 @@ import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 import { LoginViewModel } from "../../login/LoginViewModel"
-import { DriveFacade } from "../worker/facades/DriveFacade.js"
+import { DriveFacade } from "../worker/facades/lazy/DriveFacade.js"
 import { UploadProgressController } from "./UploadProgressController"
 
 export interface CommonLocator {

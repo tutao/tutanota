@@ -1,11 +1,11 @@
-import { KeyLoaderFacade } from "./KeyLoaderFacade"
-import { EntityClient, loadMultipleFromLists } from "../../common/EntityClient"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { ArchiveDataType, GroupType } from "../../common/TutanotaConstants"
-import { BlobFacade } from "./lazy/BlobFacade"
-import { UserFacade } from "./UserFacade"
+import { KeyLoaderFacade } from "../KeyLoaderFacade"
+import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient"
+import { IServiceExecutor } from "../../../common/ServiceRequest"
+import { ArchiveDataType, GroupType } from "../../../common/TutanotaConstants"
+import { BlobFacade } from "./BlobFacade"
+import { UserFacade } from "../UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper"
+import { CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper"
 import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
 import {
 	createDriveCopyServicePostIn,
@@ -24,15 +24,15 @@ import {
 	DriveFolder,
 	DriveFolderTypeRef,
 	DriveGroupRootTypeRef,
-} from "../../entities/drive/TypeRefs"
-import { DriveCopyService, DriveFolderService, DriveService } from "../../entities/drive/Services"
-import { CryptoFacade } from "../crypto/CryptoFacade"
-import { getListId, isSameId, listIdPart } from "../../common/utils/EntityUtils"
-import { BlobReferenceTokenWrapper } from "../../entities/sys/TypeRefs"
-import { getCleanedMimeType } from "../../common/DataFile"
-import { DateProvider } from "../../common/DateProvider"
-import { UploadProgressController } from "../../main/UploadProgressController"
-import { UploadId } from "../../common/drive/DriveTypes"
+} from "../../../entities/drive/TypeRefs"
+import { DriveCopyService, DriveFolderService, DriveService } from "../../../entities/drive/Services"
+import { CryptoFacade } from "../../crypto/CryptoFacade"
+import { getListId, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
+import { BlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs"
+import { getCleanedMimeType } from "../../../common/DataFile"
+import { DateProvider } from "../../../common/DateProvider"
+import { UploadProgressController } from "../../../main/UploadProgressController"
+import { UploadId } from "../../../common/drive/DriveTypes"
 
 export interface BreadcrumbEntry {
 	folderName: string

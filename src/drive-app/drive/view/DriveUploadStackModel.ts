@@ -1,4 +1,4 @@
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { UploadId } from "../../../common/api/common/drive/DriveTypes"
 
 export interface DriveUploadState {

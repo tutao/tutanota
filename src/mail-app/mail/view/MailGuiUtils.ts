@@ -22,7 +22,6 @@ import { FileController } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
-import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
@@ -48,6 +47,7 @@ import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 import { computeColor, rgbToHSL } from "../../../common/gui/base/Color"
+import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -645,11 +645,6 @@ export function getConversationTitle(conversationViewModel: ConversationViewMode
 	}
 }
 
-export function getMoveMailBounds(): PosRect {
-	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
-	return new DomRectReadOnlyPolyfilled(size.spacing_24, size.spacing_32, 0, 0)
-}
-
 /**
  * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
  * @VisibleForTesting
@@ -815,7 +810,7 @@ export function showLabelsPopup(
 
 	const popup = new LabelsPopup(
 		dom ?? (document.activeElement as HTMLElement),
-		opts?.origin ?? dom?.getBoundingClientRect() ?? getMoveMailBounds(),
+		opts?.origin ?? dom?.getBoundingClientRect() ?? getDetachedDropdownBounds(),
 		opts?.width ?? (styles.isDesktopLayout() ? 300 : 200),
 		mailModel.getLabelsForMails(selectedMails),
 		mailModel.getLabelStatesForMails(selectedMails),

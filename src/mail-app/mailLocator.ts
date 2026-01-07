@@ -158,7 +158,7 @@ import { SpamClassificationHandler } from "./mail/model/SpamClassificationHandle
 import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 import { ProcessInboxHandler } from "./mail/model/ProcessInboxHandler"
 import type { QuickActionsModel } from "../common/misc/quickactions/QuickActionsModel"
-import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { UploadProgressController } from "../common/api/main/UploadProgressController"
 

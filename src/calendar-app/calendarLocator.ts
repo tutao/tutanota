@@ -119,7 +119,7 @@ import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicId
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../common/misc/LanguageViewModel.js"
-import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { UploadProgressController } from "../common/api/main/UploadProgressController"
 
 assertMainOrNode()

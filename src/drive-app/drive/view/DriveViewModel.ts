@@ -1,5 +1,5 @@
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
-import { BreadcrumbEntry, DriveFacade, DriveRootFolders } from "../../../common/api/worker/facades/DriveFacade"
+import { BreadcrumbEntry, DriveFacade, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
