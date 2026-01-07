@@ -2123,5 +2123,5 @@ export type TranslationKeyType =
 	| "matrix_label"
 	| "inboxRuleExcludedFromSpamFilter_msg"
 	| "blockNewsletterBanner_action"
-	| "emptyString_msg"
 	| "couldNotMoveMail_msg"
+	| "emptyString_msg"

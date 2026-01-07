@@ -359,6 +359,7 @@ export default {
 		"corruptedValue_msg": "The value cannot be displayed.",
 		"couldNotAttachFile_msg": "The file could not be loaded.",
 		"couldNotAuthU2f_msg": "Could not authenticate with security key.",
+		"couldNotMoveMail_msg": "Could not move mail(s).",
 		"couldNotOpenLink_msg": "Unable to find application to open link:\n{link}",
 		"couldNotUnlockCredentials_msg": "Could not unlock credentials: {reason}",
 		"createAccountAccessDeactivated_msg": "Registration is temporarily blocked for your IP address to avoid abuse. Please try again later or use a different internet connection.",
@@ -2125,7 +2126,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"couldNotMoveMail_msg": "Could not move mail(s)."
+		"zoomOut_action": "Zoom Out"
 	}
 }

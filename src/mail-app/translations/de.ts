@@ -359,6 +359,7 @@ export default {
 		"corruptedValue_msg": "Der Wert kann nicht angezeigt werden.",
 		"couldNotAttachFile_msg": "Die Datei konnte leider nicht geladen werden.",
 		"couldNotAuthU2f_msg": "Es konnte nicht mit dem Sicherheitsschlüssel authentifiziert werden.",
+		"couldNotMoveMail_msg": "Die E-Mails konnten nicht verschoben werden.",
 		"couldNotOpenLink_msg": "Keine Anwendung zum Öffnen von\n{link}\ngefunden.",
 		"couldNotUnlockCredentials_msg": "Konnte Zugangsdaten nicht entsperren: {reason}",
 		"createAccountAccessDeactivated_msg": "Die Registrierung ist für deine IP-Adresse kurzzeitig nicht möglich, um Missbrauch zu vermeiden. Bitte versuche es später erneut oder verwende einen anderen Internetanschluss.",
@@ -2125,7 +2126,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"couldNotMoveMail_msg": "Die E-Mails konnten nicht verschoben werden."
+		"zoomOut_action": "Herauszoomen"
 	}
 }
