@@ -58,6 +58,7 @@ import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
+import { InvalidModelError } from "../error/InvalidModelError"
 
 function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {
 	return Object.keys(obj).length === 0
@@ -128,6 +129,7 @@ const ErrorNameToType = {
 	RecipientNotResolvedError,
 	OfflineDbClosedError,
 	ServerModelsUnavailableError,
+	InvalidModelError,
 	OutOfSyncError,
 	ServiceUnavailableError,
 	DbError,
