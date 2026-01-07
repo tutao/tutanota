@@ -2126,6 +2126,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"couldNotMoveMail_msg": "Could not move mail."
+		"couldNotMoveMail_msg": "Die E-Mails konnten nicht verschoben werden."
 	}
 }

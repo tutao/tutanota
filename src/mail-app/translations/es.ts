@@ -22,7 +22,7 @@ export default {
 		"accountSwitchSharedCalendar_msg": "Elimina todos los calendarios compartidos contigo.",
 		"accountSwitchTooManyActiveUsers_msg": "Desactiva todos los usuarios adicionales antes de cambiar de suscripción.",
 		"accountWasStillCreated_msg": "Tu cuenta ha sido creada como cuenta gratuita. Puedes cancelar el pago ahora, iniciar sesión en tu cuenta y cambiar de suscripción luego.",
-		"accountWillBeDeactivatedIn6Month_label": "Tu cuenta será eliminada si no inicias sesión durante 6 meses",
+		"accountWillBeDeactivatedIn6Month_label": "Tu cuenta se eliminará si no inicias sesión durante 6 meses",
 		"accountWillHaveLessStorage_label": "Tu cuenta sólo tendrá 1 GB de almacenamiento",
 		"action_label": "Acción",
 		"activate_action": "Activar",

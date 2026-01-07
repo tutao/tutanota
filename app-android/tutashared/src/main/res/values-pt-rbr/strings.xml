@@ -1,6 +1,6 @@
 <resources>
     <string name="reminder_label">Lembrete</string>
-    <string name="pushNewMail_msg">Novo email recebido.</string>
+    <string name="pushNewMail_msg">Novo e-mail recebido.</string>
     <string name="notificationSync_msg">Sincronizando notificações</string>
     <string name="scheduleAlarmError_msg">Não foi possível configurar um alarme. Por favor, atualize o aplicativo.</string>
     <string name="wantToSendReport_msg">Algo deu errado. Você gostaria de enviar um relatório de erro? Você pode adicionar uma mensagem para nos ajudar a solucionar esse erro.</string>
@@ -10,11 +10,15 @@
     <string name="markRead_action">Marcar como lido</string>
     <string name="sendLogs_action">Enviar registros</string>
     <string name="account_label">Usuário</string>
+    <string name="calendars_label">Calendários</string>
     <string name="widgetNoCredentialsInfo_msg">Sem credenciais disponíveis</string>
     <string name="widgetUnexpectedError_msg">Opa! Alguma coisa deu errado.</string>
     <string name="widgetCredentialsError_msg">Faça login no app Calendário</string>
     <string name="widgetOpenApp_action">Abrir o app</string>
     <string name="widgetNoEvents_msg">Sem eventos</string>
     <string name="widgetDescription_msg">Mostrar os próximos eventos de hoje</string>
+    <string name="birthdayCalendar_label">Aniversários</string>
+    <string name="birthdayEvent_title">Aniversário de {name}</string>
+    <string name="birthdayEventAge_title">{age} anos</string>
     <string name="noTitle_label">&lt;Sem título&gt;</string>
 </resources>

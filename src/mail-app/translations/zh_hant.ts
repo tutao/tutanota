@@ -2033,7 +2033,7 @@ export default {
 		"upgradeReminderCancel_action": "稍後再說",
 		"upgradeReminderTitle_msg": "獲取Tuta最好的功能！",
 		"upgradeRequired_msg": "您的計劃不提供此功能，請升級到以下其中一個計劃：",
-		"upToDate_label": "全部是最新版本",
+		"upToDate_label": "全部內容已更新",
 		"url_label": "網址",
 		"urlPath_label": "路徑",
 		"usageData_label": "使用數據",
