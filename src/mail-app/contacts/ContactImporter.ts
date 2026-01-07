@@ -8,6 +8,7 @@ import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../../common/api/worker/facades/lazy/ContactFacade.js"
 import {
 	Contact,
+	ContactTypeRef,
 	createContact,
 	createContactAddress,
 	createContactCustomDate,
@@ -19,7 +20,7 @@ import {
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
-import { component_size, size } from "../../common/gui/size.js"
+import { component_size } from "../../common/gui/size.js"
 import { UserError } from "../../common/api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -38,6 +39,8 @@ import { NativeFileApp } from "../../common/native/common/FileApp.js"
 import { MobileContactsFacade } from "../../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
 import { isIOSApp } from "../../common/api/common/Env"
+import { _compareContactsForMerge } from "./ContactMergeUtils"
+import { ContactComparisonResult } from "../../common/api/common/TutanotaConstants"
 
 export class ContactImporter {
 	constructor(
@@ -70,9 +73,16 @@ export class ContactImporter {
 		return combinedVCardData.filter((vCard) => vCard != null) as string[]
 	}
 
-	async importContacts(contacts: ReadonlyArray<Contact>, contactListId: string) {
+	async importContacts(selectedContacts: Contact[], contactListId: string) {
+		//loading all contacts to avoid duplicating contacts while importing
+		const allContacts = await locator.contactModel.getContactListId().then((contactListId) => {
+			return contactListId ? locator.entityClient.loadAll(ContactTypeRef, contactListId) : []
+		})
+
+		const verifiedContacts = this.getImportContactLIst(allContacts, selectedContacts)
+
 		const importPromise = this.contactFacade
-			.importContactList(contacts, contactListId)
+			.importContactList(verifiedContacts, contactListId)
 			.catch(
 				ofClass(ImportError, (e) =>
 					Dialog.message(
@@ -80,7 +90,7 @@ export class ContactImporter {
 							"confirm_msg",
 							lang.get("importContactsError_msg", {
 								"{amount}": e.numFailed + "",
-								"{total}": contacts.length + "",
+								"{total}": verifiedContacts.length + "",
 							}),
 						),
 					),
@@ -91,9 +101,14 @@ export class ContactImporter {
 		await Dialog.message(
 			lang.makeTranslation(
 				"confirm_msg",
-				lang.get("importVCardSuccess_msg", {
-					"{1}": contacts.length,
-				}),
+				selectedContacts.length === verifiedContacts.length
+					? lang.get("importVCardSuccess_msg", {
+							"{1}": verifiedContacts.length,
+						})
+					: lang.get("importContactDuplicates_msg", {
+							"{1}": selectedContacts.length - verifiedContacts.length,
+							"{2}": verifiedContacts.length,
+						}),
 			),
 		)
 	}
@@ -166,6 +181,13 @@ export class ContactImporter {
 				await showProgressDialog("progressDeleting_msg", mobileContactsFacade.deleteLocalContacts(contactsWeJustImported))
 			}
 		}
+	}
+
+	getImportContactLIst(allContacts: Contact[], selectedContacts: Contact[]): Contact[] {
+		return selectedContacts.filter(
+			(selectedContact) =>
+				!allContacts.some((serverContact) => _compareContactsForMerge(serverContact, selectedContact) === ContactComparisonResult.Equal),
+		)
 	}
 
 	private async selectContactBooks(mobileContactsFacade: MobileContactsFacade): Promise<readonly ContactBook[] | null> {
