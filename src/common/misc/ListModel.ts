@@ -11,6 +11,7 @@ import {
 	lastIndex,
 	lastThrow,
 	memoizedWithHiddenArgument,
+	noOp,
 	remove,
 	setAddAll,
 	setEquals,
@@ -517,7 +518,7 @@ export class ListModel<ItemType, IdType> {
 		}
 	}
 
-	waitLoad(what: () => any): Promise<any> {
+	waitLoad(what: () => any = noOp): Promise<any> {
 		return settledThen(this.loading, what)
 	}
 

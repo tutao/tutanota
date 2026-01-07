@@ -27,7 +27,7 @@ import {
 } from "../../../entities/drive/TypeRefs"
 import { DriveCopyService, DriveFolderService, DriveService } from "../../../entities/drive/Services"
 import { CryptoFacade } from "../../crypto/CryptoFacade"
-import { getListId, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
+import { getElementId, getListId, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
 import { BlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { DateProvider } from "../../../common/DateProvider"
@@ -259,10 +259,17 @@ export class DriveFacade {
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
-	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder): Promise<void> {
+	public async copyItems(
+		files: readonly DriveFile[],
+		folders: readonly DriveFolder[],
+		destination: DriveFolder,
+		renamedFiles: Map<Id, string>,
+	): Promise<void> {
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
-			const encNewName = this.cryptoWrapper.encryptString(sk, file.name)
+
+			const newName = renamedFiles.get(getElementId(file)) ?? file.name
+			const encNewName = this.cryptoWrapper.encryptString(sk, newName)
 			return createDriveRenameData({
 				file: file._id,
 				folder: null,
@@ -271,7 +278,8 @@ export class DriveFacade {
 		})
 		const folderItems = await promiseMap(folders, async (folder) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))
-			const encNewName = this.cryptoWrapper.encryptString(sk, folder.name)
+			const newName = renamedFiles.get(getElementId(folder)) ?? folder.name
+			const encNewName = this.cryptoWrapper.encryptString(sk, newName)
 			return createDriveRenameData({
 				file: null,
 				folder: folder._id,

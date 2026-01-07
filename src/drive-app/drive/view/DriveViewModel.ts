@@ -5,7 +5,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, debounceStart, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, groupBy, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -23,6 +23,7 @@ import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { UploadProgressController } from "../../../common/api/main/UploadProgressController"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
+import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -309,6 +310,15 @@ export class DriveViewModel {
 		}
 	}
 
+	private makeDuplicateFileName(fileName: string): string {
+		const [basename, ext] = getFileBaseNameAndExtensions(fileName)
+		return `${basename} (copy)${ext}`
+	}
+
+	private makeDuplicateFolderName(folderName: string): string {
+		return `${folderName} (copy)`
+	}
+
 	async paste() {
 		if (this.currentFolder == null) return
 
@@ -329,7 +339,28 @@ export class DriveViewModel {
 				this.entityClient,
 				folderItems.map((item) => item.id),
 			)
-			await this.driveFacade.copyItems(files, folders, this.currentFolder.folder)
+
+			const renamedFiles: Map<Id, string> = new Map()
+			await this.listModel.waitLoad()
+			const currentFolderItemsByName = groupBy(this.listModel.getUnfilteredAsArray(), (item) => folderItemEntity(item).name)
+
+			for (const file of files) {
+				let candidateName = file.name
+				while (currentFolderItemsByName.get(candidateName) != null) {
+					candidateName = this.makeDuplicateFileName(candidateName)
+				}
+				renamedFiles.set(getElementId(file), candidateName)
+			}
+
+			for (const folder of folders) {
+				let candidateName = folder.name
+				while (currentFolderItemsByName.get(candidateName) != null) {
+					candidateName = this.makeDuplicateFolderName(candidateName)
+				}
+				renamedFiles.set(getElementId(folder), candidateName)
+			}
+
+			await this.driveFacade.copyItems(files, folders, this.currentFolder.folder, renamedFiles)
 		}
 	}
 
