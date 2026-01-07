@@ -3,7 +3,7 @@ import { KeyVersion } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants"
 
 /**
- * This caches public encryption keys that did not fail key verification/ TOFU.
+ * This caches public encryption keys that did not fail key verification / TOFU.
  */
 export class PublicEncryptionKeyCache {
 	// Versioned<PublicKeyIdentifier> as json string -> MaybeSignedPublicKey
@@ -38,6 +38,7 @@ export class PublicEncryptionKeyCache {
 	}
 
 	private makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {
+		// we use JSON.stringify to get a canonical form and so that we do not have to worry about collisions of these different length parts of the key string
 		return JSON.stringify({ version, object: publicKeyIdentifier })
 	}
 }

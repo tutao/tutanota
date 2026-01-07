@@ -18,6 +18,7 @@ import { isWebClient } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { AttributeModel } from "../../common/AttributeModel"
+import { hasError } from "../../common/utils/ErrorUtils"
 
 // Exported for testing
 export function encryptValue(
@@ -147,7 +148,7 @@ export class CryptoMapper {
 	 * Useful for ATs.
 	 */
 	public containErrors(instances: ServerModelParsedInstance[]): boolean {
-		return instances.some((instance) => instance._errors != null)
+		return instances.some((instance) => hasError(instance))
 	}
 
 	/**

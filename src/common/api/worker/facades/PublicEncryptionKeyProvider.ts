@@ -70,7 +70,8 @@ export class PublicEncryptionKeyProvider {
 		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
 		const verifiedPublicEncryptionKey = await keyVerificationFacade.verify(pubKeyIdentifier, publicEncryptionKey)
 		// we do not want to cache the verification result so that we can immediately benefit from a future identity key verification
-		this.publicEncryptionKeyCache.put(pubKeyIdentifier, publicEncryptionKey) // will only be effective in certain cases!
+		// will only be effective in certain cases!
+		this.publicEncryptionKeyCache.put(pubKeyIdentifier, publicEncryptionKey)
 		return verifiedPublicEncryptionKey
 	}
 
