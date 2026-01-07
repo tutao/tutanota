@@ -144,7 +144,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private renderDragElement(item: FolderItem, count: number) {
 		const el = document.createElement("div")
 		document.body.append(el)
-		// FIXME: theme
+		// TODO: Use theme as soon as we agreed on it.
 		const boxShadow = `#D5D5D5 1px 1px 1px`
 		m.render(
 			el,
@@ -167,7 +167,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					count > 1
 						? m(".abs.border-radius-12", {
 								style: {
-									// FIXME: need to use the theme somehow
+									// TODO: Use theme as soon as we agreed on it.
 									background: "#EAEAEA",
 									width: `calc(100% - ${size.spacing_8}px * 2)`,
 									height: `calc(100% - ${size.spacing_8}px * 2)`,

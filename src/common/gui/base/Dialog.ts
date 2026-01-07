@@ -74,6 +74,9 @@ export interface TextInputDialogParams {
 
 	/** Text field type to display (determines what keyboard to display on mobile devices) */
 	textFieldType?: TextFieldType
+
+	/** For pre-selecting a range of text when the input field is displayed */
+	selectionRange?: [number, number]
 }
 
 export class Dialog implements ModalComponent {
@@ -979,6 +982,11 @@ export class Dialog implements ModalComponent {
 					type: textFieldType,
 					onReturnKeyPressed: wrappedOkAction,
 					oninput: (newValue) => (result = newValue),
+					onDomInputCreated: (dom) => {
+						if (props.selectionRange) {
+							dom.setSelectionRange(props.selectionRange[0], props.selectionRange[1])
+						}
+					},
 					helpLabel: () => (props.infoMsgId ? lang.getTranslationText(props.infoMsgId) : ""),
 				}),
 			validator: () => (props.inputValidator ? props.inputValidator(result) : null),

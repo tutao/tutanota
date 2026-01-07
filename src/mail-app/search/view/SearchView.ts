@@ -38,7 +38,7 @@ import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
-import type { ClickHandler } from "../../../common/gui/base/GuiUtils"
+import { ClickHandler, getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { SelectorItem } from "../../../common/gui/base/DropDownSelector.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
@@ -67,7 +67,6 @@ import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileAc
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import {
 	getConversationTitle,
-	getMoveMailBounds,
 	LabelsPopupOpts,
 	promptAndDeleteMails,
 	showLabelsPopup,
@@ -1316,7 +1315,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
+			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, getDetachedDropdownBounds(), selectedMails, MoveMode.Mails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()

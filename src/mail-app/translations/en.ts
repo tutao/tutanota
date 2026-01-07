@@ -2198,6 +2198,12 @@ export default {
 		"createFolder_action": "Create folder",
 		"sortDescending_label": "Descending",
 		"sortAscending_label": "Ascending",
-		"sortNeutral_label": "Unsorted"
+		"sortNeutral_label": "Unsorted",
+		"downloadInProgress_msg": "Downloading…",
+		"uploadCompleted_msg": "Upload completed",
+		"uploadInProgress_msg": "Uploading…",
+		"transferFailed_msg": "Transfer failed",
+		"confirmDeleteFilesPermanently_msg": "Are you sure you want to permanently delete {count} file(s)?",
+		"confirmDeleteFilesPermanently_action": "Delete files",
 	}
 }

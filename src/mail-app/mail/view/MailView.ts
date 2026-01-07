@@ -31,7 +31,6 @@ import { styles } from "../../../common/gui/styles"
 import { layout_size, px, size } from "../../../common/gui/size"
 import {
 	getConversationTitle,
-	getMoveMailBounds,
 	LabelsPopupOpts,
 	moveMails,
 	moveMailsToSystemFolder,
@@ -88,7 +87,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
-import { DropData, DropType, FileDropData, FolderDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
+import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -830,7 +829,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.V,
 				exec: () => {
-					this.moveMailsFromFolder(getMoveMailBounds())
+					this.moveMailsFromFolder(getDetachedDropdownBounds())
 					return true
 				},
 				help: "move_action",

@@ -91,7 +91,7 @@ import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/Pu
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 assertWorkerOrNode()
 

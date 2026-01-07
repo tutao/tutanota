@@ -109,7 +109,7 @@ export class WorkerClient {
 					return locator.syncTracker
 				},
 				async uploadProgressListener() {
-					return locator.uploadProgressListener
+					return locator.transferProgressDispatcher
 				},
 			}),
 		}

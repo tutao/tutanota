@@ -4,8 +4,7 @@ import type { InfoLink, MaybeTranslation, TranslationKey } from "../../misc/Lang
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
-import type { DropdownChildAttrs } from "./Dropdown.js"
-import { createAsyncDropdown } from "./Dropdown.js"
+import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs, PosRect } from "./Dropdown.js"
 import type { $Promisable, lazy, MaybeLazy } from "@tutao/tutanota-utils"
 import { assertNotNull, lazyMemoized, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { Dialog } from "./Dialog"
@@ -19,6 +18,7 @@ import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { isColorLight } from "./Color.js"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "./DropDownSelectorNew"
 import { theme } from "../theme"
+import { size } from "../size"
 
 export const enum DropType {
 	ExternalFile = "ExternalFile",
@@ -433,4 +433,9 @@ export function transformTouchEvent(event: TouchEvent): MouseEvent | undefined {
 		button: 0,
 		relatedTarget: null,
 	})
+}
+
+export function getDetachedDropdownBounds(): PosRect {
+	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
+	return new DomRectReadOnlyPolyfilled(size.spacing_24, size.spacing_32, 0, 0)
 }

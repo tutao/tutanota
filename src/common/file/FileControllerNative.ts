@@ -8,10 +8,9 @@ import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { FileController, ProgressObserver, zipDataFiles } from "./FileController.js"
+import { FileController, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
-import { UploadProgressController } from "../api/main/UploadProgressController"
 
 assertMainOrNode()
 
@@ -21,12 +20,10 @@ assertMainOrNode()
 export class FileControllerNative extends FileController {
 	constructor(
 		blobFacade: BlobFacade,
-		guiDownload: ProgressObserver,
 		private readonly fileApp: NativeFileApp,
-		loadListener: UploadProgressController,
 	) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
-		super(blobFacade, loadListener, guiDownload)
+		super(blobFacade)
 	}
 
 	protected async cleanUp(files: Array<FileReference | DataFile>) {

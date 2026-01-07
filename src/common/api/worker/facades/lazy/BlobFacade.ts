@@ -40,9 +40,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { ChunkedUploadInfo, UploadId } from "../../../common/drive/DriveTypes"
+import { ChunkedUploadInfo, TransferId } from "../../../common/drive/DriveTypes"
 import { CancelledError } from "../../../common/error/CancelledError"
-import { UploadProgressController } from "../../../main/UploadProgressController"
+import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -55,6 +55,12 @@ export interface BlobLoadOptions {
 	baseUrl?: string
 }
 
+interface FileDownloadState {
+	referencingInstance: BlobReferencingInstance
+	/** Map from blob id to the total downloaded bytes for that blob. */
+	bytesDownloadedPerBlob: Map<Id, number>
+}
+
 /**
  * The BlobFacade uploads and downloads blobs to/from the blob store.
  *
@@ -64,7 +70,14 @@ export interface BlobLoadOptions {
  * Otherwise, the blobs will automatically be deleted after some time. It is not allowed to reference blobs manually in some instance.
  */
 export class BlobFacade {
-	private readonly nativeDownloadProgressState: Map<Id, number> = new Map<Id, number>()
+	/**
+	 * Map from blob id to file download state. If file is split between multiple blobs then multiple blobs will point to the same file state.
+	 * <br>
+	 * Native download facades do not operate on instances, for them each blob is a separate file so we receive update for a blob and we have to
+	 * coordinate the overall download progress for the file. This map is for looking up file state by blob id.
+	 */
+	private readonly nativeDownloadProgressState: Map<Id, FileDownloadState> = new Map()
+	private readonly abortControllers: Map<Id, AbortController> = new Map()
 
 	constructor(
 		private readonly restClient: RestClient,
@@ -74,7 +87,7 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
-		private readonly loadListener: UploadProgressController,
+		private readonly progressDispatcher: TransferProgressDispatcher,
 	) {}
 
 	/**
@@ -89,7 +102,7 @@ export class BlobFacade {
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		onChunkUploaded?: (info: ChunkedUploadInfo) => void,
-		fileId?: UploadId,
+		fileId?: TransferId,
 		onCancelListener?: EventTarget,
 	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
@@ -137,35 +150,35 @@ export class BlobFacade {
 		file: File,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
+		fileId: TransferId,
 		abortSignal: AbortSignal,
-	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number }, BlobReferenceTokenWrapper[], void> {
+	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number; referenceTokenWrapper: BlobReferenceTokenWrapper }, void, void> {
 		const fileSize = file.size
 
 		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
 		const chunkSizeBytes = MAX_BLOB_SIZE_BYTES
+		let bytesUploadedSoFar = 0
 
 		const doBlobRequest = async (chunk: Uint8Array) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, (bytes) => {
+				this.progressDispatcher.onChunkUploaded({ fileId, uploadedBytes: bytesUploadedSoFar + bytes, totalBytes: file.size })
+			})
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
-		const blobReferenceTokenWrappers: BlobReferenceTokenWrapper[] = []
-
 		for (const chunkBlob of splitFileIntoChunks(chunkSizeBytes, file)) {
 			const chunkData = await chunkBlob.arrayBuffer()
 			// Process the chunkData here (e.g., upload it to a server)
-			const tokenWrapper = await doBlobRequestWithRetry(() => {
+			const tokenWrapper = await doBlobRequestWithRetry(async () => {
 				if (abortSignal.aborted) {
 					throw new CancelledError("Upload aborted")
 				}
-				return doBlobRequest(new Uint8Array(chunkData))
+				const response = await doBlobRequest(new Uint8Array(chunkData))
+				bytesUploadedSoFar += chunkData.byteLength
+				return response
 			}, doEvictToken)
-			yield { totalBytes: fileSize, uploadedBytes: chunkData.byteLength }
-			blobReferenceTokenWrappers.push(tokenWrapper)
+			yield { totalBytes: fileSize, uploadedBytes: chunkData.byteLength, referenceTokenWrapper: tokenWrapper }
 		}
-
-		console.log("Finished reading the file with custom chunk sizes.")
-		return blobReferenceTokenWrappers
 	}
 
 	/**
@@ -212,19 +225,38 @@ export class BlobFacade {
 		let bytesDownloadedSoFar = 0
 		const onProgress = (bytes: number) => {
 			bytesDownloadedSoFar += bytes
-			this.loadListener.onChunkDownloaded({ fileId: referencingInstance.elementId, downloadedBytes: bytes })
+			this.progressDispatcher.onChunkDownloaded({ fileId: referencingInstance.elementId as TransferId, downloadedBytes: bytes })
 		}
 
-		// Currently assumes that all the blobs of the instance are in the same archive.
-		// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
-		const doBlobRequest = async () => {
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
-			return this.downloadAndDecryptMultipleBlobsOfArchives(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions, onProgress)
-		}
-		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
+		const controller = new AbortController()
+		this.abortControllers.set(referencingInstance.elementId, controller)
+		try {
+			// Currently assumes that all the blobs of the instance are in the same archive.
+			// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
+			const doBlobRequest = async () => {
+				controller.signal.throwIfAborted()
+				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
+				return this.downloadAndDecryptMultipleBlobsOfArchives(
+					referencingInstance.blobs,
+					blobServerAccessInfo,
+					sessionKey,
+					blobLoadOptions,
+					onProgress,
+					controller.signal,
+				)
+			}
+			const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
-		const blobChunks = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-		return this.concatenateBlobChunks(referencingInstance, blobChunks)
+			const blobChunks = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+			controller.signal.throwIfAborted()
+			return this.concatenateBlobChunks(referencingInstance, blobChunks)
+		} finally {
+			this.abortControllers.delete(referencingInstance.elementId)
+		}
+	}
+
+	async cancelDownload(id: Id): Promise<void> {
+		this.abortControllers.get(id)?.abort(new CancelledError("Download canceled"))
 	}
 
 	private concatenateBlobChunks(referencingInstance: BlobReferencingInstance, blobChunks: Map<Id, Uint8Array>) {
@@ -330,20 +362,26 @@ export class BlobFacade {
 		}
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 		let blobIdToDecryptedFileUri: Map<Id, FileUri> = new Map()
+		// prepare download state that will be updated when native facades report download progress
+		const fileDownloadState: FileDownloadState = {
+			referencingInstance,
+			bytesDownloadedPerBlob: new Map(referencingInstance.blobs.map((blob) => [blob.blobId, 0])),
+		}
+		for (const blob of referencingInstance.blobs) {
+			this.nativeDownloadProgressState.set(blob.blobId, fileDownloadState)
+		}
 		const doBlobRequest = async () => {
 			blobIdToDecryptedFileUri = new Map()
 			const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
 
-			let bytesDownloadedSoFar = 0
-			this.nativeDownloadProgressState.set(referencingInstance.elementId, 0)
 			try {
 				const archiveIdToBlobs = groupBy(referencingInstance.blobs, (blob) => blob.archiveId)
 				for (const [archiveId, blobs] of archiveIdToBlobs) {
 					const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
 					for (const blob of blobs) {
-						const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey, referencingInstance.elementId).catch(
+						const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey, blob.blobId).catch(
 							async (e: Error) => {
-								// cleanup every temporary file in the native part in case an error occured when downloading chun
+								// cleanup every temporary file in the native part in case an error occurred when downloading chun
 								for (const [blobId, decryptedChunkFileUri] of blobIdToDecryptedFileUri) {
 									await this.fileApp.deleteFile(decryptedChunkFileUri)
 								}
@@ -351,8 +389,9 @@ export class BlobFacade {
 							},
 						)
 						blobIdToDecryptedFileUri.set(blob.blobId, fileUri)
-						bytesDownloadedSoFar += filterInt(blob.size)
-						this.nativeDownloadProgressState.set(referencingInstance.elementId, bytesDownloadedSoFar)
+						// after blob is downloaded set the progress to the overall blob size. This is safeguard if the last
+						// chunk is not reported.
+						fileDownloadState.bytesDownloadedPerBlob.set(blob.blobId, filterInt(blob.size))
 					}
 				}
 			} finally {
@@ -386,7 +425,12 @@ export class BlobFacade {
 		return neverNull(await this.cryptoFacade.resolveSessionKey(entity))
 	}
 
-	private async encryptAndUploadChunk(chunk: Uint8Array, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper> {
+	private async encryptAndUploadChunk(
+		chunk: Uint8Array,
+		blobServerAccessInfo: BlobServerAccessInfo,
+		sessionKey: AesKey,
+		onProgress?: (bytes: number) => unknown,
+	): Promise<BlobReferenceTokenWrapper> {
 		const encryptedData = _encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, BlobGetInTypeRef)
@@ -396,10 +440,19 @@ export class BlobFacade {
 			async (serverUrl) => {
 				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
 					queryParams: queryParams,
-					noCORS: true,
+					// noCORS tries to avoid all the things that make the request not a "Simple CORS request". Adding
+					// uploading listeners is one of this. In this case though we really do want an upload listener so
+					// we sacrifice our CORS purity for functionality.
+					noCORS: onProgress == null,
 					body: encryptedData,
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
+					progressListener: {
+						download() {},
+						upload(_, bytes) {
+							onProgress?.(bytes)
+						},
+					},
 				})
 				return await this.parseBlobPostOutResponse(response)
 			},
@@ -474,17 +527,27 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
+		abortSignal?: AbortSignal,
 	): Promise<Map<Id, Uint8Array>> {
 		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
 		let mapWithEncryptedBlobs: Map<Id, Uint8Array> = new Map()
 		for (const [archiveId, archiveBlobs] of archiveIdToBlobs) {
 			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
-			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(archiveBlobs, blobServerAccessInfo, blobLoadOptions, onProgress)
+			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(
+				archiveBlobs,
+				blobServerAccessInfo,
+				blobLoadOptions,
+				onProgress,
+				abortSignal,
+			)
 			for (const [k, v] of mapWithEncryptedBlobsOfArchive) {
 				mapWithEncryptedBlobs.set(k, v)
 			}
 		}
-		return mapMap(mapWithEncryptedBlobs, (blob) => aesDecrypt(sessionKey, blob))
+		return mapMap(mapWithEncryptedBlobs, (blob) => {
+			abortSignal?.throwIfAborted()
+			return aesDecrypt(sessionKey, blob)
+		})
 	}
 
 	/**
@@ -496,6 +559,7 @@ export class BlobFacade {
 		blobServerAccessInfo: BlobServerAccessInfo,
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
+		abortSignal?: AbortSignal,
 	): Promise<Map<Id, Uint8Array>> {
 		if (isEmpty(blobs)) {
 			throw new ProgrammingError("Blobs are empty")
@@ -539,6 +603,7 @@ export class BlobFacade {
 								onProgress(bytes)
 							},
 						},
+						abortSignal,
 					})
 					return response
 				},
@@ -627,11 +692,8 @@ export class BlobFacade {
 		return headers
 	}
 
-	async nativeDownloadProgress(fileId: string, bytes: number) {
-		const progressSoFar = this.nativeDownloadProgressState.get(fileId)
-		if (progressSoFar != null) {
-			this.loadListener.onChunkDownloaded({ fileId, downloadedBytes: progressSoFar + bytes })
-		}
+	async nativeDownloadProgress(blobId: string, bytes: number) {
+		this.nativeDownloadProgressState.get(blobId)?.bytesDownloadedPerBlob.set(blobId, bytes)
 	}
 }
 

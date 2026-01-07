@@ -1,13 +1,13 @@
 import { remove } from "@tutao/tutanota-utils"
 import { ChunkedDownloadInfo, ChunkedUploadInfo } from "../common/drive/DriveTypes"
 
-type UploadListener = (info: ChunkedUploadInfo) => unknown
-type DownloadListener = (info: ChunkedDownloadInfo) => unknown
+export type UploadListener = (info: ChunkedUploadInfo) => unknown
+export type DownloadListener = (info: ChunkedDownloadInfo) => unknown
 
 /**
  * Listen to/dispatch upload/download progress events.
  */
-export class UploadProgressController {
+export class TransferProgressDispatcher {
 	private readonly uploadListeners: UploadListener[] = []
 	private readonly downloadListeners: DownloadListener[] = []
 

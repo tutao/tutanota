@@ -85,7 +85,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
-		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
+		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
 		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
 		return m(
@@ -171,7 +171,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				m("div", { style: {} }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
 				m("div", { style: {} }, thisFileMimeType),
 				m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-				m("div", { style: {} }, uploadDate.toLocaleString()),
+				m("div", { style: {} }, updatedDate.toLocaleString()),
 				m(
 					"div",
 					m("div", [

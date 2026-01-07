@@ -6,7 +6,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { CALENDAR_MIME_TYPE, FileController, guiDownload } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -119,8 +119,8 @@ import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicId
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../common/misc/LanguageViewModel.js"
-import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
-import { UploadProgressController } from "../common/api/main/UploadProgressController"
+import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
+import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 
 assertMainOrNode()
 
@@ -180,7 +180,7 @@ class CalendarLocator implements CommonLocator {
 	identityKeyCreator!: IdentityKeyCreator
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
-	uploadProgressListener!: UploadProgressController
+	transferProgressDispatcher!: TransferProgressDispatcher
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -677,7 +677,7 @@ class CalendarLocator implements CommonLocator {
 			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
-			this.uploadProgressListener = new UploadProgressController()
+			this.transferProgressDispatcher = new TransferProgressDispatcher()
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
@@ -774,9 +774,7 @@ class CalendarLocator implements CommonLocator {
 		})
 
 		this.fileController =
-			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, guiDownload, this.uploadProgressListener)
-				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp, this.uploadProgressListener)
+			this.nativeInterfaces == null ? new FileControllerBrowser(blobFacade) : new FileControllerNative(blobFacade, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, null)

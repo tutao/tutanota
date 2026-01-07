@@ -16,6 +16,9 @@ import { BuildConfigKey, DesktopConfigKey } from "../../../../src/common/desktop
 import { HttpMethod } from "../../../../src/common/api/common/EntityFunctions"
 import { FetchImpl, FetchResult } from "../../../../src/common/desktop/net/NetAgent"
 import { CommandExecutor } from "../../../../src/common/desktop/CommandExecutor"
+import { BufferEncoding } from "rollup"
+import stream from "node:stream"
+import { WriteStream } from "fs-extra"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -83,22 +86,23 @@ o.spec("DesktopFileFacade", function () {
 		o("no error", async function () {
 			const headers = { v: "foo", accessToken: "bar" }
 			const expectedFilePath = "/tutanota/tmp/path/encrypted/nativelyDownloadedFile"
-			const response: FetchResult = mockResponse(200, { responseBody: new Uint8Array() })
-			const ws: fs.WriteStream = mockWriteStream(response)
-			when(fs.createWriteStream(expectedFilePath, { emitClose: true })).thenReturn(ws)
+			const fileBody = new Uint8Array([3, 4, 6, 9])
+			const response: FetchResult = mockResponse(200, { responseBody: fileBody })
+			const ws: BufferWritableStream = mockWriteStream() satisfies stream.Writable
+			const fws = ws as unknown as fs.WriteStream
+			when(fs.createWriteStream(expectedFilePath, { emitClose: true })).thenReturn(fws)
 			when(
 				fetch(urlMatches(new URL("some://url/file")), {
 					method: "GET",
 					headers,
 				}),
 			).thenResolve(response)
-			// @ts-ignore callback omit
-			when(ws.on("finish")).thenCallback(undefined, undefined)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
 
 			const downloadResult = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 			o(downloadResult.statusCode).equals(200)
 			o(downloadResult.encryptedFileUri).equals(expectedFilePath)
+			o(ws.result()).deepEquals(fileBody)
 		})
 
 		o("404 error gets returned", async function () {
@@ -201,12 +205,11 @@ o.spec("DesktopFileFacade", function () {
 
 		o("IO error during download leads to cleanup and error is thrown", async function () {
 			const headers = { v: "foo", accessToken: "bar" }
-			const response: FetchResult = mockResponse(200, { responseBody: new Uint8Array() })
+			const response: FetchResult = mockResponse(200, { responseBody: new Uint8Array([1, 2, 3, 4, 5]) })
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 			const error = new Error("Test! I/O error")
-			const ws = mockWriteStream()
-			when(ws.on("finish", matchers.anything())).thenThrow(error)
-			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws)
+			const ws = mockWriteStream({ error })
+			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws as unknown as WriteStream)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
 
 			const e = await assertThrows(Error, () => ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId"))
@@ -225,7 +228,7 @@ o.spec("DesktopFileFacade", function () {
 			const headers = {
 				blobAccessToken: "1236",
 			}
-			const fileStreamMock = mockReadStream()
+			const fileStreamMock = mockReadStream(new Buffer([1, 2, 3, 4]))
 			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
 			when(
 				fetch(urlMatches(new URL(targetUrl)), {
@@ -369,11 +372,9 @@ o.spec("DesktopFileFacade", function () {
 	o.spec("join", function () {
 		o("join a single file", async function () {
 			const ws: fs.WriteStream = mockWriteStream()
-			const rs: fs.ReadStream = mockReadStream(ws)
+			const rs: fs.ReadStream = mockReadStream(new Buffer([10, 2, 3, 4]))
 			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws)
 			when(fs.createReadStream(matchers.anything())).thenReturn(rs)
-			// @ts-ignore callback omit
-			when(rs.on("end")).thenCallback(undefined, undefined)
 			when(fs.promises.readdir("/tutanota/tmp/path/unencrypted")).thenResolve(["folderContents"])
 			when(tfs.ensureUnencrytpedDir()).thenResolve("/tutanota/tmp/path/unencrypted")
 			const joinedFilePath = await ff.joinFiles("fileName.pdf", ["/file1"])
@@ -462,13 +463,8 @@ o.spec("DesktopFileFacade", function () {
 	})
 })
 
-function mockReadStream(ws?: fs.WriteStream): fs.ReadStream {
-	const rs: fs.ReadStream = object()
-	if (ws != null) {
-		when(rs.pipe(ws, { end: false })).thenReturn(ws)
-	}
-
-	return rs
+function mockReadStream(buffer: Buffer): fs.ReadStream {
+	return stream.Readable.from(buffer) as unknown as fs.ReadStream
 }
 
 const urlMatches = matchers.create({
@@ -478,15 +474,33 @@ const urlMatches = matchers.create({
 	},
 })
 
-function mockWriteStream(response?: FetchResult): fs.WriteStream {
-	const ws: fs.WriteStream = object()
-	if (response != null) {
-		// when(response.pipe(ws)).thenReturn(ws)
+class BufferWritableStream extends stream.Writable {
+	readonly chunks: Buffer[] = []
+	constructor(readonly error: Error | null = null) {
+		super()
 	}
-	const closeCapturer = matchers.captor()
-	when(ws.on("close", closeCapturer.capture())).thenReturn(ws)
-	when(ws.close()).thenDo(() => closeCapturer.value())
-	return ws
+
+	_write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void) {
+		if (this.error) {
+			callback(this.error)
+		} else {
+			this.chunks.push(chunk)
+			callback()
+		}
+	}
+
+	close() {
+		// no-op, exists to pretend we are fs.WriteStream
+		this.emit("close")
+	}
+
+	result(): Uint8Array {
+		return Buffer.concat(this.chunks)
+	}
+}
+
+function mockWriteStream({ error }: { error?: Error } = {}): BufferWritableStream & fs.WriteStream {
+	return new BufferWritableStream(error ?? null) as BufferWritableStream & fs.WriteStream
 }
 
 function mockResponse(

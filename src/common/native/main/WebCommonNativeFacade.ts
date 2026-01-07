@@ -18,7 +18,6 @@ import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { isDesktop } from "../../api/common/Env"
 import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
-import { UploadProgressController } from "../../api/main/UploadProgressController"
 import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {

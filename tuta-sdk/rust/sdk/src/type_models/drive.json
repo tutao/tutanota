@@ -527,7 +527,7 @@
 		}
 	},
 	"61": {
-		"name": "DriveCreateData",
+		"name": "DrivePostIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
@@ -535,7 +535,7 @@
 		"id": 61,
 		"rootId": "BWRyaXZlAD0",
 		"versioned": false,
-		"encrypted": true,
+		"encrypted": false,
 		"isPublic": true,
 		"values": {
 			"62": {
@@ -545,22 +545,71 @@
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"64": {
+				"final": true,
+				"name": "ownerEncRootFolderSessionKey",
+				"id": 64,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"65": {
+				"final": true,
+				"name": "ownerEncTrashFolderSessionKey",
+				"id": 65,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
 			"63": {
 				"final": true,
-				"name": "parent",
+				"name": "fileGroupId",
 				"id": 63,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": "sys"
+			}
+		}
+	},
+	"67": {
+		"name": "DriveItemPostIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 67,
+		"rootId": "BWRyaXZlAEM",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"values": {
+			"68": {
+				"final": false,
+				"name": "_format",
+				"id": 68,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"69": {
+				"final": true,
+				"name": "parent",
+				"id": 69,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
 				"dependency": null
 			},
-			"64": {
+			"70": {
 				"final": true,
 				"name": "uploadedFile",
-				"id": 64,
+				"id": 70,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refTypeId": 55,
@@ -568,32 +617,32 @@
 			}
 		}
 	},
-	"65": {
-		"name": "DriveCreateReturn",
+	"71": {
+		"name": "DriveItemPostOut",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 65,
-		"rootId": "BWRyaXZlAEE",
+		"id": 71,
+		"rootId": "BWRyaXZlAEc",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"66": {
+			"72": {
 				"final": false,
 				"name": "_format",
-				"id": 66,
+				"id": 72,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"67": {
+			"73": {
 				"final": false,
 				"name": "createdFile",
-				"id": 67,
+				"id": 73,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 14,
@@ -601,49 +650,49 @@
 			}
 		}
 	},
-	"68": {
-		"name": "DrivePutIn",
+	"74": {
+		"name": "DriveItemPutIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 68,
-		"rootId": "BWRyaXZlAEQ",
+		"id": 74,
+		"rootId": "BWRyaXZlAEo",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"69": {
+			"75": {
 				"final": false,
 				"name": "_format",
-				"id": 69,
+				"id": 75,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"70": {
+			"76": {
 				"final": true,
 				"name": "newName",
-				"id": 70,
+				"id": 76,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"71": {
+			"77": {
 				"final": true,
 				"name": "file",
-				"id": 71,
+				"id": 77,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 14,
 				"dependency": null
 			},
-			"72": {
+			"78": {
 				"final": true,
 				"name": "folder",
-				"id": 72,
+				"id": 78,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
@@ -651,41 +700,41 @@
 			}
 		}
 	},
-	"73": {
-		"name": "DriveDeleteIn",
+	"79": {
+		"name": "DriveItemDeleteIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 73,
-		"rootId": "BWRyaXZlAEk",
+		"id": 79,
+		"rootId": "BWRyaXZlAE8",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"74": {
+			"80": {
 				"final": false,
 				"name": "_format",
-				"id": 74,
+				"id": 80,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"75": {
+			"81": {
 				"final": false,
 				"name": "files",
-				"id": 75,
+				"id": 81,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 14,
 				"dependency": null
 			},
-			"76": {
+			"82": {
 				"final": false,
 				"name": "folders",
-				"id": 76,
+				"id": 82,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 0,
@@ -693,105 +742,39 @@
 			}
 		}
 	},
-	"78": {
+	"84": {
 		"name": "DriveFolderServicePostIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 78,
-		"rootId": "BWRyaXZlAE4",
+		"id": 84,
+		"rootId": "BWRyaXZlAFQ",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"79": {
+			"85": {
 				"final": false,
 				"name": "_format",
-				"id": 79,
+				"id": 85,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"80": {
+			"86": {
 				"final": true,
 				"name": "folderName",
-				"id": 80,
+				"id": 86,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"81": {
+			"87": {
 				"final": true,
 				"name": "ownerEncSessionKey",
-				"id": 81,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"82": {
-				"final": true,
-				"name": "parent",
-				"id": 82,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refTypeId": 0,
-				"dependency": null
-			}
-		}
-	},
-	"83": {
-		"name": "DriveFolderServicePostOut",
-		"app": "drive",
-		"version": 1,
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 83,
-		"rootId": "BWRyaXZlAFM",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"84": {
-				"final": false,
-				"name": "_format",
-				"id": 84,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"85": {
-				"final": true,
-				"name": "folder",
-				"id": 85,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refTypeId": 0,
-				"dependency": null
-			}
-		}
-	},
-	"86": {
-		"name": "DriveFolderServicePutIn",
-		"app": "drive",
-		"version": 1,
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 86,
-		"rootId": "BWRyaXZlAFY",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"87": {
-				"final": false,
-				"name": "_format",
 				"id": 87,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			}
@@ -799,26 +782,8 @@
 		"associations": {
 			"88": {
 				"final": true,
-				"name": "files",
+				"name": "parent",
 				"id": 88,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refTypeId": 14,
-				"dependency": null
-			},
-			"89": {
-				"final": true,
-				"name": "folders",
-				"id": 89,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refTypeId": 0,
-				"dependency": null
-			},
-			"90": {
-				"final": true,
-				"name": "destination",
-				"id": 90,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
@@ -826,62 +791,95 @@
 			}
 		}
 	},
-	"91": {
-		"name": "DriveFolderServiceDeleteIn",
+	"89": {
+		"name": "DriveFolderServicePostOut",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 91,
-		"rootId": "BWRyaXZlAFs",
+		"id": 89,
+		"rootId": "BWRyaXZlAFk",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"92": {
+			"90": {
 				"final": false,
 				"name": "_format",
-				"id": 92,
+				"id": 90,
 				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"95": {
-				"final": false,
-				"name": "restore",
-				"id": 95,
-				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
+			"91": {
+				"final": true,
+				"name": "folder",
+				"id": 91,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	},
+	"92": {
+		"name": "DriveRenameData",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 92,
+		"rootId": "BWRyaXZlAFw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
 			"93": {
 				"final": true,
-				"name": "files",
+				"name": "_id",
 				"id": 93,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refTypeId": 14,
-				"dependency": null
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
 			},
 			"94": {
 				"final": true,
-				"name": "folders",
+				"name": "encNewName",
 				"id": 94,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"95": {
+				"final": true,
+				"name": "file",
+				"id": 95,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 14,
+				"dependency": null
+			},
+			"96": {
+				"final": true,
+				"name": "folder",
+				"id": 96,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
 				"dependency": null
 			}
 		}
 	},
 	"97": {
-		"name": "DriveRenameData",
+		"name": "DriveFolderServicePutIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
-		"type": "AGGREGATED_TYPE",
+		"type": "DATA_TRANSFER_TYPE",
 		"id": 97,
 		"rootId": "BWRyaXZlAGE",
 		"versioned": false,
@@ -889,78 +887,120 @@
 		"isPublic": true,
 		"values": {
 			"98": {
-				"final": true,
-				"name": "_id",
-				"id": 98,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"99": {
-				"final": true,
-				"name": "encNewName",
-				"id": 99,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"100": {
-				"final": true,
-				"name": "file",
-				"id": 100,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refTypeId": 14,
-				"dependency": null
-			},
-			"101": {
-				"final": true,
-				"name": "folder",
-				"id": 101,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refTypeId": 0,
-				"dependency": null
-			}
-		}
-	},
-	"102": {
-		"name": "DriveCopyServicePostIn",
-		"app": "drive",
-		"version": 1,
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 102,
-		"rootId": "BWRyaXZlAGY",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"103": {
 				"final": false,
 				"name": "_format",
-				"id": 103,
+				"id": 98,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"104": {
+			"99": {
 				"final": false,
 				"name": "items",
-				"id": 104,
+				"id": 99,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 97,
+				"refTypeId": 92,
 				"dependency": null
+			},
+			"100": {
+				"final": true,
+				"name": "destination",
+				"id": 100,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	},
+	"101": {
+		"name": "DriveFolderServiceDeleteIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 101,
+		"rootId": "BWRyaXZlAGU",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"102": {
+				"final": false,
+				"name": "_format",
+				"id": 102,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			},
 			"105": {
 				"final": false,
-				"name": "destination",
+				"name": "restore",
 				"id": 105,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"103": {
+				"final": true,
+				"name": "files",
+				"id": 103,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 14,
+				"dependency": null
+			},
+			"104": {
+				"final": true,
+				"name": "folders",
+				"id": 104,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	},
+	"107": {
+		"name": "DriveCopyServicePostIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 107,
+		"rootId": "BWRyaXZlAGs",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"108": {
+				"final": false,
+				"name": "_format",
+				"id": 108,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"109": {
+				"final": false,
+				"name": "items",
+				"id": 109,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			},
+			"110": {
+				"final": false,
+				"name": "destination",
+				"id": 110,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,

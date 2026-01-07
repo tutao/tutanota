@@ -117,7 +117,7 @@ import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 assertWorkerOrNode()
 
@@ -872,6 +872,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto, locator.blobAccessToken)
 	})
 	locator.driveFacade = lazyMemoized(async () => {
+		const { DriveFacade } = await import("../../../common/api/worker/facades/lazy/DriveFacade.js")
 		return new DriveFacade(
 			locator.keyLoader,
 			await locator.blob(),
@@ -880,8 +881,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.serviceExecutor,
 			locator.crypto,
 			locator.cryptoWrapper,
-			mainInterface.uploadProgressListener,
-			dateProvider,
 		)
 	})
 }

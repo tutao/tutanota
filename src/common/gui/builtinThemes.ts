@@ -12,10 +12,10 @@ type Themes = Record<ThemeId, Theme>
 
 const semanticColorsLight = {
 	// Semantic colors
-	error: "#DE3730",
+	error: "#BA1A1A",
 	on_error: "#FFFFFF",
-	error_container: "#FFEDEA",
-	on_error_container: "#A80710",
+	error_container: "#FFE5E5",
+	on_error_container: "#93000A",
 	warning: "#8D7426",
 	on_warning: "#FFFFFF",
 	warning_container: "#FFEFCC",
@@ -27,8 +27,8 @@ const semanticColorsLight = {
 }
 const semanticColorsDark = {
 	// Semantic colors
-	error: "#FF5449",
-	on_error: "#2D0001",
+	error: "#FFB4AB",
+	on_error: "#690005",
 	error_container: "#690005",
 	on_error_container: "#FFB4AB",
 	warning: "#FFE089",

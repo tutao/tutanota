@@ -1,4 +1,4 @@
-import { downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/tutanota-utils"
 import type { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
 import { FileTypeRef as TutanotaFileTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { DataFile } from "../DataFile"
@@ -18,8 +18,6 @@ export interface FileReference {
 	cid?: string
 }
 
-const _false: StringPredicate = () => false
-
 /**
  * Get the file extension of a filename
  * so
@@ -38,6 +36,24 @@ export function getFileExtension(fileName: string): string {
 export function getFileBaseName(fileName: string): string {
 	const extension = getFileExtension(fileName)
 	return fileName.substring(0, extension ? fileName.lastIndexOf(extension) : fileName.length)
+}
+
+/**
+ * Returns both basename and extension of a filename.
+ * If there is no basename, that part will be represented as empty string.
+ * If there is no extension, that part will be represented as null.
+ *
+ * Examples:
+ *   hello.txt -> ["hello", ".txt"]
+ *   hello.txt.zip -> ["hello", ".txt.zip"]
+ *   .htpasswd -> ["", ".htpasswd"]
+ *   . -> [".", null]
+ */
+export function getFileBaseNameAndExtensions(fileName: string): [string, string | null] {
+	const matches = assertNotNull(fileName.match(/^(.*?)(\..+)?$/))
+	const basename = matches[1] // always a string, at least an empty one
+	const ext = matches[2] ?? null // can be undefined
+	return [basename, ext]
 }
 
 export function unreserveFileName(fileName: string): string {
@@ -135,7 +151,7 @@ export function isTutanotaFile(file: Attachment): file is TutanotaFile {
 		file._type &&
 		typeof file._type === "object" &&
 		Object.hasOwn(file._type, "app") &&
-		Object.hasOwn(file._type, "type") &&
+		Object.hasOwn(file._type, "typeId") &&
 		isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
 	)
 }

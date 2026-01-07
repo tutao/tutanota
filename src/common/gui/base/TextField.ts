@@ -256,8 +256,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						class: getOperatingClasses(a.disabled) + " text",
 						oncreate: (vnode) => {
 							this.domInput = vnode.dom as HTMLInputElement
-							a.onDomInputCreated?.(this.domInput)
 							this.domInput.value = a.value
+							a.onDomInputCreated?.(this.domInput)
 							if (a.type !== TextFieldType.Area) {
 								;(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {

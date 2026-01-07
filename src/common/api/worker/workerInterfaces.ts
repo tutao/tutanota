@@ -34,8 +34,8 @@ import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 import { PublicEncryptionKeyProvider } from "./facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "./facades/PublicIdentityKeyProvider"
-import { DriveFacade } from "./facades/DriveFacade"
-import { UploadProgressController } from "../main/UploadProgressController"
+import { DriveFacade } from "./facades/lazy/DriveFacade"
+import { TransferProgressDispatcher } from "../main/TransferProgressDispatcher"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -55,7 +55,7 @@ export interface MainInterface {
 	readonly operationProgressTracker: ExposedOperationProgressTracker
 	readonly infoMessageHandler: InfoMessageHandler
 	readonly syncTracker: SyncTracker
-	readonly uploadProgressListener: UploadProgressController
+	readonly uploadProgressListener: TransferProgressDispatcher
 }
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */

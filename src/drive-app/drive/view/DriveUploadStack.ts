@@ -1,37 +1,31 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveUploadStackModel } from "./DriveUploadStackModel"
-import { DriveUploadBox, DriveUploadBoxAttrs } from "./DriveUploadBox"
+import { DriveTransferState } from "./DriveUploadStackModel"
+import { DriveTransferBox, DriveUploadBoxAttrs } from "./DriveTransferBox"
 import { px, size } from "../../../common/gui/size"
-import { theme } from "../../../common/gui/theme"
-import { boxShadowMedium } from "../../../common/gui/main-styles"
+import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
 export interface DriveUploadStackAttrs {
-	model: DriveUploadStackModel
+	transfers: readonly [TransferId, DriveTransferState][]
+	cancelTransfer: (transferId: TransferId) => unknown
 }
 
 export class DriveUploadStack implements Component<DriveUploadStackAttrs> {
-	view(vnode: Vnode<DriveUploadStackAttrs>): Children {
-		const model = vnode.attrs.model
-
-		const uploads = Array.from(model.state.entries())
-
+	view({ attrs: { transfers, cancelTransfer } }: Vnode<DriveUploadStackAttrs>): Children {
 		return m(
 			".flex.col.abs",
 			{
 				style: {
-					background: theme.surface,
 					width: "500px",
-					bottom: "0",
+					bottom: px(size.spacing_12),
 					right: px(size.spacing_12),
-					"box-shadow": boxShadowMedium,
-					"border-radius": `${size.radius_12}px ${size.radius_12}px 0 0`,
+					gap: px(size.spacing_12),
 				},
 			},
-			uploads.map(([fileId, uploadState]) => {
-				return m(DriveUploadBox, {
+			transfers.map(([fileId, uploadState]) => {
+				return m(DriveTransferBox, {
 					key: fileId,
-					uploadState,
-					onCancel: () => model.cancelUpload(fileId),
+					transferState: uploadState,
+					onCancel: () => cancelTransfer(fileId),
 				} satisfies DriveUploadBoxAttrs & { key: string })
 			}),
 		)

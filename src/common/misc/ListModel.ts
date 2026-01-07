@@ -11,6 +11,7 @@ import {
 	lastIndex,
 	lastThrow,
 	memoizedWithHiddenArgument,
+	noOp,
 	remove,
 	setAddAll,
 	setEquals,
@@ -399,7 +400,6 @@ export class ListModel<ItemType, IdType> {
 					: first(this.state.items)
 				: this.state.items.at(Math.min(oldActiveIndex + 1, lastIndex(this.state.items)))
 
-		// FIXME: do the same fix as for selectPrevious
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
@@ -517,7 +517,7 @@ export class ListModel<ItemType, IdType> {
 		}
 	}
 
-	waitLoad(what: () => any): Promise<any> {
+	waitLoad(what: () => any = noOp): Promise<any> {
 		return settledThen(this.loading, what)
 	}
 

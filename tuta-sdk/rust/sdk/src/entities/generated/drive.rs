@@ -37,8 +37,6 @@ pub struct DriveFolder {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DriveFolder {
@@ -85,8 +83,6 @@ pub struct DriveFile {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DriveFile {
@@ -207,8 +203,6 @@ pub struct DriveUploadedFile {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DriveUploadedFile {
@@ -222,21 +216,20 @@ impl Entity for DriveUploadedFile {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveCreateData {
+pub struct DrivePostIn {
 	#[serde(rename = "62")]
 	pub _format: i64,
-	#[serde(rename = "63")]
-	pub parent: IdTupleGenerated,
 	#[serde(rename = "64")]
-	pub uploadedFile: DriveUploadedFile,
-
-	#[serde(default)]
-	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncRootFolderSessionKey: Vec<u8>,
+	#[serde(rename = "65")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncTrashFolderSessionKey: Vec<u8>,
+	#[serde(rename = "63")]
+	pub fileGroupId: GeneratedId,
 }
 
-impl Entity for DriveCreateData {
+impl Entity for DrivePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
@@ -247,65 +240,86 @@ impl Entity for DriveCreateData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveCreateReturn {
-	#[serde(rename = "66")]
+pub struct DriveItemPostIn {
+	#[serde(rename = "68")]
 	pub _format: i64,
-	#[serde(rename = "67")]
-	pub createdFile: IdTupleGenerated,
+	#[serde(rename = "69")]
+	pub parent: IdTupleGenerated,
+	#[serde(rename = "70")]
+	pub uploadedFile: DriveUploadedFile,
+
+	#[serde(default)]
+	pub _errors: Errors,
 }
 
-impl Entity for DriveCreateReturn {
+impl Entity for DriveItemPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(65),
+			type_id: TypeId::from(67),
 		}
 	}
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DrivePutIn {
-	#[serde(rename = "69")]
-	pub _format: i64,
-	#[serde(rename = "70")]
-	pub newName: String,
-	#[serde(rename = "71")]
-	pub file: Option<IdTupleGenerated>,
+pub struct DriveItemPostOut {
 	#[serde(rename = "72")]
+	pub _format: i64,
+	#[serde(rename = "73")]
+	pub createdFile: IdTupleGenerated,
+}
+
+impl Entity for DriveItemPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(71),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveItemPutIn {
+	#[serde(rename = "75")]
+	pub _format: i64,
+	#[serde(rename = "76")]
+	pub newName: String,
+	#[serde(rename = "77")]
+	pub file: Option<IdTupleGenerated>,
+	#[serde(rename = "78")]
 	pub folder: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
-impl Entity for DrivePutIn {
+impl Entity for DriveItemPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(68),
+			type_id: TypeId::from(74),
 		}
 	}
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveDeleteIn {
-	#[serde(rename = "74")]
+pub struct DriveItemDeleteIn {
+	#[serde(rename = "80")]
 	pub _format: i64,
-	#[serde(rename = "75")]
+	#[serde(rename = "81")]
 	pub files: Vec<IdTupleGenerated>,
-	#[serde(rename = "76")]
+	#[serde(rename = "82")]
 	pub folders: Vec<IdTupleGenerated>,
 }
 
-impl Entity for DriveDeleteIn {
+impl Entity for DriveItemDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(73),
+			type_id: TypeId::from(79),
 		}
 	}
 }
@@ -313,27 +327,25 @@ impl Entity for DriveDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFolderServicePostIn {
-	#[serde(rename = "79")]
+	#[serde(rename = "85")]
 	pub _format: i64,
-	#[serde(rename = "80")]
+	#[serde(rename = "86")]
 	pub folderName: String,
-	#[serde(rename = "81")]
+	#[serde(rename = "87")]
 	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
-	#[serde(rename = "82")]
+	#[serde(rename = "88")]
 	pub parent: IdTupleGenerated,
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DriveFolderServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(78),
+			type_id: TypeId::from(84),
 		}
 	}
 }
@@ -341,9 +353,9 @@ impl Entity for DriveFolderServicePostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFolderServicePostOut {
-	#[serde(rename = "84")]
+	#[serde(rename = "90")]
 	pub _format: i64,
-	#[serde(rename = "85")]
+	#[serde(rename = "91")]
 	pub folder: IdTupleGenerated,
 }
 
@@ -351,51 +363,7 @@ impl Entity for DriveFolderServicePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(83),
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveFolderServicePutIn {
-	#[serde(rename = "87")]
-	pub _format: i64,
-	#[serde(rename = "88")]
-	pub files: Vec<IdTupleGenerated>,
-	#[serde(rename = "89")]
-	pub folders: Vec<IdTupleGenerated>,
-	#[serde(rename = "90")]
-	pub destination: IdTupleGenerated,
-}
-
-impl Entity for DriveFolderServicePutIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: AppName::Drive,
-			type_id: TypeId::from(86),
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveFolderServiceDeleteIn {
-	#[serde(rename = "92")]
-	pub _format: i64,
-	#[serde(rename = "95")]
-	pub restore: bool,
-	#[serde(rename = "93")]
-	pub files: Vec<IdTupleGenerated>,
-	#[serde(rename = "94")]
-	pub folders: Vec<IdTupleGenerated>,
-}
-
-impl Entity for DriveFolderServiceDeleteIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: AppName::Drive,
-			type_id: TypeId::from(91),
+			type_id: TypeId::from(89),
 		}
 	}
 }
@@ -403,18 +371,38 @@ impl Entity for DriveFolderServiceDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveRenameData {
-	#[serde(rename = "98")]
+	#[serde(rename = "93")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "99")]
+	#[serde(rename = "94")]
 	#[serde(with = "serde_bytes")]
 	pub encNewName: Option<Vec<u8>>,
-	#[serde(rename = "100")]
+	#[serde(rename = "95")]
 	pub file: Option<IdTupleGenerated>,
-	#[serde(rename = "101")]
+	#[serde(rename = "96")]
 	pub folder: Option<IdTupleGenerated>,
 }
 
 impl Entity for DriveRenameData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(92),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFolderServicePutIn {
+	#[serde(rename = "98")]
+	pub _format: i64,
+	#[serde(rename = "99")]
+	pub items: Vec<DriveRenameData>,
+	#[serde(rename = "100")]
+	pub destination: IdTupleGenerated,
+}
+
+impl Entity for DriveFolderServicePutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
@@ -425,12 +413,34 @@ impl Entity for DriveRenameData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveCopyServicePostIn {
-	#[serde(rename = "103")]
+pub struct DriveFolderServiceDeleteIn {
+	#[serde(rename = "102")]
 	pub _format: i64,
-	#[serde(rename = "104")]
-	pub items: Vec<DriveRenameData>,
 	#[serde(rename = "105")]
+	pub restore: bool,
+	#[serde(rename = "103")]
+	pub files: Vec<IdTupleGenerated>,
+	#[serde(rename = "104")]
+	pub folders: Vec<IdTupleGenerated>,
+}
+
+impl Entity for DriveFolderServiceDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(101),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveCopyServicePostIn {
+	#[serde(rename = "108")]
+	pub _format: i64,
+	#[serde(rename = "109")]
+	pub items: Vec<DriveRenameData>,
+	#[serde(rename = "110")]
 	pub destination: IdTupleGenerated,
 }
 
@@ -438,7 +448,7 @@ impl Entity for DriveCopyServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(102),
+			type_id: TypeId::from(107),
 		}
 	}
 }
