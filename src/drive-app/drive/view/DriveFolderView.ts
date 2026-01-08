@@ -1,13 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel, FolderFolderItem, FolderItem, FolderItemId } from "./DriveViewModel"
+import { DriveClipboard, DriveFolderType, FolderFolderItem, FolderItem, FolderItemId, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
 import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
-import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { px, size } from "../../../common/gui/size"
-import { assertNotNull, isEmpty, partition } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { theme } from "../../../common/gui/theme"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
@@ -17,6 +16,7 @@ import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../common/gui/base/Dr
 import { newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../common/gui/base/Modal"
 import { DropType } from "../../../common/gui/base/GuiUtils"
+import { FileActions } from "./DriveFolderContentEntry"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -27,7 +27,6 @@ export interface DriveFolderViewAttrs {
 	onCopy: (() => unknown) | null
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
-	driveViewModel: DriveViewModel
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
 	listState: ListState<FolderItem>
@@ -36,6 +35,11 @@ export interface DriveFolderViewAttrs {
 	loadParents: () => Promise<DriveFolder[]>
 	onNewFile: () => unknown
 	onNewFolder: () => unknown
+	fileActions: FileActions
+	onMove: (items: FolderItemId[], into: FolderFolderItem) => unknown
+	sortOrder: SortingPreference
+	onSortColumn: (column: SortColumn) => unknown
+	clipboard: DriveClipboard | null
 }
 
 function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
@@ -51,7 +55,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 
 	view({
 		attrs: {
-			driveViewModel,
 			onTrash,
 			onDelete,
 			onRestore,
@@ -68,17 +71,13 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			loadParents,
 			onNewFile,
 			onNewFolder,
+			fileActions,
+			onMove,
+			sortOrder,
+			onSortColumn,
+			clipboard,
 		},
 	}: Vnode<DriveFolderViewAttrs>): Children {
-		// FIXME: We need to depend on driveViewModel, but should still a better place for this.
-		const onMove = (items: FolderItemId[], into: FolderFolderItem) => {
-			const [files, folders] = partition(items, (item) => item.type === "file")
-			driveViewModel.move(
-				files.map((item) => item.id),
-				folders.map((item) => item.id),
-				into,
-			)
-		}
 		const onDropInto = (item: FolderItem, event: DragEvent) => {
 			console.log(event.dataTransfer)
 			const itemsData = event.dataTransfer?.getData(DropType.DriveItems)
@@ -143,48 +142,14 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
 				? this.renderEmptyView(currentFolder)
 				: m(DriveFolderContent, {
-						sortOrder: driveViewModel.getCurrentColumnSortOrder(),
-						fileActions: {
-							onOpenItem: (item) => {
-								if (item.type === "folder") {
-									driveViewModel.navigateToFolder(item.folder._id)
-								} else {
-									driveViewModel.downloadFile(item.file)
-								}
-							},
-							onCopy: (item) => {
-								driveViewModel.copy([item])
-							},
-							onCut: (item) => {
-								driveViewModel.cut([item])
-							},
-							onDelete: (item) => {
-								driveViewModel.moveToTrash([item])
-							},
-							onRestore: (item) => {
-								driveViewModel.restoreFromTrash([item])
-							},
-							onRename: (item) => {
-								Dialog.showProcessTextInputDialog(
-									{
-										title: "renameItem_action",
-										label: "enterNewName_label",
-										defaultValue: item.type === "file" ? item.file.name : item.folder.name,
-									},
-									async (newName: string) => {
-										driveViewModel.rename(item, newName)
-									},
-								)
-							},
-						},
-						onSort: (newSortingOrder) => {
-							driveViewModel.sort(newSortingOrder)
-						},
+						sortOrder,
+						fileActions,
+						onSort: onSortColumn,
 						onDropInto,
 						selection,
 						listState,
 						selectionEvents,
-						clipboard: driveViewModel.clipboard,
+						clipboard,
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
@@ -211,7 +176,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 		)
 	}
 
-	private renderDropView() {
+	private renderDropView(): Children {
 		return m(
 			".fill-absolute.flex.items-center.justify-center",
 			{

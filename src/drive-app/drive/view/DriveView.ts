@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel, FolderItem } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel, FolderFolderItem, FolderItem, FolderItemId } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -25,6 +25,8 @@ import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
 import { newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
+import { Dialog } from "../../../common/gui/base/Dialog"
+import { partition } from "@tutao/tutanota-utils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -232,7 +234,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							columnLayout: [
 								m(DriveFolderView, {
 									onUploadClick: this.onNewFile,
-									driveViewModel: this.driveViewModel,
 									onTrash:
 										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash || listState.selectedItems.size === 0
 											? null
@@ -288,6 +289,39 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											async (folderName) => this.driveViewModel.createNewFolder(folderName),
 											() => m.redraw(),
 										),
+									fileActions: {
+										onOpenItem: (item) => {
+											if (item.type === "folder") {
+												this.driveViewModel.navigateToFolder(item.folder._id)
+											} else {
+												this.driveViewModel.downloadFile(item.file)
+											}
+										},
+										onCopy: (item) => {
+											this.driveViewModel.copy([item])
+										},
+										onCut: (item) => {
+											this.driveViewModel.cut([item])
+										},
+										onDelete: (item) => {
+											this.driveViewModel.moveToTrash([item])
+										},
+										onRestore: (item) => {
+											this.driveViewModel.restoreFromTrash([item])
+										},
+										onRename: (item) => this.onRename(item),
+									},
+									onMove: (items: FolderItemId[], into: FolderFolderItem) => {
+										const [files, folders] = partition(items, (item) => item.type === "file")
+										this.driveViewModel.move(
+											files.map((item) => item.id),
+											folders.map((item) => item.id),
+											into,
+										)
+									},
+									sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
+									onSortColumn: (column) => this.driveViewModel.sort(column),
+									clipboard: this.driveViewModel.clipboard,
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
 							],
@@ -301,6 +335,19 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			{
 				minWidth: layout_size.second_col_min_width,
 				maxWidth: layout_size.second_col_max_width,
+			},
+		)
+	}
+
+	private onRename(item: FolderItem) {
+		Dialog.showProcessTextInputDialog(
+			{
+				title: "renameItem_action",
+				label: "enterNewName_label",
+				defaultValue: item.type === "file" ? item.file.name : item.folder.name,
+			},
+			async (newName: string) => {
+				this.driveViewModel.rename(item, newName)
 			},
 		)
 	}
