@@ -340,6 +340,7 @@ class CalendarLocator implements CommonLocator {
 					return false
 				},
 				this.syncTracker,
+				null,
 			)
 	}
 
