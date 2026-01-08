@@ -374,13 +374,23 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
+	private itemsIntoIds(items: readonly FolderItem[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
+		const [fileFolderItems, folderFolderItems] = partition(items, (item) => item.type === "file")
+		return {
+			fileIds: fileFolderItems.map((item) => item.file._id),
+			folderIds: folderFolderItems.map((item) => item.folder._id),
+		}
+	}
+
 	async moveToTrash(items: readonly FolderItem[]) {
-		await this.driveFacade.moveToTrash(items.map(folderItemEntity))
+		const { fileIds, folderIds } = this.itemsIntoIds(items)
+		await this.driveFacade.moveToTrash(fileIds, folderIds)
 		this.selectNone()
 	}
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
-		await this.driveFacade.restoreFromTrash(items.map(folderItemEntity))
+		const { fileIds, folderIds } = this.itemsIntoIds(items)
+		await this.driveFacade.restoreFromTrash(fileIds, folderIds)
 		this.selectNone()
 	}
 

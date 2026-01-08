@@ -6,7 +6,7 @@ import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper"
-import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, first, groupBy, isEmpty, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
 import {
 	createDriveCopyServicePostIn,
 	createDriveCreateData,
@@ -27,12 +27,13 @@ import {
 } from "../../../entities/drive/TypeRefs"
 import { DriveCopyService, DriveFolderService, DriveService } from "../../../entities/drive/Services"
 import { CryptoFacade } from "../../crypto/CryptoFacade"
-import { getElementId, getListId, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
+import { getElementId, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
 import { BlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { DateProvider } from "../../../common/DateProvider"
 import { UploadProgressController } from "../../../main/UploadProgressController"
 import { UploadId } from "../../../common/drive/DriveTypes"
+import { ProgrammingError } from "../../../common/error/ProgrammingError"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -81,29 +82,16 @@ export class DriveFacade {
 	}
 
 	public async move(filesById: readonly IdTuple[], foldersById: readonly IdTuple[], destination: IdTuple) {
-		// FIXME: chunk by 50
-		const filesByListId = Array.from(groupBy(filesById, listIdPart).values())
-		const foldersByListId = Array.from(groupBy(foldersById, listIdPart).values())
-
-		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
-			const fileIds = filesByListId.at(i) ?? []
-			const unfilteredFolderIds = foldersByListId.at(i) ?? []
+		for (const { fileIdsChunk, folderIdsChunk: unfilteredFolderIds } of splitIdsIntoChunksByList(50, filesById, foldersById)) {
 			// prevent folder from being moved into itself
 			const folderIds = unfilteredFolderIds.filter((f) => !isSameId(f, destination))
 			const data = createDriveFolderServicePutIn({
-				files: fileIds,
+				files: fileIdsChunk,
 				folders: folderIds,
 				destination,
 			})
 			await this.serviceExecutor.put(DriveFolderService, data)
 		}
-	}
-
-	private sortIntoFilesAndFolderLists(items: readonly (DriveFile | DriveFolder)[]): { filesByListId: IdTuple[][]; foldersByListId: IdTuple[][] } {
-		const [files, folders] = partition(items, isDriveFile)
-		const filesByListId = Array.from(groupByAndMap(files, getListId, (file) => file._id).values())
-		const foldersByListId = Array.from(groupByAndMap(folders, getListId, (folder) => folder._id).values())
-		return { filesByListId, foldersByListId }
 	}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -118,33 +106,25 @@ export class DriveFacade {
 		await this.serviceExecutor.put(DriveService, data, { sessionKey })
 	}
 
-	public async moveToTrash(items: (DriveFile | DriveFolder)[]) {
-		const { filesByListId, foldersByListId } = this.sortIntoFilesAndFolderLists(items)
-		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
-			const files = filesByListId.at(i) ?? []
-			const folders = foldersByListId.at(i) ?? []
-
+	public async moveToTrash(fileIds: readonly IdTuple[], folderIds: readonly IdTuple[]) {
+		for (const { fileIdsChunk, folderIdsChunk } of splitIdsIntoChunksByList(50, fileIds, folderIds)) {
 			const deleteData = createDriveFolderServiceDeleteIn({
-				files,
-				folders,
+				files: fileIdsChunk,
+				folders: folderIdsChunk,
 				restore: false,
 			})
 			await this.serviceExecutor.delete(DriveFolderService, deleteData)
 		}
 	}
 
-	public async restoreFromTrash(items: (DriveFile | DriveFolder)[]) {
-		const { filesByListId, foldersByListId } = this.sortIntoFilesAndFolderLists(items)
-		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
-			const files = filesByListId.at(i) ?? []
-			const folders = foldersByListId.at(i) ?? []
-
-			const restoreData = createDriveFolderServiceDeleteIn({
-				files,
-				folders,
+	public async restoreFromTrash(fileIds: readonly IdTuple[], folderIds: readonly IdTuple[]) {
+		for (const { fileIdsChunk, folderIdsChunk } of splitIdsIntoChunksByList(50, fileIds, folderIds)) {
+			const deleteData = createDriveFolderServiceDeleteIn({
+				files: fileIdsChunk,
+				folders: folderIdsChunk,
 				restore: true,
 			})
-			await this.serviceExecutor.delete(DriveFolderService, restoreData)
+			await this.serviceExecutor.delete(DriveFolderService, deleteData)
 		}
 	}
 
@@ -168,7 +148,6 @@ export class DriveFacade {
 	public async getFolderContents(folderId: IdTuple): Promise<FolderContents> {
 		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 		const refs = await this.entityClient.loadAll(DriveFileRefTypeRef, folder.files)
-		// FIXME: things can be in different lists but we probably have a helper for that already
 		const isFileRef = (ref: DriveFileRef): ref is Require<"file", DriveFileRef> => ref.file != null
 		const [fileRefs, folderRefs] = partition(refs, isFileRef)
 		const files = await loadMultipleFromLists(
@@ -295,5 +274,52 @@ export class DriveFacade {
 
 	async generateUploadId(): Promise<UploadId> {
 		return String(this.latestUploadId++) as UploadId
+	}
+}
+
+/**
+ * Takes two lists of ids and produces a sequence of chunks. Each chunk will have a total of {@param chunkSize} items
+ * in it. Each group in each chunk will have the same list id.
+ *
+ * @private visibleForTesting
+ */
+export function* splitIdsIntoChunksByList(
+	chunkSize: number,
+	filesById: readonly IdTuple[],
+	foldersById: readonly IdTuple[],
+): Generator<{ fileIdsChunk: IdTuple[]; folderIdsChunk: IdTuple[] }> {
+	if (Number.isNaN(chunkSize) || chunkSize < 1) {
+		throw new ProgrammingError("chunkSize must be positive")
+	}
+
+	const filesByListId = Array.from(groupBy(filesById, listIdPart).values())
+	const foldersByListId = Array.from(groupBy(foldersById, listIdPart).values())
+
+	// while there's at least a list of files or list of folders to process
+	while (!isEmpty(filesByListId) || !isEmpty(foldersByListId)) {
+		const fileList = first(filesByListId)
+		// if we still have a list of files to process, take it
+		let fileIds: IdTuple[]
+		if (fileList) {
+			// remove the first chunk from the current list
+			fileIds = fileList.splice(0, chunkSize)
+			if (isEmpty(fileList)) {
+				// if we exhausted the list, yeet it out
+				filesByListId.shift()
+			}
+		} else {
+			fileIds = []
+		}
+		const folderList = first(foldersByListId)
+		let folderIds: IdTuple[]
+		if (folderList) {
+			folderIds = folderList.splice(0, chunkSize - fileIds.length)
+			if (isEmpty(folderList)) {
+				foldersByListId.shift()
+			}
+		} else {
+			folderIds = []
+		}
+		yield { fileIdsChunk: fileIds, folderIdsChunk: folderIds }
 	}
 }
