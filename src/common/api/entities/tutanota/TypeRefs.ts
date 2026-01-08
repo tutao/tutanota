@@ -8,6 +8,7 @@ import { DateWrapper } from '../sys/TypeRefs.js'
 import { StringWrapper } from '../sys/TypeRefs.js'
 import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
 import { IdTupleWrapper } from '../sys/TypeRefs.js'
+import { InstanceSessionKey } from '../sys/TypeRefs.js'
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -2670,6 +2671,7 @@ export type ProcessInboxDatum = {
 
 	mailId: IdTuple;
 	targetMoveFolder: IdTuple;
+	ownerEncMailSessionKeys: InstanceSessionKey[];
 }
 export const ProcessInboxPostInTypeRef: TypeRef<ProcessInboxPostIn> = new TypeRef("tutanota", 1764)
 
@@ -2684,7 +2686,7 @@ export type ProcessInboxPostIn = {
 	_format: NumberString;
 	mailOwnerGroup: Id;
 
-	processInboxDatum: ProcessInboxDatum[];
+	processInboxData: ProcessInboxDatum[];
 }
 export const PopulateClientSpamTrainingDatumTypeRef: TypeRef<PopulateClientSpamTrainingDatum> = new TypeRef("tutanota", 1770)
 
@@ -2718,7 +2720,7 @@ export type PopulateClientSpamTrainingDataPostIn = {
 	_format: NumberString;
 	mailOwnerGroup: Id;
 
-	populateClientSpamTrainingDatum: PopulateClientSpamTrainingDatum[];
+	populateClientSpamTrainingData: PopulateClientSpamTrainingDatum[];
 }
 export const SendDraftDeleteInTypeRef: TypeRef<SendDraftDeleteIn> = new TypeRef("tutanota", 1785)
 

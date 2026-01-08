@@ -58,7 +58,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/com
 import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
+
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
@@ -513,7 +513,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.restClient,
 		locator.serviceExecutor,
 		locator.instancePipeline,
-		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor, typeModelResolver),
 		cache,
 		locator.keyLoader,
 		locator.asymmetricCrypto,

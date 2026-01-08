@@ -7,7 +7,6 @@ import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/Crypto
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue"
 import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
@@ -29,7 +28,6 @@ import {
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
-	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
 	MailDetailsBlob,
@@ -74,7 +72,6 @@ o.spec("PatchMergerTest", () => {
 			instance(RestClient),
 			instance(ServiceExecutor),
 			instancePipeline,
-			instance(OwnerEncSessionKeysUpdateQueue),
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
