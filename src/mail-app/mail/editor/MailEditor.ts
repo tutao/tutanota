@@ -1256,15 +1256,15 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				dispose()
 				dialog.close()
 
-				// FIXME: this should probably not be here, this is just getting it working quicking
-				// also should not create a new undo model here, should be passed down
-				const undoResult = await showUndoMailSnackbar(
-					new UndoModel(),
-					async () => {
-						noOp()
-					},
-					"Message sent",
-				)
+				if (model.undoModel) {
+					const undoResult = await showUndoMailSnackbar(
+						model.undoModel,
+						async () => {
+							noOp()
+						},
+						"Message sent",
+					)
+				}
 
 				const { handleRatingByEvent } = await import("../../../common/ratings/UserSatisfactionDialog.js")
 				void handleRatingByEvent("Mail")
