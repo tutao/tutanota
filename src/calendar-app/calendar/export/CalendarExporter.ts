@@ -86,7 +86,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 			event.recurrenceId != null
 				? isAllDay
 					? `RECURRENCE-ID;VALUE=DATE:${formatDate(getAllDayDateLocal(event.recurrenceId), localZone)}`
-					: `RECURRENCE-ID;VALUE=DATETIME:${formatDateTimeUTC(event.recurrenceId)}`
+					: `RECURRENCE-ID:${formatDateTimeUTC(event.recurrenceId)}`
 				: [],
 		)
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${serializeIcalText(event.description)}` : [])
