@@ -83,7 +83,6 @@ import { elementIdPart, getListId, isSameId, listIdPart } from "../../../../../s
 import { HttpMethod, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/common/api/worker/facades/PQMessage.js"
@@ -101,7 +100,7 @@ import { AttributeModel } from "../../../../../src/common/api/common/AttributeMo
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 
-const { captor, anything, argThat } = matchers
+const { anything, argThat } = matchers
 
 const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
 const pqFacade: PQFacade = new PQFacade(kyberFacade)
@@ -128,7 +127,6 @@ o.spec("CryptoFacadeTest", function () {
 
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
-	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
 	let crypto: CryptoFacade
 	let userFacade: UserFacade
 	let keyLoaderFacade: KeyLoaderFacade
@@ -207,7 +205,6 @@ o.spec("CryptoFacadeTest", function () {
 		serviceExecutor = object()
 		entityClient = object()
 		asymmetricCryptoFacade = object()
-		ownerEncSessionKeysUpdateQueue = object()
 		publicEncryptionKeyProvider = object()
 		keyLoaderFacade = object()
 		keyRotationFacade = object()
@@ -220,7 +217,6 @@ o.spec("CryptoFacadeTest", function () {
 			restClient,
 			serviceExecutor,
 			instancePipeline,
-			ownerEncSessionKeysUpdateQueue,
 			cache,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
@@ -594,7 +590,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
 
-		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 0 })
+		verify(crypto.postUpdateSessionKeysService(anything()), { times: 0 })
 		verify(cache.deleteFromCacheIfExists(anything(), anything(), anything()), { times: 0 })
 	})
 
@@ -623,7 +619,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(testData.mail, files)
-		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
+		verify(crypto.postUpdateSessionKeysService(anything()), { times: 1 })
 		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
 	})
 
@@ -977,9 +973,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		o(sessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
@@ -1013,9 +1008,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		o(sessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = assertNotNull(
 			updatedInstanceSessionKeys.find((instanceSessionKey) =>
@@ -1050,9 +1044,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		o(sessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
@@ -1069,11 +1062,10 @@ o.spec("CryptoFacadeTest", function () {
 		const sessionKey = assertNotNull(await crypto.resolveSessionKey(testData.mail))
 		o(sessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
-		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+		const instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys as Array<InstanceSessionKey>
+		o(instanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = instanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
 
@@ -1099,9 +1091,8 @@ o.spec("CryptoFacadeTest", function () {
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 		o(sessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
@@ -1130,9 +1121,8 @@ o.spec("CryptoFacadeTest", function () {
 		const bucketKey = assertNotNull(testData.mail.bucketKey)
 		o(sessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
@@ -1151,9 +1141,8 @@ o.spec("CryptoFacadeTest", function () {
 		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
 		o(mailSessionKey).deepEquals(testData.sk)
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.entityAdapter))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.entityAdapter._id),
@@ -1178,9 +1167,8 @@ o.spec("CryptoFacadeTest", function () {
 		o(userCaptor.value.version).equals(parseKeyVersion(externalUser.userGroup.groupKeyVersion))
 		o(mailCaptor.value.version).equals(parseKeyVersion(externalUser.mailGroup.groupKeyVersion))
 
-		const updatedInstanceSessionKeysCaptor = captor()
-		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
-		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.entityAdapter))
+		const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.entityAdapter._id),
@@ -1236,9 +1224,8 @@ o.spec("CryptoFacadeTest", function () {
 			const bucketKey = assertNotNull(testData.mail.bucketKey)
 
 			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
-			const updatedInstanceSessionKeysCaptor = captor()
-			verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
-			const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
+			const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
 			for (const isk of bucketKey.bucketEncSessionKeys) {
 				const expectedSessionKey = decryptKey(testData.bk, isk.symEncSessionKey)
@@ -1341,9 +1328,8 @@ o.spec("CryptoFacadeTest", function () {
 			o(mailSessionKey).deepEquals(testData.sk)
 
 			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
-			const updatedInstanceSessionKeysCaptor = captor()
-			verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
-			const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
+			const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
 			for (const isk of bucketKey.bucketEncSessionKeys) {
 				const expectedSessionKey = decryptKey(testData.bk, isk.symEncSessionKey)

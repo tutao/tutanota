@@ -60,7 +60,6 @@ import { aes256RandomKey, AesKey, decryptKey } from "@tutao/tutanota-crypto"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
@@ -140,7 +139,6 @@ o.spec("EntityRestClient", function () {
 			restClient,
 			instance(ServiceExecutor),
 			instancePipeline,
-			instance(OwnerEncSessionKeysUpdateQueue),
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),

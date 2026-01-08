@@ -1258,6 +1258,7 @@ export class MailFacade {
 					classifierType,
 					mailId,
 					targetMoveFolder,
+					ownerEncMailSessionKeys: unencryptedProcessInboxDatum.ownerEncMailSessionKeys,
 				}),
 			)
 		}
@@ -1273,7 +1274,7 @@ export class MailFacade {
 					ProcessInboxService,
 					createProcessInboxPostIn({
 						mailOwnerGroup: mailGroupId,
-						processInboxDatum: inboxData,
+						processInboxData: inboxData,
 					}),
 				),
 			{ concurrency: 5 },
@@ -1319,7 +1320,7 @@ export class MailFacade {
 					PopulateClientSpamTrainingDataService,
 					createPopulateClientSpamTrainingDataPostIn({
 						mailOwnerGroup: mailGroupId,
-						populateClientSpamTrainingDatum: clientSpamTrainingData,
+						populateClientSpamTrainingData: clientSpamTrainingData,
 					}),
 				),
 			{ concurrency: 5 },
