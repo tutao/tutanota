@@ -16,8 +16,6 @@ assertMainOrNode()
 export function getFonts(): string {
 	// see https://bitsofco.de/the-new-system-font-stack/
 	const fonts: Array<string> = [
-		// FIXME
-		"Inter",
 		"-apple-system",
 		"system-ui",
 		"BlinkMacSystemFont",

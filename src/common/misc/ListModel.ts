@@ -400,7 +400,6 @@ export class ListModel<ItemType, IdType> {
 					: first(this.state.items)
 				: this.state.items.at(Math.min(oldActiveIndex + 1, lastIndex(this.state.items)))
 
-		// FIXME: do the same fix as for selectPrevious
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
