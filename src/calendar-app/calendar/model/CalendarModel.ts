@@ -765,7 +765,7 @@ export class CalendarModel {
 		event._ownerGroup = groupRoot._id
 
 		await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
-		return this.requestWidgetRefresh() // Decoupled from calendarFacade.replaceCalendarEvent for testing purposes
+		return this.requestWidgetRefresh()
 	}
 
 	private async replaceEvent(
@@ -791,11 +791,12 @@ export class CalendarModel {
 		newEvent._ownerGroup = groupRoot._id
 
 		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
-		return this.requestWidgetRefresh() // decoupled from calendarFacade.replaceCalendarEvent for testing purposes
+		return this.requestWidgetRefresh()
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
-		return await this.entityClient.erase(event).then(this.requestWidgetRefresh)
+		await this.entityClient.erase(event)
+		return this.requestWidgetRefresh()
 	}
 
 	async wipeCalendar(listId: Id, events: CalendarEvent[]): Promise<void> {
@@ -1071,7 +1072,7 @@ export class CalendarModel {
 				// - a single-instance update that created this altered instance
 				// - the user got the progenitor invite for a series. it's possible that there's
 				//   already altered instances of this series on the server.
-				return await this.processNewCalendarEventRequest(target, updateEvent, updateAlarms, sender)
+				return await this.processNewCalendarEventRequest(target, updateEvent, updateAlarms, sender) // TODO: why alarms are passed here and not in reply
 			} else if (target.progenitor?.repeatRule != null && updateEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
 				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
 				// users delete a single instance from a series even though that instance was never published as altered.
@@ -1087,7 +1088,7 @@ export class CalendarModel {
 		} else {
 			const sentByOrganizer: boolean = targetDbEvent.organizer != null && targetDbEvent.organizer.address === sender
 			if (method === CalendarMethod.REPLY) {
-				return this.processCalendarReply(sender, targetDbEvent, updateEvent)
+				return this.processCalendarReply(sender, targetDbEvent, updateEvent) // TODO: why are alarms NOT passed in here
 			} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
 				return await this.processCalendarUpdate(target, targetDbEvent, updateEvent)
 			} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {

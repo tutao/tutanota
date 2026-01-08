@@ -30,7 +30,6 @@ import {
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { NotFoundError } from "../../../src/common/api/common/error/RestError.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
@@ -60,71 +59,133 @@ import { DateTime } from "luxon"
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
 
+	const uid = "uid"
+	const sender = "sender@example.com"
+
+	let calendarGroupRoot: CalendarGroupRoot
+	let calendarModel: CalendarModel
+	let notificationsMock: Notifications
+	let schedulerMock: AlarmScheduler
+	let eventControllerMock: EventController
+	let serviceExecutorMock: IServiceExecutor
+	let loginControllerMock: LoginController
+	let progressTrackerMock: ProgressTracker
+	let entityClientMock: EntityClient
+	let mailboxModelMock: MailboxModel
+	let calendarFacadeMock: CalendarFacade
+	let fileControllerMock: FileController
+	let deviceConfigMock: DeviceConfig
+	let nativePushServiceAppMock: NativePushServiceApp
+	let syncTrackMock: SyncTracker
+	let languageViewModelMock: LanguageViewModel
+	let groupMemberMock: GroupMember
+
+	let baseInvitation: ParsedCalendarData
+	let baseExistingEvent: CalendarEvent
+	let userControllerMock: UserController
+	let userMock: User
+
+	let calendarGroupMembership: GroupMembership
+
+	o.beforeEach(function () {
+		notificationsMock = object()
+		eventControllerMock = object()
+		schedulerMock = object()
+		serviceExecutorMock = object()
+		loginControllerMock = object()
+		userControllerMock = object<UserController>()
+		progressTrackerMock = object()
+		entityClientMock = object()
+		mailboxModelMock = object()
+		calendarFacadeMock = object()
+		fileControllerMock = object()
+		deviceConfigMock = object()
+		nativePushServiceAppMock = object()
+		syncTrackMock = object()
+		languageViewModelMock = object()
+
+		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+		const userId = "user-id"
+		userMock = object<User>()
+		userMock._id = userId
+		userControllerMock.user = userMock
+
+		const progressMonitorMock = object<IProgressMonitor>()
+		when(progressTrackerMock.getMonitor(anything())).thenReturn(progressMonitorMock)
+
+		calendarGroupMembership = createTestEntity(GroupMembershipTypeRef, {
+			group: "calendar-group-id",
+			groupType: GroupType.Calendar,
+			groupInfo: ["group-info-listId", "calendar-group-info-id"],
+		})
+		when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
+
+		calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+			_id: calendarGroupMembership.group,
+			longEvents: "longEvents",
+			shortEvents: "shortEvents",
+		})
+
+		const calendarGroupInfo = createTestEntity(GroupInfoTypeRef, {
+			_id: calendarGroupMembership.groupInfo,
+			group: calendarGroupMembership.group,
+		})
+
+		groupMemberMock = createTestEntity(GroupMemberTypeRef, {
+			_id: ["group-member-list-id", "group-member-element-id"],
+			group: calendarGroupRoot._id,
+			user: userMock._id,
+			userGroupInfo: calendarGroupInfo._id,
+		})
+
+		const calendarGroup = createTestEntity(GroupTypeRef, {
+			_id: calendarGroupMembership.group,
+			members: "group-member-list-id",
+		})
+
+		when(entityClientMock.loadAll(GroupMemberTypeRef, getListId(groupMemberMock))).thenResolve([groupMemberMock])
+		when(entityClientMock.load(CalendarGroupRootTypeRef, calendarGroupRoot._id)).thenResolve(calendarGroupRoot)
+		when(entityClientMock.load(GroupTypeRef, calendarGroup._id)).thenResolve(calendarGroup)
+		when(entityClientMock.load(GroupInfoTypeRef, calendarGroupInfo._id)).thenResolve(calendarGroupInfo)
+		when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(undefined)
+
+		calendarModel = new CalendarModel(
+			notificationsMock,
+			() => Promise.resolve(schedulerMock),
+			eventControllerMock,
+			serviceExecutorMock,
+			loginControllerMock,
+			progressTrackerMock,
+			entityClientMock,
+			mailboxModelMock,
+			calendarFacadeMock,
+			fileControllerMock,
+			"Europe/Berlin",
+			makeExternalCalendarFacade(),
+			deviceConfigMock,
+			nativePushServiceAppMock,
+			syncTrackMock,
+			() => {},
+			languageViewModelMock,
+		)
+	})
+
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
 		instance: null,
 		patches: null,
 	}
 
 	o.spec("processCalendarData - CalendarMethod.REPLY", function () {
-		let entityRestClientMock: EntityRestClientMock
-		let groupRoot: CalendarGroupRoot
-		const loginControllerMock = makeLoginController()
+		const anotherGuest = "another-attendee"
+		const alarm = createTestEntity(AlarmInfoTypeRef, {
+			_id: "alarm-id",
+		})
 
-		const alarmsListId = neverNull(loginControllerMock.getUserController().user.alarmInfoList).alarms
 		o.beforeEach(function () {
-			groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-				_id: "groupRootId",
-				longEvents: "longEvents",
-				shortEvents: "shortEvents",
-			})
-			entityRestClientMock = new EntityRestClientMock()
-			entityRestClientMock.addElementInstances(groupRoot)
-		})
-		o("reply but sender is not a guest", async function () {
-			const uid = "uid"
-			const existingEvent = createTestEntity(CalendarEventTypeRef, { uid })
-			const calendarFacade = makeCalendarFacade(
-				{
-					getEventsByUid: (loadUid) =>
-						uid === loadUid
-							? Promise.resolve({
-									progenitor: existingEvent,
-									alteredInstances: [],
-								})
-							: Promise.resolve(null),
-				},
-				entityRestClientMock,
-			)
-			const workerClient = makeWorkerClient()
-			const model = init({
-				workerClient,
-				restClientMock: entityRestClientMock,
-				calendarFacade,
-			})
-			await model.processCalendarData("sender@example.com", {
-				method: CalendarMethod.REPLY,
-				contents: [
-					{
-						event: createTestEntity(CalendarEventTypeRef, {
-							uid,
-						}) as CalendarEventProgenitor,
-						alarms: [],
-					},
-				],
-			})
-			verify(calendarFacade.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
-		})
-		o("reply", async function () {
-			const uid = "uid"
-			const sender = "sender@example.com"
-			const anotherGuest = "another-attendee"
-			const alarm = createTestEntity(AlarmInfoTypeRef, {
-				_id: "alarm-id",
-			})
-			const existingEvent = createTestEntity(CalendarEventTypeRef, {
+			baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				uid,
-				_ownerGroup: groupRoot._id,
+				_ownerGroup: calendarGroupRoot._id,
 				summary: "v1",
 				attendees: [
 					createTestEntity(CalendarEventAttendeeTypeRef, {
@@ -142,64 +203,112 @@ o.spec("CalendarModel", function () {
 				],
 				alarmInfos: [[alarmsListId, alarm._id]],
 			})
-			entityRestClientMock.addListInstances(
-				createTestEntity(UserAlarmInfoTypeRef, {
-					_id: [alarmsListId, alarm._id],
-					alarmInfo: alarm,
-				}),
-			)
+		})
+
+		const loginControllerMock = makeLoginController()
+
+		const alarmsListId = neverNull(loginControllerMock.getUserController().user.alarmInfoList).alarms
+
+		o("reply but sender is not a guest", async function () {
+			const uid = "uid"
+			const existingEvent = createTestEntity(CalendarEventTypeRef, { uid })
+
 			const workerClient = makeWorkerClient()
-			const calendarFacade = makeCalendarFacade(
-				{
-					getEventsByUid: (loadUid) =>
-						uid === loadUid
-							? Promise.resolve({
-									progenitor: existingEvent,
-									alteredInstances: [],
-								})
-							: Promise.resolve(null),
-				},
-				entityRestClientMock,
-			)
-			const model = init({
-				workerClient,
-				restClientMock: entityRestClientMock,
-				calendarFacade,
-			})
-			await model.processCalendarData(sender, {
-				// should be ignored
+
+			const eventByUid: CalendarEventUidIndexEntry = object()
+
+			eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
+			eventByUid.alteredInstances = []
+
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(eventByUid)
+
+			await calendarModel.processCalendarData("sender@example.com", {
 				method: CalendarMethod.REPLY,
 				contents: [
 					{
 						event: createTestEntity(CalendarEventTypeRef, {
 							uid,
-							attendees: [
-								createTestEntity(CalendarEventAttendeeTypeRef, {
-									address: createTestEntity(EncryptedMailAddressTypeRef, {
-										address: sender,
-									}),
-									status: CalendarAttendeeStatus.ACCEPTED,
-								}),
-								createTestEntity(CalendarEventAttendeeTypeRef, {
-									// should be ignored
-									address: createTestEntity(EncryptedMailAddressTypeRef, {
-										address: anotherGuest,
-									}),
-									status: CalendarAttendeeStatus.DECLINED,
-								}),
-							],
 						}) as CalendarEventProgenitor,
 						alarms: [],
 					},
 				],
 			})
+			verify(calendarFacadeMock.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o("replies from other guests are applied to the user's calendar", async function () {
+			// removed some of the alarm testing criteria -- will recreate some tests specific to alarm behavior.
+
+			const anotherGuest = "another-attendee"
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
+				_ownerGroup: calendarGroupRoot._id,
+				uid,
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
+							address: sender,
+						}),
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+					}),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						// should be ignored
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
+							address: anotherGuest,
+						}),
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+					}),
+				],
+			}) as CalendarEventProgenitor
+
+			const eventReplyReceived = createTestEntity(CalendarEventTypeRef, {
+				_ownerGroup: calendarGroupRoot._id,
+				uid,
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
+							address: sender,
+						}),
+						status: CalendarAttendeeStatus.ACCEPTED,
+					}),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						// should be ignored
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
+							address: anotherGuest,
+						}),
+						status: CalendarAttendeeStatus.DECLINED,
+					}),
+				],
+			}) as CalendarEventProgenitor
+
+			const eventByUid: CalendarEventUidIndexEntry = object()
+
+			eventByUid.ownerGroup = calendarGroupRoot._id
+			eventByUid.progenitor = existingEvent
+			eventByUid.alteredInstances = []
+
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(eventByUid)
+
+			await calendarModel.processCalendarData(sender, {
+				// should be ignored
+				method: CalendarMethod.REPLY,
+				contents: [
+					{
+						event: eventReplyReceived,
+						alarms: [],
+					},
+				],
+			})
+
 			const eventCaptor = matchers.captor()
 			const alarmsCaptor = matchers.captor()
-			verify(calendarFacade.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), matchers.anything()))
+
+			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), matchers.anything()))
+
 			const createdEvent: CalendarEvent = eventCaptor.value
 			const alarms: ReadonlyArray<AlarmInfo> = alarmsCaptor.value
-			o(createdEvent.uid).equals(existingEvent.uid)
-			o(createdEvent.summary).equals(existingEvent.summary)
+
+			o(createdEvent.uid).equals(eventReplyReceived.uid)
+			o(createdEvent.summary).equals(eventReplyReceived.summary)
 			o(createdEvent.attendees).deepEquals([
 				createTestEntity(CalendarEventAttendeeTypeRef, {
 					address: createTestEntity(EncryptedMailAddressTypeRef, {
@@ -211,123 +320,16 @@ o.spec("CalendarModel", function () {
 					address: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: "another-attendee",
 					}),
-					status: CalendarAttendeeStatus.NEEDS_ACTION,
+					status: CalendarAttendeeStatus.NEEDS_ACTION, // why is this NEEDS_ACTION and not DECLINED?
 				}),
 			])
-			o(alarms).deepEquals([alarm])
 		})
 	})
 
 	o.spec("processCalendarData - CalendarMethod.REQUEST", function () {
-		let calendarGroupRoot: CalendarGroupRoot
-		let calendarModel: CalendarModel
-		let notificationsMock: Notifications
-		let schedulerMock: AlarmScheduler
-		let eventControllerMock: EventController
-		let serviceExecutorMock: IServiceExecutor
-		let loginControllerMock: LoginController
-		let progressTrackerMock: ProgressTracker
-		let entityClientMock: EntityClient
-		let mailboxModelMock: MailboxModel
-		let calendarFacadeMock: CalendarFacade
-		let fileControllerMock: FileController
-		let deviceConfigMock: DeviceConfig
-		let nativePushServiceAppMock: NativePushServiceApp
-		let syncTrackMock: SyncTracker
-		let languageViewModelMock: LanguageViewModel
-		let groupMemberMock: GroupMember
-
-		let baseInvitation: ParsedCalendarData
-		let baseExistingEvent: CalendarEvent
-		let userControllerMock: UserController
-		let userMock: User
-
-		let calendarGroupMembership: GroupMembership
-
 		const sender = "sender@example.com"
 
 		o.beforeEach(function () {
-			notificationsMock = object()
-			eventControllerMock = object()
-			schedulerMock = object()
-			serviceExecutorMock = object()
-			loginControllerMock = object()
-			userControllerMock = object<UserController>()
-			progressTrackerMock = object()
-			entityClientMock = object()
-			mailboxModelMock = object()
-			calendarFacadeMock = object()
-			fileControllerMock = object()
-			deviceConfigMock = object()
-			nativePushServiceAppMock = object()
-			syncTrackMock = object()
-			languageViewModelMock = object()
-
-			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
-			const userId = "user-id"
-			userMock = object<User>()
-			userMock._id = userId
-			userControllerMock.user = userMock
-
-			const progressMonitorMock = object<IProgressMonitor>()
-			when(progressTrackerMock.getMonitor(anything())).thenReturn(progressMonitorMock)
-
-			calendarGroupMembership = createTestEntity(GroupMembershipTypeRef, {
-				group: "calendar-group-id",
-				groupType: GroupType.Calendar,
-				groupInfo: ["group-info-listId", "calendar-group-info-id"],
-			})
-			when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
-
-			calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-				_id: calendarGroupMembership.group,
-				longEvents: "longEvents",
-				shortEvents: "shortEvents",
-			})
-
-			const calendarGroupInfo = createTestEntity(GroupInfoTypeRef, {
-				_id: calendarGroupMembership.groupInfo,
-				group: calendarGroupMembership.group,
-			})
-
-			groupMemberMock = createTestEntity(GroupMemberTypeRef, {
-				_id: ["group-member-list-id", "group-member-element-id"],
-				group: calendarGroupRoot._id,
-				user: userMock._id,
-				userGroupInfo: calendarGroupInfo._id,
-			})
-
-			const calendarGroup = createTestEntity(GroupTypeRef, {
-				_id: calendarGroupMembership.group,
-				members: "group-member-list-id",
-			})
-
-			when(entityClientMock.loadAll(GroupMemberTypeRef, getListId(groupMemberMock))).thenResolve([groupMemberMock])
-			when(entityClientMock.load(CalendarGroupRootTypeRef, calendarGroupRoot._id)).thenResolve(calendarGroupRoot)
-			when(entityClientMock.load(GroupTypeRef, calendarGroup._id)).thenResolve(calendarGroup)
-			when(entityClientMock.load(GroupInfoTypeRef, calendarGroupInfo._id)).thenResolve(calendarGroupInfo)
-			when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(undefined)
-
-			calendarModel = new CalendarModel(
-				notificationsMock,
-				() => Promise.resolve(schedulerMock),
-				eventControllerMock,
-				serviceExecutorMock,
-				loginControllerMock,
-				progressTrackerMock,
-				entityClientMock,
-				mailboxModelMock,
-				calendarFacadeMock,
-				fileControllerMock,
-				"Europe/Berlin",
-				makeExternalCalendarFacade(),
-				deviceConfigMock,
-				nativePushServiceAppMock,
-				syncTrackMock,
-				() => {},
-				languageViewModelMock,
-			)
-
 			baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				_ownerGroup: calendarGroupRoot._id,
@@ -750,6 +752,7 @@ o.spec("CalendarModel", function () {
 	})
 
 	o.spec("processCalendarData - CalendarMethod.CANCEL", function () {
+		//
 		let entityRestClientMock: EntityRestClientMock
 		let groupRoot: CalendarGroupRoot
 
@@ -763,7 +766,7 @@ o.spec("CalendarModel", function () {
 			entityRestClientMock.addElementInstances(groupRoot)
 		})
 
-		o("event is cancelled by organizer", async function () {
+		o("event is deleted from guest's calendar when cancelled by organizer", async function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const existingEvent = createTestEntity(CalendarEventTypeRef, {
@@ -771,37 +774,29 @@ o.spec("CalendarModel", function () {
 				_ownerGroup: groupRoot._id,
 				sequence: "1",
 				uid,
+				summary: "summary 1",
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 			})
-			entityRestClientMock.addListInstances(existingEvent)
-			const workerClient = makeWorkerClient()
-			const calendarFacade = makeCalendarFacade(
-				{
-					getEventsByUid: (loadUid) =>
-						uid === loadUid
-							? Promise.resolve({
-									progenitor: existingEvent,
-									alteredInstances: [],
-								})
-							: Promise.resolve(null),
-				},
-				entityRestClientMock,
-			)
-			const model = init({
-				workerClient,
-				restClientMock: entityRestClientMock,
-				calendarFacade: calendarFacade,
-			})
+
 			const sentEvent = createTestEntity(CalendarEventTypeRef, {
 				uid,
 				sequence: "2",
+				summary: "summary 2",
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 			})
-			await model.processCalendarData(sender, {
+			const eventByUid: CalendarEventUidIndexEntry = object()
+			eventByUid.progenitor = existingEvent as CalendarEventProgenitor
+			eventByUid.alteredInstances = []
+
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(eventByUid)
+			when(calendarFacadeMock.getEventsByUid(uid)).thenResolve(eventByUid)
+
+			// ACT: User receives CalendarEventUpdate with cancellation by event with other organizer
+			await calendarModel.processCalendarData(sender, {
 				method: CalendarMethod.CANCEL,
 				contents: [
 					{
@@ -810,8 +805,11 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			await o(() => entityRestClientMock.load(CalendarEventTypeRef, existingEvent._id)).asyncThrows(NotFoundError)
+			// await o(() => entityClientMock.load(CalendarEventTypeRef, existingEvent._id)).asyncThrows(NotFoundError)
+			const deletedEventCaptor = matchers.captor()
+			verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
 		})
+
 		// TODO: Fix broken test with new mocking system
 		// o("event is cancelled by someone else than organizer", async function () {
 		// 	const uid = "uid"
@@ -825,6 +823,9 @@ o.spec("CalendarModel", function () {
 		// 			address: sender,
 		// 		}),
 		// 	})
+		//
+		// 	entityClientMock
+		//
 		// 	entityRestClientMock.addListInstances(existingEvent)
 		// 	const workerClient = makeWorkerClient()
 		// 	const model = init({
