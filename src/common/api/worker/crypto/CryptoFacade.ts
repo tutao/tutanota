@@ -34,6 +34,7 @@ import {
 	createPatch,
 	createPatchList,
 	createUpdatePermissionKeyData,
+	createUpdateSessionKeysPostIn,
 	GroupInfoTypeRef,
 	GroupMembership,
 	GroupTypeRef,
@@ -78,10 +79,9 @@ import {
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
-import { UpdatePermissionKeyService } from "../../entities/sys/Services"
+import { UpdatePermissionKeyService, UpdateSessionKeysService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
-import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
@@ -109,7 +109,6 @@ export class CryptoFacade {
 		private readonly restClient: RestClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly instancePipeline: InstancePipeline,
-		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
@@ -238,8 +237,6 @@ export class CryptoFacade {
 			unencryptedSenderAuthStatus,
 			pqMessageSenderKey,
 		)
-
-		await this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(resolvedSessionKeys.instanceSessionKeys, typeModel)
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet, and we need to set it because the rest of the app expects it.
@@ -775,7 +772,7 @@ export class CryptoFacade {
 		if (instance.bucketKey) {
 			// invoke updateSessionKeys service in case a bucket key is still available
 			const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
-			await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
+			await this.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
 		} else if (outOfSyncInstances.length > 0) {
 			console.warn("files are out of sync refreshing", outOfSyncInstances.map((f) => f._id).join(", "))
 		}
@@ -844,6 +841,11 @@ export class CryptoFacade {
 			const idTuple: IdTuple = instance._id
 			return idTuple.join("/")
 		}
+	}
+
+	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>) {
+		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
+		await this.serviceExecutor.post(UpdateSessionKeysService, input)
 	}
 
 	/*************************** Migrations **********************************/

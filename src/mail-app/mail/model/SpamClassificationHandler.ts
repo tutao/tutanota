@@ -42,6 +42,7 @@ export class SpamClassificationHandler {
 			targetMoveFolder: targetFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: await this.spamClassifier.compress(vectorizedMail),
+			ownerEncMailSessionKeys: [],
 		}
 		return { targetFolder, processInboxDatum: processInboxDatum }
 	}

@@ -23,11 +23,15 @@ import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { createSpamMailDatum } from "../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { LoginController } from "../../../src/common/api/main/LoginController"
+import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
+import { InstanceSessionKeyTypeRef,  TypeInfoTypeRef} from "../../../src/common/api/entities/sys/TypeRefs"
+import { LockedError } from "../../../src/common/api/common/error/RestError"
 
-const { anything } = matchers
+const { captor, anything } = matchers
 
 o.spec("ProcessInboxHandlerTest", function () {
 	let mailFacade = object<MailFacade>()
+	let cryptoFacade = object<CryptoFacade>()
 	let logins = object<LoginController>()
 	let body: Body
 	let mail: Mail
@@ -73,12 +77,101 @@ o.spec("ProcessInboxHandlerTest", function () {
 		processInboxHandler = new ProcessInboxHandler(
 			logins,
 			mailFacade,
+			cryptoFacade,
 			() => spamHandler,
 			() => inboxRuleHandler,
 			new Map(),
 			0,
 		)
 		when(logins.isEnabled(FeatureType.SpamClientClassification)).thenReturn(true)
+	})
+
+	o.spec("instanceSessionKeys for mail and it's files are updated using the processInboxHandler", function () {
+		o("send instanceSessionKeys with processInboxDatum", async function () {
+			mail.sets = [inboxFolder._id]
+			const processInboxDatum: UnencryptedProcessInboxDatum = {
+				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+				mailId: mail._id,
+				targetMoveFolder: trashFolder._id,
+				vector: new Uint8Array(),
+				ownerEncMailSessionKeys: [],
+			}
+			when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
+				targetFolder: inboxFolder,
+				processInboxDatum: processInboxDatum,
+			})
+			when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+
+			const mailInstanceSessionKeys = [
+				createTestEntity(InstanceSessionKeyTypeRef, {
+					instanceId: "mailInstanceId",
+					instanceList: "mailInstanceList",
+					typeInfo: createTestEntity(TypeInfoTypeRef),
+					symEncSessionKey: new Uint8Array([1, 2, 3]),
+				}),
+				createTestEntity(InstanceSessionKeyTypeRef, {
+					instanceId: "fileInstanceId",
+					instanceList: "fileInstanceList",
+					typeInfo: createTestEntity(TypeInfoTypeRef),
+					symEncSessionKey: new Uint8Array([4, 5, 6]),
+				}),
+			]
+
+			when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+				instanceSessionKeys: mailInstanceSessionKeys,
+				resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+			})
+
+			const _ = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
+
+			const processInboxDatumCaptor = captor()
+			await delay(0)
+			verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), processInboxDatumCaptor.capture()))
+			o(assertNotNull(processInboxDatumCaptor.value)[0].ownerEncMailSessionKeys).deepEquals(mailInstanceSessionKeys)
+		})
+
+		o("no instanceSessionKeys sent if sendServerRequest == false", async function () {
+			mail.sets = [inboxFolder._id]
+			const processInboxDatum: UnencryptedProcessInboxDatum = {
+				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+				mailId: mail._id,
+				targetMoveFolder: trashFolder._id,
+				vector: new Uint8Array(),
+				ownerEncMailSessionKeys: [],
+			}
+			when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
+				targetFolder: inboxFolder,
+				processInboxDatum: processInboxDatum,
+			})
+			when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+
+			const mailInstanceSessionKeys = [
+				createTestEntity(InstanceSessionKeyTypeRef, {
+					instanceId: "mailInstanceId",
+					instanceList: "mailInstanceList",
+					typeInfo: createTestEntity(TypeInfoTypeRef),
+					symEncSessionKey: new Uint8Array([1, 2, 3]),
+				}),
+				createTestEntity(InstanceSessionKeyTypeRef, {
+					instanceId: "fileInstanceId",
+					instanceList: "fileInstanceList",
+					typeInfo: createTestEntity(TypeInfoTypeRef),
+					symEncSessionKey: new Uint8Array([4, 5, 6]),
+				}),
+			]
+
+			when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+				instanceSessionKeys: mailInstanceSessionKeys,
+				resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+			})
+
+			const _ = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, false)
+
+			await delay(0)
+			verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
+		})
 	})
 
 	o("handleIncomingMail does move mail if it has been processed already", async function () {
@@ -92,30 +185,39 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
 	})
 
-	o("handleIncomingMail does NOT move mail when called with sendServerRequest == false", async function () {
+	o("handleIncomingMail does NOT send move mail when called with sendServerRequest == false", async function () {
 		mail.sets = [inboxFolder._id]
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
-			processInboxDatum,
+			processInboxDatum: processInboxDatum,
 		})
 		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
 		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve({
 			targetFolder: trashFolder,
-			processInboxDatum,
+			processInboxDatum: processInboxDatum,
 		})
+
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, false)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 1 })
 		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]), { times: 0 })
+
+		verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
 	})
 
 	o("handleIncomingMail does move mail from inbox to other folder if inbox rules excluded from spam filter applies", async function () {
@@ -125,16 +227,24 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
-			processInboxDatum,
+			processInboxDatum: processInboxDatum,
 		})
 		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve({
 			targetFolder: trashFolder,
-			processInboxDatum,
+			processInboxDatum: processInboxDatum,
 		})
 		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
@@ -143,7 +253,16 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder), { times: 0 })
 		o(targetFolder).deepEquals(trashFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+			mailId: mail._id,
+			targetMoveFolder: trashFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("handleIncomingMail does move mail from inbox to other folder if inbox rules not excluded from spam filter applies", async function () {
@@ -153,6 +272,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -163,6 +283,13 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: trashFolder,
 			processInboxDatum,
 		})
+
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 1 })
@@ -171,7 +298,16 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+			mailId: mail._id,
+			targetMoveFolder: trashFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("handleIncomingMail applies only inbox rules excluded from spam filter if spam classifier classified mail as spam", async function () {
@@ -181,6 +317,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -191,6 +328,13 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: trashFolder,
 			processInboxDatum,
 		})
+
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 1 })
@@ -198,7 +342,16 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder), { times: 1 })
 		o(targetFolder).deepEquals(spamFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+			mailId: mail._id,
+			targetMoveFolder: trashFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("processInboxRulesOnly does nothing if mail needs processing", async function () {
@@ -273,16 +426,32 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
 			processInboxDatum,
 		})
 
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 		o(targetFolder).deepEquals(spamFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			mailId: mail._id,
+			targetMoveFolder: spamFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("handleIncomingMail does NOT move mail from inbox to spam folder if mail is ham", async function () {
@@ -294,16 +463,33 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
+
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
 			processInboxDatum,
 		})
 
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 		o(targetFolder).deepEquals(inboxFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: null,
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("handleIncomingMail does NOT move mail from spam to inbox folder if mail is spam", async function () {
@@ -315,16 +501,32 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
 			processInboxDatum,
 		})
 
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 		o(targetFolder).deepEquals(spamFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			mailId: mail._id,
+			targetMoveFolder: spamFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("handleIncomingMail moves mail from spam to inbox folder if mail is ham", async function () {
@@ -336,16 +538,32 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
 			processInboxDatum,
 		})
 
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 		o(targetFolder).deepEquals(inboxFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
 	o("handleIncomingMail does NOT move mail from inbox to spam folder if spam classification is disabled", async function () {
@@ -354,11 +572,11 @@ o.spec("ProcessInboxHandlerTest", function () {
 		mail.sets = [inboxFolder._id]
 		const compressedVector = new Uint8Array([2, 4, 8, 16])
 
-		const datum = createSpamMailDatum(mail, mailDetails)
 		when(mailFacade.vectorizeAndCompressMails({ mail, mailDetails })).thenResolve(compressedVector)
 		processInboxHandler = new ProcessInboxHandler(
 			logins,
 			mailFacade,
+			cryptoFacade,
 			() => spamHandler,
 			() => inboxRuleHandler,
 			new Map(),
@@ -366,17 +584,74 @@ o.spec("ProcessInboxHandlerTest", function () {
 		)
 		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
 		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
-		const processedMail: UnencryptedProcessInboxDatum = {
-			classifierType: null,
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			vector: compressedVector,
-		}
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
+
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
 
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 		o(targetFolder).deepEquals(inboxFolder)
 		await delay(0)
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processedMail]))
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: null,
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			vector: compressedVector,
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
+	})
+
+	o("handleIncomingMail retries in case of locked error.", async function () {
+		let throwError = true
+		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		const processInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
+		}
+
+		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
+			targetFolder: inboxFolder,
+			processInboxDatum,
+		})
+
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
+		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+			instanceSessionKeys: mailInstanceSessionKeys,
+			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
+		})
+
+		when(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum])).thenDo(() => {
+			if (throwError) {
+				return Promise.reject(new LockedError("test lock"))
+			} else {
+				return undefined
+			}
+		})
+
+		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
+		o(targetFolder).deepEquals(inboxFolder)
+		await delay(0)
+		throwError = false
+		await delay(0)
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: mailInstanceSessionKeys,
+		}
+
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]), { times: 2 })
 	})
 })

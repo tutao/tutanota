@@ -9,6 +9,8 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { isSameId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
+import { LockedError } from "../../../common/api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -24,6 +26,7 @@ export class ProcessInboxHandler {
 	constructor(
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
+		private readonly cryptoFacade: CryptoFacade,
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
@@ -38,7 +41,18 @@ export class ProcessInboxHandler {
 				for (const [mailGroup, processedMails] of map) {
 					// send request to server
 					if (!isEmpty(processedMails)) {
-						await mailFacade.processNewMails(mailGroup, processedMails)
+						try {
+							await mailFacade.processNewMails(mailGroup, processedMails)
+						} catch (e) {
+							if (e instanceof LockedError) {
+								// retry in case of LockedError
+								this.processedMailsByMailGroup.set(mailGroup, processedMails)
+								this.sendProcessInboxServiceRequest(mailFacade)
+							} else {
+								console.log("error during processInboxService call:", e.name, processedMails.length)
+								throw e
+							}
+						}
 					}
 				}
 			}
@@ -94,8 +108,13 @@ export class ProcessInboxHandler {
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
 				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+				ownerEncMailSessionKeys: [],
 			}
 		}
+
+		// resolve sessionKeys for mail and their corresponding files
+		const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+		finalProcessInboxDatum.ownerEncMailSessionKeys = resolvedSessionKeys.instanceSessionKeys
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
 		if (this.processedMailsByMailGroup.has(mailGroupId)) {
