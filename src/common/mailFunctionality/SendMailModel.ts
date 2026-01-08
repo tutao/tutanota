@@ -89,6 +89,7 @@ import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarN
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
 import { Time } from "../calendar/date/Time"
+import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../api/common/utils/GroupUtils"
 
 assertMainOrNode()
@@ -203,6 +204,7 @@ export class SendMailModel {
 		private readonly autosaveFacade: AutosaveFacade,
 		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
 		private readonly syncTracker: SyncTracker,
+		readonly undoModel: UndoModel | null,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
