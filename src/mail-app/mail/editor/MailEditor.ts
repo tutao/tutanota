@@ -28,7 +28,7 @@ import { TooManyRequestsError } from "../../../common/api/common/error/RestError
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
-import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env"
+import { isApp, isBrowser, isDesktop, isIOSApp } from "../../../common/api/common/Env"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
 import type { TextFieldAttrs } from "../../../common/gui/base/TextField.js"
@@ -222,6 +222,30 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				const sanitized = this.htmlSanitizer.sanitizeFragment(html, {
 					blockExternalContent: !isPaste && this.blockExternalContent,
 				})
+
+				if (isPaste && isIOSApp()) {
+					// For iOS, we want to clear styling because WebKit, when copying, includes way more styling than
+					// desired (regardless of the origin of the text) and all of this styling is then pasted in. This
+					// results in emails being sent with light text and sans-serif fonts that the user did not manually
+					// put in.
+					function stripStylingFromNode(n: HTMLElement | Node) {
+						if (!("style" in n)) {
+							// likely a text node (and either way won't have children)
+							return
+						}
+
+						n.removeAttribute("style")
+
+						for (const childElement of Array.from(n.children)) {
+							stripStylingFromNode(childElement)
+						}
+					}
+
+					for (const childElement of Array.from(sanitized.fragment.childNodes)) {
+						stripStylingFromNode(childElement)
+					}
+				}
+
 				this.blockedExternalContent = sanitized.blockedExternalContent
 
 				this.mentionedInlineImages = sanitized.inlineImageCids
