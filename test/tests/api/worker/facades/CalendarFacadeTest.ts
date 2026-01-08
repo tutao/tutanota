@@ -34,7 +34,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { base64ToKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
@@ -494,7 +494,7 @@ o.spec("CalendarFacadeTest", function () {
 
 			await calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
 
-			const sessionKey = uint8ArrayToBitArray(base64ToUint8Array(sessionKeyCaptor.value))
+			const sessionKey = base64ToKey(sessionKeyCaptor.value)
 			const allInstanceSentToFacade = instanceCaptor.value
 			const instanceLiteralSentToFacade = assertNotNull(JSON.parse(allInstanceSentToFacade)[0])
 

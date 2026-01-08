@@ -1,7 +1,5 @@
-import { Aes256Key } from "../../encryption/Aes.js"
-import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { uint8ArrayToBitArray } from "../../misc/Utils.js"
-import { WASMExports } from "@tutao/tutanota-utils"
+import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/tutanota-utils"
+import { Aes256Key, uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4
 export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024
@@ -40,7 +38,7 @@ export async function generateKeyFromPassphrase(argon2: Argon2IDExports, pass: s
 		ARGON2ID_KEY_LENGTH,
 	)
 
-	return uint8ArrayToBitArray(hash)
+	return uint8ArrayToKey(hash)
 }
 
 async function argon2idHashRaw(

@@ -27,7 +27,7 @@ export class SuggestionFacade<T> {
 			const typeName = (await this.typeModelResolver.resolveClientTypeReference(new TypeRef(this.type.app, this.type.typeId))).name.toLowerCase()
 			return t.get(SearchTermSuggestionsOS, typeName).then((encSuggestions) => {
 				if (encSuggestions) {
-					this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, encSuggestions, true)))
+					this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, encSuggestions)))
 				} else {
 					this._suggestions = {}
 				}

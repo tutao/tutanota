@@ -380,7 +380,7 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
 		const key = decryptKey(userGroupKey, metaData.userEncDbKey)
-		const iv = unauthenticatedAesDecrypt(key, neverNull(metaData.encDbIv), true)
+		const iv = unauthenticatedAesDecrypt(key, neverNull(metaData.encDbIv))
 		this.db.init({ key, iv })
 		const groupDiff = await this._loadGroupDiff(user)
 		await this._updateGroups(user, groupDiff)
