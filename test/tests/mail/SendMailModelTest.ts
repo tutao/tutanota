@@ -212,6 +212,7 @@ o.spec("SendMailModel", () => {
 				return false
 			},
 			syncTracker,
+			object(),
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
