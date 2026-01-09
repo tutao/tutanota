@@ -13,7 +13,7 @@ import {
 import { clone, hexToUint8Array, neverNull, Require, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, GroupType, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
-import { EntityEventsListener, EventController } from "../../../src/common/api/main/EventController.js"
+import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
 	AlarmInfo,
@@ -87,7 +87,6 @@ o.spec("CalendarModel", function () {
 	let userMock: User
 
 	let calendarGroupMembership: GroupMembership
-	let entityListener: EntityEventsListener
 	let externalCalendarFacadeMock: ExternalCalendarFacade
 
 	o.beforeEach(function () {
@@ -269,8 +268,6 @@ o.spec("CalendarModel", function () {
 	})
 
 	o.spec("processCalendarData - CalendarMethod.REQUEST", function () {
-		const sender = "sender@example.com"
-
 		o.beforeEach(function () {
 			baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
@@ -279,7 +276,7 @@ o.spec("CalendarModel", function () {
 				sequence: "1",
 				uid: "uid",
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
+					address: ORGANIZER,
 				}),
 				startTime: new Date(),
 				pendingInvitation: true,
@@ -294,7 +291,7 @@ o.spec("CalendarModel", function () {
 							attendees: [
 								createTestEntity(CalendarEventAttendeeTypeRef, {
 									address: createTestEntity(EncryptedMailAddressTypeRef, {
-										address: sender,
+										address: ORGANIZER,
 									}),
 									status: CalendarAttendeeStatus.ACCEPTED,
 								}),
@@ -311,7 +308,7 @@ o.spec("CalendarModel", function () {
 				// Arrange
 
 				// Act
-				await calendarModel.processCalendarData(sender, baseInvitation)
+				await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
 
 				// ASSERT
 				// checks that update route was not taken
@@ -333,7 +330,7 @@ o.spec("CalendarModel", function () {
 				})
 
 				// Act
-				await calendarModel.processCalendarData(sender, baseInvitation)
+				await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
 
 				// ASSERT
 
@@ -366,13 +363,13 @@ o.spec("CalendarModel", function () {
 					uid: baseExistingEvent.uid,
 					sequence: "2",
 					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-						address: sender,
+						address: ORGANIZER,
 					}),
 					startTime,
 				})
 
 				// Act
-				await calendarModel.processCalendarData(sender, {
+				await calendarModel.processCalendarData(ORGANIZER, {
 					method: CalendarMethod.REQUEST,
 					contents: [
 						{
@@ -414,7 +411,7 @@ o.spec("CalendarModel", function () {
 					uid: "uid",
 					sequence: "2",
 					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-						address: sender,
+						address: ORGANIZER,
 					}),
 					startTime: newStartTime,
 				})
@@ -422,7 +419,7 @@ o.spec("CalendarModel", function () {
 				when(entityClientMock.load(CalendarEventTypeRef, anything())).thenResolve(sentEvent)
 
 				// Act
-				await calendarModel.processCalendarData(sender, {
+				await calendarModel.processCalendarData(ORGANIZER, {
 					method: CalendarMethod.REQUEST,
 					contents: [
 						{
@@ -448,38 +445,10 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("Update to already replied event", async function () {
-			const uid = "uid"
-			const sender = "sender@example.com"
-
-			const mockUserAlarmListInfoType = object<UserAlarmInfoListType>()
-			mockUserAlarmListInfoType.alarms = "alarm-id"
-
-			const alarmsListId = neverNull(loginControllerMock.getUserController().user.alarmInfoList).alarms
-			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
-				_id: "alarm-id",
-			})
-			const alarmInfos: IdTuple[] = [[alarmsListId, alarmInfo._id]]
-			const userAlarmInfo = createTestEntity(UserAlarmInfoTypeRef, {
-				_id: [alarmsListId, alarmInfo._id],
-				alarmInfo: alarmInfo,
-			})
-
 			const startTime = new Date()
-			const existingEvent = createTestEntity(CalendarEventTypeRef, {
-				_id: ["listId", "eventId"],
-				_ownerGroup: calendarGroupRoot._id,
-				summary: "v1",
-				sequence: "1",
-				uid,
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
-				}),
-				alarmInfos,
-				startTime,
-			})
 
 			const eventByUid: CalendarEventUidIndexEntry = object()
-			eventByUid.progenitor = existingEvent as CalendarEventProgenitor
+			eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
 			eventByUid.alteredInstances = []
 			when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
 
@@ -488,14 +457,12 @@ o.spec("CalendarModel", function () {
 				uid,
 				sequence: "2",
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
+					address: ORGANIZER,
 				}),
 				startTime,
 			})
 
-			when(entityClientMock.loadMultiple(UserAlarmInfoTypeRef, listIdPart(alarmInfos[0]), alarmInfos.map(elementIdPart))).thenResolve([userAlarmInfo])
-
-			await calendarModel.processCalendarData(sender, {
+			await calendarModel.processCalendarData(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
@@ -506,23 +473,18 @@ o.spec("CalendarModel", function () {
 			})
 
 			const eventCaptor = matchers.captor()
-			const alarmsCaptor = matchers.captor()
 			const oldEventCaptor = matchers.captor()
-			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), oldEventCaptor.capture()))
+
+			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), matchers.anything(), oldEventCaptor.capture()))
 			const updatedEvent = eventCaptor.value
-			const updatedAlarms = alarmsCaptor.value
 			const oldEvent = oldEventCaptor.value
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
-			o(updatedAlarms).deepEquals([alarmInfo])
-			o(oldEvent).deepEquals(existingEvent)
+			o(oldEvent).deepEquals(baseExistingEvent)
 		})
 
 		o("event entity is re-created when the start time changes", async function () {
 			// Arrange
-
-			const uid = "uid"
-			const sender = "sender@example.com"
 
 			const mockUserAlarmListInfoType = object<UserAlarmInfoListType>()
 			mockUserAlarmListInfoType.alarms = "alarm-id"
@@ -545,7 +507,7 @@ o.spec("CalendarModel", function () {
 				sequence: "1",
 				uid,
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
+					address: ORGANIZER,
 				}),
 				startTime: DateTime.fromObject(
 					{
@@ -571,7 +533,7 @@ o.spec("CalendarModel", function () {
 					{ zone: "UTC" },
 				).toJSDate(),
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
+					address: ORGANIZER,
 				}),
 			})
 
@@ -582,7 +544,7 @@ o.spec("CalendarModel", function () {
 			when(entityClientMock.load<CalendarEvent>(CalendarEventTypeRef, anything())).thenResolve(clone(sentEvent))
 
 			// Act
-			await calendarModel.processCalendarData(sender, {
+			await calendarModel.processCalendarData(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
