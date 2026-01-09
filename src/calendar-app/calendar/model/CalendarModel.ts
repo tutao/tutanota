@@ -394,7 +394,7 @@ export class CalendarModel {
 						group: membership.group,
 					}),
 				)
-				.catch((e) => console.log("error cleaning up membership for group: ", membership.group))
+				.catch(() => console.log("error cleaning up membership for group: ", membership.group))
 		}
 		return calendarInfos
 	}
@@ -791,6 +791,7 @@ export class CalendarModel {
 		// Reset permissions because server will assign them
 		downcast(newEvent)._permissions = null
 		newEvent._ownerGroup = groupRoot._id
+		newEvent.pendingInvitation = oldEvent.pendingInvitation
 
 		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
 		return this.requestWidgetRefresh()
@@ -1074,7 +1075,7 @@ export class CalendarModel {
 				// - a single-instance update that created this altered instance
 				// - the user got the progenitor invite for a series. it's possible that there's
 				//   already altered instances of this series on the server.
-				return await this.processNewCalendarEventRequest(target, updateEvent, updateAlarms, sender) // TODO: why alarms are passed here and not in reply
+				return await this.processNewCalendarEventRequest(target, updateEvent, updateAlarms, sender)
 			} else if (target.progenitor?.repeatRule != null && updateEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
 				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
 				// users delete a single instance from a series even though that instance was never published as altered.
@@ -1142,6 +1143,7 @@ export class CalendarModel {
 	 * @param dbTarget the progenitor that must have a repeat rule and an exclusion for this event to be accepted, the known altered instances and the ownergroup.
 	 * @param updateEvent the event to create
 	 * @param alarms alarms to set up for this user/event
+	 * @param sender email address that the event request was received from
 	 */
 	private async processNewCalendarEventRequest(
 		dbTarget: CalendarEventUidIndexEntry,
@@ -1166,7 +1168,7 @@ export class CalendarModel {
 			)
 		}
 
-		updateEvent.pendingInvitation = true
+		updateEvent.pendingInvitation = !!dbTarget.progenitor?.pendingInvitation
 		updateEvent.sender = sender
 
 		let calendarGroupRoot

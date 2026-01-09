@@ -16,7 +16,6 @@ import { CalendarAttendeeStatus, CalendarMethod, GroupType, OperationType, Repea
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
-	AlarmInfo,
 	AlarmInfoTypeRef,
 	GroupInfoTypeRef,
 	GroupMember,
@@ -60,6 +59,23 @@ o.spec("CalendarModel", function () {
 	const UNKNOWN_SENDER = "sender@example.com"
 	const ORGANIZER = "organizer@example.com"
 	const GUEST = "guest@example.com"
+	const baseStartTime = DateTime.fromObject(
+		{
+			year: 1993,
+			month: 5,
+			day: 1,
+		},
+		{ zone: "UTC" },
+	).toJSDate()
+
+	const baseEndTime = DateTime.fromObject(
+		{
+			year: 1993,
+			month: 5,
+			day: 2,
+		},
+		{ zone: "UTC" },
+	).toJSDate()
 
 	let calendarGroupRoot: CalendarGroupRoot
 	let calendarModel: CalendarModel
@@ -209,10 +225,6 @@ o.spec("CalendarModel", function () {
 	}
 
 	o.spec("processCalendarData - CalendarMethod.REPLY", function () {
-		const alarm = createTestEntity(AlarmInfoTypeRef, {
-			_id: "alarm-id",
-		})
-
 		let baseParsedCalendarData: ParsedCalendarData
 		let baseParsedEventReply: ParsedEvent
 
@@ -258,7 +270,6 @@ o.spec("CalendarModel", function () {
 			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), matchers.anything()))
 
 			const createdEvent: CalendarEvent = eventCaptor.value
-			const alarms: ReadonlyArray<AlarmInfo> = alarmsCaptor.value
 
 			o(createdEvent.uid).equals(baseExistingEvent.uid)
 			o(createdEvent.summary).equals(baseExistingEvent.summary)
@@ -301,6 +312,8 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			}
+
+			baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
 		})
 
 		o.spec("Pending events", function () {
@@ -322,7 +335,8 @@ o.spec("CalendarModel", function () {
 				o.check(capturedEventInput.pendingInvitation).equals(true)
 			})
 
-			o("New invite with repeat rule", async function () {
+			// Repeat Rules
+			o("New invite to repeating event should have pendingInvitation as true", async function () {
 				// Arrange
 				baseInvitation.contents[0].event.repeatRule = createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
@@ -333,7 +347,6 @@ o.spec("CalendarModel", function () {
 				await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
 
 				// ASSERT
-
 				// capture created event
 				const eventCaptor = matchers.captor()
 				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), matchers.anything()))
@@ -342,6 +355,72 @@ o.spec("CalendarModel", function () {
 				o.check(capturedEventInput.pendingInvitation).equals(true)
 				o.check(capturedEventInput.repeatRule?.frequency).equals(RepeatPeriod.DAILY)
 				o.check(capturedEventInput.repeatRule?.interval).equals("1")
+			})
+
+			o("new altered instances should not be pendingInvitations if progenitor was not a pendingInvitation", async function () {
+				// Arrange
+				baseExistingEvent.startTime = baseStartTime
+				baseExistingEvent.endTime = baseEndTime
+				baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					frequency: RepeatPeriod.DAILY,
+					interval: "1",
+				})
+
+				baseExistingEvent.pendingInvitation = false
+				baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+
+				baseInvitation.contents[0].event.startTime = baseStartTime
+				baseInvitation.contents[0].event.endTime = baseEndTime
+				baseInvitation.contents[0].event.recurrenceId = DateTime.fromJSDate(baseStartTime).plus({ days: 1 }).toJSDate()
+
+				baseInvitation.contents[0].event.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					frequency: RepeatPeriod.DAILY,
+					interval: "1",
+				})
+
+				when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
+
+				// Act
+				await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
+
+				// Assert
+				const eventCaptor = matchers.captor()
+				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), matchers.anything()))
+				const capturedEventInput: CalendarEvent = eventCaptor.value
+				o.check(capturedEventInput.pendingInvitation).equals(false)
+			})
+
+			o("new altered instances SHOULD be pendingInvitations if progenitor WAS still a pendingInvitation", async function () {
+				// Arrange
+				baseExistingEvent.startTime = baseStartTime
+				baseExistingEvent.endTime = baseEndTime
+				baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					frequency: RepeatPeriod.DAILY,
+					interval: "1",
+				})
+
+				baseExistingEvent.pendingInvitation = true
+				baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+
+				baseInvitation.contents[0].event.startTime = baseStartTime
+				baseInvitation.contents[0].event.endTime = baseEndTime
+				baseInvitation.contents[0].event.recurrenceId = DateTime.fromJSDate(baseStartTime).plus({ days: 1 }).toJSDate()
+
+				baseInvitation.contents[0].event.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					frequency: RepeatPeriod.DAILY,
+					interval: "1",
+				})
+
+				when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
+
+				// Act
+				await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
+
+				// Assert
+				const eventCaptor = matchers.captor()
+				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), matchers.anything()))
+				const capturedEventInput: CalendarEvent = eventCaptor.value
+				o.check(capturedEventInput.pendingInvitation).equals(true)
 			})
 
 			o("Update any field but startTime", async function () {
@@ -641,7 +720,6 @@ o.spec("CalendarModel", function () {
 
 	o.spec("processCalendarData - CalendarMethod.CANCEL", function () {
 		//
-		let groupRoot: CalendarGroupRoot
 		let baseParsedCalendarDataCancel: ParsedCalendarData
 
 		o.beforeEach(function () {
