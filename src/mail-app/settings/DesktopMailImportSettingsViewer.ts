@@ -19,7 +19,7 @@ import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js
 import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.js"
 import { mailLocator } from "../mailLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
-import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
+import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { client } from "../../common/misc/ClientDetector"
 
 /**
@@ -113,7 +113,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			m(
 				".flex-start.mt-8",
 				m(LoginButton, {
-					type: LoginButtonType.FlexWidth,
+					width: "flex",
 					label: "import_action",
 					onclick: (_, dom) => this.onImportButtonClick(dom),
 				}),
