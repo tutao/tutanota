@@ -17,6 +17,8 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { isColorLight } from "./Color.js"
+import { DropDownSelectorNew } from "./DropDownSelectorNew"
+import { theme } from "../theme"
 
 export const enum DropType {
 	ExternalFile = "ExternalFile",
@@ -61,6 +63,31 @@ export function renderCountryDropdown(params: {
 		items: [...dropdownCountries(), { value: null, name: lang.get("choose_label"), selectable: false }],
 		selectedValue: params.selectedCountry,
 		selectionChangedHandler: params.onSelectionChanged,
+	})
+}
+
+export function renderCountryDropdownNew(params: {
+	selectedCountry: Country | null
+	onSelectionChanged: (country: Country) => void
+	helpLabel?: lazy<string>
+	label?: MaybeTranslation
+}): Children {
+	return m(DropDownSelectorNew, {
+		label: params.label ?? "invoiceCountry_label",
+		helpLabel: params.helpLabel,
+		items: [
+			...dropdownCountries(),
+			{
+				value: null,
+				name: "",
+			},
+		],
+		selectedValue: params.selectedCountry,
+		selectionChangedHandler: params.onSelectionChanged,
+		icon: {
+			icon: Icons.Pin,
+			color: theme.on_surface_variant,
+		},
 	})
 }
 

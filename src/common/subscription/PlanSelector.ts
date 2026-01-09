@@ -5,11 +5,10 @@ import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
 import { component_size, px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
+import { LoginButton, LoginButtonAttrs, TertiaryButton, TertiaryButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
-import { styles } from "../gui/styles.js"
 import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./utils/SubscriptionUtils.js"
@@ -18,8 +17,10 @@ import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
 import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils.js"
+import { styles } from "../gui/styles"
+import { isIOSApp } from "../api/common/Env"
 
-type PlanSelectorAttr = {
+export type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
 	actionButtons: SubscriptionActionButtons
 	priceAndConfigProvider: PriceAndConfigProvider
@@ -31,11 +32,13 @@ type PlanSelectorAttr = {
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
 	targetPlan: PlanType
+	onContinue?: any
+	newSignupFlow?: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
 	private readonly selectedPlan: Stream<PlanType>
-	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
+	private shouldFixButtonPos: boolean = false
 
 	constructor({ attrs }: Vnode<PlanSelectorAttr>) {
 		this.selectedPlan = stream(attrs.targetPlan)
@@ -62,6 +65,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			allowSwitchingPaymentInterval,
 			showMultiUser,
 			discountDetails,
+			onContinue,
+			newSignupFlow = false,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
@@ -92,13 +97,49 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			return undefined
 		}
 
-		const renderActionButton = (): Children => {
-			return m(LoginButton, {
-				// The label text for go european campaign shall not be translated.
-				label: "continue_action",
-				type: LoginButtonType.FullWidth,
-				onclick: (event, dom) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom),
-			})
+		const getContinueButtonWidth = () => {
+			if (!newSignupFlow || styles.isMobileLayout() || this.shouldFixButtonPos) return "full"
+			return "flex"
+		}
+
+		const renderActionButton = (onContinue: any): Children => {
+			let temp = (event: any, dom: any) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom)
+			let isBusiness = options.businessUse()
+			if (onContinue) {
+				temp = () => onContinue(this.selectedPlan())
+			}
+			return m(
+				`.gap-8${!this.shouldFixButtonPos && newSignupFlow ? "" : ".full-width"}`,
+				{
+					style: {
+						"padding-inline": this.shouldFixButtonPos ? px(size.spacing_16) : 0,
+						display: "inline-grid",
+						"grid-auto-flow": styles.isMobileLayout() || !newSignupFlow ? "row" : "column",
+						"grid-auto-columns": "1fr",
+						"margin-left": newSignupFlow ? "auto" : "initial",
+						"max-width": newSignupFlow ? "initial" : px(400),
+						width: styles.isMobileLayout() || !newSignupFlow ? "100%" : "fit-content",
+					},
+				},
+				!this.shouldFixButtonPos &&
+					newSignupFlow &&
+					!isIOSApp() &&
+					m(TertiaryButton, {
+						label: isBusiness ? "privateUse_action" : "businessUse_action",
+						width: "flex",
+						onclick: () => options.businessUse(!isBusiness),
+						style: {
+							order: styles.isMobileLayout() ? 1 : -1,
+						},
+					} satisfies TertiaryButtonAttrs),
+				m(LoginButton, {
+					// The label text for go european campaign shall not be translated.
+					label: "continue_action",
+					width: getContinueButtonWidth(),
+					onclick: temp,
+					style: { order: 0 },
+				}),
+			)
 		}
 
 		const renderPaymentIntervalSwitch = () => {
@@ -123,9 +164,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const bottomPad = Math.max(size.spacing_16, getSafeAreaInsetBottom())
 		return m(
-			"#plan-selector.flex.flex-column.gap-32",
+			".flex.flex-column.gap-32",
 			{
-				style: this.shouldFixButtonPos() && {
+				style: this.shouldFixButtonPos && {
 					"padding-bottom": px(component_size.button_height + size.spacing_16 + getSafeAreaInsetBottom()),
 				},
 				lang: lang.code,
@@ -149,9 +190,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetails,
 				}),
 				m(
-					"#continue-wrapper.flex-v-start.items-center.plr-12.pt-16",
+					`#continue-wrapper.flex-v-start.items-center.pt-16${newSignupFlow ? "" : ".plr-16"}`,
 					{
-						style: this.shouldFixButtonPos() && {
+						style: this.shouldFixButtonPos && {
 							position: "fixed",
 							height: px(component_size.button_height + size.spacing_16 + bottomPad),
 							bottom: 0,
@@ -163,25 +204,25 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							"box-shadow": boxShadowHigh,
 						},
 					},
-					m(
-						"",
-						{
-							style: {
-								"min-width": styles.isMobileLayout() ? "100%" : px(265),
-								"max-width": styles.isMobileLayout() ? "100%" : px(265),
-								"margin-inline": "auto",
-							},
-						},
-						renderActionButton(),
-					),
+
+					renderActionButton(onContinue),
 				),
+
+				this.shouldFixButtonPos &&
+					newSignupFlow &&
+					!isIOSApp() &&
+					m(TertiaryButton, {
+						label: options.businessUse() ? "privateUse_action" : "businessUse_action",
+						width: "flex",
+						onclick: () => options.businessUse(!options.businessUse()),
+					} satisfies TertiaryButtonAttrs),
 
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(
 						".flex.flex-column",
 						{
 							style: {
-								"max-width": px(500),
+								width: "100%",
 								"margin-inline": "auto",
 							},
 						},
@@ -197,12 +238,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	 */
 	private readonly handleResize = () => {
 		const planSelectorEl = document.querySelector("#plan-selector")
-		const containerEl = document.querySelector(".dialog-container")
-		if (planSelectorEl && containerEl) {
-			const contentHeight = parseInt(getComputedStyle(planSelectorEl).height)
-			const containerHeight = parseInt(getComputedStyle(containerEl).height)
-
-			this.shouldFixButtonPos(contentHeight + component_size.button_floating_size > containerHeight)
+		if (planSelectorEl) {
+			const planSelectorBottom = planSelectorEl.getBoundingClientRect().bottom
+			this.shouldFixButtonPos = styles.isMobileLayout() && planSelectorBottom + size.spacing_32 + component_size.button_floating_size > window.innerHeight
 		}
 	}
 }

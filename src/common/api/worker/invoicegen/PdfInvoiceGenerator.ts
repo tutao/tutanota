@@ -29,7 +29,7 @@ export class PdfInvoiceGenerator {
 	 */
 	async generate(): Promise<Uint8Array> {
 		await this.doc.addPage()
-		this.doc.addImage(PDF_IMAGES.TUTA_LOGO, [25, MARGIN_TOP + 15.7], [45, 15.7])
+		this.doc.addImage(PDF_IMAGES.TUTA_LOGO, [25, MARGIN_TOP], [45, 15.7])
 		this.renderSideBarInfo()
 		await this.renderAddressField()
 		this.renderInvoiceInfo()

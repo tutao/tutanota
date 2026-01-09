@@ -27,6 +27,7 @@ import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/Upgr
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../misc/TranslationKey"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
+import { px } from "../gui/size"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -97,19 +98,28 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 			// Headline for promotional messages
 			promotionMessage && m(PlanSelectorHeadline, { translation: lang.getTranslation(promotionMessage) }),
 
-			m(PlanSelector, {
-				options: data.options,
-				actionButtons,
-				priceAndConfigProvider: planPrices,
-				availablePlans,
-				isApplePrice,
-				currentPlan: data.currentPlan ?? undefined,
-				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
-				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
-				showMultiUser: false,
-				discountDetails,
-				targetPlan: data.targetPlanType,
-			}),
+			m(
+				"",
+				{
+					style: {
+						"max-width": data.options.businessUse() ? "initial" : px(500),
+						"margin-inline": "auto",
+					},
+				},
+				m(PlanSelector, {
+					options: data.options,
+					actionButtons,
+					priceAndConfigProvider: planPrices,
+					availablePlans,
+					isApplePrice,
+					currentPlan: data.currentPlan ?? undefined,
+					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
+					allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
+					showMultiUser: false,
+					discountDetails,
+					targetPlan: data.targetPlanType,
+				}),
+			),
 		])
 	}
 

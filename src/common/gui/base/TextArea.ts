@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { isLightTheme, theme } from "../theme.js"
+import { theme } from "../theme.js"
 
 type TextAreaVariant = "normal" | "outlined"
 
@@ -23,7 +23,7 @@ export interface TextAreaAttrs {
 	oncreate?: (node: VnodeDOM<TextAreaAttrs>) => unknown
 	placeholder?: string
 	classes?: Array<string>
-	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor" | "transition" | "height">>
+	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor" | "transition" | "height" | "backgroundColor">>
 	variant?: TextAreaVariant
 	maxLength?: number
 }

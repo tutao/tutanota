@@ -14,7 +14,6 @@ import { assertMainOrNode } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig.js"
-import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
@@ -24,6 +23,7 @@ import { UnencryptedCredentials } from "../native/common/generatedipc/Unencrypte
 import { AppLock } from "./AppLock.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { AppLockAuthenticationError } from "../api/common/error/AppLockAuthenticationError"
+import { getWhitelabelRegistrationDomains } from "../misc/WhitelabelCustomizations"
 
 assertMainOrNode()
 

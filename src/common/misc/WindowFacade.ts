@@ -2,7 +2,7 @@ import m, { Params } from "mithril"
 import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
-import { isSessionStorageAvailable, noOp, remove } from "@tutao/tutanota-utils"
+import { isSessionStorageAvailable, remove } from "@tutao/tutanota-utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 
@@ -22,7 +22,6 @@ export class WindowFacade {
 	private _ignoreNextPopstate: boolean = false
 	private connectivityModel!: WebsocketConnectivityModel
 	private logins: LoginController | null = null
-	private appBasedVisibilityChage: (visible: boolean) => void = noOp
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -97,7 +96,7 @@ export class WindowFacade {
 		tmpAnchorEl.click()
 	}
 
-	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel, appBasedVisibilityChage: ((visible: boolean) => void) | null) {
+	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel) {
 		this.logins = logins
 
 		if (window.addEventListener && !isApp()) {
@@ -106,7 +105,6 @@ export class WindowFacade {
 			window.addEventListener("unload", (e) => this._onUnload())
 		}
 
-		this.appBasedVisibilityChage = appBasedVisibilityChage ?? noOp
 		this.connectivityModel = connectivityModel
 
 		if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
@@ -158,6 +156,9 @@ export class WindowFacade {
 
 		if (this.windowCloseConfirmation) {
 			let m = lang.get("closeWindowConfirmation_msg")
+			// modern approach (see https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event)
+			e.preventDefault()
+			// legacy approach
 			e.returnValue = m
 			return m
 		} else if (this.logins?.isUserLoggedIn()) {
@@ -230,6 +231,9 @@ export class WindowFacade {
 	}
 
 	async reload(args: Params) {
+		this.windowCloseConfirmation = false
+		this._windowCloseListeners.clear()
+
 		if (!Object.hasOwn(args, "noAutoLogin")) {
 			args.noAutoLogin = true
 		}
@@ -257,8 +261,6 @@ export class WindowFacade {
 		if (isIOSApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
-
-				this.appBasedVisibilityChage(!document.hidden)
 
 				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground

@@ -5,6 +5,9 @@ import { theme } from "../theme"
 import { lazy } from "@tutao/tutanota-utils"
 import { component_size, px, size } from "../size"
 import { ExpanderPanel } from "./Expander"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
+import { isKeyPressed } from "../../misc/KeyManager"
+import { styles } from "../styles"
 
 export type RadioSelectorOption<T> = {
 	readonly name: MaybeTranslation
@@ -27,6 +30,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 		const optionId = name + valueString
 
 		const attrClasses = optionClass != null ? " " + optionClass : ""
+		const cursor = !isSelected ? "pointer" : "initial"
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
@@ -39,10 +43,19 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					"padding-block": px(12),
 					"border-color": isSelected ? theme.primary : theme.outline_variant,
 					"border-width": px(component_size.checkbox_border_size),
+					cursor,
 				},
 				onclick: () => {
 					if (!isSelected) onOptionSelected(option.value)
 				},
+				onkeydown: (e: KeyboardEvent) => {
+					if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+						if (!isSelected) onOptionSelected(option.value)
+					}
+				},
+				role: "button",
+				tabindex: TabIndex.Default,
+				...(option.renderChild && { "aria-expanded": String(isSelected) }),
 			},
 			m(
 				".flex.items-center.gap-12",
@@ -52,21 +65,20 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 						"font-weight": isSelected ? "bold" : undefined,
 						height: "fit-content",
 					},
-					role: "button",
-					...(option.renderChild && { "aria-expanded": String(isSelected) }),
 				},
-				[renderKnob(valueString, optionId, groupName, isSelected), m("label.left.pt-4.pb-4", { for: optionId }, lang.getTranslationText(option.name))],
+				[
+					m("input[type=radio].m-0.big-radio", {
+						name: groupName,
+						checked: isSelected,
+						value: valueString,
+						id: optionId,
+						style: { cursor },
+					}),
+					m("label.left.pt-4.pb-4", { for: optionId, style: { cursor } }, lang.getTranslationText(option.name)),
+				],
 			),
-			option.renderChild && m(ExpanderPanel, { expanded: isSelected }, option.renderChild?.()),
+			option.renderChild &&
+				m(ExpanderPanel, { expanded: isSelected }, m(`${styles.isMobileLayout() ? ".pt-16.pb-16" : ".plr-16.pt-32.pb-32"}`, option.renderChild?.())),
 		)
 	}
-}
-
-function renderKnob(value: string, id: string, groupName: MaybeTranslation, isSelected: boolean): Children {
-	return m("input[type=radio].m-0.big-radio", {
-		name: groupName,
-		checked: isSelected,
-		value,
-		id,
-	})
 }

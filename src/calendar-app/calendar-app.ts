@@ -81,7 +81,7 @@ import("../mail-app/translations/en.js")
 		initCommonLocator(calendarLocator)
 
 		// this needs to stay after client.init
-		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel, null)
+		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel)
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
 		}

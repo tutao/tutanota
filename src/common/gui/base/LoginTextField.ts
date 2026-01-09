@@ -46,12 +46,14 @@ export type LoginTextFieldAttrs = {
 		icon: AllIcons
 		color: string
 	}
+	borderColor?: string
 
 	/** This is called whenever the return key is pressed; overrides keyHandler */
 	onReturnKeyPressed?: () => unknown
+	minLineCount?: number // Only evaluated if type is Area
 }
 
-const inputMarginTop = font_size.small + size.spacing_4 + 3
+const inputMarginTop = font_size.small + size.spacing_12 + 2
 
 // this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
 const baseLabelPosition = "-50%"
@@ -76,18 +78,20 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 	view(vnode: CVnode<LoginTextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
-		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
+		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft && a.type !== TextFieldType.Area
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = 3
-		const borderColor = this.active ? theme.primary : "transparent"
+		const activeBorderColor = a.borderColor ?? theme.primary
+		const borderColor = this.active ? activeBorderColor : "transparent"
 		const borderBottomRadius = this.active ? "0px" : px(size.radius_8)
 
 		const borderRadius = `${px(size.radius_8)} ${px(size.radius_8)} ${borderBottomRadius} ${borderBottomRadius}`
 
-		return [
+		return m(
+			".full-width",
 			m(
-				".login-textfield.rel.overflow-hidden",
+				`.login-textfield.rel.overflow-hidden`,
 				{
 					id: vnode.attrs.id,
 					oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
@@ -119,74 +123,70 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 								"transition-duration": `${labelTransitionSpeed}ms`,
 								"transition-property": "transform, font-size, top, color",
 								top: labelBase ? "50%" : px(size.spacing_8),
-								left: a.leadingIcon ? px(size.icon_24 + size.spacing_16) : 0,
+								left: a.leadingIcon ? px(size.icon_20 + size.spacing_16) : 0,
 								"padding-left": px(size.spacing_16),
 								"padding-right": px(size.spacing_16),
-								color: !this.active ? "inherit" : theme.primary,
+								color: !this.active && !a.isReadOnly ? "inherit" : theme.primary,
 							},
 						},
 						lang.getTranslationText(a.label),
 					),
-					m(".flex.flex-column", [
-						// another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
-						m(
-							".flex.items-end.flex-wrap",
-							{
-								// .flex-wrap
-								style: {
-									"min-height": px(minInputHeight),
-									"border-bottom": doShowBorder ? `${px(borderWidth)} solid ${borderColor}` : "",
-									transition: `border-bottom ${labelTransitionSpeed}ms ease-out`,
-								},
+					m(
+						".flex.items-end",
+						{
+							// .flex-wrap
+							style: {
+								"min-height": px(minInputHeight),
+								"border-bottom": doShowBorder ? `${px(borderWidth)} solid ${borderColor}` : "",
+								transition: `border-bottom ${labelTransitionSpeed}ms ease-out`,
 							},
-							[
-								a.leadingIcon &&
-									m(Icon, {
-										size: IconSize.PX20,
-										icon: a.leadingIcon.icon,
-										style: {
-											fill: a.leadingIcon.color,
-											"align-self": "center",
-											"padding-left": px(16),
-											position: "relative",
-											top: px(borderWidth / 2),
-										},
-									}),
-								a.injectionsLeft ? a.injectionsLeft() : null, // additional wrapper element for bubble input field. input field should always be in one line with right injections
-								m(
-									".inputWrapper.flex-space-between.items-end",
-									{
-										style: {
-											minHeight: px(minInputHeight - 2), // minus padding
-
-											"padding-left": px(size.spacing_16),
-											"padding-right": px(size.spacing_16),
-										},
-										oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
+						},
+						[
+							a.leadingIcon &&
+								m(Icon, {
+									size: IconSize.PX20,
+									icon: a.leadingIcon.icon,
+									style: {
+										fill: a.leadingIcon.color,
+										"align-self": "center",
+										"padding-left": px(16),
+										position: "relative",
+										top: px(borderWidth / 2),
 									},
-									[
-										a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
-										a.injectionsRight
-											? m(
-													".flex-end.items-center",
-													{
-														style: {
-															minHeight: px(minInputHeight - 2),
-															position: "relative",
-															top: px(borderWidth / 2),
-														},
+								}),
+							a.injectionsLeft ? a.injectionsLeft() : null, // additional wrapper element for bubble input field. input field should always be in one line with right injections
+							m(
+								".inputWrapper.flex-space-between.items-end",
+								{
+									style: {
+										minHeight: px(minInputHeight - 2), // minus padding
+
+										"padding-left": px(size.spacing_16),
+										"padding-right": px(size.spacing_16),
+									},
+									oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
+								},
+								[
+									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
+									a.injectionsRight
+										? m(
+												".flex-end.items-center",
+												{
+													style: {
+														minHeight: px(minInputHeight - 2),
+														position: "relative",
+														top: px(borderWidth / 2),
 													},
-													a.injectionsRight(),
-												)
-											: null,
-									],
-								),
-							],
-						),
-					]),
+												},
+												a.injectionsRight(),
+											)
+										: null,
+								],
+							),
+						],
+					),
 				],
 			),
-
 			a.helpLabel &&
 				m(
 					"small.noselect",
@@ -197,17 +197,19 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 					},
 					a.helpLabel(),
 				),
-		]
+		)
 	}
 
 	_getInputField(a: LoginTextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
-				".text-break.selectable",
+				".text-break.selectable.text-ellipsis.block",
 				{
 					style: {
 						marginTop: px(inputMarginTop),
 						lineHeight: px(font_size.line_height_input),
+						position: "relative",
+						bottom: px(size.spacing_4),
 					},
 					"data-testid": `tfi:${lang.getTestId(a.label)}`,
 				},
@@ -344,14 +346,14 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement
 					this.domInput.value = a.value
-					this.domInput.style.height = px(Math.max(a.value.split("\n").length, 1) * font_size.line_height_input) // display all lines on creation of text area
+					this.domInput.style.height = px(Math.max(a.value.split("\n").length, a.minLineCount ?? 1) * font_size.line_height_input) // display all lines on creation of text area
 				},
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
 				onkeydown: (e: KeyboardEvent) => useKeyHandler(e, a.keyHandler),
 				oninput: () => {
 					this.domInput.style.height = "0px"
-					this.domInput.style.height = px(this.domInput.scrollHeight)
+					this.domInput.style.height = px(Math.max(this.domInput.scrollHeight, (a.minLineCount ?? 1) * font_size.line_height_input))
 					a.oninput?.(this.domInput.value, this.domInput)
 				},
 				onupdate: () => {

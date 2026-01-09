@@ -12,7 +12,7 @@ import { getFeaturePlaceholderReplacement } from "../utils/SubscriptionUtils"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { styles } from "../../gui/styles"
-import { boxShadowHigh } from "../../gui/main-styles"
+import { boxShadowHigh, boxShadowLow } from "../../gui/main-styles"
 import { PlanBadge } from "./PlanBadge"
 import { DiscountDetail, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
@@ -29,12 +29,20 @@ type BusinessPlanBoxAttrs = {
 	priceAndConfigProvider: PriceAndConfigProvider
 	discountDetail?: DiscountDetail
 	selectedPaymentInterval: Stream<PaymentInterval>
+	forceMobileLayout?: boolean
+	priceHintLabel?: TranslationKeyType
+	forceExpanded?: boolean
 }
 
 export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	private contentEl?: HTMLElement
 	private collapsedH = 0
 	private prevSelected?: boolean
+	private isHovered = false
+
+	private isMobileLayout(attrs: BusinessPlanBoxAttrs): boolean {
+		return attrs.forceMobileLayout === true ? true : styles.isMobileLayout()
+	}
 
 	private measureCollapsed() {
 		const root = this.contentEl
@@ -76,12 +84,17 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	}
 
 	view({ attrs }: Vnode<BusinessPlanBoxAttrs>): Children {
+		const isMobileLayout = this.isMobileLayout(attrs)
+		const forceExpanded = attrs.forceExpanded === true
 		const localTheme = theme
 		const renderFeature = this.generateRenderFeature(attrs.planConfig.type, attrs.priceAndConfigProvider, localTheme)
-		const { selectedPaymentInterval, planConfig, price, referencePrice, isSelected, isDisabled, isCurrentPlan, onclick, discountDetail } = attrs
+		const { selectedPaymentInterval, planConfig, price, referencePrice, isSelected, isDisabled, isCurrentPlan, onclick, discountDetail, priceHintLabel } =
+			attrs
 
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
+		const canHover = !isDisabled && !isSelected
+		const showHover = canHover && this.isHovered
 		const handleSelect = (event: Event) => {
 			if (event instanceof KeyboardEvent && ![" ", "Enter"].includes((event as KeyboardEvent).key)) return
 			return !isDisabled && onclick(planConfig.type)
@@ -90,9 +103,20 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 		return m(
 			"div.flex.flex-column",
 			{
+				class: `plan-box${isSelected ? " plan-box-selected" : ""}${isDisabled ? " plan-box-disabled" : ""}`,
 				style: {
-					transform: isSelected && !styles.isMobileLayout() ? `translateY(${px(-size.core_16)})` : "initial",
+					transform: isSelected && !isMobileLayout ? `translateY(${px(-size.core_16)})` : "initial",
 					transition: `transform ${DefaultAnimationTime}ms, box-shadow ${DefaultAnimationTime}ms, background-color ${DefaultAnimationTime}ms`,
+				},
+				onmouseenter: () => {
+					if (!canHover) return
+					this.isHovered = true
+					m.redraw()
+				},
+				onmouseleave: () => {
+					if (!this.isHovered) return
+					this.isHovered = false
+					m.redraw()
 				},
 				onclick: handleSelect,
 				onkeydown: handleSelect,
@@ -107,7 +131,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 					translation: attrs.discountDetail!.ribbonTranslation,
 				}),
 			m(
-				"div",
+				"div.plan-box-surface",
 				{
 					oncreate: () => {
 						this.measureCollapsed()
@@ -120,19 +144,20 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						userSelect: "none",
 						borderStyle: "solid",
 						borderWidth: hasCampaign ? `0 ${px(2)} ${px(2)} ${px(2)}` : px(2),
-						borderColor: isSelected ? localTheme.primary : localTheme.outline_variant,
+						borderColor: isSelected ? localTheme.primary : showHover ? localTheme.outline : localTheme.outline_variant,
 						backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
-						padding: `${px(styles.isMobileLayout() ? 12 : size.spacing_24)} ${px(styles.isMobileLayout() ? 12 : size.spacing_24)}`,
+						padding: `${px(isMobileLayout ? 12 : size.spacing_24)} ${px(isMobileLayout ? 12 : size.spacing_24)}`,
 						opacity: isDisabled ? 0.6 : 1,
-						"box-shadow": isSelected ? boxShadowHigh : "initial",
+						"box-shadow": isSelected ? boxShadowHigh : showHover ? boxShadowLow : "initial",
+						transition: `border-color ${DefaultAnimationTime}ms ease-out, box-shadow ${DefaultAnimationTime}ms ease-out`,
 						height: "100%",
 					},
 				},
 				[
 					// header
-					m(`div.flex.items-center.justify-between.gap-16${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
-						m(`${styles.isMobileLayout() ? ".flex.gap-12.items-center" : ".flex.flex-column.gap-8"}`, [
+					m(`div.flex.items-center.justify-between.gap-16${isMobileLayout ? ".flex" : ".flex-column"}`, [
+						m(`${isMobileLayout ? ".flex.gap-12.items-center" : ".flex.flex-column.gap-8"}`, [
 							m(`div.items-center.justify-center.flex.gap-12`, [
 								m(Icon, {
 									icon: planConfig.icon,
@@ -146,7 +171,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 									class: `flex-center items-center`,
 									size: IconSize.PX20,
 									style: {
-										display: styles.isMobileLayout() ? "block" : "none",
+										display: isMobileLayout ? "block" : "none",
 										margin: "-3px",
 										transform: `rotateZ(${attrs.isSelected ? 180 : 0}deg)`,
 										transition: `transform ${DefaultAnimationTime}ms`,
@@ -154,14 +179,14 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 									},
 								}),
 							]),
-							m(`div.flex-grow${styles.isMobileLayout() ? ".left" : ".center"}`, [
+							m(`div.flex-grow${isMobileLayout ? ".left" : ".center"}`, [
 								m(
 									"div.font-mdio",
 									{
 										style: {
 											lineHeight: 1,
 											fontWeight: "bold",
-											fontSize: px(styles.isMobileLayout() ? 18 : 20),
+											fontSize: px(isMobileLayout ? 18 : 20),
 											color: isSelected ? localTheme.primary : localTheme.on_surface,
 										},
 									},
@@ -171,7 +196,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 									"div",
 									{
 										style: {
-											display: styles.isMobileLayout() ? "none" : "block",
+											display: isMobileLayout ? "none" : "block",
 											fontSize: px(12),
 										},
 									},
@@ -184,7 +209,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							{ style: { minHeight: px(50) } },
 							isCurrentPlan || isDisabled
 								? m(PlanBadge, { langKey: isCurrentPlan ? "pricing.currentPlan_label" : "unavailable_label" })
-								: m(`div.no-wrap${styles.isMobileLayout() ? ".right" : ".center"}`, [
+								: m(`div.no-wrap${isMobileLayout ? ".right" : ".center"}`, [
 										m("div.lh-s", [
 											referencePrice
 												? m("span.strike.mr-8.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
@@ -194,7 +219,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 										m(
 											"div.small",
 											{ style: { color: localTheme.on_surface_variant } },
-											lang.getTranslationText("pricing.perUserMonth_label"),
+											lang.getTranslationText(priceHintLabel ?? "pricing.perUserMonth_label"),
 										),
 									]),
 						),
@@ -202,7 +227,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 
 					m("hr", {
 						style: {
-							margin: styles.isMobileLayout() ? "8px 0" : "16px 0",
+							margin: isMobileLayout ? "8px 0" : "16px 0",
 							height: px(1),
 							display: "block",
 							border: "none",
@@ -216,7 +241,9 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							oncreate: (v) => {
 								this.contentEl = v.dom as HTMLElement
 								this.measureCollapsed()
-								if (styles.isMobileLayout()) {
+								if (forceExpanded) {
+									this.setMaxHeight(true)
+								} else if (isMobileLayout) {
 									this.setMaxHeight(attrs.isSelected)
 								} else {
 									this.setMaxHeight(true)
@@ -225,10 +252,12 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							onupdate: (v) => {
 								this.contentEl = v.dom as HTMLElement
 								this.measureCollapsed()
-								if (this.prevSelected !== attrs.isSelected && styles.isMobileLayout()) {
+								if (forceExpanded) {
+									this.setMaxHeight(true)
+								} else if (this.prevSelected !== attrs.isSelected && isMobileLayout) {
 									this.animateTo(attrs.isSelected)
 								} else {
-									if (styles.isMobileLayout()) {
+									if (isMobileLayout) {
 										this.setMaxHeight(attrs.isSelected)
 									} else {
 										this.setMaxHeight(true)

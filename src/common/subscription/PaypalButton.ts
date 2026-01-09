@@ -11,7 +11,7 @@ import { EntityEventsListener } from "../api/main/EventController"
 import stream from "mithril/stream"
 import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 
-interface PaypalButtonAttrs {
+export interface PaypalButtonAttrs {
 	data: Pick<UpgradeSubscriptionData, "accountingInfo">
 	onclick: ClickHandler
 	oncomplete?: () => void
@@ -59,7 +59,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 				m(BaseButton, {
 					label: lang.makeTranslation("PayPal", "PayPal"),
 					icon: m(".payment-logo.flex", m.trust(PayPalLogo)),
-					class: "border border-radius bg-white button-height plr-12",
+					class: "border border-radius bg-white button-height plr-16",
 					onclick,
 				}),
 			),

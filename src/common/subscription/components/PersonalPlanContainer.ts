@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "../../gui/styles"
 import { px, size } from "../../gui/size"
-import { PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
+import { PlanType } from "../../api/common/TutanotaConstants"
 import { PersonalPaidPlanBox } from "./PersonalPaidPlanBox"
 import { getApplePriceStr, getPriceStr } from "../utils/SubscriptionUtils"
 import { PersonalFreePlanBox } from "./PersonalFreePlanBox"
@@ -101,7 +101,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 		},
 	}: Vnode<PlanBoxContainerAttrs>): Children {
 		return m(
-			`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt-16"}${anyHasGlobalFirstYearCampaign(discountDetails) ? ".mt-32" : ""}`,
+			`#plan-selector.flex-column${allowSwitchingPaymentInterval ? "" : ".mt-16"}${anyHasGlobalFirstYearCampaign(discountDetails) ? ".mt-32" : ""}`,
 			{
 				"data-testid": "dialog:select-subscription",
 				style: {
@@ -114,9 +114,8 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 								transform: "translateX(-50%)",
 							}
 						: {
-								width: "fit-content",
+								width: "100%",
 								"margin-inline": "auto",
-								"max-width": px(500),
 							}),
 				},
 			},

@@ -110,23 +110,28 @@ export const layout_size = {
 		return (this.calendar_line_height + 2 * this.calendar_event_border + this.calendar_day_event_padding) * 4
 	},
 
+	calendar_day_event_padding: 2,
 	calendar_days_header_height: 25,
-	calendar_hour_width: 80,
-	calendar_hour_width_mobile: 30,
+	calendar_event_border: 1,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
-	calendar_event_border: 1,
-	calendar_day_event_padding: 2,
-	drawer_menu_width: 44,
+	calendar_hour_width: 80,
+	calendar_hour_width_mobile: 30,
 	column_width_s_desktop: 135,
 	column_width_s_mobile: 70,
-	first_col_min_width: 240,
+	drawer_menu_width: 44,
 	first_col_max_width: 300,
-	second_col_min_width: 300,
-	second_col_max_width: 350,
-	third_col_min_width: 600,
-	third_col_max_width: 2400,
+	first_col_min_width: 240,
 	only_show_in_single_column_min_max_width: 10000, // viewport >= every mobile device viewport
+	second_col_max_width: 350,
+	second_col_min_width: 300,
+	wizard_content_max_width: 600,
+	wizard_progress_width: 260,
+	wizard_show_illustration_min_width: 1500,
+	wizard_max_width: 1800,
+	wizard_max_height: 1200,
+	third_col_max_width: 2400,
+	third_col_min_width: 600,
 
 	get desktop_layout_width(): number {
 		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
@@ -140,7 +145,9 @@ export const layout_size = {
 }
 
 export const component_size = {
+	button_height_sm: 32,
 	button_height: 44,
+	button_height_lg: 56,
 	button_height_accent: 40,
 	button_height_bubble: 30,
 	button_height_compact: 30,
@@ -155,7 +162,6 @@ export const component_size = {
 	navbar_button_width: 80,
 	navbar_edge_width_mobile: 58,
 	header_logo_height: 38,
-	header_logo_height_mobile: 32,
 	list_row_height: 68,
 	dot_size: 7,
 	checkbox_size: 14,

@@ -2,16 +2,21 @@ import { boldFontWidths, PdfDictValue, PdfObjectRef, PdfStreamEncoding, regularF
 import { PdfWriter } from "./PdfWriter.js"
 import { Deflater } from "./Deflater.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { parseQrSvg } from "./qrSvg.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 export enum PDF_FONTS {
 	REGULAR = 1,
 	BOLD = 2,
 	INVISIBLE_CID = 3,
+	MONO_BOLD = 4,
 }
 
 export enum PDF_IMAGES {
 	TUTA_LOGO = 1,
 	ADDRESS = 2,
+	EDIT_ICON,
+	CLOUD_ICON,
 }
 
 export enum TEXT_RENDERING_MODE {
@@ -20,6 +25,16 @@ export enum TEXT_RENDERING_MODE {
 }
 
 export type TableColumn = { headerName: string; columnWidth: number }
+
+export type RectangleSpecs = {
+	topLeftMM: [number, number]
+	widthMM: number
+	heightMM: number
+	cornerRadiusMM: number
+	fillColor?: [number, number, number]
+	borderColor?: [number, number, number]
+	borderWidthMM?: number
+}
 
 export const MARGIN_TOP = 20
 export const MARGIN_LEFT = 25
@@ -53,7 +68,7 @@ export class PdfDocument {
 	private readonly deflater: Deflater
 	private pageCount: number = 0
 	private textStream: string = ""
-	private graphicsStream: string = ""
+	public graphicsStream: string = ""
 	private currentFont: PDF_FONTS = PDF_FONTS.REGULAR
 	private currentFontSize: number = 12
 	private pageList: PdfObjectRef[] = []
@@ -62,6 +77,81 @@ export class PdfDocument {
 		this.pdfWriter = pdfWriter
 		this.pdfWriter.setupDefaultObjects()
 		this.deflater = new Deflater()
+	}
+
+	/**
+	 * Draw a QR-code SVG (rect-only) at a given top-left position using millimeters.
+	 *
+	 * @param svgString    Raw SVG string (QR-style: <rect> elements only)
+	 * @param topLeftMm    xMm, yMm top-left position in millimeters
+	 */
+	addQrSvg(svgString: string, topLeftMm: [number, number]): PdfDocument {
+		const parsed = parseQrSvg(svgString)
+		const ops: string[] = []
+
+		if (parsed.rects.length > 0) {
+			ops.push(`0 g`) // set fill color to black once
+
+			for (const rect of parsed.rects) {
+				const rectXmm = topLeftMm[0] + rect.x
+				const rectYmm = topLeftMm[1] + rect.y
+				const rectWidthMm = rect.width
+				const rectHeightMm = rect.height
+
+				ops.push(`${mmToPSPoint(rectXmm)} ${mmToPSPoint(rectYmm)} ${mmToPSPoint(rectWidthMm)} ${mmToPSPoint(rectHeightMm)} re`)
+			}
+			ops.push(`f`) // fill all accumulated rectangles
+		}
+		this.graphicsStream += ops.join(" ") + " "
+		return this
+	}
+
+	addRoundedRectangle({ topLeftMM, widthMM, heightMM, cornerRadiusMM, fillColor, borderColor, borderWidthMM = 0 }: RectangleSpecs): PdfDocument {
+		if (fillColor == null && borderColor == null) {
+			throw new ProgrammingError("must set at least one of borderColor or fillColor")
+		}
+		const kappa = 0.55342925736
+		const ops: string[] = []
+		const cornerRadius = mmToPSPoint(cornerRadiusMM)
+		const startX = mmToPSPoint(topLeftMM[0])
+		const startY = mmToPSPoint(topLeftMM[1])
+		const width = mmToPSPoint(widthMM)
+		const height = mmToPSPoint(heightMM)
+		const endX = startX + width
+		const endY = startY + height
+		const controlPointOffset = (1 - kappa) * cornerRadius
+
+		// define the path: we're starting at the top left corner and go clockwise
+		ops.push(`${startX + cornerRadius} ${startY} m`)
+		ops.push(`${endX - cornerRadius} ${startY} l`)
+		ops.push(`${endX - controlPointOffset} ${startY} ${endX} ${startY + controlPointOffset} ${endX} ${startY + cornerRadius} c`)
+		ops.push(`${endX} ${endY - cornerRadius} l`)
+		ops.push(`${endX} ${endY - controlPointOffset} ${endX - controlPointOffset} ${endY} ${endX - cornerRadius} ${endY} c`)
+		ops.push(`${startX + cornerRadius} ${endY} l`)
+		ops.push(`${startX + controlPointOffset} ${endY} ${startX} ${endY - controlPointOffset} ${startX} ${endY - cornerRadius} c`)
+		ops.push(`${startX} ${startY + cornerRadius} l`)
+		ops.push(`${startX} ${startY + controlPointOffset} ${startX + controlPointOffset} ${startY} ${startX + cornerRadius} ${startY} c`)
+
+		// paint the path
+		if (borderWidthMM > 0) ops.push(`${mmToPSPoint(borderWidthMM)} w`)
+		if (fillColor != null) {
+			ops.push(`${fillColor[0]} ${fillColor[1]} ${fillColor[2]} rg`)
+		}
+		if (borderColor != null) {
+			ops.push(`${borderColor[0]} ${borderColor[1]} ${borderColor[2]} RG`)
+		}
+
+		if (fillColor != null && borderColor != null) {
+			ops.push("b")
+		} else if (fillColor == null) {
+			ops.push("s")
+		} else {
+			ops.push("f")
+		}
+		// ops.push(`0 g`)
+		// ops.push(`0 G`)
+		this.graphicsStream += ops.join(" ") + " "
+		return this
 	}
 
 	/**
@@ -122,7 +212,7 @@ export class PdfDocument {
 				["Parent", { refId: "PAGES" }],
 				["MediaBox", `[ 0 0 ${mmToPSPoint(PAPER_WIDTH)} ${mmToPSPoint(PAPER_HEIGHT)}]`],
 				["Resources", { refId: "RESOURCES" }],
-				["Contents", [{ refId: `TEXT_${this.pageCount}` }, { refId: `GRAPHICS_${this.pageCount}` }]],
+				["Contents", [{ refId: `GRAPHICS_${this.pageCount}` }, { refId: `TEXT_${this.pageCount}` }]],
 			]),
 			pageRefId,
 		)
@@ -173,6 +263,31 @@ export class PdfDocument {
 	}
 
 	/**
+	 * Add a horizontally center aligned text at the provided X position.
+	 * When the text becomes wider than maxWidthMM, the font size will shrink to fit within maxWidthMM.
+	 */
+	addTextCenterAlignAutoScaled(text: string, position: [centerX: number, y: number], maxWidthMM: number = PAPER_WIDTH) {
+		const oldFontSize = this.currentFontSize
+		if (text === "") return this
+		const unicodePoints = toUnicodePoint(text)
+		const textWidthMM = pspointToMM(getWordLengthInPoints(unicodePoints, this.currentFont, this.currentFontSize))
+
+		if (textWidthMM > maxWidthMM) {
+			const scalingFactor = maxWidthMM / textWidthMM
+			const newFontSize = this.currentFontSize * scalingFactor
+			this.changeFontSize(newFontSize)
+		}
+		const textWidthPts = getWordLengthInPoints(unicodePoints, this.currentFont, this.currentFontSize)
+		const xPts = mmToPSPoint(position[0]) - textWidthPts / 2
+		const yPts = mmToPSPoint(position[1]) + this.currentFontSize
+
+		this.textStream += `1 0 0 -1 ${xPts} ${yPts} Tm <${unicodePoints.join("")}> Tj `
+		this.changeFontSize(oldFontSize)
+
+		return this
+	}
+
+	/**
 	 * Add a linebreak in the text
 	 */
 	addLineBreak(): PdfDocument {
@@ -191,7 +306,7 @@ export class PdfDocument {
 		// Image placement demands two matrix transformations, so it must make its own graphic state to not affect graphic elements which need no transform (drawLine)
 		this.graphicsStream += `Q q ${TRANSFORM_MATRIX} cm ${mmToPSPoint(dimensions[0])} 0 0 -${mmToPSPoint(dimensions[1])} ${mmToPSPoint(
 			position[0],
-		)} ${mmToPSPoint(position[1])} cm /Im${image} Do Q q ${TRANSFORM_MATRIX} cm `
+		)} ${mmToPSPoint(position[1] + dimensions[1])} cm /Im${image} Do Q q ${TRANSFORM_MATRIX} cm `
 		return this
 	}
 
@@ -480,4 +595,8 @@ export function getWordLengthInPoints(codePoints: string[], font: PDF_FONTS, fon
  */
 function mmToPSPoint(mm: number) {
 	return mm * 2.834645688
+}
+
+function pspointToMM(pspoint: number) {
+	return pspoint / 2.834645688
 }

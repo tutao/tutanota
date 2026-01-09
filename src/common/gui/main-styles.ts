@@ -1122,6 +1122,9 @@ styles.registerStyle("main", () => {
 		".col-reverse": {
 			"flex-direction": "column-reverse",
 		},
+		".row-reverse": {
+			"flex-direction": "row-reverse",
+		},
 		".grid": {
 			display: "grid",
 		},
@@ -1163,9 +1166,6 @@ styles.registerStyle("main", () => {
 		},
 		".column-gap-4": {
 			"column-gap": px(size.spacing_4),
-		},
-		".gap-12": {
-			gap: px(12),
 		},
 		".flex": {
 			display: "flex",
@@ -1321,11 +1321,14 @@ styles.registerStyle("main", () => {
 		".border-radius-4": {
 			"border-radius": px(size.radius_4),
 		},
+		".border-radius-8": {
+			"border-radius": px(size.radius_8),
+		},
 		".border-radius-12": {
 			"border-radius": px(size.radius_12),
 		},
-		".border-radius-8": {
-			"border-radius": px(size.radius_8),
+		".border-radius-16": {
+			"border-radius": px(size.radius_16),
 		},
 		".border-radius-top-left-8": {
 			"border-top-left-radius": px(size.radius_8),
@@ -1485,6 +1488,12 @@ styles.registerStyle("main", () => {
 			"max-width": px(component_size.button_height),
 			"max-height": px(component_size.button_height),
 		},
+		".wizard-page": {
+			transition: `opacity ${DefaultAnimationTime}ms ease-out`,
+		},
+		".wizard-page-transition": {
+			opacity: 0,
+		},
 		".wizard-next-button": {
 			"margin-top": "auto",
 			"margin-bottom": px(size.spacing_16),
@@ -1524,6 +1533,46 @@ styles.registerStyle("main", () => {
 			"border-top": `3px solid ${theme.primary}`,
 			height: 0,
 			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
+		},
+		".wizard-progress": {
+			border: `1px solid ${theme.outline}`,
+			color: "inherit",
+			width: px(component_size.button_icon_bg_size),
+			height: px(component_size.button_icon_bg_size),
+			"border-radius": px(component_size.button_icon_bg_size),
+			"min-width": px(component_size.button_icon_bg_size),
+			display: "flex",
+			"justify-content": "center",
+			"align-items": "center",
+		},
+		".wizard-progress-active": {
+			border: `2px solid ${theme.primary}`,
+			color: theme.primary,
+		},
+		".wizard-progress-previous": {
+			border: `1px solid ${theme.primary}`,
+			"background-color": theme.primary,
+		},
+		".wizard-progress-wrap:not(:last-child)": {
+			height: "100%",
+			position: "relative",
+		},
+		".wizard-progress:after": {
+			content: '""',
+			"border-left": `3px dotted ${theme.outline_variant}`,
+			width: 0,
+			position: "absolute",
+			height: `calc(100% - ${px(component_size.button_icon_bg_size)} - ${px(16)})`,
+			bottom: px(8),
+		},
+		".wizard-progress-previous:after": {
+			"border-left": `3px solid ${theme.primary}`,
+		},
+		".wizard-progress-active:after": {
+			"border-left": `3px dotted ${theme.primary}`,
+		},
+		".wizard-progress-wrap:last-child > .wizard-progress:after": {
+			display: "none",
 		},
 		".compact": {
 			width: `${component_size.button_height_compact}px !important`,
@@ -3183,6 +3232,7 @@ styles.registerStyle("main", () => {
 		".dynamic-color-svg-wrapper > svg": {
 			width: "100%",
 			height: "100%",
+			"--primary": theme.primary,
 			"--on-primary": theme.on_primary,
 			"--primary-container": theme.primary_container,
 			"--on-primary-container": theme.on_primary_container,
@@ -3251,19 +3301,19 @@ styles.registerStyle("main", () => {
 		},
 		".base-button-sm": {
 			"padding-inline": px(12),
-			height: px(32),
+			height: px(component_size.button_height_sm),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
 		".base-button-md": {
 			"padding-inline": px(16),
-			height: px(44),
+			height: px(component_size.button_height),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
 		".base-button-lg": {
 			"padding-inline": px(24),
-			height: px(56),
+			height: px(component_size.button_height_lg),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
@@ -3284,8 +3334,18 @@ styles.registerStyle("main", () => {
 			"transition-duration": `${DefaultAnimationTime / 2}ms`,
 			"transition-timing-function": "ease-out",
 		},
-		".login-textfield:hover:not(:has(input:focus))": {
+		".login-textfield:hover:has(input):not(:has(input:focus))": {
 			"background-color": theme.state_bg_focus,
+		},
+		".snackbar": {
+			"background-color": theme.surface_container_high,
+			"border-radius": px(size.radius_8),
+			color: theme.on_surface,
+			"padding-top": px(size.spacing_8),
+			"padding-bottom": px(size.spacing_8),
+			display: "flex",
+			"justify-content": "space-between",
+			"min-height": px(component_size.button_height_lg),
 		},
 	}
 })

@@ -3,6 +3,7 @@ import type { LoginController } from "../../api/main/LoginController"
 import { assertMainOrNode } from "../../api/common/Env"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"
 import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mailFunctionality/SharedMailUtils.js"
+import { theme } from "../../gui/theme"
 
 assertMainOrNode()
 /** password strength resulting in a full bar */
@@ -10,6 +11,7 @@ export const PASSWORD_MAX_VALUE = 80
 export const PASSWORD_MIN_VALUE = 0
 /** the minimum password strength we accept, but the user can choose a stronger password */
 export const PASSWORD_MIN_SECURE_VALUE = 64
+export const PASSWORD_MEDIUM_INSECURE = 50 // Still too Weak, but not *very* weak
 export const _BAD_SEQUENCES = [
 	"^1234567890ß´",
 	'°!"§$%&/()=?`',
@@ -103,8 +105,23 @@ export function scaleToVisualPasswordStrength(passwordStrength: number): number 
 	return Math.min(100, (passwordStrength / PASSWORD_MAX_VALUE) * 100)
 }
 
+export function passwordStrengthToColor(passwordStrength?: number) {
+	if (!passwordStrength) return theme.primary
+	if (passwordStrength < PASSWORD_MEDIUM_INSECURE) {
+		return theme.error
+	} else if (passwordStrength < PASSWORD_MIN_SECURE_VALUE) {
+		return theme.warning
+	} else {
+		return theme.success
+	}
+}
+
 export function isSecurePassword(passwordStrength: number): boolean {
 	return passwordStrength >= PASSWORD_MIN_SECURE_VALUE
+}
+
+export function isMediumInsecurePassword(passwordStrength: number): boolean {
+	return passwordStrength < PASSWORD_MEDIUM_INSECURE
 }
 
 /**

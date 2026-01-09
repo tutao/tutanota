@@ -3,7 +3,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { DefaultAnimationTime } from "../../animation/Animations.js"
-import { ButtonSize, ButtonVariant, ButtonWidth, resolveButtonClasses } from "../../ButtonStyles"
+import { ButtonSize, ButtonVariant, ButtonWidth, resolveButtonClasses } from "./ButtonStyles.js"
 import { AllIcons, Icon, IconSize } from "../Icon"
 import { theme } from "../../theme"
 
@@ -55,11 +55,11 @@ function renderVariantButton(attrs: CommonButtonAttrs, variant: ButtonVariant): 
 }
 
 // disable eslint errors as long as the extended ButtonAttrs are empty
-// eslint-disable-next-line
+
 export interface LoginButtonAttrs extends CommonButtonAttrs {}
-// eslint-disable-next-line
+
 export interface SecondaryButtonAttrs extends CommonButtonAttrs {}
-// eslint-disable-next-line
+
 export interface TertiaryButtonAttrs extends CommonButtonAttrs {}
 
 export class LoginButton implements ClassComponent<LoginButtonAttrs> {

@@ -35,7 +35,7 @@ export const allowedImports = {
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date"],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
 	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra"],
@@ -46,6 +46,7 @@ export const allowedImports = {
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
+	signup: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "settings", "login"],
 	"spam-classifier": ["polyfill-helpers", "common", "common-min"],
 	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
 	"pow-worker": [],
@@ -64,6 +65,7 @@ export const allowedImports = {
 		"date-gui",
 		"login",
 		"sharing",
+		"qr",
 	],
 	"mail-settings": [
 		"polyfill-helpers",
@@ -126,7 +128,8 @@ export const allowedImports = {
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
 	linkify: [],
-	invoice: ["common-min"],
+	qr: ["polyfill-helpers"],
+	pdf: ["common-min", "qr"],
 	"material-color-utilities": [],
 }
 
@@ -266,6 +269,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// Perhaps contact form should be separate
 		// Recover things depends on HtmlEditor which we don't want to load on each login
 		return "ui-extra"
+	} else if (isIn("src/common/signup")) {
+		return "signup"
 	} else if (isIn("src/common/login")) {
 		return "login"
 	} else if (
@@ -288,14 +293,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("commonjs-dynamic-modules")
 	) {
 		return "polyfill-helpers"
-	} else if (
-		isIn("src/common/settings") ||
-		isIn("src/common/subscription") ||
-		isIn("libs/qrcode") ||
-		isIn("src/common/ratings") ||
-		isIn("libs/jsQR") ||
-		isIn("src/common/termination")
-	) {
+	} else if (isIn("src/common/settings") || isIn("src/common/subscription") || isIn("src/common/ratings") || isIn("src/common/termination")) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
@@ -313,14 +311,16 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-search"
 	} else if (isIn("src/common/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
 		return "linkify"
-	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen")) {
-		return "invoice"
+	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen") || isIn("src/common/api/worker/recoveryDocumentGenerator")) {
+		return "pdf"
 	} else if (isIn("src/common/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
 	} else if (isIn("node_modules/@material/material-color-utilities")) {
 		return "material-color-utilities"
+	} else if (isIn("libs/jsQR") || isIn("libs/qrcode")) {
+		return "qr"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

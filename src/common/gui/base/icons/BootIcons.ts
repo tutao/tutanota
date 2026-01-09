@@ -24,6 +24,7 @@ export const enum BootIcons {
 	Calendar = "Calendar",
 	Heart = "Heart",
 	Mail = "Mail",
+	QRCodeOutline = "QRCodeOutline",
 }
 
 export const BootIconsSvg: Record<BootIcons, string> = Object.freeze({
@@ -47,4 +48,5 @@ export const BootIconsSvg: Record<BootIcons, string> = Object.freeze({
 	Calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path d="M368.005 272h-96v96h96zm-32-208v32h-160V64h-48v32h-24.01c-22.002 0-40 17.998-40 40v272c0 22.002 17.998 40 40 40h304.01c22.002 0 40-17.998 40-40V136c0-22.002-17.998-40-40-40h-24V64zm72 344h-304.01V196h304.01z"/></svg>`,
 	Heart: `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path d="m256 448-30.164-27.21C118.718 322.44 48 258.61 48 179.094 48 114.22 97.918 64 162.4 64c36.4 0 70.717 16.742 93.6 43.947C278.882 80.742 313.2 64 349.6 64 414.082 64 464 114.22 464 179.095c0 79.516-70.72 143.348-177.836 241.694z"/></svg>`,
 	Mail: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M424 80H88a56.06 56.06 0 0 0-56 56v240a56.06 56.06 0 0 0 56 56h336a56.06 56.06 0 0 0 56-56V136a56.06 56.06 0 0 0-56-56m-14.18 92.63-144 112a16 16 0 0 1-19.64 0l-144-112a16 16 0 1 1 19.64-25.26L256 251.73l134.18-104.36a16 16 0 0 1 19.64 25.26"/></svg>`,
+	QRCodeOutline: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><rect width="80" height="80" x="336" y="336" rx="8" ry="8"/><rect width="64" height="64" x="272" y="272" rx="8" ry="8"/><rect width="64" height="64" x="416" y="416" rx="8" ry="8"/><rect width="48" height="48" x="432" y="272" rx="8" ry="8"/><rect width="48" height="48" x="272" y="432" rx="8" ry="8"/><rect width="80" height="80" x="336" y="96" rx="8" ry="8"/><rect width="176" height="176" x="288" y="48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" rx="16" ry="16"/><rect width="80" height="80" x="96" y="96" rx="8" ry="8"/><rect width="176" height="176" x="48" y="48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" rx="16" ry="16"/><rect width="80" height="80" x="96" y="336" rx="8" ry="8"/><rect width="176" height="176" x="48" y="288" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" rx="16" ry="16"/></svg>`,
 } as const)

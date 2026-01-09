@@ -1,6 +1,7 @@
 import { BaseThemeId, Theme } from "../gui/theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
+import { mapNullable } from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 
@@ -36,4 +37,7 @@ export function getWhitelabelCustomizations(window: Window): WhitelabelCustomiza
 
 export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): UnknownThemeCustomizations {
 	return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v))
+}
+export function getWhitelabelRegistrationDomains(): string[] {
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.registrationDomains) || []
 }

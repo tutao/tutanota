@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector.js"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { defer, DeferredObject, mapNullable } from "@tutao/tutanota-utils"
+import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { windowFacade } from "../misc/WindowFacade.js"
@@ -12,7 +12,6 @@ import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
 import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel.js"
 import { LoginForm } from "./LoginForm.js"
 import { CredentialsSelector } from "./CredentialsSelector.js"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { createAsyncDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import type { ClickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
@@ -416,8 +415,4 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	_switchDeleteCredentialsState(): void {
 		this.viewModel.switchDeleteState()
 	}
-}
-
-export function getWhitelabelRegistrationDomains(): string[] {
-	return mapNullable(getWhitelabelCustomizations(window), (c) => c.registrationDomains) || []
 }

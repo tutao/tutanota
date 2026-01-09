@@ -432,6 +432,21 @@ export class CustomerFacade {
 		}
 	}
 
+	async generatePdfRecoveryDocument(recoveryCode: string, email: string): Promise<DataFile> {
+		const writer = await this.pdfWriter()
+		const { PdfRecoveryDocumentGenerator } = await import("../../recoveryDocumentGenerator/RecoveryDocumentGenerator.js")
+		const pdfGenerator = new PdfRecoveryDocumentGenerator(writer, recoveryCode, email)
+		const pdfFile = await pdfGenerator.generate()
+		return {
+			_type: "DataFile",
+			name: `Recovery Kit ${email}.pdf`,
+			mimeType: "application/pdf",
+			data: pdfFile,
+			size: pdfFile.byteLength,
+			id: undefined,
+		}
+	}
+
 	async generateXRechnungInvoice(invoiceNumber: string): Promise<DataFile> {
 		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)

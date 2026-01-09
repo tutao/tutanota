@@ -12,6 +12,7 @@ import { isIOSApp } from "../../api/common/Env"
 import { MobilePlanPrice } from "../../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
+import { SignupViewModel } from "../../signup/SignupView"
 
 export enum PaymentInterval {
 	Monthly = 1,
@@ -187,7 +188,11 @@ export class PriceAndConfigProvider {
 	/**
 	 * Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
 	 */
-	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData): SubscriptionPrice {
+	getSubscriptionPriceWithCurrency(
+		paymentInterval: PaymentInterval,
+		type: UpgradePriceType,
+		data: UpgradeSubscriptionData | SignupViewModel,
+	): SubscriptionPrice {
 		const subscription = data.targetPlanType
 
 		if (isIOSApp()) {

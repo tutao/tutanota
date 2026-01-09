@@ -54,6 +54,7 @@ import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
+import { px } from "../gui/size"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -127,20 +128,29 @@ export async function showSwitchDialog({
 				}),
 			// Headline for general messages
 			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),
-			m(PlanSelector, {
-				options,
-				actionButtons: subscriptionActionButtons,
-				priceAndConfigProvider,
-				availablePlans: acceptedPlans,
-				isApplePrice,
-				currentPlan: currentPlanInfo.planType,
-				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
-				// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
-				allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
-				showMultiUser: multipleUsersAllowed,
-				targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
-				discountDetails,
-			}),
+			m(
+				"",
+				{
+					style: {
+						"max-width": businessUse() ? "initial" : px(500),
+						"margin-inline": "auto",
+					},
+				},
+				m(PlanSelector, {
+					options,
+					actionButtons: subscriptionActionButtons,
+					priceAndConfigProvider,
+					availablePlans: acceptedPlans,
+					isApplePrice,
+					currentPlan: currentPlanInfo.planType,
+					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
+					// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
+					allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
+					showMultiUser: multipleUsersAllowed,
+					targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
+					discountDetails,
+				}),
+			),
 		)
 	}
 

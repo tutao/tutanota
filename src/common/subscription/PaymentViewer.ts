@@ -226,11 +226,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				)
 			}),
 		)
-			.then((price) =>
-				getDefaultPaymentMethod().then((paymentMethod) => {
-					return { price, paymentMethod }
-				}),
-			)
+			.then((price) => {
+				return { price, paymentMethod: getDefaultPaymentMethod() }
+			})
 			.then(({ price, paymentMethod }) => {
 				return PaymentDataDialog.show(neverNull(this.customer), neverNull(this.accountingInfo), price, paymentMethod).then((success) => {
 					if (success) {
