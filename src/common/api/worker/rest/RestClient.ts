@@ -1,10 +1,13 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError } from "../../common/error/RestError"
 import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
-import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { assertNotNull, isNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
 import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
+import { ApplicationTypesService } from "../../entities/base/Services"
+import { getServiceRestPath } from "./ServiceExecutor"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 assertWorkerOrNode()
 
@@ -131,8 +134,10 @@ export class RestClient {
 
 						// handle new server model and update the applicationTypesJson file if applicable
 						const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
-						if (applicationTypesHashResponseHeader != null) {
+						if (isNotNull(applicationTypesHashResponseHeader)) {
 							this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
+						} else if (path != getServiceRestPath(ApplicationTypesService) && method === HttpMethod.GET) {
+							throw new ProgrammingError("Empty value for " + APPLICATION_TYPES_HASH_HEADER + " header in response")
 						}
 
 						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
