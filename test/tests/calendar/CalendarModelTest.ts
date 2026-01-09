@@ -1,15 +1,18 @@
 import o from "@tutao/otest"
+import { ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/CalendarImporter"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
 	EncryptedMailAddressTypeRef,
+	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clone, downcast, neverNull } from "@tutao/tutanota-utils"
+import { clone, hexToUint8Array, neverNull, Require, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, GroupType, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { EntityEventsListener, EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
@@ -24,43 +27,39 @@ import {
 	RepeatRuleTypeRef,
 	User,
 	UserAlarmInfoListType,
-	UserAlarmInfoListTypeTypeRef,
 	UserAlarmInfoTypeRef,
-	UserTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { CachingMode, CalendarEventProgenitor, CalendarEventUidIndexEntry, CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { verify } from "@tutao/tutanota-test-utils"
-import type { WorkerClient } from "../../../src/common/api/main/WorkerClient.js"
 import { FileController } from "../../../src/common/file/FileController.js"
-import { func, instance, matchers, object, when } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils.js"
-import { IProgressMonitor, NoopProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
-import { makeAlarmScheduler } from "./CalendarTestUtils.js"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { IProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
+import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
-import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js"
-import { EntityRestClient } from "../../../src/common/api/worker/rest/EntityRestClient"
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { ParsedCalendarData } from "../../../src/common/calendar/gui/CalendarImporter"
-import { elementIdPart, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
+import { createDataFile } from "../../../src/common/api/common/DataFile"
+import { SessionKeyNotFoundError } from "../../../src/common/api/common/error/SessionKeyNotFoundError"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
 
 	const uid = "uid"
-	const sender = "sender@example.com"
+	const UNKNOWN_SENDER = "sender@example.com"
+	const ORGANIZER = "organizer@example.com"
+	const GUEST = "guest@example.com"
 
 	let calendarGroupRoot: CalendarGroupRoot
 	let calendarModel: CalendarModel
@@ -82,10 +81,14 @@ o.spec("CalendarModel", function () {
 
 	let baseInvitation: ParsedCalendarData
 	let baseExistingEvent: CalendarEvent
+	let baseCalendarEventUidIndexEntry: CalendarEventUidIndexEntry
+
 	let userControllerMock: UserController
 	let userMock: User
 
 	let calendarGroupMembership: GroupMembership
+	let entityListener: EntityEventsListener
+	let externalCalendarFacadeMock: ExternalCalendarFacade
 
 	o.beforeEach(function () {
 		notificationsMock = object()
@@ -103,6 +106,7 @@ o.spec("CalendarModel", function () {
 		nativePushServiceAppMock = object()
 		syncTrackMock = object()
 		languageViewModelMock = object()
+		externalCalendarFacadeMock = object()
 
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 		const userId = "user-id"
@@ -161,13 +165,43 @@ o.spec("CalendarModel", function () {
 			calendarFacadeMock,
 			fileControllerMock,
 			"Europe/Berlin",
-			makeExternalCalendarFacade(),
+			externalCalendarFacadeMock,
 			deviceConfigMock,
 			nativePushServiceAppMock,
 			syncTrackMock,
 			() => {},
 			languageViewModelMock,
 		)
+
+		baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
+			_id: ["listId", "eventId"],
+			uid,
+			_ownerGroup: calendarGroupRoot._id,
+			summary: "v1",
+			organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+				address: ORGANIZER,
+			}),
+			attendees: [
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: ORGANIZER,
+					}),
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: GUEST,
+					}),
+					status: CalendarAttendeeStatus.NEEDS_ACTION,
+				}),
+			],
+			alarmInfos: [],
+		})
+
+		baseCalendarEventUidIndexEntry = object()
+		baseCalendarEventUidIndexEntry.ownerGroup = calendarGroupRoot._id
+		baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+		baseCalendarEventUidIndexEntry.alteredInstances = []
 	})
 
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
@@ -176,128 +210,48 @@ o.spec("CalendarModel", function () {
 	}
 
 	o.spec("processCalendarData - CalendarMethod.REPLY", function () {
-		const anotherGuest = "another-attendee"
 		const alarm = createTestEntity(AlarmInfoTypeRef, {
 			_id: "alarm-id",
 		})
 
+		let baseParsedCalendarData: ParsedCalendarData
+		let baseParsedEventReply: ParsedEvent
+
 		o.beforeEach(function () {
-			baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
-				_id: ["listId", "eventId"],
-				uid,
-				_ownerGroup: calendarGroupRoot._id,
-				summary: "v1",
-				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: sender,
+			baseParsedEventReply = {
+				event: createTestEntity(CalendarEventTypeRef, {
+					uid,
+					summary: baseExistingEvent.summary,
+					attendees: [
+						createTestEntity(CalendarEventAttendeeTypeRef, {
+							// should be ignored
+							address: createTestEntity(EncryptedMailAddressTypeRef, {
+								address: GUEST,
+							}),
+							status: CalendarAttendeeStatus.ACCEPTED,
 						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: anotherGuest,
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-				],
-				alarmInfos: [[alarmsListId, alarm._id]],
-			})
+					],
+				}) as Require<"uid", CalendarEvent>,
+				alarms: [],
+			}
+			baseParsedCalendarData = {
+				method: CalendarMethod.REPLY,
+				contents: [baseParsedEventReply],
+			}
 		})
 
-		const loginControllerMock = makeLoginController()
+		o("reply is ignored if sender is not a guest or organizer", async function () {
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
 
-		const alarmsListId = neverNull(loginControllerMock.getUserController().user.alarmInfoList).alarms
-
-		o("reply but sender is not a guest", async function () {
-			const uid = "uid"
-			const existingEvent = createTestEntity(CalendarEventTypeRef, { uid })
-
-			const workerClient = makeWorkerClient()
-
-			const eventByUid: CalendarEventUidIndexEntry = object()
-
-			eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
-			eventByUid.alteredInstances = []
-
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(eventByUid)
-
-			await calendarModel.processCalendarData("sender@example.com", {
-				method: CalendarMethod.REPLY,
-				contents: [
-					{
-						event: createTestEntity(CalendarEventTypeRef, {
-							uid,
-						}) as CalendarEventProgenitor,
-						alarms: [],
-					},
-				],
-			})
+			await calendarModel.processCalendarData(UNKNOWN_SENDER, baseParsedCalendarData)
 			verify(calendarFacadeMock.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
-		o("replies from other guests are applied to the user's calendar", async function () {
+		o("reply from guest is applied to the organizer's calendar", async function () {
 			// removed some of the alarm testing criteria -- will recreate some tests specific to alarm behavior.
 
-			const anotherGuest = "another-attendee"
-			const existingEvent = createTestEntity(CalendarEventTypeRef, {
-				_ownerGroup: calendarGroupRoot._id,
-				uid,
-				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: sender,
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						// should be ignored
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: anotherGuest,
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-				],
-			}) as CalendarEventProgenitor
-
-			const eventReplyReceived = createTestEntity(CalendarEventTypeRef, {
-				_ownerGroup: calendarGroupRoot._id,
-				uid,
-				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: sender,
-						}),
-						status: CalendarAttendeeStatus.ACCEPTED,
-					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						// should be ignored
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: anotherGuest,
-						}),
-						status: CalendarAttendeeStatus.DECLINED,
-					}),
-				],
-			}) as CalendarEventProgenitor
-
-			const eventByUid: CalendarEventUidIndexEntry = object()
-
-			eventByUid.ownerGroup = calendarGroupRoot._id
-			eventByUid.progenitor = existingEvent
-			eventByUid.alteredInstances = []
-
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(eventByUid)
-
-			await calendarModel.processCalendarData(sender, {
-				// should be ignored
-				method: CalendarMethod.REPLY,
-				contents: [
-					{
-						event: eventReplyReceived,
-						alarms: [],
-					},
-				],
-			})
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			await calendarModel.processCalendarData(GUEST, baseParsedCalendarData)
 
 			const eventCaptor = matchers.captor()
 			const alarmsCaptor = matchers.captor()
@@ -307,22 +261,10 @@ o.spec("CalendarModel", function () {
 			const createdEvent: CalendarEvent = eventCaptor.value
 			const alarms: ReadonlyArray<AlarmInfo> = alarmsCaptor.value
 
-			o(createdEvent.uid).equals(eventReplyReceived.uid)
-			o(createdEvent.summary).equals(eventReplyReceived.summary)
-			o(createdEvent.attendees).deepEquals([
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
-						address: sender,
-					}),
-					status: CalendarAttendeeStatus.ACCEPTED,
-				}),
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
-						address: "another-attendee",
-					}),
-					status: CalendarAttendeeStatus.NEEDS_ACTION, // why is this NEEDS_ACTION and not DECLINED?
-				}),
-			])
+			o(createdEvent.uid).equals(baseExistingEvent.uid)
+			o(createdEvent.summary).equals(baseExistingEvent.summary)
+			const guest = createdEvent.attendees.find((attendee) => attendee.address.address == GUEST)
+			o(guest?.status).deepEquals(CalendarAttendeeStatus.ACCEPTED)
 		})
 	})
 
@@ -670,353 +612,118 @@ o.spec("CalendarModel", function () {
 			o(oldEvent).deepEquals(existingEvent)
 		})
 
-		// o("reprocess deferred calendar events with no owner enc session key", async function () {
-		// 	const calendarFile = createTestEntity(FileTypeRef, {
-		// 		_id: ["fileListId", "fileId"],
-		// 	})
-		//
-		// 	const eventUpdate = createTestEntity(CalendarEventUpdateTypeRef, {
-		// 		_id: ["calendarEventUpdateListId", "calendarEventUpdateId"],
-		// 		file: calendarFile._id,
-		// 	})
-		//
-		// 	const uid = "uid"
-		// 	const sender = "sender@example.com"
-		// 	const existingEvent = createTestEntity(CalendarEventTypeRef, {
-		// 		_id: ["calendarListId", "eventId"],
-		// 		_ownerGroup: groupRoot._id,
-		// 		sequence: "1",
-		// 		uid,
-		// 		organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-		// 			address: sender,
-		// 		}),
-		// 	})
-		//
-		// 	const fileControllerMock = makeFileController()
-		//
-		// 	const workerClient = makeWorkerClient()
-		// 	const eventControllerMock = makeEventController()
-		//
-		// 	fileControllerMock.getAsDataFile = func<FileController["getAsDataFile"]>()
-		// 	when(fileControllerMock.getAsDataFile(matchers.anything())).thenResolve(
-		// 		createDataFile("event.ics", "ical", stringToUtf8Uint8Array("UID: " + uid), "cid"),
-		// 	)
-		//
-		// 	const actuallyLoad = entityRestClientMock.load
-		// 	entityRestClientMock.load = func<EntityRestClientMock["load"]>()
-		// 	when(entityRestClientMock.load(matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenDo((...args) =>
-		// 		actuallyLoad.apply(entityRestClientMock, args),
-		// 	)
-		// 	when(entityRestClientMock.load(FileTypeRef, calendarFile._id), { ignoreExtraArgs: true }).thenReject(new SessionKeyNotFoundError("test"))
-		//
-		// 	const model = init({
-		// 		workerClient,
-		// 		restClientMock: entityRestClientMock,
-		// 		fileFacade: fileControllerMock,
-		// 		eventController: eventControllerMock.eventController,
-		// 	})
-		//
-		// 	entityRestClientMock.addListInstances(calendarFile, eventUpdate, existingEvent)
-		//
-		// 	// calendar update create event
-		// 	await eventControllerMock.sendEvent({
-		// 		typeRef: CalendarEventUpdateTypeRef,
-		// 		instanceListId: listIdPart(eventUpdate._id) as NonEmptyString,
-		// 		instanceId: elementIdPart(eventUpdate._id),
-		// 		operation: OperationType.CREATE,
-		// 		...noPatchesAndInstance,
-		// 		prefetchStatus: PrefetchStatus.NotPrefetched,
-		// 	})
-		//
-		// 	o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
-		//
-		// 	o(await entityRestClientMock.load(CalendarEventUpdateTypeRef, eventUpdate._id)).deepEquals(eventUpdate)
-		//
-		// 	entityRestClientMock.load = actuallyLoad
-		//
-		// 	// set owner enc session key to ensure that we can process the calendar event file
-		// 	calendarFile._ownerEncSessionKey = hexToUint8Array("01")
-		// 	await eventControllerMock.sendEvent({
-		// 		typeRef: FileTypeRef,
-		// 		instanceListId: listIdPart(calendarFile._id) as NonEmptyString,
-		// 		instanceId: elementIdPart(calendarFile._id),
-		// 		operation: OperationType.UPDATE,
-		// 		...noPatchesAndInstance,
-		// 		prefetchStatus: PrefetchStatus.NotPrefetched,
-		// 	})
-		//
-		// 	o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
-		// 	verify(fileControllerMock.getAsDataFile(matchers.anything()), { times: 1 })
-		// 	await o(async () => entityRestClientMock.load(CalendarEventUpdateTypeRef, eventUpdate._id)).asyncThrows(NotFoundError)
-		// })
+		// this is an integration test because it results in real calls to CalendarImporter.parseCalendarFile
+		o("safe calendar events updates when the session key of the file cannot be resolved", async function () {
+			const calendarFile = createTestEntity(FileTypeRef, {
+				_id: ["fileListId", "fileId"],
+				_ownerEncSessionKey: null,
+			})
+
+			const calendarEventUpdate = createTestEntity(CalendarEventUpdateTypeRef, {
+				_id: ["calendarEventUpdateListId", "calendarEventUpdateId"],
+				file: calendarFile._id,
+			})
+
+			when(entityClientMock.load(CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
+			when(entityClientMock.load(FileTypeRef, calendarFile._id, anything())).thenReject(new SessionKeyNotFoundError("session key cannot be resolved"))
+
+			await calendarModel.entityEventsReceived(
+				[
+					{
+						typeRef: CalendarEventUpdateTypeRef,
+						instanceListId: listIdPart(calendarEventUpdate._id) as NonEmptyString,
+						instanceId: elementIdPart(calendarEventUpdate._id),
+						operation: OperationType.CREATE,
+						...noPatchesAndInstance,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
+					},
+				],
+				"ownerGroup",
+			)
+			o(calendarModel.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(calendarEventUpdate)
+		})
+
+		o("process calendar events when ownerEncSessionKey for a File is available", async function () {
+			const calendarFile = createTestEntity(FileTypeRef, {
+				_id: ["fileListId", "fileId"],
+				_ownerEncSessionKey: hexToUint8Array("01"), // set owner enc session key to ensure that we can process the calendar event file
+			})
+
+			const calendarEventUpdate = createTestEntity(CalendarEventUpdateTypeRef, {
+				_id: ["calendarEventUpdateListId", "calendarEventUpdateId"],
+				file: calendarFile._id,
+			})
+
+			when(entityClientMock.load(FileTypeRef, calendarFile._id, anything())).thenResolve(calendarFile)
+			when(fileControllerMock.getAsDataFile(calendarFile)).thenResolve(createDataFile("event.ics", "ical", stringToUtf8Uint8Array("UID: " + uid), "cid"))
+			calendarModel.getFileIdToSkippedCalendarEventUpdates().set(getElementId(calendarFile), calendarEventUpdate)
+
+			await calendarModel.entityEventsReceived(
+				[
+					{
+						typeRef: FileTypeRef,
+						instanceListId: getListId(calendarFile) as NonEmptyString,
+						instanceId: getElementId(calendarFile),
+						operation: OperationType.UPDATE,
+						...noPatchesAndInstance,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
+					},
+				],
+				"ownerGroup",
+			)
+
+			o(calendarModel.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
+			verify(entityClientMock.erase(calendarEventUpdate))
+		})
 	})
 
 	o.spec("processCalendarData - CalendarMethod.CANCEL", function () {
 		//
-		let entityRestClientMock: EntityRestClientMock
 		let groupRoot: CalendarGroupRoot
+		let baseParsedCalendarDataCancel: ParsedCalendarData
 
 		o.beforeEach(function () {
-			groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-				_id: "groupRootId",
-				longEvents: "longEvents",
-				shortEvents: "shortEvents",
-			})
-			entityRestClientMock = new EntityRestClientMock()
-			entityRestClientMock.addElementInstances(groupRoot)
+			const baseParsedEvent = {
+				event: createTestEntity(CalendarEventTypeRef, {
+					uid,
+					summary: baseExistingEvent.summary,
+					attendees: [
+						createTestEntity(CalendarEventAttendeeTypeRef, {
+							address: createTestEntity(EncryptedMailAddressTypeRef, {
+								address: ORGANIZER,
+							}),
+							status: CalendarAttendeeStatus.ACCEPTED,
+						}),
+					],
+				}) as Require<"uid", CalendarEvent>,
+				alarms: [],
+			}
+
+			baseParsedCalendarDataCancel = {
+				method: CalendarMethod.CANCEL,
+				contents: [baseParsedEvent],
+			}
 		})
 
 		o("event is deleted from guest's calendar when cancelled by organizer", async function () {
-			const uid = "uid"
-			const sender = "sender@example.com"
-			const existingEvent = createTestEntity(CalendarEventTypeRef, {
-				_id: ["listId", "eventId"],
-				_ownerGroup: groupRoot._id,
-				sequence: "1",
-				uid,
-				summary: "summary 1",
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
-				}),
-			})
-
-			const sentEvent = createTestEntity(CalendarEventTypeRef, {
-				uid,
-				sequence: "2",
-				summary: "summary 2",
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: sender,
-				}),
-			})
-			const eventByUid: CalendarEventUidIndexEntry = object()
-			eventByUid.progenitor = existingEvent as CalendarEventProgenitor
-			eventByUid.alteredInstances = []
-
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(eventByUid)
-			when(calendarFacadeMock.getEventsByUid(uid)).thenResolve(eventByUid)
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			// when(calendarFacadeMock.getEventsByUid(uid)).thenResolve(baseCalendarEventUidIndexEntry) // can delete was needed for call to getEventsByUid within CalendarModel.deleteEventsByUid, that uses the default CachingMode.Cached value
 
 			// ACT: User receives CalendarEventUpdate with cancellation by event with other organizer
-			await calendarModel.processCalendarData(sender, {
-				method: CalendarMethod.CANCEL,
-				contents: [
-					{
-						event: sentEvent as CalendarEventProgenitor,
-						alarms: [],
-					},
-				],
-			})
-			// await o(() => entityClientMock.load(CalendarEventTypeRef, existingEvent._id)).asyncThrows(NotFoundError)
+			await calendarModel.processCalendarData(ORGANIZER, baseParsedCalendarDataCancel)
+
 			const deletedEventCaptor = matchers.captor()
 			verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
+			o(deletedEventCaptor.value).deepEquals(baseExistingEvent)
 		})
 
-		// TODO: Fix broken test with new mocking system
-		// o("event is cancelled by someone else than organizer", async function () {
-		// 	const uid = "uid"
-		// 	const sender = "sender@example.com"
-		// 	const existingEvent = createTestEntity(CalendarEventTypeRef, {
-		// 		_id: ["listId", "eventId"],
-		// 		_ownerGroup: groupRoot._id,
-		// 		sequence: "1",
-		// 		uid,
-		// 		organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-		// 			address: sender,
-		// 		}),
-		// 	})
-		//
-		// 	entityClientMock
-		//
-		// 	entityRestClientMock.addListInstances(existingEvent)
-		// 	const workerClient = makeWorkerClient()
-		// 	const model = init({
-		// 		workerClient,
-		// 		restClientMock: entityRestClientMock,
-		// 	})
-		// 	const sentEvent = createTestEntity(CalendarEventTypeRef, {
-		// 		uid,
-		// 		sequence: "2",
-		// 		organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-		// 			address: sender,
-		// 		}),
-		// 	})
-		// 	await model.processCalendarData("another-sender", {
-		// 		method: CalendarMethod.CANCEL,
-		// 		contents: [
-		// 			{
-		// 				event: sentEvent as CalendarEventProgenitor,
-		// 				alarms: [],
-		// 			},
-		// 		],
-		// 	})
-		// 	o(await entityRestClientMock.load(CalendarEventTypeRef, existingEvent._id)).equals(existingEvent)("Calendar event was not deleted")
-		// })
+		o("event cannot be cancelled by someone other than organizer", async function () {
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			await calendarModel.processCalendarData(UNKNOWN_SENDER, baseParsedCalendarDataCancel)
+			verify(entityClientMock.erase(anything()), { times: 0 })
+
+			await calendarModel.processCalendarData(GUEST, baseParsedCalendarDataCancel)
+			verify(entityClientMock.erase(anything()), { times: 0 })
+		})
 	})
-
-	function makeNotifications(): Notifications {
-		return downcast({})
-	}
-
-	function makeProgressTracker(): ProgressTracker {
-		const progressTracker: ProgressTracker = object()
-		when(progressTracker.registerMonitorSync(matchers.anything())).thenReturn(0)
-		when(progressTracker.getMonitor(matchers.anything())).thenReturn(new NoopProgressMonitor())
-		return progressTracker
-	}
-
-	function makeSyncTracker(): SyncTracker {
-		const syncTracker: SyncTracker = object()
-		when(syncTracker.isSyncDone()).thenReturn(true)
-		return syncTracker
-	}
-
-	function makeEventController(): {
-		eventController: EventController
-		sendEvent: (arg0: EntityUpdateData) => Promise<void>
-	} {
-		const listeners = new Array<EntityEventsListener>()
-		return {
-			eventController: downcast({
-				listeners,
-				addEntityListener(listener: EntityEventsListener) {
-					listeners.push(listener)
-				},
-			}),
-			sendEvent: async (update) => {
-				for (let listener of listeners) {
-					// @ts-ignore
-					await listener([update])
-				}
-			},
-		}
-	}
-
-	function makeWorkerClient(): WorkerClient {
-		return downcast({})
-	}
-
-	function makeLoginController(groupId: Id = "groupId", groupInfoId: IdTuple = ["list", "elementId"]): LoginController {
-		const alarmInfoList = createTestEntity(UserAlarmInfoListTypeTypeRef, {
-			alarms: "alarms",
-		})
-
-		const userController = object<UserController>()
-		userController.user = createTestEntity(UserTypeRef, {
-			_id: "user-id",
-			alarmInfoList,
-		})
-
-		const groupMembership = createTestEntity(GroupMembershipTypeRef, {
-			group: groupId,
-			groupType: GroupType.Calendar,
-			groupInfo: groupInfoId,
-		})
-		when(userController.getCalendarMemberships()).thenReturn([groupMembership])
-
-		const contactGroupMembership = createTestEntity(GroupMembershipTypeRef, { group: "contactGroup" })
-		when(userController.getContactGroupMemberships()).thenReturn([contactGroupMembership])
-
-		const loginController = instance(LoginController)
-		loginController.getUserController = () => userController
-
-		return loginController
-	}
-
-	function makeMailModel(): MailboxModel {
-		return downcast({})
-	}
-
-	function makeCalendarFacade(
-		getEventsByUid: {
-			getEventsByUid: (_: any) => unknown
-		},
-		entityRestClientMock: EntityRestClient,
-	): CalendarFacade {
-		const createCalendarEvent = func<CalendarFacade["createCalendarEvent"]>()
-		when(createCalendarEvent(matchers.anything(), matchers.anything())).thenDo((event) => {
-			// testdouble is very insistent on calling such callbacks even during verification and we get weird args here
-			if (!event.__matches) {
-				// TODO fix
-				// entityRestClient.addListInstances(event)
-			}
-			return Promise.resolve()
-		})
-
-		const replaceCalendarEvent = func<CalendarFacade["replaceCalendarEvent"]>()
-		when(replaceCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything())).thenDo((event) => {
-			// testdouble is very insistent on calling such callbacks even during verification and we get weird args here
-			if (!event.__matches) {
-				// TODO fix
-				// entityRestClient.addListInstances(event)
-			}
-			return Promise.resolve()
-		})
-
-		return {
-			getEventsByUid: getEventsByUid.getEventsByUid,
-			updateCalendarEvent: func<CalendarFacade["updateCalendarEvent"]>(),
-			createCalendarEvent: createCalendarEvent,
-		} as Partial<CalendarFacade> as CalendarFacade
-	}
-
-	function makeFileController(): FileController {
-		return downcast({})
-	}
-
-	function makeExternalCalendarFacade(): ExternalCalendarFacade {
-		return downcast({})
-	}
-
-	function makeDeviceConfig(): DeviceConfig {
-		return downcast({})
-	}
-
-	function init({
-		notifications = makeNotifications(),
-		eventController = makeEventController().eventController,
-		workerClient,
-		restClientMock,
-		loginController = makeLoginController(),
-		progressTracker = makeProgressTracker(),
-		entityClient = new EntityClient(restClientMock, ClientModelInfo.getNewInstanceForTestsOnly()),
-		mailModel = makeMailModel(),
-		alarmScheduler = makeAlarmScheduler(),
-		calendarFacade = makeCalendarFacade(
-			{
-				getEventsByUid: () => Promise.resolve(null),
-			},
-			restClientMock,
-		),
-		fileFacade = makeFileController(),
-		externalCalendarFacade = makeExternalCalendarFacade(),
-		deviceConfig = makeDeviceConfig(),
-		syncTracker = makeSyncTracker(),
-	}): CalendarModel {
-		const lazyScheduler = async () => alarmScheduler
-		const langMock: LanguageViewModel = object()
-
-		return new CalendarModel(
-			notifications,
-			lazyScheduler,
-			eventController,
-			workerClient,
-			loginController,
-			progressTracker,
-			entityClient,
-			mailModel,
-			calendarFacade,
-			fileFacade,
-			"Europe/Berlin",
-			externalCalendarFacade,
-			deviceConfig,
-			downcast({
-				getLoadedPushIdentifier: () => ({
-					identifier: "",
-					disabled: false,
-				}),
-			}),
-			syncTracker,
-			() => {},
-			langMock,
-		)
-	}
 })
