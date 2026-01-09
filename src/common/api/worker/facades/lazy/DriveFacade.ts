@@ -168,7 +168,7 @@ export class DriveFacade {
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
-	public async uploadFile(file: File, fileId: UploadId, to: IdTuple): Promise<unknown> {
+	public async uploadFile(file: File, fileId: UploadId, to: IdTuple): Promise<DriveFile | null> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()

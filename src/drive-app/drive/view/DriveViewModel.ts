@@ -310,9 +310,9 @@ export class DriveViewModel {
 		}
 	}
 
-	private makeDuplicateFileName(fileName: string): string {
+	private makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 		const [basename, ext] = getFileBaseNameAndExtensions(fileName)
-		return `${basename} (copy)${ext}`
+		return `${basename} (${indicator})${ext}`
 	}
 
 	private makeDuplicateFolderName(folderName: string): string {
@@ -464,11 +464,31 @@ export class DriveViewModel {
 			const fileId = await this.driveFacade.generateUploadId()
 			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
 
-			this.driveFacade.uploadFile(file, fileId, targetFolderId).catch(
+			const uploadedFile = await this.driveFacade.uploadFile(file, fileId, targetFolderId).catch(
 				ofClass(CancelledError, (e) => {
 					console.log("Upload canceled", fileId)
 				}),
 			)
+			if (uploadedFile) {
+				// It is possible that another same-named file has been created just before
+				// this one has finished uploading. To prevent name collisions, we query the
+				// folder contents after the upload has finished and find another name for the
+				// new file, if necessary.
+				await this.listModel.waitLoad()
+				const currentFolderItemsByName = groupBy(this.listModel.getUnfilteredAsArray(), (item) => folderItemEntity(item).name)
+				const sameNamedItems = currentFolderItemsByName.get(uploadedFile.name)
+
+				// FIXME: Needs clarification. Why do we have to check for .length > 0?
+				// Checking for length > 1 instead seems correct, as I'd expect uploadedFile to have
+				// already been added to listModel. But it hasn't. Is this a race condition?
+				if (sameNamedItems && sameNamedItems.length > 0) {
+					let newName = uploadedFile.name
+					while (currentFolderItemsByName.get(newName) != null) {
+						newName = this.makeDuplicateFileName(newName, "new")
+					}
+					await this.driveFacade.rename(uploadedFile, newName)
+				}
+			}
 		}
 	}
 
