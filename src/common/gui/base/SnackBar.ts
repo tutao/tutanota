@@ -11,6 +11,8 @@ import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { isNotEmpty, remove } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
+import { AllIcons, Icon, IconSize } from "./Icon"
+import { theme } from "../theme"
 
 assertMainOrNode()
 const SNACKBAR_SHOW_TIME = 6000 // ms
@@ -25,6 +27,7 @@ type SnackBarAttrs = {
 	button: ButtonAttrs | null
 	dismissButton?: IconButtonAttrs
 	onHoverChange: (hovered: boolean) => void
+	leadingIcon?: AllIcons
 }
 type QueueItem = Omit<SnackBarAttrs, "onHoverChange"> & {
 	onClose: ((timedOut: boolean) => unknown) | null
@@ -39,11 +42,12 @@ let cancelCurrentSnackbar: (() => unknown) | null = null
 
 class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
+		const a = vnode.attrs
 		// use same padding as MinimizedEditor
 		return m(
-			".snackbar-content.flex.flex-space-between.border-radius.pb-4.pt-4",
+			".snackbar",
 			{
-				class: vnode.attrs.dismissButton ? "pl-12" : "plr-12",
+				class: vnode.attrs.dismissButton ? "pl-16" : "plr-16",
 				onmouseenter: () => {
 					vnode.attrs.onHoverChange(true)
 				},
@@ -52,9 +56,21 @@ class SnackBar implements Component<SnackBarAttrs> {
 				},
 			},
 			[
-				m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
-				vnode.attrs.button ? m(".flex-end.center-vertically.pl-12", m(Button, vnode.attrs.button)) : null,
-				vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
+				m(".flex.gap-8.items-center", [
+					a.leadingIcon &&
+						m(Icon, {
+							size: IconSize.PX20,
+							icon: a.leadingIcon,
+							style: {
+								fill: theme.on_surface_variant,
+							},
+						}),
+					m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
+				]),
+				m(".flex.gap-8.items-center", [
+					vnode.attrs.button ? m(".flex-end.center-vertically.pl-12", m(Button, vnode.attrs.button)) : null,
+					vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
+				]),
 			],
 		)
 	}
@@ -82,15 +98,16 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  */
 export function showSnackBar(args: {
 	message: MaybeTranslation
-	button: SnackBarButtonAttrs
+	button?: SnackBarButtonAttrs
 	dismissButton?: IconButtonAttrs
 	onShow?: () => unknown
 	onClose?: (timedOut: boolean) => unknown
 	waitingTime?: number
 	showingTime?: number
 	replace?: boolean
+	leadingIcon?: AllIcons
 }): () => void {
-	const { message, button, dismissButton, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
+	const { message, button, dismissButton, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, leadingIcon, replace = false } = args
 
 	const doCancel = {
 		/** cancel will be overwritten in {@link showNextNotification } once the snackbar  is shown */
@@ -99,7 +116,7 @@ export function showSnackBar(args: {
 		},
 	}
 
-	const buttonAttrs = makeButtonAttrsForSnackBar(button)
+	const buttonAttrs = button ? makeButtonAttrsForSnackBar(button) : null
 
 	const queueEntry: QueueItem = {
 		message: message,
@@ -109,6 +126,7 @@ export function showSnackBar(args: {
 		onShow: onShow ?? null,
 		doCancel,
 		showingTime,
+		leadingIcon,
 	}
 
 	let currentSnackbarTimeout: TimeoutID | null = null
@@ -159,13 +177,13 @@ function getSnackBarPosition() {
 		bottom: px(snackBarMargin),
 		// The SnackBar is only shown at the right in single column layout
 		left: styles.isSingleColumnLayout() ? px(window.innerWidth - snackBarMargin - snackBarWidth) : px(leftOffset + snackBarMargin),
-		width: px(snackBarWidth),
-		zIndex: LayerType.Overlay,
+		"max-width": px(snackBarWidth),
+		zIndex: LayerType.Modal,
 	}
 }
 
 function showNextNotification() {
-	const { message, button, dismissButton, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, dismissButton, onClose, onShow, doCancel, showingTime, leadingIcon } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
 
@@ -183,11 +201,12 @@ function showNextNotification() {
 					onHoverChange: (isHovered) => {
 						hovered = isHovered
 					},
+					leadingIcon,
 				}),
 		},
 		"slide-bottom",
 		undefined,
-		"minimized-shadow",
+		"",
 	)
 
 	let closed = false
