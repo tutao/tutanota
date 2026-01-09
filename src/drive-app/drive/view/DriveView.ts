@@ -26,7 +26,6 @@ import { modal } from "../../../common/gui/base/Modal"
 import { newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { partition } from "@tutao/tutanota-utils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -312,12 +311,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										onRename: (item) => this.onRename(item),
 									},
 									onMove: (items: FolderItemId[], into: FolderFolderItem) => {
-										const [files, folders] = partition(items, (item) => item.type === "file")
-										this.driveViewModel.move(
-											files.map((item) => item.id),
-											folders.map((item) => item.id),
-											into,
-										)
+										this.driveViewModel.moveItems(items, into.folder._id)
 									},
 									sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
 									onSortColumn: (column) => this.driveViewModel.sort(column),

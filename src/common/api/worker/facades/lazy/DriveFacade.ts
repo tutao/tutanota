@@ -81,19 +81,6 @@ export class DriveFacade {
 		return { fileGroupId, fileGroupKey }
 	}
 
-	public async move(filesById: readonly IdTuple[], foldersById: readonly IdTuple[], destination: IdTuple) {
-		for (const { fileIdsChunk, folderIdsChunk: unfilteredFolderIds } of splitIdsIntoChunksByList(50, filesById, foldersById)) {
-			// prevent folder from being moved into itself
-			const folderIds = unfilteredFolderIds.filter((f) => !isSameId(f, destination))
-			const data = createDriveFolderServicePutIn({
-				files: fileIdsChunk,
-				folders: folderIds,
-				destination,
-			})
-			await this.serviceExecutor.put(DriveFolderService, data)
-		}
-	}
-
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
 
@@ -270,6 +257,21 @@ export class DriveFacade {
 			destination: destination._id,
 		})
 		await this.serviceExecutor.post(DriveCopyService, copyData)
+	}
+
+	public async move(filesById: readonly IdTuple[], foldersById: readonly IdTuple[], destination: IdTuple, renamedFiles: Map<Id, string>) {
+		// FIXME: Respect renamedFiles (like in copyItems), but then we have to pass much more data to the server -- is it worth it?
+
+		for (const { fileIdsChunk, folderIdsChunk: unfilteredFolderIds } of splitIdsIntoChunksByList(50, filesById, foldersById)) {
+			// prevent folder from being moved into itself
+			const folderIds = unfilteredFolderIds.filter((f) => !isSameId(f, destination))
+			const data = createDriveFolderServicePutIn({
+				files: fileIdsChunk,
+				folders: folderIds,
+				destination,
+			})
+			await this.serviceExecutor.put(DriveFolderService, data)
+		}
 	}
 
 	async generateUploadId(): Promise<UploadId> {

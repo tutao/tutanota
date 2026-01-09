@@ -203,7 +203,7 @@ export class DriveViewModel {
 		const newListModel = new ListModel<FolderItem, Id>({
 			fetch: async (lastFetchedItem, count) => {
 				if (lastFetchedItem == null) {
-					return { items: await this.loadFolderContents(folder), complete: true }
+					return { items: await this.loadFolderContents(folder._id), complete: true }
 				} else {
 					return { items: [] satisfies FolderItem[], complete: true }
 				}
@@ -347,16 +347,53 @@ export class DriveViewModel {
 			folderItems.map((item) => item.id),
 		)
 
+		await this.listModel.waitLoad()
+		const renamedFiles = await this.deduplicateItemNames(this.listModel.getUnfilteredAsArray(), files, folders)
+
+		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
+	}
+
+	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple) {
+		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
+		const files = await loadMultipleFromLists(
+			DriveFileTypeRef,
+			this.entityClient,
+			fileItems.map((item) => item.id),
+		)
+		const folders = await loadMultipleFromLists(
+			DriveFolderTypeRef,
+			this.entityClient,
+			folderItems.map((item) => item.id),
+		)
+
+		let renamedFiles: Map<Id, string> = new Map()
+
+		// If we're moving into a folder different from the current one (the common case),
+		// we will read the files in the destination folder to generate alternative target names for duplicates.
+		if (!isSameId(this.currentFolder?.folder._id ?? null, destinationId)) {
+			renamedFiles = await this.deduplicateItemNames(await this.loadFolderContents(destinationId), files, folders)
+		}
+
+		await this.driveFacade.move(
+			fileItems.map((item) => item.id),
+			folderItems.map((item) => item.id),
+			destinationId,
+			renamedFiles,
+		)
+		this.selectNone()
+	}
+
+	private async deduplicateItemNames(existingItems: FolderItem[], newFiles: Array<DriveFile>, newFolders: Array<DriveFolder>) {
 		// This is for tracking filenames that are not yet part of the list model
 		// because we *just now* made them up when trying to find a free candidate name
 		// and are therefore unsuited as candidate names as well.
 		const newlyTakenFilenames: Set<string> = new Set()
 
 		const renamedFiles: Map<Id, string> = new Map()
-		await this.listModel.waitLoad()
-		const currentFolderItemsByName = groupBy(this.listModel.getUnfilteredAsArray(), (item) => folderItemEntity(item).name)
 
-		for (const file of files) {
+		const currentFolderItemsByName = groupBy(existingItems, (item) => folderItemEntity(item).name)
+
+		for (const file of newFiles) {
 			let candidateName = file.name
 			while (currentFolderItemsByName.get(candidateName) != null || newlyTakenFilenames.has(candidateName)) {
 				candidateName = this.makeDuplicateFileName(candidateName)
@@ -365,7 +402,7 @@ export class DriveViewModel {
 			newlyTakenFilenames.add(candidateName)
 		}
 
-		for (const folder of folders) {
+		for (const folder of newFolders) {
 			let candidateName = folder.name
 			while (currentFolderItemsByName.get(candidateName) != null || newlyTakenFilenames.has(candidateName)) {
 				candidateName = this.makeDuplicateFolderName(candidateName)
@@ -373,18 +410,7 @@ export class DriveViewModel {
 			renamedFiles.set(getElementId(folder), candidateName)
 			newlyTakenFilenames.add(candidateName)
 		}
-
-		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
-	}
-
-	async moveItems(items: readonly FolderItemId[], destination: IdTuple) {
-		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
-		await this.driveFacade.move(
-			fileItems.map((item) => item.id),
-			folderItems.map((item) => item.id),
-			destination,
-		)
-		this.selectNone()
+		return renamedFiles
 	}
 
 	private itemsIntoIds(items: readonly FolderItem[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
@@ -450,8 +476,8 @@ export class DriveViewModel {
 		}
 	}
 
-	async loadFolderContents(folder: DriveFolder): Promise<FolderItem[]> {
-		const { files, folders } = await this.driveFacade.getFolderContents(folder._id)
+	async loadFolderContents(folderId: IdTuple): Promise<FolderItem[]> {
+		const { files, folders } = await this.driveFacade.getFolderContents(folderId)
 		const items = [
 			...folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
 			...files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
@@ -542,10 +568,6 @@ export class DriveViewModel {
 
 		if (this.currentFolder == null) return
 		this.listModel.sort()
-	}
-
-	move(files: readonly IdTuple[], folders: readonly IdTuple[], into: FolderFolderItem) {
-		this.driveFacade.move(files, folders, into.folder._id)
 	}
 
 	rename(item: FolderItem, newName: string) {
