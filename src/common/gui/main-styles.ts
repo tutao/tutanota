@@ -2352,6 +2352,8 @@ styles.registerStyle("main", () => {
 			display: "block",
 			width: px(component_size.checkbox_size),
 			height: px(component_size.checkbox_size),
+			"min-width": px(component_size.checkbox_size),
+			"min-height": px(component_size.checkbox_size),
 			border: `${px(component_size.checkbox_border_size)} solid ${theme.outline}`,
 			"border-radius": "3px",
 			position: "relative",

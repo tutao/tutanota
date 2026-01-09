@@ -1,11 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
-import { theme } from "../theme.js"
-import { encodeSVG, getOperatingClasses } from "./GuiUtils.js"
-import { component_size, px, size } from "../size"
+import { getOperatingClasses } from "./GuiUtils.js"
+import { component_size, px } from "../size"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -19,8 +17,7 @@ export type CheckboxAttrs = {
 export class Checkbox implements Component<CheckboxAttrs> {
 	private focused: boolean = false
 	private _domInput: HTMLElement | null = null
-	private static readonly checkedIcon = encodeSVG(BootIconsSvg[BootIcons.CheckboxSelected])
-	private static readonly uncheckedIcon = encodeSVG(BootIconsSvg[BootIcons.Checkbox])
+	private labelLineHeight: number = 0
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
@@ -38,7 +35,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			: []
 		const userClasses = a.class == null ? "" : " " + a.class
 		return m(
-			`.pt-16`,
+			"",
 			{
 				"aria-disabled": a.disabled != null ? String(a.disabled) : undefined,
 				class: getOperatingClasses(a.disabled, "click flash") + userClasses,
@@ -49,27 +46,37 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				},
 			},
 			m(
-				`label${Checkbox.getBreakClass(a.label())}`,
+				`label.rel${Checkbox.getBreakClass(a.label())}`,
 				{
 					class: `${this.focused ? "content-accent-fg" : "content-fg"} ${getOperatingClasses(a.disabled, "click")}`,
 				},
 				[
-					m("input[type=checkbox].icon.checkbox-override", {
-						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
-						onchange: (e: Event) => this.toggle(e, a),
-						checked: a.checked,
-						onfocus: () => (this.focused = true),
-						onblur: () => (this.focused = false),
-						class: getOperatingClasses(a.disabled, "click"),
-						style: {
-							cursor: a.disabled ? "default" : "pointer",
-							"background-color": theme.primary,
-							"mask-image": `url("${a.checked ? Checkbox.checkedIcon : Checkbox.uncheckedIcon}")`,
+					m(".flex.gap-8", [
+						m("input.checkbox.list-checkbox", {
+							style: {
+								transform: "translateY(-50%)",
+								top: px(this.labelLineHeight / 2),
+							},
+							type: "checkbox",
+							oncreate: (vnode) => {
+								this.labelLineHeight = parseInt(getComputedStyle(vnode.dom as HTMLElement).lineHeight)
+							},
+							onchange: (e: Event) => this.toggle(e, a),
+							checked: a.checked,
+							onfocus: () => (this.focused = true),
+							onblur: () => (this.focused = false),
+							class: getOperatingClasses(a.disabled, "click"),
+							disabled: a.disabled,
+						}),
+						a.label(),
+					]),
+					m(
+						"span",
+						{
+							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
 						},
-						disabled: a.disabled,
-					}),
-					a.label(),
-					helpLabel,
+						helpLabel,
+					),
 				],
 			),
 		)
