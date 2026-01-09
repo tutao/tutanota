@@ -74,12 +74,14 @@ import {
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
 import m from "mithril"
-import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import {
 	AlarmInfoTemplate,
 	CachingMode,
 	CalendarEventAlteredInstance,
+	CalendarEventInstance,
+	CalendarEventProgenitor,
 	CalendarEventUidIndexEntry,
+	CalendarFacade,
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
@@ -944,7 +946,7 @@ export class CalendarModel {
 
 	/** whether the operation could be performed or not */
 	async deleteEventsByUid(uid: string): Promise<void> {
-		const entry = await this.calendarFacade.getEventsByUid(uid)
+		const entry = await this.calendarFacade.getEventsByUid(uid, CachingMode.Cached)
 		if (entry == null) {
 			console.log("could not find an uid index entry to delete event")
 			return
@@ -1318,7 +1320,8 @@ export class CalendarModel {
 		return this.calendarFacade.getEventsByUid(uid)
 	}
 
-	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	// Visible for testing
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		const calendarInfos = await this.calendarInfos.getAsync()
 		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
 		const alarmEventsToProcess: UserAlarmInfo[] = []
