@@ -428,7 +428,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	// visibleForTesting
 	allowDrag(eventWrapper: EventWrapper): boolean {
-		return !eventWrapper.flags?.isGhost || this.canFullyEditEvent(eventWrapper.event)
+		return this.canFullyEditEvent(eventWrapper.event)
 	}
 
 	/**
