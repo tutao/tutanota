@@ -11,6 +11,8 @@ import type { AddressInfo } from "node:net"
 import { domainConfigStub } from "../../../TestUtils.js"
 import { matchers, object, reset, verify } from "testdouble"
 import { ClientPlatform } from "../../../../../src/common/misc/ClientDetector"
+import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
+import { ApplicationTypesService } from "../../../../../src/common/api/entities/base/Services"
 
 // only runs in node, it spins up a local server and connects to it
 
@@ -58,6 +60,7 @@ o.spec("RestClient", function () {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
+				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 				res.send(responseText)
 			})
 			const res = await restClient.request("/get/json", HttpMethod.GET, {
@@ -90,6 +93,7 @@ o.spec("RestClient", function () {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/octet-stream")
+				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 				res.send(response)
 			})
 			const res = await restClient.request("/get/binary", HttpMethod.GET, {
@@ -118,6 +122,7 @@ o.spec("RestClient", function () {
 					o(req.body).deepEquals(JSON.parse(requestText))
 					//console.log("!", req.body, req.method, req.originalUrl, req.path, req.query, req.headers)
 					o(req.query["_"]).equals(undefined) // timestamp should be defined only for GET requests
+					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 
 					res.send(responseText)
 				})
@@ -147,6 +152,7 @@ o.spec("RestClient", function () {
 					o(req.headers["accept"]).equals("application/octet-stream")
 					o(Array.from(req.body)).deepEquals(Array.from(request))
 					o(req.query["_"]).equals(undefined) // timestamp should be defined only for GET requests
+					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 
 					res.send(response)
 				})
@@ -173,6 +179,7 @@ o.spec("RestClient", function () {
 					o(req.headers["content-type"]).equals(undefined)
 					o(req.headers["accept"]).equals(undefined)
 					res.set("Date", SERVER_TIME_IN_HEADER)
+					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 					res.send()
 				})
 				const res = await restClient.request(url, method, {
@@ -192,6 +199,7 @@ o.spec("RestClient", function () {
 				let url = "/" + method + "/error"
 				app[method.toLowerCase()](url, (req, res) => {
 					res.set("Date", SERVER_TIME_IN_HEADER)
+					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 					res.status(205).send() // every status code !== 200 is currently handled as error
 				})
 				await o(() => restClient.request(url, method, { baseUrl })).asyncThrows(ResourceError)
@@ -235,7 +243,7 @@ o.spec("RestClient", function () {
 			o(res).equals(responseText)
 		})
 
-		o("verify setCurrentHash is NOT called when the applicationTypesHash is not set in the response header", async () => {
+		o("verify setCurrentHash is NOT called when the applicationTypesHash is not set in the response, throws instead", async () => {
 			reset()
 			o.timeout(400)
 
@@ -248,7 +256,38 @@ o.spec("RestClient", function () {
 				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
 				res.send(responseText)
 			})
-			const res = await restClient.request("/get/json3", HttpMethod.GET, {
+
+			try {
+				const response = await restClient.request("/get/json3", HttpMethod.GET, {
+					responseType: MediaType.Json,
+					baseUrl,
+				})
+			} catch (e) {
+				const expectedErrorMessage = `Empty value for ${APPLICATION_TYPES_HASH_HEADER} header in response`
+				//Error should contain the message
+				o(e.indexOf(expectedErrorMessage)).notEquals(-1)
+			}
+
+			verify(serverModelInfoMock.setCurrentHash(anything()), { times: 0 })
+		})
+
+		o("verify setCurrentHash is NOT  for ApplicationTypesService and does not throw", async () => {
+			reset()
+			o.timeout(400)
+
+			let responseText = '{"msg":"Hello Client"}'
+
+			const applicationTypesServiceRestPath = getServiceRestPath(ApplicationTypesService)
+
+			app.get(applicationTypesServiceRestPath, (req, res) => {
+				o(req.method).equals("GET")
+				o(req.headers["content-type"]).equals(undefined)
+				o(req.headers["accept"]).equals("application/json")
+				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
+				res.send(responseText)
+			})
+
+			const res = await restClient.request(applicationTypesServiceRestPath, HttpMethod.GET, {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
