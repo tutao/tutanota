@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { Icon, IconSize } from "./Icon"
 import { Icons } from "./icons/Icons"
@@ -7,10 +7,9 @@ import { BootIcons } from "./icons/BootIcons"
 import { theme } from "../theme"
 import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
-import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export type ExpanderAttrs = {
 	label: MaybeTranslation
@@ -100,10 +99,12 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 	// it does not apply to any children
 	childrenInDom: boolean | null = null
 	setChildrenInDomTimeout: TimeoutID | null
+	private isAnimating = false
+	private wrapperEl: HTMLDivElement | null = null
 
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
 		this.childrenInDom = vnode.attrs.expanded
-		this.observer = new MutationObserver((mutations) => {
+		this.observer = new MutationObserver(() => {
 			// redraw if a child has been added that won't be getting displayed
 			if (this.childDiv && this.childDiv.getBoundingClientRect().height !== this.lastCalculatedHeight) {
 				m.redraw()
@@ -125,18 +126,20 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 	view(vnode: Vnode<ExpanderPanelAttrs>): Children {
 		const expanded = vnode.attrs.expanded
 		// getBoundingClientRect() gives us the correct size, with a fraction
-		this.lastCalculatedHeight = this.childDiv?.getBoundingClientRect().height ?? 0
 		return m(
 			".expander-panel",
-			// We want overflow while expanded in some specific cases like dropdowns, but generally we don't want it because we want to clip our children
-			// for animation and sizing, so we enable it only when expanded
+			// We want overflow while expanded in some specific cases like dropdowns, but generally we don't want it
+			// because we want to clip our children for animation and sizing, so we enable it only when expanded
 			m(
-				expanded ? "div" : ".overflow-hidden",
+				this.isAnimating ? ".overflow-hidden" : "div",
 				{
 					style: {
 						opacity: expanded ? "1" : "0",
-						height: expanded ? `${this.lastCalculatedHeight}px` : "0px",
-						transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-out`,
+						// The first draw does not have the childDiv yet. This check blocks an unnecessary animation when we set the default to expanded.
+						transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-in-out`,
+					},
+					oncreate: (vnode) => {
+						this.wrapperEl = vnode.dom as HTMLDivElement
 					},
 				},
 				// we use this wrapper to measure the child reliably
@@ -162,6 +165,10 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 								childList: true,
 								subtree: true,
 							})
+							this.setWrapperHeight(expanded, vnode.dom as HTMLElement)
+						},
+						onupdate: (vnode) => {
+							this.setWrapperHeight(expanded, vnode.dom as HTMLElement)
 						},
 						onremove: () => {
 							this.observer?.disconnect()
@@ -173,13 +180,25 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		)
 	}
 
+	private setWrapperHeight(expanded: boolean, targetEl: HTMLElement) {
+		if (this.wrapperEl) {
+			this.wrapperEl.style.height = px(expanded ? targetEl.offsetHeight : 0)
+		}
+	}
+
 	private handleExpansionStateChanged(expanded: boolean) {
 		clearTimeout(this.setChildrenInDomTimeout)
 
 		if (expanded) {
 			this.childrenInDom = true
-		} else {
+			this.isAnimating = true
 			this.setChildrenInDomTimeout = setTimeout(() => {
+				this.isAnimating = false
+			}, DefaultAnimationTime)
+		} else {
+			this.isAnimating = true
+			this.setChildrenInDomTimeout = setTimeout(() => {
+				this.isAnimating = false
 				this.childrenInDom = false
 				m.redraw()
 			}, DefaultAnimationTime)

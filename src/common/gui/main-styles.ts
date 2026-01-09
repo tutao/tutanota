@@ -4,7 +4,7 @@ import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
-import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
+import { getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
 import { goEuropeanBlue } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
@@ -1163,6 +1163,9 @@ styles.registerStyle("main", () => {
 		},
 		".column-gap-4": {
 			"column-gap": px(size.spacing_4),
+		},
+		".gap-12": {
+			gap: px(12),
 		},
 		".flex": {
 			display: "flex",
@@ -3073,6 +3076,8 @@ styles.registerStyle("main", () => {
 			width: "20px",
 			"min-width": "20px",
 			height: "20px",
+			/* The accent must be selected to work with a white background, since the native radio buttons have a white background regardless of the theme. */
+			"accent-color": isLightTheme() ? theme.primary : theme.primary_container,
 		},
 		".outlined": {
 			border: `2px solid ${theme.outline}`,

@@ -75,9 +75,6 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 						m("input[type=radio].m-0.big-radio", {
 							name: "BuyOptionBox",
 							checked: isSelected,
-							style: {
-								"accent-color": theme.on_primary_container,
-							},
 						}),
 				),
 

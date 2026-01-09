@@ -1,11 +1,12 @@
 import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../../../gui/base/WizardDialog.js"
 import { lang, TranslationKey } from "../../../../misc/LanguageViewModel.js"
-import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../../../gui/base/RadioSelector.js"
+import { RadioSelector, RadioSelectorAttrs } from "../../../../gui/base/RadioSelector.js"
 import { themeOptions, ThemePreference } from "../../../../gui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../../api/main/CommonLocator.js"
 import { client } from "../../../../misc/ClientDetector.js"
+import { type RadioSelectorOption } from "../../../../gui/base/RadioSelectorItem"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 	// The whitelabel themes formatted as `RadioSelectorOption`s.
@@ -29,17 +30,20 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 			},
 			m("p.full-width", lang.get("theme_title")),
 			// We need to await the promise from `themeController.getCustomThemes()`, so we delay rendering the `RadioSelector` until it does.
-			this.customThemes == null
-				? null
-				: m(RadioSelector, {
-						name: "theme_label",
-						options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
-						class: "mb-8",
-						selectedOption: locator.themeController.themePreference,
-						onOptionSelected: (option) => {
-							locator.themeController.setThemePreference(option, true)
-						},
-					} satisfies RadioSelectorAttrs<ThemePreference>),
+
+			m(
+				".mb-16",
+				this.customThemes == null
+					? null
+					: m(RadioSelector, {
+							groupName: "theme_label",
+							options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
+							selectedOption: locator.themeController.themePreference,
+							onOptionSelected: (option) => {
+								locator.themeController.setThemePreference(option, true)
+							},
+						} satisfies RadioSelectorAttrs<ThemePreference>),
+			),
 		)
 	}
 }

@@ -2,7 +2,7 @@ import m, { Component, Vnode } from "mithril"
 import { lang, Translation } from "../../../misc/LanguageViewModel"
 import { RecipientKeyVerificationRecoveryModel } from "../../../misc/RecipientKeyVerificationRecoveryModel"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
-import { RadioSelector, type RadioSelectorAttrs, type RadioSelectorOption } from "../../../gui/base/RadioSelector"
+import { RadioSelector, type RadioSelectorAttrs } from "../../../gui/base/RadioSelector"
 import { ResolvableRecipient } from "../../../api/main/RecipientsModel"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
@@ -10,6 +10,7 @@ import { Card } from "../../../gui/base/Card"
 import { TitleSection } from "../../../gui/TitleSection"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { theme } from "../../../gui/theme"
+import { type RadioSelectorOption } from "../../../gui/base/RadioSelectorItem"
 
 type VerificationErrorUserSelectionPageAttrs = {
 	model: RecipientKeyVerificationRecoveryModel
@@ -43,9 +44,9 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 				m(".plr-12.flex.flex-column.gap-16.pt-8.pb-8", [
 					lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg"),
 					m(
-						"",
+						".mb",
 						m(RadioSelector, {
-							name: "credentialsEncryptionMode_label",
+							groupName: "credentialsEncryptionMode_label",
 							options: selectableRecipients,
 							selectedOption: vnode.attrs.model.getCurrentRecipientAddress(),
 							onOptionSelected: (address: string) => {
