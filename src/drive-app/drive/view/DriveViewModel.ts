@@ -328,47 +328,60 @@ export class DriveViewModel {
 			this._clipboard = null
 			this.updateUi()
 		} else if (this._clipboard?.action === ClipboardAction.Copy) {
-			const [fileItems, folderItems] = partition(this._clipboard.items, (item) => item.type === "file")
-			const files = await loadMultipleFromLists(
-				DriveFileTypeRef,
-				this.entityClient,
-				fileItems.map((item) => item.id),
-			)
-			const folders = await loadMultipleFromLists(
-				DriveFolderTypeRef,
-				this.entityClient,
-				folderItems.map((item) => item.id),
-			)
-
-			const renamedFiles: Map<Id, string> = new Map()
-			await this.listModel.waitLoad()
-			const currentFolderItemsByName = groupBy(this.listModel.getUnfilteredAsArray(), (item) => folderItemEntity(item).name)
-
-			for (const file of files) {
-				let candidateName = file.name
-				while (currentFolderItemsByName.get(candidateName) != null) {
-					candidateName = this.makeDuplicateFileName(candidateName)
-				}
-				renamedFiles.set(getElementId(file), candidateName)
-			}
-
-			for (const folder of folders) {
-				let candidateName = folder.name
-				while (currentFolderItemsByName.get(candidateName) != null) {
-					candidateName = this.makeDuplicateFolderName(candidateName)
-				}
-				renamedFiles.set(getElementId(folder), candidateName)
-			}
-
-			await this.driveFacade.copyItems(files, folders, this.currentFolder.folder, renamedFiles)
+			const clipboardItems = this._clipboard.items
+			await this.copyItems(clipboardItems, this.currentFolder.folder)
+			this.updateUi()
 		}
 	}
 
-	async moveItems(folderItems: readonly FolderItemId[], destination: IdTuple) {
-		const [fileFolderItems, folderFolderItems] = partition(folderItems, (item) => item.type === "file")
+	async copyItems(items: readonly FolderItemId[], destination: DriveFolder) {
+		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
+		const files = await loadMultipleFromLists(
+			DriveFileTypeRef,
+			this.entityClient,
+			fileItems.map((item) => item.id),
+		)
+		const folders = await loadMultipleFromLists(
+			DriveFolderTypeRef,
+			this.entityClient,
+			folderItems.map((item) => item.id),
+		)
+
+		// This is for tracking filenames that are not yet part of the list model
+		// because we *just now* made them up when trying to find a free candidate name
+		// and are therefore unsuited as candidate names as well.
+		const newlyTakenFilenames: Set<string> = new Set()
+
+		const renamedFiles: Map<Id, string> = new Map()
+		await this.listModel.waitLoad()
+		const currentFolderItemsByName = groupBy(this.listModel.getUnfilteredAsArray(), (item) => folderItemEntity(item).name)
+
+		for (const file of files) {
+			let candidateName = file.name
+			while (currentFolderItemsByName.get(candidateName) != null || newlyTakenFilenames.has(candidateName)) {
+				candidateName = this.makeDuplicateFileName(candidateName)
+			}
+			renamedFiles.set(getElementId(file), candidateName)
+			newlyTakenFilenames.add(candidateName)
+		}
+
+		for (const folder of folders) {
+			let candidateName = folder.name
+			while (currentFolderItemsByName.get(candidateName) != null || newlyTakenFilenames.has(candidateName)) {
+				candidateName = this.makeDuplicateFolderName(candidateName)
+			}
+			renamedFiles.set(getElementId(folder), candidateName)
+			newlyTakenFilenames.add(candidateName)
+		}
+
+		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
+	}
+
+	async moveItems(items: readonly FolderItemId[], destination: IdTuple) {
+		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
 		await this.driveFacade.move(
-			fileFolderItems.map((item) => item.id),
-			folderFolderItems.map((item) => item.id),
+			fileItems.map((item) => item.id),
+			folderItems.map((item) => item.id),
 			destination,
 		)
 		this.selectNone()
