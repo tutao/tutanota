@@ -41,6 +41,7 @@ import {
 	ofClass,
 	promiseMap,
 	remove,
+	secondsToMillis,
 	typedValues,
 } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
@@ -89,6 +90,8 @@ import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarN
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
 import { Time } from "../calendar/date/Time"
+import type { UndoModel } from "../../mail-app/UndoModel"
+import { showUndoMailSnackbar } from "../../mail-app/mail/view/MailGuiUtils"
 
 assertMainOrNode()
 
@@ -133,6 +136,8 @@ type InitArgs = {
 	previousMessageId?: string | null
 	initialChangedState: boolean | null
 }
+
+const MAX_UNDO_TIME: number = secondsToMillis(10)
 
 /**
  * Model which allows sending mails interactively - including resolving of recipients and handling of drafts.
@@ -202,6 +207,7 @@ export class SendMailModel {
 		private readonly autosaveFacade: AutosaveFacade,
 		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
 		private readonly syncTracker: SyncTracker,
+		private readonly undoModel: UndoModel | null,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -957,6 +963,7 @@ export class SendMailModel {
 	 * @param mailMethod
 	 * @param tooManyRequestsError
 	 * @param sendAt Schedule send at a specific date and time
+	 * @param allowUndo
 	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false)
 	 */
 	async send(
@@ -965,6 +972,7 @@ export class SendMailModel {
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		sendAt: Date | null = null,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
+		allowUndo: boolean = false,
 	): Promise<boolean> {
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
@@ -1020,6 +1028,18 @@ export class SendMailModel {
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
 			this.updateExternalLanguage()
+
+			if (allowUndo && this.undoModel != null) {
+				showUndoMailSnackbar(
+					this.undoModel,
+					async () => {
+						noOp()
+					},
+					"Message sent",
+					MAX_UNDO_TIME,
+				)
+			}
+
 			return true
 		}
 
