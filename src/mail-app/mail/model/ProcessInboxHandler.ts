@@ -164,12 +164,10 @@ export class ProcessInboxHandler {
 			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
 		} else {
-			if (moveToFolder.folderType === MailSetKind.INBOX) {
-				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
-				if (result) {
-					const { targetFolder, processInboxDatum: _ } = result
-					moveToFolder = targetFolder
-				}
+			const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+			if (result) {
+				const { targetFolder, processInboxDatum: _ } = result
+				moveToFolder = targetFolder
 			}
 		}
 
