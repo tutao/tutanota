@@ -126,7 +126,7 @@ import { Time } from "../../../common/calendar/date/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
-import { UndoModel } from "../../UndoModel"
+import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 // Interval where we save drafts locally.
 //
@@ -1258,7 +1258,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				dispose()
 				dialog.close()
 
-				if (model.undoModel) {
+				if (model.undoModel && deviceConfig.getIsUndoSendEnabled()) {
 					const undoResult = await showUndoMailSnackbar(
 						model.undoModel,
 						async () => {

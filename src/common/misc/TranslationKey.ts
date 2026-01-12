@@ -2220,3 +2220,4 @@ export type TranslationKeyType =
 	| "dataOutOfSync_msg"
 	| "importContactDuplicates_msg"
 	| "emptyString_msg"
+	| "undoSend_label"
