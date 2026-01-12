@@ -9,7 +9,7 @@ import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { isNotEmpty, remove } from "@tutao/tutanota-utils"
+import { delay, isNotEmpty, remove } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 
 assertMainOrNode()
@@ -19,6 +19,7 @@ const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
 	label: MaybeTranslation
 	click: ClickHandler
+	expirationTime?: number
 }
 type SnackBarAttrs = {
 	message: MaybeTranslation
@@ -109,6 +110,13 @@ export function showSnackBar(args: {
 		onShow: onShow ?? null,
 		doCancel,
 		showingTime,
+	}
+
+	if (button.expirationTime != null) {
+		delay(button.expirationTime).then(() => {
+			queueEntry.button = null
+			m.redraw()
+		})
 	}
 
 	let currentSnackbarTimeout: TimeoutID | null = null

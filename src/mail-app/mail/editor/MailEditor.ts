@@ -1238,6 +1238,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						noOp()
 					},
 					"Message sent",
+					1000 * 10,
 				)
 
 				const { handleRatingByEvent } = await import("../../../common/ratings/UserSatisfactionDialog.js")
