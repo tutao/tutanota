@@ -2233,5 +2233,6 @@ export default {
 		"reportNotSpam_action": "Kein Spam",
 		"oneConversationSelected_msg": "1 Conversation selected",
 		"nbrOfConversationsSelected_msg": "{1} Conversations selected",
+		"undoSend_label": "Undo Send",
 	}
 }

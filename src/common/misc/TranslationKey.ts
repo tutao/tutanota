@@ -2231,3 +2231,4 @@ export type TranslationKeyType =
 	| "reportNotSpam_action"
 	| "oneConversationSelected_msg"
 	| "nbrOfConversationsSelected_msg"
+	| "undoSend_label"
