@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
@@ -632,6 +632,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					forwardAction: null,
 					mailViewerMoreActions: null,
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
+					moveOutOfSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -684,6 +685,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						reapplyInboxRules: null,
 					}),
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
+					moveOutOfSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -989,6 +991,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 					reapplyInboxRules: null,
 				}),
+				moveOutOfSpamAction: null,
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
