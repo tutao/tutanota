@@ -2215,3 +2215,4 @@ export type TranslationKeyType =
 	| "dataOutOfSync_label"
 	| "dataOutOfSyncOfflineDb_msg"
 	| "dataOutOfSync_msg"
+	| "undoSend_label"
