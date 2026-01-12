@@ -15,8 +15,8 @@ import {
 	CalendarAttendeeStatus,
 	ConversationType,
 	getAttendeeStatus,
-	ShareCapability,
 	PresentableKeyVerificationState,
+	ShareCapability,
 } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
@@ -181,7 +181,6 @@ export class CalendarEventWhoModel {
 	 * Prevent moving the event to another calendar if you only have read permission or if the event has attendees.
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
-		const { groupSettings } = this.userController.userSettingsGroupRoot
 		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !cal.isExternal)
 
 		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {

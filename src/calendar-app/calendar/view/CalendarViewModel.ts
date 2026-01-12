@@ -652,6 +652,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const response = await askIfShouldSendCalendarUpdatesToAttendees()
 			if (response === "yes") {
 				editModel.editModels.whoModel.shouldSendUpdates = true
+				editModel.editModels.whoModel.resetGuestsStatus() // reset guest status if time has changed, so they must reconfirm
 			} else if (response === "cancel") {
 				return EventSaveResult.Failed
 			}

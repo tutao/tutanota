@@ -90,11 +90,10 @@ export class CalendarEventPreviewViewModel {
 		} else {
 			// partially editable (adding alarms) counts as editable.
 			this.canEdit =
-				!this.calendarEvent.pendingInvitation &&
-				(this.eventType === EventType.OWN ||
-					this.eventType === EventType.SHARED_RW ||
-					this.eventType === EventType.LOCKED ||
-					this.eventType === EventType.INVITE)
+				this.eventType === EventType.OWN ||
+				this.eventType === EventType.SHARED_RW ||
+				this.eventType === EventType.LOCKED ||
+				this.eventType === EventType.INVITE
 			this.canDelete = this.canEdit || this.eventType === EventType.INVITE
 			this.canSendUpdates = hasBusinessFeature && this.eventType === EventType.OWN && getNonOrganizerAttendees(calendarEvent).length > 0
 		}
@@ -143,7 +142,10 @@ export class CalendarEventPreviewViewModel {
 			this.ownAttendee.status = status
 			this.uiUpdateCallback()
 			// no per-instance attendees yet.
-			const model = await this.eventModelFactory(CalendarOperation.EditAll, this.calendarEvent)
+			const model = await this.eventModelFactory(
+				this.calendarEvent.recurrenceId === null ? CalendarOperation.EditAll : CalendarOperation.EditThis,
+				this.calendarEvent,
+			)
 			if (model) {
 				model.editModels.whoModel.setOwnAttendance(status)
 				model.editModels.whoModel.isConfidential = this.calendarEvent.invitedConfidentially ?? false
