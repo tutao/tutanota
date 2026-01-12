@@ -6,8 +6,7 @@ import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
-import { component_size, px, size } from "../../../common/gui/size.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { component_size, px } from "../../../common/gui/size.js"
 
 export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
@@ -23,6 +22,7 @@ export interface MobileMailActionBarAttrs {
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
 	unscheduleMailAction: (() => void) | null
+	moveOutOfSpamAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -75,7 +75,14 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, isUnread, mailViewerMoreActions }: MobileMailActionBarAttrs) {
+	private moreButton({
+		exportAction,
+		applyLabelsAction,
+		setUnreadStateAction,
+		isUnread,
+		mailViewerMoreActions,
+		moveOutOfSpamAction,
+	}: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -116,6 +123,14 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 						} else {
 							moreButtons.push(readButton, unreadButton)
 						}
+					}
+
+					if (moveOutOfSpamAction != null) {
+						moreButtons.push({
+							label: "moveOutOfSpam_action",
+							click: moveOutOfSpamAction,
+							icon: Icons.NotBug,
+						})
 					}
 					return [...moreButtons, ...multipleMailViewerMoreActions(exportAction, mailViewerMoreActions)]
 				},

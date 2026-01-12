@@ -75,7 +75,7 @@ export class InboxRuleHandler {
 		sourceFolder: MailSet,
 		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
-		if (sourceFolder.folderType !== MailSetKind.INBOX) {
+		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
 			return null
 		}
 		return this.findAndApplyMatchingRule(mailboxDetail, mail, false, ignoreProcessingState)
