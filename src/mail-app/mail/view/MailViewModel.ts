@@ -13,12 +13,33 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { $Promisable, assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import {
+	$Promisable,
+	assertNotNull,
+	count,
+	debounce,
+	groupBy,
+	isEmpty,
+	lazyMemoized,
+	mapWith,
+	mapWithout,
+	memoized,
+	ofClass,
+	promiseMap,
+	splitInChunks,
+} from "@tutao/tutanota-utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { getMailSetKind, ImportStatus, MailSetKind, OperationType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import {
+	getMailSetKind,
+	ImportStatus,
+	MailSetKind,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	OperationType,
+	SystemFolderType,
+} from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -40,6 +61,10 @@ import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 import { client } from "../../../common/misc/ClientDetector"
 import { ProcessInboxHandler } from "../model/ProcessInboxHandler"
+import { mailLocator } from "../../mailLocator"
+import { moveMails } from "./MailGuiUtils"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { UndoModel } from "../../UndoModel"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -626,6 +651,54 @@ export class MailViewModel {
 	private createConversationViewModel(viewModelParams: CreateMailViewerOptions) {
 		this.conversationViewModel?.dispose()
 		this.conversationViewModel = this.conversationViewModelFactory(viewModelParams)
+	}
+
+	public async reapplyInboxRulesForMails(actionableMails: Mail[], undoModel: UndoModel) {
+		if (isEmpty(actionableMails)) {
+			return
+		}
+
+		const currentFolder = this.getFolder()
+		if (currentFolder == null) {
+			return
+		}
+
+		const inboxRuleHandler = mailLocator.processInboxHandler()
+		const mailboxDetails = await this.getMailboxDetails()
+		const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
+
+		// preload mailDetails, to cache in one request
+		await mailLocator.bulkMailLoader.loadMailDetails(actionableMails)
+
+		for (const mail of actionableMails) {
+			const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
+			const folderId = getElementId(folder)
+			if (!targetFolderIdToFolderMailMap.has(folderId)) {
+				targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })
+			}
+			targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
+		}
+
+		const movedMailIds = []
+		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
+			let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
+			if (isSameId(currentFolder._id, targetFolder._id)) {
+				continue
+			}
+
+			const resolvedMails = await this.getResolvedMails(mails)
+			await moveMails({
+				targetFolder,
+				mailboxModel: locator.mailboxModel,
+				mailModel: mailLocator.mailModel,
+				mailIds: resolvedMails,
+				moveMode: this.getMoveMode(currentFolder),
+				undoModel,
+			})
+			movedMailIds.push(resolvedMails)
+		}
+
+		return movedMailIds.flat()
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {

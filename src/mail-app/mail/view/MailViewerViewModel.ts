@@ -49,7 +49,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, loadInlineImages, moveMails, showDownloadProgressDialog } from "./MailGuiUtils"
+import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -87,6 +87,7 @@ import { UndoModel } from "../../UndoModel"
 import { isBrowser } from "../../../common/api/common/Env"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -622,6 +623,58 @@ export class MailViewerViewModel {
 		}
 	}
 
+	async moveOutOfSpamForMail() {
+		const hasMailMoved = await this.reapplyInboxRuleForMail()
+		if (!hasMailMoved) {
+			const mailFolderForMail = this.mailModel.getMailFolderForMail(this.mail)
+			if (!mailFolderForMail) {
+				return
+			}
+
+			await moveMailsToSystemFolder({
+				mailboxModel: this.mailboxModel,
+				mailModel: this.mailModel,
+				currentFolder: mailFolderForMail,
+				mailIds: [this.mail._id],
+				targetFolderType: MailSetKind.INBOX,
+				moveMode: MoveMode.Mails,
+				undoModel: this.undoModel,
+			})
+		}
+	}
+
+	async reapplyInboxRuleForMail() {
+		const inboxRuleHandler = mailLocator.processInboxHandler()
+
+		const mail = this.mail
+		if (!mail._ownerGroup) {
+			return false
+		}
+		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
+
+		const currentFolder = this.mailModel.getMailFolderForMail(mail)
+		if (!currentFolder) {
+			return false
+		}
+
+		const targetFolder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetail)
+
+		if (isSameId(currentFolder._id, targetFolder._id)) {
+			return false
+		}
+
+		await moveMails({
+			targetFolder,
+			mailboxModel: locator.mailboxModel,
+			mailModel: mailLocator.mailModel,
+			mailIds: [mail._id],
+			moveMode: MoveMode.Mails,
+			undoModel: this.undoModel,
+		})
+
+		return true
+	}
+
 	canExport(): boolean {
 		return !this.isAnnouncement() && !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
@@ -638,6 +691,14 @@ export class MailViewerViewModel {
 		return (
 			this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail()
 		)
+	}
+
+	canMoveOutOfSpam(): boolean {
+		return this.logins.isInternalUserLoggedIn() && this.getFolderInfo()?.folderType === MailSetKind.SPAM
+	}
+
+	canReapplyInboxRules(): boolean {
+		return this.logins.isInternalUserLoggedIn() && this.getFolderInfo()?.folderType === MailSetKind.INBOX
 	}
 
 	canShowHeaders(): boolean {

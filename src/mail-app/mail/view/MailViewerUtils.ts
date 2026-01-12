@@ -48,6 +48,7 @@ export type MailViewerMoreActions = {
 	reportSpamAction?: () => void
 	reportPhishingAction?: () => void
 	reapplyInboxRulesAction?: (() => void) | null
+	moveOutOfSpamAction?: () => void
 }
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
@@ -330,12 +331,14 @@ export function getMailViewerMoreActions({
 	print,
 	reportPhishing,
 	reapplyInboxRules,
+	moveOutOfSpam,
 }: {
 	viewModel: MailViewerViewModel
 	print: (() => unknown) | null
 	reportSpam: (() => unknown) | null
 	reportPhishing: (() => unknown) | null
 	reapplyInboxRules: (() => unknown) | null
+	moveOutOfSpam: (() => unknown) | null
 }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
@@ -362,8 +365,13 @@ export function getMailViewerMoreActions({
 	if (reportPhishing) {
 		actions.reportPhishingAction = reportPhishing
 	}
+
 	if (reapplyInboxRules) {
 		actions.reapplyInboxRulesAction = reapplyInboxRules
+	}
+
+	if (moveOutOfSpam) {
+		actions.moveOutOfSpamAction = moveOutOfSpam
 	}
 
 	return actions
@@ -377,6 +385,7 @@ function mailViewerMoreActions({
 	reportSpamAction,
 	reportPhishingAction,
 	reapplyInboxRulesAction,
+	moveOutOfSpamAction,
 }: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
@@ -425,6 +434,14 @@ function mailViewerMoreActions({
 			label: "spam_move_action",
 			click: reportSpamAction,
 			icon: Icons.Spam,
+		})
+	}
+
+	if (moveOutOfSpamAction != null) {
+		moreButtons.push({
+			label: "moveOutOfSpam_action",
+			click: moveOutOfSpamAction,
+			icon: Icons.NotBug,
 		})
 	}
 

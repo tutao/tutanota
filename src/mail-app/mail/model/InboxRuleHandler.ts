@@ -45,6 +45,12 @@ export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	]
 }
 
+export enum InboxRulesApplicationType {
+	All,
+	ExcludedFromSpamFilter,
+	NotExcludedFromSpamFilter,
+}
+
 export function getInboxRuleTypeName(type: string): string {
 	let typeNameMapping = getInboxRuleTypeNameMapping().find((t) => t.value === type)
 	return typeNameMapping != null ? typeNameMapping.name : ""
@@ -63,10 +69,7 @@ export class InboxRuleHandler {
 		sourceFolder: MailSet,
 		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
-		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
-			return null
-		}
-		return this.findAndApplyMatchingRule(mailboxDetail, mail, true, ignoreProcessingState)
+		return this.findAndApplyMatchingRule(mailboxDetail, mail, sourceFolder, InboxRulesApplicationType.ExcludedFromSpamFilter, ignoreProcessingState)
 	}
 
 	async findAndApplyRulesNotExcludedFromSpamFilter(
@@ -75,22 +78,24 @@ export class InboxRuleHandler {
 		sourceFolder: MailSet,
 		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
-		if (sourceFolder.folderType !== MailSetKind.INBOX) {
-			return null
-		}
-		return this.findAndApplyMatchingRule(mailboxDetail, mail, false, ignoreProcessingState)
+		return this.findAndApplyMatchingRule(mailboxDetail, mail, sourceFolder, InboxRulesApplicationType.NotExcludedFromSpamFilter, ignoreProcessingState)
 	}
 
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
 	 */
-	private async findAndApplyMatchingRule(
+	async findAndApplyMatchingRule(
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
-		checkRulesExcludedFromSpamFilter: boolean = false,
+		sourceFolder: MailSet,
+		inboxApplicationType: InboxRulesApplicationType = InboxRulesApplicationType.All,
 		ignoreProcessingState = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
+		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
+			return null
+		}
+
 		const shouldApply =
 			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
 				mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION) &&
@@ -101,7 +106,15 @@ export class InboxRuleHandler {
 		}
 
 		const allInboxRules = this.logins.getUserController().props.inboxRules
-		const applicableInboxRules: InboxRule[] = allInboxRules.filter((rule) => !!rule.excludeFromSpamFilter === checkRulesExcludedFromSpamFilter)
+		const applicableInboxRules: InboxRule[] = allInboxRules.filter((rule) => {
+			if (inboxApplicationType === InboxRulesApplicationType.ExcludedFromSpamFilter) {
+				return rule.excludeFromSpamFilter === null || rule.excludeFromSpamFilter
+			} else if (inboxApplicationType === InboxRulesApplicationType.NotExcludedFromSpamFilter) {
+				return rule.excludeFromSpamFilter === null || !rule.excludeFromSpamFilter
+			} else {
+				return true
+			}
+		})
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, applicableInboxRules)
 
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)

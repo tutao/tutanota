@@ -1,4 +1,4 @@
-import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { isEmpty } from "@tutao/tutanota-utils"
@@ -28,6 +28,7 @@ export interface MailViewerToolbarAttrs {
 	mailViewerMoreActions: MailViewerMoreActions | null
 	reportSpamAction: (() => void) | null
 	unscheduleMailAction: (() => void) | null
+	moveOutOfSpamAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -50,6 +51,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
 				this.renderReportSpamButton(attrs),
+				this.renderMoveOutOfSpamButton(attrs),
 				this.renderExtraButtons(attrs.exportAction, attrs.mailViewerMoreActions),
 			]
 		}
@@ -59,12 +61,17 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	 * Actions that can only be taken on a single mail (reply, forward, edit, assign)
 	 */
 	private renderSingleMailActions(attrs: MailViewerToolbarAttrs): Children {
-		const { editDraftAction, replyAction, replyAllAction, forwardAction } = attrs
+		const { editDraftAction, replyAction, replyAllAction, forwardAction, moveOutOfSpamAction } = attrs
 		if (editDraftAction == null && replyAction == null && replyAllAction == null && forwardAction == null) {
 			return null
 		}
 
-		return [this.renderEditButton(editDraftAction), this.renderReplyButton(replyAction, replyAllAction), this.renderForwardButton(forwardAction)]
+		const isShowMoveOutOfSpamAction = moveOutOfSpamAction != null
+		if (!isShowMoveOutOfSpamAction) {
+			return [this.renderEditButton(editDraftAction), this.renderReplyButton(replyAction, replyAllAction), this.renderForwardButton(forwardAction)]
+		} else {
+			return []
+		}
 	}
 
 	private renderTrashButton({ trashMailsAction }: MailViewerToolbarAttrs): Children {
@@ -96,6 +103,17 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				title: "spam_move_action",
 				click: reportSpamAction,
 				icon: Icons.Spam,
+			})
+		)
+	}
+
+	private renderMoveOutOfSpamButton({ moveOutOfSpamAction }: MailViewerToolbarAttrs): Children {
+		return (
+			moveOutOfSpamAction &&
+			m(IconButton, {
+				title: "moveOutOfSpam_action",
+				click: moveOutOfSpamAction,
+				icon: Icons.NotBug,
 			})
 		)
 	}

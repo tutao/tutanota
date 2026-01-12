@@ -11,12 +11,11 @@ import {
 	Keys,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -79,7 +78,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
-import { isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
 import { attachDropdown, PosRect } from "../../../common/gui/base/Dropdown"
@@ -323,9 +322,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				print: this.getPrintAction(),
 				reportSpam: null,
 				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
-				reapplyInboxRules: null,
+				reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(viewModel.primaryViewModel()),
+				moveOutOfSpam: null,
 			}),
 			reportSpamAction: this.getSingleMailSpamAction(viewModel.primaryViewModel()),
+			moveOutOfSpamAction: this.getSingleMailMoveOutOfSpamAction(viewModel.primaryViewModel()),
 		})
 	}
 
@@ -355,6 +356,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return viewModel.canReportPhishing() ? () => showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING)) : null
 	}
 
+	private getSingleMailMoveOutOfSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
+		return viewModel.canMoveOutOfSpam() ? () => viewModel.moveOutOfSpamForMail() : null
+	}
+
+	private getSingleMailReapplyInboxRulesAction(viewModel: MailViewerViewModel): (() => void) | null {
+		return viewModel.canReapplyInboxRules() ? () => viewModel.reapplyInboxRuleForMail() : null
+	}
+
 	private getReportMailsAsSpamAction(): (() => void) | null {
 		const isExternalUser = !locator.logins.isInternalUserLoggedIn()
 		const currentMailSet = this.mailViewModel.getSelectedMailSetKind()
@@ -366,9 +375,47 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (isExternalUser || isExcludedMailSet) {
 			return null
 		} else {
-			return () => {
-				this.moveMailsToSystemFolder(MailSetKind.SPAM)
+			return () => this.moveMailsToSystemFolder(MailSetKind.SPAM)
+		}
+	}
+
+	private getMoveOutOfSpamAction(): (() => void) | null {
+		const isExternalUser = !locator.logins.isInternalUserLoggedIn()
+		const folder = this.mailViewModel.getFolder()
+		const isSpamFolder = folder?.folderType === MailSetKind.SPAM
+		if (isSpamFolder && !isExternalUser) {
+			const actionableMails = this.mailViewModel.getActionableMails().filter((mail) => !isDraft(mail))
+
+			return async () => {
+				try {
+					await showProgressDialog(
+						"pleaseWait_msg",
+						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel).then(async (movedMailIds) => {
+							const mailsToMoveToInbox = actionableMails
+								.filter((mail) => !movedMailIds?.some((movedMailId) => isSameId(mail._id, movedMailId)))
+								.map((mail) => mail._id)
+
+							await moveMailsToSystemFolder({
+								mailboxModel: locator.mailboxModel,
+								mailModel: mailLocator.mailModel,
+								currentFolder: folder,
+								mailIds: mailsToMoveToInbox,
+								targetFolderType: MailSetKind.INBOX,
+								moveMode: this.mailViewModel.getMoveMode(folder),
+								undoModel: this.undoModel,
+							})
+						}),
+					)
+				} catch (e) {
+					// handle the user cancelling the dialog
+					if (e instanceof CancelledError) {
+						return
+					}
+					console.log("moveOutOfSpam error", e.message)
+				}
 			}
+		} else {
+			return null
 		}
 	}
 
@@ -379,13 +426,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return null
 		}
 
-		return this.reapplyInboxRulesWithProgressDialog()
-	}
-
-	private reapplyInboxRulesWithProgressDialog() {
 		return async () => {
 			try {
-				await showProgressDialog("pleaseWait_msg", this.reapplyInboxRulesForInbox())
+				const actionableMails = this.mailViewModel.getActionableMails().filter((mail) => !isDraft(mail))
+				await showProgressDialog("pleaseWait_msg", this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel))
 			} catch (e) {
 				// handle the user cancelling the dialog
 				if (e instanceof CancelledError) {
@@ -394,54 +438,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				console.log("inboxRulesReapplying error", e.message)
 			}
 		}
-	}
-
-	private async reapplyInboxRulesForInbox() {
-		const currentFolder = this.mailViewModel.getFolder()
-		if (currentFolder == null) {
-			return
-		}
-
-		const actionableMails = this.mailViewModel.getActionableMails()
-		if (isEmpty(actionableMails)) {
-			return
-		}
-
-		const inboxRuleHandler = mailLocator.processInboxHandler()
-		const mailboxDetails = await this.mailViewModel.getMailboxDetails()
-		const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
-		await this.bulkLoadMailDetails(actionableMails)
-		for (const mail of actionableMails) {
-			const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
-			const folderId = getElementId(folder)
-			if (!targetFolderIdToFolderMailMap.has(folderId)) {
-				targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })
-			}
-			targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
-		}
-
-		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
-			const { folder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
-			if (folder.folderType === MailSetKind.INBOX) {
-				continue
-			}
-			const resolvedMails = await this.mailViewModel.getResolvedMails(mails)
-
-			moveMails({
-				mailboxModel: locator.mailboxModel,
-				mailModel: mailLocator.mailModel,
-				targetFolder: folder,
-				mailIds: resolvedMails,
-				moveMode: this.mailViewModel.getMoveMode(currentFolder),
-				undoModel: this.undoModel,
-			})
-		}
-	}
-
-	private async bulkLoadMailDetails(mails: readonly Mail[]) {
-		await promiseMap(splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails), (mailChunk) => mailLocator.bulkMailLoader.loadMailDetails(mailChunk), {
-			concurrency: 5,
-		})
 	}
 
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
@@ -502,7 +498,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						print: this.getPrintAction(),
 						reportSpam: this.getSingleMailSpamAction(mailViewerModel),
 						reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
-						reapplyInboxRules: null,
+						reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(mailViewerModel),
+						moveOutOfSpam: this.getSingleMailMoveOutOfSpamAction(mailViewerModel),
 					})
 				},
 			}),
@@ -529,6 +526,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				reapplyInboxRulesAction: this.getReapplyInboxRulesAction(),
 			},
 			reportSpamAction: this.getReportMailsAsSpamAction(),
+			moveOutOfSpamAction: this.getMoveOutOfSpamAction(),
 		})
 	}
 
@@ -617,8 +615,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									print: this.getPrintAction(),
 									reportSpam: this.getSingleMailSpamAction(this.conversationViewModel.primaryViewModel()),
 									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
-									reapplyInboxRules: null,
+									reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(this.conversationViewModel.primaryViewModel()),
+									moveOutOfSpam: null,
 								}),
+								moveOutOfSpamAction: this.getSingleMailMoveOutOfSpamAction(this.conversationViewModel.primaryViewModel()),
 							})
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 							? m(MobileMailMultiselectionActionBar, {

@@ -6,8 +6,7 @@ import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
-import { component_size, px, size } from "../../../common/gui/size.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { component_size, px } from "../../../common/gui/size.js"
 
 export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
@@ -23,6 +22,7 @@ export interface MobileMailActionBarAttrs {
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
 	unscheduleMailAction: (() => void) | null
+	moveOutOfSpamAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -31,6 +31,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	view(vnode: Vnode<MobileMailActionBarAttrs>): Children {
 		const { attrs } = vnode
 
+		const isShowMoveOutOfSpamButton = this.moveOutOfSpamButton(attrs) != null
 		return m(
 			".bottom-nav.bottom-action-bar.flex.items-center.plr-24.justify-between",
 			{
@@ -39,8 +40,8 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				},
 			},
 			[
-				this.unscheduleButton(attrs) ?? this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
-				this.forwardButton(attrs) ?? this.placeholder(),
+				this.moveOutOfSpamButton(attrs) ?? this.unscheduleButton(attrs) ?? this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
+				isShowMoveOutOfSpamButton ? this.placeholder() : (this.forwardButton(attrs) ?? this.placeholder()),
 				this.deleteButton(attrs) ?? this.trashButton(attrs) ?? this.placeholder(),
 				this.moveButton(attrs) ?? this.placeholder(),
 				this.moreButton(attrs),
@@ -54,6 +55,17 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				width: px(component_size.button_height),
 			},
 		})
+	}
+
+	private moveOutOfSpamButton({ moveOutOfSpamAction }: MobileMailActionBarAttrs) {
+		return (
+			moveOutOfSpamAction &&
+			m(IconButton, {
+				title: "moveOutOfSpam_action",
+				click: moveOutOfSpamAction,
+				icon: Icons.NotBug,
+			})
+		)
 	}
 
 	private moveButton({ moveMailsAction }: MobileMailActionBarAttrs) {
@@ -75,7 +87,14 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, isUnread, mailViewerMoreActions }: MobileMailActionBarAttrs) {
+	private moreButton({
+		exportAction,
+		applyLabelsAction,
+		setUnreadStateAction,
+		isUnread,
+		mailViewerMoreActions,
+		moveOutOfSpamAction,
+	}: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -117,6 +136,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							moreButtons.push(readButton, unreadButton)
 						}
 					}
+
 					return [...moreButtons, ...multipleMailViewerMoreActions(exportAction, mailViewerMoreActions)]
 				},
 				width: this.dropdownWidth(),

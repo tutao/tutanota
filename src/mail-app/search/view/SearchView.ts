@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
@@ -119,6 +119,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
+import { CancelledError } from "../../../common/api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -632,6 +633,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					forwardAction: null,
 					mailViewerMoreActions: null,
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
+					moveOutOfSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -679,11 +681,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailViewerMoreActions: getMailViewerMoreActions({
 						viewModel: conversationViewModel.primaryViewModel(),
 						print: this.getPrintAction(),
-						reportSpam: null,
+						reportSpam: this.getSingleMailMoveOutOfSpamAction(conversationViewModel.primaryViewModel()),
 						reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 						reapplyInboxRules: null,
+						moveOutOfSpam: this.getSingleMailMoveOutOfSpamAction(conversationViewModel.primaryViewModel()),
 					}),
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
+					moveOutOfSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -735,6 +739,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								reportSpam: this.getSingleMailSpamAction(mailViewerModel),
 								reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
 								reapplyInboxRules: null,
+								moveOutOfSpam: this.getSingleMailMoveOutOfSpamAction(mailViewerModel),
 							})
 						},
 					}),
@@ -799,6 +804,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING))
 				}
 			: null
+	}
+
+	private getSingleMailMoveOutOfSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
+		return viewModel.canMoveOutOfSpam() ? () => viewModel.moveOutOfSpamForMail() : null
 	}
 
 	private getReportSelectedMailsSpamAction(): (() => unknown) | null {
@@ -988,7 +997,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
 					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 					reapplyInboxRules: null,
+					moveOutOfSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
 				}),
+				moveOutOfSpamAction: null,
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

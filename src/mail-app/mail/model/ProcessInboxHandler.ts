@@ -1,5 +1,5 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
-import { InboxRuleHandler } from "./InboxRuleHandler"
+import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
@@ -155,19 +155,12 @@ export class ProcessInboxHandler {
 			return sourceFolder
 		}
 		let moveToFolder: MailSet = sourceFolder
+
 		// process excluded rules first and then regular ones.
-		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+		const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, sourceFolder, InboxRulesApplicationType.All, true)
 		if (result) {
 			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
-		} else {
-			if (moveToFolder.folderType === MailSetKind.INBOX) {
-				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
-				if (result) {
-					const { targetFolder, processInboxDatum: _ } = result
-					moveToFolder = targetFolder
-				}
-			}
 		}
 
 		return moveToFolder
