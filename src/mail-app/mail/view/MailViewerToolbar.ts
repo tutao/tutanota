@@ -1,4 +1,4 @@
-import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { isEmpty } from "@tutao/tutanota-utils"
@@ -28,6 +28,7 @@ export interface MailViewerToolbarAttrs {
 	mailViewerMoreActions: MailViewerMoreActions | null
 	reportSpamAction: (() => void) | null
 	unscheduleMailAction: (() => void) | null
+	moveOutOfSpamAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -50,6 +51,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
 				this.renderReportSpamButton(attrs),
+				this.renderMoveOutOfSpamButton(attrs),
 				this.renderExtraButtons(attrs.exportAction, attrs.mailViewerMoreActions),
 			]
 		}
@@ -96,6 +98,17 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				title: "spam_move_action",
 				click: reportSpamAction,
 				icon: Icons.Spam,
+			})
+		)
+	}
+
+	private renderMoveOutOfSpamButton({ moveOutOfSpamAction }: MailViewerToolbarAttrs): Children {
+		return (
+			moveOutOfSpamAction &&
+			m(IconButton, {
+				title: "moveOutOfSpam_action",
+				click: moveOutOfSpamAction,
+				icon: Icons.NotBug,
 			})
 		)
 	}
