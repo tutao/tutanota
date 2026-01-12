@@ -1022,6 +1022,7 @@ export type TranslationKeyType =
 	| "moveUp_action"
 	| "moveToTop_action"
 	| "moveToInbox_action"
+	| "moveOutOfSpam_action"
 	| "moveToBottom_action"
 	| "moveDown_action"
 	| "mostPopular_label"

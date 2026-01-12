@@ -1143,6 +1143,7 @@ export default {
 		"moveDown_action": "Move down",
 		"moveToBottom_action": "Move to the bottom",
 		"moveToInbox_action": "Move to Inbox",
+		"moveOutOfSpam_action": "Move out of Spam",
 		"moveToTop_action": "Move to the top",
 		"moveUp_action": "Move up",
 		"name_label": "Name",

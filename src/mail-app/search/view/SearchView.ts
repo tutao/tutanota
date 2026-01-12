@@ -633,6 +633,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					forwardAction: null,
 					mailViewerMoreActions: null,
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
+					moveOutOfSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -685,6 +686,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						reapplyInboxRules: null,
 					}),
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
+					moveOutOfSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,

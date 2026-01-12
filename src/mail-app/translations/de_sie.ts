@@ -1143,6 +1143,7 @@ export default {
 		"moveDown_action": "Nach unten",
 		"moveToBottom_action": "An das Ende verschieben",
 		"moveToInbox_action": "In den Posteingang verschieben",
+		"moveOutOfSpam_action": "Aus dem Spam-Ordner verschieben",
 		"moveToTop_action": "An den Anfang verschieben",
 		"moveUp_action": "Nach oben",
 		"name_label": "Name",
