@@ -5,15 +5,13 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, clamp, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, clamp, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
 	MailReportType,
 	MailSetKind,
-	MailState,
 	SimpleMoveMailTarget,
-	SYSTEM_GROUP_MAIL_ADDRESS,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { getReportConfirmation } from "./MailReportDialog"
@@ -101,7 +99,12 @@ enum UndoSnackbarResult {
 	Replaced,
 }
 
-export async function showUndoMailSnackbar(undoModel: UndoModel, onUndo: () => Promise<void>, undoText: string): Promise<UndoSnackbarResult> {
+export async function showUndoMailSnackbar(
+	undoModel: UndoModel,
+	onUndo: () => Promise<void>,
+	undoText: string,
+	undoExpiration?: number,
+): Promise<UndoSnackbarResult> {
 	return new Promise((resolve) => {
 		let result: UndoSnackbarResult | null = null
 
@@ -140,6 +143,7 @@ export async function showUndoMailSnackbar(undoModel: UndoModel, onUndo: () => P
 					// different undo action pending
 					clearUndoAction()
 				},
+				expirationTime: undoExpiration,
 			},
 			dismissButton: {
 				title: "close_alt",
