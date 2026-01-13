@@ -312,7 +312,8 @@ export class DriveViewModel {
 
 	private makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 		const [basename, ext] = getFileBaseNameAndExtensions(fileName)
-		return `${basename} (${indicator})${ext}`
+		const safeExt = ext ?? ""
+		return `${basename} (${indicator})${safeExt}`
 	}
 
 	private makeDuplicateFolderName(folderName: string): string {
@@ -347,8 +348,7 @@ export class DriveViewModel {
 			folderItems.map((item) => item.id),
 		)
 
-		await this.listModel.waitLoad()
-		const renamedFiles = await this.deduplicateItemNames(this.listModel.getUnfilteredAsArray(), files, folders)
+		const renamedFiles = await this.deduplicateItemNames(await this.loadFolderContents(destination._id), files, folders)
 
 		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
 	}
@@ -366,13 +366,7 @@ export class DriveViewModel {
 			folderItems.map((item) => item.id),
 		)
 
-		let renamedFiles: Map<Id, string> = new Map()
-
-		// If we're moving into a folder different from the current one (the common case),
-		// we will read the files in the destination folder to generate alternative target names for duplicates.
-		if (!isSameId(this.currentFolder?.folder._id ?? null, destinationId)) {
-			renamedFiles = await this.deduplicateItemNames(await this.loadFolderContents(destinationId), files, folders)
-		}
+		const renamedFiles = await this.deduplicateItemNames(await this.loadFolderContents(destinationId), files, folders)
 
 		await this.driveFacade.move(
 			fileItems.map((item) => item.id),
@@ -392,13 +386,17 @@ export class DriveViewModel {
 
 		for (const file of newFiles) {
 			const newFileName = this.pickNewFileName(file.name, takenFileNames)
-			renamedFiles.set(getElementId(file), newFileName)
+			if (newFileName !== file.name) {
+				renamedFiles.set(getElementId(file), newFileName)
+			}
 			takenFileNames.add(newFileName)
 		}
 
 		for (const folder of newFolders) {
 			const newFolderName = this.pickNewFileName(folder.name, takenFileNames)
-			renamedFiles.set(getElementId(folder), newFolderName)
+			if (newFolderName !== folder.name) {
+				renamedFiles.set(getElementId(folder), newFolderName)
+			}
 			takenFileNames.add(newFolderName)
 		}
 		return renamedFiles
@@ -539,6 +537,7 @@ export class DriveViewModel {
 
 	async downloadFile(file: DriveFile): Promise<void> {
 		// a bit ugly -- should we rename and move that one?
+		// FIXME
 		locator.fileController.open(file, ArchiveDataType.DriveFile)
 	}
 
