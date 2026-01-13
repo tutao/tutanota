@@ -75,10 +75,10 @@ import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResol
 import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { elementIdPart, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
 import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
 import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
-import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
 import { MailboxDetail, MailboxModel } from "./MailboxModel.js"
 import { ContactModel } from "../contactsFunctionality/ContactModel.js"
@@ -89,6 +89,7 @@ import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarN
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
 import { Time } from "../calendar/date/Time"
+import { isAliasEnabledForGroupInfo } from "../api/common/utils/GroupUtils"
 
 assertMainOrNode()
 
@@ -1351,6 +1352,13 @@ export class SendMailModel {
 						this.mailRemotelyUpdatedAt = this.mailSavedAt + 1
 					}
 					await this.makeLocalAutosave()
+				}
+			}
+		} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
+			if (isSameId(getElementId(this.user().userGroupInfo), update.instanceId)) {
+				const groupInfo = await this.entity.load(GroupInfoTypeRef, [update.instanceListId, update.instanceId])
+				if (!isAliasEnabledForGroupInfo(groupInfo, this.senderAddress)) {
+					this.senderAddress = this.getDefaultSender()
 				}
 			}
 		}
