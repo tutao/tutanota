@@ -1,9 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { theme } from "../../gui/theme"
 import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
-import { LoginButton } from "../../gui/base/buttons/LoginButton"
-import { Translation } from "../../misc/LanguageViewModel"
-import { px } from "../../gui/size"
 
 const DEFAULT_SCRAMBLE_CHARS = "#$%&*?@/\\+=-_~<>[]{}"
 const DEFAULT_TRANSITION_MS = 500
@@ -34,20 +30,16 @@ export class SignupWizardInfoBoxController {
 	}
 }
 
-export interface SignupWizardInfoBoxAttrs {
+export interface SignupWizardInfoListAttrs {
 	controller?: SignupWizardInfoBoxController
 	initialItems?: InfoBoxItem[]
 	transitionMs?: number
 	scrambleChars?: string
-	class?: string
-	style?: Record<string, string | number | undefined>
-	buttonLabel?: Translation
-	onClickButton?: () => void
 }
 
 type Pos = { r: number; c: number }
 
-export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> {
+export class SignupWizardInfoList implements Component<SignupWizardInfoListAttrs> {
 	private currentItems: InfoBoxItem[] = []
 
 	private phase: "idle" | "scramble" | "reveal" = "idle"
@@ -66,7 +58,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 
 	private readonly sink = (nextItems: InfoBoxItem[]) => this.animateTo(nextItems)
 
-	oninit(vnode: Vnode<SignupWizardInfoBoxAttrs>) {
+	oninit(vnode: Vnode<SignupWizardInfoListAttrs>) {
 		this.transitionMs = Math.max(1, vnode.attrs.transitionMs ?? DEFAULT_TRANSITION_MS)
 		this.scrambleChars = vnode.attrs.scrambleChars ?? DEFAULT_SCRAMBLE_CHARS
 
@@ -77,7 +69,7 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 		vnode.attrs.controller?._attach(this.sink)
 	}
 
-	onbeforeupdate(vnode: Vnode<SignupWizardInfoBoxAttrs>, old: Vnode<SignupWizardInfoBoxAttrs>) {
+	onbeforeupdate(vnode: Vnode<SignupWizardInfoListAttrs>, old: Vnode<SignupWizardInfoListAttrs>) {
 		this.transitionMs = Math.max(1, vnode.attrs.transitionMs ?? DEFAULT_TRANSITION_MS)
 		this.scrambleChars = vnode.attrs.scrambleChars ?? DEFAULT_SCRAMBLE_CHARS
 
@@ -88,50 +80,24 @@ export class SignupWizardInfoBox implements Component<SignupWizardInfoBoxAttrs> 
 		return true
 	}
 
-	onremove(vnode: Vnode<SignupWizardInfoBoxAttrs>) {
+	onremove(vnode: Vnode<SignupWizardInfoListAttrs>) {
 		this.cancel()
 		vnode.attrs.controller?._detach(this.sink)
 	}
 
-	view(vnode: Vnode<SignupWizardInfoBoxAttrs>) {
-		const { buttonLabel, onClickButton, style } = vnode.attrs
+	view() {
 		const items = this.phase === "idle" ? this.currentItems : this.buildDisplayItems()
 		const isTransitioning = this.phase !== "idle"
 
-		return m(
-			".abs.border-radius-16.flex.col.gap-16.plr-24.pt-24.pb-24",
-			{
-				class: vnode.attrs.class,
-				style: {
-					width: "100%",
-					"background-color": theme.surface_container_high,
-					top: px(380),
-					...style,
-				},
-			},
+		return m.fragment(
+			{},
 			items.map((it, idx) => {
-				const icon = it.icon ? m(Icon, { icon: it.icon.icon, size: IconSize.PX24, style: { fill: it.icon.color } }) : null
-				return m(".flex.row.gap-8.items-center", { key: idx }, [
+				const icon = it.icon ? m(Icon, { icon: it.icon.icon, size: IconSize.PX20, style: { fill: it.icon.color } }) : null
+				return m(".flex.row.gap-8.items-start", { key: idx }, [
 					icon,
-					m("span", { style: isTransitioning ? { "white-space": "nowrap" } : undefined }, it.text),
+					m("span", { style: isTransitioning ? { "line-break": "anywhere" } : undefined }, it.text),
 				])
 			}),
-			buttonLabel &&
-				onClickButton &&
-				m(
-					"",
-					m(LoginButton, {
-						label: buttonLabel,
-						onclick: onClickButton,
-						size: "md",
-						width: "flex",
-						style: {
-							"background-color": theme.secondary_container,
-							color: theme.on_secondary_container,
-							"margin-inline": "auto",
-						},
-					}),
-				),
 		)
 	}
 

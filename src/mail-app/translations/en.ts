@@ -2169,6 +2169,18 @@ export default {
 		"confirmFreeLimits_msg": "I do not own any other Free account and I will not use this account for business.",
 		"generatePassword_action": "Generate password",
 		"copyRecoveryCode_action": "Copy Recovery Code",
-		"downloadRecoveryCode_action": "Download PDF-File"
+		"downloadRecoveryCode_action": "Download PDF-File",
+		"quantumSafeE2ee_label": "Quantum-safe end-to-end encryption",
+		"greenEnergy_label": "Green energy",
+		"adFree_label": "Ad-free",
+		"openSource_label": "Open source",
+		"onlyOneFreeAccount_msg": "Only 1 free Account per person",
+		"noExtraAddress_msg": "No extra email addresses",
+		"deleteAccountAfter6Month_msg": "Account will be deleted after 6 months if not logged into",
+		"safePayment_label": "Safe payment",
+		"directSupport_msg": "Direct support",
+		"moneyBackGuarantee_msg": "14-day money-back guarantee",
+		"cancelAnyTime_msg": "Cancel at any time",
+		"whitelabel_msg": "Whitelabel customizations"
 	}
 }

@@ -5,7 +5,7 @@ import { styles } from "../gui/styles"
 import { component_size, layout_size, px, size } from "../gui/size"
 import { SignupViewModel } from "./SignupView"
 import { DynamicColorSvg } from "../gui/base/DynamicColorSvg"
-import { InfoBoxItem, SignupWizardInfoBox, SignupWizardInfoBoxAttrs, SignupWizardInfoBoxController } from "./components/SignupWizardInfoBox"
+import { InfoBoxItem, SignupWizardInfoBoxController, SignupWizardInfoList } from "./components/SignupWizardInfoList"
 import { Icons } from "../gui/base/icons/Icons"
 import { lang } from "../misc/LanguageViewModel"
 import { SignupInlinePlanSelector } from "./components/SignupInlinePlanSelector"
@@ -15,21 +15,79 @@ import { getTutaLogo, getTutaLogoSignetSvg } from "../gui/base/Logo"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { theme } from "../gui/theme"
 import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
-import { PlanTypeToName } from "../api/common/TutanotaConstants"
+import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { LoginButton } from "../gui/base/buttons/LoginButton"
+import { BootIcons } from "../gui/base/icons/BootIcons"
 
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
+const CHECK_INFO_ICON = { icon: Icons.Checkmark, color: theme.success }
+const CROSS_INFO_ICON = { icon: Icons.XCross, color: theme.error }
 
 class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
 	private lastSeenTransitionSeq = 0
 	readonly infoBox = new SignupWizardInfoBoxController()
+
 	private readonly seeOtherPlansLabel = lang.makeTranslation("seeOtherPlans_action", "See other plans")
-	readonly defaultItems: InfoBoxItem[] = [
-		{ icon: { icon: Icons.PQLock, color: theme.success }, text: "Quantum-safe end-to-end encryption" },
-		{ icon: { icon: Icons.PQLock, color: theme.error }, text: "Quantum-safe end-to-end encryption" },
-		{ icon: { icon: Icons.PQLock, color: theme.success }, text: "Quantum-safe end-to-end encryption" },
-		{ icon: { icon: Icons.PQLock, color: theme.error }, text: "Quantum-safe end-to-end encryption" },
+	readonly planSelectorInfoItems: InfoBoxItem[] = [
+		{ icon: { icon: Icons.PQLockOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("quantumSafeE2ee_label") },
+		{ icon: { icon: Icons.LeafOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("greenEnergy_label") },
+		{ icon: { icon: Icons.StopHandOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("adFree_label") },
+		{ icon: { icon: Icons.OpenSourceOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("openSource_label") },
 	]
+	readonly formPageInfoItems: Record<AvailablePlanType, InfoBoxItem[]> = {
+		[PlanType.Free]: [
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonStorage_msg", { "{amount}": 1 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("onlyOneFreeAccount_msg") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("noExtraAddress_msg") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("deleteAccountAfter6Month_msg") },
+		],
+		[PlanType.Revolutionary]: [
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonStorage_msg", { "{amount}": 20 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.mailAddressAliasesShort_label", { "{amount}": 15 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonCustomDomains_msg", { "{amount}": 3 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("pricing.family_label") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("mailImportSettings_label") },
+		],
+		[PlanType.Legend]: [
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonStorage_msg", { "{amount}": 500 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.mailAddressAliasesShort_label", { "{amount}": 30 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonCustomDomains_msg", { "{amount}": 10 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("pricing.family_label") },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("mailImportSettings_label") },
+		],
+		[PlanType.Essential]: [
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonStorage_msg", { "{amount}": 50 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.mailAddressAliasesShort_label", { "{amount}": 15 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonCustomDomains_msg", { "{amount}": 3 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("pricing.comparisonSupportPremium_msg") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("mailImportSettings_label") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("whitelabel_msg") },
+		],
+		[PlanType.Advanced]: [
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonStorage_msg", { "{amount}": 500 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.mailAddressAliasesShort_label", { "{amount}": 30 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonCustomDomains_msg", { "{amount}": 10 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("pricing.comparisonSupportPro_msg") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("mailImportSettings_label") },
+			{ icon: CROSS_INFO_ICON, text: lang.getTranslationText("whitelabel_msg") },
+		],
+		[PlanType.Unlimited]: [
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.comparisonStorage_msg", { "{amount}": 1000 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslation("pricing.mailAddressAliasesShort_label", { "{amount}": 30 }).text },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("pricing.comparisonUnlimitedDomains_msg") },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("pricing.comparisonSupportPro_msg") },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("mailImportSettings_label") },
+			{ icon: CHECK_INFO_ICON, text: lang.getTranslationText("whitelabel_msg") },
+		],
+	}
+	readonly paymentInfoItems: InfoBoxItem[] = [
+		{ icon: { icon: Icons.CreditCard, color: theme.on_surface_variant }, text: lang.getTranslationText("safePayment_label") },
+		{ icon: { icon: Icons.Reply, color: theme.on_surface_variant }, text: lang.getTranslationText("moneyBackGuarantee_msg") },
+		{ icon: { icon: Icons.CloseCircleFilled, color: theme.on_surface_variant }, text: lang.getTranslationText("cancelAnyTime_msg") },
+		{ icon: { icon: BootIcons.User, color: theme.on_surface_variant }, text: lang.getTranslationText("directSupport_msg") },
+	]
+	private infoItems: InfoBoxItem[] = this.planSelectorInfoItems
 	private transitionIllustrationName: string | null = null
 	private transitionTimer: number | null = null
 	private readonly stepIllustrations = [
@@ -39,13 +97,20 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		"signup-before-click.svg",
 		"signup-key.svg",
 	]
-	private readonly stepInfoBoxItems: InfoBoxItem[][] = [this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems, this.defaultItems]
+	private readonly stepInfoBoxItems = (planType: PlanType): InfoBoxItem[][] => {
+		return [this.planSelectorInfoItems, this.formPageInfoItems[planType as AvailablePlanType], this.paymentInfoItems]
+	}
+
+	private updateInfoItems(viewModel: SignupViewModel, step: number) {
+		const nextItems = this.getInfoBoxItemsForStep(step, viewModel.targetPlanType)
+		this.infoBox.setItems(nextItems)
+		this.infoItems = nextItems
+	}
 
 	onTransition(viewModel: SignupViewModel, _from: number, to: number) {
 		if (!this.isInlinePlanSelectorToggleEnabled(viewModel, to)) viewModel.inlinePlanSelectorOpen(false)
-		const nextItems = this.getInfoBoxItemsForStep(to)
 		this.startIllustrationTransition()
-		this.infoBox.setItems(nextItems)
+		this.updateInfoItems(viewModel, to)
 	}
 
 	onbeforeupdate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
@@ -198,6 +263,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 										onPlanSelected: () => {
 											viewModel.inlinePlanSelectorOpen(false)
 											ctx.controller.setStepLabel(0, PlanTypeToName[viewModel.targetPlanType])
+											this.updateInfoItems(viewModel, controller.currentStep)
 										},
 									}),
 								),
@@ -205,18 +271,42 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 									m(DynamicColorSvg, {
 										path: this.getIllustrationPath(illustrationName),
 									}),
-									index !== 4 && // not show info box for recovery kit page
-										m(SignupWizardInfoBox, {
-											controller: this.infoBox,
-											initialItems: this.defaultItems,
-											transitionMs: 1000,
-											buttonLabel: canTogglePlanSelector ? this.seeOtherPlansLabel : undefined,
-											onClickButton: canTogglePlanSelector
-												? () => {
-														viewModel.inlinePlanSelectorOpen(true)
-													}
-												: undefined,
-										} satisfies SignupWizardInfoBoxAttrs),
+									index <= 2 && // not show info box after the confirmation page
+										m(
+											".abs.border-radius-16.flex.col.gap-16.plr-24.pt-24.pb-24",
+											{
+												style: {
+													width: "100%",
+													"background-color": theme.surface_container_high,
+													top: px(380),
+												},
+											},
+											m(
+												".flex.col.gap-16",
+												m(SignupWizardInfoList, {
+													controller: this.infoBox,
+													initialItems: this.infoItems,
+													transitionMs: 1000,
+												}),
+											),
+											canTogglePlanSelector &&
+												m(
+													"",
+													m(LoginButton, {
+														label: this.seeOtherPlansLabel,
+														onclick: () => {
+															viewModel.inlinePlanSelectorOpen(true)
+														},
+														size: "md",
+														width: "flex",
+														style: {
+															"background-color": theme.secondary_container,
+															color: theme.on_secondary_container,
+															"margin-inline": "auto",
+														},
+													}),
+												),
+										),
 								]),
 							]),
 					]),
@@ -237,8 +327,9 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		)
 	}
 
-	private getInfoBoxItemsForStep(step: number): InfoBoxItem[] {
-		return this.stepInfoBoxItems[step] ?? this.stepInfoBoxItems[0] ?? this.defaultItems
+	private getInfoBoxItemsForStep(step: number, planType: PlanType): InfoBoxItem[] {
+		const infoBoxes = this.stepInfoBoxItems(planType)
+		return infoBoxes[step] ?? infoBoxes[0] ?? this.planSelectorInfoItems
 	}
 
 	private getStepIllustrationName(step: number): string {
