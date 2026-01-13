@@ -26,11 +26,11 @@ await program
 			browserOk = true
 		}
 
-		// if (browserOk && nodeOk) {
-		// 	process.exit(0)
-		// } else {
-		// 	process.exit(1)
-		// }
+		if (browserOk && nodeOk) {
+			process.exit(0)
+		} else {
+			process.exit(1)
+		}
 	})
 	.parseAsync(process.argv)
 
