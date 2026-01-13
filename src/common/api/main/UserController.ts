@@ -355,6 +355,21 @@ export class UserController {
 			}
 		}
 	}
+
+	getInfoData() {
+		const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+		apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
+		apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
+		apiUrl.searchParams.append("cv", env.versionNumber)
+
+		const data = `
+		 Has navigator beacon?${!!navigator.sendBeacon}
+		 the apiBaseUrl ${getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())}
+		 the Api pathname would be: ${apiUrl.pathname}
+		 The JSON of this apiURL? ${apiUrl.toJSON()}
+		`
+		return data
+	}
 }
 
 export type UserControllerInitData = {
