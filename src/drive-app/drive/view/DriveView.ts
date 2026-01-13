@@ -5,7 +5,7 @@ import m, { Children, Vnode } from "mithril"
 import { DriveFolderType, DriveViewModel, FolderFolderItem, FolderItem, FolderItemId } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
-import { FileReference } from "../../../common/api/common/utils/FileUtils"
+import { FileReference, getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
@@ -334,11 +334,22 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	private onRename(item: FolderItem) {
+		const originalName = item.type === "file" ? item.file.name : item.folder.name
+
+		// Determine how much of the original filename to pre-select,
+		// for easier renaming of files with extensions.
+		let selectionEnd = originalName.length
+		const [basename] = getFileBaseNameAndExtensions(originalName)
+		if (basename) {
+			selectionEnd = basename.length
+		}
+
 		Dialog.showProcessTextInputDialog(
 			{
 				title: "renameItem_action",
 				label: "enterNewName_label",
-				defaultValue: item.type === "file" ? item.file.name : item.folder.name,
+				defaultValue: originalName,
+				selectionRange: [0, selectionEnd],
 			},
 			async (newName: string) => {
 				this.driveViewModel.rename(item, newName)
