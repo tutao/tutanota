@@ -1,11 +1,9 @@
 import m, { Vnode } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
-import { LoginViewModel } from "../login/LoginViewModel.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { createWizard, WizardAttrs } from "../gui/base/wizard/Wizard"
-import { px } from "../gui/size"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -44,9 +42,7 @@ import { noOp } from "@tutao/tutanota-utils"
 assertMainOrNode()
 
 export interface SignupViewAttrs extends TopLevelAttrs {
-	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
-	targetPath: string
-	makeViewModel: () => LoginViewModel
+	makeViewModel: () => SignupViewModel
 }
 
 export class SignupViewModel {
@@ -196,7 +192,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
-		this.wizardViewModel = new SignupViewModel()
+		this.wizardViewModel = attrs.makeViewModel()
 	}
 
 	async onbeforeremove() {}
@@ -334,5 +330,3 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		)
 	}
 }
-
-export default SignupView
