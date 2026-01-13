@@ -5,7 +5,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, debounceStart, groupBy, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -383,34 +383,33 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
-	private async deduplicateItemNames(existingItems: FolderItem[], newFiles: Array<DriveFile>, newFolders: Array<DriveFolder>) {
+	private async deduplicateItemNames(existingItems: FolderItem[], newFiles: Array<DriveFile>, newFolders: Array<DriveFolder>): Promise<Map<Id, string>> {
 		// This is for tracking filenames that are not yet part of the list model
 		// because we *just now* made them up when trying to find a free candidate name
 		// and are therefore unsuited as candidate names as well.
-		const newlyTakenFilenames: Set<string> = new Set()
-
+		const takenFileNames: Set<string> = new Set(existingItems.map((item) => folderItemEntity(item).name))
 		const renamedFiles: Map<Id, string> = new Map()
 
-		const currentFolderItemsByName = groupBy(existingItems, (item) => folderItemEntity(item).name)
-
 		for (const file of newFiles) {
-			let candidateName = file.name
-			while (currentFolderItemsByName.get(candidateName) != null || newlyTakenFilenames.has(candidateName)) {
-				candidateName = this.makeDuplicateFileName(candidateName)
-			}
-			renamedFiles.set(getElementId(file), candidateName)
-			newlyTakenFilenames.add(candidateName)
+			const newFileName = this.pickNewFileName(file.name, takenFileNames)
+			renamedFiles.set(getElementId(file), newFileName)
+			takenFileNames.add(newFileName)
 		}
 
 		for (const folder of newFolders) {
-			let candidateName = folder.name
-			while (currentFolderItemsByName.get(candidateName) != null || newlyTakenFilenames.has(candidateName)) {
-				candidateName = this.makeDuplicateFolderName(candidateName)
-			}
-			renamedFiles.set(getElementId(folder), candidateName)
-			newlyTakenFilenames.add(candidateName)
+			const newFolderName = this.pickNewFileName(folder.name, takenFileNames)
+			renamedFiles.set(getElementId(folder), newFolderName)
+			takenFileNames.add(newFolderName)
 		}
 		return renamedFiles
+	}
+
+	private pickNewFileName(originalName: string, takenFileNames: ReadonlySet<string>): string {
+		let candidateName = originalName
+		while (takenFileNames.has(candidateName)) {
+			candidateName = this.makeDuplicateFileName(candidateName)
+		}
+		return candidateName
 	}
 
 	private itemsIntoIds(items: readonly FolderItem[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
@@ -499,35 +498,24 @@ export class DriveViewModel {
 	async uploadFiles(files: File[]): Promise<void> {
 		const targetFolderId: IdTuple =
 			this.currentFolder == null || this.currentFolder.type === DriveFolderType.Trash ? this.roots?.root : this.currentFolder.folder._id
+
+		await this.listModel.waitLoad()
+		const folderItems = this.listModel.getUnfilteredAsArray()
+		const takenFileNames: Set<string> = new Set(folderItems.map((item) => folderItemEntity(item).name))
+
 		for (const file of files) {
 			const fileId = await this.driveFacade.generateUploadId()
-			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
 
-			const uploadedFile = await this.driveFacade.uploadFile(file, fileId, targetFolderId).catch(
+			const newName = this.pickNewFileName(file.name, takenFileNames)
+			takenFileNames.add(newName)
+
+			this.driveUploadStackModel.addUpload(fileId, newName, file.size)
+
+			await this.driveFacade.uploadFile(file, fileId, newName, targetFolderId).catch(
 				ofClass(CancelledError, (e) => {
 					console.log("Upload canceled", fileId)
 				}),
 			)
-			if (uploadedFile) {
-				// It is possible that another same-named file has been created just before
-				// this one has finished uploading. To prevent name collisions, we query the
-				// folder contents after the upload has finished and find another name for the
-				// new file, if necessary.
-				await this.listModel.waitLoad()
-				const currentFolderItemsByName = groupBy(this.listModel.getUnfilteredAsArray(), (item) => folderItemEntity(item).name)
-				const sameNamedItems = currentFolderItemsByName.get(uploadedFile.name)
-
-				// FIXME: Needs clarification. Why do we have to check for .length > 0?
-				// Checking for length > 1 instead seems correct, as I'd expect uploadedFile to have
-				// already been added to listModel. But it hasn't. Is this a race condition?
-				if (sameNamedItems && sameNamedItems.length > 0) {
-					let newName = uploadedFile.name
-					while (currentFolderItemsByName.get(newName) != null) {
-						newName = this.makeDuplicateFileName(newName, "new")
-					}
-					await this.driveFacade.rename(uploadedFile, newName)
-				}
-			}
 		}
 	}
 
