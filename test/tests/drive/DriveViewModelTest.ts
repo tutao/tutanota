@@ -16,6 +16,7 @@ import { UserController } from "../../../src/common/api/main/UserController"
 import { TutanotaPropertiesTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { GroupInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 import { elementIdPart, getElementId } from "../../../src/common/api/common/utils/EntityUtils"
+import { FileController } from "../../../src/common/file/FileController"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
@@ -29,6 +30,7 @@ o.spec("DriveViewModel", function () {
 	let loginController: LoginController
 	let userController: UserController
 	let userManagementFacade: UserManagementFacade
+	let fileController: FileController
 
 	let rootFolder: DriveFolder
 
@@ -45,6 +47,8 @@ o.spec("DriveViewModel", function () {
 		uploadProgressController = object()
 		eventController = object()
 		loginController = object()
+		fileController = object()
+
 		const props = createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: "user@tuta.com",
 		})
@@ -80,6 +84,7 @@ o.spec("DriveViewModel", function () {
 			eventController,
 			loginController,
 			userManagementFacade,
+			fileController,
 			() => {},
 		)
 		await driveViewModel.init()

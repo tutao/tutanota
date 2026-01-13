@@ -1315,6 +1315,7 @@ class MailLocator implements CommonLocator {
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,
+			this.fileController,
 			redraw,
 		)
 		await model.init()

@@ -4,7 +4,6 @@ import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { locator } from "../../../common/api/main/CommonLocator"
 import { assertNotNull, debounceStart, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -24,6 +23,7 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { UploadProgressController } from "../../../common/api/main/UploadProgressController"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
+import { FileController } from "../../../common/file/FileController"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -175,6 +175,7 @@ export class DriveViewModel {
 		private readonly eventController: EventController,
 		private readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
+		private readonly fileController: FileController,
 		public readonly updateUi: () => unknown,
 	) {
 		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade, updateUi)
@@ -537,8 +538,7 @@ export class DriveViewModel {
 
 	async downloadFile(file: DriveFile): Promise<void> {
 		// a bit ugly -- should we rename and move that one?
-		// FIXME
-		locator.fileController.open(file, ArchiveDataType.DriveFile)
+		this.fileController.open(file, ArchiveDataType.DriveFile)
 	}
 
 	getCurrentColumnSortOrder() {
