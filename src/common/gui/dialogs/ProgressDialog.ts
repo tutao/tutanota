@@ -70,3 +70,55 @@ export async function showProgressDialog<T>(
 		await delay(DefaultAnimationTime)
 	}
 }
+
+export async function showSomeDialog<T>(
+	messageIdOrMessageFunction: string,
+	action: Promise<T>,
+	progressStream?: Stream<number>,
+	headerBarAttrs?: DialogHeaderBarAttrs,
+): Promise<T> {
+	if (progressStream != null) {
+		progressStream.map(() => {
+			m.redraw()
+		})
+	}
+
+	const progressDialog = new Dialog(DialogType.Progress, {
+		view: () => {
+			let title = messageIdOrMessageFunction
+			return m("", [
+				headerBarAttrs
+					? m(DialogHeaderBar, {
+							...headerBarAttrs,
+							class: "mb-32 mt-negative-24 mr-negative-24 ml-negative-24",
+						})
+					: null,
+				m(
+					".hide-outline",
+					{
+						// We make this element focusable so that the screen reader announces the dialog
+						tabindex: TabIndex.Default,
+
+						oncreate(vnode) {
+							// We need to delay so that the eelement is attached to the parent
+							setTimeout(() => {
+								;(vnode.dom as HTMLElement).focus()
+							}, 10)
+						},
+					},
+					[
+						m(".flex-center", progressStream ? m(CompletenessIndicator, { percentageCompleted: progressStream() }) : progressIcon()),
+						m("p#dialog-title", title),
+					],
+				),
+			])
+		},
+	}).setCloseHandler(() => {
+		// do not close progress on onClose event
+	})
+	progressDialog.show()
+	let start = new Date().getTime()
+	await delay(20_000)
+	progressDialog.close()
+	return await action
+}

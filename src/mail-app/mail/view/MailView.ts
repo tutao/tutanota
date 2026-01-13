@@ -16,14 +16,14 @@ import {
 } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import { showProgressDialog, showSomeDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
@@ -91,7 +91,6 @@ import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBo
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { LockedError } from "../../../common/api/common/error/RestError"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
@@ -340,11 +339,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
-		this.mailViewModel.clearStickyMail()
-		viewModel
-			.reportMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-			.finally(m.redraw)
+		console.log("this is not rporting, using for test.")
 	}
 
 	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
@@ -354,24 +349,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
 		return viewModel.canReportPhishing() ? () => showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING)) : null
 	}
-
-	private getReportMailsAsSpamAction(): (() => void) | null {
-		const isExternalUser = !locator.logins.isInternalUserLoggedIn()
-		const currentMailSet = this.mailViewModel.getSelectedMailSetKind()
-
-		// We don't show report action in label view, because mails can be in Spam or Drafts.
-		// We could check each mail's folder when in label view, but reporting mails from label view is unlikely.
-		// Mails can still be reported as spam from label view by moving them to Spam folder.
-		const isExcludedMailSet = currentMailSet && [MailSetKind.SPAM, MailSetKind.DRAFT, MailSetKind.LABEL, MailSetKind.SCHEDULED].includes(currentMailSet)
-		if (isExternalUser || isExcludedMailSet) {
-			return null
-		} else {
-			return () => {
-				this.moveMailsToSystemFolder(MailSetKind.SPAM)
-			}
-		}
-	}
-
 	private getReapplyInboxRulesAction(): (() => void) | null {
 		const currentFolder = this.mailViewModel.getFolder()
 		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
@@ -436,6 +413,35 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				undoModel: this.undoModel,
 			})
 		}
+	}
+
+	private getReportMailsAsSpamAction(viewModel: MailViewerViewModel | null): (() => unknown) | null {
+		const isExternalUser = viewModel?.isExternalUser() ?? false
+		const isSpamFolder = this.mailViewModel.getFolder()?.folderType === MailSetKind.SPAM
+		return isSpamFolder || isExternalUser
+			? null
+			: async () => {
+					try {
+						const controller = mailLocator.logins.getUserController()
+
+						const infoData = controller.getInfoData()
+
+						await showSomeDialog(
+							infoData,
+							(async () => {
+								await delay(1)
+
+								return 1
+							})(),
+						)
+					} catch (e) {
+						// handle the user cancelling the dialog
+						if (e instanceof CancelledError) {
+							return
+						}
+						console.log("inboxRulesReapplying error", e.message)
+					}
+				}
 	}
 
 	private async bulkLoadMailDetails(mails: readonly Mail[]) {
