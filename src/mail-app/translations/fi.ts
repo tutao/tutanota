@@ -359,6 +359,7 @@ export default {
 		"corruptedValue_msg": "Tätä arvoa ei voida näyttää.",
 		"couldNotAttachFile_msg": "Tiedostoa ei voitu ladata.",
 		"couldNotAuthU2f_msg": "Tunnistautuminen ei onnistunut turva-avaimella.",
+		"couldNotMoveMail_msg": "Sähköpostiviesti(e)n siirtäminen epäonnistui.",
 		"couldNotOpenLink_msg": "Linkin avaamiseen ei löytynyt sovellusta:\n{link}",
 		"couldNotUnlockCredentials_msg": "Tunnistetietojen lukitusta ei voitu avata: {reason}",
 		"createAccountAccessDeactivated_msg": "Rekisteröinti on väliaikaisesti estetty käyttämästäsi IP-osoitteesta väärinkäytösten estämiseksi. Yritä myöhemmin uudelleen tai käytä toista verkkoyhteyttä.",

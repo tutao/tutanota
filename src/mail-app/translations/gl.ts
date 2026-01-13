@@ -359,6 +359,7 @@ export default {
 		"corruptedValue_msg": "Non se pode mostrar o valor.",
 		"couldNotAttachFile_msg": "Non se cargou o ficheiro.",
 		"couldNotAuthU2f_msg": "Non se puido autenticar coa chave de seguridade.",
+		"couldNotMoveMail_msg": "Non se moveu o correo(s).",
 		"couldNotOpenLink_msg": "Non se atopa aplicación que abra a {link}:\n{link}",
 		"couldNotUnlockCredentials_msg": "Non se desbloquearon as credenciais: {reason}",
 		"createAccountAccessDeactivated_msg": "O rexistro está temporalmente bloqueado para o teu enderezo IP para evitar o uso abusivo. Por favor, inténtao de novo máis tarde ou usa unha conexión a internet diferente.",
