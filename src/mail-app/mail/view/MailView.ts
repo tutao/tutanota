@@ -6,16 +6,17 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import {
 	FeatureType,
 	getMailFolderType,
-	isFolder,
-	isFolderReadOnly,
 	Keys,
 	MailReportType,
 	MailSetKind,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	isFolder,
+	isFolderReadOnly,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -379,52 +380,69 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return null
 		}
 
-		return this.reapplyInboxRulesForCurrentFolder()
+		return this.reapplyInboxRulesWithProgressDialog()
 	}
 
-	private reapplyInboxRulesForCurrentFolder() {
+	private reapplyInboxRulesWithProgressDialog() {
 		return async () => {
-			const currentFolder = this.mailViewModel.getFolder()
-			if (currentFolder == null) {
-				return
-			}
-
-			const actionableMails = this.mailViewModel.getActionableMails()
-			if (isEmpty(actionableMails)) {
-				return
-			}
-
-			const inboxRuleHandler = mailLocator.processInboxHandler()
-			const mailboxDetails = await this.mailViewModel.getMailboxDetails()
-			const targetFolderToMailMap = new Map<MailSet, Mail[]>()
-			for (const mail of actionableMails) {
-				const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
-				if (!targetFolderToMailMap.has(folder)) {
-					targetFolderToMailMap.set(folder, [])
+			try {
+				await showProgressDialog("pleaseWait_msg", this.reapplyInboxRulesForInbox())
+			} catch (e) {
+				// handle the user cancelling the dialog
+				if (e instanceof CancelledError) {
+					return
 				}
-				targetFolderToMailMap.get(folder)?.push(mail)
+				console.log("inboxRulesReapplying error", e.message)
 			}
-
-			const foldersToMove = Array.from(targetFolderToMailMap.keys()).filter((folder) => folder.folderType !== MailSetKind.INBOX)
-			if (foldersToMove)
-				for (const targetFolder of foldersToMove) {
-					const mailsToMove = targetFolderToMailMap.get(targetFolder)
-					if (!mailsToMove) {
-						continue
-					}
-
-					const resolvedMails = await this.mailViewModel.getResolvedMails(mailsToMove)
-
-					moveMails({
-						mailboxModel: locator.mailboxModel,
-						mailModel: mailLocator.mailModel,
-						targetFolder,
-						mailIds: resolvedMails,
-						moveMode: this.mailViewModel.getMoveMode(currentFolder),
-						undoModel: this.undoModel,
-					})
-				}
 		}
+	}
+
+	private async reapplyInboxRulesForInbox() {
+		const currentFolder = this.mailViewModel.getFolder()
+		if (currentFolder == null) {
+			return
+		}
+
+		const actionableMails = this.mailViewModel.getActionableMails()
+		if (isEmpty(actionableMails)) {
+			return
+		}
+
+		const inboxRuleHandler = mailLocator.processInboxHandler()
+		const mailboxDetails = await this.mailViewModel.getMailboxDetails()
+		const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
+		await this.bulkLoadMailDetails(actionableMails)
+		for (const mail of actionableMails) {
+			const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
+			const folderId = getElementId(folder)
+			if (!targetFolderIdToFolderMailMap.has(folderId)) {
+				targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })
+			}
+			targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
+		}
+
+		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
+			const { folder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
+			if (folder.folderType === MailSetKind.INBOX) {
+				continue
+			}
+			const resolvedMails = await this.mailViewModel.getResolvedMails(mails)
+
+			moveMails({
+				mailboxModel: locator.mailboxModel,
+				mailModel: mailLocator.mailModel,
+				targetFolder: folder,
+				mailIds: resolvedMails,
+				moveMode: this.mailViewModel.getMoveMode(currentFolder),
+				undoModel: this.undoModel,
+			})
+		}
+	}
+
+	private async bulkLoadMailDetails(mails: readonly Mail[]) {
+		await promiseMap(splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails), (mailChunk) => mailLocator.bulkMailLoader.loadMailDetails(mailChunk), {
+			concurrency: 5,
+		})
 	}
 
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
