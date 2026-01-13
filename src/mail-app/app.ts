@@ -40,8 +40,8 @@ import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
 import { FeatureType } from "../common/api/common/TutanotaConstants"
-import type { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
 import { CommonLocator } from "../common/api/main/CommonLocator"
+import type { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -328,71 +328,82 @@ import("./translations/en.js")
 			mailLocator.logins,
 		)
 
-		const useOldSignup = async (): Promise<boolean> => {
-			if (isDesktop()) {
-				return true
-			}
-			const { SignupFlowUsageTestController } = await import("../common/subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils.js")
-			const activeTests = await mailLocator.usageTestModel.loadActiveUsageTests()
-			mailLocator.usageTestController.setTests(activeTests)
-			return SignupFlowUsageTestController.getUsageTestVariant() === 1
-		}
+		/**
+		 * once the old signup dialog is removed, this proxy can be replaced by the resolver in the "new signup"
+		 * branch of its onmatch method.
+		 */
+		const makeSignupViewResolver = (): RouteResolver => {
+			let actualResolver: RouteResolver | null = null
+			return {
+				async onmatch(...args) {
+					if (actualResolver == null) {
+						const activeTests = await mailLocator.usageTestModel.loadActiveUsageTests()
+						mailLocator.usageTestController.setTests(activeTests)
+						const { SignupFlowUsageTestController } = await import("../common/subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils.js")
+						const variant = SignupFlowUsageTestController.getUsageTestVariant()
+						if (variant === 1) {
+							// old signup
+							console.log("signup old variant", variant)
+							actualResolver = {
+								async onmatch() {
+									const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
 
-		const makeSignupViewResolver = async (): Promise<RouteResolver> => {
-			if (await useOldSignup()) {
-				return {
-					async onmatch() {
-						const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
+									// We have to manually parse it because mithril does not put hash into args of onmatch
+									const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+									showSignupDialog(urlParams)
 
-						// We have to manually parse it because mithril does not put hash into args of onmatch
-						const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-						showSignupDialog(urlParams)
+									// Change the href of the canonical link element to make the /signup path indexed.
+									// Since this is just for search crawlers, we do not have to change it again later.
+									// We know at least Google crawler executes js to render the application.
+									const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
+									if (canonicalEl) {
+										canonicalEl.href = "https://app.tuta.com/signup"
+									}
 
-						// Change the href of the canonical link element to make the /signup path indexed.
-						// Since this is just for search crawlers, we do not have to change it again later.
-						// We know at least Google crawler executes js to render the application.
-						const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
-						if (canonicalEl) {
-							canonicalEl.href = "https://app.tuta.com/signup"
-						}
-
-						// when the user presses the browser back button, we would get a /login route without arguments
-						// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
-						// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
-						// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
-						m.route.set("/login", {
-							keepSession: true,
-						})
-						m.route.set("/login", {
-							keepSession: true,
-						})
-						return null
-					},
-				}
-			} else {
-				return makeViewResolver<SignupViewAttrs, SignupView, { makeViewModel: () => SignupViewModel }>(
-					{
-						prepareRoute: async () => {
-							const migrator = await mailLocator.credentialFormatMigrator()
-							await migrator.migrate()
-
-							const { SignupView } = await import("../common/signup/SignupView.js")
-							const { SignupViewModel } = await import("../common/signup/SignupView")
-							const makeViewModel = () => {
-								return new SignupViewModel()
-							}
-							return {
-								component: SignupView,
-								cache: {
-									makeViewModel,
+									// when the user presses the browser back button, we would get a /login route without arguments
+									// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
+									// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
+									// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
+									m.route.set("/login", {
+										keepSession: true,
+									})
+									m.route.set("/login", {
+										keepSession: true,
+									})
+									return null
 								},
 							}
-						},
-						prepareAttrs: (cache) => cache,
-						requireLogin: false,
-					},
-					mailLocator.logins,
-				)
+						} else {
+							// new signup
+							const { SignupView, SignupViewModel } = await import("../common/signup/SignupView")
+							console.log("signup new variant", variant)
+							actualResolver = makeViewResolver<SignupViewAttrs, SignupView, { viewModel: SignupViewModel }>(
+								{
+									prepareRoute: async () => {
+										const migrator = await mailLocator.credentialFormatMigrator()
+										await migrator.migrate()
+										return {
+											component: SignupView,
+											cache: {
+												viewModel: new SignupViewModel(),
+											},
+										}
+									},
+									prepareAttrs: (cache) => cache,
+									requireLogin: false,
+								},
+								mailLocator.logins,
+							)
+						}
+					}
+					return actualResolver.onmatch?.(...args)
+				},
+				render(...args) {
+					if (actualResolver == null) {
+						throw new ProgrammingError("render called before onmatch?")
+					}
+					return actualResolver.render?.(...args)
+				},
 			}
 		}
 
@@ -623,7 +634,7 @@ import("./translations/en.js")
 			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
 			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
 			 */
-			signup: await makeSignupViewResolver(),
+			signup: makeSignupViewResolver(),
 			giftcard: {
 				async onmatch() {
 					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")

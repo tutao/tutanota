@@ -42,7 +42,7 @@ import { noOp } from "@tutao/tutanota-utils"
 assertMainOrNode()
 
 export interface SignupViewAttrs extends TopLevelAttrs {
-	makeViewModel: () => SignupViewModel
+	viewModel: SignupViewModel
 }
 
 export class SignupViewModel {
@@ -192,7 +192,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
-		this.wizardViewModel = attrs.makeViewModel()
+		this.wizardViewModel = attrs.viewModel
 	}
 
 	async onbeforeremove() {}
