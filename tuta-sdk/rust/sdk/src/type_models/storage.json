@@ -2,7 +2,7 @@
 	"50": {
 		"name": "BlobGetIn",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 50,
@@ -51,7 +51,7 @@
 	"73": {
 		"name": "BlobWriteData",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 73,
@@ -82,7 +82,7 @@
 	"77": {
 		"name": "BlobAccessTokenPostIn",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 77,
@@ -132,7 +132,7 @@
 	"81": {
 		"name": "BlobAccessTokenPostOut",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 81,
@@ -165,7 +165,7 @@
 	"94": {
 		"name": "BlobReferencePutIn",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 94,
@@ -222,7 +222,7 @@
 	"100": {
 		"name": "BlobReferenceDeleteIn",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 100,
@@ -279,7 +279,7 @@
 	"125": {
 		"name": "BlobPostOut",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 125,
@@ -320,7 +320,7 @@
 	"129": {
 		"name": "BlobArchiveRef",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 129,
@@ -377,7 +377,7 @@
 	"144": {
 		"name": "BlobId",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 144,
@@ -408,7 +408,7 @@
 	"154": {
 		"name": "BlobServerUrl",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 154,
@@ -439,7 +439,7 @@
 	"157": {
 		"name": "BlobServerAccessInfo",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 157,
@@ -496,7 +496,7 @@
 	"172": {
 		"name": "InstanceId",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 172,
@@ -527,7 +527,7 @@
 	"175": {
 		"name": "BlobReadData",
 		"app": "storage",
-		"version": 12,
+		"version": 13,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 175,
