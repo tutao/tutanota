@@ -15,6 +15,7 @@ import {
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import {
+	EncryptionAuthStatus,
 	MailAuthenticationStatus,
 	MailPhishingStatus,
 	MailSetKind,
@@ -181,6 +182,30 @@ o.spec("SpamClassificationHandlerTest", function () {
 		mail.sets = [inboxFolder._id]
 		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
 		mailDetails.recipients.toRecipients.push(mail.sender)
+		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			vector: compressedUnencryptedTestVector,
+			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+		}
+
+		o(finalResult.targetFolder).deepEquals(inboxFolder)
+		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
+		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
+	})
+
+	o("predictSpamForNewMail doesn't call classifier when mail is from Tuta Team", async function () {
+		mail.sets = [inboxFolder._id]
+
+		mail.confidential = true
+		mail.state = MailState.RECEIVED
+		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+		mailDetails.recipients.toRecipients.push(mail.sender)
+		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tutao.de", name: "Tuta Team" })
+
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
 
 		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {

@@ -9,7 +9,7 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { MailModel } from "../model/MailModel.js"
 
 import { newPromise } from "@tutao/tutanota-utils"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
+import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
 	return newPromise((resolve) => {
@@ -69,7 +69,7 @@ export async function reportMailsAutomatically(
 ): Promise<void> {
 	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel)
 	if (shouldReportMails) {
-		const reportableMails = (await mails()).filter((mail) => !isTutanotaTeamMail(mail))
+		const reportableMails = (await mails()).filter((mail) => !isTutaTeamMail(mail))
 		await mailModel.reportMails(mailReportType, reportableMails)
 	}
 }

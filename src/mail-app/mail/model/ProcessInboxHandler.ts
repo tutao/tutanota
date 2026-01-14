@@ -72,6 +72,9 @@ export class ProcessInboxHandler {
 			return sourceFolder
 		}
 
+		// resolve sessionKeys for mail and their corresponding files
+		const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
@@ -112,8 +115,7 @@ export class ProcessInboxHandler {
 			}
 		}
 
-		// resolve sessionKeys for mail and their corresponding files
-		const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+		// the ProcessInboxService is updating sessionKeys for mail and files on the server by calling UpdateSessionKeyService
 		finalProcessInboxDatum.ownerEncMailSessionKeys = resolvedSessionKeys.instanceSessionKeys
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
