@@ -735,7 +735,26 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						)
 					: null,
 				m(".row", m(TextField, subjectFieldAttrs)),
+				// Toolbar icons, ordered: confidential, light theme toggle, knowledgebase, schedule, text toolbar, attach
+				// schedule, text toolbar, attach are always there and should not move around when the others appear
 				m(".row.flex-end.mb-4.mt-8.ml-between-4.items-center", [
+					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
+					isDarkTheme()
+						? m(IconButton, {
+								title: "viewInLightMode_action",
+								click: (e) => {
+									this.forceLightMode = !forcedLightMode
+									// Stop the subject bar from being focused
+									e.stopPropagation()
+									this.editor.focus()
+									m.redraw()
+								},
+								// reflect the current mode in the bulb
+								icon: forcedLightMode ? Icons.Bulb : Icons.BulbOutline,
+								size: ButtonSize.Compact,
+							})
+						: null,
+					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
 					model.user().isInternalUser()
 						? m(ToggleButton, {
 								title: "sendLater_action",
@@ -756,24 +775,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								toggled: model.getSendAtDate() != null,
 							})
 						: null,
-					isDarkTheme()
-						? m(IconButton, {
-								title: "viewInLightMode_action",
-								click: (e) => {
-									this.forceLightMode = !forcedLightMode
-									// Stop the subject bar from being focused
-									e.stopPropagation()
-									this.editor.focus()
-									m.redraw()
-								},
-								// reflect the current mode in the bulb
-								icon: forcedLightMode ? Icons.Bulb : Icons.BulbOutline,
-								size: ButtonSize.Compact,
-							})
-						: null,
 					toolbarButton(),
-					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
-					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
 					m(IconButton, attachFilesButtonAttrs),
 				]),
 				m("hr.hr"),
