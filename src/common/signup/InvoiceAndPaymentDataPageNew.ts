@@ -264,7 +264,18 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 						{ style: isPaypalConnected || styles.isMobileLayout() ? { width: "100%" } : { "margin-left": "auto" } },
 						m(PaypalButtonNew, {
 							data: ctx.viewModel,
-							onclick: () => this.onPaypalButtonClick(),
+							onclick: async () => {
+								const error = validateInvoiceData({
+									address: ctx.viewModel.invoiceData.invoiceAddress,
+									isBusiness: ctx.viewModel.options.businessUse(),
+								})
+
+								if (error) {
+									await Dialog.message(error)
+									return
+								}
+								this.onPaypalButtonClick()
+							},
 							oncomplete: () => this.onAddPaymentData(ctx),
 							disabled: !ctx.viewModel.invoiceData.country,
 						}),
@@ -279,7 +290,9 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 						label: "continue_action",
 						size: "md",
 						width: styles.isMobileLayout() ? "full" : "flex",
-						onclick: () => ctx.goNext(),
+						onclick: () => {
+							ctx.goNext()
+						},
 						disabled: !ctx.viewModel.invoiceData.country,
 					}),
 			]),
