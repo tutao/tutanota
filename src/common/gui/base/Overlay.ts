@@ -81,7 +81,6 @@ export const overlay: Component<OverlayParentAttrs> = {
 			{
 				inert: !visible,
 				style: {
-					display: visible ? "" : "none",
 					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 					// keep the bottom nav bar clear & inset for iOS
 					"margin-bottom": styles.isUsingBottomNavigation() ? px(component_size.bottom_nav_bar + getSafeAreaInsetBottom()) : "unset",
