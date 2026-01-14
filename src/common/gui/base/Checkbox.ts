@@ -60,6 +60,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 							type: "checkbox",
 							oncreate: (vnode) => {
 								this.labelLineHeight = parseInt(getComputedStyle(vnode.dom as HTMLElement).lineHeight)
+								m.redraw()
 							},
 							onchange: (e: Event) => this.toggle(e, a),
 							checked: a.checked,
