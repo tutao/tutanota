@@ -80,7 +80,7 @@ export class UsageOptInNews implements NewsListItem {
 				m("li", lang.get("userUsageDataOptInStatement4_msg")),
 			]),
 			m(MoreInfoLink, { link: InfoLink.Privacy }),
-			m(".flex-end.flex-no-grow-no-shrink-auto.flex-wrap", m(Checkbox, checkboxAttrs)),
+			m(".flex-end.flex-no-grow-no-shrink-auto.flex-wrap.pt-16", m(Checkbox, checkboxAttrs)),
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
 				buttonAttrs.map((a) => m(Button, a)),

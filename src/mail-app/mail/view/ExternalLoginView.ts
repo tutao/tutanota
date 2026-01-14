@@ -260,12 +260,15 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 				oninput: (input) => (this.viewModel.password = input),
 				onReturnKeyPressed: () => this.viewModel.formLogin(),
 			}),
-			m(Checkbox, {
-				label: () => lang.get("storePassword_action"),
-				helpLabel: "onlyPrivateComputer_msg",
-				checked: this.viewModel.doSavePassword,
-				onChecked: (checked) => (this.viewModel.doSavePassword = checked),
-			}),
+			m(
+				".pt-16",
+				m(Checkbox, {
+					label: () => lang.get("storePassword_action"),
+					helpLabel: "onlyPrivateComputer_msg",
+					checked: this.viewModel.doSavePassword,
+					onChecked: (checked) => (this.viewModel.doSavePassword = checked),
+				}),
+			),
 			m(
 				".pt-16",
 				m(LoginButton, {

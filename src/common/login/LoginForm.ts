@@ -98,7 +98,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					? isApp() || isDesktop()
 						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
 						: m(
-								"",
+								".pt-16",
 								{
 									onkeydown: (e: KeyboardEvent) => {
 										useKeyHandler(e, (key) => {
