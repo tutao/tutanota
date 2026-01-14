@@ -161,8 +161,9 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			case 12: "yearly"
 			default: fatalError("invalid plan (\(plan)) interval (\(interval))")
 			}
-
-		return "plans.\(plan).\(intervalString)"
+		let bundleID: String = Bundle.main.bundleIdentifier ?? "de.tutao.tutanota"
+		let stagingLevelString = (bundleID == "de.tutao.tutanota.test") ? "testplans" : "plans"
+		return "\(stagingLevelString).\(plan).\(intervalString)"
 	}
 
 	static func checkVerified<T>(_ result: VerificationResult<T>) -> T {
