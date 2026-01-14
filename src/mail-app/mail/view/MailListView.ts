@@ -91,7 +91,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					renderRightSpacer: () => this.renderRightSpacer(),
 					swipeLeft: (listElement: Mail) => this.onSwipeLeft(listElement),
 					swipeRight: (listElement: Mail) => this.onSwipeRight(listElement),
-					isDisabledForEntity: (listElement: Mail) => isMailMovable(listElement, mailLocator.mailModel),
+					isDisabledForEntity: (listElement: Mail) => !isMailMovable(listElement, mailLocator.mailModel),
 				} satisfies SwipeConfiguration<Mail>)
 			: null,
 		dragStart: (event, row, selected) => this._newDragStart(event, row, selected),
