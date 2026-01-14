@@ -141,6 +141,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	}
 
 	private onAddPaymentData = async (data: UpgradeSubscriptionData) => {
+		this.isPaypalLinked(data.accountingInfo?.paypalBillingAgreement != null)
 		const invoiceDataInput = assertNotNull(this._invoiceDataInput)
 
 		const error =
