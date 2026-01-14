@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveUploadState } from "./DriveUploadStackModel"
+import { DriveTransferState } from "./DriveUploadStackModel"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
@@ -8,14 +8,14 @@ import { px, size } from "../../../common/gui/size"
 import { DriveProgressBar } from "./DriveProgressBar"
 
 export interface DriveUploadBoxAttrs {
-	uploadState: DriveUploadState
+	uploadState: DriveTransferState
 	onCancel: () => Promise<unknown>
 }
 
 export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 	view({ attrs: { uploadState, onCancel } }: Vnode<DriveUploadBoxAttrs>): Children {
-		const { filename, isFinished, uploadedSize, totalSize } = uploadState
-		const percentage = Math.min(Math.round((uploadedSize / totalSize) * 100), 100)
+		const { filename, isFinished, transferredSize, totalSize } = uploadState
+		const percentage = Math.min(Math.round((transferredSize / totalSize) * 100), 100)
 
 		return m(".flex.col", { style: { margin: px(size.spacing_12) } }, [
 			m(".flex.row.items-center.justify-between", [

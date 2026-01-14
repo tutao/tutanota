@@ -48,7 +48,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails, showDownloadProgressDialog } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -85,6 +85,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { UndoModel } from "../../UndoModel"
 import { isBrowser } from "../../../common/api/common/Env"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
+import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -176,6 +177,7 @@ export class MailViewerViewModel {
 		private readonly highlightedStrings: readonly SearchToken[],
 		readonly eventsRepository: CalendarEventsRepository,
 		private readonly undoModel: UndoModel,
+		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1154,7 +1156,11 @@ export class MailViewerViewModel {
 	async downloadAll(): Promise<void> {
 		const nonInlineAttachments = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, this.getNonInlineAttachments())
 		try {
-			await this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments)
+			await showDownloadProgressDialog(
+				this.transferProgressDispatcher,
+				nonInlineAttachments,
+				this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments),
+			)
 		} catch (e) {
 			if (e instanceof FileOpenError) {
 				console.warn("FileOpenError", e)
@@ -1170,9 +1176,9 @@ export class MailViewerViewModel {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			if (open) {
-				await this.fileController.open(file)
+				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], this.fileController.open(file))
 			} else {
-				await this.fileController.download(file)
+				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], this.fileController.download(file))
 			}
 		} catch (e) {
 			if (e instanceof FileOpenError) {

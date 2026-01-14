@@ -18,7 +18,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { CALENDAR_MIME_TYPE, FileController, guiDownload, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -160,7 +160,7 @@ import { ProcessInboxHandler } from "./mail/model/ProcessInboxHandler"
 import type { QuickActionsModel } from "../common/misc/quickactions/QuickActionsModel"
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
-import { UploadProgressController } from "../common/api/main/UploadProgressController"
+import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 
 assertMainOrNode()
 
@@ -231,7 +231,7 @@ class MailLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
-	uploadProgressListener!: UploadProgressController
+	transferProgressDispatcher!: TransferProgressDispatcher
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -580,6 +580,7 @@ class MailLocator implements CommonLocator {
 				highlightedTokens ?? [],
 				eventRepository,
 				undoModel,
+				this.transferProgressDispatcher,
 			)
 	}
 
@@ -892,7 +893,7 @@ class MailLocator implements CommonLocator {
 		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
 		this.spamClassifier = spamClassifier
 
-		this.uploadProgressListener = new UploadProgressController()
+		this.transferProgressDispatcher = new TransferProgressDispatcher()
 
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
@@ -1022,9 +1023,7 @@ class MailLocator implements CommonLocator {
 		})
 
 		this.fileController =
-			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, guiDownload, this.uploadProgressListener)
-				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp, this.uploadProgressListener)
+			this.nativeInterfaces == null ? new FileControllerBrowser(blobFacade) : new FileControllerNative(blobFacade, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, this.contactSearchFacade)
@@ -1311,7 +1310,7 @@ class MailLocator implements CommonLocator {
 			this.entityClient,
 			this.driveFacade,
 			router,
-			this.uploadProgressListener,
+			this.transferProgressDispatcher,
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,

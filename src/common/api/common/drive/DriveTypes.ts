@@ -1,12 +1,12 @@
 export type ChunkedUploadInfo = {
-	fileId: UploadId
+	fileId: TransferId
 	uploadedBytes: number
 	totalBytes: number
 }
 
 export type ChunkedDownloadInfo = {
-	fileId: Id
+	fileId: TransferId
 	downloadedBytes: number
 }
 
-export type UploadId = string & { readonly __brand__: unique symbol }
+export type TransferId = string & { readonly __brand__: unique symbol }

@@ -1,20 +1,23 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { UploadId } from "../../../common/api/common/drive/DriveTypes"
+import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
-export interface DriveUploadState {
+type DriveTransferType = "upload" | "download"
+
+export interface DriveTransferState {
+	type: DriveTransferType
 	filename: string
 	isPaused: boolean
 	isFinished: boolean
-	uploadedSize: number // bytes
+	transferredSize: number // bytes
 	totalSize: number // bytes
 }
 
-type FileId = UploadId
+type FileId = TransferId
 
 export class DriveUploadStackModel {
-	private _state: Map<FileId, DriveUploadState> = new Map()
+	private _state: Map<FileId, DriveTransferState> = new Map()
 
-	get state(): ReadonlyMap<FileId, DriveUploadState> {
+	get state(): ReadonlyMap<FileId, DriveTransferState> {
 		return this._state
 	}
 
@@ -25,10 +28,11 @@ export class DriveUploadStackModel {
 
 	addUpload(fileId: FileId, filename: string, totalSize: number) {
 		this._state.set(fileId, {
+			type: "upload",
 			filename,
 			isPaused: false,
 			isFinished: false,
-			uploadedSize: 0,
+			transferredSize: 0,
 			totalSize,
 		})
 	}
@@ -36,15 +40,7 @@ export class DriveUploadStackModel {
 	async onChunkUploaded(fileId: FileId, uploadedSizeDelta: number): Promise<void> {
 		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
-			stateForThisFile.uploadedSize += uploadedSizeDelta
-
-			if (stateForThisFile.uploadedSize >= stateForThisFile.totalSize) {
-				stateForThisFile.isFinished = true
-				setTimeout(() => {
-					this._state.delete(fileId)
-					this.updateUi()
-				}, 2000)
-			}
+			stateForThisFile.transferredSize += uploadedSizeDelta
 		} else {
 			console.debug(`${fileId} is not part of the state. This can be due to an upload being canceled`)
 		}
@@ -55,7 +51,47 @@ export class DriveUploadStackModel {
 		this._state.delete(fileId)
 	}
 
-	uploadStateFor(fileId: FileId): DriveUploadState | null {
+	finishUpload(fileId: FileId) {
+		const stateForThisFile = this._state.get(fileId)
+		if (stateForThisFile) {
+			stateForThisFile.isFinished = true
+			setTimeout(() => {
+				this._state.delete(fileId)
+				this.updateUi()
+			}, 2000)
+		}
+	}
+
+	uploadStateFor(fileId: FileId): DriveTransferState | null {
 		return this._state.get(fileId) ?? null
+	}
+
+	addDownload(fileId: TransferId, filename: string, totalSize: number) {
+		this._state.set(fileId, {
+			type: "download",
+			filename,
+			isFinished: false,
+			transferredSize: 0,
+			isPaused: false,
+			totalSize,
+		})
+	}
+
+	async onChunkDownloaded(fileId: TransferId, completedBytes: number): Promise<void> {
+		const fileState = this._state.get(fileId)
+		if (fileState != null) {
+			fileState.transferredSize = completedBytes
+		}
+	}
+
+	finishDownload(fileId: FileId) {
+		const stateForThisFile = this._state.get(fileId)
+		if (stateForThisFile) {
+			stateForThisFile.isFinished = true
+			setTimeout(() => {
+				this._state.delete(fileId)
+				this.updateUi()
+			}, 2000)
+		}
 	}
 }

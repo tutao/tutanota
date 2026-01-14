@@ -40,9 +40,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { ChunkedUploadInfo, UploadId } from "../../../common/drive/DriveTypes"
+import { ChunkedUploadInfo, TransferId } from "../../../common/drive/DriveTypes"
 import { CancelledError } from "../../../common/error/CancelledError"
-import { UploadProgressController } from "../../../main/UploadProgressController"
+import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -55,6 +55,12 @@ export interface BlobLoadOptions {
 	baseUrl?: string
 }
 
+interface FileDownloadState {
+	referencingInstance: BlobReferencingInstance
+	/** Map from blob id to the total downloaded bytes for that blob. */
+	bytesDownloadedPerBlob: Map<Id, number>
+}
+
 /**
  * The BlobFacade uploads and downloads blobs to/from the blob store.
  *
@@ -64,7 +70,13 @@ export interface BlobLoadOptions {
  * Otherwise, the blobs will automatically be deleted after some time. It is not allowed to reference blobs manually in some instance.
  */
 export class BlobFacade {
-	private readonly nativeDownloadProgressState: Map<Id, number> = new Map<Id, number>()
+	/**
+	 * Map from blob id to file download state. If file is split between multiple blobs then multiple blobs will point to the same file state.
+	 * <br>
+	 * Native download facades do not operate on instances, for them each blob is a separate file so we receive update for a blob and we have to
+	 * coordinate the overall download progress for the file. This map is for looking up file state by blob id.
+	 */
+	private readonly nativeDownloadProgressState: Map<Id, FileDownloadState> = new Map()
 
 	constructor(
 		private readonly restClient: RestClient,
@@ -74,7 +86,7 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
-		private readonly loadListener: UploadProgressController,
+		private readonly loadListener: TransferProgressDispatcher,
 	) {}
 
 	/**
@@ -89,7 +101,7 @@ export class BlobFacade {
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		onChunkUploaded?: (info: ChunkedUploadInfo) => void,
-		fileId?: UploadId,
+		fileId?: TransferId,
 		onCancelListener?: EventTarget,
 	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
@@ -212,7 +224,7 @@ export class BlobFacade {
 		let bytesDownloadedSoFar = 0
 		const onProgress = (bytes: number) => {
 			bytesDownloadedSoFar += bytes
-			this.loadListener.onChunkDownloaded({ fileId: referencingInstance.elementId, downloadedBytes: bytes })
+			this.loadListener.onChunkDownloaded({ fileId: referencingInstance.elementId as TransferId, downloadedBytes: bytes })
 		}
 
 		// Currently assumes that all the blobs of the instance are in the same archive.
@@ -330,20 +342,26 @@ export class BlobFacade {
 		}
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 		let blobIdToDecryptedFileUri: Map<Id, FileUri> = new Map()
+		// prepare download state that will be updated when native facades report download progress
+		const fileDownloadState: FileDownloadState = {
+			referencingInstance,
+			bytesDownloadedPerBlob: new Map(referencingInstance.blobs.map((blob) => [blob.blobId, 0])),
+		}
+		for (const blob of referencingInstance.blobs) {
+			this.nativeDownloadProgressState.set(blob.blobId, fileDownloadState)
+		}
 		const doBlobRequest = async () => {
 			blobIdToDecryptedFileUri = new Map()
 			const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
 
-			let bytesDownloadedSoFar = 0
-			this.nativeDownloadProgressState.set(referencingInstance.elementId, 0)
 			try {
 				const archiveIdToBlobs = groupBy(referencingInstance.blobs, (blob) => blob.archiveId)
 				for (const [archiveId, blobs] of archiveIdToBlobs) {
 					const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
 					for (const blob of blobs) {
-						const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey, referencingInstance.elementId).catch(
+						const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey, blob.blobId).catch(
 							async (e: Error) => {
-								// cleanup every temporary file in the native part in case an error occured when downloading chun
+								// cleanup every temporary file in the native part in case an error occurred when downloading chun
 								for (const [blobId, decryptedChunkFileUri] of blobIdToDecryptedFileUri) {
 									await this.fileApp.deleteFile(decryptedChunkFileUri)
 								}
@@ -351,8 +369,9 @@ export class BlobFacade {
 							},
 						)
 						blobIdToDecryptedFileUri.set(blob.blobId, fileUri)
-						bytesDownloadedSoFar += filterInt(blob.size)
-						this.nativeDownloadProgressState.set(referencingInstance.elementId, bytesDownloadedSoFar)
+						// after blob is downloaded set the progress to the overall blob size. This is safeguard if the last
+						// chunk is not reported.
+						fileDownloadState.bytesDownloadedPerBlob.set(blob.blobId, filterInt(blob.size))
 					}
 				}
 			} finally {
@@ -627,11 +646,8 @@ export class BlobFacade {
 		return headers
 	}
 
-	async nativeDownloadProgress(fileId: string, bytes: number) {
-		const progressSoFar = this.nativeDownloadProgressState.get(fileId)
-		if (progressSoFar != null) {
-			this.loadListener.onChunkDownloaded({ fileId, downloadedBytes: progressSoFar + bytes })
-		}
+	async nativeDownloadProgress(blobId: string, bytes: number) {
+		this.nativeDownloadProgressState.get(blobId)?.bytesDownloadedPerBlob.set(blobId, bytes)
 	}
 }
 

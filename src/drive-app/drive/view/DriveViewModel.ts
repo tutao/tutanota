@@ -4,7 +4,7 @@ import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { assertNotNull, debounceStart, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, filterInt, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -20,8 +20,8 @@ import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/Us
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
-import { UploadProgressController } from "../../../common/api/main/UploadProgressController"
-import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
+import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
+import { ChunkedDownloadInfo, ChunkedUploadInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 import { FileController } from "../../../common/file/FileController"
 
@@ -171,7 +171,7 @@ export class DriveViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly driveFacade: DriveFacade,
 		private readonly router: Router,
-		public readonly uploadProgressListener: UploadProgressController,
+		public readonly uploadProgressListener: TransferProgressDispatcher,
 		private readonly eventController: EventController,
 		private readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
@@ -190,6 +190,11 @@ export class DriveViewModel {
 
 		this.uploadProgressListener.addUploadListener((info: ChunkedUploadInfo) => {
 			this.driveUploadStackModel.onChunkUploaded(info.fileId, info.uploadedBytes)
+			this.updateUi()
+		})
+
+		this.uploadProgressListener.addDownloadListener((info: ChunkedDownloadInfo) => {
+			this.driveUploadStackModel.onChunkDownloaded(info.fileId, info.downloadedBytes)
 			this.updateUi()
 		})
 
@@ -510,11 +515,15 @@ export class DriveViewModel {
 
 			this.driveUploadStackModel.addUpload(fileId, newName, file.size)
 
-			await this.driveFacade.uploadFile(file, fileId, newName, targetFolderId).catch(
-				ofClass(CancelledError, (e) => {
-					console.log("Upload canceled", fileId)
-				}),
-			)
+			try {
+				await this.driveFacade.uploadFile(file, fileId, newName, targetFolderId).catch(
+					ofClass(CancelledError, (e) => {
+						console.log("Upload canceled", fileId)
+					}),
+				)
+			} finally {
+				this.driveUploadStackModel.finishUpload(fileId)
+			}
 		}
 	}
 
@@ -537,8 +546,13 @@ export class DriveViewModel {
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
-		// a bit ugly -- should we rename and move that one?
-		this.fileController.open(file, ArchiveDataType.DriveFile)
+		const transferId = getElementId(file) as TransferId
+		this.driveUploadStackModel.addDownload(transferId, file.name, filterInt(file.size))
+		try {
+			await this.fileController.open(file, ArchiveDataType.DriveFile)
+		} finally {
+			this.driveUploadStackModel.finishDownload(transferId)
+		}
 	}
 
 	getCurrentColumnSortOrder() {

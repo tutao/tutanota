@@ -151,7 +151,7 @@ export function isTutanotaFile(file: Attachment): file is TutanotaFile {
 		file._type &&
 		typeof file._type === "object" &&
 		Object.hasOwn(file._type, "app") &&
-		Object.hasOwn(file._type, "type") &&
+		Object.hasOwn(file._type, "typeId") &&
 		isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
 	)
 }

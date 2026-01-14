@@ -58,7 +58,7 @@ import {
 	throttle,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
+import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids, showDownloadProgressDialog } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -442,7 +442,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const inlineAttachment = tutanotaFiles.find((attachment) => attachment.cid === cid)
 
 		if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
-			locator.fileController.open(inlineAttachment).catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
+			showDownloadProgressDialog(locator.transferProgressDispatcher, [inlineAttachment], locator.fileController.open(inlineAttachment)).catch(
+				ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")),
+			)
 		}
 	}
 

@@ -5,7 +5,20 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, clamp, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import {
+	$Promisable,
+	assertNotNull,
+	clamp,
+	endsWith,
+	filterInt,
+	first,
+	isEmpty,
+	isNotEmpty,
+	lazyMemoized,
+	neverNull,
+	noOp,
+	promiseMap,
+} from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -18,7 +31,7 @@ import {
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { FileController } from "../../../common/file/FileController"
+import { FileController, handleDownloadErrors } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
@@ -42,12 +55,16 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { elementIdPart, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 import { computeColor, rgbToHSL } from "../../../common/gui/base/Color"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
+import { DownloadListener, TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
+import stream from "mithril/stream"
+import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import { CancelledError } from "../../../common/api/common/error/CancelledError"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -817,4 +834,35 @@ export function showLabelsPopup(
 		async (addedLabels, removedLabels) => mailModel.applyLabels(await getActionableMails(selectedMails), addedLabels, removedLabels),
 	)
 	setTimeout(() => popup.show(), 16)
+}
+
+// A temporary solution, we should try to use non-modal progress indicators
+export async function showDownloadProgressDialog(
+	transferProgressDispatcher: TransferProgressDispatcher,
+	files: readonly TutanotaFile[],
+	promise: Promise<unknown>,
+): Promise<unknown> {
+	const progressStream = stream(0)
+	const totalFileSize = files.reduce((acc, file) => acc + filterInt(file.size), 0)
+	const bytesPerFile = new Map<Id, number>()
+	const listener: DownloadListener = ({ fileId, downloadedBytes }) => {
+		if (files.some((file) => getElementId(file) === fileId)) {
+			bytesPerFile.set(fileId, downloadedBytes)
+		}
+		const downloadedTotal = Array.from(bytesPerFile.values()).reduce((acc, bytes) => acc + bytes, 0)
+		progressStream((downloadedTotal / totalFileSize) * 100)
+	}
+	transferProgressDispatcher.addDownloadListener(listener)
+	try {
+		return await showProgressDialog("loading_msg", promise, progressStream)
+	} catch (e) {
+		// handle the user cancelling the dialog
+		if (e instanceof CancelledError) {
+			return
+		}
+		console.log("downloadAndOpen error", e.message)
+		await handleDownloadErrors(e, Dialog.message)
+	} finally {
+		transferProgressDispatcher.removeDownloadListener(listener)
+	}
 }

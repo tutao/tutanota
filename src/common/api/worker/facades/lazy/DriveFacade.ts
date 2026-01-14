@@ -31,8 +31,8 @@ import { getElementId, isSameId, listIdPart } from "../../../common/utils/Entity
 import { BlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { DateProvider } from "../../../common/DateProvider"
-import { UploadProgressController } from "../../../main/UploadProgressController"
-import { UploadId } from "../../../common/drive/DriveTypes"
+import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
+import { TransferId } from "../../../common/drive/DriveTypes"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
 
 export interface BreadcrumbEntry {
@@ -60,7 +60,7 @@ export interface DriveRootFolders {
 }
 
 export class DriveFacade {
-	private readonly abortControllers: Map<UploadId, AbortController> = new Map()
+	private readonly abortControllers: Map<TransferId, AbortController> = new Map()
 	private latestUploadId: number = 0
 
 	constructor(
@@ -71,7 +71,7 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
-		private readonly uploadProgressListener: UploadProgressController,
+		private readonly uploadProgressListener: TransferProgressDispatcher,
 		private readonly dateProvider: DateProvider,
 	) {}
 
@@ -155,7 +155,7 @@ export class DriveFacade {
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
-	public async uploadFile(file: File, fileId: UploadId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
+	public async uploadFile(file: File, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
@@ -202,7 +202,7 @@ export class DriveFacade {
 		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
 	}
 
-	public async cancelCurrentUpload(fileId: UploadId) {
+	public async cancelCurrentUpload(fileId: TransferId) {
 		this.abortControllers.get(fileId)?.abort()
 	}
 
@@ -274,8 +274,8 @@ export class DriveFacade {
 		}
 	}
 
-	async generateUploadId(): Promise<UploadId> {
-		return String(this.latestUploadId++) as UploadId
+	async generateUploadId(): Promise<TransferId> {
+		return String(this.latestUploadId++) as TransferId
 	}
 }
 

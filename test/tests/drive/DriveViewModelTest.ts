@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { DriveFacade, DriveRootFolders } from "../../../src/common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../src/common/gui/ScopedRouter"
-import { UploadProgressController } from "../../../src/common/api/main/UploadProgressController"
+import { TransferProgressDispatcher } from "../../../src/common/api/main/TransferProgressDispatcher"
 import { EventController } from "../../../src/common/api/main/EventController"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { UserManagementFacade } from "../../../src/common/api/worker/facades/lazy/UserManagementFacade"
@@ -25,7 +25,7 @@ o.spec("DriveViewModel", function () {
 	let entityClient: EntityClient
 	let driveFacade: DriveFacade
 	let router: Router
-	let uploadProgressController: UploadProgressController
+	let uploadProgressController: TransferProgressDispatcher
 	let eventController: EventController
 	let loginController: LoginController
 	let userController: UserController
