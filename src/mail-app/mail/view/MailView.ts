@@ -329,7 +329,26 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
-		console.log("this is not rporting, using for test.")
+		try {
+			const controller = mailLocator.logins.getUserController()
+
+			const infoData = controller.getInfoData()
+
+			showSomeDialog(
+				infoData,
+				(async () => {
+					await delay(1)
+
+					return 1
+				})(),
+			)
+		} catch (e) {
+			// handle the user cancelling the dialog
+			if (e instanceof CancelledError) {
+				return
+			}
+			console.log("inboxRulesReapplying error", e.message)
+		}
 	}
 
 	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
