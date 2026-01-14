@@ -456,19 +456,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 	}
 
-	private renderRepeatingFilter(): Children {
-		return m(
-			".mlr-8",
-			m(Checkbox, {
-				label: () => lang.get("includeRepeatingEvents_action"),
-				checked: this.searchViewModel.includeRepeatingEvents,
-				onChecked: (value: boolean) => {
-					this.searchViewModel.selectIncludeRepeatingEvents(value)
-				},
-			} satisfies CheckboxAttrs),
-		)
-	}
-
 	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",

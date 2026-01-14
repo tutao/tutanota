@@ -79,11 +79,14 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					selectionChangedHandler: inboxRuleTarget,
 					helpLabel: () => getPathToFolderString(folders, inboxRuleTarget(), true),
 				}),
-				m(Checkbox, {
-					label: () => lang.get("inboxRuleExcludedFromSpamFilter_msg"),
-					checked: isRuleExcludedFromSpamFilter(),
-					onChecked: (checked) => isRuleExcludedFromSpamFilter(checked),
-				}),
+				m(
+					".pt-16",
+					m(Checkbox, {
+						label: () => lang.get("inboxRuleExcludedFromSpamFilter_msg"),
+						checked: isRuleExcludedFromSpamFilter(),
+						onChecked: (checked) => isRuleExcludedFromSpamFilter(checked),
+					}),
+				),
 			]
 		}
 

@@ -15,12 +15,15 @@ function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDe
 	return newPromise((resolve) => {
 		let shallRememberDecision = false
 		const child = () =>
-			m(Checkbox, {
-				label: () => lang.get("rememberDecision_msg"),
-				checked: shallRememberDecision,
-				onChecked: (v) => (shallRememberDecision = v),
-				helpLabel: "changeMailSettings_msg",
-			})
+			m(
+				".pt-16",
+				m(Checkbox, {
+					label: () => lang.get("rememberDecision_msg"),
+					checked: shallRememberDecision,
+					onChecked: (v) => (shallRememberDecision = v),
+					helpLabel: "changeMailSettings_msg",
+				}),
+			)
 
 		async function updateSpamReportSetting(areMailsReported: boolean) {
 			if (shallRememberDecision) {

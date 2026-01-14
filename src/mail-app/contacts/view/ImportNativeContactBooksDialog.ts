@@ -40,17 +40,20 @@ export class ImportNativeContactBooksDialog {
 		const checked = this.selectedContactBooks.has(book.id)
 		return m(
 			".flex.items-center",
-			m(Checkbox, {
-				checked,
-				label: () => book.name ?? lang.get("pushIdentifierCurrentDevice_label"),
-				onChecked: () => {
-					if (checked) {
-						this.selectedContactBooks.delete(book.id)
-					} else {
-						this.selectedContactBooks.add(book.id)
-					}
-				},
-			}),
+			m(
+				".pt-16",
+				m(Checkbox, {
+					checked,
+					label: () => book.name ?? lang.get("pushIdentifierCurrentDevice_label"),
+					onChecked: () => {
+						if (checked) {
+							this.selectedContactBooks.delete(book.id)
+						} else {
+							this.selectedContactBooks.add(book.id)
+						}
+					},
+				}),
+			),
 		)
 	}
 }

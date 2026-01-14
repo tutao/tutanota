@@ -92,11 +92,14 @@ async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore
 				view: () =>
 					m("", [
 						"An error occurred",
-						m(Checkbox, {
-							label: () => "Ignore the error for this session",
-							checked: ignore,
-							onChecked: (checked) => (ignore = checked),
-						}),
+						m(
+							".pt-16",
+							m(Checkbox, {
+								label: () => "Ignore the error for this session",
+								checked: ignore,
+								onChecked: (checked) => (ignore = checked),
+							}),
+						),
 					]),
 			},
 			{
@@ -134,12 +137,15 @@ function showReportDialog(
 					type: TextFieldType.Area,
 					oninput: (value) => (userMessage = value),
 				}),
-				m(Checkbox, {
-					label: () => lang.get("sendLogs_action"),
-					helpLabel: "sendLogsInfo_msg",
-					checked: sendLogs,
-					onChecked: (checked) => (sendLogs = checked),
-				}),
+				m(
+					".pt-16",
+					m(Checkbox, {
+						label: () => lang.get("sendLogs_action"),
+						helpLabel: "sendLogsInfo_msg",
+						checked: sendLogs,
+						onChecked: (checked) => (sendLogs = checked),
+					}),
+				),
 				m(
 					".flex.flex-column.space-around.items-center",
 					logs.map((l) =>
