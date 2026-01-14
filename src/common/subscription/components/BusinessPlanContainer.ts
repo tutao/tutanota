@@ -8,7 +8,8 @@ import { AvailablePlans } from "../PlanSelector"
 import { BusinessPlanBox } from "./BusinessPlanBox"
 import { Icons } from "../../gui/base/icons/Icons"
 import { TranslationKey } from "../../misc/LanguageViewModel"
-import { filterPlanConfigsAndGetSelectedPlan, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
+import { filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
+import { PaymentInterval } from "../utils/PriceUtils"
 
 export type PlanFeature = {
 	label: TranslationKey
@@ -137,6 +138,12 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 	view({ attrs }: Vnode<PlanBoxContainerAttrs>): Children {
 		const { currentPlan, priceAndConfigProvider, selectedPlan, selectedSubscriptionOptions, discountDetails } = attrs
 
+		const isYearly = selectedSubscriptionOptions.paymentInterval() === PaymentInterval.Yearly
+		const anyPaidPlanHasCampaign =
+			discountDetails &&
+			(getHasCampaign(discountDetails[PlanType.Essential], isYearly) ||
+				getHasCampaign(discountDetails[PlanType.Advanced], isYearly) ||
+				getHasCampaign(discountDetails[PlanType.Unlimited], isYearly))
 		const container = styles.isMobileLayout()
 			? {
 					width: `calc(90% + 2 * ${px(size.spacing_24)})`,
@@ -152,7 +159,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 			`#plan-selector${styles.isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
 			{
 				"data-testid": "dialog:select-subscription-business",
-				style: { position: "relative", ...container },
+				style: { position: "relative", "margin-top": anyPaidPlanHasCampaign ? px(20) : "initial", ...container },
 			},
 			this.planConfigs.map((planConfig) => {
 				const prices = getPriceStr({

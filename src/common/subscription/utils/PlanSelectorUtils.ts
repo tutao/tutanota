@@ -187,7 +187,7 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 		const permanentDiscountPercentage = Math.floor((1 - monthlyPrice / monthlyRefPrice) * 100)
 		const firstYearDiscountPercentage = Math.floor((firstYearDiscount / yearlyRefPrice) * 100)
 
-		if (bonusMonth > 0) {
+		if (bonusMonth > 0 && NewPersonalPaidPlans.includes(targetPlan)) {
 			discountDetails[targetPlan] = {
 				ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonth }),
 				discountType: "BonusMonths",

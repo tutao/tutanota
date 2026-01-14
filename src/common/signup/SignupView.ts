@@ -156,7 +156,11 @@ export class SignupViewModel {
 	}
 
 	async init() {
-		const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
+		const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(
+			this.registrationDataId,
+			locator.serviceExecutor,
+			this.referralData?.code ?? null,
+		)
 		const prices = priceDataProvider.getRawPricingData()
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
