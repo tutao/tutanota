@@ -126,9 +126,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderTextFieldNativeTimePicker(displayTime: string | undefined, attrs: TimePickerAttrs) {
-		return [
+		return m(".rel.full-width", [
 			m(TextField, {
-				class: "time-picker pt",
+				class: "time-picker pt-16",
 				label: attrs.ariaLabel,
 				value: this.value,
 				type: TextFieldType.Time,
@@ -143,7 +143,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			}),
 			// A 'fake' display that overlays over the real time input that allows us to show 12 or 24 time format regardless of browser locale
 			m(".time-picker-fake-display.rel.no-hover", displayTime),
-		]
+		])
 	}
 
 	private renderTimeOptions(option: TimeOption, isTarget: boolean, isSelected: boolean) {
