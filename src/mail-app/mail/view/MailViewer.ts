@@ -31,7 +31,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { createNewContact, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { createNewContact, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingRuleForType } from "../model/MailUtils.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
@@ -792,5 +792,5 @@ export type CreateMailViewerOptions = {
  * we don't want normal mails to be able to link places in the app, though.
  * */
 function isSettingsLink(href: string, mail: Mail): boolean {
-	return (href.startsWith("/settings/") ?? false) && isTutanotaTeamMail(mail)
+	return (href.startsWith("/settings/") ?? false) && isTutaTeamMail(mail)
 }
