@@ -73,7 +73,7 @@ import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
@@ -500,7 +500,7 @@ export class MailViewerViewModel {
 	}
 
 	isTutanotaTeamMail(): boolean {
-		return isTutanotaTeamMail(this.mail)
+		return isTutaTeamMail(this.mail)
 	}
 
 	isShowingExternalContent(): boolean {
@@ -1166,7 +1166,7 @@ export class MailViewerViewModel {
 		})
 		const sanitizeResult = getHtmlSanitizer().sanitizeFragment(urlified, {
 			blockExternalContent,
-			allowRelativeLinks: isTutanotaTeamMail(mail),
+			allowRelativeLinks: isTutaTeamMail(mail),
 			highlightedStrings: this.highlightedStrings,
 		})
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult

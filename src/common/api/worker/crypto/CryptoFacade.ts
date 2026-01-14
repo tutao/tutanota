@@ -468,6 +468,7 @@ export class CryptoFacade {
 					instanceSessionKeyWithOwnerEncSessionKey.keyVerificationState = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(verificationState))
 				}
 			}
+			mail.encryptionAuthStatus = encryptionAuthStatus // we set the encryptionAuthStatus on mail early, so we can already use it before the entityUpdate is received
 			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
 		}
 	}

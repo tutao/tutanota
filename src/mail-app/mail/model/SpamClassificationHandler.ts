@@ -9,6 +9,7 @@ import { ClientClassifierType } from "../../../common/api/common/ClientClassifie
 import { createSpamMailDatum } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 
 assertMainOrNode()
 
@@ -49,7 +50,7 @@ export class SpamClassificationHandler {
 
 	private async classifyMailUsingSpamClassifier(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		// classify mail using the client classifier only if the phishingStatus is not suspicious
-		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && !(await this.isMailFromSelf(mailDetails, mail))
+		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && !((await this.isMailFromSelf(mailDetails, mail)) || isTutaTeamMail(mail))
 	}
 
 	/**
