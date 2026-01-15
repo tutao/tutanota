@@ -338,7 +338,11 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 				a.value,
 			)
 		} else {
-			return m("textarea.input-area.text-pre", {
+			// state-bg-2 disables the focus outline during keyboard navigation. it's best to prevent
+			// the outline since keyboard navigation is activated when typing J or K.
+			//
+			// the text area has its own focus indicator anyway.
+			return m("textarea.input-area.text-pre.state-bg-2", {
 				"aria-label": lang.getTranslationText(a.label),
 				disabled: a.disabled,
 				autocapitalize: a.autocapitalize,

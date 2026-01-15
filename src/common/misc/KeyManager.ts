@@ -205,6 +205,7 @@ class KeyManager {
 	}
 
 	private handleKeydown(e: KeyboardEvent): void {
+		// we're sometimes logged in during signup, which registers some shortcuts. we don't actually want these enabled.
 		if (m.route.get() === "/signup") return
 		if (!e.isComposing) {
 			// If we get a keyboard event while in a composition system (such as an input method editor),
