@@ -14,6 +14,7 @@ export type PositionRect = {
 	width?: string | null
 	bottom?: string | null
 	height?: string | null
+	"max-width"?: string | null
 	zIndex?: LayerType
 }
 type OverlayAttrs = {
@@ -111,6 +112,7 @@ export const overlay: Component<OverlayParentAttrs> = {
 							right: position.right,
 							left: position.left,
 							height: position.height,
+							"max-width": position["max-width"],
 							zIndex,
 						},
 						onbeforeremove: (vnode: VnodeDOM) => {
