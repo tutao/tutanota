@@ -16,7 +16,7 @@ import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
-import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants"
+import { FeatureType, GroupType, PlanType } from "../../common/api/common/TutanotaConstants"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
@@ -27,7 +27,7 @@ import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettin
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
-import { layout_size, size } from "../../common/gui/size"
+import { layout_size } from "../../common/gui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
 import { getEtId } from "../../common/api/common/utils/EntityUtils"
 import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
@@ -88,7 +88,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private readonly _settingsColumn: ViewColumn
 	private readonly _settingsDetailsColumn: ViewColumn
 	private readonly _userFolders: SettingsFolder<unknown>[]
-	private readonly _adminFolders: SettingsFolder<unknown>[]
+	private _adminFolders: SettingsFolder<unknown>[]
 	private readonly logins: LoginController
 	private _templateFolders: SettingsFolder<TemplateGroupInstance>[]
 	private readonly _dummyTemplateFolder: SettingsFolder<unknown>
@@ -405,8 +405,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		await this.updateShowAffiliateSettings()
 		const currentPlanType = await this.logins.getUserController().getPlanType()
 
+		const adminFolders: SettingsFolder<unknown>[] = []
+
 		if (await this.logins.getUserController().canHaveUsers()) {
-			this._adminFolders.push(
+			adminFolders.push(
 				new SettingsFolder(
 					() => "adminUserList_action",
 					() => BootIcons.User,
@@ -423,7 +425,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				),
 			)
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-				this._adminFolders.push(
+				adminFolders.push(
 					new SettingsFolder(
 						() => "sharedMailboxes_label",
 						() => Icons.People,
@@ -440,7 +442,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 
 		if (this.logins.getUserController().isGlobalAdmin()) {
-			this._adminFolders.push(
+			adminFolders.push(
 				new SettingsFolder(
 					() => "globalSettings_label",
 					() => BootIcons.Settings,
@@ -451,7 +453,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			)
 
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !shouldHideBusinessPlans()) {
-				this._adminFolders.push(
+				adminFolders.push(
 					new SettingsFolder(
 						() => "whitelabel_label",
 						() => Icons.Wand,
@@ -465,7 +467,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
 			if (this.logins.getUserController().isGlobalAdmin()) {
-				this._adminFolders.push(
+				adminFolders.push(
 					new SettingsFolder<void>(
 						() => "adminSubscription_action",
 						() => BootIcons.Premium,
@@ -475,7 +477,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					),
 				)
 
-				this._adminFolders.push(
+				adminFolders.push(
 					new SettingsFolder<void>(
 						() => "adminPayment_action",
 						() => Icons.CreditCard,
@@ -485,7 +487,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					),
 				)
 
-				this._adminFolders.push(
+				adminFolders.push(
 					new SettingsFolder(
 						() => "referralSettings_label",
 						() => BootIcons.Share,
@@ -495,7 +497,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					).setIsVisibleHandler(() => !this.showBusinessSettings()),
 				)
 
-				this._adminFolders.push(
+				adminFolders.push(
 					new SettingsFolder(
 						() => "affiliateSettings_label",
 						() => BootIcons.Share,
@@ -518,6 +520,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				)
 			}
 		}
+		this._adminFolders = adminFolders
 		m.redraw()
 	}
 
