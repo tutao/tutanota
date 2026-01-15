@@ -2141,3 +2141,4 @@ export type TranslationKeyType =
 	| "downloadInProgress_msg"
 	| "uploadCompleted_msg"
 	| "uploadInProgress_msg"
+	| "transferFailed_msg"

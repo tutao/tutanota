@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveTransferState } from "./DriveUploadStackModel"
-import { DriveUploadBox, DriveUploadBoxAttrs } from "./DriveUploadBox"
+import { DriveTransferBox, DriveUploadBoxAttrs } from "./DriveTransferBox"
 import { px, size } from "../../../common/gui/size"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
@@ -22,9 +22,9 @@ export class DriveUploadStack implements Component<DriveUploadStackAttrs> {
 				},
 			},
 			transfers.map(([fileId, uploadState]) => {
-				return m(DriveUploadBox, {
+				return m(DriveTransferBox, {
 					key: fileId,
-					uploadState,
+					transferState: uploadState,
 					onCancel: () => cancelTransfer(fileId),
 				} satisfies DriveUploadBoxAttrs & { key: string })
 			}),

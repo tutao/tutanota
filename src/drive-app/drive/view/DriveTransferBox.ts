@@ -10,7 +10,7 @@ import { theme } from "../../../common/gui/theme"
 import { TranslationKeyType } from "../../../common/misc/TranslationKey"
 
 export interface DriveUploadBoxAttrs {
-	uploadState: DriveTransferState
+	transferState: DriveTransferState
 	onCancel: () => unknown
 }
 
@@ -25,9 +25,9 @@ if (typeof CSS.registerProperty === "function") {
 	})
 }
 
-export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
-	view({ attrs: { uploadState, onCancel } }: Vnode<DriveUploadBoxAttrs>): Children {
-		const { filename, isFinished, transferredSize, totalSize, type } = uploadState
+export class DriveTransferBox implements Component<DriveUploadBoxAttrs> {
+	view({ attrs: { transferState, onCancel } }: Vnode<DriveUploadBoxAttrs>): Children {
+		const { filename, state, transferredSize, totalSize, type } = transferState
 		const percentage = Math.min(Math.round((transferredSize / totalSize) * 100), 100)
 
 		return m(
@@ -45,7 +45,7 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 			[
 				m(".flex.row.items-center.justify-between.items-center", [
 					m(".flex.items-center.gap-16.overflow-hidden", [
-						isFinished
+						state === "finished"
 							? m(
 									".flex.justify-center.items-center",
 									{
@@ -82,31 +82,36 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 									},
 									m(".small.font-weight-500", `${percentage}%`),
 								),
-						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [
-							m(".font-weight-500.text-ellipsis", filename),
-							this.renderStatusText(type, isFinished),
-						]),
+						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [m(".font-weight-500.text-ellipsis", filename), this.renderStatusText(type, state)]),
 					]),
 
-					isFinished
-						? m("", {
+					state === "active"
+						? m(IconButton, {
+								click: () => onCancel(),
+								icon: Icons.Cancel,
+								title: lang.makeTranslation("cancel", () => "cancel"),
+							})
+						: m("", {
 								style: {
 									width: px(component_size.button_height),
 									height: px(component_size.button_height),
 								},
-							})
-						: m(IconButton, {
-								click: () => onCancel(),
-								icon: Icons.Cancel,
-								title: lang.makeTranslation("cancel", () => "cancel"),
 							}),
 				]),
 			],
 		)
 	}
-	private renderStatusText(type: "upload" | "download", isFinished: boolean) {
-		const translationKey: TranslationKeyType =
-			type === "upload" ? (isFinished ? "uploadCompleted_msg" : "uploadInProgress_msg") : isFinished ? "downloadCompleted_msg" : "downloadInProgress_msg"
+
+	private renderStatusText(type: "upload" | "download", state: DriveTransferState["state"]) {
+		let translationKey: TranslationKeyType
+		if (state === "failed") {
+			translationKey = "transferFailed_msg"
+		} else if (state === "active") {
+			translationKey = type === "upload" ? "uploadInProgress_msg" : "downloadInProgress_msg"
+		} else {
+			translationKey = type === "upload" ? "uploadCompleted_msg" : "downloadCompleted_msg"
+		}
+
 		const translation = lang.getTranslation(translationKey)
 
 		return m(".small", { "data-testid": translation.testId }, translation.text)

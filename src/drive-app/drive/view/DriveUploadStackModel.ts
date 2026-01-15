@@ -9,7 +9,7 @@ export interface DriveTransferState {
 	type: DriveTransferType
 	filename: string
 	isPaused: boolean
-	isFinished: boolean
+	state: "finished" | "failed" | "active"
 	transferredSize: number // bytes
 	totalSize: number // bytes
 }
@@ -36,7 +36,7 @@ export class DriveUploadStackModel {
 			type: "upload",
 			filename,
 			isPaused: false,
-			isFinished: false,
+			state: "active",
 			transferredSize: 0,
 			totalSize,
 		})
@@ -66,7 +66,7 @@ export class DriveUploadStackModel {
 	finishUpload(fileId: FileId) {
 		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
-			stateForThisFile.isFinished = true
+			stateForThisFile.state = "finished"
 			this.updateUi()
 			setTimeout(() => {
 				this._state.delete(fileId)
@@ -83,7 +83,7 @@ export class DriveUploadStackModel {
 		this._state.set(fileId, {
 			type: "download",
 			filename,
-			isFinished: false,
+			state: "active",
 			transferredSize: 0,
 			isPaused: false,
 			totalSize,
@@ -100,7 +100,7 @@ export class DriveUploadStackModel {
 	finishDownload(fileId: FileId) {
 		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
-			stateForThisFile.isFinished = true
+			stateForThisFile.state = "finished"
 			this.updateUi()
 			setTimeout(() => {
 				this._state.delete(fileId)

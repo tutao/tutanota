@@ -2143,6 +2143,7 @@ export default {
 		"sortNeutral_label": "Unsorted",
 		"downloadInProgress_msg": "Downloading…",
 		"uploadCompleted_msg": "Upload completed",
-		"uploadInProgress_msg": "Uploading…"
+		"uploadInProgress_msg": "Uploading…",
+		"transferFailed_msg": "Transfer failed"
 	}
 }
