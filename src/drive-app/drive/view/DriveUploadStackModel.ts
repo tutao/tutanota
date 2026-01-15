@@ -1,5 +1,6 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 
 type DriveTransferType = "upload" | "download"
 
@@ -13,6 +14,8 @@ export interface DriveTransferState {
 }
 
 type FileId = TransferId
+
+const FINISHED_TRANSFER_RETAIN_TIMEOUT_MS = 4 * SECOND_IN_MILLIS
 
 export class DriveUploadStackModel {
 	private _state: Map<FileId, DriveTransferState> = new Map()
@@ -55,10 +58,11 @@ export class DriveUploadStackModel {
 		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
 			stateForThisFile.isFinished = true
+			this.updateUi()
 			setTimeout(() => {
 				this._state.delete(fileId)
 				this.updateUi()
-			}, 2000)
+			}, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)
 		}
 	}
 
@@ -88,10 +92,11 @@ export class DriveUploadStackModel {
 		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
 			stateForThisFile.isFinished = true
+			this.updateUi()
 			setTimeout(() => {
 				this._state.delete(fileId)
 				this.updateUi()
-			}, 2000)
+			}, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)
 		}
 	}
 }
