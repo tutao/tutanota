@@ -156,7 +156,6 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 				m.route.set("/login")
 				await windowFacade.reload({
 					noAutoLogin: false,
-					// loginWith: data.newAccountData.mailAddress,
 				})
 			}
 		})
