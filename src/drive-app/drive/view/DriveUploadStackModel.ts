@@ -1,6 +1,7 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 import { SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 
 type DriveTransferType = "upload" | "download"
 
@@ -26,6 +27,7 @@ export class DriveUploadStackModel {
 
 	constructor(
 		private readonly driveFacade: DriveFacade,
+		private readonly blobFacade: BlobFacade,
 		private readonly updateUi: () => unknown,
 	) {}
 
@@ -49,9 +51,16 @@ export class DriveUploadStackModel {
 		}
 	}
 
-	async cancelUpload(fileId: FileId): Promise<void> {
-		await this.driveFacade.cancelCurrentUpload(fileId)
+	async cancelTransfer(fileId: FileId): Promise<void> {
+		const state = this._state.get(fileId)
+		if (state?.type === "upload") {
+			await this.driveFacade.cancelCurrentUpload(fileId)
+		} else if (state?.type === "download") {
+			await this.blobFacade.cancelDownload(fileId)
+		}
+
 		this._state.delete(fileId)
+		this.updateUi()
 	}
 
 	finishUpload(fileId: FileId) {

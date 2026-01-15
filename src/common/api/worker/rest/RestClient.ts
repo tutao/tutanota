@@ -5,6 +5,7 @@ import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from
 import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
+import { CancelledError } from "../../common/error/CancelledError"
 
 assertWorkerOrNode()
 
@@ -34,6 +35,7 @@ export interface RestClientOptions {
 	noCORS?: boolean
 	/** Default is to suspend all requests on rate limit. */
 	suspensionBehavior?: SuspensionBehavior
+	abortSignal?: AbortSignal
 }
 
 /**
@@ -106,6 +108,16 @@ export class RestClient {
 						},
 					}
 					return res
+				}
+
+				if (options.abortSignal) {
+					options.abortSignal.addEventListener(
+						"abort",
+						() => {
+							xhr.abort()
+						},
+						{ once: true },
+					)
 				}
 
 				const t = abortAfterTimeout()
@@ -253,7 +265,11 @@ export class RestClient {
 
 				xhr.onabort = () => {
 					clearTimeout(timeout)
-					reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+					if (options.abortSignal?.aborted) {
+						reject(new CancelledError(`Request canceled | ${method} ${path}`))
+					} else {
+						reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+					}
 				}
 
 				if (options.body instanceof Uint8Array) {

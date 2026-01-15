@@ -11,7 +11,7 @@ import { TranslationKeyType } from "../../../common/misc/TranslationKey"
 
 export interface DriveUploadBoxAttrs {
 	uploadState: DriveTransferState
-	onCancel: () => Promise<unknown>
+	onCancel: () => unknown
 }
 
 // register custom CSS property so that we can animate it.
@@ -96,7 +96,7 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 								},
 							})
 						: m(IconButton, {
-								click: () => this.onCancelClicked(onCancel),
+								click: () => onCancel(),
 								icon: Icons.Cancel,
 								title: lang.makeTranslation("cancel", () => "cancel"),
 							}),
@@ -110,10 +110,5 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 		const translation = lang.getTranslation(translationKey)
 
 		return m(".small", { "data-testid": translation.testId }, translation.text)
-	}
-
-	private async onCancelClicked(onCancel: () => Promise<unknown>) {
-		await onCancel()
-		m.redraw()
 	}
 }

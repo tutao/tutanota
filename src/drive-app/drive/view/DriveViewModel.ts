@@ -5,7 +5,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { assertNotNull, debounceStart, filterInt, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
-import { DriveUploadStackModel } from "./DriveUploadStackModel"
+import { DriveTransferState, DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
@@ -147,7 +147,6 @@ export interface DriveStorage {
 
 type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
 export class DriveViewModel {
-	public readonly driveUploadStackModel: DriveUploadStackModel
 	public readonly userMailAddress: string
 
 	private sortingPreference: Readonly<SortingPreference> = { order: "asc", column: SortColumn.name }
@@ -176,9 +175,9 @@ export class DriveViewModel {
 		private readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly fileController: FileController,
+		private readonly driveUploadStackModel: DriveUploadStackModel,
 		public readonly updateUi: () => unknown,
 	) {
-		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade, updateUi)
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 	}
 
@@ -549,7 +548,11 @@ export class DriveViewModel {
 		const transferId = getElementId(file) as TransferId
 		this.driveUploadStackModel.addDownload(transferId, file.name, filterInt(file.size))
 		try {
-			await this.fileController.open(file, ArchiveDataType.DriveFile)
+			await this.fileController.open(file, ArchiveDataType.DriveFile).catch(
+				ofClass(CancelledError, (e) => {
+					console.log("Upload canceled", transferId)
+				}),
+			)
 		} finally {
 			this.driveUploadStackModel.finishDownload(transferId)
 		}
@@ -641,6 +644,14 @@ export class DriveViewModel {
 			currentParent = grandparent
 		}
 		return result
+	}
+
+	transfers(): [TransferId, DriveTransferState][] {
+		return Array.from(this.driveUploadStackModel.state)
+	}
+
+	cancelTransfer(transferId: TransferId) {
+		this.driveUploadStackModel.cancelTransfer(transferId)
 	}
 
 	/**

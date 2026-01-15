@@ -161,6 +161,7 @@ import type { QuickActionsModel } from "../common/misc/quickactions/QuickActions
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
+import { DriveUploadStackModel } from "../drive-app/drive/view/DriveUploadStackModel"
 
 assertMainOrNode()
 
@@ -1304,8 +1305,11 @@ class MailLocator implements CommonLocator {
 	readonly driveViewModel = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
+		const { DriveUploadStackModel } = await import("../drive-app/drive/view/DriveUploadStackModel.js")
 
 		const redraw = await this.redraw()
+		const driveUploadStackModel = new DriveUploadStackModel(this.driveFacade, this.blobFacade, redraw)
+
 		const model = new DriveViewModel(
 			this.entityClient,
 			this.driveFacade,
@@ -1315,6 +1319,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.userManagementFacade,
 			this.fileController,
+			driveUploadStackModel,
 			redraw,
 		)
 		await model.init()

@@ -317,7 +317,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									onSortColumn: (column) => this.driveViewModel.sort(column),
 									clipboard: this.driveViewModel.clipboard,
 								} satisfies DriveFolderViewAttrs),
-								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
+								m(DriveUploadStack, {
+									transfers: this.driveViewModel.transfers(),
+									cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
+								}),
 							],
 							mobileHeader: () => [],
 						},

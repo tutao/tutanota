@@ -77,6 +77,7 @@ export class BlobFacade {
 	 * coordinate the overall download progress for the file. This map is for looking up file state by blob id.
 	 */
 	private readonly nativeDownloadProgressState: Map<Id, FileDownloadState> = new Map()
+	private readonly abortControllers: Map<Id, AbortController> = new Map()
 
 	constructor(
 		private readonly restClient: RestClient,
@@ -227,16 +228,33 @@ export class BlobFacade {
 			this.loadListener.onChunkDownloaded({ fileId: referencingInstance.elementId as TransferId, downloadedBytes: bytes })
 		}
 
-		// Currently assumes that all the blobs of the instance are in the same archive.
-		// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
-		const doBlobRequest = async () => {
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
-			return this.downloadAndDecryptMultipleBlobsOfArchives(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions, onProgress)
-		}
-		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
+		const controller = new AbortController()
+		this.abortControllers.set(referencingInstance.elementId, controller)
+		try {
+			// Currently assumes that all the blobs of the instance are in the same archive.
+			// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
+			const doBlobRequest = async () => {
+				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
+				return this.downloadAndDecryptMultipleBlobsOfArchives(
+					referencingInstance.blobs,
+					blobServerAccessInfo,
+					sessionKey,
+					blobLoadOptions,
+					onProgress,
+					controller.signal,
+				)
+			}
+			const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
-		const blobChunks = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-		return this.concatenateBlobChunks(referencingInstance, blobChunks)
+			const blobChunks = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+			return this.concatenateBlobChunks(referencingInstance, blobChunks)
+		} finally {
+			this.abortControllers.delete(referencingInstance.elementId)
+		}
+	}
+
+	async cancelDownload(id: Id): Promise<void> {
+		this.abortControllers.get(id)?.abort(new CancelledError("Download canceled"))
 	}
 
 	private concatenateBlobChunks(referencingInstance: BlobReferencingInstance, blobChunks: Map<Id, Uint8Array>) {
@@ -493,17 +511,27 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
+		abortSignal?: AbortSignal,
 	): Promise<Map<Id, Uint8Array>> {
 		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
 		let mapWithEncryptedBlobs: Map<Id, Uint8Array> = new Map()
 		for (const [archiveId, archiveBlobs] of archiveIdToBlobs) {
 			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
-			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(archiveBlobs, blobServerAccessInfo, blobLoadOptions, onProgress)
+			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(
+				archiveBlobs,
+				blobServerAccessInfo,
+				blobLoadOptions,
+				onProgress,
+				abortSignal,
+			)
 			for (const [k, v] of mapWithEncryptedBlobsOfArchive) {
 				mapWithEncryptedBlobs.set(k, v)
 			}
 		}
-		return mapMap(mapWithEncryptedBlobs, (blob) => aesDecrypt(sessionKey, blob))
+		return mapMap(mapWithEncryptedBlobs, (blob) => {
+			abortSignal?.throwIfAborted()
+			return aesDecrypt(sessionKey, blob)
+		})
 	}
 
 	/**
@@ -515,6 +543,7 @@ export class BlobFacade {
 		blobServerAccessInfo: BlobServerAccessInfo,
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
+		abortSignal?: AbortSignal,
 	): Promise<Map<Id, Uint8Array>> {
 		if (isEmpty(blobs)) {
 			throw new ProgrammingError("Blobs are empty")
@@ -558,6 +587,7 @@ export class BlobFacade {
 								onProgress(bytes)
 							},
 						},
+						abortSignal,
 					})
 					return response
 				},
