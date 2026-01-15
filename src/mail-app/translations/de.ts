@@ -414,7 +414,7 @@ export default {
 		"creditCardExpirationDate_label": "Ablaufdatum",
 		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
 		"creditCardExpirationDateValid_msg": "Ablaufdatum gültig",
-		"creditCardExpirationDateWithFormat_label": "Ablaufdatum (MM/YY or MM/YYYY)",
+		"creditCardExpirationDateWithFormat_label": "MM/YY",
 		"creditCardExpired_msg": "Diese Kreditkarte ist abgelaufen",
 		"creditCardExprationDateInvalid_msg": "Das Datumsformat ist ungültig.",
 		"creditCardHintWithError_msg": "{hint} - {errorText}",

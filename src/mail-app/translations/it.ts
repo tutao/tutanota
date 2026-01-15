@@ -1476,6 +1476,7 @@ export default {
 		"secondFactorPending_msg": "Si prega di autenticarsi con l'autenticazione a due fattori o accettare questo login da un altro client.",
 		"secondFactorPendingOtherClientOnly_msg": "Per favore accetta questo login da un altro client.",
 		"secondMergeContact_label": "Contatto 2",
+		"secondOfPeriod_label": "Secondo {day}",
 		"secretStorageError_msg": "Impossibile decrittare i dati locali con lo storage segreto. Consulta le FAQ su {url}.",
 		"secureNow_action": "Proteggi ora",
 		"security_title": "Sicurezza",
