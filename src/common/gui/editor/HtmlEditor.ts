@@ -116,7 +116,7 @@ export class HtmlEditor implements Component {
 						])
 					: m(
 							".html",
-							m("textarea.input-area.selectable", {
+							m("textarea.input-area.selectable.state-bg-2", {
 								oncreate: (vnode) => {
 									this.domTextArea = vnode.dom as HTMLTextAreaElement
 									if (!this.isEmpty()) {
