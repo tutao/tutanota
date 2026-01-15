@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { layout_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
-import { displayOverlay } from "./Overlay"
+import { displayOverlay, PositionRect } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -173,13 +173,19 @@ function getSnackBarPosition() {
 	const snackBarMargin = styles.isUsingBottomNavigation() ? size.spacing_12 : size.spacing_24
 	const leftOffset = styles.isDesktopLayout() ? layout_size.drawer_menu_width : 0
 	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
-	return {
+	let result: PositionRect = {
 		bottom: px(snackBarMargin),
-		// The SnackBar is only shown at the right in single column layout
-		left: styles.isSingleColumnLayout() ? px(window.innerWidth - snackBarMargin - snackBarWidth) : px(leftOffset + snackBarMargin),
 		"max-width": px(snackBarWidth),
 		zIndex: LayerType.Modal,
 	}
+
+	// The SnackBar is only shown at the right in single column layout
+	if (styles.isSingleColumnLayout()) {
+		result.right = px(leftOffset + snackBarMargin)
+	} else {
+		result.left = px(leftOffset + snackBarMargin)
+	}
+	return result
 }
 
 function showNextNotification() {
