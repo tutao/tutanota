@@ -26,6 +26,7 @@ import { modal } from "../../../common/gui/base/Modal"
 import { newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
+import { lang } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -239,7 +240,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems)),
 									onDelete:
 										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
-											? () => this.driveViewModel.deleteFromTrash(Array.from(listState.selectedItems))
+											? async () => {
+													const ok = await Dialog.confirm(
+														lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": listState.selectedItems.size }),
+														"confirmDeleteFilesPermanently_action",
+													)
+													if (ok) this.driveViewModel.deleteFromTrash(Array.from(listState.selectedItems))
+												}
 											: null,
 									onRestore:
 										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0

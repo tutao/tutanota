@@ -2144,6 +2144,8 @@ export default {
 		"downloadInProgress_msg": "Downloading…",
 		"uploadCompleted_msg": "Upload completed",
 		"uploadInProgress_msg": "Uploading…",
-		"transferFailed_msg": "Transfer failed"
+		"transferFailed_msg": "Transfer failed",
+		"confirmDeleteFilesPermanently_msg": "Are you sure you want to permanently delete {count} file(s)?",
+		"confirmDeleteFilesPermanently_action": "Delete files",
 	}
 }

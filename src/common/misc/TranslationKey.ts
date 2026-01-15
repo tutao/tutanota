@@ -2142,3 +2142,5 @@ export type TranslationKeyType =
 	| "uploadCompleted_msg"
 	| "uploadInProgress_msg"
 	| "transferFailed_msg"
+	| "confirmDeleteFilesPermanently_msg"
+	| "confirmDeleteFilesPermanently_action"
