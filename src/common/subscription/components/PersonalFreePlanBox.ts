@@ -5,7 +5,7 @@ import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType } from "../../api/common/Tut
 import { PriceAndConfigProvider } from "../utils/PriceUtils"
 import { theme } from "../../gui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
-import { Icon, IconSize } from "../../gui/base/Icon.js"
+import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { styles } from "../../gui/styles.js"
@@ -89,6 +89,11 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 					renderFeature("pricing.comparisonStorage_msg", Icons.PricingStorage, "storage"),
 					renderFeature("pricing.comparisonOneCalendar_msg", Icons.PricingCalendar, undefined, true),
 					renderFeature("pricing.comparisonFaqSupport_msg", Icons.PricingSupport, undefined),
+					m(
+						".smaller.pt-8",
+						{ style: { color: theme.on_surface_variant, opacity: 0.7 } },
+						lang.getTranslationText("accountWillBeDeactivatedIn6Month_label"),
+					),
 				),
 			],
 		)
