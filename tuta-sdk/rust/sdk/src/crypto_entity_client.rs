@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
+use crate::bindings::rest_client::RestClientError;
+use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
-use crate::crypto::public_key_provider::PublicKeyIdentifier;
+use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError};
 use crate::crypto::X25519PublicKey;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{EntityFacade, ID_FIELD};
@@ -20,6 +22,7 @@ use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
+use crate::rest_error::HttpError;
 use crate::tutanota_constants::{
 	EncryptionAuthStatus, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS,
 };
@@ -415,12 +418,11 @@ impl CryptoEntityClient {
 				} else {
 					SYSTEM_GROUP_MAIL_ADDRESS.to_string()
 				};
-				Ok(self
-					.tuta_crypt_authenticate_sender_of_main_instance(
-						sender_verification_address,
-						sender_identity_pub_key,
-					)
-					.await)
+				self.tuta_crypt_authenticate_sender_of_main_instance(
+					sender_verification_address,
+					sender_identity_pub_key,
+				)
+				.await
 			},
 		}
 	}
@@ -429,7 +431,7 @@ impl CryptoEntityClient {
 		&self,
 		sender_mail_address: String,
 		sender_identity_pub_key: Versioned<X25519PublicKey>,
-	) -> EncryptionAuthStatus {
+	) -> Result<EncryptionAuthStatus, ApiCallError> {
 		let result = self
 			.asymmetric_crypto_facade
 			.authenticate_sender(
@@ -442,12 +444,28 @@ impl CryptoEntityClient {
 			.await;
 		match result {
 			Err(auth_error) => {
-				println!("Failed to authenticate sender: {auth_error}");
-				// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
-				// in those cases we will just show a warning banner but still want to display the mail
-				EncryptionAuthStatus::TutacryptAuthenticationFailed
+				log::error!("Failed to authenticate sender: {auth_error:?}");
+				// we do not want to fail mail decryption in general here, e.g. in case an alias was removed we would get a permanent NotFoundError.
+				// as in typescript we error out only in case of temporary errors so that we do not persist them as auth failures
+				if let AsymmetricCryptoError::PublicKeyLoadingError(
+					PublicKeyLoadingError::KeyLoadingError(api_call_error),
+				) = auth_error
+				{
+					if let ApiCallError::ServerResponseError {
+						source: HttpError::ConnectionError,
+					} = api_call_error
+					{
+						return Err(api_call_error);
+					} else if let ApiCallError::RestClient {
+						source: RestClientError::NetworkError,
+					} = api_call_error
+					{
+						return Err(api_call_error);
+					}
+				}
+				Ok(EncryptionAuthStatus::TutacryptAuthenticationFailed)
 			},
-			Ok(encryption_auth_status) => encryption_auth_status,
+			Ok(encryption_auth_status) => Ok(encryption_auth_status),
 		}
 	}
 }
