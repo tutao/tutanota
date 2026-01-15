@@ -46,6 +46,10 @@ export function decryptValue(
 ): Nullable<ParsedValue> {
 	if (value == null) {
 		return null
+	} else if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
+		// Might happen if cardinality was changed from ZeroOrOne -> One -> ZeroOrOne
+		console.warn(`Found an encrypted attribute (${valueType.id}:${valueType.name}) with a Cardinality.ZeroOrOne and an empty value`)
+		return null
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
 		// Migration for values added after the Type has been defined initially
 		return valueToDefault(valueType.type)
@@ -107,7 +111,7 @@ export class CryptoMapper {
 					}
 				} else {
 					decrypted._errors[valueId] = JSON.stringify(e)
-					console.log("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
+					console.error("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
 				}
 			}
 		}

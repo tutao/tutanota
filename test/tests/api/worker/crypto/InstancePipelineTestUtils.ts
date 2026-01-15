@@ -20,6 +20,14 @@ export const testTypeModel: TypeModel = {
 			final: true,
 			encrypted: true,
 		},
+		"2": {
+			id: 2,
+			name: "testValueZeroOrOne",
+			type: ValueType.String,
+			cardinality: Cardinality.ZeroOrOne,
+			final: false,
+			encrypted: true,
+		},
 		"5": {
 			id: 5,
 			name: "testDate",
