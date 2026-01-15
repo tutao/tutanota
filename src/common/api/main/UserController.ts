@@ -260,7 +260,8 @@ export class UserController {
 
 			if (sendBeacon) {
 				try {
-					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+					//Beacons must always use HTTP, thus we're directly accessing apiUrl instead of getApiBaseUrl.
+					const apiUrl = new URL(locator.domainConfigProvider().getCurrentDomainConfig().apiUrl)
 					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
 					apiUrl.searchParams.append("cv", env.versionNumber)
