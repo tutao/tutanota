@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "ログイン情報のロックを解除";
 TutaoPushNewMail = "新しいメールが届いています。";
 TutaoDeleteAction = "削除";
 TutaoMarkReadAction = "既読にする";
+TutaoWidgetUnexpectedErrorMsg = "おっと！問題が発生しました。";
 TutaoWidgetSendLogsAction = "ログを送信";
 TutaoAccountLabel = "ユーザー";
 TutaoNoTitleLabel = "<無題>";
