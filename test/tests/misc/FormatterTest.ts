@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { lang, languageCodeToTag, languages } from "../../../src/common/misc/LanguageViewModel.js"
-import { formatDate, urlEncodeHtmlTags } from "../../../src/common/misc/Formatter.js"
+import { formatDate, simplifyMailAddress, urlEncodeHtmlTags } from "../../../src/common/misc/Formatter.js"
 import { BirthdayTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/common/misc/DateParser.js"
 import { createTestEntity } from "../TestUtils.js"
@@ -220,6 +220,16 @@ o.spec("Formatter", function () {
 		o.test("when called with a string that has control characters they are removed", function () {
 			o.check(urlEncodeHtmlTags("ABC\tршيشسبنمت\x08\x7f\x9F")).equals("ABCршيشسبنمت")
 		})
+	})
+
+	o("simplifyMailAddress", function () {
+		o(simplifyMailAddress("hello_there@tuta.io")).equals("hello_there_at_tuta_io")
+		o(simplifyMailAddress("hello-there@tutao.de")).equals("hello_there_at_tutao_de")
+		o(simplifyMailAddress("dot.dot.dot@blabla.com")).equals("dot_dot_dot_at_blabla_com")
+		o(simplifyMailAddress("plus+minus@tutao.de")).equals("plus_minus_at_tutao_de")
+		o(simplifyMailAddress("PLUS+MINUS@tutao.de")).equals("PLUS_MINUS_at_tutao_de")
+		o(simplifyMailAddress("123hund@blabla.de")).equals("123hund_at_blabla_de")
+		o(simplifyMailAddress("has_underscores@mail.mail")).equals("has_underscores_at_mail_mail")
 	})
 
 	function _checkparseBirthdayWithFormatter(text: string, expectedDay: number, expectedMonth: number, expectedYear: number | null | undefined) {

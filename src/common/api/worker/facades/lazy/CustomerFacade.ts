@@ -67,7 +67,6 @@ import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
 import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
-import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
@@ -435,11 +434,14 @@ export class CustomerFacade {
 	async generatePdfRecoveryDocument(recoveryCode: string, email: string): Promise<DataFile> {
 		const writer = await this.pdfWriter()
 		const { PdfRecoveryDocumentGenerator } = await import("../../recoveryDocumentGenerator/RecoveryDocumentGenerator.js")
+		const { simplifyMailAddress } = await import("../../../../misc/Formatter")
 		const pdfGenerator = new PdfRecoveryDocumentGenerator(writer, recoveryCode, email)
 		const pdfFile = await pdfGenerator.generate()
+
+		const simplifiedMailString = simplifyMailAddress(email)
 		return {
 			_type: "DataFile",
-			name: `Recovery Kit ${email}.pdf`,
+			name: `tuta_recovery_kit_${simplifiedMailString}.pdf`,
 			mimeType: "application/pdf",
 			data: pdfFile,
 			size: pdfFile.byteLength,
