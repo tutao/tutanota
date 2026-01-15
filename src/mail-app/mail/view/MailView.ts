@@ -11,12 +11,11 @@ import {
 	Keys,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, memoized, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -80,7 +79,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
-import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
 import { attachDropdown, PosRect } from "../../../common/gui/base/Dropdown"
@@ -375,7 +374,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const isExternalUser = viewModel?.isExternalUser() ?? false
 		const isSpamFolder = this.mailViewModel.getFolder()?.folderType === MailSetKind.SPAM
 		if (isSpamFolder && !isExternalUser) {
-			return () => this.reapplyInboxRulesForFolder(MailSetKind.SPAM)
+			return () => this.mailViewModel.reapplyInboxRulesForFolder(this.undoModel, MailSetKind.SPAM)
 		} else {
 			return null
 		}
@@ -394,7 +393,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private reapplyInboxRulesWithProgressDialog() {
 		return async () => {
 			try {
-				await showProgressDialog("pleaseWait_msg", this.reapplyInboxRulesForFolder(MailSetKind.INBOX))
+				await showProgressDialog("pleaseWait_msg", this.mailViewModel.reapplyInboxRulesForFolder(this.undoModel, MailSetKind.INBOX))
 			} catch (e) {
 				// handle the user cancelling the dialog
 				if (e instanceof CancelledError) {
@@ -403,61 +402,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				console.log("inboxRulesReapplying error", e.message)
 			}
 		}
-	}
-
-	private async reapplyInboxRulesForFolder(whereNotToMove: MailSetKind.INBOX | MailSetKind.SPAM) {
-		const currentFolder = this.mailViewModel.getFolder()
-		if (currentFolder == null) {
-			return
-		}
-
-		const actionableMails = this.mailViewModel.getActionableMails().filter((mail) => !isDraft(mail))
-		if (isEmpty(actionableMails)) {
-			return
-		}
-
-		const inboxRuleHandler = mailLocator.processInboxHandler()
-		const mailboxDetails = await this.mailViewModel.getMailboxDetails()
-		const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
-		await this.bulkLoadMailDetails(actionableMails)
-		for (const mail of actionableMails) {
-			const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
-			const folderId = getElementId(folder)
-			if (!targetFolderIdToFolderMailMap.has(folderId)) {
-				targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })
-			}
-			targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
-		}
-
-		const getInboxFolder = memoized(() => {
-			const folderSystem = mailLocator.mailModel.getFolderSystemByGroupId(mailboxDetails.mailGroup._id)
-			return folderSystem?.getSystemFolderByType(MailSetKind.INBOX) ?? null
-		})
-
-		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
-			let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
-			if (whereNotToMove === MailSetKind.INBOX && targetFolder.folderType === MailSetKind.INBOX) {
-				continue
-			} else if (whereNotToMove === MailSetKind.SPAM && targetFolder.folderType === MailSetKind.SPAM) {
-				targetFolder = getInboxFolder() ?? targetFolder
-			}
-			const resolvedMails = await this.mailViewModel.getResolvedMails(mails)
-
-			moveMails({
-				targetFolder,
-				mailboxModel: locator.mailboxModel,
-				mailModel: mailLocator.mailModel,
-				mailIds: resolvedMails,
-				moveMode: this.mailViewModel.getMoveMode(currentFolder),
-				undoModel: this.undoModel,
-			})
-		}
-	}
-
-	private async bulkLoadMailDetails(mails: readonly Mail[]) {
-		await promiseMap(splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails), (mailChunk) => mailLocator.bulkMailLoader.loadMailDetails(mailChunk), {
-			concurrency: 5,
-		})
 	}
 
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
