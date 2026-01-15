@@ -39,6 +39,7 @@ const serverModelUntypedInstance: ServerModelUntypedInstance = {
 
 const clientModelEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
 	"1": "base64EncodedString",
+	"2": "base64EncodedString",
 	"3": [{ "2": "123", "9": [], "10": [] }],
 	"4": ["assocId"],
 	"5": new Date("2025-01-01T13:00:15Z"),
