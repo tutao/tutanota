@@ -131,6 +131,14 @@ o.spec("CryptoMapper", function () {
 			o(decryptValue(createEncryptedValueType(ValueType.Boolean, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(decryptValue(createEncryptedValueType(ValueType.Number, Cardinality.ZeroOrOne), null, sk)).equals(null)
 		})
+		o.test("do not decrypt empty values with Cardinality.ZeroOrOne", () => {
+			let sk = aes256RandomKey()
+			o.check(decryptValue(createEncryptedValueType(ValueType.String, Cardinality.ZeroOrOne), "", sk)).equals(null)
+			o.check(decryptValue(createEncryptedValueType(ValueType.Date, Cardinality.ZeroOrOne), "", sk)).equals(null)
+			o.check(decryptValue(createEncryptedValueType(ValueType.Bytes, Cardinality.ZeroOrOne), "", sk)).equals(null)
+			o.check(decryptValue(createEncryptedValueType(ValueType.Boolean, Cardinality.ZeroOrOne), "", sk)).equals(null)
+			o.check(decryptValue(createEncryptedValueType(ValueType.Number, Cardinality.ZeroOrOne), "", sk)).equals(null)
+		})
 	})
 	o.spec("encryptValue", function () {
 		o("encrypt string / number value", function () {
@@ -245,6 +253,7 @@ o.spec("CryptoMapper", function () {
 
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "",
+			2: "",
 			3: [{ 2: "123", 6: "someCustomId", 9: [], 10: [] }],
 			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
@@ -253,6 +262,8 @@ o.spec("CryptoMapper", function () {
 		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk)
 
 		o(decryptedInstance[1]).equals("")
+		o.check(decryptedInstance[2]).equals(null)
+		o.check(decryptedInstance._errors).equals(undefined)
 	})
 
 	o("decryption errors are written to _errors field", async function () {
