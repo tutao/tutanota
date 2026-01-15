@@ -2138,3 +2138,6 @@ export type TranslationKeyType =
 	| "sortDescending_label"
 	| "sortAscending_label"
 	| "sortNeutral_label"
+	| "downloadInProgress_msg"
+	| "uploadCompleted_msg"
+	| "uploadInProgress_msg"

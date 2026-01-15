@@ -7,6 +7,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { component_size, px, size } from "../../../common/gui/size"
 import { boxShadowHigh } from "../../../common/gui/main-styles"
 import { theme } from "../../../common/gui/theme"
+import { TranslationKeyType } from "../../../common/misc/TranslationKey"
 
 export interface DriveUploadBoxAttrs {
 	uploadState: DriveTransferState
@@ -83,11 +84,7 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 								),
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [
 							m(".font-weight-500.text-ellipsis", filename),
-							// FIXME: translate
-							m(
-								".small",
-								type === "upload" ? (isFinished ? "Upload successful" : "Uploading…") : isFinished ? "Download successful" : "Downloading…",
-							),
+							this.renderStatusText(type, isFinished),
 						]),
 					]),
 
@@ -107,6 +104,14 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 			],
 		)
 	}
+	private renderStatusText(type: "upload" | "download", isFinished: boolean) {
+		const translationKey: TranslationKeyType =
+			type === "upload" ? (isFinished ? "uploadCompleted_msg" : "uploadInProgress_msg") : isFinished ? "downloadCompleted_msg" : "downloadInProgress_msg"
+		const translation = lang.getTranslation(translationKey)
+
+		return m(".small", { "data-testid": translation.testId }, translation.text)
+	}
+
 	private async onCancelClicked(onCancel: () => Promise<unknown>) {
 		await onCancel()
 		m.redraw()
