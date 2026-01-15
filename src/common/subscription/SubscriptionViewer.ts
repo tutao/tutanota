@@ -87,7 +87,7 @@ import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { client } from "../misc/ClientDetector.js"
 import { AppStoreSubscriptionService } from "../api/entities/sys/Services.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils.js"
+import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -118,6 +118,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private currentPlanType: PlanType
 	private _isCancelled: boolean | null = null
 	private _giftCards: Map<Id, GiftCard>
+	private _shownSatisfactionDialog = false
 
 	constructor(
 		currentPlanType: PlanType,
@@ -549,8 +550,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 		this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 		this._customer = customer
-		const oldPlanType = this.currentPlanType
-		this.currentPlanType = await userController.getPlanType()
 
 		const planConfig = await userController.getPlanConfig()
 		await this.updateSubscriptionField()
@@ -564,9 +563,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			this.updateSharingField(planConfig),
 			this.updateEventInvitesField(planConfig),
 			this.updateAutoResponderField(planConfig),
-			showUserSatisfactionDialogAfterUpgrade(oldPlanType, this.currentPlanType),
 		])
 		m.redraw()
+	}
+
+	private async showSatisfactionDialog() {
+		this._shownSatisfactionDialog = true
+		const oldPlanType = this.currentPlanType
+		this.currentPlanType = await locator.logins.getUserController().getPlanType()
+		await showUserSatisfactionDialogAfterUpgrade(oldPlanType, this.currentPlanType)
 	}
 
 	private async updateUserField(): Promise<void> {
@@ -662,6 +667,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 			// needed to update the displayed plan
 			await this.updateBookings()
+			if (!this._shownSatisfactionDialog) await this.showSatisfactionDialog()
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
 			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [update.instanceListId, update.instanceId])
