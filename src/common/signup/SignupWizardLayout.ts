@@ -182,7 +182,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		const contentColumnStyle =
 			!styles.isMobileLayout() && !showIllustration && !isBusinessPlanSelector ? { "max-width": px(layout_size.wizard_content_max_width) } : undefined
 		return m(
-			`.flex.col.space-between.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
+			".flex.col.space-between.full-width",
 			{
 				style: {
 					margin: styles.isMobileLayout() ? `${px(size.spacing_24)} 0` : "auto",
@@ -193,7 +193,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 				},
 			},
 			m(
-				`.flex.height-100p.flex-grow.full-width${styles.isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
+				`.flex.flex-grow.full-width${styles.isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
 				{
 					style: {
 						"padding-inline": "5vw",
