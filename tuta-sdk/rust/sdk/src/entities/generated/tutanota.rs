@@ -389,6 +389,8 @@ pub struct Mail {
 	pub processNeeded: bool,
 	#[serde(rename = "1784")]
 	pub sendAt: Option<DateTime>,
+	#[serde(rename = "1812")]
+	pub serverClassifier: i64,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]
@@ -4072,6 +4074,9 @@ pub struct ClientSpamTrainingDatum {
 	#[serde(rename = "1746")]
 	#[serde(with = "serde_bytes")]
 	pub vector: Vec<u8>,
+	#[serde(rename = "1815")]
+	#[serde(with = "serde_bytes")]
+	pub vectorNewFormat: Option<Vec<u8>>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4125,6 +4130,9 @@ pub struct ProcessInboxDatum {
 	#[serde(rename = "1763")]
 	#[serde(with = "serde_bytes")]
 	pub encVector: Vec<u8>,
+	#[serde(rename = "1813")]
+	#[serde(with = "serde_bytes")]
+	pub encVectorNewFormat: Option<Vec<u8>>,
 	#[serde(rename = "1760")]
 	pub mailId: IdTupleGenerated,
 	#[serde(rename = "1761")]
@@ -4179,6 +4187,9 @@ pub struct PopulateClientSpamTrainingDatum {
 	#[serde(rename = "1777")]
 	#[serde(with = "serde_bytes")]
 	pub encVector: Vec<u8>,
+	#[serde(rename = "1814")]
+	#[serde(with = "serde_bytes")]
+	pub encVectorNewFormat: Option<Vec<u8>>,
 	#[serde(rename = "1774")]
 	pub mailId: IdTupleGenerated,
 }

@@ -7,6 +7,8 @@ import {
 } from "../../../../../src/common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 o.spec("OfflineStorageSpamClassifierStorageFacade", () => {
@@ -27,6 +29,7 @@ o.spec("OfflineStorageSpamClassifierStorageFacade", () => {
 			spamCount: 2,
 			lastTrainedFromScratchTime: 1764256391,
 			lastTrainingDataIndexId: "some generated start index id1",
+			spaceForServerResult: CURRENT_SPACE_FOR_SERVER_RESULT,
 		},
 	} satisfies SpamClassificationModel)
 
@@ -40,6 +43,7 @@ o.spec("OfflineStorageSpamClassifierStorageFacade", () => {
 			spamCount: 3,
 			lastTrainedFromScratchTime: 1764242391,
 			lastTrainingDataIndexId: "some generated start index id2",
+			spaceForServerResult: CURRENT_SPACE_FOR_SERVER_RESULT,
 		},
 	} satisfies SpamClassificationModel)
 
