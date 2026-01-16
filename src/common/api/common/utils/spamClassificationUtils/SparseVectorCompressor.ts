@@ -24,8 +24,8 @@ export type CompressedSparseVector = {
 export class SparseVectorCompressor {
 	constructor(public readonly dimension: number = DEFAULT_VECTOR_MAX_LENGTH) {}
 
-	public vectorToBinary(vector: number[]): Uint8Array {
-		const compressedSparseVector = this.compressVector(vector)
+	public compress(vector: number[]): Uint8Array {
+		const compressedSparseVector = this.compressToCompressedSparseVector(vector)
 		const result: number[] = []
 		result.length = compressedSparseVector.indices.length
 
@@ -39,7 +39,7 @@ export class SparseVectorCompressor {
 		return new Uint8Array(new Uint16Array(result).buffer)
 	}
 
-	public binaryToVector(binary: Uint8Array): number[] {
+	public decompress(binary: Uint8Array): number[] {
 		const vector = new Array(this.dimension).fill(0)
 		const array = new Uint16Array(binary.buffer)
 
@@ -56,7 +56,7 @@ export class SparseVectorCompressor {
 	/**
 	 * Converts a dense vector to flat sparse form: { indices, values }
 	 */
-	public compressVector(vector: number[]): CompressedSparseVector {
+	private compressToCompressedSparseVector(vector: number[]): CompressedSparseVector {
 		if (vector.length > this.dimension) {
 			throw new ProgrammingError("vector is too big for dimension")
 		}

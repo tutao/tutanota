@@ -226,6 +226,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")
+		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")

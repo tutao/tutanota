@@ -19,8 +19,8 @@ o.spec("SparseVectorCompressorTest", () => {
 		const compressor = new SparseVectorCompressor()
 		const BYTES_PER_NUMBER = 2
 		console.log("Byte size of a number: ", BYTES_PER_NUMBER)
-		const compressedVectors = vectors.map((v) => compressor.vectorToBinary(v))
-		const decompressedVectors = compressedVectors.map((v) => compressor.binaryToVector(v))
+		const compressedVectors = vectors.map((v) => compressor.compress(v))
+		const decompressedVectors = compressedVectors.map((v) => compressor.decompress(v))
 
 		const decompressedVectorByteSizes: number[] = []
 		const compressedVectorByteSizes: number[] = []
@@ -35,4 +35,30 @@ o.spec("SparseVectorCompressorTest", () => {
 
 		o.check(decompressedVectors).deepEquals(vectors)
 	})
+
+	o("round trip with big data", async () => {
+		const compressor = new SparseVectorCompressor()
+		const vectorizer = new HashingVectorizer()
+
+		const data = await vectorizer.vectorize(
+			Array(1024 * 20)
+				.fill(0)
+				.map(() => createRandomString(5)),
+		)
+		const compressed = compressor.compress(data)
+		const decompressed = Array.from(compressor.decompress(compressed))
+
+		o(data).deepEquals(decompressed)
+	})
 })
+
+export function createRandomString(length) {
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	let result = ""
+	const randomArray = new Uint8Array(length)
+	crypto.getRandomValues(randomArray)
+	for (const number of randomArray) {
+		result += chars[number % chars.length]
+	}
+	return result
+}

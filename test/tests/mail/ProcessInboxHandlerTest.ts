@@ -94,6 +94,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: trashFolder._id,
 				vector: new Uint8Array(),
+				vectorNewFormat: new Uint8Array(),
 				ownerEncMailSessionKeys: [],
 			}
 			when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -138,6 +139,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: trashFolder._id,
 				vector: new Uint8Array(),
+				vectorNewFormat: new Uint8Array(),
 				ownerEncMailSessionKeys: [],
 			}
 			when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -184,6 +186,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -236,6 +239,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -271,6 +275,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -303,6 +308,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -316,6 +322,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -348,6 +355,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -361,6 +369,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -392,6 +401,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -470,6 +480,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -492,6 +503,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -507,6 +519,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 
@@ -530,6 +543,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -545,6 +559,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -567,6 +582,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -582,6 +598,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
@@ -604,6 +621,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -614,9 +632,11 @@ o.spec("ProcessInboxHandlerTest", function () {
 		when(logins.isEnabled(FeatureType.SpamClientClassification)).thenReturn(false)
 
 		mail.sets = [inboxFolder._id]
-		const compressedVector = new Uint8Array([2, 4, 8, 16])
-
-		when(mailFacade.vectorizeAndCompressMails({ mail, mailDetails })).thenResolve(compressedVector)
+		when(mailFacade.createModelInputAndUploadVector(anything(), mail, mailDetails, inboxFolder)).thenResolve({
+			modelInput: [],
+			vectorNewFormatToUpload: new Uint8Array(),
+			vectorToUpload: new Uint8Array(),
+		})
 		processInboxHandler = new ProcessInboxHandler(
 			logins,
 			mailFacade,
@@ -644,7 +664,8 @@ o.spec("ProcessInboxHandlerTest", function () {
 			classifierType: null,
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
-			vector: compressedVector,
+			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
@@ -660,6 +681,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: [],
 		}
 
@@ -693,6 +715,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			vectorNewFormat: new Uint8Array(),
 			ownerEncMailSessionKeys: mailInstanceSessionKeys,
 		}
 
