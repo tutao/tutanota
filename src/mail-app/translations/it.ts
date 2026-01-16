@@ -1060,7 +1060,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Invia solo durante questo intervallo di tempo:",
 		"outOfOfficeTimeRangeHelp_msg": "Seleziona per scegliere le date.",
 		"outOfOfficeUnencrypted_msg": "Si prega di notare che le risposte automatiche sono inviate senza crittazione.",
-		"outOfSync_label": "Dati scaduti",
+		"dataExpired_label": "Dati scaduti",
 		"owner_label": "Proprietario",
 		"pageBackward_label": "Pagina indietro",
 		"pageForward_label": "Pagina avanti",

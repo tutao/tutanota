@@ -1274,7 +1274,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Отсылать только в этот временной период:",
 		"outOfOfficeTimeRangeHelp_msg": "Отметьте для выбора дат.",
 		"outOfOfficeUnencrypted_msg": "Обратите внимание, что автоответы отправляются в виде простого текста.",
-		"outOfSync_label": "Данные просрочены",
+		"dataExpired_label": "Данные просрочены",
 		"overwrite_action": "Перезаписать",
 		"owner_label": "Владелец",
 		"pageBackward_label": "Предыдущая страница",
