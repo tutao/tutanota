@@ -349,7 +349,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 					ref: MailTypeRef,
 					handler: new CustomMailEventCacheHandler(mailIndexer),
 				},
-				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()) },
+				{
+					ref: UserTypeRef,
+					handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
+				},
 			)
 			return new OfflineStorage(
 				locator.sqlCipherFacade,

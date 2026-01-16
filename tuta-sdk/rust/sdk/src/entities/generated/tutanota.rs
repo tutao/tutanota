@@ -389,6 +389,8 @@ pub struct Mail {
 	pub processNeeded: bool,
 	#[serde(rename = "1784")]
 	pub sendAt: Option<DateTime>,
+	#[serde(rename = "1812")]
+	pub serverClassifier: i64,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]

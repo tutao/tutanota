@@ -170,8 +170,8 @@ import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificat
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
 import { UnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader"
 import { createSpamMailDatum, SpamMailProcessor } from "../../../common/utils/spamClassificationUtils/SpamMailProcessor"
+import { SpamClassificationModelMetaData } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -1082,6 +1082,7 @@ export class MailFacade {
 
 		return mailAddressesForUserGroup.concat(allMailAddressesForMailGroups)
 	}
+
 	async clearFolder(folderId: IdTuple) {
 		const deleteMailData = createDeleteMailData({
 			folder: folderId,
@@ -1249,15 +1250,15 @@ export class MailFacade {
 	): Promise<ProcessInboxDatum[]> {
 		const processInboxData: ProcessInboxDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedProcessInboxData) {
+			const { targetMoveFolder, classifierType, mailId, vector } = unencryptedProcessInboxDatum
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-			const { targetMoveFolder, classifierType, mailId } = unencryptedProcessInboxDatum
 			processInboxData.push(
 				createProcessInboxDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					encVector: aesEncrypt(sk, unencryptedProcessInboxDatum.vector),
+					encVector: aesEncrypt(sk, vector),
 					classifierType,
 					mailId,
 					targetMoveFolder,
@@ -1330,8 +1331,12 @@ export class MailFacade {
 		)
 	}
 
-	async vectorizeAndCompressMails(mailWithDetails: MailWithMailDetails) {
-		return this.spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mailWithDetails.mail, mailWithDetails.mailDetails))
+	async createModelInputAndUploadVector(spaceForServerResult: number, mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+		const datum = createSpamMailDatum(mail, mailDetails, sourceFolder)
+		const vectorizedMail = await this.spamMailProcessor.makeVectorizedMail(datum)
+		const modelInput = await this.spamMailProcessor.makeModelInputFromMailDatum(spaceForServerResult, datum, vectorizedMail)
+		const vectorToUpload = await this.spamMailProcessor.makeUploadVectorFromMailDatum(datum, vectorizedMail)
+		return { modelInput, vectorToUpload }
 	}
 
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */

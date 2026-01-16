@@ -12,6 +12,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
 import { LockedError } from "../../../common/api/common/error/RestError"
 import { InstanceSessionKey } from "../../../common/api/entities/sys/TypeRefs"
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 assertMainOrNode()
 
@@ -113,11 +114,12 @@ export class ProcessInboxHandler {
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
 		if (finalProcessInboxDatum === null) {
+			const { vectorToUpload } = await this.mailFacade.createModelInputAndUploadVector(CURRENT_SPACE_FOR_SERVER_RESULT, mail, mailDetails, sourceFolder)
 			finalProcessInboxDatum = {
 				mailId: mail._id,
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
-				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+				vector: vectorToUpload,
 				ownerEncMailSessionKeys: [],
 			}
 		}
@@ -152,13 +154,13 @@ export class ProcessInboxHandler {
 		// process excluded rules first and then regular ones.
 		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
 		if (result) {
-			const { targetFolder, processInboxDatum } = result
+			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
 		} else {
 			if (moveToFolder.folderType === MailSetKind.INBOX) {
 				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
 				if (result) {
-					const { targetFolder, processInboxDatum } = result
+					const { targetFolder, processInboxDatum: _ } = result
 					moveToFolder = targetFolder
 				}
 			}
