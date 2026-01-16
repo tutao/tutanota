@@ -788,7 +788,7 @@ export class CalendarModel {
 		// Reset permissions because server will assign them
 		downcast(newEvent)._permissions = null
 		newEvent._ownerGroup = groupRoot._id
-		newEvent.pendingInvitation = oldEvent.pendingInvitation
+		newEvent.pendingInvitation = true
 
 		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
 		return this.requestWidgetRefresh()
@@ -1123,8 +1123,6 @@ export class CalendarModel {
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
 
-		updateEvent.pendingInvitation = dbEvent.pendingInvitation
-
 		const calendarEvent = await this.updateEventWithExternal(dbEvent, updateEvent)
 
 		// If the update is for the altered occurrence, we do not need to update the progenitor, it already has the exclusion.
@@ -1150,6 +1148,7 @@ export class CalendarModel {
 	): Promise<void> {
 		console.log(TAG, "processing new instance request")
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
+
 		if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
 			// request for a new altered instance. we'll try adding the exclusion for this instance to the progenitor if possible
 			// since not all calendar apps add altered instances to the list of exclusions.
@@ -1158,6 +1157,7 @@ export class CalendarModel {
 			dbTarget.progenitor = (await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)) as CalendarEventProgenitor
 		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
 			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
+			// TODO: figure out what this logic branch is actually for
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
 				updateEvent,
 				dbTarget.alteredInstances.map((r) => r.recurrenceId),
@@ -1165,7 +1165,6 @@ export class CalendarModel {
 			)
 		}
 
-		updateEvent.pendingInvitation = !!dbTarget.progenitor?.pendingInvitation
 		updateEvent.sender = sender
 
 		let calendarGroupRoot
