@@ -5,7 +5,9 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { BusinessPlanBox } from "../../subscription/components/BusinessPlanBox"
 import { PlanConfig } from "../../subscription/components/BusinessPlanContainer"
 import { getApplePriceStr, getPriceStr, shouldShowApplePrices } from "../../subscription/utils/SubscriptionUtils"
-import { getDiscountDetails } from "../../subscription/utils/PlanSelectorUtils"
+import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/PlanSelectorUtils"
+import { PaymentInterval } from "../../subscription/utils/PriceUtils"
+import { px, size } from "../../gui/size"
 
 type SignupInlinePlanSelectorAttrs = {
 	viewModel: SignupViewModel
@@ -104,11 +106,19 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 		const availablePlans = viewModel.acceptedPlans.filter((plan) => NewPersonalPlans.includes(plan))
 		const isApplePrice = shouldShowApplePrices(viewModel.accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, priceAndConfigProvider)
+		const isYearly = viewModel.options.paymentInterval() === PaymentInterval.Yearly
+		const anyPaidPlanHasCampaign =
+			discountDetails && (getHasCampaign(discountDetails[PlanType.Revolutionary], isYearly) || getHasCampaign(discountDetails[PlanType.Legend], isYearly))
 		const currentPlan = viewModel.currentPlan ?? undefined
 
 		return m(
 			".flex.flex-column.gap-16",
-			{ style: { width: "100%" } },
+			{
+				style: {
+					width: "100%",
+					"margin-top": anyPaidPlanHasCampaign ? px(size.spacing_32) : 0,
+				},
+			},
 			this.planConfigs.map((planConfig) => {
 				const priceInput = {
 					priceAndConfigProvider,
@@ -118,26 +128,29 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 				const prices = planConfig.type === PlanType.Free || !isApplePrice ? getPriceStr(priceInput) : getApplePriceStr(priceInput)
 				const isSelected = viewModel.targetPlanType === planConfig.type
 				const isDisabled = !availablePlans.includes(planConfig.type as AvailablePlanType) || currentPlan === planConfig.type
-
-				return m(BusinessPlanBox, {
-					planConfig,
-					price: prices.priceStr,
-					referencePrice: prices.referencePriceStr,
-					isSelected,
-					isDisabled,
-					isCurrentPlan: currentPlan === planConfig.type,
-					onclick: (plan) => {
-						viewModel.targetPlanType = plan
-						viewModel.updatePrice()
-						onPlanSelected?.()
-					},
-					priceAndConfigProvider,
-					discountDetail: discountDetails?.[planConfig.type],
-					selectedPaymentInterval: viewModel.options.paymentInterval,
-					forceMobileLayout: true,
-					forceExpanded: true,
-					priceHintLabel: "pricing.perMonth_label",
-				})
+				const hasCampaign = getHasCampaign(discountDetails?.[planConfig.type], viewModel.options.paymentInterval() === PaymentInterval.Yearly)
+				return m(
+					`${hasCampaign ? ".mt-24" : ""}`,
+					m(BusinessPlanBox, {
+						planConfig,
+						price: prices.priceStr,
+						referencePrice: prices.referencePriceStr,
+						isSelected,
+						isDisabled,
+						isCurrentPlan: currentPlan === planConfig.type,
+						onclick: (plan) => {
+							viewModel.targetPlanType = plan
+							viewModel.updatePrice()
+							onPlanSelected?.()
+						},
+						priceAndConfigProvider,
+						discountDetail: discountDetails?.[planConfig.type],
+						selectedPaymentInterval: viewModel.options.paymentInterval,
+						forceMobileLayout: true,
+						forceExpanded: true,
+						priceHintLabel: "pricing.perMonth_label",
+					}),
+				)
 			}),
 		)
 	}
