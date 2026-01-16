@@ -1,5 +1,4 @@
-import type { NativeImage, Rectangle } from "electron"
-import { app, screen } from "electron"
+import { app, dialog, NativeImage, Rectangle, screen } from "electron"
 import type { UserInfo } from "./ApplicationWindow"
 import { ApplicationWindow } from "./ApplicationWindow"
 import type { DesktopConfig } from "./config/DesktopConfig"
@@ -17,6 +16,7 @@ import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 
 import { SseInfo } from "./sse/SseInfo.js"
 import { debounce, LazyLoaded } from "@tutao/tutanota-utils"
+import { lang } from "../misc/LanguageViewModel"
 
 const TAG = "[DesktopWindowManager]"
 
@@ -110,8 +110,18 @@ export class WindowManager {
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
 
-		w.on("close", () => {
+		w.on("close", async (e) => {
 			w.setUserId(null)
+			if (w._browserWindow.webContents.getURL().includes("/signup")) {
+				e.preventDefault()
+				const { response } = await dialog.showMessageBox(w._browserWindow, {
+					type: "question",
+					message: lang.getTranslationText("closeWindowConfirmation_msg"),
+					buttons: [lang.getTranslationText("yes_label"), lang.getTranslationText("no_label")],
+				})
+
+				if (response === 0) w._browserWindow.destroy()
+			}
 		})
 			.on("closed", () => {
 				w.setUserId(null)
