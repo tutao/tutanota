@@ -4,13 +4,14 @@ import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
-import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { isNotEmpty, remove } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
+import { Icons } from "./icons/Icons"
 
 assertMainOrNode()
 const SNACKBAR_SHOW_TIME = 6000 // ms
@@ -22,7 +23,7 @@ export type SnackBarButtonAttrs = {
 }
 type SnackBarAttrs = {
 	message: MaybeTranslation
-	button: ButtonAttrs | null
+	button?: ButtonAttrs | null
 	dismissButton?: IconButtonAttrs
 	onHoverChange: (hovered: boolean) => void
 }
@@ -69,6 +70,22 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
 	}
 }
 
+// A snackbar with only a message and dismiss button, shows for 20 seconds
+export function showInfoSnackbar(message: TranslationKey) {
+	let cancelSnackbar: () => void
+
+	cancelSnackbar = showSnackBar({
+		message,
+		dismissButton: {
+			title: "close_alt",
+			click: () => cancelSnackbar(),
+			icon: Icons.Cancel,
+		},
+		showingTime: 20 * 1000,
+		replace: true,
+	})
+}
+
 /**
  * Shows a SnackBar overlay at the bottom for low priority notifications that do not require (but might allow) user interaction and disappear after 6 seconds.
  * @param args.message The message to be shown. It must be short enough to ensure it is always shown in 2 lines of text at max in any language.
@@ -83,7 +100,7 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  */
 export function showSnackBar(args: {
 	message: MaybeTranslation
-	button: SnackBarButtonAttrs
+	button?: SnackBarButtonAttrs
 	dismissButton?: IconButtonAttrs
 	onShow?: () => unknown
 	onClose?: (timedOut: boolean) => unknown
@@ -100,7 +117,7 @@ export function showSnackBar(args: {
 		},
 	}
 
-	const buttonAttrs = makeButtonAttrsForSnackBar(button)
+	const buttonAttrs = button ? makeButtonAttrsForSnackBar(button) : null
 
 	const queueEntry: QueueItem = {
 		message: message,
