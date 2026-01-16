@@ -87,7 +87,6 @@ import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
 import { findAttendeeInAddresses, isBefore, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { TutanotaError } from "@tutao/tutanota-error"
 import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
@@ -125,6 +124,7 @@ import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -791,7 +791,6 @@ export class CalendarModel {
 		// Reset permissions because server will assign them
 		downcast(newEvent)._permissions = null
 		newEvent._ownerGroup = groupRoot._id
-		newEvent.pendingInvitation = true
 
 		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
 		return this.requestWidgetRefresh()
@@ -1125,6 +1124,9 @@ export class CalendarModel {
 			}
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
+		if (updateEvent.startTime !== dbEvent.startTime) {
+			updateEvent.pendingInvitation = true
+		}
 
 		const calendarEvent = await this.updateEventWithExternal(dbEvent, updateEvent)
 
@@ -1235,6 +1237,8 @@ export class CalendarModel {
 		newEvent.organizer = icsEvent.organizer
 		newEvent.repeatRule = icsEvent.repeatRule
 		newEvent.recurrenceId = icsEvent.recurrenceId
+
+		newEvent.pendingInvitation = icsEvent.pendingInvitation
 
 		return await this.doUpdateEvent(dbEvent, newEvent)
 	}
