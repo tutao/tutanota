@@ -234,6 +234,7 @@ export class BlobFacade {
 			// Currently assumes that all the blobs of the instance are in the same archive.
 			// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
 			const doBlobRequest = async () => {
+				controller.signal.throwIfAborted()
 				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
 				return this.downloadAndDecryptMultipleBlobsOfArchives(
 					referencingInstance.blobs,
@@ -247,6 +248,7 @@ export class BlobFacade {
 			const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
 			const blobChunks = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+			controller.signal.throwIfAborted()
 			return this.concatenateBlobChunks(referencingInstance, blobChunks)
 		} finally {
 			this.abortControllers.delete(referencingInstance.elementId)
