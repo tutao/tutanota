@@ -2183,5 +2183,8 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"importContactDuplicates_msg": "Found {duplicates} duplicate contact(s) while importing. {newContacts} contact(s) successfully imported!",
+		"dataOutOfSync_label": "Data out of sync",
+		"dataOutOfSyncOfflineDb_msg": "Your local data is out of sync with the data on the Tuta servers. You will be logged out and your locally stored data will be cleared and re-downloaded as needed.",
+		"dataOutOfSync_msg": "Your loaded data is out of sync with the data on the Tuta servers. Please logout and login again to refresh your data.",
 	}
 }
