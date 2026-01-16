@@ -315,10 +315,14 @@ function renderQRCode(x: number, y: number, width: number, height: number, link:
 }
 
 export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (checked: boolean) => void, classes?: string): Children {
-	return m(Checkbox, {
-		checked,
-		onChecked,
-		class: classes,
-		label: () => [lang.get("termsAndConditions_label"), m("div", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION))],
-	})
+	return m(
+		"div",
+		m(Checkbox, {
+			checked,
+			onChecked,
+			class: classes,
+			label: () => lang.get("termsAndConditions_label"),
+		}),
+		m("div", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)),
+	)
 }
