@@ -2217,3 +2217,6 @@ export type TranslationKeyType =
 	| "transferWaiting_msg"
 	| "emptyString_msg"
 	| "importContactDuplicates_msg"
+	| "dataOutOfSync_label"
+	| "dataOutOfSyncOfflineDb_msg"
+	| "dataOutOfSync_msg"

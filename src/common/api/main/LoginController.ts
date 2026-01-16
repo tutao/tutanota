@@ -191,15 +191,15 @@ export class LoginController {
 				)
 			} catch (e) {
 				console.log("Error finishing login", e)
-				if (e instanceof InvalidModelError) {
-					// It's possible for the model to be invalid when logging in with a new model and a very old cache
-					await this.loginFacade.checkOutOfSyncCache()
+				// An InvalidModelError can occur when logging in with a new server model if a mapped instance is not yet synced.
+				// In such cases, the cache will be purged by the error handler, which we cannot do if logged out
+				if (!(e instanceof InvalidModelError)) {
+					// Some parts of initialization can fail and we should reset the state, both on this side and the worker
+					// side, otherwise login cannot be attempted again
+					console.log("logging out now!")
+					await this.logout(false)
 				}
 
-				// Some parts of initialization can fail and we should reset the state, both on this side and the worker
-				// side, otherwise login cannot be attempted again
-				console.log("logging out now!")
-				await this.logout(false)
 				throw e
 			}
 
