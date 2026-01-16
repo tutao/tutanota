@@ -99,6 +99,8 @@ import { NotFoundError } from "../../../../../src/common/api/common/error/RestEr
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
+import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
+import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 
 const { anything, argThat } = matchers
 
@@ -134,6 +136,8 @@ o.spec("CryptoFacadeTest", function () {
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let keyRotationFacade: KeyRotationFacade
 	let typeModelResolver: TypeModelResolver
+	let cryptoWrapper: CryptoWrapper
+	let instanceSessionKeysCache: InstanceSessionKeysCache
 
 	async function prepareBucketKeyInstance(
 		bucketEncMailSessionKey: Uint8Array,
@@ -210,6 +214,8 @@ o.spec("CryptoFacadeTest", function () {
 		keyRotationFacade = object()
 		typeModelResolver = clientInitializedTypeModelResolver()
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		cryptoWrapper = new CryptoWrapper()
+		instanceSessionKeysCache = object()
 
 		crypto = new CryptoFacade(
 			userFacade,
@@ -221,6 +227,8 @@ o.spec("CryptoFacadeTest", function () {
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
 			publicEncryptionKeyProvider,
+			instanceSessionKeysCache,
+			cryptoWrapper,
 			() => keyRotationFacade,
 			typeModelResolver,
 			async () => {
@@ -243,8 +251,25 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerEncSessionKey: recipientUser.mailGroupKey ? encryptKey(recipientUser.mailGroupKey, sk) : null,
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
+			bucketKey: null,
 		})
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mail))
+		verify(instanceSessionKeysCache.delete(mail), { times: 1 })
+		o(sessionKey).deepEquals(sk)
+	})
+
+	o("resolve session key: _ownerEncSessionKey instance. The cache entry is not deleted if mail still has bucketKey", async function () {
+		const recipientUser = createTestUser("Bob", entityClient)
+		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
+		const sk = aes256RandomKey()
+		const mail = createTestEntity(MailTypeRef, {
+			_ownerEncSessionKey: recipientUser.mailGroupKey ? encryptKey(recipientUser.mailGroupKey, sk) : null,
+			_ownerGroup: recipientUser.mailGroup._id,
+			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
+			bucketKey: createTestEntity(BucketKeyTypeRef),
+		})
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mail))
+		verify(instanceSessionKeysCache.delete(mail), { times: 0 })
 		o(sessionKey).deepEquals(sk)
 	})
 
@@ -581,6 +606,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
+		verify(instanceSessionKeysCache.put(mail, anything()), { times: 1 })
 		o(sessionKey).deepEquals(sk)
 	})
 
@@ -979,7 +1005,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
-
+		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 	})
@@ -1016,6 +1042,7 @@ o.spec("CryptoFacadeTest", function () {
 				isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 			),
 		)
+		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, mailInstanceSessionKey.encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
@@ -1050,6 +1077,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
+		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
@@ -1068,6 +1096,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = instanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
+		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAuthStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, assertNotNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAuthStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
@@ -1097,6 +1126,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
+		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT)
@@ -1127,6 +1157,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
+		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
@@ -1147,6 +1178,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.entityAdapter._id),
 		)
+		verify(instanceSessionKeysCache.put(testData.entityAdapter, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.AES_NO_AUTHENTICATION)
@@ -1173,6 +1205,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.entityAdapter._id),
 		)
+		verify(instanceSessionKeysCache.put(testData.entityAdapter, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.AES_NO_AUTHENTICATION)
@@ -1225,6 +1258,8 @@ o.spec("CryptoFacadeTest", function () {
 
 			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
 			const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
+
 			const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
 			for (const isk of bucketKey.bucketEncSessionKeys) {
@@ -1242,6 +1277,78 @@ o.spec("CryptoFacadeTest", function () {
 					}),
 				).equals(true)
 			}
+		},
+	)
+
+	o(
+		"resolve session key: rsa public key decryption of session key using BucketKey aggregated type uses the InstanceSessionKeys on cache if there is an entry for tne instance in the cache",
+		async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const file1SessionKey = aes256RandomKey()
+			const file2SessionKey = aes256RandomKey()
+			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
+
+			const mailSessionKey = assertNotNull(await crypto.resolveSessionKey(testData.mail))
+			o(mailSessionKey).deepEquals(testData.sk)
+
+			const bucketKey = assertNotNull(testData.mail.bucketKey)
+
+			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
+
+			const cachedInstanceSessionKeys: Array<InstanceSessionKey> = [
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
+					}),
+					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
+					instanceList: listIdPart(testData.mail._id),
+					instanceId: elementIdPart(testData.mail._id),
+					encryptionAuthStatus: null,
+					symKeyVersion: "1",
+					keyVerificationState: null,
+				}),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: FileTypeRef.app,
+						typeId: FileTypeRef.typeId.toString(),
+					}),
+					symEncSessionKey: encryptKey(testData.mailGroupKey, file1SessionKey),
+					instanceList: "fileListId",
+					instanceId: "fileId1",
+					encryptionAuthStatus: null,
+					symKeyVersion: "1",
+					keyVerificationState: null,
+				}),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
+					}),
+					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
+					instanceList: "fileListId",
+					instanceId: "fileId2",
+					encryptionAuthStatus: null,
+					symKeyVersion: "1",
+					keyVerificationState: null,
+				}),
+			]
+
+			// when there is a value from cache, it should be used
+			when(instanceSessionKeysCache.get(testData.mail)).thenReturn(cachedInstanceSessionKeys)
+			const resolvedSessionKeysFromCache = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			o(new Set(resolvedSessionKeysFromCache.instanceSessionKeys)).deepEquals(new Set(cachedInstanceSessionKeys))
+			o(resolvedSessionKeysFromCache.resolvedSessionKeyForInstance).deepEquals(testData.sk)
+			// verify that we did not override the cache
+			verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeysFromCache.instanceSessionKeys), { times: 0 })
+
+			// we obtain the same result if we remove the value from cache
+			when(instanceSessionKeysCache.get(testData.mail)).thenReturn(null)
+			const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			o(new Set(resolvedSessionKeys.instanceSessionKeys)).deepEquals(new Set(cachedInstanceSessionKeys))
+			o(resolvedSessionKeys.resolvedSessionKeyForInstance).deepEquals(testData.sk)
+			// verify that we put the result in cache
+			verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 		},
 	)
 
@@ -1329,6 +1436,7 @@ o.spec("CryptoFacadeTest", function () {
 
 			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
 			const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 			const updatedInstanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
 			for (const isk of bucketKey.bucketEncSessionKeys) {
@@ -1370,6 +1478,90 @@ o.spec("CryptoFacadeTest", function () {
 					}),
 				).equals(true)
 			}
+		},
+	)
+
+	o(
+		"resolve session key: pq public key decryption of session key using BucketKey aggregated type uses the InstanceSessionKeys on cache if there is an entry for tne instance in the cache",
+		async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const file1SessionKey = aes256RandomKey()
+			const file2SessionKey = aes256RandomKey()
+			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
+
+			when(
+				asymmetricCryptoFacade.authenticateSender(
+					{
+						identifier: senderAddress,
+						identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+					},
+					anything(),
+					anything(),
+				),
+			).thenResolve({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				verificationState: PresentableKeyVerificationState.SECURE,
+			})
+
+			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
+			const bucketKey = assertNotNull(testData.mail.bucketKey)
+			o(mailSessionKey).deepEquals(testData.sk)
+
+			const cachedInstanceSessionKeys: Array<InstanceSessionKey> = [
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
+					}),
+					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
+					instanceList: listIdPart(testData.mail._id),
+					instanceId: elementIdPart(testData.mail._id),
+					encryptionAuthStatus: null,
+					symKeyVersion: "1",
+					keyVerificationState: null,
+				}),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: FileTypeRef.app,
+						typeId: FileTypeRef.typeId.toString(),
+					}),
+					symEncSessionKey: encryptKey(testData.mailGroupKey, file1SessionKey),
+					instanceList: "fileListId",
+					instanceId: "fileId1",
+					encryptionAuthStatus: null,
+					symKeyVersion: "1",
+					keyVerificationState: null,
+				}),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
+					}),
+					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
+					instanceList: "fileListId",
+					instanceId: "fileId2",
+					encryptionAuthStatus: null,
+					symKeyVersion: "1",
+					keyVerificationState: null,
+				}),
+			]
+
+			// when there is a value from cache, it should be used
+			when(instanceSessionKeysCache.get(testData.mail)).thenReturn(cachedInstanceSessionKeys)
+			const resolvedSessionKeysFromCache = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			o(new Set(resolvedSessionKeysFromCache.instanceSessionKeys)).deepEquals(new Set(cachedInstanceSessionKeys))
+			const updatedInstanceSessionKeys = resolvedSessionKeysFromCache.instanceSessionKeys
+			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
+			// verify that we did not override the cache
+			verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeysFromCache.instanceSessionKeys), { times: 0 })
+
+			// we obtain the same result if we remove the value from cache
+			when(instanceSessionKeysCache.get(testData.mail)).thenReturn(null)
+			const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
+			o(new Set(resolvedSessionKeys.instanceSessionKeys)).deepEquals(new Set(cachedInstanceSessionKeys))
+			o(resolvedSessionKeys.resolvedSessionKeyForInstance).deepEquals(testData.sk)
+			// verify that we put the result in cache
+			verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 		},
 	)
 
