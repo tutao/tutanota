@@ -89,6 +89,7 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 
 assertWorkerOrNode()
 
@@ -341,6 +342,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.keyLoader,
 		asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
+		new InstanceSessionKeysCache(),
+		locator.cryptoWrapper,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
 		async (error: Error) => {
