@@ -3,7 +3,7 @@ import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPla
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { SelectedSubscriptionOptions } from "../FeatureListProvider"
-import { px, size } from "../../gui/size"
+import { component_size, px, size } from "../../gui/size"
 import { styles } from "../../gui/styles"
 import { lang, Translation } from "../../misc/LanguageViewModel"
 import { isDarkTheme, Theme, theme } from "../../gui/theme"
@@ -30,6 +30,15 @@ export type PlanBoxContainerAttrs = {
 }
 
 export type PlanBoxPosition = "left" | "right" | "bottom"
+
+export function shouldFixButtonPosition() {
+	const planSelectorEl = document.querySelector("#plan-selector")
+	if (planSelectorEl) {
+		const planSelectorBottom = planSelectorEl.getBoundingClientRect().bottom
+		return styles.isMobileLayout() && planSelectorBottom + size.spacing_32 + component_size.button_floating_size > window.innerHeight
+	}
+	return false
+}
 
 export function isPersonalPlanAvailable(availablePlans: readonly AvailablePlanType[]) {
 	return availablePlans.some((plan) => NewPersonalPlans.includes(plan))

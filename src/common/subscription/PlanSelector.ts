@@ -16,7 +16,7 @@ import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
-import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils.js"
+import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
 import { styles } from "../gui/styles"
 import { isIOSApp } from "../api/common/Env"
 
@@ -237,11 +237,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	 * if there is not enough space to show the button without scrolling.
 	 */
 	private readonly handleResize = () => {
-		const planSelectorEl = document.querySelector("#plan-selector")
-		if (planSelectorEl) {
-			const planSelectorBottom = planSelectorEl.getBoundingClientRect().bottom
-			this.shouldFixButtonPos = styles.isMobileLayout() && planSelectorBottom + size.spacing_32 + component_size.button_floating_size > window.innerHeight
-		}
+		this.shouldFixButtonPos = shouldFixButtonPosition()
 	}
 }
 
