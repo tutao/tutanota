@@ -20,6 +20,7 @@ export class HashingVectorizer {
 		return vector
 	}
 
+	// visibleForTesting
 	public async transform(preprocessedMails: Array<ReadonlyArray<string>>): Promise<number[][]> {
 		return await promiseMap(preprocessedMails, (preprocessedMail) => this.vectorize(preprocessedMail), { concurrency: 1 })
 	}
