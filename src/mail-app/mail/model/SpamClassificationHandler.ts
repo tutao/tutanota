@@ -31,6 +31,24 @@ export class SpamClassificationHandler {
 		const vectorizedMail = await this.spamClassifier.vectorize(spamMailDatum)
 
 		const clampedServerSideInfluence = Math.max(0, Math.min(100, Number(mail.serverSideInfluence)))
+		/**
+		 * If this feeds a model:
+		 * Gradients near 15.5 become unstable
+		 * Small probability noise flips class bands
+		 * Model may overfit to the boundary value
+		 * Calibration becomes worse, not better
+		 * Model works better when value is continous
+		 *
+		 * ```
+		 * p = 0.82; // server_classification_influence_for_client
+		 * logit = Math.log(p / (1 - p))
+		 * confidence = Math.abs(logit)
+		 * input = [ vectorized_mails, logit, confidence]
+		 * ```
+		 *
+		 * Even it comes from same probability we should try to repesent it as {strength, direction}
+		 * direction can also be just boolean ?
+		 */
 		// todo: we can also trust server decision until >95 and not just ==100
 		const isFullyConfidentOnServerSideClassification = clampedServerSideInfluence === 100
 		const useSpamClassifier = !isFullyConfidentOnServerSideClassification && (await this.shouldClassifyMailUsingSpamClassifier(mail, mailDetails))
