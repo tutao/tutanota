@@ -18,6 +18,8 @@ import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
 import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { BootIcons } from "../gui/base/icons/BootIcons"
+import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
+import { windowFacade } from "../misc/WindowFacade"
 
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
@@ -100,6 +102,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	private readonly stepInfoBoxItems = (planType: PlanType): InfoBoxItem[][] => {
 		return [this.planSelectorInfoItems, this.formPageInfoItems[planType as AvailablePlanType], this.paymentInfoItems]
 	}
+	private shouldFixButtonPos: boolean = false
 
 	private updateInfoItems(viewModel: SignupViewModel, step: number) {
 		const nextItems = this.getInfoBoxItemsForStep(step, viewModel.targetPlanType)
@@ -125,7 +128,13 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		return true
 	}
 
+	oncreate() {
+		this.handleResize()
+		windowFacade.addResizeListener(this.handleResize)
+	}
+
 	onremove() {
+		windowFacade.removeResizeListener(this.handleResize)
 		this.clearIllustrationTimer()
 		this.transitionIllustrationName = null
 	}
@@ -324,6 +333,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 					m(LanguageDropdown, { variant: "Link" }),
 				],
 			),
+			ctx.controller.currentStep === 0 && this.shouldFixButtonPos && m("", { style: { "padding-top": px(72) } }),
 		)
 	}
 
@@ -360,6 +370,10 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 			window.clearTimeout(this.transitionTimer)
 			this.transitionTimer = null
 		}
+	}
+
+	private readonly handleResize = () => {
+		this.shouldFixButtonPos = shouldFixButtonPosition()
 	}
 }
 
