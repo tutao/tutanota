@@ -830,7 +830,7 @@ function makeProgressTracker(): ProgressTracker {
 
 function makeSyncTracker(): SyncTracker {
 	const syncTracker: SyncTracker = object()
-	when(syncTracker.isSyncDone()).thenReturn(true)
+	when(syncTracker.isSyncDone).thenReturn(true)
 	return syncTracker
 }
 

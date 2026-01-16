@@ -5,7 +5,7 @@ import { CustomerFacade } from "../../../common/api/worker/facades/lazy/Customer
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
-import { SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
 
 /**
  * Initialize SpamClassifier if FeatureType.SpamClientClassification feature is enabled for the customer.
@@ -38,13 +38,13 @@ export class SpamClassificationPostLoginAction implements PostLoginAction {
 		if (isSpamClassificationEnabled && isInternalUser(user) && this.spamClassifier) {
 			const ownerGroups = filterMailMemberships(user)
 			for (const ownerGroup of ownerGroups) {
-				this.syncTracker.isSyncDone.map(async (isDone) => {
-					if (isDone) {
-						this.spamClassifier.initializeWithTraining(ownerGroup.group).catch((e) => {
+				this.syncTracker.addSyncDoneListener({
+					onSyncDone: async () => {
+						await this.spamClassifier.initializeWithTraining(ownerGroup.group).catch((e) => {
 							console.log(`failed to completely initialize spam classification model for group: ${ownerGroup.group}`, e)
 						})
-					}
-					this.syncTracker.isSyncDone.end(true)
+					},
+					priority: SyncDonePriority.NORMAL,
 				})
 			}
 		}

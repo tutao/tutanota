@@ -257,7 +257,7 @@ import("./translations/en.js")
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction")
 				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
-				return new MailIndexerPostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade)
+				return new MailIndexerPostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade, mailLocator.syncTracker)
 			})
 		}
 
