@@ -47,6 +47,7 @@ export {
 	compare,
 	collectToMap,
 	splitArrayAt,
+	splitUint8Array,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
 export {
