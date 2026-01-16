@@ -1,6 +1,7 @@
 import {
 	assertNotNull,
 	downcast,
+	first,
 	isSameTypeRef,
 	KeyVersion,
 	lazy,
@@ -81,11 +82,11 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService, UpdateSessionKeysService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
-import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
+import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
@@ -94,6 +95,7 @@ import { EntityAdapter } from "./EntityAdapter"
 import { typeModelToRestPath } from "../rest/EntityRestClient"
 import { AttributeModel } from "../../common/AttributeModel"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
+import { InstanceSessionKeysCache } from "../facades/InstanceSessionKeysCache"
 
 assertWorkerOrNode()
 
@@ -113,6 +115,8 @@ export class CryptoFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
+		private readonly instanceSessionKeysCache: InstanceSessionKeysCache,
+		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sendError: (error: Error) => Promise<void>,
@@ -143,14 +147,17 @@ export class CryptoFacade {
 		}
 
 		try {
-			if (instance.bucketKey) {
+			if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(assertNotNull(instance._ownerGroup))) {
+				if (!instance.bucketKey) {
+					this.instanceSessionKeysCache.delete(instance)
+				}
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), parseKeyVersion(instance._ownerKeyVersion ?? "0"))
+				return this.decryptSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
+			} else if (instance.bucketKey) {
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
 				const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
-			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(assertNotNull(instance._ownerGroup))) {
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), parseKeyVersion(instance._ownerKeyVersion ?? "0"))
-				return this.decryptSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
 			} else {
 				// See PermissionType jsdoc for more info on permissions
 				const permissions = await this.entityClient.loadAll(PermissionTypeRef, assertNotNull(instance._permissions))
@@ -199,6 +206,22 @@ export class CryptoFacade {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		const bucketKey = assertNotNull(instance.bucketKey)
 
+		const instanceSessionKeysFromCache = this.instanceSessionKeysCache.get(instance)
+		if (instanceSessionKeysFromCache) {
+			const instanceId = assertNotNull(instance._id)
+			const encryptedSessionKeyForInstance = first(
+				instanceSessionKeysFromCache.filter((instanceSessionKey) =>
+					isSameId(instanceId, [instanceSessionKey.instanceList, instanceSessionKey.instanceId]),
+				),
+			)
+			const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), parseKeyVersion(instance._ownerKeyVersion ?? "0"))
+			const resolvedSessionKeyForInstance = this.decryptSessionKeyWithOwnerKey(assertNotNull(encryptedSessionKeyForInstance)?.symEncSessionKey, gk)
+			return {
+				resolvedSessionKeyForInstance,
+				instanceSessionKeys: instanceSessionKeysFromCache,
+			}
+		}
+
 		let decryptedBucketKey: AesKey
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: X25519PublicKey | null = null
@@ -231,6 +254,7 @@ export class CryptoFacade {
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${instance._type} with id: ${downcast(instance)._id}`)
 		}
+
 		const resolvedSessionKeys = await this.collectAllInstanceSessionKeysAndAuthenticate(
 			instance,
 			decryptedBucketKey,
@@ -238,10 +262,12 @@ export class CryptoFacade {
 			pqMessageSenderKey,
 		)
 
+		this.instanceSessionKeysCache.put(instance, resolvedSessionKeys.instanceSessionKeys)
+
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet, and we need to set it because the rest of the app expects it.
 		const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup)) // get current key for encrypting
-		const ownerEncSessionKey = _encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance)
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance)
 		this.setOwnerEncSessionKey(instance, ownerEncSessionKey)
 		return resolvedSessionKeys
 	}
@@ -316,7 +342,7 @@ export class CryptoFacade {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// EncryptTutanotaPropertiesService could be removed and replaced with a Migration that writes the key
-		const groupEncSessionKey = _encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
+		const groupEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
 		this.setOwnerEncSessionKey(instance, groupEncSessionKey, this.userFacade.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
 			properties: elementIdPart(downcast<IdTuple>(instance._id)),
@@ -341,7 +367,7 @@ export class CryptoFacade {
 		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
 		const groupInfoSk = decryptKey(listKey, assertNotNull(data._listEncSessionKey))
 
-		this.setOwnerEncSessionKey(data, _encryptKeyWithVersionedKey(versionedCustomerGroupKey, groupInfoSk), customerGroupMembership.group)
+		this.setOwnerEncSessionKey(data, this.cryptoWrapper.encryptKeyWithVersionedKey(versionedCustomerGroupKey, groupInfoSk), customerGroupMembership.group)
 		return data
 	}
 
@@ -392,7 +418,7 @@ export class CryptoFacade {
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup))
-			const ownerEncSessionKey = _encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
 			if (elementId === instanceSessionKey.instanceId) {
 				resolvedSessionKeyForInstance = decryptedSessionKey
@@ -645,7 +671,7 @@ export class CryptoFacade {
 			}
 			const sessionKey = aes256RandomKey()
 			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.keyLoaderFacade.getCurrentSymGroupKey(instance._ownerGroup))
-			const encryptedSessionKey = _encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
+			const encryptedSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
 
 			this.setOwnerEncSessionKey(instance, encryptedSessionKey)
 			return sessionKey
@@ -748,7 +774,7 @@ export class CryptoFacade {
 			return this.updateOwnerEncSessionKey(downcast<EntityAdapter>(instance), permissionOwnerGroupKey, sessionKey)
 		} else {
 			// instances shared via permissions (e.g. body)
-			const encryptedKey = _encryptKeyWithVersionedKey(permissionOwnerGroupKey, sessionKey)
+			const encryptedKey = this.cryptoWrapper.encryptKeyWithVersionedKey(permissionOwnerGroupKey, sessionKey)
 			let updateService = createUpdatePermissionKeyData({
 				ownerKeyVersion: String(encryptedKey.encryptingKeyVersion),
 				ownerEncSessionKey: encryptedKey.key,
@@ -789,7 +815,7 @@ export class CryptoFacade {
 	}
 
 	private async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
-		const newOwnerEncSessionKey = _encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
+		const newOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
 		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
 
 		const id = instance._id

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { aes256RandomKey, AesKey } from "@tutao/tutanota-crypto"
-import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
@@ -50,6 +50,7 @@ import { PatchOperationError } from "../../../../../src/common/api/common/error/
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { EncryptionAuthStatus } from "../../../../../src/common/api/common/TutanotaConstants"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
+import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
@@ -64,8 +65,10 @@ o.spec("PatchMergerTest", () => {
 	let storage: CacheStorage
 	let customCacheHandlerMap: CustomCacheHandlerMap
 	let userId: Id | null
+	let cryptoWrapper: CryptoWrapper
 
 	o.beforeEach(async () => {
+		cryptoWrapper = new CryptoWrapper()
 		cryptoFacadePartialStub = new CryptoFacade(
 			instance(UserFacade),
 			instance(EntityClient),
@@ -76,6 +79,8 @@ o.spec("PatchMergerTest", () => {
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
 			instance(PublicEncryptionKeyProvider),
+			new InstanceSessionKeysCache(),
+			cryptoWrapper,
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
 			async () => {
@@ -93,7 +98,7 @@ o.spec("PatchMergerTest", () => {
 
 		sk = aes256RandomKey()
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
-		encryptedSessionKey = _encryptKeyWithVersionedKey(ownerGroupKey, sk)
+		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, ownerGroupKey.version)).thenResolve(ownerGroupKey.object)
 		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub)
 	})
