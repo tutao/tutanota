@@ -2180,3 +2180,6 @@ export type TranslationKeyType =
 	| "cancelAnyTime_msg"
 	| "directSupport_msg"
 	| "emptyString_msg"
+	| "dataOutOfSync_label"
+	| "dataOutOfSyncOfflineDb_msg"
+	| "dataOutOfSync_msg"
