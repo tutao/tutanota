@@ -68,7 +68,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			renderChild: () => this.renderPaymentMethodForm(ctx, value),
 		}))
 
-		return m(".flex.flex-column.full-width.pt-16", [
+		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
 				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
 				{
