@@ -54,7 +54,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
 		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
 
-		return m(".flex.flex-column.full-width.pt-16", [
+		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
 				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
 				{

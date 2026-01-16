@@ -235,7 +235,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	view({ attrs }: Vnode<SignupViewAttrs>) {
 		return m(
-			"#login-view.main-view.flex.col.nav-bg",
+			"#signup-view.main-view.flex.col.nav-bg",
 			{
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),

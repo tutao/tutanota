@@ -37,7 +37,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const isBusiness = ctx.viewModel.options.businessUse()
 
 		return m(
-			".full-width.pt-16",
+			`.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`,
 			// Headline for a global campaign
 			!data.options!.businessUse() &&
 				anyHasGlobalFirstYearCampaign(discountDetails) &&
