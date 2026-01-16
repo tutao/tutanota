@@ -169,7 +169,6 @@ import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificat
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
 import { UnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader"
 import { createSpamMailDatum, SpamMailProcessor } from "../../../common/utils/spamClassificationUtils/SpamMailProcessor"
 
 assertWorkerOrNode()
@@ -1081,6 +1080,7 @@ export class MailFacade {
 
 		return mailAddressesForUserGroup.concat(allMailAddressesForMailGroups)
 	}
+
 	async clearFolder(folderId: IdTuple) {
 		const deleteMailData = createDeleteMailData({
 			folder: folderId,
@@ -1248,15 +1248,16 @@ export class MailFacade {
 	): Promise<ProcessInboxDatum[]> {
 		const processInboxData: ProcessInboxDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedProcessInboxData) {
+			const { targetMoveFolder, classifierType, mailId, vector, vectorNewFormat } = unencryptedProcessInboxDatum
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-			const { targetMoveFolder, classifierType, mailId } = unencryptedProcessInboxDatum
 			processInboxData.push(
 				createProcessInboxDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					encVector: aesEncrypt(sk, unencryptedProcessInboxDatum.vector),
+					encVector: aesEncrypt(sk, vector),
+					encVectorNewFormat: aesEncrypt(sk, vectorNewFormat),
 					classifierType,
 					mailId,
 					targetMoveFolder,
@@ -1292,12 +1293,13 @@ export class MailFacade {
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-			const { isSpam, confidence, mailId } = unencryptedProcessInboxDatum
+			const { isSpam, confidence, mailId, vector, vectorNewFormat } = unencryptedProcessInboxDatum
 			populateClientSpamTrainingData.push(
 				createPopulateClientSpamTrainingDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					encVector: aesEncrypt(sk, unencryptedProcessInboxDatum.vector),
+					encVector: aesEncrypt(sk, vector),
+					encVectorNewFormat: aesEncrypt(sk, vectorNewFormat),
 					isSpam,
 					mailId,
 					confidence,
@@ -1329,8 +1331,12 @@ export class MailFacade {
 		)
 	}
 
-	async vectorizeAndCompressMails(mailWithDetails: MailWithMailDetails) {
-		return this.spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mailWithDetails.mail, mailWithDetails.mailDetails))
+	async createModelInputAndUploadVector(spaceForServerResult: number, mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+		const datum = createSpamMailDatum(mail, mailDetails, sourceFolder)
+		const vectorizedMail = await this.spamMailProcessor.makeVectorizedMail(datum)
+		const modelInput = await this.spamMailProcessor.makeModelInputFromMailDatum(spaceForServerResult, datum, vectorizedMail)
+		const { vectorNewFormatToUpload, vectorToUpload } = this.spamMailProcessor.makeUploadVectorsFromMailDatum(datum, vectorizedMail)
+		return { modelInput, vectorNewFormatToUpload, vectorToUpload }
 	}
 
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */

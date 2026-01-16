@@ -636,3 +636,10 @@ export function splitArrayAt<T>(array: readonly T[], index: number): [T[], T[]] 
 
 	return [left, right]
 }
+
+export function splitUint8Array(array: Uint8Array, index: number): [Uint8Array, Uint8Array] {
+	const left = array.slice(0, index)
+	const right = array.slice(index)
+
+	return [left, right]
+}
