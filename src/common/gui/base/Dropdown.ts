@@ -362,12 +362,27 @@ export class Dropdown implements ModalComponent {
 	chooseMatch: () => boolean = () => {
 		const filterString = this.filterString.toLowerCase()
 
-		let visibleElements: Array<ButtonAttrs> = downcast(this.visibleChildren().filter((b) => !isDropDownInfo(b)))
-		let matchingButton =
-			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find((b) => lang.getTranslationText(b.label).toLowerCase() === filterString)
+		const visibleElements: Array<ButtonAttrs> = downcast(this.visibleChildren().filter((b) => !isDropDownInfo(b)))
+		// we select a matching button according to the following order:
+		// 1. there is only one button
+		// 2. if there's more, use the focused button
+		// 3. if there's no focused button, use the button that matches the filter string perfectly
+		// 4. if there is no perfect match, do nothing.
+		let matchingButtonClickHandler
+		if (visibleElements.length === 1 && visibleElements[0].click != null) {
+			matchingButtonClickHandler = visibleElements[0].click
+		} else if (document.activeElement != null && document.activeElement !== this.domInput) {
+			// the dropdown essentially ensures that we can only focus elements inside the dropdown.
 
-		if (this.domInput && document.activeElement === this.domInput && matchingButton && matchingButton.click) {
-			matchingButton.click(new MouseEvent("click"), this.domInput)
+			// wrapping the click() into a function allows us to ignore the passed mouse event. some browsers
+			// throw an error if we use the click function directly.
+			matchingButtonClickHandler = () => downcast<HTMLElement>(document.activeElement).click()
+		} else {
+			matchingButtonClickHandler = visibleElements.find((b) => lang.getTranslationText(b.label).toLowerCase() === filterString)?.click
+		}
+
+		if (this.domInput != null && matchingButtonClickHandler != null) {
+			matchingButtonClickHandler(new MouseEvent("click"), this.domInput)
 			return false
 		}
 
