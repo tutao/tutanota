@@ -111,6 +111,7 @@ import {
 import {
 	addressDomain,
 	assertNotNull,
+	base64ToUint8Array,
 	byteLength,
 	defer,
 	flatMap,
@@ -126,6 +127,8 @@ import {
 	promiseFilter,
 	promiseMap,
 	splitInChunks,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -149,6 +152,7 @@ import {
 	murmurHash,
 	random,
 	sha256Hash,
+	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
@@ -1083,6 +1087,7 @@ export class MailFacade {
 
 		return mailAddressesForUserGroup.concat(allMailAddressesForMailGroups)
 	}
+
 	async clearFolder(folderId: IdTuple) {
 		const deleteMailData = createDeleteMailData({
 			folder: folderId,
@@ -1246,15 +1251,16 @@ export class MailFacade {
 	): Promise<ProcessInboxDatum[]> {
 		const processInboxData: ProcessInboxDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedProcessInboxData) {
+			const { targetMoveFolder, classifierType, mailId, serverSideInfluence, vector } = unencryptedProcessInboxDatum
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-			const { targetMoveFolder, classifierType, mailId } = unencryptedProcessInboxDatum
 			processInboxData.push(
 				createProcessInboxDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					encVector: aesEncrypt(sk, unencryptedProcessInboxDatum.vector),
+					encVector: aesEncrypt(sk, vector),
+					encServerSideInfluence: aesEncrypt(sk, stringToUtf8Uint8Array(serverSideInfluence)),
 					classifierType,
 					mailId,
 					targetMoveFolder,
@@ -1289,12 +1295,13 @@ export class MailFacade {
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-			const { isSpam, confidence, mailId } = unencryptedProcessInboxDatum
+			const { isSpam, confidence, mailId, serverSideInfluence } = unencryptedProcessInboxDatum
 			populateClientSpamTrainingData.push(
 				createPopulateClientSpamTrainingDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 					encVector: aesEncrypt(sk, unencryptedProcessInboxDatum.vector),
+					encServerSideInfluence: aesEncrypt(sk, base64ToUint8Array(serverSideInfluence.toString())),
 					isSpam,
 					mailId,
 					confidence,

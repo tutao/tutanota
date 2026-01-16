@@ -72,6 +72,7 @@ async function convertToClientTrainingDatum(spamData: SpamMailDatum[], spamProce
 			confidence: DEFAULT_IS_SPAM_CONFIDENCE.toString(),
 			spamDecision: isSpam ? SpamDecision.BLACKLIST : SpamDecision.WHITELIST,
 			vector: await spamProcessor.vectorizeAndCompress(spamDatum),
+			serverSideInfluence: "11",
 		})
 
 		result.push(clientSpamTrainingDatum)
@@ -144,6 +145,7 @@ o.spec("SpamClassifierTest", () => {
 		spamClassifier.classifierByMailGroup.set(spamMailDatum.ownerGroup, classifier)
 
 		const vector = await spamProcessor.vectorize(spamMailDatum)
+		vector.push(Number(mail.serverSideInfluence))
 		const predictedSpam = await spamClassifier.predict(vector, spamMailDatum.ownerGroup)
 		o(predictedSpam).equals(false)
 	})
@@ -414,6 +416,7 @@ authStatus`
 			ccRecipients: "string",
 			bccRecipients: "string",
 			authStatus: "",
+			serverSideInfluence: "10",
 		}
 
 		const firstMailVector = await spamProcessor.vectorize({
@@ -609,7 +612,14 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 				while (!predictedSpam && retrainCount++ <= 10) {
 					await copiedClassifier.initialTraining(
 						TEST_OWNER_GROUP,
-						getTrainingDataset([...dataSlice, { ...sample, spamDecision: SpamDecision.BLACKLIST, confidence: "4" }]),
+						getTrainingDataset([
+							...dataSlice,
+							{
+								...sample,
+								spamDecision: SpamDecision.BLACKLIST,
+								confidence: "4",
+							},
+						]),
 					)
 					predictedSpam = assertNotNull(await copiedClassifier.predict(compressor.binaryToVector(sample.vector), TEST_OWNER_GROUP))
 				}

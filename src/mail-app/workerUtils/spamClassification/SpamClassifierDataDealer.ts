@@ -21,6 +21,7 @@ import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { isDesktop } from "../../../common/api/common/Env"
+import { SpamClassificationHandler } from "../../mail/model/SpamClassificationHandler"
 
 //Visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000
@@ -37,8 +38,12 @@ export type TrainingDataset = {
 	spamCount: number
 }
 
-export type UnencryptedPopulateClientSpamTrainingDatum = Omit<StrippedEntity<PopulateClientSpamTrainingDatum>, "encVector" | "ownerEncVectorSessionKey"> & {
+export type UnencryptedPopulateClientSpamTrainingDatum = Omit<
+	StrippedEntity<PopulateClientSpamTrainingDatum>,
+	"encVector" | "encServerSideInfluence" | "ownerEncVectorSessionKey"
+> & {
 	vector: Uint8Array
+	serverSideInfluence: NumberString
 }
 
 export class SpamClassifierDataDealer {
@@ -232,14 +237,16 @@ export class SpamClassifierDataDealer {
 			async (mailWithDetail) => {
 				const { mail, mailDetails } = mailWithDetail
 				const allMailFolders = mailSets.filter((mailSet) => isFolder(mailSet)).map((mailFolder) => mailFolder._id)
-				const sourceMailFolderId = assertNotNull(mail.sets.find((setId) => allMailFolders.find((folderId) => isSameId(setId, folderId))))
-				const sourceMailFolder = assertNotNull(mailSets.find((set) => isSameId(set._id, sourceMailFolderId)))
-				const isSpam = getMailSetKind(sourceMailFolder) === MailSetKind.SPAM
+				const targetFolderId = assertNotNull(mail.sets.find((setId) => allMailFolders.find((folderId) => isSameId(setId, folderId))))
+				const currentFolder = assertNotNull(mailSets.find((set) => isSameId(set._id, targetFolderId)))
+				const isSpam = getMailSetKind(currentFolder) === MailSetKind.SPAM
+				const vector = await (await this.mailFacade()).vectorizeAndCompressMails({ mail, mailDetails })
 				const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum = {
 					mailId: mail._id,
 					isSpam,
+					vector,
 					confidence: getSpamConfidence(mail),
-					vector: await (await this.mailFacade()).vectorizeAndCompressMails({ mail, mailDetails }),
+					serverSideInfluence: SpamClassificationHandler.normalizeServerSideInfluence(Number(mail.serverSideInfluence), isSpam).toString(),
 				}
 				return unencryptedPopulateClientSpamTrainingData
 			},

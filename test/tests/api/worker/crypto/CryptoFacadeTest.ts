@@ -1885,6 +1885,7 @@ o.spec("CryptoFacadeTest", function () {
 			processingState: ProcessingState.INBOX_RULE_APPLIED,
 			clientSpamClassifierResult: null,
 			processNeeded: false,
+			serverSideInfluence: "10",
 			sendAt: null,
 		})
 

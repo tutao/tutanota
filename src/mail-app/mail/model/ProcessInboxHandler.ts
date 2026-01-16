@@ -12,8 +12,9 @@ import { LoginController } from "../../../common/api/main/LoginController"
 
 assertMainOrNode()
 
-export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum>, "encVector" | "ownerEncVectorSessionKey"> & {
+export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum>, "encVector" | "encServerSideInfluence" | "ownerEncVectorSessionKey"> & {
 	vector: Uint8Array
+	serverSideInfluence: NumberString
 }
 
 const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
@@ -94,6 +95,10 @@ export class ProcessInboxHandler {
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
 				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+				serverSideInfluence: SpamClassificationHandler.normalizeServerSideInfluence(
+					Number(mail.serverSideInfluence),
+					sourceFolder.folderType === MailSetKind.SPAM,
+				).toString(),
 			}
 		}
 

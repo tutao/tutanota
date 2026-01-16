@@ -128,6 +128,7 @@ export class SpamClassifier {
 			clientSpamTrainingData,
 			(d) => {
 				const vector = this.sparseVectorCompressor.binaryToVector(d.vector)
+				vector.push(Number(d.serverSideInfluence ?? 0))
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
 				return { vector, label }
 			},
@@ -138,10 +139,10 @@ export class SpamClassifier {
 		const vectors = trainingInput.map((input) => input.vector)
 		const labels = trainingInput.map((input) => input.label)
 
-		const xs = tensor2d(vectors, [trainingInput.length, this.sparseVectorCompressor.dimension], undefined)
+		const xs = tensor2d(vectors, [trainingInput.length, this.getInputSize()], undefined)
 		const ys = tensor1d(labels, undefined)
 
-		const layersModel = this.buildModel(this.sparseVectorCompressor.dimension)
+		const layersModel = this.buildModel(this.getInputSize())
 
 		const trainingStart = performance.now()
 		await layersModel.fit(xs, ys, {
@@ -228,6 +229,7 @@ export class SpamClassifier {
 				const vector = this.sparseVectorCompressor.binaryToVector(d.vector)
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
 				const isSpamConfidence = Number(d.confidence)
+				vector.push(Number(d.serverSideInfluence ?? 0))
 				return { vector, label, isSpamConfidence }
 			},
 			{
@@ -254,7 +256,7 @@ export class SpamClassifier {
 				const vectors = trainingInput.map((input) => input.vector)
 				const labels = trainingInput.map((input) => input.label)
 
-				const xs = tensor2d(vectors, [vectors.length, this.sparseVectorCompressor.dimension], "int32")
+				const xs = tensor2d(vectors, [vectors.length, this.getInputSize()], "int32")
 				const ys = tensor1d(labels, "int32")
 
 				// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
@@ -309,7 +311,8 @@ export class SpamClassifier {
 		}
 
 		const vectors = [vector]
-		const xs = tensor2d(vectors, [vectors.length, this.sparseVectorCompressor.dimension], "int32")
+		const inputSize = this.getInputSize()
+		const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
 
 		const predictionTensor = classifier.layersModel.predict(xs) as Tensor
 		const predictionData = await predictionTensor.data()
@@ -322,6 +325,10 @@ export class SpamClassifier {
 		predictionTensor.dispose()
 
 		return prediction > classifier.threshold
+	}
+
+	private getInputSize() {
+		return this.sparseVectorCompressor.dimension + 1 // for serverSideInfluence
 	}
 
 	// visibleForTesting

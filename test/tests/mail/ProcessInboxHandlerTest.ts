@@ -58,6 +58,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
 			processNeeded: true,
+			serverSideInfluence: "10",
 		})
 		folderSystem = object<FolderSystem>()
 		mailboxDetail = object()
@@ -99,6 +100,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -125,6 +127,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -153,6 +156,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -181,6 +185,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -273,6 +278,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -294,6 +300,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -315,6 +322,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -336,6 +344,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -371,6 +380,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: compressedVector,
+			serverSideInfluence: "10",
 		}
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 

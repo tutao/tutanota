@@ -30,7 +30,7 @@ import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/Spam
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
 import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
 import { UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
-import { createSpamMailDatum, SpamMailProcessor } from "../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import { createSpamMailDatum, MAX_WORD_FREQUENCY, SpamMailProcessor } from "../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { UserController } from "../../../src/common/api/main/UserController"
 import { UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 import { LoginController } from "../../../src/common/api/main/LoginController"
@@ -73,6 +73,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			unread: true,
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
+			serverSideInfluence: "10",
 		})
 
 		folderSystem = object<FolderSystem>()
@@ -99,6 +100,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			anything(),
 		).thenDo(async () => [{ mail, mailDetails }])
 		when(spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails))).thenResolve(compressedUnencryptedTestVector)
+		when(spamClassifier.vectorize(createSpamMailDatum(mail, mailDetails))).thenResolve(Array.from({ length: 2048 }, () => 0))
 		when(spamClassifier.compress(matchers.anything())).thenResolve(compressedUnencryptedTestVector)
 		userController.user = createTestEntity(UserTypeRef)
 		when(logins.getUserController()).thenReturn(userController)
@@ -116,6 +118,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -133,6 +136,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -150,6 +154,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -167,6 +172,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -184,6 +190,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -204,6 +211,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -223,6 +231,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -233,7 +242,12 @@ o.spec("SpamClassificationHandlerTest", function () {
 	o("predictSpamForNewMail doesn't call classifier when sender is one of the aliases of the user", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.sender = createTestEntity(MailAddressTypeRef, { address: "alias@tuta.com", name: "Name" })
-		mailDetails.recipients.toRecipients.push(createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Name" }))
+		mailDetails.recipients.toRecipients.push(
+			createTestEntity(MailAddressTypeRef, {
+				address: "user@tuta.com",
+				name: "Name",
+			}),
+		)
 		when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["alias@tuta.com", "user@tuta.com"])
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
 
@@ -242,10 +256,20 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
 		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
 		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
+	})
+
+	o("normalizeServerSideInfluence works as intended", function () {
+		o(SpamClassificationHandler.normalizeServerSideInfluence(100, false)).equals(0)
+		o(SpamClassificationHandler.normalizeServerSideInfluence(0, false)).equals(MAX_WORD_FREQUENCY / 2)
+		o(SpamClassificationHandler.normalizeServerSideInfluence(0, true)).equals(MAX_WORD_FREQUENCY / 2)
+		o(SpamClassificationHandler.normalizeServerSideInfluence(100, true)).equals(MAX_WORD_FREQUENCY)
+		o(SpamClassificationHandler.normalizeServerSideInfluence(50, true)).equals(MAX_WORD_FREQUENCY * 0.75)
+		o(SpamClassificationHandler.normalizeServerSideInfluence(50, false)).equals(MAX_WORD_FREQUENCY * 0.25)
 	})
 })

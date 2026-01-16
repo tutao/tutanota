@@ -37,6 +37,7 @@ function createMailByFolderAndReceivedDate(mailId: IdTuple, mailSet: IdTuple, re
 		sets: [mailSet],
 		receivedDate: receivedDate,
 		mailDetails: ["detailsListId", mailDetailsId],
+		serverSideInfluence: "10",
 	})
 }
 
@@ -51,6 +52,7 @@ function createSpamTrainingDatumByConfidenceAndDecision(
 		confidence,
 		spamDecision,
 		vector: new Uint8Array(),
+		serverSideInfluence: "10",
 	})
 }
 
@@ -256,7 +258,8 @@ o.spec("SpamClassificationDataDealer", () => {
 					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+					serverSideInfluence: "10",
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
 
@@ -345,7 +348,8 @@ o.spec("SpamClassificationDataDealer", () => {
 					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+					serverSideInfluence: "10",
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
 
@@ -441,7 +445,8 @@ o.spec("SpamClassificationDataDealer", () => {
 					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+					serverSideInfluence: "10",
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			const secondUnencryptedPayload = expectedSecondChunk.map((mail) => {
 				return {
@@ -449,7 +454,8 @@ o.spec("SpamClassificationDataDealer", () => {
 					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+					serverSideInfluence: "10",
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", firstUnencryptedPayload), { times: 1 })
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })
