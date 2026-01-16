@@ -2141,6 +2141,7 @@ export default {
 		"removeScheduledMails_msg": "Please remove your scheduled mails.",
 		"aliasDeactivationNotPossible_msg": "Could not deactivate alias. {detailMsg}",
 		"tooManyScheduledMails_msg": "You have exceeded the allowed number of scheduled emails.",
-		"undoSend_label": "Undo Send"
+		"undoSend_label": "Undo Send",
+		"emailScheduled_msg": "Email Scheduled"
     }
 }
