@@ -121,7 +121,7 @@ import {
 import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
-import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
+import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 
 const TAG = "[CalendarModel]"
@@ -209,6 +209,7 @@ export class CalendarModel {
 	/**
 	 * Stores the queued calendars to be synchronized
 	 */
+	private externalCalendarSyncIntervalId: TimeoutID | null = null
 	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
 	private externalCalendarRetryCount: Map<Id, number> = new Map()
 
@@ -236,13 +237,11 @@ export class CalendarModel {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
 
-		let syncStatus: Stream<void> | undefined = undefined
-		syncStatus = syncTracker.isSyncDone.map((isDone) => {
-			if (isDone) {
-				this.requestWidgetRefresh()
-				syncStatus?.end()
-			}
+		syncTracker.addSyncDoneListener({
+			onSyncDone: async () => this.requestWidgetRefresh(),
+			priority: SyncDonePriority.HIGH,
 		})
+
 		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
 		if (logins.isInternalUserLoggedIn()) {
 			this.userHasNewPaidPlan.getAsync().then(m.redraw)
@@ -428,7 +427,10 @@ export class CalendarModel {
 	}
 
 	public scheduleExternalCalendarSync() {
-		setInterval(() => {
+		if (this.externalCalendarSyncIntervalId) {
+			clearInterval(this.externalCalendarSyncIntervalId)
+		}
+		this.externalCalendarSyncIntervalId = setInterval(() => {
 			this.syncExternalCalendars().catch((e) => console.error(e.message))
 		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
 	}
@@ -458,7 +460,7 @@ export class CalendarModel {
 		longErrorMessage: boolean = false,
 		forceSync: boolean = false,
 	) {
-		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn() || !this.syncTracker.isSyncDone()) {
+		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn() || !this.syncTracker.isSyncDone) {
 			return
 		}
 

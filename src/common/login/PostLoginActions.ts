@@ -35,7 +35,7 @@ import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { showSnackBar } from "../gui/base/SnackBar"
-import { SyncTracker } from "../api/main/SyncTracker"
+import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
@@ -427,26 +427,22 @@ export class PostLoginActions implements PostLoginAction {
 	private async handleExternalSync() {
 		const calendarModel = await locator.calendarModel()
 		if (isApp() || isDesktop()) {
-			if (!this.syncTracker.isSyncDone()) {
-				return this.syncTracker.isSyncDone.map((isDone) => {
-					if (isDone) {
-						this.handleExternalSync()
-						this.syncTracker.isSyncDone.end(true)
-					}
-				})
-			}
-
-			calendarModel.syncExternalCalendars().catch(async (e) => {
-				showSnackBar({
-					message: lang.makeTranslation("exception_msg", e.message),
-					button: {
-						label: "ok_action",
-						click: noOp,
-					},
-					waitingTime: 1000,
-				})
+			this.syncTracker.addSyncDoneListener({
+				onSyncDone: async () => {
+					calendarModel.syncExternalCalendars().catch(async (e) => {
+						showSnackBar({
+							message: lang.makeTranslation("exception_msg", e.message),
+							button: {
+								label: "ok_action",
+								click: noOp,
+							},
+							waitingTime: 1000,
+						})
+					})
+					calendarModel.scheduleExternalCalendarSync()
+				},
+				priority: SyncDonePriority.HIGH,
 			})
-			calendarModel.scheduleExternalCalendarSync()
 		}
 	}
 }

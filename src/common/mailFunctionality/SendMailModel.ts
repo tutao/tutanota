@@ -679,7 +679,7 @@ export class SendMailModel {
 	}
 
 	autosaveReady(): boolean {
-		return !this.waitUntilSync || this.syncTracker.isSyncDone()
+		return !this.waitUntilSync || this.syncTracker.isSyncDone
 	}
 
 	async waitForSaveReady(): Promise<void> {
