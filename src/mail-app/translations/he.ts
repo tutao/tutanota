@@ -901,7 +901,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "שלח רק בטווח זמן זה:",
 		"outOfOfficeTimeRangeHelp_msg": "סמן כדי לבחור תאריכים.",
 		"outOfOfficeUnencrypted_msg": "אנא שים לב כי תשובות אוטומטיות נשלחות בטקסט פשוט.",
-		"outOfSync_label": "מידע פג תוקף",
+		"dataExpired_label": "מידע פג תוקף",
 		"owner_label": "בעלים",
 		"pageBackward_label": "הדף הקודם",
 		"pageForward_label": "עמוד הבא",
