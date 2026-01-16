@@ -1303,7 +1303,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "只在此時間範圍內發送：",
 		"outOfOfficeTimeRangeHelp_msg": "請點擊方格以選擇日期。",
 		"outOfOfficeUnencrypted_msg": "請注意，自動回覆是以純文字發送。",
-		"outOfSync_label": "數據過時",
+		"dataExpired_label": "數據過時",
 		"overwrite_action": "覆寫",
 		"owner_label": "擁有者",
 		"pageBackward_label": "上一頁",

@@ -1303,7 +1303,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Alleen in deze periode verzenden:",
 		"outOfOfficeTimeRangeHelp_msg": "Vink aan om datums te selecteren",
 		"outOfOfficeUnencrypted_msg": "Houd er rekening mee dat afwezigheidsmeldingen onversleuteld naar de server en toekomstige ontvangers worden verzonden.",
-		"outOfSync_label": "Datum verlopen",
+		"dataExpired_label": "Datum verlopen",
 		"overwrite_action": "Vervangen",
 		"owner_label": "Eigenaar",
 		"pageBackward_label": "Pagina terug",

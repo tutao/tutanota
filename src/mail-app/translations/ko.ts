@@ -921,7 +921,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "다음 시간대에만 전송하기:",
 		"outOfOfficeTimeRangeHelp_msg": "날짜를 선택하려면 체크합니다.",
 		"outOfOfficeUnencrypted_msg": "자동 회신(자동 응답)은 일반 텍스트로 전송된다는 점에 유의하세요.",
-		"outOfSync_label": "데이터가 만료됨",
+		"dataExpired_label": "데이터가 만료됨",
 		"owner_label": "소유자",
 		"pageBackward_label": "뒤 페이지로",
 		"pageForward_label": "앞 페이지로",

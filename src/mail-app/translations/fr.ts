@@ -1303,7 +1303,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "N'envoyer que pendant cette période :",
 		"outOfOfficeTimeRangeHelp_msg": "Choisisser une période.",
 		"outOfOfficeUnencrypted_msg": "Veuillez noter que les réponses automatiques ne sont pas chiffrées.",
-		"outOfSync_label": "Données expirées",
+		"dataExpired_label": "Données expirées",
 		"overwrite_action": "Remplacer",
 		"owner_label": "Propriétaire",
 		"pageBackward_label": "Page précédente",

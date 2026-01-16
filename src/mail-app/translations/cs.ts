@@ -1250,7 +1250,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Posílat pouze v tomto časovém období:",
 		"outOfOfficeTimeRangeHelp_msg": "Zvolte pro vybrání data",
 		"outOfOfficeUnencrypted_msg": "Upozorňujeme, že automatická odpověď je odeslána jako prostý text.",
-		"outOfSync_label": "Vypršela platnost dat",
+		"dataExpired_label": "Vypršela platnost dat",
 		"overwrite_action": "Přepsat",
 		"owner_label": "Vlastník",
 		"pageBackward_label": "Předchozí stránka",

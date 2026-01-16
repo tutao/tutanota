@@ -840,7 +840,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "أرسل فقط خلال هذا النطاق الزمني :",
 		"outOfOfficeTimeRangeHelp_msg": "تحقق لاختيار التواريخ.",
 		"outOfOfficeUnencrypted_msg": "يرجى ملاحظة أن الردود الآلية (الردود التلقائية) يتم إرسالها على شكل نص عادي.",
-		"outOfSync_label": "بيانات منتهية ",
+		"dataExpired_label": "بيانات منتهية ",
 		"owner_label": "مالك ",
 		"pageBackward_label": "صفحة الى الوراء",
 		"pageForward_label": "صفحة إلى الأمام",

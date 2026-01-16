@@ -1303,7 +1303,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Skicka endast under detta tidsintervall:",
 		"outOfOfficeTimeRangeHelp_msg": "Markera för att välja datum.",
 		"outOfOfficeUnencrypted_msg": "Vänligen observera att alla automatsvar skickas som oformaterad text.",
-		"outOfSync_label": "Uppgifterna har upphört att gälla",
+		"dataExpired_label": "Uppgifterna har upphört att gälla",
 		"overwrite_action": "\nSkriv över",
 		"owner_label": "Ägare",
 		"pageBackward_label": "Sida bakåt",

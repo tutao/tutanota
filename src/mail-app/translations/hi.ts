@@ -830,7 +830,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "केवल इस समय सीमा के दौरान भेजें:",
 		"outOfOfficeTimeRangeHelp_msg": "तिथियां चुनने के लिए जांचें।",
 		"outOfOfficeUnencrypted_msg": "कृपया ध्यान दें कि ऑटोरेस्पोन्स सादे टेक्स्ट में भेजे जाते हैं।",
-		"outOfSync_label": "डेटा समाप्त हो गया",
+		"dataExpired_label": "डेटा समाप्त हो गया",
 		"owner_label": "मालिक",
 		"pageBackward_label": "पीछें वाला पेज",
 		"pageForward_label": "पृष्ठ आगे",

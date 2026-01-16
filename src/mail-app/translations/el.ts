@@ -1053,7 +1053,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Αποστολή μόνο εντός αυτού του χρονικού διαστήματος:",
 		"outOfOfficeTimeRangeHelp_msg": "Επιλέξτε ημερομηνίες βάζοντας σημάδι.",
 		"outOfOfficeUnencrypted_msg": "Έχετε υπόψη ότι οι αυτόματες απαντήσεις αποστέλλονται ως απλό (μη κρυπτογραφημένο) κείμενο. ",
-		"outOfSync_label": "Τα δεδομένα έληξαν",
+		"dataExpired_label": "Τα δεδομένα έληξαν",
 		"owner_label": "Ιδιοκτήτης",
 		"pageBackward_label": "Προηγούμενη σελίδα",
 		"pageForward_label": "Επόμενη σελίδα",

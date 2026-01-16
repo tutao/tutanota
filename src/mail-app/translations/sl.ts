@@ -1282,7 +1282,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Pošlji samo v tem časovnem obdobju:",
 		"outOfOfficeTimeRangeHelp_msg": "Izberite datume.",
 		"outOfOfficeUnencrypted_msg": "Samodejni odgovori so poslani v navadnem besedilu.",
-		"outOfSync_label": "Podatki so potekli",
+		"dataExpired_label": "Podatki so potekli",
 		"overwrite_action": "Prepiši",
 		"owner_label": "Lastnik",
 		"pageBackward_label": "Prejšnja stran",

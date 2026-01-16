@@ -904,7 +904,7 @@ export default {
 		"outOfOfficeTimeRangeHelp_msg": "Проверите да бисте изабрали датуме",
 		"outOfOfficeTimeRange_msg": "Пошаљите само у овом временском периоду:",
 		"outOfOfficeUnencrypted_msg": "Имајте на уму да се аутоматски одговори шаљу као обичан текст.",
-		"outOfSync_label": "Подаци су истекли",
+		"dataExpired_label": "Подаци су истекли",
 		"owner_label": "Власник",
 		"pageBackward_label": "Претходна страница",
 		"pageForward_label": "Следећа страница",

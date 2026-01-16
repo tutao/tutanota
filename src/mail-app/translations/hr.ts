@@ -1147,7 +1147,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Pošaljite samo u tom vremenskom rasponu:",
 		"outOfOfficeTimeRangeHelp_msg": "Označite za odabir datuma.",
 		"outOfOfficeUnencrypted_msg": "Napominjemo da se automatski odgovori šalju u čistom tekstu.",
-		"outOfSync_label": "Istekli podatci",
+		"dataExpired_label": "Istekli podatci",
 		"owner_label": "Vlasnik",
 		"pageBackward_label": "Stranica unatrag",
 		"pageForward_label": "Stranica naprijed",
