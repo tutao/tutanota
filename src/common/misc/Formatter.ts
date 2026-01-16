@@ -185,11 +185,3 @@ export function timeStringFromParts(hours: number, minutes: number, amPm: boolea
 export function formatMailAddressFromParts(name: string, domain: string): string {
 	return cleanMailAddress(`${name}@${domain}`)
 }
-
-/**
- * makes the given mail address more suitable to be used in a file name since some platforms
- * restrict the valid characters.
- */
-export function simplifyMailAddress(address: string): string {
-	return address.replace("@", "_at_").replace(/[^a-z0-9_]/gi, "_")
-}

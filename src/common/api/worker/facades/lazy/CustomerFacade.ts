@@ -434,7 +434,6 @@ export class CustomerFacade {
 	async generatePdfRecoveryDocument(recoveryCode: string, email: string): Promise<DataFile> {
 		const writer = await this.pdfWriter()
 		const { PdfRecoveryDocumentGenerator } = await import("../../recoveryDocumentGenerator/RecoveryDocumentGenerator.js")
-		const { simplifyMailAddress } = await import("../../../../misc/Formatter")
 		const pdfGenerator = new PdfRecoveryDocumentGenerator(writer, recoveryCode, email)
 		const pdfFile = await pdfGenerator.generate()
 
@@ -495,4 +494,12 @@ export class CustomerFacade {
 	async getUser(): Promise<Nullable<User>> {
 		return this.userFacade.getUser()
 	}
+}
+
+/**
+ * makes the given mail address more suitable to be used in a file name since some platforms
+ * restrict the valid characters.
+ */
+export function simplifyMailAddress(address: string): string {
+	return address.replace("@", "_at_").replace(/[^a-z0-9_]/gi, "_")
 }
