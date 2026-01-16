@@ -15,8 +15,18 @@ const TAG = "[RestClient]"
 export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 
 interface ProgressListener {
-	upload(percent: number): void
+	/**
+	 * Called when data is sent with HTTP request.
+	 * @param percent of the overall data to be sent
+	 * @param bytes sent so far
+	 */
+	upload(percent: number, bytes: number): void
 
+	/**
+	 * Called when data is downloaded with HTTP request.
+	 * @param percent of the overall data to be downloded
+	 * @param bytes downloaded so far
+	 */
 	download(percent: number, bytes: number): void
 }
 
@@ -217,7 +227,7 @@ export class RestClient {
 
 						if (options.progressListener != null && pe.lengthComputable) {
 							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-							options.progressListener.upload((1 / pe.total) * pe.loaded)
+							options.progressListener.upload((1 / pe.total) * pe.loaded, pe.loaded)
 						}
 					}
 

@@ -71,8 +71,6 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
-		private readonly uploadProgressListener: TransferProgressDispatcher,
-		private readonly dateProvider: DateProvider,
 	) {}
 
 	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
@@ -151,7 +149,6 @@ export class DriveFacade {
 	}
 
 	/**
-	 *
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
@@ -164,22 +161,18 @@ export class DriveFacade {
 		const abortController = new AbortController()
 		this.abortControllers.set(fileId, abortController)
 
-		let blobRefTokens: BlobReferenceTokenWrapper[]
+		const blobRefTokens: BlobReferenceTokenWrapper[] = []
 		try {
-			const uploadChunkGenerator = this.blobFacade.streamEncryptAndUpload(
+			for await (const { referenceTokenWrapper } of this.blobFacade.streamEncryptAndUpload(
 				ArchiveDataType.DriveFile,
 				file,
 				assertNotNull(fileGroupId),
 				sessionKey,
+				fileId,
 				abortController.signal,
-			)
-
-			let step: IteratorResult<{ uploadedBytes: number; totalBytes: number }, BlobReferenceTokenWrapper[]>
-			while (!(step = await uploadChunkGenerator.next()).done) {
-				const chunk = step.value
-				this.uploadProgressListener.onChunkUploaded({ fileId, ...chunk })
+			)) {
+				blobRefTokens.push(referenceTokenWrapper)
 			}
-			blobRefTokens = step.value
 		} finally {
 			this.abortControllers.delete(fileId)
 		}

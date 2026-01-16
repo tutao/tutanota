@@ -40,10 +40,10 @@ export class DriveUploadStackModel {
 		})
 	}
 
-	async onChunkUploaded(fileId: FileId, uploadedSizeDelta: number): Promise<void> {
+	async onChunkUploaded(fileId: FileId, uploadedBytesSoFar: number): Promise<void> {
 		const stateForThisFile = this._state.get(fileId)
 		if (stateForThisFile) {
-			stateForThisFile.transferredSize += uploadedSizeDelta
+			stateForThisFile.transferredSize = uploadedBytesSoFar
 		} else {
 			console.debug(`${fileId} is not part of the state. This can be due to an upload being canceled`)
 		}

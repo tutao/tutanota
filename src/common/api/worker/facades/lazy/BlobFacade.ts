@@ -87,7 +87,7 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
-		private readonly loadListener: TransferProgressDispatcher,
+		private readonly progressDispatcher: TransferProgressDispatcher,
 	) {}
 
 	/**
@@ -150,35 +150,35 @@ export class BlobFacade {
 		file: File,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
+		fileId: TransferId,
 		abortSignal: AbortSignal,
-	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number }, BlobReferenceTokenWrapper[], void> {
+	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number; referenceTokenWrapper: BlobReferenceTokenWrapper }, void, void> {
 		const fileSize = file.size
 
 		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
 		const chunkSizeBytes = MAX_BLOB_SIZE_BYTES
+		let bytesUploadedSoFar = 0
 
 		const doBlobRequest = async (chunk: Uint8Array) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, (bytes) => {
+				this.progressDispatcher.onChunkUploaded({ fileId, uploadedBytes: bytesUploadedSoFar + bytes, totalBytes: file.size })
+			})
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
-		const blobReferenceTokenWrappers: BlobReferenceTokenWrapper[] = []
-
 		for (const chunkBlob of splitFileIntoChunks(chunkSizeBytes, file)) {
 			const chunkData = await chunkBlob.arrayBuffer()
 			// Process the chunkData here (e.g., upload it to a server)
-			const tokenWrapper = await doBlobRequestWithRetry(() => {
+			const tokenWrapper = await doBlobRequestWithRetry(async () => {
 				if (abortSignal.aborted) {
 					throw new CancelledError("Upload aborted")
 				}
-				return doBlobRequest(new Uint8Array(chunkData))
+				const response = await doBlobRequest(new Uint8Array(chunkData))
+				bytesUploadedSoFar += chunkData.byteLength
+				return response
 			}, doEvictToken)
-			yield { totalBytes: fileSize, uploadedBytes: chunkData.byteLength }
-			blobReferenceTokenWrappers.push(tokenWrapper)
+			yield { totalBytes: fileSize, uploadedBytes: chunkData.byteLength, referenceTokenWrapper: tokenWrapper }
 		}
-
-		console.log("Finished reading the file with custom chunk sizes.")
-		return blobReferenceTokenWrappers
 	}
 
 	/**
@@ -225,7 +225,7 @@ export class BlobFacade {
 		let bytesDownloadedSoFar = 0
 		const onProgress = (bytes: number) => {
 			bytesDownloadedSoFar += bytes
-			this.loadListener.onChunkDownloaded({ fileId: referencingInstance.elementId as TransferId, downloadedBytes: bytes })
+			this.progressDispatcher.onChunkDownloaded({ fileId: referencingInstance.elementId as TransferId, downloadedBytes: bytes })
 		}
 
 		const controller = new AbortController()
@@ -425,7 +425,12 @@ export class BlobFacade {
 		return neverNull(await this.cryptoFacade.resolveSessionKey(entity))
 	}
 
-	private async encryptAndUploadChunk(chunk: Uint8Array, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper> {
+	private async encryptAndUploadChunk(
+		chunk: Uint8Array,
+		blobServerAccessInfo: BlobServerAccessInfo,
+		sessionKey: AesKey,
+		onProgress?: (bytes: number) => unknown,
+	): Promise<BlobReferenceTokenWrapper> {
 		const encryptedData = _encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, BlobGetInTypeRef)
@@ -435,10 +440,19 @@ export class BlobFacade {
 			async (serverUrl) => {
 				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
 					queryParams: queryParams,
-					noCORS: true,
+					// noCORS tries to avoid all the things that make the request not a "Simple CORS request". Adding
+					// uploading listeners is one of this. In this case though we really do want an upload listener so
+					// we sacrifice our CORS purity for functionality.
+					noCORS: onProgress == null,
 					body: encryptedData,
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
+					progressListener: {
+						download() {},
+						upload(_, bytes) {
+							onProgress?.(bytes)
+						},
+					},
 				})
 				return await this.parseBlobPostOutResponse(response)
 			},
