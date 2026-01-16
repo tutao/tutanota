@@ -89,7 +89,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		if (e instanceof InvalidModelError) {
 			await Dialog.message("dataOutOfSync_label", lang.get(isOffline ? "dataOutOfSyncOfflineDb_msg" : "dataOutOfSync_msg"))
 		} else {
-			await Dialog.message("outOfSync_label", lang.get(isOffline ? "dataExpiredOfflineDb_msg" : "dataExpired_msg"))
+			await Dialog.message("dataExpired_label", lang.get(isOffline ? "dataExpiredOfflineDb_msg" : "dataExpired_msg"))
 		}
 
 		const { userId } = logins.getUserController()
