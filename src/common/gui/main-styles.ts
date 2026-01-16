@@ -2129,10 +2129,6 @@ styles.registerStyle("main", () => {
 			"border-top-right-radius": px(size.radius_8),
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
-		".payment-logo": {
-			// that's the size of the SVG and it seems to be a good size
-			width: "124px",
-		},
 		".onboarding-logo, .onboarding-logo > svg": {
 			width: "fit-content",
 			height: px(160),
