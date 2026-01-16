@@ -6,12 +6,12 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import {
 	FeatureType,
 	getMailFolderType,
+	isFolder,
+	isFolderReadOnly,
 	Keys,
 	MailReportType,
 	MailSetKind,
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
-	isFolder,
-	isFolderReadOnly,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
@@ -878,7 +878,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.THREE,
 				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.SCHEDULED)
+					// This should be removed once the batch job to add the Scheduled Mail set to all users is run
+					this.goToScheduledFolder()
+					// This should be put back
+					//this.mailViewModel.switchToFolder(MailSetKind.SCHEDULED)
 					return true
 				},
 				help: "switchScheduledFolder_action",
@@ -933,6 +936,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				enabled: () => locator.logins.isEnabled(FeatureType.Newsletter),
 			},
 		]
+	}
+
+	// This should be removed once the batch job to add the Scheduled Mail set to all users is run
+	private async goToScheduledFolder() {
+		try {
+			await this.mailViewModel.switchToFolder(MailSetKind.SCHEDULED)
+		} catch (e) {
+			console.log("SCHEDULED FOLDER NOT FOUND", e)
+		}
 	}
 
 	private async pressRelease() {
