@@ -1007,7 +1007,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Hanya kirimkan selama di dalam rentang waktu ini:",
 		"outOfOfficeTimeRangeHelp_msg": "Centang untuk memilih tanggal.",
 		"outOfOfficeUnencrypted_msg": "Mohon perhatikan bahwa balasan otomatis (autorespons) dikirim dalam bentuk plaintext.",
-		"outOfSync_label": "Data kedaluwarsa",
+		"dataExpired_label": "Data kedaluwarsa",
 		"owner_label": "Pemilik",
 		"pageBackward_label": "Halaman belakang",
 		"pageForward_label": "Halaman berikutnya",

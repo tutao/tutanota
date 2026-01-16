@@ -1260,7 +1260,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Envia només en aquest interval de temps:",
 		"outOfOfficeTimeRangeHelp_msg": "Marqueu per escollir dates.",
 		"outOfOfficeUnencrypted_msg": "Si us plau, tingueu en compte que les respostes automàtiques (respostes automàtiques) s'envien en text sense format.",
-		"outOfSync_label": "Dades vençudes",
+		"dataExpired_label": "Dades vençudes",
 		"overwrite_action": "Sobreescriure",
 		"owner_label": "Propietari",
 		"pageBackward_label": "Pàgina enrere",

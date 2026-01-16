@@ -1303,7 +1303,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Só durante este período de tempo:",
 		"outOfOfficeTimeRangeHelp_msg": "Marca para elixir datas.",
 		"outOfOfficeUnencrypted_msg": "Ten en conta que as respostas automáticas envíanse en texto plano.",
-		"outOfSync_label": "Datos caducados",
+		"dataExpired_label": "Datos caducados",
 		"overwrite_action": "Sobrescribir",
 		"owner_label": "Dono",
 		"pageBackward_label": "Páxina anterior",

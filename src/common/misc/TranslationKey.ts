@@ -884,7 +884,7 @@ export type TranslationKeyType =
 	| "pageBackward_label"
 	| "owner_label"
 	| "outdatedClient_msg"
-	| "outOfSync_label"
+	| "dataExpired_label"
 	| "outOfOfficeUnencrypted_msg"
 	| "outOfOfficeTimeRange_msg"
 	| "outOfOfficeTimeRangeHelp_msg"

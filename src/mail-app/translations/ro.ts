@@ -1257,7 +1257,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Trimite numai în acest interval de timp:",
 		"outOfOfficeTimeRangeHelp_msg": "Bifează ca să alegi intervalul de timp.",
 		"outOfOfficeUnencrypted_msg": "Răspunsurile automate sunt trimise în text simplu (text necifrat).",
-		"outOfSync_label": "Date expirate",
+		"dataExpired_label": "Date expirate",
 		"overwrite_action": "Suprascrie",
 		"owner_label": "Proprietar",
 		"pageBackward_label": "Înapoi",

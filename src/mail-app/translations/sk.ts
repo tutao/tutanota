@@ -887,7 +887,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Odosielať iba v tomto časovom rozmedzí:",
 		"outOfOfficeTimeRangeHelp_msg": "Zaškrtni pre výber dátumov.",
 		"outOfOfficeUnencrypted_msg": "Automatické odpovede sa odosielajú vo forme obyčajného textu.",
-		"outOfSync_label": "Platnosť dát uplynula",
+		"dataExpired_label": "Platnosť dát uplynula",
 		"owner_label": "Vlastník",
 		"pageBackward_label": "Predchádzajúca strana",
 		"pageForward_label": "Nasledujúca strana",

@@ -986,7 +986,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Изпращане само през този период от време:",
 		"outOfOfficeTimeRangeHelp_msg": "Проверете, за да изберете дати.",
 		"outOfOfficeUnencrypted_msg": "Имайте предвид, че известията извън офиса се изпращат нешифровани.",
-		"outOfSync_label": "Данните не са актуални",
+		"dataExpired_label": "Данните не са актуални",
 		"owner_label": "Собственик",
 		"pageBackward_label": "Страница назад",
 		"pageForward_label": "Страница напред",

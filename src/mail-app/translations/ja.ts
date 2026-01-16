@@ -1065,7 +1065,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "この日時の範囲でのみ送信。",
 		"outOfOfficeTimeRangeHelp_msg": "日付を選択する場合にチェックしてください。",
 		"outOfOfficeUnencrypted_msg": "自動返信は平文で送信されます。ご注意ください。",
-		"outOfSync_label": "データの有効期限が切れています",
+		"dataExpired_label": "データの有効期限が切れています",
 		"owner_label": "所有者",
 		"pageBackward_label": "ページを後方向に移動",
 		"pageForward_label": "ページを前方向に移動",
