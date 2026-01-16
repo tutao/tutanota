@@ -225,9 +225,10 @@ o.spec("TutaSseFacade", () => {
 			verify(
 				alarmScheduler.handleCreateAlarm(
 					matchers.argThat((actualAlarmNotification) => {
-						removeAggregateIds(actualAlarmNotification, true)
-						removeOriginals(actualAlarmNotification)
-						return deepEqual(actualAlarmNotification, alarmNotification)
+						return deepEqual(
+							removeOriginals(removeAggregateIds(actualAlarmNotification, true)),
+							removeOriginals(removeAggregateIds(alarmNotification, true)),
+						)
 					}),
 				),
 			)
