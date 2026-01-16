@@ -107,7 +107,10 @@ o.spec("SpamClassifierDataDealer", () => {
 			modifiedClientSpamTrainingDataIndex: "modifiedClientSpamTrainingDataIndex",
 		})
 		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail" })
-		when(mailFacadeMock.vectorizeAndCompressMails(anything())).thenResolve(new Uint8Array(1))
+		when(mailFacadeMock.createModelInputAndUploadVector(anything(), anything(), anything(), anything())).thenResolve({
+			modelInput: new Array(1),
+			vectorToUpload: new Uint8Array(1),
+		})
 		spamClassificationDataDealer = new SpamClassifierDataDealer(
 			entityClientMock,
 			() => Promise.resolve(bulkMailLoaderMock),
@@ -260,12 +263,13 @@ o.spec("SpamClassifierDataDealer", () => {
 			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
 			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
 			const unencryptedPayload = mails.map((mail) => {
+				const isSpam = isSameId(mail.sets[0], spamFolder._id)
 				return {
 					mailId: mail._id,
-					isSpam: isSameId(mail.sets[0], spamFolder._id),
+					isSpam,
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
 
@@ -359,12 +363,13 @@ o.spec("SpamClassifierDataDealer", () => {
 			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
 
 			const unencryptedPayload = expectUploadMailsTotal.map((mail) => {
+				const isSpam = isSameId(mail.sets[0], spamFolder._id)
 				return {
+					isSpam,
 					mailId: mail._id,
-					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
 
@@ -465,20 +470,22 @@ o.spec("SpamClassifierDataDealer", () => {
 			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
 
 			const firstUnencryptedPayload = expectedFirstChunk.map((mail) => {
+				const isSpam = isSameId(mail.sets[0], spamFolder._id)
 				return {
+					isSpam,
 					mailId: mail._id,
-					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			const secondUnencryptedPayload = expectedSecondChunk.map((mail) => {
+				const isSpam = isSameId(mail.sets[0], spamFolder._id)
 				return {
+					isSpam,
 					mailId: mail._id,
-					isSpam: isSameId(mail.sets[0], spamFolder._id),
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-				} as UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", firstUnencryptedPayload), { times: 1 })
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })
