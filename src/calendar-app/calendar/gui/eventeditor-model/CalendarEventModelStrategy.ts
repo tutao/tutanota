@@ -206,6 +206,7 @@ export class CalendarEventApplyStrategies {
 				sendModels.updateModel = null
 				await this.notificationModel.send(existingEvent, [], sendModels)
 				if (existingEvent.uid != null) {
+					console.log("TRIGGERING DELETE EVENTS BY UID IN STRATEGY")
 					await this.calendarModel.deleteEventsByUid(existingEvent.uid)
 				}
 				// doing this explicitly because we might have clicked an event that's not listed in
