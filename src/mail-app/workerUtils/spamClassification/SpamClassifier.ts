@@ -455,7 +455,7 @@ export class SpamClassifier {
 	}
 
 	private async getModelArtifacts(classifier: Classifier) {
-		return await new Promise<ModelArtifacts>((resolve) => {
+		return await new Promise<ModelArtifacts>((resolve, reject) => {
 			const saveInfo = withSaveHandler(async (artifacts: any) => {
 				resolve(artifacts)
 				return {
@@ -465,7 +465,9 @@ export class SpamClassifier {
 					},
 				}
 			})
-			classifier.layersModel.save(saveInfo, undefined)
+			classifier.layersModel.save(saveInfo, undefined).catch((err) => {
+				reject(err)
+			})
 		})
 	}
 }
