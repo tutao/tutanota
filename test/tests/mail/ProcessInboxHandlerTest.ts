@@ -23,6 +23,7 @@ import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { createSpamMailDatum } from "../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { LoginController } from "../../../src/common/api/main/LoginController"
+import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 
 const { anything } = matchers
 
@@ -58,10 +59,12 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
 			processNeeded: true,
+			serverSideInfluence: "10",
 		})
 		folderSystem = object<FolderSystem>()
 		mailboxDetail = object()
 
+		when(spamHandler.extractServerSideInfluenceFromMail(anything(), anything())).thenDo((m, f) => SpamClassifier.extractServerSideInfluenceFromMail(m, f))
 		when(mailFacade.moveMails(anything(), anything(), anything())).thenResolve([])
 		when(
 			mailFacade.loadMailDetailsBlob(
@@ -99,6 +102,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -125,6 +129,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -153,6 +158,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -181,6 +187,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -273,6 +280,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -294,6 +302,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -315,6 +324,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -336,6 +346,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
+			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -371,6 +382,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: compressedVector,
+			serverSideInfluence: "-10",
 		}
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 

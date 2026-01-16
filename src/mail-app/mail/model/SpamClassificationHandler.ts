@@ -12,6 +12,8 @@ import { LoginController } from "../../../common/api/main/LoginController"
 
 assertMainOrNode()
 
+const TRESHOLD_FOR_SERVER_CLASSIFICATION_OVERRIDE = 96
+
 export class SpamClassificationHandler {
 	public constructor(
 		private readonly spamClassifier: SpamClassifier,
@@ -26,11 +28,22 @@ export class SpamClassificationHandler {
 		folderSystem: FolderSystem,
 	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
 		const spamMailDatum = createSpamMailDatum(mail, mailDetails)
-		let targetFolder = sourceFolder
+
 		const vectorizedMail = await this.spamClassifier.vectorize(spamMailDatum)
-		const useSpamClassifier = await this.classifyMailUsingSpamClassifier(mail, mailDetails)
+		const { influenceMagnitude, influenceDirection } = this.spamClassifier.extractServerSideInfluenceFromMail(mail, sourceFolder)
+		const useSpamClassifier =
+			influenceMagnitude < TRESHOLD_FOR_SERVER_CLASSIFICATION_OVERRIDE && (await this.shouldClassifyMailUsingSpamClassifier(mail, mailDetails))
+
+		let targetFolder = sourceFolder
 		if (useSpamClassifier) {
-			const isSpam = (await this.spamClassifier.predict(vectorizedMail, spamMailDatum.ownerGroup)) ?? null
+			// Even though [direction, clampedInfluence] are not normalized to max of MAX_WORD_FREQUENCY
+			// it's fine, cause model itself is not limited by that. And we do not include these two
+			// in vector Array while compressing.
+			// NOTE:
+			// we need to start normalising to MAX_WORD_FREQUENCY if `serverSideInfluence` field is
+			// merged together with `vector`
+			const modelInput = vectorizedMail.concat([influenceMagnitude, influenceMagnitude])
+			const isSpam = (await this.spamClassifier.predict(modelInput, spamMailDatum.ownerGroup)) ?? false
 			if (isSpam && sourceFolder.folderType === MailSetKind.INBOX) {
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
 			} else if (!isSpam && sourceFolder.folderType === MailSetKind.SPAM) {
@@ -42,11 +55,12 @@ export class SpamClassificationHandler {
 			targetMoveFolder: targetFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: await this.spamClassifier.compress(vectorizedMail),
+			serverSideInfluence: String(influenceMagnitude * influenceDirection),
 		}
 		return { targetFolder, processInboxDatum: processInboxDatum }
 	}
 
-	private async classifyMailUsingSpamClassifier(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+	private async shouldClassifyMailUsingSpamClassifier(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		// classify mail using the client classifier only if the phishingStatus is not suspicious
 		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && !(await this.isMailFromSelf(mailDetails, mail))
 	}
@@ -62,5 +76,9 @@ export class SpamClassificationHandler {
 		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
 		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
 		return mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED && isMailFromSelf
+	}
+
+	public extractServerSideInfluenceFromMail(mail: Mail, targetFolder: MailSet) {
+		return this.spamClassifier.extractServerSideInfluenceFromMail(mail, targetFolder)
 	}
 }

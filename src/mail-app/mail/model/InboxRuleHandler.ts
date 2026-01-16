@@ -13,6 +13,7 @@ import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
+import { SpamClassificationHandler } from "./SpamClassificationHandler"
 
 assertMainOrNode()
 
@@ -80,6 +81,7 @@ export class InboxRuleHandler {
 		}
 		return this.findAndApplyMatchingRule(mailboxDetail, mail, false, ignoreProcessingState)
 	}
+
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
@@ -114,6 +116,7 @@ export class InboxRuleHandler {
 					targetMoveFolder: targetFolder._id,
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
 					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+					serverSideInfluence: "1", //SpamClassificationHandler.getServerSideInfluenceAsInputVector(Number(mail.serverSideInfluence)).magnitude.toString(),
 				}
 				return { targetFolder, processInboxDatum }
 			} else {

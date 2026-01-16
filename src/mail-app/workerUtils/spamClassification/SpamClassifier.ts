@@ -1,4 +1,4 @@
-import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
 import { SpamClassifierDataDealer, TrainingDataset } from "./SpamClassifierDataDealer"
 import {
 	dense,
@@ -17,8 +17,11 @@ import type { ModelFitArgs } from "@tensorflow/tfjs-layers"
 import type { Tensor } from "@tensorflow/tfjs-core"
 import { DEFAULT_PREPROCESS_CONFIGURATION, SpamMailDatum, SpamMailProcessor } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+import { SpamClassificationHandler } from "../../mail/model/SpamClassificationHandler"
+import { ClientSpamTrainingDatum, createMailSet, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
+import { UnencryptedProcessInboxDatum } from "../../mail/model/ProcessInboxHandler"
 
 export type SpamClassificationModelMetaData = {
 	hamCount: number
@@ -127,8 +130,22 @@ export class SpamClassifier {
 		const trainingInput = await promiseMap(
 			clientSpamTrainingData,
 			(d) => {
+				/**
+				 * TODO: we should also use confidence in initialTraining
+				 *
+				 * // initialTraining: m1: confience(4) <- initial training here
+				 * // new email: m2: confidence(1) <- updated model here ( user received a mail but have  not moved yet)
+				 * //
+				 * // another email: m3: <- currently classifying
+				 *
+				 * ====
+				 * in this case, m1 should have more influence while classifying on m3.
+				 * Currently since we dont use confidence, m1 & m2 will have equal influence
+				 */
 				const vector = this.sparseVectorCompressor.binaryToVector(d.vector)
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
+				const { influenceMagnitude, influenceDirection } = SpamClassifier.recoverServerSideInfluenceFromDatum(d)
+				vector.push(influenceMagnitude, influenceDirection)
 				return { vector, label }
 			},
 			{
@@ -138,10 +155,10 @@ export class SpamClassifier {
 		const vectors = trainingInput.map((input) => input.vector)
 		const labels = trainingInput.map((input) => input.label)
 
-		const xs = tensor2d(vectors, [trainingInput.length, this.sparseVectorCompressor.dimension], undefined)
+		const xs = tensor2d(vectors, [trainingInput.length, this.getInputSize()], undefined)
 		const ys = tensor1d(labels, undefined)
 
-		const layersModel = this.buildModel(this.sparseVectorCompressor.dimension)
+		const layersModel = this.buildModel(this.getInputSize())
 
 		const trainingStart = performance.now()
 		await layersModel.fit(xs, ys, {
@@ -228,6 +245,8 @@ export class SpamClassifier {
 				const vector = this.sparseVectorCompressor.binaryToVector(d.vector)
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
 				const isSpamConfidence = Number(d.confidence)
+				const { influenceMagnitude, influenceDirection } = SpamClassifier.recoverServerSideInfluenceFromDatum(d)
+				vector.push(influenceMagnitude, influenceDirection)
 				return { vector, label, isSpamConfidence }
 			},
 			{
@@ -254,7 +273,7 @@ export class SpamClassifier {
 				const vectors = trainingInput.map((input) => input.vector)
 				const labels = trainingInput.map((input) => input.label)
 
-				const xs = tensor2d(vectors, [vectors.length, this.sparseVectorCompressor.dimension], "int32")
+				const xs = tensor2d(vectors, [vectors.length, this.getInputSize()], "int32")
 				const ys = tensor1d(labels, "int32")
 
 				// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
@@ -309,7 +328,8 @@ export class SpamClassifier {
 		}
 
 		const vectors = [vector]
-		const xs = tensor2d(vectors, [vectors.length, this.sparseVectorCompressor.dimension], "int32")
+		const inputSize = this.getInputSize()
+		const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
 
 		const predictionTensor = classifier.layersModel.predict(xs) as Tensor
 		const predictionData = await predictionTensor.data()
@@ -322,6 +342,10 @@ export class SpamClassifier {
 		predictionTensor.dispose()
 
 		return prediction > classifier.threshold
+	}
+
+	private getInputSize() {
+		return this.sparseVectorCompressor.dimension + 2 // for serverSideInfluence
 	}
 
 	// visibleForTesting
@@ -469,5 +493,30 @@ export class SpamClassifier {
 				reject(err)
 			})
 		})
+	}
+
+	//TODO: this is being used by processInboxHandler and SpamClassificationHandler,
+	// both are on main and thus we had to do some static and non static usage
+	// and that then allows us to build but it probably has a better way.
+	public extractServerSideInfluenceFromMail(mail: Mail, targetFolder: MailSet) {
+		return SpamClassifier.extractServerSideInfluenceFromMail(mail, targetFolder)
+	}
+
+	public static extractServerSideInfluenceFromMail(mail: Mail, targetFolder: MailSet) {
+		assert(targetFolder.folderType === MailSetKind.SPAM || targetFolder.folderType === MailSetKind.INBOX, "Server should either put mail in spam or inbox")
+		const influence = Math.min(100, Number(mail.serverSideInfluence))
+		const influenceDirection = targetFolder.folderType === MailSetKind.SPAM ? 1 : -1
+		const influenceMagnitude = Math.max(1, Math.abs(influence))
+
+		return { influenceMagnitude, influenceDirection }
+	}
+
+	public static recoverServerSideInfluenceFromDatum(datum: UnencryptedProcessInboxDatum | ClientSpamTrainingDatum) {
+		const influence = Number(assertNotNull(datum.serverSideInfluence))
+		assert(influence !== 0 && influence <= 100 && influence >= -100, "server side influence should be between -100 to 100 excluding 0")
+		const influenceMagnitude = Math.abs(influence)
+		const influenceDirection = influence > 0 ? 1 : -1
+
+		return { influenceMagnitude, influenceDirection }
 	}
 }

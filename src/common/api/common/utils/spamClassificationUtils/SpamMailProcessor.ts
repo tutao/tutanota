@@ -166,6 +166,7 @@ export class SpamMailProcessor {
 		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${authStatus}`
 	}
 }
+
 export function createSpamMailDatum(mail: Mail, mailDetails: MailDetails) {
 	const spamMailDatum: SpamMailDatum = {
 		subject: mail.subject,
@@ -211,6 +212,7 @@ function convertAuthStatusToSpamCategorizationToken(authStatus: string | null): 
 
 	return ""
 }
+
 export const DEFAULT_IS_SPAM_CONFIDENCE = "1"
 
 export function getSpamConfidence(mail: Mail): string {

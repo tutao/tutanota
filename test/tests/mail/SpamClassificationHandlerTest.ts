@@ -73,6 +73,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			unread: true,
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
+			serverSideInfluence: "10",
 		})
 
 		folderSystem = object<FolderSystem>()
@@ -99,7 +100,11 @@ o.spec("SpamClassificationHandlerTest", function () {
 			anything(),
 		).thenDo(async () => [{ mail, mailDetails }])
 		when(spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails))).thenResolve(compressedUnencryptedTestVector)
+		when(spamClassifier.vectorize(createSpamMailDatum(mail, mailDetails))).thenResolve(Array.from({ length: 2048 }, () => 0))
 		when(spamClassifier.compress(matchers.anything())).thenResolve(compressedUnencryptedTestVector)
+		when(spamClassifier.extractServerSideInfluenceFromMail(anything(), anything())).thenDo((m, f) =>
+			SpamClassifier.extractServerSideInfluenceFromMail(m, f),
+		)
 		userController.user = createTestEntity(UserTypeRef)
 		when(logins.getUserController()).thenReturn(userController)
 		when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["user@tuta.com"])
@@ -116,6 +121,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "-10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -133,6 +139,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "-10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -150,6 +157,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -167,6 +175,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -184,6 +193,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "-10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -197,6 +207,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
 		mailDetails.authStatus = MailAuthenticationStatus.INVALID_MAIL_FROM
 		mailDetails.recipients.toRecipients.push(mail.sender)
+		when(spamClassifier.vectorize(createSpamMailDatum(mail, mailDetails))).thenResolve(Array.from({ length: 2048 }, () => 0))
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
 
 		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
@@ -204,6 +215,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "-10", // source folder is inbox hence negative
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -223,6 +235,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -233,7 +246,12 @@ o.spec("SpamClassificationHandlerTest", function () {
 	o("predictSpamForNewMail doesn't call classifier when sender is one of the aliases of the user", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.sender = createTestEntity(MailAddressTypeRef, { address: "alias@tuta.com", name: "Name" })
-		mailDetails.recipients.toRecipients.push(createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Name" }))
+		mailDetails.recipients.toRecipients.push(
+			createTestEntity(MailAddressTypeRef, {
+				address: "user@tuta.com",
+				name: "Name",
+			}),
+		)
 		when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["alias@tuta.com", "user@tuta.com"])
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
 
@@ -242,6 +260,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
+			serverSideInfluence: "-10",
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)

@@ -12,8 +12,9 @@ import { LoginController } from "../../../common/api/main/LoginController"
 
 assertMainOrNode()
 
-export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum>, "encVector" | "ownerEncVectorSessionKey"> & {
+export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum>, "encVector" | "encServerSideInfluence" | "ownerEncVectorSessionKey"> & {
 	vector: Uint8Array
+	serverSideInfluence: NumberString
 }
 
 const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
@@ -89,11 +90,13 @@ export class ProcessInboxHandler {
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
 		if (finalProcessInboxDatum === null) {
+			const { influenceDirection, influenceMagnitude } = this.spamHandler().extractServerSideInfluenceFromMail(mail, sourceFolder)
 			finalProcessInboxDatum = {
 				mailId: mail._id,
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
 				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+				serverSideInfluence: String(influenceDirection * influenceMagnitude),
 			}
 		}
 
@@ -124,13 +127,13 @@ export class ProcessInboxHandler {
 		// process excluded rules first and then regular ones.
 		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
 		if (result) {
-			const { targetFolder, processInboxDatum } = result
+			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
 		} else {
 			if (moveToFolder.folderType === MailSetKind.INBOX) {
 				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
 				if (result) {
-					const { targetFolder, processInboxDatum } = result
+					const { targetFolder, processInboxDatum: _ } = result
 					moveToFolder = targetFolder
 				}
 			}
