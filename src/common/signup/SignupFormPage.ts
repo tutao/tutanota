@@ -3,7 +3,7 @@ import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { createAccount } from "../subscription/utils/PaymentUtils"
 import { PlanType } from "../api/common/TutanotaConstants"
-import { SignupFormAttrs, SignupFormNew } from "./components/SignupFormNew"
+import { SignupFormNew } from "./components/SignupFormNew"
 import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
 import { layout_size, px, size } from "../gui/size"
@@ -17,7 +17,7 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 
-		return m(".flex.flex-column.full-width.pt-16", [
+		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
 				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
 				{
