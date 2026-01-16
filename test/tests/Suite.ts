@@ -184,6 +184,7 @@ import "./mail/SpamClassificationHandlerTest.js"
 import "./misc/quickactions/QuickActionsModelTest.js"
 import "./calendar/CalendarTimeGridTest"
 import "./calendar/AllDaySectionTest"
+import "./mail/LabelsPopupTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
