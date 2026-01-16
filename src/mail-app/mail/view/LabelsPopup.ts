@@ -22,6 +22,7 @@ import { noOp } from "@tutao/tutanota-utils"
 export class LabelsPopup implements ModalComponent {
 	private dom: HTMLElement | null = null
 	private isMaxLabelsReached: boolean
+	private startingLabels: Set<MailSet> = new Set()
 
 	constructor(
 		private readonly sourceElement: HTMLElement,
@@ -31,6 +32,9 @@ export class LabelsPopup implements ModalComponent {
 		private readonly labels: { label: MailSet; state: LabelState }[],
 		private readonly onLabelsApplied: (addedLabels: MailSet[], removedLabels: MailSet[]) => unknown,
 	) {
+		for (const [, labels] of this.labelsForMails) {
+			this.startingLabels = new Set([...this.startingLabels, ...labels])
+		}
 		this.view = this.view.bind(this)
 		this.oncreate = this.oncreate.bind(this)
 		this.isMaxLabelsReached = this.checkIsMaxLabelsReached()
@@ -144,47 +148,25 @@ export class LabelsPopup implements ModalComponent {
 	}
 
 	private checkIsMaxLabelsReached(): boolean {
-		const { addedLabels, removedLabels } = this.getSortedLabels()
+		const { addedLabels, removedLabels } = categorizeLabels(this.labels, this.startingLabels)
+
 		if (addedLabels.length >= MAX_LABELS_PER_MAIL) {
 			return true
 		}
 
+		// We check the limit for each mail individually
 		for (const [, labels] of this.labelsForMails) {
-			const labelsOnMail = new Set<Id>(labels.map((label) => getElementId(label)))
-
-			for (const label of removedLabels) {
-				labelsOnMail.delete(getElementId(label))
-			}
-			if (labelsOnMail.size >= MAX_LABELS_PER_MAIL) {
+			const actualAddedLabelCount = addedLabels.filter((label) => !labels.includes(label)).length
+			if (labels.length + actualAddedLabelCount - removedLabels.length >= MAX_LABELS_PER_MAIL) {
 				return true
-			}
-
-			for (const label of addedLabels) {
-				labelsOnMail.add(getElementId(label))
-				if (labelsOnMail.size >= MAX_LABELS_PER_MAIL) {
-					return true
-				}
 			}
 		}
 
 		return false
 	}
 
-	private getSortedLabels(): Record<"addedLabels" | "removedLabels", MailSet[]> {
-		const removedLabels: MailSet[] = []
-		const addedLabels: MailSet[] = []
-		for (const { label, state } of this.labels) {
-			if (state === LabelState.Applied) {
-				addedLabels.push(label)
-			} else if (state === LabelState.NotApplied) {
-				removedLabels.push(label)
-			}
-		}
-		return { addedLabels, removedLabels }
-	}
-
 	private applyLabels() {
-		const { addedLabels, removedLabels } = this.getSortedLabels()
+		const { addedLabels, removedLabels } = categorizeLabels(this.labels, this.startingLabels)
 		this.onLabelsApplied(addedLabels, removedLabels)
 		modal.remove(this)
 	}
@@ -285,4 +267,21 @@ function ariaCheckedForState(state: LabelState): string {
 		case LabelState.NotApplied:
 			return "false"
 	}
+}
+
+// visible for testing
+export function categorizeLabels(
+	labels: { label: MailSet; state: LabelState }[],
+	originallyAppliedLabels: Set<MailSet>,
+): Record<"addedLabels" | "removedLabels", MailSet[]> {
+	const removedLabels: MailSet[] = []
+	const addedLabels: MailSet[] = []
+	for (const { label, state } of labels) {
+		if (state === LabelState.Applied) {
+			addedLabels.push(label)
+		} else if (originallyAppliedLabels.has(label) && state === LabelState.NotApplied) {
+			removedLabels.push(label)
+		}
+	}
+	return { addedLabels, removedLabels }
 }
