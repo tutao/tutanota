@@ -14,7 +14,7 @@ import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
 import { createDropdown, Dropdown } from "../../../common/gui/base/Dropdown"
-import { DriveUploadStack } from "./DriveUploadStack"
+import { DriveUploadStack, DriveUploadStackAttrs } from "./DriveUploadStack"
 import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
@@ -27,6 +27,7 @@ import { newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveG
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -226,113 +227,109 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			{
 				view: () => {
 					const listState = this.driveViewModel.listState()
-					return m(
-						BackgroundColumnLayout,
-						{
-							backgroundColor: theme.surface_container,
-							desktopToolbar: () => [],
-							columnLayout: [
-								m(DriveFolderView, {
-									onUploadClick: () => this.onNewFile(),
-									onTrash:
-										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash || listState.selectedItems.size === 0
-											? null
-											: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems)),
-									onDelete:
-										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
-											? async () => {
-													const ok = await Dialog.confirm(
-														lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": listState.selectedItems.size }),
-														"confirmDeleteFilesPermanently_action",
-													)
-													if (ok) this.driveViewModel.deleteFromTrash(Array.from(listState.selectedItems))
-												}
-											: null,
-									onRestore:
-										this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
-											? () => this.driveViewModel.restoreFromTrash(Array.from(listState.selectedItems))
-											: null,
-									onCut: listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
-									onCopy: listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
-									onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
-									onDropFiles: (files) => {
-										this.driveViewModel.uploadFiles(files)
-									},
-									currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
-									parents: this.driveViewModel.parents,
-									selection:
-										listState.inMultiselect || listState.selectedItems.size > 0
-											? {
-													type: "multiselect",
-													selectedAll: this.driveViewModel.areAllSelected(),
-													selectedItemCount: listState.selectedItems.size,
-												}
-											: { type: "none" },
-									listState: listState,
-									selectionEvents: {
-										onSelectAll: () => {
-											this.driveViewModel.selectAll()
-										},
-										onSelectNext: () => {},
-										onSelectPrevious: () => {},
-										onSingleSelection: (item) => {
-											this.driveViewModel.onSingleSelection(item)
-										},
-										onSingleInclusiveSelection: (item) => {
-											this.driveViewModel.onSingleInclusiveSelection(item)
-										},
-										onSingleExclusiveSelection: (item) => {
-											this.driveViewModel.onSingleExclusiveSelection(item)
-										},
-										onRangeSelectionTowards: (item) => {
-											this.driveViewModel.onRangeSelectionTowards(item)
-										},
-									},
-									loadParents: () => this.driveViewModel.getMoreParents(),
-									onNewFile: () => this.onNewFile(),
-									onNewFolder: () =>
-										showNewFolderDialog(
-											async (folderName) => this.driveViewModel.createNewFolder(folderName),
-											() => m.redraw(),
-										),
-									fileActions: {
-										onOpenItem: (item) => {
-											if (item.type === "folder") {
-												this.driveViewModel.navigateToFolder(item.folder._id)
-											} else {
-												this.driveViewModel.downloadFile(item.file)
+					return m(BackgroundColumnLayout, {
+						backgroundColor: theme.surface_container,
+						desktopToolbar: () => [],
+						columnLayout: [
+							m(DriveFolderView, {
+								onUploadClick: () => this.onNewFile(),
+								onTrash:
+									this.driveViewModel.currentFolder?.type === DriveFolderType.Trash || listState.selectedItems.size === 0
+										? null
+										: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems)),
+								onDelete:
+									this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
+										? async () => {
+												const ok = await Dialog.confirm(
+													lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": listState.selectedItems.size }),
+													"confirmDeleteFilesPermanently_action",
+												)
+												if (ok) this.driveViewModel.deleteFromTrash(Array.from(listState.selectedItems))
 											}
-										},
-										onCopy: (item) => {
-											this.driveViewModel.copy([item])
-										},
-										onCut: (item) => {
-											this.driveViewModel.cut([item])
-										},
-										onDelete: (item) => {
-											this.driveViewModel.moveToTrash([item])
-										},
-										onRestore: (item) => {
-											this.driveViewModel.restoreFromTrash([item])
-										},
-										onRename: (item) => this.onRename(item),
+										: null,
+								onRestore:
+									this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
+										? () => this.driveViewModel.restoreFromTrash(Array.from(listState.selectedItems))
+										: null,
+								onCut: listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
+								onCopy: listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
+								onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
+								onDropFiles: (files) => {
+									this.driveViewModel.uploadFiles(files)
+								},
+								currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
+								parents: this.driveViewModel.parents,
+								selection:
+									listState.inMultiselect || listState.selectedItems.size > 0
+										? {
+												type: "multiselect",
+												selectedAll: this.driveViewModel.areAllSelected(),
+												selectedItemCount: listState.selectedItems.size,
+											}
+										: { type: "none" },
+								listState: listState,
+								selectionEvents: {
+									onSelectAll: () => {
+										this.driveViewModel.selectAll()
 									},
-									onMove: (items: FolderItemId[], into: FolderFolderItem) => {
-										this.driveViewModel.moveItems(items, into.folder._id)
+									onSelectNext: () => {},
+									onSelectPrevious: () => {},
+									onSingleSelection: (item) => {
+										this.driveViewModel.onSingleSelection(item)
 									},
-									sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
-									onSortColumn: (column) => this.driveViewModel.sort(column),
-									clipboard: this.driveViewModel.clipboard,
-								} satisfies DriveFolderViewAttrs),
-								m(DriveUploadStack, {
-									transfers: this.driveViewModel.transfers(),
-									cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
-								}),
-							],
-							mobileHeader: () => [],
-						},
-						//m(DriveNav),
-					)
+									onSingleInclusiveSelection: (item) => {
+										this.driveViewModel.onSingleInclusiveSelection(item)
+									},
+									onSingleExclusiveSelection: (item) => {
+										this.driveViewModel.onSingleExclusiveSelection(item)
+									},
+									onRangeSelectionTowards: (item) => {
+										this.driveViewModel.onRangeSelectionTowards(item)
+									},
+								},
+								loadParents: () => this.driveViewModel.getMoreParents(),
+								onNewFile: () => this.onNewFile(),
+								onNewFolder: () =>
+									showNewFolderDialog(
+										async (folderName) => this.driveViewModel.createNewFolder(folderName),
+										() => m.redraw(),
+									),
+								fileActions: {
+									onOpenItem: (item) => {
+										if (item.type === "folder") {
+											this.driveViewModel.navigateToFolder(item.folder._id)
+										} else {
+											this.driveViewModel.downloadFile(item.file)
+										}
+									},
+									onCopy: (item) => {
+										this.driveViewModel.copy([item])
+									},
+									onCut: (item) => {
+										this.driveViewModel.cut([item])
+									},
+									onDelete: (item) => {
+										this.driveViewModel.moveToTrash([item])
+									},
+									onRestore: (item) => {
+										this.driveViewModel.restoreFromTrash([item])
+									},
+									onRename: (item) => this.onRename(item),
+								},
+								onMove: (items: FolderItemId[], into: FolderFolderItem) => {
+									this.driveViewModel.moveItems(items, into.folder._id)
+								},
+								sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
+								onSortColumn: (column) => this.driveViewModel.sort(column),
+								clipboard: this.driveViewModel.clipboard,
+							} satisfies DriveFolderViewAttrs),
+							m(DriveUploadStack, {
+								transfers: this.driveViewModel.transfers(),
+								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
+							}),
+						],
+						mobileHeader: () => [],
+					})
 				},
 			},
 			ColumnType.Background,

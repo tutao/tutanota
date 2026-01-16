@@ -24,6 +24,7 @@ import { TransferProgressDispatcher } from "../../../common/api/main/TransferPro
 import { ChunkedDownloadInfo, ChunkedUploadInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 import { FileController } from "../../../common/file/FileController"
+import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -520,8 +521,12 @@ export class DriveViewModel {
 						console.log("Upload canceled", fileId)
 					}),
 				)
-			} finally {
 				this.driveUploadStackModel.finishUpload(fileId)
+			} catch (e) {
+				this.driveUploadStackModel.transferFailed(fileId)
+				if (!isOfflineError(e)) {
+					throw e
+				}
 			}
 		}
 	}
@@ -553,8 +558,12 @@ export class DriveViewModel {
 					console.log("Upload canceled", transferId)
 				}),
 			)
-		} finally {
 			this.driveUploadStackModel.finishDownload(transferId)
+		} catch (e) {
+			this.driveUploadStackModel.transferFailed(transferId)
+			if (!isOfflineError(e)) {
+				throw e
+			}
 		}
 	}
 

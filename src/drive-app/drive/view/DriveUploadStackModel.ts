@@ -8,7 +8,6 @@ type DriveTransferType = "upload" | "download"
 export interface DriveTransferState {
 	type: DriveTransferType
 	filename: string
-	isPaused: boolean
 	state: "finished" | "failed" | "active"
 	transferredSize: number // bytes
 	totalSize: number // bytes
@@ -35,7 +34,6 @@ export class DriveUploadStackModel {
 		this._state.set(fileId, {
 			type: "upload",
 			filename,
-			isPaused: false,
 			state: "active",
 			transferredSize: 0,
 			totalSize,
@@ -68,10 +66,16 @@ export class DriveUploadStackModel {
 		if (stateForThisFile) {
 			stateForThisFile.state = "finished"
 			this.updateUi()
-			setTimeout(() => {
-				this._state.delete(fileId)
-				this.updateUi()
-			}, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)
+			this.cleanupTransfer(fileId)
+		}
+	}
+
+	transferFailed(fileId: FileId) {
+		const fileState = this._state.get(fileId)
+		if (fileState) {
+			fileState.state = "failed"
+			this.updateUi()
+			this.cleanupTransfer(fileId)
 		}
 	}
 
@@ -85,7 +89,6 @@ export class DriveUploadStackModel {
 			filename,
 			state: "active",
 			transferredSize: 0,
-			isPaused: false,
 			totalSize,
 		})
 	}
@@ -102,10 +105,14 @@ export class DriveUploadStackModel {
 		if (stateForThisFile) {
 			stateForThisFile.state = "finished"
 			this.updateUi()
-			setTimeout(() => {
-				this._state.delete(fileId)
-				this.updateUi()
-			}, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)
+			this.cleanupTransfer(fileId)
 		}
+	}
+
+	private cleanupTransfer(fileId: FileId) {
+		setTimeout(() => {
+			this._state.delete(fileId)
+			this.updateUi()
+		}, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)
 	}
 }
