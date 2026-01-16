@@ -1230,7 +1230,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Надсилати лише протягом цього проміжку часу:",
 		"outOfOfficeTimeRangeHelp_msg": "Перевірити, щоб вибрати дати.",
 		"outOfOfficeUnencrypted_msg": "Зверніть увагу, що автоматичні відповіді (автовідповідь) надсилаються відкритим текстом.",
-		"outOfSync_label": "Термін дії даних закінчився",
+		"dataExpired_label": "Термін дії даних закінчився",
 		"owner_label": "Власник",
 		"pageBackward_label": "Сторінка назад",
 		"pageForward_label": "Сторінка вперед",

@@ -1282,7 +1282,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Lähetä vain tässä aikahaarukassa:",
 		"outOfOfficeTimeRangeHelp_msg": "Valitse määrittääksesi päivämäärät.",
 		"outOfOfficeUnencrypted_msg": "Huomioithan, että automaattivastaukset lähetetään salaamattomina. ",
-		"outOfSync_label": "Tiedot vanhentuneet",
+		"dataExpired_label": "Tiedot vanhentuneet",
 		"overwrite_action": "Korvaa",
 		"owner_label": "Omistaja",
 		"pageBackward_label": "Sivu taaksepäin",

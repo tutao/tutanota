@@ -1282,7 +1282,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Only send during this time range:",
 		"outOfOfficeTimeRangeHelp_msg": "Check to pick dates.",
 		"outOfOfficeUnencrypted_msg": "Please note that automatic replies (autoresponses) are sent in plaintext.",
-		"outOfSync_label": "Data expired",
+		"dataExpired_label": "Data expired",
 		"overwrite_action": "Overwrite",
 		"owner_label": "Owner",
 		"pageBackward_label": "Page backward",
@@ -2181,6 +2181,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"dataOutOfSync_label": "Data out of sync",
+		"dataOutOfSyncOfflineDb_msg": "Your local data is out of sync with the data on the Tuta servers. You will be logged out and your locally stored data will be cleared and re-downloaded as needed.",
+		"dataOutOfSync_msg": "Your loaded data is out of sync with the data on the Tuta servers. Please logout and login again to refresh your data.",
 	}
 }

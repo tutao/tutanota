@@ -1246,7 +1246,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Csak ebben az időszakban küldje:",
 		"outOfOfficeTimeRangeHelp_msg": "Ellenőrizze a választható dátumokat.",
 		"outOfOfficeUnencrypted_msg": "Kérjük, jegyezze meg, hogy az automatikus válaszok (ún. autoresponses-ek) egyszerű szövegben kerülnek megküldésre!",
-		"outOfSync_label": "Az adatok lejártak.",
+		"dataExpired_label": "Az adatok lejártak.",
 		"owner_label": "Tulajdonos.",
 		"pageBackward_label": "Előző lap",
 		"pageForward_label": "Következő lap",

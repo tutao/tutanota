@@ -919,7 +919,7 @@ export default {
 		"outOfOfficeTimeRangeHelp_msg": "برای تعیین روز، انتخاب کنید.",
 		"outOfOfficeTimeRange_msg": "فقط در این بازه زمانی بفرست:",
 		"outOfOfficeUnencrypted_msg": "لطفا توجه کنید که پاسخ‌های خودکار (پاسخ‌گویی خودکار) به صورت ساده و غیررمزگذاری شده فرستاده می‌شوند.",
-		"outOfSync_label": "اطلاعات منقضی شد",
+		"dataExpired_label": "اطلاعات منقضی شد",
 		"owner_label": "مالک",
 		"pageBackward_label": "صحفه قبل",
 		"pageForward_label": "به صفحه بعدی برو",

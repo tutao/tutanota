@@ -866,7 +866,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Send kun indenfor denne periode:",
 		"outOfOfficeTimeRangeHelp_msg": "Slå periode til.",
 		"outOfOfficeUnencrypted_msg": "Bemærk venligst at automatiske svar er sendt i klartekst til serveren og til fremtidige modtagere.",
-		"outOfSync_label": "Data er udløbet",
+		"dataExpired_label": "Data er udløbet",
 		"owner_label": "Ejer",
 		"pageBackward_label": "Gå en side tilbage",
 		"pageForward_label": "Gå en side frem",

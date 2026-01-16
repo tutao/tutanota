@@ -1043,7 +1043,7 @@ export default {
 		"outOfOfficeTimeRangeHelp_msg": "Clique para selecionar datas.",
 		"outOfOfficeTimeRange_msg": "Enviar apenas dentro deste período de tempo:",
 		"outOfOfficeUnencrypted_msg": "Por favor note que as respostas automáticas são enviadas em claro (não cifradas).",
-		"outOfSync_label": "Data expirada",
+		"dataExpired_label": "Data expirada",
 		"owner_label": "Proprietário",
 		"pageBackward_label": "Página anterior",
 		"pageForward_label": "Avançar página",

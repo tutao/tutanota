@@ -1241,7 +1241,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Send bare innenfor denne tidsperioden:",
 		"outOfOfficeTimeRangeHelp_msg": "Huk av for å velge datoer.",
 		"outOfOfficeUnencrypted_msg": "Vær oppmerksom på at automatisk svar sendes i klartekst.",
-		"outOfSync_label": "Data utgått",
+		"dataExpired_label": "Data utgått",
 		"overwrite_action": "Skriv over",
 		"owner_label": "Eier",
 		"pageBackward_label": "Side tilbake",

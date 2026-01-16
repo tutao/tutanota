@@ -1281,7 +1281,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Yalnızca bu zaman aralığında gönder: ",
 		"outOfOfficeTimeRangeHelp_msg": "Tarihleri ​​seçmek için kontrol edin.",
 		"outOfOfficeUnencrypted_msg": "Otomatik yanıtların düz metin olarak gönderildiğini lütfen unutmayın.",
-		"outOfSync_label": "Veri zaman aşımına uğradı",
+		"dataExpired_label": "Veri zaman aşımına uğradı",
 		"overwrite_action": "Üzerine yazma",
 		"owner_label": "Sahip",
 		"pageBackward_label": "Bir önceki sayfa",

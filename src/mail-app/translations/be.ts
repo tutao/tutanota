@@ -1256,7 +1256,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Дасылаць толькі ў гэты прамежак часу:",
 		"outOfOfficeTimeRangeHelp_msg": "Пстрыкні, каб абраць даты.",
 		"outOfOfficeUnencrypted_msg": "Звярні ўвагу на тое, што аўтаматычныя адказы дасылаюцца ў выглядзе простага тэксту.",
-		"outOfSync_label": "Даныя састарэлі",
+		"dataExpired_label": "Даныя састарэлі",
 		"overwrite_action": "Перазапісаць",
 		"owner_label": "Уладальнік",
 		"pageBackward_label": "Старонка назад",
