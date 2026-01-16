@@ -2181,3 +2181,6 @@ export type TranslationKeyType =
 	| "directSupport_msg"
 	| "emptyString_msg"
 	| "importContactDuplicates_msg"
+	| "dataOutOfSync_label"
+	| "dataOutOfSyncOfflineDb_msg"
+	| "dataOutOfSync_msg"
