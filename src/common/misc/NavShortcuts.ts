@@ -5,30 +5,35 @@ import { CALENDAR_PREFIX, CONTACTS_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREF
 import { showQuickActionBar } from "./quickactions/QuickActionBar"
 import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
+import { SessionType } from "../api/common/SessionType"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
+	function hasInAppNavigation() {
+		return logins.isInternalUserLoggedIn() && logins.getUserController().sessionType !== SessionType.Temporary
+	}
+
 	keyManager.registerShortcuts([
 		{
 			key: Keys.M,
-			enabled: () => logins.isUserLoggedIn(),
+			enabled: () => hasInAppNavigation(),
 			exec: () => m.route.set(MAIL_PREFIX),
 			help: "mailView_action",
 		},
 		{
 			key: Keys.C,
-			enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
+			enabled: () => hasInAppNavigation() && !logins.isEnabled(FeatureType.DisableContacts),
 			exec: () => m.route.set(CONTACTS_PREFIX),
 			help: "contactView_action",
 		},
 		{
 			key: Keys.O,
-			enabled: () => logins.isInternalUserLoggedIn(),
+			enabled: () => hasInAppNavigation(),
 			exec: () => m.route.set(CALENDAR_PREFIX),
 			help: "calendarView_action",
 		},
 		{
 			key: Keys.S,
-			enabled: () => logins.isInternalUserLoggedIn(),
+			enabled: () => hasInAppNavigation(),
 			exec: () => m.route.set(SETTINGS_PREFIX),
 			help: "settingsView_action",
 		},
@@ -36,7 +41,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			key: Keys.L,
 			shift: true,
 			ctrlOrCmd: true,
-			enabled: () => logins.isUserLoggedIn(),
+			enabled: () => logins.isUserLoggedIn() && logins.getUserController().sessionType !== SessionType.Temporary,
 			exec: (key) => m.route.set(LogoutUrl),
 			help: "switchAccount_action",
 		},
@@ -44,7 +49,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			key: Keys.K,
 			shift: true,
 			ctrlOrCmd: true,
-			enabled: () => logins.isInternalUserLoggedIn() && logins.isEnabled(FeatureType.QuickActions),
+			enabled: () => hasInAppNavigation() && logins.isEnabled(FeatureType.QuickActions),
 			exec: () => {
 				quickActionsModel().then(showQuickActionBar)
 			},
