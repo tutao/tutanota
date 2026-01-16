@@ -616,7 +616,10 @@ o.spec("ProcessInboxHandlerTest", function () {
 		mail.sets = [inboxFolder._id]
 		const compressedVector = new Uint8Array([2, 4, 8, 16])
 
-		when(mailFacade.vectorizeAndCompressMails({ mail, mailDetails })).thenResolve(compressedVector)
+		when(mailFacade.createModelInputAndUploadVector(anything(), mail, mailDetails, inboxFolder)).thenResolve({
+			modelInput: [],
+			vectorToUpload: compressedVector,
+		})
 		processInboxHandler = new ProcessInboxHandler(
 			logins,
 			mailFacade,

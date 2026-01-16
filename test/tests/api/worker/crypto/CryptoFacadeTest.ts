@@ -2059,6 +2059,7 @@ o.spec("CryptoFacadeTest", function () {
 			clientSpamClassifierResult: null,
 			processNeeded: false,
 			sendAt: null,
+			serverClassifier: "10",
 		})
 
 		// casting here is fine, since we just want to mimic server response data

@@ -1,7 +1,7 @@
 import { InboxRule, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, ProcessingState } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { asyncFind, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, Nullable } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
@@ -13,6 +13,7 @@ import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../workerUtils/spamClassification/SpamClassifier"
 
 assertMainOrNode()
 
@@ -80,6 +81,7 @@ export class InboxRuleHandler {
 		}
 		return this.findAndApplyMatchingRule(mailboxDetail, mail, false, ignoreProcessingState)
 	}
+
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
@@ -109,11 +111,18 @@ export class InboxRuleHandler {
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder) {
+				const currentFolder = assertNotNull(folders.getFolderByMail(mail))
+				const { vectorToUpload } = await this.mailFacade.createModelInputAndUploadVector(
+					CURRENT_SPACE_FOR_SERVER_RESULT,
+					mail,
+					mailDetails,
+					currentFolder,
+				)
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					mailId: mail._id,
 					targetMoveFolder: targetFolder._id,
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
-					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+					vector: vectorToUpload,
 					ownerEncMailSessionKeys: [],
 				}
 				return { targetFolder, processInboxDatum }
