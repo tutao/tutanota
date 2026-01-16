@@ -928,7 +928,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Chỉ gửi trong khoảng thời gian này:",
 		"outOfOfficeTimeRangeHelp_msg": "Đánh dấu để chọn ngày.",
 		"outOfOfficeUnencrypted_msg": "Vui lòng lưu ý rằng những lời hồi đáp tự động sẽ được gửi ở dạng văn bản thuần.",
-		"outOfSync_label": "Dữ liệu hết hạn",
+		"dataExpired_label": "Dữ liệu hết hạn",
 		"owner_label": "Người sở hữu",
 		"pageBackward_label": "Trang trước",
 		"pageForward_label": "Trang sau",

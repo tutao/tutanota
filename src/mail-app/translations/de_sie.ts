@@ -1300,7 +1300,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Nur in diesem Zeitraum senden:",
 		"outOfOfficeTimeRangeHelp_msg": "Ankreuzen um Daten auszuwählen",
 		"outOfOfficeUnencrypted_msg": "Bitte beachten Sie, dass Abwesenheitsbenachrichtigungen unverschlüsselt gesendet werden.",
-		"outOfSync_label": "Daten abgelaufen",
+		"dataExpired_label": "Daten abgelaufen",
 		"overwrite_action": "Überschreiben",
 		"owner_label": "Eigentümer",
 		"pageBackward_label": "Seite zurück",

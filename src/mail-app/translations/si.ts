@@ -1163,7 +1163,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "මෙම කාල පරාසය අතර යවන්න:",
 		"outOfOfficeTimeRangeHelp_msg": "දින තේරීමට බලන්න.",
 		"outOfOfficeUnencrypted_msg": "ස්වයංක්‍රීය පිළිතුරු (ස්වයං ප්‍රතිචාර) සරල පෙළක් (සංකේතිත නැත) ලෙස යවයි.",
-		"outOfSync_label": "දත්ත කල් ඉකුත්ය",
+		"dataExpired_label": "දත්ත කල් ඉකුත්ය",
 		"owner_label": "හිමිකරු",
 		"pageBackward_label": "පිටුව පසුපසට",
 		"pageForward_label": "පිටුව ඉදිරිපසට",

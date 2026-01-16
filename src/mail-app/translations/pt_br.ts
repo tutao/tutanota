@@ -1300,7 +1300,7 @@ export default {
 		"outOfOfficeTimeRange_msg": "Enviar somente durante esse período:",
 		"outOfOfficeTimeRangeHelp_msg": "Marque para escolher datas.",
 		"outOfOfficeUnencrypted_msg": "Por favor, note que as respostas automáticas(autorresposta) são enviadas descriptografadas.",
-		"outOfSync_label": "Dados expirados",
+		"dataExpired_label": "Dados expirados",
 		"overwrite_action": "Substituir",
 		"owner_label": "Proprietário",
 		"pageBackward_label": "Página anterior",
