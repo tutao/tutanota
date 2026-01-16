@@ -1,5 +1,5 @@
 import m, { Vnode } from "mithril"
-import { assertMainOrNode, isIOSApp } from "../api/common/Env"
+import { assertMainOrNode, isDesktop, isIOSApp } from "../api/common/Env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
@@ -213,7 +213,9 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		else if (this.wizardViewModel.referralData && !this.wizardViewModel.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
 		SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
 
-		this.unregisterListener = windowFacade.addWindowCloseListener(() => {})
+		if (!isDesktop()) {
+			this.unregisterListener = windowFacade.addWindowCloseListener(async () => {})
+		}
 
 		m.redraw()
 	}
