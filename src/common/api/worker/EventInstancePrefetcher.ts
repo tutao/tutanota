@@ -1,7 +1,7 @@
 import { EntityUpdateData, PrefetchStatus } from "../common/utils/EntityUpdateUtils"
 import { ConversationEntryTypeRef, Mail, MailDetailsBlobTypeRef, MailTypeRef, TutanotaPropertiesTypeRef } from "../entities/tutanota/TypeRefs"
 import { elementIdPart, getElementId, isElementEntity, listIdPart } from "../common/utils/EntityUtils"
-import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
 import { OperationType } from "../common/TutanotaConstants"
@@ -9,6 +9,8 @@ import { ElementEntity, ListElementEntity, SomeEntity } from "../common/EntityTy
 import { CacheMode, type EntityRestInterface } from "./rest/EntityRestClient"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
 import { isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
+
+const EVENT_INSTANCE_PREFETCHER_CHUNK_LIMIT: number = 500
 
 export class EventInstancePrefetcher {
 	constructor(private readonly entityCache: EntityRestInterface) {}
@@ -89,26 +91,33 @@ export class EventInstancePrefetcher {
 	): Promise<void> {
 		for (const [typeRefString, groupedListIds] of preloadMap.entries()) {
 			const typeRef = parseTypeString(typeRefString) as TypeRef<SomeEntity>
-			for (const [listId, elementIdsAndIndexes] of groupedListIds.entries()) {
+			for (const [listId, indexesByElementId] of groupedListIds.entries()) {
 				if (listId === "") {
-					await this.loadElementEntities(typeRef as TypeRef<ElementEntity>, allEventsFromAllBatch, elementIdsAndIndexes, progressMonitor)
-				} else if (elementIdsAndIndexes.size > 1) {
+					await this.loadElementEntities(typeRef as TypeRef<ElementEntity>, allEventsFromAllBatch, indexesByElementId, progressMonitor)
+				} else if (indexesByElementId.size > 1) {
 					// This prevents requests to lists containing single element
 					try {
-						const elementIds = Array.from(elementIdsAndIndexes.keys())
-						const instances = await this.entityCache.loadMultiple<ListElementEntity>(
-							typeRef as TypeRef<ListElementEntity>,
-							listId,
-							elementIds,
-							undefined,
-							{
-								cacheMode: CacheMode.WriteOnly,
-							},
-						)
-						if (isSameTypeRef(MailTypeRef, typeRef)) {
-							await this.fetchMailDetailsBlob(instances)
-						}
-						this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, elementIdsAndIndexes, progressMonitor)
+						const elementIds = Array.from(indexesByElementId.keys())
+						const elementIdsChunks = splitInChunks(EVENT_INSTANCE_PREFETCHER_CHUNK_LIMIT, elementIds)
+
+						await promiseMap(elementIdsChunks, async (elementIdsForChunk) => {
+							const indexesByElementIdForChunk = new Map(
+								elementIdsForChunk.map((elementId) => [elementId, assertNotNull(indexesByElementId.get(elementId))]),
+							)
+							const instances = await this.entityCache.loadMultiple<ListElementEntity>(
+								typeRef as TypeRef<ListElementEntity>,
+								listId,
+								elementIdsForChunk,
+								undefined,
+								{
+									cacheMode: CacheMode.WriteOnly,
+								},
+							)
+							if (isSameTypeRef(MailTypeRef, typeRef)) {
+								await this.fetchMailDetailsBlob(instances)
+							}
+							this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, indexesByElementIdForChunk, progressMonitor)
+						})
 					} catch (e) {
 						if (isExpectedErrorForSynchronization(e)) {
 							console.log(`could not preload, probably lost group membership ( or not added yet ) for list ${typeRefString}/${listId}`)
