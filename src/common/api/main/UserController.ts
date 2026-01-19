@@ -264,6 +264,11 @@ export class UserController {
 					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
 					apiUrl.searchParams.append("cv", env.versionNumber)
+					// atleast in the iOS WebView, we _have_ to use a http(s) URL to sendBeacon to not error out.
+					// our apiUrl is a api(s):// url on iOS, so we just replace the protocol in that case.
+					if (apiUrl.protocol.startsWith("api")) {
+						apiUrl.protocol = apiUrl.protocol.replace("api", "http")
+					}
 					const requestObject = JSON.stringify({
 						[1596]: "0", // _format
 						[1597]: this.accessToken, // accessToken
