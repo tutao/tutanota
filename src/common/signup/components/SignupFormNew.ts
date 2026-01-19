@@ -201,7 +201,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 			onChecked: this._confirmTerms,
 		}
 		const confirmAccountLimitCheckboxAttrs: CheckboxAttrs = {
-			label: () => (a.signupViewModel.targetPlanType === PlanType.Free ? lang.get("confirmFreeLimits_msg") : lang.get("confirmPrivateUse_msg")),
+			label: () => lang.get("confirmFreeLimits_msg"),
 			checked: this._confirmPersonalAccountLimit,
 			onChecked: (val: boolean) => (this._confirmPersonalAccountLimit = val),
 		}
@@ -260,7 +260,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 									})
 								: null,
 							m(".flex.col.gap-4.smaller.justify-start.mt-16", [
-								!a.signupViewModel.options.businessUse() && m(Checkbox, confirmAccountLimitCheckboxAttrs),
+								a.signupViewModel.targetPlanType === PlanType.Free && m(Checkbox, confirmAccountLimitCheckboxAttrs),
 								m(Checkbox, confirmTermsCheckBoxAttrs),
 								m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							]),
