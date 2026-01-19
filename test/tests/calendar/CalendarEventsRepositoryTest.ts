@@ -113,7 +113,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
 				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
-				await entityEventsListener!(updates, initialCalendarGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId, null)
 
 				// Assert
 				const eventStartOfDay = getStartOfDay(eventStartDate).getTime()
@@ -150,7 +150,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
 				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
-				await entityEventsListener!(updates, initialCalendarGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId, null)
 
 				// Assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
@@ -195,13 +195,13 @@ o.spec("CalendarEventRepositoryTest", function () {
 				newCalendarMembership.group = newCalendarGroupId
 				when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership, newCalendarMembership])
 
-				await entityEventsListener!([userUpdateEventUpdate], userGroupId)
+				await entityEventsListener!([userUpdateEventUpdate], userGroupId, null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
-				await entityEventsListener!([calendarEventUpdate], newCalendarGroupId)
+				await entityEventsListener!([calendarEventUpdate], newCalendarGroupId, null)
 
 				// Assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
@@ -241,7 +241,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
 				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
-				await entityEventsListener!(updates, initialCalendarGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId, null)
 
 				// assert
 
@@ -261,7 +261,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
 				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
-				await entityEventsListener!(updates, initialCalendarGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId, null)
 
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
@@ -284,7 +284,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
 				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
-				await entityEventsListener!(updates, initialCalendarGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId, null)
 
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
@@ -310,7 +310,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
 				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
-				await entityEventsListener!(updates, initialCalendarGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId, null)
 
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()

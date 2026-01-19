@@ -3,7 +3,16 @@ import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMon
 import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
 import { takeFromMap } from "@tutao/tutanota-utils"
 
-export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor" | "totalWorkDoneForMonitor">
+export type ExposedProgressTracker = Pick<
+	ProgressTracker,
+	| "registerMonitor"
+	| "workDoneForMonitor"
+	| "totalWorkDoneForMonitor"
+	| "updateTotalWorkForMonitor"
+	| "isDoneForMonitor"
+	| "workCompletedForMonitor"
+	| "isDone"
+>
 
 /**
  * The progress tracker controls the progress bar located in Header.js
@@ -48,12 +57,23 @@ export class ProgressTracker {
 		this.getMonitor(id)?.workDone(amount)
 	}
 
+	async updateTotalWorkForMonitor(id: ProgressMonitorId, totalWork: number): Promise<void> {
+		this.getMonitor(id)?.updateTotalWork(totalWork)
+	}
+
 	async totalWorkDoneForMonitor(id: ProgressMonitorId, totalAmount: number): Promise<void> {
 		this.getMonitor(id)?.totalWorkDone(totalAmount)
 	}
 
-	/** Removes the monitor from the monitors map before calling completed on it */
-	private workCompletedForMonitor(id: ProgressMonitorId): void {
+	async totalWorkForMonitor(id: ProgressMonitorId): Promise<number> {
+		return this.getMonitor(id)?.totalWork ?? 0
+	}
+	async isDoneForMonitor(id: ProgressMonitorId): Promise<boolean> {
+		return this.getMonitor(id)?.isDone() ?? true
+	}
+
+	/** Removes the monitor from the monitor map before calling completed on it */
+	workCompletedForMonitor(id: ProgressMonitorId): void {
 		takeFromMap(this.monitors, id).item?.completed()
 	}
 
@@ -102,5 +122,9 @@ export class ProgressTracker {
 		const completedWork = this.completedWork()
 		// no work to do means you have done all the work
 		return totalWork !== 0 ? Math.min(1, completedWork / totalWork) : 1
+	}
+
+	isDone(): boolean {
+		return this.completedAmount() >= 1
 	}
 }

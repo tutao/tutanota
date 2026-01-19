@@ -1,10 +1,11 @@
-import { identity } from "@tutao/tutanota-utils"
+import { identity, Nullable } from "@tutao/tutanota-utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNode } from "../common/Env"
 import { WebsocketCounterData } from "../entities/sys/TypeRefs"
 import { EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
+import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 
 assertMainOrNode()
 
@@ -12,7 +13,11 @@ export type ExposedEventController = Pick<EventController, "onEntityUpdateReceiv
 
 const TAG = "[EventController]"
 
-export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<unknown>
+export type EntityEventsListener = (
+	updates: ReadonlyArray<EntityUpdateData>,
+	eventOwnerGroupId: Id,
+	eventQueueProgressMonitorId: Nullable<ProgressMonitorId>,
+) => Promise<unknown>
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
@@ -40,18 +45,18 @@ export class EventController {
 		return this.countersStream.map(identity)
 	}
 
-	async onEntityUpdateReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdateReceived(
+		entityUpdates: readonly EntityUpdateData[],
+		eventOwnerGroupId: Id,
+		eventQueueProgressMonitorId?: ProgressMonitorId,
+	): Promise<void> {
 		if (this.logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
 			await this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
-		}
-		for (const listener of this.entityListeners) {
-			// run listeners async to speed up processing
-			// we ran it sequentially before to prevent parallel loading of instances
-			// this should not be a problem anymore as we prefetch now
 
-			// noinspection ES6MissingAwait
-			listener(entityUpdates, eventOwnerGroupId)
+			for (const listener of this.entityListeners) {
+				await listener(entityUpdates, eventOwnerGroupId, eventQueueProgressMonitorId ?? null)
+			}
 		}
 	}
 

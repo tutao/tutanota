@@ -26,6 +26,7 @@ import { RolloutFacade } from "./facades/RolloutFacade"
 import { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../main/SyncTracker"
 import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
+import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -50,10 +51,15 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.connectivityListener.updateWebSocketState(state)
 	}
 
-	async onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
+	async onEntityEventsReceived(
+		events: readonly EntityUpdateData[],
+		batchId: Id,
+		groupId: Id,
+		eventQueueProgressMonitorId?: ProgressMonitorId,
+	): Promise<void> {
 		await this.entityEventsReceived(events)
 		await (await this.mailFacade()).entityEventsReceived(events)
-		await this.eventController.onEntityUpdateReceived(events, groupId)
+		await this.eventController.onEntityUpdateReceived(events, groupId, eventQueueProgressMonitorId)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
 		if (!isTest() && !isAdminClient()) {

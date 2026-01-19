@@ -55,6 +55,8 @@ import { TutanotaError } from "@tutao/tutanota-error"
 import { isExpectedErrorForSynchronization } from "../../../common/api/common/utils/ErrorUtils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { isWebClient } from "../../../common/api/common/Env"
+import { ProgressMonitorId } from "../../../common/api/common/utils/ProgressMonitor"
+import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -93,11 +95,12 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
 		private readonly processInboxHandler: () => ProcessInboxHandler,
+		private readonly progessTracker: ProgressTracker,
 	) {}
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener((updates, _, eventQueueProgressMonitorId) => this.entityEventsReceived(updates, eventQueueProgressMonitorId))
 
 		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)
@@ -186,7 +189,7 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventQueueProgressMonitorId: Nullable<ProgressMonitorId> = null): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 				await this.init()
@@ -198,6 +201,7 @@ export class MailModel {
 					return
 				}
 
+				// check early to prevent loading the mailbox details
 				if (!mail.processNeeded) {
 					return
 				}
@@ -218,6 +222,16 @@ export class MailModel {
 				}
 				if (isWebClient()) {
 					this._showNotification(targetFolder, mail)
+				}
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
+				if (eventQueueProgressMonitorId) {
+					const mailId: IdTuple = [update.instanceListId, update.instanceId]
+					const mail = await this.loadMail(mailId)
+
+					// complete work when the mail is processed or deleted
+					if (mail == null || !mail.processNeeded) {
+						this.progessTracker.workDoneForMonitor(eventQueueProgressMonitorId, 1)
+					}
 				}
 			}
 		}

@@ -203,9 +203,6 @@ export class CryptoFacade {
 	 * @throws {Error} if `instance.bucketKey == null`
 	 */
 	public async resolveWithBucketKey(instance: Entity): Promise<ResolvedSessionKeys> {
-		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		const bucketKey = assertNotNull(instance.bucketKey)
-
 		const instanceSessionKeysFromCache = this.instanceSessionKeysCache.get(instance)
 		if (instanceSessionKeysFromCache) {
 			const instanceId = assertNotNull(instance._id)
@@ -221,6 +218,9 @@ export class CryptoFacade {
 				instanceSessionKeys: instanceSessionKeysFromCache,
 			}
 		}
+
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+		const bucketKey = assertNotNull(instance.bucketKey)
 
 		let decryptedBucketKey: AesKey
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null

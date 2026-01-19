@@ -18,11 +18,9 @@ export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum
 	vector: Uint8Array
 }
 
-const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
+const DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
 
 export class ProcessInboxHandler {
-	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
-
 	constructor(
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
@@ -30,10 +28,10 @@ export class ProcessInboxHandler {
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
-		private readonly debounceTimeout: number = DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
+		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
-		this.sendProcessInboxServiceRequest = throttle(this.debounceTimeout, async (mailFacade: MailFacade) => {
-			// we debounce the requests to a rate of DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS
+		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
+			// we debounce the requests to a rate of DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS
 			if (this.processedMailsByMailGroup.size > 0) {
 				// copy map to prevent inserting into map while we await the server
 				const map = this.processedMailsByMailGroup
@@ -58,6 +56,8 @@ export class ProcessInboxHandler {
 			}
 		})
 	}
+
+	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
 
 	public async handleIncomingMail(
 		mail: Mail,

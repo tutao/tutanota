@@ -80,6 +80,7 @@ o.spec("MailModelTest", function () {
 			mailFacade,
 			connectivityModel,
 			() => object(),
+			object(),
 		)
 	})
 
@@ -146,6 +147,7 @@ o.spec("MailModelTest", function () {
 					mailFacade,
 					connectivityModel,
 					() => processInboxHandler,
+					object(),
 				),
 				(m: MailModel) => {
 					m.getFolderSystemByGroupId = (groupId) => {

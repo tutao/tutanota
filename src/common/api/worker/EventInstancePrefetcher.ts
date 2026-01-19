@@ -100,6 +100,13 @@ export class EventInstancePrefetcher {
 						const elementIds = Array.from(indexesByElementId.keys())
 						const elementIdsChunks = splitInChunks(EVENT_INSTANCE_PREFETCHER_CHUNK_LIMIT, elementIds)
 
+						// update the total work done for progress bar for mail instances
+						// this work is later done in the MailModel#entityEventsReceived when the mail is processNeeded = false,
+						// and we receive the entity update for the ProcessInboxService call.
+						if (isSameTypeRef(MailTypeRef, typeRef)) {
+							progressMonitor.updateTotalWork(progressMonitor.totalWork + elementIds.length)
+						}
+
 						await promiseMap(elementIdsChunks, async (elementIdsForChunk) => {
 							const indexesByElementIdForChunk = new Map(
 								elementIdsForChunk.map((elementId) => [elementId, assertNotNull(indexesByElementId.get(elementId))]),

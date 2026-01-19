@@ -47,6 +47,7 @@ import { AttributeModel } from "../common/AttributeModel"
 import { newSyncMetrics } from "./utils/SyncMetrics"
 import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
 import { hasError } from "../common/utils/ErrorUtils"
+import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 
 assertWorkerOrNode()
 
@@ -97,7 +98,7 @@ export interface EventBusListener {
 
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): unknown
 
-	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void>
+	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, eventQueueProgressMonitorId?: ProgressMonitorId): Promise<void>
 
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
@@ -579,6 +580,10 @@ export class EventBusClient {
 
 		// We only have the correct amount of total work after adding all entity event batches.
 		// The progress for processed batches is tracked inside the event queue.
+
+		// On the prefetcher we add additional total work for every Mail created or updated.
+		// This additional work is then completed during the entity event processing in MailModel
+		// when the entity event for the ProcessInboxService is received and processNeeded = false for the mail.
 		const progressMonitor = new ProgressMonitorDelegate(this.progressTracker, totalExpectedBatches + allEventsFlatMapSize + 1)
 		console.log("ws", `progress monitor expects ${totalExpectedBatches} batches`)
 		await progressMonitor.workDone(1) // show progress right away
@@ -717,7 +722,10 @@ export class EventBusClient {
 		try {
 			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(batch.events, batch.batchId, batch.groupId)
-			if (!this.isTerminated()) await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId)
+			if (!this.isTerminated()) {
+				const progressMonitorId = await this.eventQueue.getProgressMonitor()?.progressMonitorId
+				await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId, progressMonitorId)
+			}
 
 			if (batch.batchId === this.lastInitialEventBatch) {
 				console.log("Reached final event, sync is done")
