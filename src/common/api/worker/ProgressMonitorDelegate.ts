@@ -4,12 +4,19 @@ import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 /** A wrapper that will send completed work remotely */
 export class ProgressMonitorDelegate implements IProgressMonitor {
 	private readonly ref: Promise<ProgressMonitorId>
+	totalWork: number
 
 	constructor(
 		private readonly progressTracker: ExposedProgressTracker,
-		readonly totalWork: number,
+		totalWork: number,
 	) {
+		this.totalWork = totalWork
 		this.ref = progressTracker.registerMonitor(totalWork)
+	}
+
+	async updateTotalWork(value: number) {
+		this.totalWork = value
+		await this.progressTracker.updateTotalWorkForMonitor(await this.ref, this.totalWork)
 	}
 
 	async workDone(amount: number) {
