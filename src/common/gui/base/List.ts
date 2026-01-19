@@ -211,6 +211,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 
 	private initializeDom(dom: HTMLElement, renderConfig: RenderConfig<T, VH>) {
 		const rows: ListRow<T, VH>[] = []
+
 		m.render(
 			dom,
 			// hardcoded number of elements for now

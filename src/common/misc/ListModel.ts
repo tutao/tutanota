@@ -578,6 +578,7 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	canInsertItem(entity: ItemType): boolean {
+		console.log(this.state.loadingStatus)
 		if (this.state.loadingStatus === ListLoadingState.Done) {
 			// If the entire list is loaded, it is always safe to add items, because we can assume we have the entire
 			// range loaded

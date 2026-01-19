@@ -407,9 +407,14 @@ export class ConversationListModel implements MailSetListModel {
 						this.olderDisplayedSelectedMailOverride = null
 					}
 				}
+				const processNeededMail = this.items.find((mail) => mail.processNeeded)
+				let itemsToShow: Mail[] = this.items.filter((mail) => !mail.processNeeded)
+				if (processNeededMail) {
+					itemsToShow = [processNeededMail, ...itemsToShow]
+				}
 				const newState: ListState<Mail> = {
 					...state,
-					items: this.items.filter((mail) => !mail.processNeeded),
+					items: itemsToShow,
 					selectedItems: new Set(this.getSelectedAsArray()),
 				}
 				return newState

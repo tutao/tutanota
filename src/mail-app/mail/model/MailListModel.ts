@@ -93,9 +93,14 @@ export class MailListModel implements MailSetListModel {
 		() => this.listModel.stateStream,
 		(stateStream) =>
 			stateStream.map((state) => {
+				const processNeededMail = this.items.find((mail) => mail.processNeeded)
+				let itemsToShow: Mail[] = this.items.filter((mail) => !mail.processNeeded)
+				if (processNeededMail) {
+					itemsToShow = [processNeededMail, ...itemsToShow]
+				}
 				const newState: ListState<Mail> = {
 					...state,
-					items: this.items.filter((mail) => !mail.processNeeded),
+					items: itemsToShow,
 					selectedItems: new Set(this.getSelectedAsArray()),
 				}
 				return newState
@@ -183,6 +188,7 @@ export class MailListModel implements MailSetListModel {
 				const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
 				await this.listModel.waitLoad(async () => {
 					if (this.listModel.canInsertItem(loadedMail)) {
+						console.log("Inserting mail into list")
 						this.listModel.insertLoadedItem(loadedMail)
 					}
 				})
@@ -354,6 +360,7 @@ export class MailListModel implements MailSetListModel {
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
 		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
+		console.log(loadedMails[0])
 		this.updateMailMap(loadedMails)
 		return assertNotNull(loadedMails[0])
 	}
