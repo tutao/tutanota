@@ -1,4 +1,4 @@
-import { getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
+import { getMailFolderType, MailSetKind, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
@@ -14,7 +14,7 @@ import {
 	setVisibility,
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
-import { component_size, px, size } from "../../../common/gui/size.js"
+import { component_size, font_size, px, size } from "../../../common/gui/size.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
@@ -28,6 +28,7 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
+import { Skeleton } from "../../../common/gui/base/Skeleton"
 import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 
 const iconMap: Record<MailSetKind, string> = {
@@ -55,11 +56,14 @@ const MAX_DISPLAYED_LABELS = 6
 
 export class MailRow implements VirtualRow<Mail> {
 	top: number
+	private processedDomElement: HTMLElement | null = null
 	private domElement: HTMLElement | null = null
 
 	entity: Mail | null = null
 	private subjectDom!: HTMLElement
+	private loadingSubjectDom!: HTMLElement
 	private senderDom!: HTMLElement
+	private loadingSenderDom!: HTMLElement
 
 	private dateDom!: HTMLElement
 	private iconsDom!: HTMLElement
@@ -84,8 +88,9 @@ export class MailRow implements VirtualRow<Mail> {
 	}
 
 	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
-		const oldEntity = this.entity
+		const oldEntity = structuredClone(this.entity)
 		this.entity = mail
+
 		const oldHighlightedStrings = this.highlightedStrings
 		this.highlightedStrings = this.getHighlightedStrings?.()
 
@@ -102,7 +107,7 @@ export class MailRow implements VirtualRow<Mail> {
 		// This requires assuming the following:
 		// - `this.getHighlightedStrings()` will return the same array instance if the query hasn't changed
 		// - `mail` will be a different instance if the entity was changed on the server
-		if (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings) {
+		if (!this.entity.processNeeded && (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings)) {
 			setHTMLElementTextWithHighlighting(this.senderDom, senderString, this.highlightedStrings)
 			setHTMLElementTextWithHighlighting(this.subjectDom, mail.subject, this.highlightedStrings)
 		}
@@ -113,31 +118,52 @@ export class MailRow implements VirtualRow<Mail> {
 			this.senderDom.classList.add("b")
 		} else {
 			this.unreadDom.classList.add("hidden")
-
 			this.subjectDom.classList.remove("b")
 			this.senderDom.classList.remove("b")
 		}
-		const labels = this.updateLabels(mail)
 
-		const isTeamMail = isTutanotaTeamMail(mail)
-		setVisibility(this.teamLabelDom, isTeamMail)
 		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
 
 		checkboxOpacity(this.checkboxDom, selected)
 
-		if (this.domElement) {
-			let labelsText = ""
-			for (const label of labels) {
-				labelsText += label.name + " "
-			}
-			const description = `${isTeamMail ? companyTeamLabel : ""} ${senderString} ${mail.subject} ${labelsText} ${formattedDate} ${mail.unread ? lang.get("unread_label") : ""} ${iconInformation.description} `
-			this.domElement.ariaLabel = description
-			// VoiceOver on iOS will read both aria-label and aria-description
-			// and it NEEDS to have aria-label or it won't read it at all.
-			// Some other readers e.g. TalkBack need aria-description instead
-			// (at least if it's a child of <li>).
-			if (!client.isIos()) {
-				this.domElement.ariaDescription = description
+		const labels = this.updateLabels(mail)
+		if (this.entity.processNeeded) {
+			setVisibility(this.loadingSubjectDom, true)
+			setVisibility(this.loadingSenderDom, true)
+			setVisibility(this.senderDom, false)
+			setVisibility(this.subjectDom, false)
+			setVisibility(this.dateDom, false)
+			setVisibility(this.iconsDom, false)
+			setVisibility(this.unreadDom, false)
+			setVisibility(this.teamLabelDom, false)
+			setVisibility(this.checkboxDom, false)
+			this.labelsDom.map((labelDom) => setVisibility(labelDom, false))
+		} else {
+			setVisibility(this.loadingSubjectDom, false)
+			setVisibility(this.loadingSenderDom, false)
+			setVisibility(this.senderDom, true)
+			setVisibility(this.subjectDom, true)
+			setVisibility(this.dateDom, true)
+			setVisibility(this.iconsDom, true)
+			setVisibility(this.unreadDom, true)
+			setVisibility(this.checkboxDom, true)
+
+			const isTeamMail = isTutanotaTeamMail(mail)
+			setVisibility(this.teamLabelDom, isTeamMail)
+			if (this.domElement) {
+				let labelsText = ""
+				for (const label of labels) {
+					labelsText += label.name + " "
+				}
+				const description = `${isTeamMail ? companyTeamLabel : ""} ${senderString} ${mail.subject} ${labelsText} ${formattedDate} ${mail.unread ? lang.get("unread_label") : ""} ${iconInformation.description} `
+				this.domElement.ariaLabel = description
+				// VoiceOver on iOS will read both aria-label and aria-description
+				// and it NEEDS to have aria-label or it won't read it at all.
+				// Some other readers e.g. TalkBack need aria-description instead
+				// (at least if it's a child of <li>).
+				if (!client.isIos()) {
+					this.domElement.ariaDescription = description
+				}
 			}
 		}
 	}
@@ -312,6 +338,14 @@ export class MailRow implements VirtualRow<Mail> {
 							m(".text-ellipsis", {
 								oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
 							}),
+							m(Skeleton, {
+								style: {
+									width: "50%",
+									height: px(font_size.base + 4),
+									backgroundColor: theme.surface_container_highest,
+								},
+								oncreate: (vnode) => (this.loadingSenderDom = vnode.dom as HTMLElement),
+							}),
 							m(
 								".flex.flex-grow-shrink-0.justify-end",
 								{
@@ -330,6 +364,14 @@ export class MailRow implements VirtualRow<Mail> {
 							m(".smaller.text-ellipsis", {
 								"data-testid": "list-row:mail:subject",
 								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
+							}),
+							m(Skeleton, {
+								style: {
+									width: "70%",
+									height: px(font_size.smaller + 4),
+									backgroundColor: theme.surface_container_highest,
+								},
+								oncreate: (vnode) => (this.loadingSubjectDom = vnode.dom as HTMLElement),
 							}),
 							m(".flex-grow"),
 							m("span.ion.ml-8.list-font-icons", {
