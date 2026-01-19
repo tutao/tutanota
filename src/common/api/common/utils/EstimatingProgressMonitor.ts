@@ -30,8 +30,8 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 		this.totalWork = totalWork
 	}
 
-	public updateTotalWork(value: number) {
-		this.totalWork = value
+	public updateTotalWork(totalWork: number) {
+		this.totalWork = totalWork
 	}
 
 	public continueEstimation() {

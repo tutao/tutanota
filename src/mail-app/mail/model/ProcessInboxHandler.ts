@@ -2,13 +2,16 @@ import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, debounce, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { isSameId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { LockedError } from "../../../common/api/common/error/RestError"
+import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
+import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 
 assertMainOrNode()
 
@@ -16,21 +19,22 @@ export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum
 	vector: Uint8Array
 }
 
-const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
+const DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
 
 export class ProcessInboxHandler {
-	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
+	private processInboxProgressMonitor: ProgressMonitorDelegate | null = null
 
 	constructor(
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
+		private progressTracker: ProgressTracker,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
-		private readonly debounceTimeout: number = DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
+		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
-		this.sendProcessInboxServiceRequest = throttle(this.debounceTimeout, async (mailFacade: MailFacade) => {
-			// we debounce the requests to a rate of DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS
+		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
+			// we debounce the requests to a rate of DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS
 			if (this.processedMailsByMailGroup.size > 0) {
 				// copy map to prevent inserting into map while we await the server
 				const map = this.processedMailsByMailGroup
@@ -38,12 +42,34 @@ export class ProcessInboxHandler {
 				for (const [mailGroup, processedMails] of map) {
 					// send request to server
 					if (!isEmpty(processedMails)) {
-						await mailFacade.processNewMails(mailGroup, processedMails)
+						if (this.processInboxProgressMonitor) {
+							const newTotalWork = this.processInboxProgressMonitor.totalWork + processedMails.length
+							this.processInboxProgressMonitor.updateTotalWork(newTotalWork)
+						} else {
+							this.processInboxProgressMonitor = new ProgressMonitorDelegate(this.progressTracker, processedMails.length)
+						}
+
+						try {
+							await mailFacade.processNewMails(mailGroup, processedMails)
+						} catch (e) {
+							if (e instanceof LockedError) {
+								// retry in case of LockedError
+								this.processInboxProgressMonitor.workDone(processedMails.length)
+
+								this.processedMailsByMailGroup.set(mailGroup, processedMails)
+								this.sendProcessInboxServiceRequest(mailFacade)
+							} else {
+								console.log("error during processInboxService call:", e.name, processedMails.length)
+								throw e
+							}
+						}
 					}
 				}
 			}
 		})
 	}
+
+	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
 
 	public async handleIncomingMail(
 		mail: Mail,
@@ -112,6 +138,37 @@ export class ProcessInboxHandler {
 			// noinspection ES6MissingAwait
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
+		return moveToFolder
+	}
+
+	public async handleProcessedMail(mail: Mail) {
+		if (mail.processNeeded) {
+			return
+		}
+		this.processInboxProgressMonitor?.workDone(1)
+	}
+
+	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
+		// These should be in process by the regular handler and be eventually processed
+		if (mail.processNeeded) {
+			return sourceFolder
+		}
+		let moveToFolder: MailSet = sourceFolder
+		// process excluded rules first and then regular ones.
+		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+		if (result) {
+			const { targetFolder, processInboxDatum } = result
+			moveToFolder = targetFolder
+		} else {
+			if (moveToFolder.folderType === MailSetKind.INBOX) {
+				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+				if (result) {
+					const { targetFolder, processInboxDatum } = result
+					moveToFolder = targetFolder
+				}
+			}
+		}
+
 		return moveToFolder
 	}
 }

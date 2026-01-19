@@ -196,6 +196,7 @@ export class MailModel {
 					return
 				}
 
+				// check early to prevent loading the mailbox details
 				if (!mail.processNeeded) {
 					return
 				}
@@ -217,6 +218,13 @@ export class MailModel {
 				if (isWebClient()) {
 					this._showNotification(targetFolder, mail)
 				}
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
+				const mailId: IdTuple = [update.instanceListId, update.instanceId]
+				const mail = await this.loadMail(mailId)
+				if (mail == null) {
+					return
+				}
+				this.processInboxHandler().handleProcessedMail(mail)
 			}
 		}
 	}
