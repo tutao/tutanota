@@ -22,7 +22,7 @@ export default {
 		"accountSwitchSharedCalendar_msg": "Bitte lösche alle mit Dir geteilten Kalender.",
 		"accountSwitchTooManyActiveUsers_msg": "Bitte deaktiviere alle zusätzlichen Benutzer, dann kann das Abonnement gewechselt werden.",
 		"accountWasStillCreated_msg": "Dein Account wurde trotzdem schon als Free-Account erstellt. Du kannst auch die Zahlung jetzt abbrechen, dich in deinen Account einloggen und dort upgraden.",
-		"accountWillBeDeactivatedIn6Month_label": "Dein Account wird 6 Monate nach dem letzten Login gelöscht",
+		"accountWillBeDeactivatedIn6Month_label": "Dein Free-Account wird 6 Monate nach dem letzten Login gelöscht",
 		"accountWillHaveLessStorage_label": "Dein Account wird auf 1GB Speicher begrenzt",
 		"action_label": "Aktion",
 		"activate_action": "Aktivieren",
