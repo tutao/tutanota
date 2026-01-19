@@ -12,7 +12,11 @@ export interface IProgressMonitor {
 
 	totalWorkDone(totalAmount: number): void
 
+	updateTotalWork(totalWork: number): void
+
 	completed(): void
+
+	isDone(): boolean
 }
 
 /**
@@ -22,12 +26,19 @@ export interface IProgressMonitor {
  */
 export class ProgressMonitor implements IProgressMonitor {
 	workCompleted: number
+	totalWork: number
 
 	constructor(
-		readonly totalWork: number,
+		totalWork: number,
 		private readonly updater: ProgressListener,
 	) {
+		this.totalWork = totalWork
 		this.workCompleted = 0
+	}
+
+	updateTotalWork(totalWork: number) {
+		this.totalWork = totalWork
+		this.updater(this.percentage())
 	}
 
 	workDone(amount: number) {
@@ -49,6 +60,10 @@ export class ProgressMonitor implements IProgressMonitor {
 		this.workCompleted = this.totalWork
 		this.updater(100)
 	}
+
+	isDone(): boolean {
+		return this.workCompleted >= this.totalWork
+	}
 }
 
 export class NoopProgressMonitor implements IProgressMonitor {
@@ -56,7 +71,13 @@ export class NoopProgressMonitor implements IProgressMonitor {
 
 	totalWorkDone(totalAmount: number) {}
 
+	updateTotalWork(totalWork: number) {}
+
 	completed() {}
+
+	isDone(): boolean {
+		return true
+	}
 }
 
 export function makeTrackedProgressMonitor(tracker: ProgressTracker, totalWork: number): IProgressMonitor {

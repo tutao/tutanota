@@ -3,7 +3,10 @@ import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMon
 import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
 import { takeFromMap } from "@tutao/tutanota-utils"
 
-export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor" | "totalWorkDoneForMonitor">
+export type ExposedProgressTracker = Pick<
+	ProgressTracker,
+	"registerMonitor" | "workDoneForMonitor" | "totalWorkDoneForMonitor" | "updateTotalWorkForMonitor" | "isDone"
+>
 
 /**
  * The progress tracker controls the progress bar located in Header.js
@@ -46,6 +49,10 @@ export class ProgressTracker {
 
 	async workDoneForMonitor(id: ProgressMonitorId, amount: number): Promise<void> {
 		this.getMonitor(id)?.workDone(amount)
+	}
+
+	async updateTotalWorkForMonitor(id: ProgressMonitorId, totalWork: number): Promise<void> {
+		this.getMonitor(id)?.updateTotalWork(totalWork)
 	}
 
 	async totalWorkDoneForMonitor(id: ProgressMonitorId, totalAmount: number): Promise<void> {
@@ -102,5 +109,9 @@ export class ProgressTracker {
 		const completedWork = this.completedWork()
 		// no work to do means you have done all the work
 		return totalWork !== 0 ? Math.min(1, completedWork / totalWork) : 1
+	}
+
+	isDone(): boolean {
+		return this.completedAmount() >= 1
 	}
 }

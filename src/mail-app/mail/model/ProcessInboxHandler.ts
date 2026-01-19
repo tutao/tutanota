@@ -11,6 +11,8 @@ import { isSameId, StrippedEntity } from "../../../common/api/common/utils/Entit
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
 import { LockedError } from "../../../common/api/common/error/RestError"
+import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
+import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 
 assertMainOrNode()
 
@@ -18,10 +20,10 @@ export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum
 	vector: Uint8Array
 }
 
-const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
+const DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
 
 export class ProcessInboxHandler {
-	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
+	private processInboxProgressMonitor: ProgressMonitorDelegate | null = null
 
 	constructor(
 		private readonly logins: LoginController,
@@ -29,11 +31,12 @@ export class ProcessInboxHandler {
 		private readonly cryptoFacade: CryptoFacade,
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
+		private progressTracker: ProgressTracker,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
-		private readonly debounceTimeout: number = DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
+		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
-		this.sendProcessInboxServiceRequest = throttle(this.debounceTimeout, async (mailFacade: MailFacade) => {
-			// we debounce the requests to a rate of DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS
+		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
+			// we debounce the requests to a rate of DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS
 			if (this.processedMailsByMailGroup.size > 0) {
 				// copy map to prevent inserting into map while we await the server
 				const map = this.processedMailsByMailGroup
@@ -42,10 +45,19 @@ export class ProcessInboxHandler {
 					// send request to server
 					if (!isEmpty(processedMails)) {
 						try {
+							if (this.processInboxProgressMonitor && !this.processInboxProgressMonitor.isDone()) {
+								const newTotalWork = this.processInboxProgressMonitor.totalWork + processedMails.length
+								this.processInboxProgressMonitor.updateTotalWork(newTotalWork)
+							} else {
+								this.processInboxProgressMonitor = new ProgressMonitorDelegate(this.progressTracker, processedMails.length)
+							}
+							this.processInboxProgressMonitor.workDone(processedMails.length * 0.2)
 							await mailFacade.processNewMails(mailGroup, processedMails)
 						} catch (e) {
 							if (e instanceof LockedError) {
 								// retry in case of LockedError
+								this.processInboxProgressMonitor?.completed()
+
 								this.processedMailsByMailGroup.set(mailGroup, processedMails)
 								this.sendProcessInboxServiceRequest(mailFacade)
 							} else {
@@ -58,6 +70,8 @@ export class ProcessInboxHandler {
 			}
 		})
 	}
+
+	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
 
 	public async handleIncomingMail(
 		mail: Mail,
@@ -134,6 +148,15 @@ export class ProcessInboxHandler {
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
 		return moveToFolder
+	}
+
+	public async handleProcessedMail(mail: Mail) {
+		if (mail.processNeeded) {
+			return
+		}
+		// 0.2 work is done immediately after a work per mail is announced when sending the request to show progress immediately,
+		// the remaining 0.8 work are done here after entity event processing for the update event
+		this.processInboxProgressMonitor?.workDone(0.8)
 	}
 
 	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
