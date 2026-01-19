@@ -270,7 +270,9 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 					m(LoginButton, {
 						label: this.readonly ? "continue_action" : "create_new_account_label",
 						onclick: submit,
-						disabled: !this.readonly && (!this._confirmTerms() || (!a.signupViewModel.options.businessUse() && !this._confirmPersonalAccountLimit)),
+						disabled:
+							!this.readonly &&
+							(!this._confirmTerms() || (a.signupViewModel.targetPlanType === PlanType.Free && !this._confirmPersonalAccountLimit)),
 						width: styles.isMobileLayout() ? "full" : "flex",
 					}),
 				),
