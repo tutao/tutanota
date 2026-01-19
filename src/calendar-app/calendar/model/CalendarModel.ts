@@ -886,7 +886,6 @@ export class CalendarModel {
 	private async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
 		try {
-			console.log("TRYING TO GET PARSED CALENDAR DATA")
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
 			if (parsedCalendarData != null) {
 				console.log("PARSED CALENDAR UPDATE FOUND, PROCESSING")
@@ -1051,33 +1050,34 @@ export class CalendarModel {
 	 *
 	 * @param sender
 	 * @param method
-	 * @param updateEvent the actual instance that needs to be updated
-	 * @param updateAlarms
+	 * @param parsedCalendarDataEvent the actual instance that needs to be updated
+	 * @param parsedCalendarDataAlarms
 	 * @param target either the existing event to update or the calendar group Id to create the event in in case of a new event.
 	 */
 	async processCalendarEventMessage(
 		sender: string,
 		method: string,
-		updateEvent: Require<"uid", CalendarEvent>,
-		updateAlarms: Array<AlarmInfoTemplate>,
+		parsedCalendarDataEvent: Require<"uid", CalendarEvent>,
+		parsedCalendarDataAlarms: Array<AlarmInfoTemplate>,
 		target: CalendarEventUidIndexEntry,
 	): Promise<void> {
-		const updateEventTime = updateEvent.recurrenceId?.getTime()
+		const updateEventTime = parsedCalendarDataEvent.recurrenceId?.getTime()
 		const targetDbEvent = updateEventTime == null ? target.progenitor : target.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
+		// this is not a database lookup -- it is looking to see if what was retrieved from the database is an altered instance or a progenitor.
 		if (targetDbEvent == null) {
 			if (method === CalendarMethod.REQUEST) {
 				// we got a REQUEST for which we do not have a saved version of the particular instance (progenitor or altered)
 				// it may be
-				// - a single-instance update that created this altered instance
+				// - a single-instance update that created a brand new altered instance
 				// - the user got the progenitor invite for a series. it's possible that there's
 				//   already altered instances of this series on the server.
-				return await this.processNewCalendarEventRequest(target, updateEvent, updateAlarms, sender)
-			} else if (target.progenitor?.repeatRule != null && updateEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
+				return await this.processAlteredInstanceOrNewEvent(target, parsedCalendarDataEvent, parsedCalendarDataAlarms, sender) // TODO: new altered instances are being processed here as though they are entirely new requests
+			} else if (target.progenitor?.repeatRule != null && parsedCalendarDataEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
 				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
 				// users delete a single instance from a series even though that instance was never published as altered.
 				// we can just add the exclusion to the progenitor. this would be another argument for marking
 				// altered-instance-exclusions in some way distinct from "normal" exclusions
-				target.alteredInstances.push(updateEvent as CalendarEventAlteredInstance)
+				target.alteredInstances.push(parsedCalendarDataEvent as CalendarEventAlteredInstance)
 				// this will now modify the progenitor to have the required exclusions
 				return await this.processCalendarUpdate(target, target.progenitor, target.progenitor)
 			} else {
@@ -1087,9 +1087,9 @@ export class CalendarModel {
 		} else {
 			const sentByOrganizer: boolean = targetDbEvent.organizer != null && targetDbEvent.organizer.address === sender
 			if (method === CalendarMethod.REPLY) {
-				return this.processCalendarReply(sender, targetDbEvent, updateEvent) // TODO: why are alarms NOT passed in here
+				return this.processCalendarReply(sender, targetDbEvent, parsedCalendarDataEvent) // TODO: why are alarms NOT passed in here
 			} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
-				return await this.processCalendarUpdate(target, targetDbEvent, updateEvent)
+				return await this.processCalendarUpdate(target, targetDbEvent, parsedCalendarDataEvent)
 			} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
 				return await this.processCalendarCancellation(targetDbEvent)
 			} else {
@@ -1121,8 +1121,10 @@ export class CalendarModel {
 			}
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
+
+		// When processing calendar update message REQUEST message with changed start time we  want that the guest needs to make a decision about is participation status
 		if (updateEvent.startTime !== dbEvent.startTime) {
-			updateEvent.pendingInvitation = true
+			dbEvent.pendingInvitation = true
 		}
 
 		const calendarEvent = await this.updateEventWithExternal(dbEvent, updateEvent)
@@ -1130,10 +1132,19 @@ export class CalendarModel {
 		// If the update is for the altered occurrence, we do not need to update the progenitor, it already has the exclusion.
 		// If we get into this function we already have the altered occurrence in db.
 		// write the progenitor back to the uid index entry so that the subsequent updates from the same file get the updated instance
+
 		if (calendarEvent.recurrenceId === null) {
 			dbTarget.progenitor = calendarEvent as CalendarEventProgenitor
 		}
 	}
+
+	/**
+	 * Cases to handle:
+	 * - update progenitor
+	 *   - progenitor is does not repeat
+	 *   - progenitor repeats
+	 * - update alteredInstance
+	 */
 
 	/**
 	 * do not call this for anything but a REQUEST
@@ -1142,7 +1153,7 @@ export class CalendarModel {
 	 * @param alarms alarms to set up for this user/event
 	 * @param sender email address that the event request was received from
 	 */
-	private async processNewCalendarEventRequest(
+	private async processAlteredInstanceOrNewEvent(
 		dbTarget: CalendarEventUidIndexEntry,
 		updateEvent: Require<"uid", CalendarEvent>,
 		alarms: Array<AlarmInfoTemplate>,
@@ -1157,9 +1168,10 @@ export class CalendarModel {
 			const updatedProgenitor = clone(dbTarget.progenitor)
 			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId], this.zone)
 			dbTarget.progenitor = (await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)) as CalendarEventProgenitor
+			updateEvent.pendingInvitation = true // TODO: how do we update the ALTERED INSTANCE pendingInvitation status without updating the original event?
 		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
 			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
-			// TODO: figure out what this logic branch is actually for
+			// TODO: figure out -- is this branch for adding a progenitor where you already have already been invited to altered instances?
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
 				updateEvent,
 				dbTarget.alteredInstances.map((r) => r.recurrenceId),
@@ -1235,7 +1247,7 @@ export class CalendarModel {
 		newEvent.repeatRule = icsEvent.repeatRule
 		newEvent.recurrenceId = icsEvent.recurrenceId
 
-		newEvent.pendingInvitation = icsEvent.pendingInvitation
+		// do not take pendingInvitation status from icsEvent, as it will never be part of the ics file.
 
 		return await this.doUpdateEvent(dbEvent, newEvent)
 	}
