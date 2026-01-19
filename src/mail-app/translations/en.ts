@@ -22,7 +22,7 @@ export default {
 		"accountSwitchSharedCalendar_msg": "Please remove all calendars shared with you.",
 		"accountSwitchTooManyActiveUsers_msg": "Please deactivate all additional users before switching the plan.",
 		"accountWasStillCreated_msg": "Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later.",
-		"accountWillBeDeactivatedIn6Month_label": "Your account will be deleted if you don't login for 6 months",
+		"accountWillBeDeactivatedIn6Month_label": "Your free account will be deleted if you don't login for 6 months",
 		"accountWillHaveLessStorage_label": "Your account will only have 1GB of storage",
 		"action_label": "Action",
 		"activate_action": "Activate",
