@@ -44,19 +44,12 @@ export class ProcessInboxHandler {
 				for (const [mailGroup, processedMails] of map) {
 					// send request to server
 					if (!isEmpty(processedMails)) {
-						if (this.processInboxProgressMonitor) {
-							const newTotalWork = this.processInboxProgressMonitor.totalWork + processedMails.length
-							this.processInboxProgressMonitor.updateTotalWork(newTotalWork)
-						} else {
-							this.processInboxProgressMonitor = new ProgressMonitorDelegate(this.progressTracker, processedMails.length)
-						}
-
 						try {
 							await mailFacade.processNewMails(mailGroup, processedMails)
 						} catch (e) {
 							if (e instanceof LockedError) {
 								// retry in case of LockedError
-								this.processInboxProgressMonitor.workDone(processedMails.length)
+								this.processInboxProgressMonitor?.workDone(processedMails.length)
 
 								this.processedMailsByMailGroup.set(mailGroup, processedMails)
 								this.sendProcessInboxServiceRequest(mailFacade)
@@ -144,6 +137,14 @@ export class ProcessInboxHandler {
 		}
 
 		if (sendServerRequest) {
+			if (this.processInboxProgressMonitor) {
+				const newTotalWork = this.processInboxProgressMonitor.totalWork + 5
+				this.processInboxProgressMonitor.updateTotalWork(newTotalWork)
+				this.processInboxProgressMonitor.workDone(1)
+			} else {
+				this.processInboxProgressMonitor = new ProgressMonitorDelegate(this.progressTracker, 5)
+				this.processInboxProgressMonitor.workDone(1)
+			}
 			// noinspection ES6MissingAwait
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
@@ -154,7 +155,7 @@ export class ProcessInboxHandler {
 		if (mail.processNeeded) {
 			return
 		}
-		this.processInboxProgressMonitor?.workDone(1)
+		this.processInboxProgressMonitor?.workDone(4)
 	}
 
 	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
