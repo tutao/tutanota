@@ -420,7 +420,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			}).then(noOp)
 		}
 
-		locator.eventController.addEntityListener(entityEventListener)
+		locator.eventController.addEntityListener(entityEventListener, "invoiceAndPaymentDataPage")
 		const app = client.isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,

@@ -63,7 +63,7 @@ export class GroupSharingModel {
 		this._shareFacade = shareFacade
 		this._groupManagementFacade = groupManagementFacade
 		this.onEntityUpdate = stream()
-		this.eventController.addEntityListener(this.onEntityEvents)
+		this.eventController.addEntityListener(this.onEntityEvents, "groupSharingModel")
 	}
 
 	private readonly onEntityEvents: EntityEventsListener = (events, id) => this.entityEventsReceived(events, id)

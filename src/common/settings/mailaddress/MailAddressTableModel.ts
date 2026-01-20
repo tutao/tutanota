@@ -51,7 +51,7 @@ export class MailAddressTableModel {
 	aliasCount: MailAddressAliasServiceReturn | null = null
 
 	init: () => Promise<void> = lazyMemoized(async () => {
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityListener(this.entityEventsReceived, "mailAddressTableModel")
 
 		// important: "not on legacy plan" is true for free plans
 		const userController = this.logins.getUserController()

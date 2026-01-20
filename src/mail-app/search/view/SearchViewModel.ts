@@ -259,7 +259,7 @@ export class SearchViewModel {
 		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => {
 			this.onMailboxesChanged(mailboxes)
 		})
-		this.eventController.addEntityListener(this.entityEventsListener)
+		this.eventController.addEntityListener(this.entityEventsListener, "searchViewModel")
 		await this.offlineStorageSettings?.init()
 	}
 

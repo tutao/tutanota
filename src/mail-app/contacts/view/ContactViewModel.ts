@@ -59,7 +59,7 @@ export class ContactViewModel {
 	}
 
 	private readonly initOnce = lazyMemoized(() => {
-		this.eventController.addEntityListener(this.entityListener)
+		this.eventController.addEntityListener(this.entityListener, "contactViewModel")
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
 			this.updateUrl()

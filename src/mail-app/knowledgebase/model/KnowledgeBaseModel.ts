@@ -54,7 +54,7 @@ export class KnowledgeBaseModel {
 			return this._entityUpdate(updates)
 		}
 
-		this._eventController.addEntityListener(this._entityEventReceived)
+		this._eventController.addEntityListener(this._entityEventReceived, "knowledgeBaseModel")
 
 		this._groupInstances = []
 		this._allKeywords = []

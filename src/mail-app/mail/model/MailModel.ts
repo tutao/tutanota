@@ -97,7 +97,7 @@ export class MailModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates), "mailModel")
 
 		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)

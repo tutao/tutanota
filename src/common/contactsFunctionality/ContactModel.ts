@@ -46,7 +46,7 @@ export class ContactModel {
 		private readonly contactSearchFacade: ContactSearchFacade | null,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityListener(this.entityEventsReceived, "contactModel")
 	}
 
 	async getLoadedContactListInfos(): Promise<ReadonlyArray<ContactListInfo>> {

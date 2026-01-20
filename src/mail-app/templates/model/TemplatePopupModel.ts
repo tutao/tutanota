@@ -77,7 +77,7 @@ export class TemplatePopupModel {
 				})
 		})
 
-		this._eventController.addEntityListener(this._entityEventReceived)
+		this._eventController.addEntityListener(this._entityEventReceived, "templatePopupModel")
 	}
 
 	init(): Promise<TemplatePopupModel> {

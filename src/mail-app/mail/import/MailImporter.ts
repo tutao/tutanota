@@ -51,7 +51,7 @@ export class MailImporter {
 		private readonly nativeMailImportFacade: NativeMailImportFacade,
 		private readonly openSettingsHandler: OpenSettingsHandler,
 	) {
-		eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		eventController.addEntityListener((updates) => this.entityEventsReceived(updates), "mailImporter")
 	}
 
 	async getMailbox(): Promise<MailBox> {

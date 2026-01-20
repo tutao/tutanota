@@ -172,9 +172,10 @@ export class UsageTestModel implements PingAdapter {
 		private readonly usageTestController: () => UsageTestController,
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
-		eventController.addEntityListener((updates: ReadonlyArray<EntityUpdateData>) => {
+		const listener = (updates: ReadonlyArray<EntityUpdateData>) => {
 			return this.entityEventsReceived(updates)
-		})
+		}
+		eventController.addEntityListener(listener, "usageTestModel")
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {

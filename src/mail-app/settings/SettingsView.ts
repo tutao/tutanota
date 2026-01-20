@@ -526,7 +526,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
-		locator.eventController.addEntityListener(this.entityListener)
+		locator.eventController.addEntityListener(this.entityListener, "settingsView")
 		this.populateAdminFolders().then(() => {
 			// We have to wait for the mailSets to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder

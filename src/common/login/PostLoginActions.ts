@@ -132,14 +132,14 @@ export class PostLoginActions implements PostLoginAction {
 				listenerDeferral.resolve()
 			}
 		}
-		locator.eventController.addEntityListener(listener)
+		locator.eventController.addEntityListener(listener, "postLoginActions")
 
 		// Timeout if the entity update does not arrive or takes too long to arrive
 		const timeoutPromise = delay(2000)
 
 		// Remove the listener and start the approval check depending on whether a customer update or the timeout resolves first.
 		return Promise.race([listenerDeferral.promise, timeoutPromise]).then(() => {
-			locator.eventController.removeEntityListener(listener)
+			locator.eventController.removeEntityListener(listener, "postLoginActions")
 			checkApprovalStatus(this.logins, true)
 		})
 	}

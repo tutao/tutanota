@@ -194,7 +194,7 @@ export class SendMailModel {
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
 
-		this.eventController.addEntityListener(this.entityEventReceived)
+		this.eventController.addEntityListener(this.entityEventReceived, "sendMailModel")
 	}
 
 	private readonly entityEventReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
@@ -759,7 +759,7 @@ export class SendMailModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventReceived)
+		this.eventController.removeEntityListener(this.entityEventReceived, "sendMailModel")
 
 		revokeInlineImages(this.loadedInlineImages)
 	}

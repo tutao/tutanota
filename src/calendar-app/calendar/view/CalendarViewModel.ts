@@ -272,7 +272,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.preloadMonthsAroundSelectedDate()
 		})
 
-		eventController.addEntityListener((updates) => this.entityEventReceived(updates))
+		eventController.addEntityListener((updates) => this.entityEventReceived(updates), "calendarViewModel")
 
 		calendarInvitationsModel.init()
 

@@ -428,7 +428,7 @@ export class MailViewModel {
 	}
 
 	private readonly onceInit = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates), "mailViewModel")
 	})
 
 	get listModel(): MailSetListModel | null {

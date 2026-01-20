@@ -64,7 +64,7 @@ export class ConversationViewModel {
 
 	readonly init = makeSingleUse((delayBodyRendering: Promise<unknown>) => {
 		this.loadingPromise = this.loadingState.trackPromise(this.loadConversation())
-		this.eventController.addEntityListener(this.onEntityEvent)
+		this.eventController.addEntityListener(this.onEntityEvent, "conversationViewModel")
 		this._primaryViewModel.expandMail(delayBodyRendering)
 
 		if (this.options.loadLatestMail) {

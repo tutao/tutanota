@@ -66,7 +66,7 @@ export class ContactListViewModel {
 	}
 
 	readonly init = lazyMemoized(async () => {
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityListener(this.entityEventsReceived, "contactListViewModel")
 		this.sortedContactListInfos = this.contactModel.getOwnContactListInfos().map((infos) => {
 			this.updateUi()
 			return infos.slice().sort((a, b) => a.name.localeCompare(b.name))

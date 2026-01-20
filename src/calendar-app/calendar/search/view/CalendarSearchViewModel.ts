@@ -143,7 +143,7 @@ export class CalendarSearchViewModel {
 			}
 		})
 
-		this.eventController.addEntityListener(this.entityEventsListener)
+		this.eventController.addEntityListener(this.entityEventsListener, "calendarSearchViewModel")
 	})
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
@@ -615,6 +615,6 @@ export class CalendarSearchViewModel {
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = null
 		this.search.sendCancelSignal()
-		this.eventController.removeEntityListener(this.entityEventsListener)
+		this.eventController.removeEntityListener(this.entityEventsListener, "calendarSearchViewModel")
 	}
 }

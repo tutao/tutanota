@@ -55,7 +55,7 @@ export class NativeContactsSyncManager {
 		private readonly contactModel: ContactModel,
 		private readonly deviceConfig: DeviceConfig,
 	) {
-		this.eventController.addEntityListener((updates) => this.nativeContactEntityEventsListener(updates))
+		this.eventController.addEntityListener((updates) => this.nativeContactEntityEventsListener(updates), "nativeContactSyncManager")
 	}
 
 	private async nativeContactEntityEventsListener(events: ReadonlyArray<EntityUpdateData>) {

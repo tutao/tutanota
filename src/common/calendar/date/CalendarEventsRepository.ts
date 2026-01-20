@@ -87,7 +87,7 @@ export class CalendarEventsRepository {
 		private readonly contactModel: ContactModel,
 		private readonly logins: LoginController,
 	) {
-		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId), "calendarEventsRepository")
 		this.calendarMemberships = this.logins
 			.getUserController()
 			.getCalendarMemberships()

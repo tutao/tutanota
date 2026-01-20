@@ -24,7 +24,7 @@ export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupTyp
 	}
 
 	init() {
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityListener(this.entityEventsReceived, "receivedGroupInvitationsModel")
 		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then((invitations) =>
 			this.invitations(invitations.filter((invitation) => this.hasMatchingGroupType(invitation))),
 		)

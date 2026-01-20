@@ -182,7 +182,7 @@ export class MailViewerViewModel {
 		if (showFolder) {
 			this.showFolder()
 		}
-		this.eventController.addEntityListener(this.entityListener)
+		this.eventController.addEntityListener(this.entityListener, "mailViewerViewModel")
 	}
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {

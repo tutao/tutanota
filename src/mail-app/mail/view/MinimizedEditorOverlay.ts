@@ -44,7 +44,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 			})
 		}
 
-		eventController.addEntityListener(this._listener)
+		eventController.addEntityListener(this._listener, "minimizedEditorOverlay")
 	}
 
 	onremove() {

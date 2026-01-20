@@ -43,7 +43,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 	}
 
 	oncreate() {
-		locator.eventController.addEntityListener(this._entityEventListener)
+		locator.eventController.addEntityListener(this._entityEventListener, "paypalButton")
 	}
 
 	view({ attrs: { data, onclick } }: Vnode<PaypalButtonAttrs>): Children {

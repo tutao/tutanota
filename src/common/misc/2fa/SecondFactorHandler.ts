@@ -44,7 +44,7 @@ export class SecondFactorHandler {
 		}
 
 		this.otherLoginListenerInitialized = true
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates), "secondFactorHandler")
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {

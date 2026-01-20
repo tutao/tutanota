@@ -4,7 +4,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNode } from "../common/Env"
 import { WebsocketCounterData } from "../entities/sys/TypeRefs"
-import { EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, getLogStringForEntityEvent } from "../common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 
@@ -16,22 +16,25 @@ export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, ev
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
-	private entityListeners: Set<EntityEventsListener> = new Set()
+	private entityListeners: Set<{ callback: EntityEventsListener; tag: string }> = new Set()
 
 	constructor(private readonly logins: LoginController) {}
 
-	addEntityListener(listener: EntityEventsListener) {
-		if (this.entityListeners.has(listener)) {
+	addEntityListener(listener: EntityEventsListener, tag: string = "default") {
+		if (this.entityListeners.has({ callback: listener, tag })) {
 			console.warn(TAG, "Adding the same listener twice!")
 		} else {
-			this.entityListeners.add(listener)
+			this.entityListeners.add({ callback: listener, tag })
 		}
 	}
 
-	removeEntityListener(listener: EntityEventsListener) {
-		const wasRemoved = this.entityListeners.delete(listener)
-		if (!wasRemoved) {
-			console.warn(TAG, "Could not remove listener, possible leak?", listener)
+	removeEntityListener(listener: EntityEventsListener, tag: string = "default") {
+		const callbackFn = Array.from(this.entityListeners).find((item) => item.callback === listener)
+		if (callbackFn) {
+			const wasRemoved = this.entityListeners.delete(callbackFn)
+			if (!wasRemoved) {
+				console.warn(TAG, "Could not remove listener, possible leak?", listener)
+			}
 		}
 	}
 
@@ -44,14 +47,12 @@ export class EventController {
 		if (this.logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
 			await this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
-		}
-		for (const listener of this.entityListeners) {
-			// run listeners async to speed up processing
-			// we ran it sequentially before to prevent parallel loading of instances
-			// this should not be a problem anymore as we prefetch now
 
-			// noinspection ES6MissingAwait
-			listener(entityUpdates, eventOwnerGroupId)
+			console.log(`updates: ${entityUpdates.map((event) => getLogStringForEntityEvent(event))}`)
+			for (const listener of this.entityListeners) {
+				// console.log(`forward to listener ${listener.tag}`)
+				listener.callback(entityUpdates, eventOwnerGroupId).then(() => console.log(`forward to listener ${listener.tag}`))
+			}
 		}
 	}
 
