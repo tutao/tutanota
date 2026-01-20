@@ -25,7 +25,7 @@ import { EntityClient } from "../../../../../../src/common/api/common/EntityClie
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"
-import { GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/common/api/common/utils/EntityUtils"
+import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/common/api/common/utils/EntityUtils"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { last } from "@tutao/tutanota-utils"
 
@@ -58,7 +58,16 @@ function createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElement
 	return createTestEntity(ClientSpamTrainingDatumIndexEntryTypeRef, { clientSpamTrainingDatumElementId })
 }
 
-o.spec("SpamClassificationDataDealer", () => {
+function getSortableTestMailId(isSpam: boolean, index: number) {
+	const formattedIndex = (index < 100 ? (index < 10 ? "00" : "0") : "") + index
+	if (isSpam) {
+		return "spamMailId" + formattedIndex
+	} else {
+		return "inboxMailId" + formattedIndex
+	}
+}
+
+o.spec("SpamClassifierDataDealer", () => {
 	const entityClientMock = object<EntityClient>()
 	const bulkMailLoaderMock = object<BulkMailLoader>()
 	const mailFacadeMock = object<MailFacade>()
@@ -273,10 +282,20 @@ o.spec("SpamClassificationDataDealer", () => {
 			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 
 			const relevantMails = Array.from({ length: 40 }, (_, index) =>
-				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
+				createMailByFolderAndReceivedDate(
+					[mailBox.currentMailBag!.mails, getSortableTestMailId(false, index)],
+					inboxFolder._id,
+					new Date(),
+					mailDetails._id,
+				),
 			).concat(
 				Array.from({ length: 40 }, (_, index) =>
-					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, new Date(), mailDetails._id),
+					createMailByFolderAndReceivedDate(
+						[mailBox.currentMailBag!.mails, getSortableTestMailId(true, index)],
+						spamFolder._id,
+						new Date(),
+						mailDetails._id,
+					),
 				),
 			)
 
@@ -361,11 +380,21 @@ o.spec("SpamClassificationDataDealer", () => {
 			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
 			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 
-			const relevantMails = Array.from({ length: 80 }, (_, index) =>
-				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
-			).concat(
+			const relevantMails = Array.from({ length: 80 }, (_, index) => {
+				return createMailByFolderAndReceivedDate(
+					[mailBox.currentMailBag!.mails, getSortableTestMailId(false, index)],
+					inboxFolder._id,
+					new Date(),
+					mailDetails._id,
+				)
+			}).concat(
 				Array.from({ length: 80 }, (_, index) =>
-					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, new Date(), mailDetails._id),
+					createMailByFolderAndReceivedDate(
+						[mailBox.currentMailBag!.mails, getSortableTestMailId(true, index)],
+						spamFolder._id,
+						new Date(),
+						mailDetails._id,
+					),
 				),
 			)
 
@@ -455,7 +484,7 @@ o.spec("SpamClassificationDataDealer", () => {
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })
 
 			o(trainingDataset).deepEquals({
-				trainingData: updatedSpamTrainingData,
+				trainingData: updatedSpamTrainingData.sort((l, r) => compareNewestFirst(l._id, r._id)),
 				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
 				hamCount: 80,
 				spamCount: 80,
