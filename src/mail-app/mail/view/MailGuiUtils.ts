@@ -5,28 +5,13 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import {
-	$Promisable,
-	assertNotNull,
-	clamp,
-	endsWith,
-	filterInt,
-	first,
-	isEmpty,
-	isNotEmpty,
-	lazyMemoized,
-	neverNull,
-	noOp,
-	promiseMap,
-} from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, clamp, filterInt, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
 	MailReportType,
 	MailSetKind,
-	MailState,
 	SimpleMoveMailTarget,
-	SYSTEM_GROUP_MAIL_ADDRESS,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { getReportConfirmation } from "./MailReportDialog"
@@ -66,6 +51,7 @@ import { DownloadListener, TransferProgressDispatcher } from "../../../common/ap
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
+import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -816,8 +802,7 @@ export function showLabelsPopup(
 		dom ?? (document.activeElement as HTMLElement),
 		opts?.origin ?? dom?.getBoundingClientRect() ?? getDetachedDropdownBounds(),
 		opts?.width ?? (styles.isDesktopLayout() ? 300 : 200),
-		mailModel.getLabelsForMails(selectedMails),
-		mailModel.getLabelStatesForMails(selectedMails),
+		new LabelsPopupViewModel(mailModel.getLabelsForMails(selectedMails), labels),
 		async (addedLabels, removedLabels) => mailModel.applyLabels(await getActionableMails(selectedMails), addedLabels, removedLabels),
 	)
 	setTimeout(() => popup.show(), 16)
