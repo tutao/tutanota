@@ -8,32 +8,30 @@ import { component_size, size } from "../../../common/gui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { theme } from "../../../common/gui/theme.js"
-import { Keys, MAX_LABELS_PER_MAIL, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
 import { AriaRole } from "../../../common/gui/AriaUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { noOp } from "@tutao/tutanota-utils"
+import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
 /**
  * Popup that displays assigned labels and allows changing them
  */
 export class LabelsPopup implements ModalComponent {
 	private dom: HTMLElement | null = null
-	private isMaxLabelsReached: boolean
 
 	constructor(
 		private readonly sourceElement: HTMLElement,
 		private readonly origin: PosRect,
 		private readonly width: number,
-		private readonly labelsForMails: ReadonlyMap<Id, ReadonlyArray<MailSet>>,
-		private readonly labels: { label: MailSet; state: LabelState }[],
+		private readonly viewModel: LabelsPopupViewModel,
 		private readonly onLabelsApplied: (addedLabels: MailSet[], removedLabels: MailSet[]) => unknown,
 	) {
 		this.view = this.view.bind(this)
 		this.oncreate = this.oncreate.bind(this)
-		this.isMaxLabelsReached = this.checkIsMaxLabelsReached()
 	}
 
 	async hideAnimation(): Promise<void> {}
@@ -69,49 +67,47 @@ export class LabelsPopup implements ModalComponent {
 			[
 				m(
 					".pb-8.scroll",
-					this.labels
-						.sort((labelA, labelB) => labelA.label.name.localeCompare(labelB.label.name))
-						.map((labelState) => {
-							const { label, state } = labelState
-							const color = theme.on_surface
-							const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
-							const opacity = !canToggleLabel ? 0.5 : undefined
+					this.viewModel.getLabelState().map((labelState) => {
+						const { label, state } = labelState
+						const color = theme.on_surface
+						const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.viewModel.isLabelLimitReached()
+						const opacity = !canToggleLabel ? 0.5 : undefined
 
-							return m(
-								"label-item.flex.items-center.plr-12.state-bg.cursor-pointer",
+						return m(
+							"label-item.flex.items-center.plr-12.state-bg.cursor-pointer",
 
-								{
-									"data-labelid": getElementId(label),
-									role: AriaRole.MenuItemCheckbox,
-									tabindex: TabIndex.Default,
-									"aria-checked": ariaCheckedForState(state),
-									"aria-disabled": !canToggleLabel,
-									onclick: canToggleLabel ? () => this.toggleLabel(labelState) : noOp,
-								},
-								[
-									m(Icon, {
-										icon: this.iconForState(state),
-										size: IconSize.PX24,
+							{
+								"data-labelid": getElementId(label),
+								role: AriaRole.MenuItemCheckbox,
+								tabindex: TabIndex.Default,
+								"aria-checked": ariaCheckedForState(state),
+								"aria-disabled": !canToggleLabel,
+								onclick: canToggleLabel ? () => this.viewModel.toggleLabel(label) : noOp,
+							},
+							[
+								m(Icon, {
+									icon: this.iconForState(state),
+									size: IconSize.PX24,
+									style: {
+										fill: getLabelColor(label.color),
+										opacity,
+									},
+								}),
+								m(
+									".button-height.flex.items-center.ml-12.overflow-hidden",
+									{
 										style: {
-											fill: getLabelColor(label.color),
+											color,
 											opacity,
 										},
-									}),
-									m(
-										".button-height.flex.items-center.ml-12.overflow-hidden",
-										{
-											style: {
-												color,
-												opacity,
-											},
-										},
-										m(".text-ellipsis", label.name),
-									),
-								],
-							)
-						}),
+									},
+									m(".text-ellipsis", label.name),
+								),
+							],
+						)
+					}),
 				),
-				this.isMaxLabelsReached && m(".small.center.pb-8", lang.get("maximumLabelsPerMailReached_msg")),
+				this.viewModel.isLabelLimitReached() ? m(".small.center.pb-8", lang.get("maximumLabelsPerMailReached_msg")) : null,
 				m(BaseButton, {
 					label: "apply_action",
 					text: lang.get("apply_action"),
@@ -143,48 +139,8 @@ export class LabelsPopup implements ModalComponent {
 		}
 	}
 
-	private checkIsMaxLabelsReached(): boolean {
-		const { addedLabels, removedLabels } = this.getSortedLabels()
-		if (addedLabels.length >= MAX_LABELS_PER_MAIL) {
-			return true
-		}
-
-		for (const [, labels] of this.labelsForMails) {
-			const labelsOnMail = new Set<Id>(labels.map((label) => getElementId(label)))
-
-			for (const label of removedLabels) {
-				labelsOnMail.delete(getElementId(label))
-			}
-			if (labelsOnMail.size >= MAX_LABELS_PER_MAIL) {
-				return true
-			}
-
-			for (const label of addedLabels) {
-				labelsOnMail.add(getElementId(label))
-				if (labelsOnMail.size >= MAX_LABELS_PER_MAIL) {
-					return true
-				}
-			}
-		}
-
-		return false
-	}
-
-	private getSortedLabels(): Record<"addedLabels" | "removedLabels", MailSet[]> {
-		const removedLabels: MailSet[] = []
-		const addedLabels: MailSet[] = []
-		for (const { label, state } of this.labels) {
-			if (state === LabelState.Applied) {
-				addedLabels.push(label)
-			} else if (state === LabelState.NotApplied) {
-				removedLabels.push(label)
-			}
-		}
-		return { addedLabels, removedLabels }
-	}
-
 	private applyLabels() {
-		const { addedLabels, removedLabels } = this.getSortedLabels()
+		const { addedLabels, removedLabels } = this.viewModel.getLabelStateChange()
 		this.onLabelsApplied(addedLabels, removedLabels)
 		modal.remove(this)
 	}
@@ -193,7 +149,7 @@ export class LabelsPopup implements ModalComponent {
 		this.dom = vnode.dom as HTMLElement
 
 		// restrict label height to showing maximum 6 labels to avoid overflow
-		const displayedLabels = Math.min(this.labels.length, 6)
+		const displayedLabels = Math.min(this.viewModel.getLabelState().length, 6)
 		const height = (displayedLabels + 1) * component_size.button_height + size.spacing_8 * 2
 		showDropdown(this.origin, this.dom, height, this.width).then(() => {
 			const firstLabel = vnode.dom.getElementsByTagName("label-item").item(0)
@@ -243,10 +199,7 @@ export class LabelsPopup implements ModalComponent {
 			exec: () => {
 				const labelId = document.activeElement?.getAttribute("data-labelid")
 				if (labelId) {
-					const labelItem = this.labels.find((item) => getElementId(item.label) === labelId)
-					if (labelItem) {
-						this.toggleLabel(labelItem)
-					}
+					this.viewModel.toggleLabelById(labelId)
 				} else {
 					return true
 				}
@@ -257,22 +210,6 @@ export class LabelsPopup implements ModalComponent {
 
 	show() {
 		modal.displayUnique(this, false)
-	}
-
-	private toggleLabel(labelState: { label: MailSet; state: LabelState }) {
-		switch (labelState.state) {
-			case LabelState.AppliedToSome:
-				labelState.state = this.isMaxLabelsReached ? LabelState.NotApplied : LabelState.Applied
-				break
-			case LabelState.NotApplied:
-				labelState.state = LabelState.Applied
-				break
-			case LabelState.Applied:
-				labelState.state = LabelState.NotApplied
-				break
-		}
-
-		this.isMaxLabelsReached = this.checkIsMaxLabelsReached()
 	}
 }
 
