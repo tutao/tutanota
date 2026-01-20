@@ -17,7 +17,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { isColorLight } from "./Color.js"
-import { DropDownSelectorNew } from "./DropDownSelectorNew"
+import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "./DropDownSelectorNew"
 import { theme } from "../theme"
 
 export const enum DropType {
@@ -68,7 +68,7 @@ export function renderCountryDropdown(params: {
 
 export function renderCountryDropdownNew(params: {
 	selectedCountry: Country | null
-	onSelectionChanged: (country: Country) => void
+	onSelectionChanged: (country: Country | null) => void
 	helpLabel?: lazy<string>
 	label?: MaybeTranslation
 }): Children {
@@ -88,7 +88,7 @@ export function renderCountryDropdownNew(params: {
 			icon: Icons.Pin,
 			color: theme.on_surface_variant,
 		},
-	})
+	} satisfies DropDownSelectorNewAttrs<Country | null>)
 }
 
 export function createMoreActionButtonAttrs(
