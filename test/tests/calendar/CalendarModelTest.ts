@@ -319,7 +319,7 @@ o.spec("CalendarModel", function () {
 		})
 
 		o.spec("Pending events", function () {
-			o("New invite -- saves new event to db", async function () {
+			o("New REQUEST invite -- saves new event to db and sets pendingInvitation true", async function () {
 				// Arrange
 
 				// Act
@@ -338,7 +338,7 @@ o.spec("CalendarModel", function () {
 			})
 
 			// Repeat Rules
-			o("New invite to repeating event should have pendingInvitation as true", async function () {
+			o("New REQUEST invite to repeating event sets pendingInvitation true", async function () {
 				// Arrange
 				baseInvitation.contents[0].event.repeatRule = createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
@@ -359,46 +359,54 @@ o.spec("CalendarModel", function () {
 				o.check(capturedEventInput.repeatRule?.interval).equals("1")
 			})
 
-			o("new altered instances SHOULD be pendingInvitations even if progenitor invitation has been accepted", async function () {
-				// Arrange
-				baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
-					frequency: RepeatPeriod.DAILY,
-					interval: "1",
-				})
-				baseExistingEvent.pendingInvitation = false
-				baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+			o(
+				"new altered instances SHOULD be pendingInvitations even if progenitor invitation has been accepted, and progenitor should NOT be reset to pendingInvitation",
+				async function () {
+					// Arrange
+					baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+					})
+					baseExistingEvent.pendingInvitation = false
+					baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
 
-				when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
+					when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
 
-				const alteredInstanceInvitation = clone(baseInvitation)
+					const alteredInstanceInvitation = clone(baseInvitation)
 
-				const alteredInstanceStartTime = DateTime.fromJSDate(baseStartTime).plus({ days: 1 }).toJSDate()
-				const alteredInstanceEndTime = DateTime.fromJSDate(baseEndTime).plus({ days: 1 }).toJSDate()
-				const alteredInstanceEvent = alteredInstanceInvitation.contents[0].event
+					// recurrenceId must correspond with original start time of scheduled recurrence.  used baseStartTime+1 because the time is one day
+					const alteredInstanceRecurrenceId = DateTime.fromJSDate(baseStartTime).plus({ days: 1 }).toJSDate()
 
-				alteredInstanceEvent.startTime = alteredInstanceStartTime
-				alteredInstanceEvent.endTime = alteredInstanceEndTime
-				alteredInstanceEvent.recurrenceId = alteredInstanceStartTime
+					const alteredInstanceStartTime = DateTime.fromJSDate(baseStartTime).plus({ hours: 25 }).toJSDate()
+					const alteredInstanceEndTime = DateTime.fromJSDate(baseEndTime).plus({ hours: 25 }).toJSDate()
+					const alteredInstanceEvent = alteredInstanceInvitation.contents[0].event
 
-				// Act
-				await calendarModel.processCalendarData(ORGANIZER, alteredInstanceInvitation)
+					alteredInstanceEvent.summary = "ALTERED INSTANCE" // for identifying during debugging
+					alteredInstanceEvent.startTime = alteredInstanceStartTime
+					alteredInstanceEvent.endTime = alteredInstanceEndTime
+					alteredInstanceEvent.recurrenceId = alteredInstanceStartTime
 
-				// Assert
-				const alteredInstanceCaptor = matchers.captor()
-				verify(calendarFacadeMock.createCalendarEvent(alteredInstanceCaptor.capture(), matchers.anything()))
-				const actualAlteredInstance: CalendarEvent = alteredInstanceCaptor.value
-				o.check(actualAlteredInstance.pendingInvitation).equals(true)
-				o.check(actualAlteredInstance.startTime).equals(alteredInstanceStartTime)
-				o.check(actualAlteredInstance.endTime).equals(alteredInstanceEndTime)
-				o.check(actualAlteredInstance.recurrenceId).equals(alteredInstanceStartTime)
+					// Act
+					await calendarModel.processCalendarData(ORGANIZER, alteredInstanceInvitation)
+					await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
 
-				const updatedProgenitorCaptor = matchers.captor()
-				verify(calendarFacadeMock.updateCalendarEvent(updatedProgenitorCaptor.capture(), matchers.anything(), matchers.anything()))
-				const updatedProgenitor: CalendarEvent = updatedProgenitorCaptor.value
-				o.check(updatedProgenitor.pendingInvitation).equals(false) // progenitor keeps existing pendingInvitation state
-				const excludedDate = getFirstOrThrow(updatedProgenitor.repeatRule!.excludedDates)
-				o.check(excludedDate.date).equals(alteredInstanceEvent.recurrenceId) // progenitor keeps existing pendingInvitation state
-			})
+					// Assert
+					const alteredInstanceCaptor = matchers.captor()
+					verify(calendarFacadeMock.createCalendarEvent(alteredInstanceCaptor.capture(), matchers.anything()))
+					const actualAlteredInstance: CalendarEvent = alteredInstanceCaptor.value
+					o.check(actualAlteredInstance.pendingInvitation).equals(true)
+					o.check(actualAlteredInstance.startTime).equals(alteredInstanceStartTime)
+					o.check(actualAlteredInstance.endTime).equals(alteredInstanceEndTime)
+					o.check(actualAlteredInstance.recurrenceId).equals(alteredInstanceStartTime)
+
+					const updatedProgenitorCaptor = matchers.captor()
+					verify(calendarFacadeMock.updateCalendarEvent(updatedProgenitorCaptor.capture(), matchers.anything(), matchers.anything()))
+					const updatedProgenitor: CalendarEvent = updatedProgenitorCaptor.value
+					o.check(updatedProgenitor.pendingInvitation).equals(false) // progenitor keeps existing pendingInvitation state
+					const excludedDate = getFirstOrThrow(updatedProgenitor.repeatRule!.excludedDates)
+					o.check(excludedDate.date).equals(alteredInstanceEvent.recurrenceId) // progenitor
+				},
+			)
 
 			o("new altered instances SHOULD be pendingInvitations if progenitor invitation has not been accepted", async function () {
 				// Arrange
@@ -432,13 +440,13 @@ o.spec("CalendarModel", function () {
 				o.check(capturedEventInput.startTime).equals(alteredInstanceStartTime)
 			})
 
-			o("Update pending invitation - any field but startTime", async function () {
+			o("Updating fields other than startTime should NOT set pendingInvitation to true", async function () {
 				/*
 				Simple updates for pending events are treated the same way as an invitation that was already replied.
 				The event doesn't have to be deleted and recreated
 				 */
 				const eventByUid: CalendarEventUidIndexEntry = object()
-				baseExistingEvent.pendingInvitation = true
+				baseExistingEvent.pendingInvitation = false
 				eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
 				eventByUid.alteredInstances = []
 
@@ -448,7 +456,7 @@ o.spec("CalendarModel", function () {
 					summary: "v2",
 					uid: baseExistingEvent.uid,
 					sequence: "2",
-					startTime: baseStartTime,
+					startTime: new Date(baseStartTime),
 					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: ORGANIZER,
 					}),
@@ -476,7 +484,7 @@ o.spec("CalendarModel", function () {
 				o.check(updatedEvent._id).deepEquals(oldEvent._id)
 				o.check(updatedEvent.summary).equals(sentEvent.summary)
 				o.check(updatedEvent.sequence).equals(sentEvent.sequence)
-				o.check(updatedEvent.pendingInvitation).equals(true)
+				o.check(updatedEvent.pendingInvitation).equals(false)
 			})
 
 			o("Change to event start time should create a new pending event and delete the old one", async function () {
@@ -527,7 +535,7 @@ o.spec("CalendarModel", function () {
 			})
 		})
 
-		o("Simple update to already replied event", async function () {
+		o("Simple update to already replied event should keep pending invitation false", async function () {
 			const eventByUid: CalendarEventUidIndexEntry = object()
 			baseExistingEvent.pendingInvitation = false
 			eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor

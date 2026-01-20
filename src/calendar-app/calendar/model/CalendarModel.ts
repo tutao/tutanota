@@ -1001,6 +1001,12 @@ export class CalendarModel {
 		// We want to operate on the latest events only, otherwise we might lose some data.
 		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid, CachingMode.Bypass)
 
+		console.log(
+			"CalendarModel.processCalendarData - ",
+			calendarData.method,
+			calendarData.contents[0].event.recurrenceId ? "altered instance" : "progenitor",
+		)
+
 		if (dbEvents == null) {
 			// Create pending events when processing calendar invites.
 			const calendarInfos = await this.getCalendarInfos()
@@ -1125,8 +1131,8 @@ export class CalendarModel {
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
 
-		// When processing calendar update message REQUEST message with changed start time we  want that the guest needs to make a decision about is participation status
-		if (updateEvent.startTime !== dbEvent.startTime) {
+		// When processing calendar update message REQUEST message with changed start time we want that the guest needs to make a decision about is participation status
+		if (updateEvent.startTime.getTime() !== dbEvent.startTime.getTime()) {
 			dbEvent.pendingInvitation = true
 		}
 
