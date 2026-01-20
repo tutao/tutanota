@@ -34,8 +34,8 @@ import { px, size } from "../../../common/gui/size.js"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
-
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
+import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -872,8 +872,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									dom,
 									dom.getBoundingClientRect(),
 									styles.isDesktopLayout() ? 300 : 200,
-									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
-									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
+									new LabelsPopupViewModel(
+										viewModel.mailModel.getLabelsForMails([viewModel.mail]),
+										viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
+									),
 									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail._id], addedLabels, removedLabels),
 								)
 								// waiting for the dropdown to be closed
