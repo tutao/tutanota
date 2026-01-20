@@ -3203,11 +3203,11 @@ styles.registerStyle("main", () => {
 			width: "100%",
 			height: "100%",
 			background: `linear-gradient(90deg,
-				${hexToRGBAString(theme.on_surface_variant, 0)},
-				${hexToRGBAString(theme.on_surface_variant, 0.1)},
-				${hexToRGBAString(theme.on_surface_variant, 0)})`,
+				${hexToRGBAString(theme.primary, 0.1)},
+				${hexToRGBAString(theme.primary, 0.5)},
+				${hexToRGBAString(theme.primary, 0.1)})`,
 			transform: "translateX(-100%)",
-			animation: "1.5s loading ease-in-out infinite",
+			animation: "5.5s loading ease-in-out infinite",
 		},
 		"@keyframes loading": {
 			to: {

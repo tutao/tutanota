@@ -1,6 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 
 import { newPromise } from "@tutao/tutanota-utils"
+import { theme } from "../theme"
 
 export type ProgressBarAttrs = {
 	progress: number
@@ -10,6 +11,7 @@ export type ProgressBarAttrs = {
 export enum ProgressBarType {
 	Small,
 	Large,
+	Shimmering,
 }
 
 export const PROGRESS_DONE = 1
@@ -42,6 +44,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 
 		this.lastProgress = a.progress
 		let progressBarSelector = a.type === ProgressBarType.Large ? ".abs.accent-bg.border-radius-12" : ".abs.accent-bg"
+		progressBarSelector = a.type === ProgressBarType.Shimmering ? ".skeleton.loading.abs" : progressBarSelector
 		return m(progressBarSelector, {
 			onbeforeremove: (vn) =>
 				newPromise<void>((resolve) => {
@@ -58,8 +61,9 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 				top: 0,
 				left: 0,
 				transition: "width 500ms",
-				width: a.progress * 100 + "%",
+				width: a.type === ProgressBarType.Shimmering ? "100%" : a.progress * 100 + "%",
 				height: a.type === ProgressBarType.Large ? "100%" : "2px",
+				backgroundColor: theme.surface_container_high,
 			},
 		})
 	}

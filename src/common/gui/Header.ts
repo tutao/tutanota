@@ -9,9 +9,9 @@ import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { ProgressBar } from "./base/ProgressBar.js"
+import { ProgressBar, ProgressBarType } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
-import { layout_size, size as sizes } from "./size"
+import { layout_size } from "./size"
 
 assertMainOrNode()
 
@@ -35,7 +35,7 @@ export interface HeaderAttrs extends AppHeaderAttrs {
 export class Header implements ClassComponent<HeaderAttrs> {
 	view({ attrs }: Vnode<HeaderAttrs>): Children {
 		return m(DesktopBaseHeader, { firstColWidth: attrs.firstColWidth ?? layout_size.first_col_max_width }, [
-			m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
+			m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress(), type: ProgressBarType.Shimmering }),
 			this.renderNavigation(attrs),
 		])
 	}
