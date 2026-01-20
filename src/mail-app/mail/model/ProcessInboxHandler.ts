@@ -155,13 +155,13 @@ export class ProcessInboxHandler {
 		}
 		let moveToFolder: MailSet = sourceFolder
 		// process excluded rules first and then regular ones.
-		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
 		if (result) {
 			const { targetFolder, processInboxDatum } = result
 			moveToFolder = targetFolder
 		} else {
 			if (moveToFolder.folderType === MailSetKind.INBOX) {
-				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, true)
+				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
 				if (result) {
 					const { targetFolder, processInboxDatum } = result
 					moveToFolder = targetFolder

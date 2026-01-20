@@ -1,4 +1,4 @@
-import { getMailFolderType, MailSetKind, ReplyType } from "../../../common/api/common/TutanotaConstants"
+import { getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
