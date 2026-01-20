@@ -132,7 +132,8 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			}),
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country) => {
+				onSelectionChanged: (country: Country | null) => {
+					if (country == null) return
 					ctx.viewModel.updateInvoiceCountry(country)
 					ctx.markComplete(false)
 
@@ -232,10 +233,10 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			m(`.flex.col${styles.isMobileLayout() ? ".items-center" : ".items-end"}${this.formGap}`, [
 				renderCountryDropdownNew({
 					selectedCountry: ctx.viewModel.invoiceData.country,
-					onSelectionChanged: (country: Country) => {
+					onSelectionChanged: (country: Country | null) => {
+						if (country == null) return
 						ctx.viewModel.updateInvoiceCountry(country)
 						ctx.markComplete(false)
-
 						if (country.t !== CountryType.EU) {
 							ctx.viewModel.invoiceData.vatNumber = ""
 						}
@@ -303,10 +304,10 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		return m(`.flex.col${this.formGap}`, [
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country) => {
+				onSelectionChanged: (country: Country | null) => {
+					if (country == null) return
 					ctx.viewModel.updateInvoiceCountry(country)
 					ctx.markComplete(false)
-
 					if (country.t !== CountryType.EU) {
 						ctx.viewModel.invoiceData.vatNumber = ""
 					}
