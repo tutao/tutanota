@@ -1,13 +1,14 @@
 import { ListLoadingState, ListState } from "../gui/base/List.js"
 import {
 	assertNonNull,
-	binarySearch,
 	defer,
 	findBy,
 	findLast,
+	findLastIndex,
 	first,
-	getFirstOrThrow,
+	isEmpty,
 	last,
+	lastIndex,
 	lastThrow,
 	memoizedWithHiddenArgument,
 	remove,
@@ -58,6 +59,10 @@ type PrivateListState<ItemType> = Omit<ListState<ItemType>, "items" | "activeInd
 	activeItem: ItemType | null
 }
 
+function firstIndex(arr: readonly unknown[]): number {
+	return isEmpty(arr) ? -1 : 0
+}
+
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
 export class ListModel<ItemType, IdType> {
 	constructor(private readonly config: ListModelConfig<ItemType, IdType>) {}
@@ -88,7 +93,11 @@ export class ListModel<ItemType, IdType> {
 
 	readonly stateStream: Stream<ListState<ItemType>> = this.rawStateStream.map((state) => {
 		const activeItem = state.activeItem
-		const foundIndex = activeItem ? binarySearch(state.filteredItems, activeItem, (l, r) => this.config.sortCompare(l, r)) : -1
+
+		// we can't use binary search here because for items A and B compare(A, B) === 0 but A !== B
+		const foundIndex = activeItem
+			? state.filteredItems.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(activeItem)))
+			: -1
 		const activeIndex = foundIndex < 0 ? null : foundIndex
 		return { ...state, items: state.filteredItems, activeIndex }
 	})
@@ -317,24 +326,47 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	selectPrevious(multiselect: boolean) {
+		// Select previous item (item with lower sorting position)
+		// It covers the cases where we have different items with the same sorting position.
+		//
+		// If there was no active item before, select the first item
+		// If the active item is no longer in the list, select the one that is sorted directly before the old active item
+		// (the last one of the items sorted lower than the active item).
+		// If the active item is still in the list select the item directly before it (unless it's the beginning of the list).
 		const oldActiveItem = this.rawState.activeItem
-		const newActiveItem = this.getPreviousItem(this.state.items, oldActiveItem)
+		const oldActiveIndex = oldActiveItem ? this.state.items.indexOf(oldActiveItem) : -1
+
+		const newActiveIndex: number =
+			oldActiveIndex === -1
+				? oldActiveItem
+					? findLastIndex(this.state.items, (item) => this.config.sortCompare(item, oldActiveItem) < 0)
+					: firstIndex(this.state.items)
+				: Math.max(oldActiveIndex - 1, 0)
+		const newActiveItem = newActiveIndex === -1 ? null : this.state.items[newActiveIndex]
 
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
-				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
-				if (!this.rangeSelectionAnchorItem) return
 
-				const previousActiveIndex = this.state.activeIndex ?? 0
-				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorItem) > 0
-				if (towardsAnchor) {
-					// remove
-					selectedItems.delete(this.state.items[previousActiveIndex])
+				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
+				const anchorItem = this.rangeSelectionAnchorItem
+				if (!anchorItem) return
+				const anchorIndex = this.state.items.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(anchorItem)))
+
+				if (anchorIndex !== -1 && oldActiveIndex !== -1) {
+					// selectPrevious always goes to above/items with lower index. If the old ID was bigger then the
+					// anchor we are shrinking the selection, otherwise we are extending it.
+					const towardsAnchor = oldActiveIndex > anchorIndex
+					if (towardsAnchor) {
+						// remove
+						selectedItems.delete(this.state.items[oldActiveIndex])
+					} else {
+						// add
+						selectedItems.add(newActiveItem)
+					}
 				} else {
-					// add
 					selectedItems.add(newActiveItem)
 				}
 
@@ -343,41 +375,65 @@ export class ListModel<ItemType, IdType> {
 		}
 	}
 
-	private getPreviousItem(items: readonly ItemType[], oldActiveItem: ItemType | null) {
-		return oldActiveItem == null ? first(items) : (findLast(items, (item) => this.config.sortCompare(item, oldActiveItem) < 0) ?? first(items))
+	/**
+	 * Get an item that is sorted before or equally to the old active item
+	 */
+	private getPreviousItem(items: readonly ItemType[], oldActiveItem: ItemType | null): ItemType | null {
+		return oldActiveItem == null ? first(items) : (findLast(items, (item) => this.config.sortCompare(item, oldActiveItem) <= 0) ?? first(items))
 	}
 
 	selectNext(multiselect: boolean) {
+		// Select next item (item with higher sorting position).
+		// It covers the cases where we have different items with the same sorting position.
+		//
+		// If there was no active item before, select the first item.
+		// If the active item is no longer in the list, select the one that is sorted directly after the old active item
+		// (the first one of the items sorted higher than the active item).
+		// If the active item is still in the list select the item directly after it (unless it's the end of the list).
 		const oldActiveItem = this.rawState.activeItem
-		const lastItem = last(this.state.items)
-		const newActiveItem = this.getNextItem(this.state.items, oldActiveItem, lastItem)
+		const oldActiveIndex = oldActiveItem ? this.state.items.indexOf(oldActiveItem) : -1
+		const newActiveItem =
+			oldActiveIndex === -1
+				? oldActiveItem
+					? (this.state.items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(this.state.items))
+					: first(this.state.items)
+				: this.state.items.at(Math.min(oldActiveIndex + 1, lastIndex(this.state.items)))
 
+		// FIXME: do the same fix as for selectPrevious
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
 				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
-				if (!this.rangeSelectionAnchorItem) return
-
-				const previousActiveIndex = this.state.activeIndex ?? 0
-				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorItem) < 0
-				if (towardsAnchor) {
-					selectedItems.delete(this.state.items[previousActiveIndex])
+				const anchorItem = this.rangeSelectionAnchorItem
+				if (!anchorItem) return
+				const anchorIndex = this.state.items.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(anchorItem)))
+				if (anchorIndex !== -1 && oldActiveIndex !== -1) {
+					const towardsAnchor = oldActiveIndex < anchorIndex
+					if (towardsAnchor) {
+						selectedItems.delete(this.state.items[oldActiveIndex])
+					} else {
+						selectedItems.add(newActiveItem)
+					}
 				} else {
 					selectedItems.add(newActiveItem)
 				}
+
 				this.updateState({ selectedItems, inMultiselect: true, activeItem: newActiveItem })
 			}
 		}
 	}
 
-	private getNextItem(items: readonly ItemType[], oldActiveItem: ItemType | null, lastItem: ItemType | null | undefined) {
+	/**
+	 * Get an item that is sorted after or equally to the old active item
+	 */
+	private getNextItem(items: readonly ItemType[], oldActiveItem: ItemType | null, lastItem: ItemType | null | undefined): ItemType | null {
 		return oldActiveItem == null
 			? first(items)
 			: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
 				? lastItem
-				: (items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(items))
+				: (items.find((item) => this.config.sortCompare(item, oldActiveItem) >= 0) ?? first(items))
 	}
 
 	areAllSelected(): boolean {
