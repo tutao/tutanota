@@ -1,6 +1,6 @@
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
-import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
+import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
 import { DriveFolderType, DriveViewModel, FolderFolderItem, FolderItem, FolderItemId } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
@@ -14,7 +14,7 @@ import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
 import { createDropdown, Dropdown } from "../../../common/gui/base/Dropdown"
-import { DriveUploadStack, DriveUploadStackAttrs } from "./DriveUploadStack"
+import { DriveTransferStack } from "./DriveTransferStack"
 import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
@@ -23,11 +23,14 @@ import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
-import { newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
+import { driveFolderName, newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { styles } from "../../../common/gui/styles"
+import { BottomNav } from "../../../mail-app/gui/BottomNav"
+import { MobileHeader } from "../../../common/gui/MobileHeader"
+import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -79,7 +82,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		console.log("running constructor for DriveView")
 		super()
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn() // this where we see the files of the selected folder being listed
+		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header) // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.driveViewModel = vnode.attrs.driveViewModel
@@ -166,7 +169,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					rightView: [],
 					...attrs.header,
 				}),
-				bottomNav: null,
+				bottomNav: styles.isUsingBottomNavigation() ? m(BottomNav) : null,
 			}),
 		])
 	}
@@ -200,7 +203,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					]
 				},
 			},
-			ColumnType.Background,
+			ColumnType.Foreground,
 			{
 				minWidth: layout_size.first_col_min_width,
 				maxWidth: layout_size.first_col_max_width,
@@ -222,7 +225,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
-	private createCurrentFolderColumn() {
+	private createCurrentFolderColumn(headerAttrs: HeaderAttrs) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -323,12 +326,26 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								onSortColumn: (column) => this.driveViewModel.sort(column),
 								clipboard: this.driveViewModel.clipboard,
 							} satisfies DriveFolderViewAttrs),
-							m(DriveUploadStack, {
+							m(DriveTransferStack, {
 								transfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
 							}),
 						],
-						mobileHeader: () => [],
+						mobileHeader: () =>
+							m(MobileHeader, {
+								...headerAttrs,
+								title: this.driveViewModel.currentFolder ? driveFolderName(this.driveViewModel.currentFolder.folder) : undefined,
+								columnType: "first",
+								actions: [
+									m(EnterMultiselectIconButton, {
+										clickAction: () => {
+											// TODO
+										},
+									}),
+								],
+								primaryAction: () => null,
+								backAction: () => this.viewSlider.focusPreviousColumn(),
+							}),
 					})
 				},
 			},

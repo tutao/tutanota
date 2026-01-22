@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveFolderType, FolderItem } from "./DriveViewModel"
+import { FolderItem } from "./DriveViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
@@ -8,6 +8,7 @@ import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton"
 import { theme } from "../../../common/gui/theme"
+import { driveFolderName } from "./DriveGuiUtils"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null
@@ -78,7 +79,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 								]
 							: null,
 						m(BreadcrumbLink, {
-							label: folderName(entry),
+							label: driveFolderName(entry),
 							href: folderRoute(entry),
 							onDrop: (event) => {
 								onDropInto({ type: "folder", folder: entry }, event)
@@ -88,7 +89,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 					]
 				})
 				.flat(),
-			currentFolder ? [m("", " " + folderName(currentFolder).text)] : null,
+			currentFolder ? [m("", " " + driveFolderName(currentFolder).text)] : null,
 		])
 	}
 	private onLoadParents(dom: HTMLElement, loadParents: () => Promise<DriveFolder[]>) {
@@ -98,7 +99,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 				const loadedParents = await loadParents()
 				return loadedParents.map((parent) => {
 					return {
-						label: folderName(parent),
+						label: driveFolderName(parent),
 						click: () => {
 							m.route.set(folderRoute(parent))
 						},
@@ -106,16 +107,5 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 				})
 			},
 		})(newClickEvent, dom)
-	}
-}
-
-function folderName(folder: DriveFolder): Translation {
-	switch (folder.type) {
-		case DriveFolderType.Root:
-			return lang.getTranslation("driveHome_label")
-		case DriveFolderType.Trash:
-			return lang.getTranslation("driveTrash_label")
-		default:
-			return lang.makeTranslation(`${folder.name}`, folder.name)
 	}
 }

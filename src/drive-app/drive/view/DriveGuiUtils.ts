@@ -1,8 +1,9 @@
 import { DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
-import { FolderItemId } from "./DriveViewModel"
+import { DriveFolderType, FolderItemId } from "./DriveViewModel"
+import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 
 export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownChildAttrs[] {
 	return [
@@ -64,4 +65,15 @@ export function parseDragItems(str: string): FolderItemId[] | null {
 		}
 	}
 	return parsed
+}
+
+export function driveFolderName(folder: DriveFolder): Translation {
+	switch (folder.type) {
+		case DriveFolderType.Root:
+			return lang.getTranslation("driveHome_label")
+		case DriveFolderType.Trash:
+			return lang.getTranslation("driveTrash_label")
+		default:
+			return lang.makeTranslation(`${folder.name}`, folder.name)
+	}
 }

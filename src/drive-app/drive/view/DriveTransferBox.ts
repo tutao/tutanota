@@ -9,7 +9,7 @@ import { boxShadowHigh } from "../../../common/gui/main-styles"
 import { theme } from "../../../common/gui/theme"
 import { TranslationKeyType } from "../../../common/misc/TranslationKey"
 
-export interface DriveUploadBoxAttrs {
+export interface DriveTransferBoxAttrs {
 	transferState: DriveTransferState
 	onCancel: () => unknown
 }
@@ -25,8 +25,8 @@ if (typeof CSS.registerProperty === "function") {
 	})
 }
 
-export class DriveTransferBox implements Component<DriveUploadBoxAttrs> {
-	view({ attrs: { transferState, onCancel } }: Vnode<DriveUploadBoxAttrs>): Children {
+export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
+	view({ attrs: { transferState, onCancel } }: Vnode<DriveTransferBoxAttrs>): Children {
 		const { filename, state, transferredSize, totalSize, type } = transferState
 		const percentage = Math.min(Math.round((transferredSize / totalSize) * 100), 100)
 
@@ -108,7 +108,7 @@ export class DriveTransferBox implements Component<DriveUploadBoxAttrs> {
 		)
 	}
 
-	private renderStatusText(type: "upload" | "download", state: DriveTransferState["state"]) {
+	private renderStatusText(type: "upload" | "download", state: DriveTransferState["state"]): Children {
 		let translationKey: TranslationKeyType
 		if (state === "failed") {
 			translationKey = "transferFailed_msg"
