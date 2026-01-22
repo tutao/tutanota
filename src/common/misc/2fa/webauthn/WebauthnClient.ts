@@ -145,8 +145,8 @@ export class WebauthnClient {
 		return random
 	}
 
-	private parseAttestationObject(raw: ArrayBuffer): unknown {
-		return decode(new Uint8Array(raw))
+u	private parseAttestationObject(raw: Uint8Array): unknown {
+		return decode(raw)
 	}
 
 	private parsePublicKey(authData: Uint8Array): Map<number, number | Uint8Array> {

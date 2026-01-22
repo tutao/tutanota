@@ -88,7 +88,7 @@ export class PdfDocument {
 	 */
 	private async renderText(): Promise<void> {
 		const encodedTextStream = await this.deflater.deflate(
-			stringToUtf8Uint8Array(`BT q ${TRANSFORM_MATRIX} cm /F${this.currentFont} ${this.currentFontSize} Tf ` + this.textStream + ` Q ET`),
+			stringToUtf8Uint8Array(`BT q ${TRANSFORM_MATRIX} cm /F${this.currentFont} ${this.currentFontSize} Tf ` + this.textStream + ` Q ET`).buffer,
 		)
 		this.pdfWriter.createStreamObject(new Map(), encodedTextStream, PdfStreamEncoding.FLATE, `TEXT_${this.pageCount}`)
 		this.textStream = ""

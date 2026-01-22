@@ -76,12 +76,7 @@ export function aesEncrypt(key: AesKey, bytes: Uint8Array, iv: Uint8Array = gene
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The encrypted text as words (sjcl internal structure)..
  */
-export function aes256EncryptSearchIndexEntry(
-	key: Aes256Key,
-	bytes: Uint8Array<ArrayBuffer>,
-	iv: Uint8Array<ArrayBuffer> = generateIV(),
-	usePadding: boolean = true,
-): Uint8Array {
+export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array = generateIV(), usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, [KEY_LENGTH_BITS_AES_256])
 
 	if (iv.length !== IV_BYTE_LENGTH) {

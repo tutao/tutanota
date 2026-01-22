@@ -3,7 +3,7 @@ import { downcast } from "@tutao/tutanota-utils"
 export class Deflater {
 	constructor() {}
 
-	async deflate(input: ArrayBuffer): Promise<Uint8Array> {
+	async deflate(input: ArrayBufferLike): Promise<Uint8Array> {
 		// see https://wicg.github.io/compression/#example-deflate-compress
 		const cs = new CompressionStream("deflate")
 		const writer = cs.writable.getWriter()
