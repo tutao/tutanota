@@ -2,8 +2,6 @@ import o from "@tutao/otest"
 import { AEAD_KEY_DERIVATION_INFO, SymmetricKeyDeriver } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
 import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "../lib/misc/CryptoError.js"
 import { _aes128RandomKey } from "./AesTest.js"
 import { AesKeyLength, getKeyLengthAsBytes, hkdf, sha256Hash, sha512Hash } from "../lib/index.js"
 import { concat } from "@tutao/tutanota-utils"
@@ -17,22 +15,17 @@ o.spec("SymmetricKeyDeriverTest", function () {
 		aes128Key = _aes128RandomKey()
 	})
 	o.spec("unusedReservedUnauthenticated", function () {
-		o("aes 128 ", function () {
+		o("aes 128", function () {
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes128Key, cipherVersion)
 			o(subKeys.authenticationKey).equals(null)
 			o(subKeys.encryptionKey).equals(aes128Key)
 		})
-		o("aes 256 skipAuthentication", function () {
+		o("aes 256", function () {
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes256Key, cipherVersion, true)
+			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes256Key, cipherVersion)
 			o(subKeys.authenticationKey).equals(null)
 			o(subKeys.encryptionKey).equals(aes256Key)
-		})
-		o("aes 256 throws", async function () {
-			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-			const e = await assertThrows(CryptoError, async () => symmetricKeyDeriver.deriveSubKeys(aes256Key, cipherVersion))
-			o(e.message).equals("key length 256 is incompatible with cipherVersion 0")
 		})
 	})
 	o.spec("aesCbcThenHmac", function () {

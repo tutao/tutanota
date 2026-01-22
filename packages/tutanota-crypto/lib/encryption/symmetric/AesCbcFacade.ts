@@ -13,6 +13,7 @@ import { assertNotNull, concat } from "@tutao/tutanota-utils"
 import sjcl from "../../internal/sjcl.js"
 import { hmacSha256, MacTag, verifyHmacSha256 } from "../Hmac.js"
 import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"
+import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 
 /**
  * This facade provides the implementation for both encryption and decryption of AES in CBC mode. Supports 128 and 256-bit keys.
@@ -32,9 +33,10 @@ export class AesCbcFacade {
 		iv: Uint8Array,
 		padding: boolean,
 		cipherVersion: SymmetricCipherVersion,
-		skipAuthentication: boolean = false,
+		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion, skipAuthentication)
+		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
 		const cipherText = bitArrayToUint8Array(
 			sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plainText), uint8ArrayToBitArray(iv), [], padding),
 		)
@@ -65,13 +67,13 @@ export class AesCbcFacade {
 	decrypt(
 		key: AesKey,
 		cipherText: Uint8Array,
-		randomIv: boolean,
+		ivIsPrepended: boolean,
 		padding: boolean,
 		cipherVersion: SymmetricCipherVersion,
-		skipAuthentication: boolean = false,
+		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
-		// try {
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion, skipAuthentication)
+		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
 		let cipherTextWithoutMacAndVersionByte: Uint8Array
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
@@ -92,7 +94,7 @@ export class AesCbcFacade {
 		}
 		let iv: Uint8Array
 		let aesCbcCiphertext: Uint8Array
-		if (randomIv) {
+		if (ivIsPrepended) {
 			iv = cipherTextWithoutMacAndVersionByte.subarray(0, IV_BYTE_LENGTH)
 			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte.subarray(IV_BYTE_LENGTH, cipherTextWithoutMacAndVersionByte.length)
 		} else {
@@ -111,6 +113,26 @@ export class AesCbcFacade {
 			)
 		} catch (e) {
 			throw new CryptoError("aes decryption failed", e as Error)
+		}
+	}
+
+	private tryToEnforceAuthentication(
+		key: number[],
+		cipherVersion: SymmetricCipherVersion | SymmetricCipherVersion.UnusedReservedUnauthenticated,
+		skipAuthenticationEnforcement: boolean,
+	) {
+		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
+			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryptions which are only possible for 128-bit keys
+			if (skipAuthenticationEnforcement) {
+				// we accept unauthenticated decryption for exceptions such as the search index
+				return
+			} else {
+				// we must enforce authentication but for legacy 128-bit keys we cannot (backward compatibility)
+				const keyLength = getAndVerifyAesKeyLength(key)
+				if (keyLength !== AesKeyLength.Aes128) {
+					throw new CryptoError("key length " + keyLength + " is incompatible with cipherVersion " + cipherVersion)
+				}
+			}
 		}
 	}
 }

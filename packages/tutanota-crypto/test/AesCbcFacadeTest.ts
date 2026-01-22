@@ -29,19 +29,19 @@ o.spec("AesCbcFacadeTest", function () {
 		encryption256Key = aes256RandomKey()
 		authentication256Key = aes256RandomKey()
 		symmetricKeyDeriver = object()
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.UnusedReservedUnauthenticated, false)).thenReturn({
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn({
 			encryptionKey: aesKey_128,
 			authenticationKey: null,
 		})
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.AesCbcThenHmac, false)).thenReturn({
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn({
+			encryptionKey: aesKey_256,
+			authenticationKey: null,
+		})
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn({
 			encryptionKey: aesKey_128,
 			authenticationKey: authentication128Key,
 		})
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.AesCbcThenHmac, false)).thenReturn({
-			encryptionKey: aesKey_256,
-			authenticationKey: authentication256Key,
-		})
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)).thenReturn({
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn({
 			encryptionKey: aesKey_256,
 			authenticationKey: authentication256Key,
 		})
@@ -50,7 +50,7 @@ o.spec("AesCbcFacadeTest", function () {
 	})
 	o("unexpected cipher version", async function () {
 		const cipherVersion = SymmetricCipherVersion.Aead
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, cipherVersion, false)).thenReturn({
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, cipherVersion)).thenReturn({
 			encryptionKey: aesKey_256,
 			authenticationKey: authentication256Key,
 		})
@@ -157,6 +157,14 @@ o.spec("AesCbcFacadeTest", function () {
 			ciphertext[ciphertext.length - 1]++
 			const e = await assertThrows(CryptoError, async () => aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion))
 			o(e.message).equals("invalid mac")
+		})
+		o("authentication is enforced for 256 bit keys - error thrown", async function () {
+			const hasRandomIv = true
+			const hasPadding = true
+			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
+			await assertThrows(CryptoError, async () => aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion, false))
+			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion, true)
+			await assertThrows(CryptoError, async () => aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion, false))
 		})
 		o("skip authentication no iv no padding success", function () {
 			const hasRandomIv = false

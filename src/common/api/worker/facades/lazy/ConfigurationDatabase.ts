@@ -8,7 +8,7 @@ import {
 	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
-	aesEncryptWithIv,
+	aesEncryptConfigurationDatabaseItem,
 	AesKey,
 	decryptKey,
 	IV_BYTE_LENGTH,
@@ -49,11 +49,7 @@ type ConfigDb = {
 
 /** @PublicForTesting */
 export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array): Promise<Uint8Array> {
-	// TODO let's try and get rid of this. options are:
-	// 1. migration or
-	// 2. drop the table
-	// in both cases use a secure keyed hash (hmac) as the key
-	return aesEncryptWithIv(key, stringToUtf8Uint8Array(item), iv)
+	return aesEncryptConfigurationDatabaseItem(key, stringToUtf8Uint8Array(item), iv)
 }
 
 export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {

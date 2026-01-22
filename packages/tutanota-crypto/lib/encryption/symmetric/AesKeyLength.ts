@@ -17,6 +17,7 @@ export function getKeyLengthAsBytes(keyLength: AesKeyLength): number {
 }
 
 export function getAndVerifyAesKeyLength(key: AesKey, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): AesKeyLength {
+	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8
 	if (acceptedBitLengths.includes(keyLength)) {
 		return keyLength

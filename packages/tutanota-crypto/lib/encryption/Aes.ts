@@ -16,11 +16,11 @@ export function aesEncrypt(key: AesKey, bytes: Uint8Array) {
 /**
  * @deprecated use aesEncrypt instead
  */
-export function aesEncryptWithIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
+export function aesEncryptConfigurationDatabaseItem(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
-	return SYMMETRIC_CIPHER_FACADE.encryptValueDeprecatedCustomIv(key, bytes, iv)
+	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedCustomIv(key, bytes, iv)
 }
 
 /**
@@ -31,7 +31,6 @@ export function aesEncryptWithIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array)
  * @deprecated
  */
 export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array): Uint8Array {
-	// TODO make decision about deprecation in calling code?
 	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedUnauthenticated(key, bytes)
 }
 
@@ -42,7 +41,7 @@ export function aes256EncryptSearchIndexEntryWithIV(key: Aes256Key, bytes: Uint8
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
-	return SYMMETRIC_CIPHER_FACADE.encryptDatabaseKeyDeprecatedUnauthenticated(key, bytes, iv)
+	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedUnauthenticatedCustomIv(key, bytes, iv)
 }
 
 /**

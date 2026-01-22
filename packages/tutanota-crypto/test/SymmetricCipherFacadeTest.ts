@@ -6,8 +6,6 @@ import { aes256RandomKey, FIXED_IV, keyToUint8Array } from "../lib/index.js"
 import { _aes128RandomKey } from "./AesTest.js"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
 import { concat } from "@tutao/tutanota-utils"
-import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "../lib/misc/CryptoError.js"
 
 o.spec("SymmetricCipherFacade", function () {
 	let symmetricCipherFacade: SymmetricCipherFacade
@@ -52,11 +50,6 @@ o.spec("SymmetricCipherFacade", function () {
 			when(aesCbcFacade.decrypt(aes256Key, ciphertext, true, true, SymmetricCipherVersion.AesCbcThenHmac, false)).thenReturn(plainText)
 			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes256Key, ciphertext)
 			o(decryptedBytes).equals(plainText)
-		})
-		o("decrypBytes 256 no mac fails", async function () {
-			const ciphertext = new Uint8Array([1, 2])
-			const e = await assertThrows(CryptoError, async () => symmetricCipherFacade.decryptBytes(aes256Key, ciphertext))
-			o(e.message).equals("mac is enforced but not present")
 		})
 		o("decrypBytesDeprecatedUnauthenticated 256 no mac succeeds", async function () {
 			const ciphertext = new Uint8Array([1, 2])
@@ -110,11 +103,6 @@ o.spec("SymmetricCipherFacade", function () {
 			)
 			const decryptedKey = symmetricCipherFacade.decryptKey(aes256Key, ciphertext)
 			o(decryptedKey).deepEquals(keyToEncrypt_256)
-		})
-		o("decryptKey 256 no mac fails", async function () {
-			const ciphertext = new Uint8Array([1, 2])
-			const e = await assertThrows(CryptoError, async () => symmetricCipherFacade.decryptKey(aes256Key, ciphertext))
-			o(e.message).equals("mac is enforced but not present")
 		})
 		o("decryptKeyDeprecatesUnauthenticated 256 no mac succeeds", function () {
 			const ciphertext = new Uint8Array([1, 2])

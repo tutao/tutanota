@@ -4,7 +4,6 @@ import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
 import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
 import { assert } from "@tutao/tutanota-utils"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
-import { CryptoError } from "../../misc/CryptoError.js"
 
 /**
  * This facade contains all methods for encryption/ decryption for symmetric encryption incl. AES-128 and AES-256 in CBC mode or AEAD.
@@ -15,10 +14,7 @@ import { CryptoError } from "../../misc/CryptoError.js"
  * In case of AEAD, there is additional associated data. Needed both for encryption and decryption, but it is not part of the created ciphertext.
  */
 export class SymmetricCipherFacade {
-	constructor(
-		// private readonly aeadFacade: AeadFacade,
-		private readonly aesCbcFacade: AesCbcFacade,
-	) {}
+	constructor(private readonly aesCbcFacade: AesCbcFacade) {}
 
 	/**
 	 * Encrypts a byte array with AES in CBC mode.
@@ -39,7 +35,7 @@ export class SymmetricCipherFacade {
 	 * @deprecated
 	 */
 	encryptBytesDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array): Uint8Array {
-		return this.encrypt(key, bytes, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)
+		return this.encrypt(key, bytes, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true, true)
 	}
 
 	/**
@@ -47,7 +43,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated use encryptBytes instead
 	 */
-	encryptValueDeprecatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
+	encryptBytesDeprecatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.AesCbcThenHmac)
 	}
 
@@ -58,7 +54,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated use encryptBytes instead.
 	 */
-	encryptDatabaseKeyDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
+	encryptBytesDeprecatedUnauthenticatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)
 	}
 
@@ -105,9 +101,9 @@ export class SymmetricCipherFacade {
 	encryptKey(key: AesKey, keyToEncrypt: AesKey): Uint8Array {
 		switch (getAndVerifyAesKeyLength(key)) {
 			case AesKeyLength.Aes128:
-				return this.encryptImpl(key, keyToUint8Array(keyToEncrypt), false, false, SymmetricCipherVersion.UnusedReservedUnauthenticated)
-			case AesKeyLength.Aes256:
 				// we never authenticate keys encrypted with a legacy AES-128 key, because we rotate all keys to 256 to ensure authentication
+				return this.encrypt(key, keyToUint8Array(keyToEncrypt), false, SymmetricCipherVersion.UnusedReservedUnauthenticated, false)
+			case AesKeyLength.Aes256:
 				return this.encrypt(key, keyToUint8Array(keyToEncrypt), false, SymmetricCipherVersion.AesCbcThenHmac)
 		}
 	}
@@ -133,24 +129,14 @@ export class SymmetricCipherFacade {
 		plainText: Uint8Array,
 		padding: boolean,
 		cipherVersion: SymmetricCipherVersion,
-		skipAuthentication: boolean = false,
-	): Uint8Array {
-		return this.encryptImpl(key, plainText, true, padding, cipherVersion, skipAuthentication)
-	}
-
-	private encryptImpl(
-		key: AesKey,
-		plainText: Uint8Array,
-		hasRandomIv: boolean,
-		padding: boolean,
-		cipherVersion: SymmetricCipherVersion,
-		skipAuthentication: boolean = false,
+		hasRandomIv: boolean = true,
+		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
 		const iv = hasRandomIv ? this.generateIV() : FIXED_IV
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac:
-				return this.aesCbcFacade.encrypt(key, plainText, hasRandomIv, iv, padding, cipherVersion, skipAuthentication)
+				return this.aesCbcFacade.encrypt(key, plainText, hasRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
 			case SymmetricCipherVersion.Aead:
 				assert(hasRandomIv, "AEAD requires random IV")
 				// we can only use this once all clients support it
@@ -158,29 +144,23 @@ export class SymmetricCipherFacade {
 		}
 	}
 
-	private decrypt(key: AesKey, cipherText: Uint8Array, padding: boolean, randomIv: boolean = true, skipAuthentication: boolean = false): Uint8Array {
+	private decrypt(
+		key: AesKey,
+		cipherText: Uint8Array,
+		padding: boolean,
+		randomIv: boolean = true,
+		skipAuthenticationEnforcement: boolean = false,
+	): Uint8Array {
 		const cipherVersion = getSymmetricCipherVersion(cipherText)
-		//TODO this is not necessary if we also enforce authentication during key derivation
-		if (!skipAuthentication) {
-			this.enforceAuthenticationWherePossible(cipherVersion, key)
-		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				return this.aesCbcFacade.decrypt(key, cipherText, randomIv, padding, cipherVersion, skipAuthentication)
+				return this.aesCbcFacade.decrypt(key, cipherText, randomIv, padding, cipherVersion, skipAuthenticationEnforcement)
 			}
 			case SymmetricCipherVersion.Aead: {
 				// use this as soon as we define what to use as associated data
 				throw new Error("not yet enabled")
 			}
-		}
-	}
-
-	private enforceAuthenticationWherePossible(cipherVersion: SymmetricCipherVersion, key: AesKey) {
-		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated && getAndVerifyAesKeyLength(key) !== AesKeyLength.Aes128) {
-			// if there is no version byte there also is no mac. so we throw here.
-			// we cannot enforce for the legacy aes128 keys as there are untagged ciphertexts that we must remain compatibility with
-			throw new CryptoError("mac is enforced but not present")
 		}
 	}
 

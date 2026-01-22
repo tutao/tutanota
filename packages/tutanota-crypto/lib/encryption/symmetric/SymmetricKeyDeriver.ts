@@ -5,7 +5,6 @@ import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { concat } from "@tutao/tutanota-utils"
 import { hkdf } from "../../hashes/HKDF.js"
-import { CryptoError } from "../../misc/CryptoError.js"
 
 /**
  * @private visible for tests
@@ -20,15 +19,11 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derives encryption and authentication keys as needed for the symmetric cipher implementations
 	 */
-	deriveSubKeys(key: AesKey, symmetricCipherVersion: SymmetricCipherVersion, skipAuthentication: boolean = false): SubKeys {
+	deriveSubKeys(key: AesKey, symmetricCipherVersion: SymmetricCipherVersion): SubKeys {
 		const keyLength = getAndVerifyAesKeyLength(key)
 		const keyBytes = keyToUint8Array(key)
 		switch (symmetricCipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				//we allow unauthenticated encryption of search index
-				if (keyLength !== AesKeyLength.Aes128 && !skipAuthentication) {
-					throw new CryptoError("key length " + keyLength + " is incompatible with cipherVersion " + symmetricCipherVersion)
-				}
 				return { encryptionKey: key, authenticationKey: null }
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				let hashedKey: Uint8Array
