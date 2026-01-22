@@ -179,7 +179,7 @@ export class MailAddressTableModel {
 		this.nameMappings = await this.nameChanger.getSenderNames()
 	}
 
-	private async loadAliasCount() {
+	async loadAliasCount() {
 		this.aliasCount = await this.mailAddressFacade.getAliasCounters(this.userInfo.userGroupInfo.group)
 	}
 

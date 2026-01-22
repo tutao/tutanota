@@ -9,7 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -17,7 +17,7 @@ import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddress
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { UnsubscribeFailureReason } from "../../api/common/TutanotaConstants"
+import { NewPaidPlans, UnsubscribeFailureReason } from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -87,7 +87,11 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	private async onAddAlias(attrs: MailAddressTableAttrs) {
 		const userController = locator.logins.getUserController()
 		if (userController.isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			await showPlanUpgradeRequiredDialog(NewPaidPlans).then((upgraded) => {
+				if (upgraded) {
+					attrs.model.loadAliasCount()
+				}
+			})
 		} else {
 			const isNewPaidPlan = await userController.isNewPaidPlan()
 			showAddAliasDialog(attrs.model, isNewPaidPlan)
