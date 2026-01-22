@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel, FolderFolderItem, FolderItem, FolderItemId } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference, getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
@@ -31,11 +31,13 @@ import { styles } from "../../../common/gui/styles"
 import { BottomNav } from "../../../mail-app/gui/BottomNav"
 import { MobileHeader } from "../../../common/gui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
+import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	driveViewModel: DriveViewModel
+	showMoveItemDialog: (item: FolderItem) => unknown
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
 }
@@ -82,7 +84,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		console.log("running constructor for DriveView")
 		super()
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header) // this where we see the files of the selected folder being listed
+		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog) // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.driveViewModel = vnode.attrs.driveViewModel
@@ -225,7 +227,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
-	private createCurrentFolderColumn(headerAttrs: HeaderAttrs) {
+	private createCurrentFolderColumn(headerAttrs: HeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -318,6 +320,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										this.driveViewModel.restoreFromTrash([item])
 									},
 									onRename: (item) => this.onRename(item),
+									onStartMove: (item) => {
+										showMoveItemDialog(item)
+									},
 								},
 								onMove: (items: FolderItemId[], into: FolderFolderItem) => {
 									this.driveViewModel.moveItems(items, into.folder._id)

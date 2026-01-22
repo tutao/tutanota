@@ -6,7 +6,7 @@ import { TransferProgressDispatcher } from "../../../src/common/api/main/Transfe
 import { EventController } from "../../../src/common/api/main/EventController"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { UserManagementFacade } from "../../../src/common/api/worker/facades/lazy/UserManagementFacade"
-import { DriveFolderType, DriveViewModel, FolderItemId } from "../../../src/drive-app/drive/view/DriveViewModel"
+import { DriveFolderType, DriveViewModel } from "../../../src/drive-app/drive/view/DriveViewModel"
 import { matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
@@ -17,6 +17,7 @@ import { TutanotaPropertiesTypeRef } from "../../../src/common/api/entities/tuta
 import { GroupInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 import { elementIdPart, getElementId } from "../../../src/common/api/common/utils/EntityUtils"
 import { FileController } from "../../../src/common/file/FileController"
+import { FolderItemId } from "../../../src/drive-app/drive/view/DriveUtils"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel

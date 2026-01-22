@@ -2202,3 +2202,8 @@ export type TranslationKeyType =
 	| "transferFailed_msg"
 	| "confirmDeleteFilesPermanently_msg"
 	| "confirmDeleteFilesPermanently_action"
+	| "showParentFolders_action"
+	| "folderIsEmpty_msg"
+	| "movingItem_title"
+	| "chooseDestination_title"
+	| "moveItemHere_action"

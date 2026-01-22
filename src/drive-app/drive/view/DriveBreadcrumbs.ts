@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { FolderItem } from "./DriveViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
@@ -9,24 +8,27 @@ import { createAsyncDropdown } from "../../../common/gui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton"
 import { theme } from "../../../common/gui/theme"
 import { driveFolderName } from "./DriveGuiUtils"
+import { FolderItem } from "./DriveUtils"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
 	loadParents: () => Promise<DriveFolder[]>
-	onDropInto: (f: FolderItem, event: DragEvent) => unknown
+	onDropInto?: (f: FolderItem, event: DragEvent) => unknown
+	onClick?: (f: DriveFolder, event: MouseEvent) => unknown
 }
 
 export interface BreadcrumbLinkAttrs {
 	label: Translation
 	href: string
-	onDrop: (event: DragEvent) => unknown
+	onDrop?: (event: DragEvent) => unknown
+	onClick?: (event: MouseEvent) => unknown
 }
 
 class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 	private isDraggedOver: boolean = false
 
-	view({ attrs: { label, href, onDrop } }: Vnode<BreadcrumbLinkAttrs>): Children {
+	view({ attrs: { label, href, onDrop, onClick } }: Vnode<BreadcrumbLinkAttrs>): Children {
 		return m(
 			m.route.Link,
 			{
@@ -34,22 +36,25 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 				selector: "a.click.no-text-decoration.state-bg.pl-8.pr-8.pt-4.pb-4.border-radius-4",
 				"data-testid": `btn:${lang.getTestId(label)}`,
 				style: { border: this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent` },
+				onclick: onClick,
 				onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
 					if (isKeyPressed(e.key, Keys.SPACE)) {
 						m.route.set(href)
 					}
 				},
 				ondragover: () => {
-					this.isDraggedOver = true
+					this.isDraggedOver = (onDrop ?? false) && true
 				},
 				ondragleave: () => {
 					this.isDraggedOver = false
 				},
-				ondrop: (event: DragEvent) => {
-					this.isDraggedOver = false
-					onDrop(event)
-					console.log("king, you dropped this:", event)
-				},
+				ondrop: onDrop
+					? (event: DragEvent) => {
+							this.isDraggedOver = false
+							onDrop(event)
+							console.log("king, you dropped this:", event)
+						}
+					: undefined,
 			},
 			label.text,
 		)
@@ -61,7 +66,7 @@ function folderRoute(entry: DriveFolder): string {
 }
 
 export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
-	view({ attrs: { currentFolder, parents, loadParents, onDropInto } }: Vnode<DriveBreadcrumbsAttrs>): Children {
+	view({ attrs: { currentFolder, parents, loadParents, onDropInto, onClick } }: Vnode<DriveBreadcrumbsAttrs>): Children {
 		return m("div.flex.items-center.column-gap-12", [
 			parents
 				.map((entry, index) => {
@@ -72,8 +77,8 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 									m(BaseButton, {
 										class: "click state-bg pl-8 pr-8 pt-4 pb-4 border-radius-4",
 										text: "…",
-										onclick: (_, dom) => this.onLoadParents(dom, loadParents),
-										label: lang.makeTranslation("btn:showParentFolders", "Show parent folders"),
+										onclick: (_, dom) => this.onLoadParents(dom, loadParents, onClick),
+										label: "showParentFolders_action",
 									} satisfies BaseButtonAttrs),
 									m("", "/"),
 								]
@@ -81,18 +86,36 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 						m(BreadcrumbLink, {
 							label: driveFolderName(entry),
 							href: folderRoute(entry),
-							onDrop: (event) => {
-								onDropInto({ type: "folder", folder: entry }, event)
+							onClick: (e: MouseEvent) => {
+								onClick?.(entry, e)
 							},
+							onDrop: onDropInto
+								? (event) => {
+										onDropInto({ type: "folder", folder: entry }, event)
+									}
+								: undefined,
 						}),
 						m("", "/"),
 					]
 				})
 				.flat(),
-			currentFolder ? [m("", " " + driveFolderName(currentFolder).text)] : null,
+			currentFolder
+				? [
+						m(
+							".pl-8.pr-8.pt-4.pb-4",
+							{
+								style: {
+									// match the border of breadcrumb links
+									border: "1px solid transparent",
+								},
+							},
+							" " + driveFolderName(currentFolder).text,
+						),
+					]
+				: null,
 		])
 	}
-	private onLoadParents(dom: HTMLElement, loadParents: () => Promise<DriveFolder[]>) {
+	private onLoadParents(dom: HTMLElement, loadParents: () => Promise<DriveFolder[]>, onClick: DriveBreadcrumbsAttrs["onClick"]) {
 		const newClickEvent = new MouseEvent("click")
 		createAsyncDropdown({
 			lazyButtons: async () => {
@@ -100,8 +123,12 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 				return loadedParents.map((parent) => {
 					return {
 						label: driveFolderName(parent),
-						click: () => {
-							m.route.set(folderRoute(parent))
+						click: (event) => {
+							if (onClick) {
+								onClick(parent, event)
+							} else {
+								m.route.set(folderRoute(parent))
+							}
 						},
 					}
 				})

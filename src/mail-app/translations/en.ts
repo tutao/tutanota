@@ -2205,5 +2205,10 @@ export default {
 		"transferFailed_msg": "Transfer failed",
 		"confirmDeleteFilesPermanently_msg": "Are you sure you want to permanently delete {count} file(s)?",
 		"confirmDeleteFilesPermanently_action": "Delete files",
+		"showParentFolders_action": "Show parent folders",
+		"folderIsEmpty_msg": "This folder is empty",
+		"movingItem_title": "Moving: {itemName}",
+		"chooseDestination_title": "Choose a destination",
+		"moveItemHere_action": "Move here",
 	}
 }

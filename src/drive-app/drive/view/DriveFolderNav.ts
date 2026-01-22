@@ -7,7 +7,8 @@ import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { theme } from "../../../common/gui/theme"
 import { size } from "../../../common/gui/size"
-import { FolderItem } from "./DriveViewModel"
+
+import { FolderItem } from "./DriveUtils"
 
 export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null

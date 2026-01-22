@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ClipboardAction, DriveClipboard, FolderItem, folderItemEntity, FolderItemId, SortColumn, SortingPreference } from "./DriveViewModel"
+import { ClipboardAction, DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -10,6 +10,7 @@ import { DropType } from "../../../common/gui/base/GuiUtils"
 import { theme } from "../../../common/gui/theme"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { FolderItem, folderItemEntity, FolderItemId } from "./DriveUtils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 

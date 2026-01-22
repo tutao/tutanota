@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
-import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveViewModel"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { filterInt } from "@tutao/tutanota-utils"
@@ -9,6 +8,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"
 import { modal } from "../../../common/gui/base/Modal"
+import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -17,6 +17,17 @@ export interface FileActions {
 	onDelete: (f: FolderItem) => unknown
 	onRename: (f: FolderItem) => unknown
 	onRestore: (f: FolderItem) => unknown
+	onStartMove: (f: FolderItem) => unknown
+}
+
+export const NoopFileActions: FileActions = {
+	onCut: (f: FolderItem) => {},
+	onCopy: (f: FolderItem) => {},
+	onOpenItem: (f: FolderItem) => {},
+	onDelete: (f: FolderItem) => {},
+	onRename: (f: FolderItem) => {},
+	onRestore: (f: FolderItem) => {},
+	onStartMove: (f: FolderItem) => {},
 }
 
 export interface DriveFolderContentEntryAttrs {
@@ -82,7 +93,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			onDragEnd,
 			onDropInto,
 			isCut,
-			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
+			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename, onStartMove },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
@@ -138,7 +149,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				oncontextmenu: (e: MouseEvent) => {
 					e.preventDefault()
 					e.stopPropagation()
-					const dropdown = new Dropdown(() => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete), 300)
+					const dropdown = new Dropdown(() => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete, onStartMove), 300)
 					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 					modal.displayUnique(dropdown, false)
 				},
@@ -182,7 +193,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 									icon: Icons.More,
 									title: "more_label",
 								},
-								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete),
+								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete, onStartMove),
 							}),
 						),
 					]),
@@ -198,6 +209,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		onCut: (f: FolderItem) => unknown,
 		onRestore: (f: FolderItem) => unknown,
 		onDelete: (f: FolderItem) => unknown,
+		onStartMove: (f: FolderItem) => unknown,
 	): DropdownChildAttrs[] {
 		return [
 			{
@@ -219,6 +231,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				icon: Icons.Cut,
 				click: () => {
 					onCut(item)
+				},
+			},
+			{
+				label: "move_action",
+				icon: Icons.Folder,
+				click: () => {
+					onStartMove(item)
 				},
 			},
 			(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)

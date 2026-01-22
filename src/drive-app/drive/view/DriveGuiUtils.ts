@@ -2,8 +2,9 @@ import { DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
-import { DriveFolderType, FolderItemId } from "./DriveViewModel"
+import { DriveFolderType } from "./DriveViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
+import { FolderItemId } from "./DriveUtils"
 
 export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownChildAttrs[] {
 	return [

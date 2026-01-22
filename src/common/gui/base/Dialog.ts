@@ -91,7 +91,7 @@ export class Dialog implements ModalComponent {
 	private focusedBeforeShown: HTMLElement | null = null
 	private injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
 
-	constructor(dialogType: DialogType, childComponent: Component) {
+	constructor(dialogType: DialogType, childComponent: Component | Class<Component>) {
 		this.visible = false
 
 		this.focusOnLoadFunction = () => this.defaultFocusOnLoad(assertNotNull(this.domDialog))
@@ -262,7 +262,7 @@ export class Dialog implements ModalComponent {
 		} else if (dialogType === DialogType.EditMedium) {
 			dialogStyle += ".dialog-width-m.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
-			dialogStyle += ".dialog-width-l"
+			dialogStyle += ".dialog-width-l.border-radius-bottom-8"
 		}
 
 		return dialogStyle

@@ -326,6 +326,17 @@ export class DriveFacade {
 	async generateUploadId(): Promise<TransferId> {
 		return String(this.latestUploadId++) as TransferId
 	}
+
+	async getFolderParents(folder: DriveFolder): Promise<DriveFolder[]> {
+		if (folder.parent == null) return []
+		const result: DriveFolder[] = []
+		let currentParent: DriveFolder = folder
+		do {
+			currentParent = await this.entityClient.load(DriveFolderTypeRef, assertNotNull(currentParent.parent))
+			result.unshift(currentParent)
+		} while (currentParent.parent != null)
+		return result
+	}
 }
 
 /**

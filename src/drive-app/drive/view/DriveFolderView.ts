@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveClipboard, DriveFolderType, FolderFolderItem, FolderItem, FolderItemId, SortColumn, SortingPreference } from "./DriveViewModel"
+import { DriveClipboard, DriveFolderType, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
 import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
@@ -17,6 +17,7 @@ import { newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../common/gui/base/Modal"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { FileActions } from "./DriveFolderContentEntry"
+import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void

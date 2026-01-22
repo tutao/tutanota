@@ -22,27 +22,15 @@ import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { ChunkedDownloadInfo, ChunkedUploadInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 import { FileController } from "../../../common/file/FileController"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
+import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
 
 export const enum DriveFolderType {
 	Regular = "0",
 	Root = "1",
 	Trash = "2",
 }
-
-export interface FileFolderItem {
-	type: "file"
-	file: DriveFile
-}
-
-export interface FolderFolderItem {
-	type: "folder"
-	folder: DriveFolder
-}
-
-export type FolderItem = FileFolderItem | FolderFolderItem
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -98,29 +86,9 @@ export const enum ClipboardAction {
 	Copy,
 }
 
-export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
-	return folderItem.type === "file" ? folderItem.file : folderItem.folder
-}
-
-function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
-	return item.type === "folder"
-}
-
-export interface FolderItemId {
-	type: "file" | "folder"
-	id: IdTuple
-}
-
 export interface DriveClipboard {
 	items: readonly FolderItemId[]
 	action: ClipboardAction
-}
-
-export function folderItemToId(item: FolderItem): FolderItemId {
-	return {
-		id: folderItemEntity(item)._id,
-		type: item.type,
-	}
 }
 
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
@@ -147,6 +115,7 @@ export interface DriveStorage {
 }
 
 type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
+
 export class DriveViewModel {
 	public readonly userMailAddress: string
 
@@ -209,7 +178,7 @@ export class DriveViewModel {
 		const newListModel = new ListModel<FolderItem, Id>({
 			fetch: async (lastFetchedItem, count) => {
 				if (lastFetchedItem == null) {
-					return { items: await this.loadFolderContents(folder._id), complete: true }
+					return { items: await loadFolderContents(this.driveFacade, folder._id), complete: true }
 				} else {
 					return { items: [] satisfies FolderItem[], complete: true }
 				}
@@ -316,16 +285,6 @@ export class DriveViewModel {
 		}
 	}
 
-	private makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
-		const [basename, ext] = getFileBaseNameAndExtensions(fileName)
-		const safeExt = ext ?? ""
-		return `${basename} (${indicator})${safeExt}`
-	}
-
-	private makeDuplicateFolderName(folderName: string): string {
-		return `${folderName} (copy)`
-	}
-
 	async paste() {
 		if (this.currentFolder == null) return
 
@@ -354,61 +313,14 @@ export class DriveViewModel {
 			folderItems.map((item) => item.id),
 		)
 
-		const renamedFiles = await this.deduplicateItemNames(await this.loadFolderContents(destination._id), files, folders)
+		const renamedFiles = await deduplicateItemNames(await loadFolderContents(this.driveFacade, destination._id), files, folders)
 
 		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
 	}
 
 	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple) {
-		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
-		const files = await loadMultipleFromLists(
-			DriveFileTypeRef,
-			this.entityClient,
-			fileItems.map((item) => item.id),
-		)
-		const folders = await loadMultipleFromLists(
-			DriveFolderTypeRef,
-			this.entityClient,
-			folderItems.map((item) => item.id),
-		)
-
-		const renamedFiles = await this.deduplicateItemNames(await this.loadFolderContents(destinationId), files, folders)
-
-		await this.driveFacade.move(files, folders, destinationId, renamedFiles)
+		await moveItems(this.entityClient, this.driveFacade, items, destinationId)
 		this.selectNone()
-	}
-
-	private async deduplicateItemNames(existingItems: FolderItem[], newFiles: Array<DriveFile>, newFolders: Array<DriveFolder>): Promise<Map<Id, string>> {
-		// This is for tracking filenames that are not yet part of the list model
-		// because we *just now* made them up when trying to find a free candidate name
-		// and are therefore unsuited as candidate names as well.
-		const takenFileNames: Set<string> = new Set(existingItems.map((item) => folderItemEntity(item).name))
-		const renamedFiles: Map<Id, string> = new Map()
-
-		for (const file of newFiles) {
-			const newFileName = this.pickNewFileName(file.name, takenFileNames)
-			if (newFileName !== file.name) {
-				renamedFiles.set(getElementId(file), newFileName)
-			}
-			takenFileNames.add(newFileName)
-		}
-
-		for (const folder of newFolders) {
-			const newFolderName = this.pickNewFileName(folder.name, takenFileNames)
-			if (newFolderName !== folder.name) {
-				renamedFiles.set(getElementId(folder), newFolderName)
-			}
-			takenFileNames.add(newFolderName)
-		}
-		return renamedFiles
-	}
-
-	private pickNewFileName(originalName: string, takenFileNames: ReadonlySet<string>): string {
-		let candidateName = originalName
-		while (takenFileNames.has(candidateName)) {
-			candidateName = this.makeDuplicateFileName(candidateName)
-		}
-		return candidateName
 	}
 
 	private itemsIntoIds(items: readonly FolderItem[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
@@ -474,15 +386,6 @@ export class DriveViewModel {
 		}
 	}
 
-	async loadFolderContents(folderId: IdTuple): Promise<FolderItem[]> {
-		const { files, folders } = await this.driveFacade.getFolderContents(folderId)
-		const items = [
-			...folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
-			...files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
-		]
-		return items
-	}
-
 	openActiveItem() {
 		const activeItem = this.listModel.getActiveItem()
 		if (activeItem != null) {
@@ -505,7 +408,7 @@ export class DriveViewModel {
 		for (const file of files) {
 			const fileId = await this.driveFacade.generateUploadId()
 
-			const newName = this.pickNewFileName(file.name, takenFileNames)
+			const newName = pickNewFileName(file.name, takenFileNames)
 			takenFileNames.add(newName)
 
 			this.driveUploadStackModel.addUpload(fileId, newName, file.size)
@@ -639,15 +542,9 @@ export class DriveViewModel {
 			return []
 		}
 
-		let currentParent = this.parents[0]
-		if (currentParent == null) return []
-		const result: DriveFolder[] = []
-		while (currentParent.parent != null) {
-			const grandparent = await this.entityClient.load(DriveFolderTypeRef, currentParent.parent)
-			result.unshift(grandparent)
-			currentParent = grandparent
-		}
-		return result
+		let firstLoadedParent = this.parents[0]
+		if (firstLoadedParent == null) return []
+		return this.driveFacade.getFolderParents(firstLoadedParent)
 	}
 
 	transfers(): [TransferId, DriveTransferState][] {

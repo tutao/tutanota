@@ -162,6 +162,7 @@ import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { DriveUploadStackModel } from "../drive-app/drive/view/DriveUploadStackModel"
+import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 
 assertMainOrNode()
 
@@ -1327,6 +1328,11 @@ class MailLocator implements CommonLocator {
 
 		return model
 	})
+
+	async showMoveItemDialog(item: FolderItem) {
+		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
+		showMoveDialog(this.entityClient, this.driveFacade, item)
+	}
 }
 
 export type IMailLocator = Readonly<MailLocator>
