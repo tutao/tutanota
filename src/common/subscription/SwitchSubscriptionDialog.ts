@@ -28,7 +28,7 @@ import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
 import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, delay, downcast, lazy } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
@@ -83,7 +83,9 @@ export async function showSwitchDialog({
 		PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null),
 	)
 	const model = new SwitchSubscriptionDialogModel(customer, accountingInfo, await locator.logins.getUserController().getPlanType(), lastBooking)
+	const deferred = defer<void>()
 	const cancelAction = () => {
+		deferred.resolve()
 		dialog.close()
 	}
 
@@ -199,7 +201,7 @@ export async function showSwitchDialog({
 		[PlanType.Unlimited]: createPlanButton(dialog, PlanType.Unlimited, currentPlanInfo, paymentInterval, accountingInfo),
 	}
 	dialog.show()
-	return
+	return deferred.promise
 }
 
 async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
@@ -505,6 +507,6 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			throw e
 		}
 	} finally {
-		dialog.close()
+		dialog.onClose()
 	}
 }
