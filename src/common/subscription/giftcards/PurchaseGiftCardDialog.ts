@@ -137,7 +137,11 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 						),
 						actionButton: () =>
 							m(LoginButton, {
+								style: {
+									opacity: model.selectedPackage === index ? "0" : "1",
+								},
 								label: "pricing.select_action",
+								disabled: model.selectedPackage === index,
 								onclick: () => {
 									model.selectedPackage = index
 								},
