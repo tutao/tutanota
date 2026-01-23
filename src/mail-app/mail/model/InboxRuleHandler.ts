@@ -1,7 +1,7 @@
 import { InboxRule, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, ProcessingState } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { asyncFind, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, Nullable } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
@@ -13,7 +13,7 @@ import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { SpamClassificationHandler } from "./SpamClassificationHandler"
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../workerUtils/spamClassification/SpamClassifier"
 
 assertMainOrNode()
 
@@ -111,12 +111,18 @@ export class InboxRuleHandler {
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder) {
+				const currentFolder = assertNotNull(folders.getFolderByMail(mail))
+				const { vectorToUpload } = await this.mailFacade.createModelInputAndUploadVector(
+					CURRENT_SPACE_FOR_SERVER_RESULT,
+					mail,
+					mailDetails,
+					currentFolder,
+				)
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					mailId: mail._id,
 					targetMoveFolder: targetFolder._id,
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
-					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
-					serverSideInfluence: "1", //SpamClassificationHandler.getServerSideInfluenceAsInputVector(Number(mail.serverSideInfluence)).magnitude.toString(),
+					vector: vectorToUpload,
 				}
 				return { targetFolder, processInboxDatum }
 			} else {

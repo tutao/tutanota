@@ -9,12 +9,12 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { isSameId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../workerUtils/spamClassification/SpamClassifier"
 
 assertMainOrNode()
 
-export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum>, "encVector" | "encServerSideInfluence" | "ownerEncVectorSessionKey"> & {
+export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum>, "encVector" | "ownerEncVectorSessionKey"> & {
 	vector: Uint8Array
-	serverSideInfluence: NumberString
 }
 
 const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
@@ -90,13 +90,12 @@ export class ProcessInboxHandler {
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
 		if (finalProcessInboxDatum === null) {
-			const { influenceDirection, influenceMagnitude } = this.spamHandler().extractServerSideInfluenceFromMail(mail, sourceFolder)
+			const { vectorToUpload } = await this.mailFacade.createModelInputAndUploadVector(CURRENT_SPACE_FOR_SERVER_RESULT, mail, mailDetails, sourceFolder)
 			finalProcessInboxDatum = {
 				mailId: mail._id,
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
-				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
-				serverSideInfluence: String(influenceDirection * influenceMagnitude),
+				vector: vectorToUpload,
 			}
 		}
 

@@ -1051,7 +1051,7 @@ export const typeModels = {
 			},
 			"1811": {
 				"final": true,
-				"name": "serverSideInfluence",
+				"name": "serverClassifier",
 				"id": 1811,
 				"type": "Number",
 				"cardinality": "One",
@@ -9446,14 +9446,6 @@ export const typeModels = {
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": true
-			},
-			"1812": {
-				"final": true,
-				"name": "serverSideInfluence",
-				"id": 1812,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
 			}
 		},
 		"associations": {}
@@ -9563,14 +9555,6 @@ export const typeModels = {
 				"id": 1763,
 				"type": "Bytes",
 				"cardinality": "One",
-				"encrypted": false
-			},
-			"1814": {
-				"final": true,
-				"name": "encServerSideInfluence",
-				"id": 1814,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
@@ -9694,14 +9678,6 @@ export const typeModels = {
 				"id": 1777,
 				"type": "Bytes",
 				"cardinality": "One",
-				"encrypted": false
-			},
-			"1813": {
-				"final": true,
-				"name": "encServerSideInfluence",
-				"id": 1813,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},

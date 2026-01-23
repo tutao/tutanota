@@ -37,7 +37,6 @@ function createMailByFolderAndReceivedDate(mailId: IdTuple, mailSet: IdTuple, re
 		sets: [mailSet],
 		receivedDate: receivedDate,
 		mailDetails: ["detailsListId", mailDetailsId],
-		serverSideInfluence: "10",
 	})
 }
 
@@ -52,7 +51,6 @@ function createSpamTrainingDatumByConfidenceAndDecision(
 		confidence,
 		spamDecision,
 		vector: new Uint8Array(),
-		serverSideInfluence: spamDecision === SpamDecision.BLACKLIST ? "10" : "-10",
 	})
 }
 
@@ -100,7 +98,10 @@ o.spec("SpamClassificationDataDealer", () => {
 			modifiedClientSpamTrainingDataIndex: "modifiedClientSpamTrainingDataIndex",
 		})
 		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail" })
-		when(mailFacadeMock.vectorizeAndCompressMails(anything())).thenResolve(new Uint8Array(1))
+		when(mailFacadeMock.createModelInputAndUploadVector(anything(), anything(), anything(), anything())).thenResolve({
+			modelInput: new Array(1),
+			vectorToUpload: new Uint8Array(1),
+		})
 		spamClassificationDataDealer = new SpamClassifierDataDealer(
 			entityClientMock,
 			() => Promise.resolve(bulkMailLoaderMock),
@@ -259,7 +260,6 @@ o.spec("SpamClassificationDataDealer", () => {
 					isSpam,
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-					serverSideInfluence: isSpam ? "10" : "-10",
 				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
@@ -350,7 +350,6 @@ o.spec("SpamClassificationDataDealer", () => {
 					mailId: mail._id,
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-					serverSideInfluence: isSpam ? "10" : "-10",
 				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
@@ -448,7 +447,6 @@ o.spec("SpamClassificationDataDealer", () => {
 					mailId: mail._id,
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-					serverSideInfluence: isSpam ? "10" : "-10",
 				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			const secondUnencryptedPayload = expectedSecondChunk.map((mail) => {
@@ -458,7 +456,6 @@ o.spec("SpamClassificationDataDealer", () => {
 					mailId: mail._id,
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
-					serverSideInfluence: isSpam ? "10" : "-10",
 				} satisfies UnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", firstUnencryptedPayload), { times: 1 })

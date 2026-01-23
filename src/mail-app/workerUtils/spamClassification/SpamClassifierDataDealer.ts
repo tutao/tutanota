@@ -18,10 +18,10 @@ import { getMailSetKind, isFolder, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION,
 import { GENERATED_MIN_ID, getElementId, isSameId, StrippedEntity, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
-import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { isDesktop } from "../../../common/api/common/Env"
-import { SpamClassifier } from "./SpamClassifier"
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "./SpamClassifier"
+import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 //Visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000
@@ -38,12 +38,8 @@ export type TrainingDataset = {
 	spamCount: number
 }
 
-export type UnencryptedPopulateClientSpamTrainingDatum = Omit<
-	StrippedEntity<PopulateClientSpamTrainingDatum>,
-	"encVector" | "encServerSideInfluence" | "ownerEncVectorSessionKey"
-> & {
+export type UnencryptedPopulateClientSpamTrainingDatum = Omit<StrippedEntity<PopulateClientSpamTrainingDatum>, "encVector" | "ownerEncVectorSessionKey"> & {
 	vector: Uint8Array
-	serverSideInfluence: NumberString
 }
 
 export class SpamClassifierDataDealer {
@@ -232,6 +228,7 @@ export class SpamClassifierDataDealer {
 	}
 
 	private async uploadTrainingDataForMails(mails: MailWithMailDetails[], mailBox: MailBox, mailSets: MailSet[]): Promise<void> {
+		const mailFacade = await this.mailFacade()
 		const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum[] = await promiseMap(
 			mails,
 			async (mailWithDetail) => {
@@ -240,19 +237,15 @@ export class SpamClassifierDataDealer {
 				const targetFolderId = assertNotNull(mail.sets.find((setId) => allMailFolders.find((folderId) => isSameId(setId, folderId))))
 				const currentFolder = assertNotNull(mailSets.find((set) => isSameId(set._id, targetFolderId)))
 				const isSpam = getMailSetKind(currentFolder) === MailSetKind.SPAM
-				const vector = await (await this.mailFacade()).vectorizeAndCompressMails({ mail, mailDetails })
-				// For already existing mail before tutanotaModel102, that will have default value zero in serverSideInfluence
-				// we will always get 1 in influenceMagnitude,
-				// direction will not be as same as what server initially decided but this shall not have a negative
-				// impact on classification.
-				const { influenceMagnitude, influenceDirection } = SpamClassifier.extractServerSideInfluenceFromMail(mail, currentFolder)
+				const vector = await mailFacade
+					.createModelInputAndUploadVector(CURRENT_SPACE_FOR_SERVER_RESULT, mail, mailDetails, currentFolder)
+					.then((a) => a.vectorToUpload)
 
 				const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum = {
 					mailId: mail._id,
 					isSpam,
 					vector,
 					confidence: getSpamConfidence(mail),
-					serverSideInfluence: String(influenceDirection * influenceMagnitude),
 				}
 				return unencryptedPopulateClientSpamTrainingData
 			},

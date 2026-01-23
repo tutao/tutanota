@@ -1,4 +1,4 @@
-import { assert, assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
 import { SpamClassifierDataDealer, TrainingDataset } from "./SpamClassifierDataDealer"
 import {
 	dense,
@@ -15,19 +15,26 @@ import {
 import type { ModelArtifacts } from "@tensorflow/tfjs-core/dist/io/types"
 import type { ModelFitArgs } from "@tensorflow/tfjs-layers"
 import type { Tensor } from "@tensorflow/tfjs-core"
-import { DEFAULT_PREPROCESS_CONFIGURATION, SpamMailDatum, SpamMailProcessor } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import {
+	createSpamMailDatum,
+	DEFAULT_PREPROCESS_CONFIGURATION,
+	SpamMailProcessor,
+} from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { SpamClassificationHandler } from "../../mail/model/SpamClassificationHandler"
-import { ClientSpamTrainingDatum, createMailSet, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
-import { UnencryptedProcessInboxDatum } from "../../mail/model/ProcessInboxHandler"
+import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export type SpamClassificationModelMetaData = {
 	hamCount: number
 	spamCount: number
 	lastTrainedFromScratchTime: number
 	lastTrainingDataIndexId: Id
+	/**
+	 * total number of bytes required to represent serverSide classificatin result
+	 * 1 ( isSpam flag ) + n ( nmbr of Classifier ) + 1 ( reserved UNKNOWN classifier )
+	 */
+	spaceForServerResult: number
 }
 
 export type SpamClassificationModel = {
@@ -40,6 +47,7 @@ export type SpamClassificationModel = {
 
 export const DEFAULT_PREDICTION_THRESHOLD = 0.55
 
+export const CURRENT_SPACE_FOR_SERVER_RESULT = 16 // number of server classifier + 1 ( for unknown ) + 1 ( for isSpam flag )
 const TRAINING_INTERVAL = 1000 * 60 * 10 // 10 minutes
 const FULL_RETRAINING_INTERVAL = 1000 * 60 * 60 * 24 * 7 // 1 week
 
@@ -127,9 +135,17 @@ export class SpamClassifier {
 	// visibleForTesting
 	public async initialTraining(ownerGroup: Id, trainingDataset: TrainingDataset): Promise<void> {
 		const { trainingData: clientSpamTrainingData, hamCount, spamCount } = trainingDataset
+		const metaData: SpamClassificationModelMetaData = {
+			hamCount,
+			spamCount,
+			lastTrainedFromScratchTime: Date.now(),
+			lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
+			spaceForServerResult: CURRENT_SPACE_FOR_SERVER_RESULT,
+		}
+
 		const trainingInput = await promiseMap(
 			clientSpamTrainingData,
-			(d) => {
+			async (d) => {
 				/**
 				 * TODO: we should also use confidence in initialTraining
 				 *
@@ -142,10 +158,8 @@ export class SpamClassifier {
 				 * in this case, m1 should have more influence while classifying on m3.
 				 * Currently since we dont use confidence, m1 & m2 will have equal influence
 				 */
-				const vector = this.sparseVectorCompressor.binaryToVector(d.vector)
+				const vector = await this.spamMailProcessor.makeModelInput(metaData.spaceForServerResult, d)
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
-				const { influenceMagnitude, influenceDirection } = SpamClassifier.recoverServerSideInfluenceFromDatum(d)
-				vector.push(influenceMagnitude, influenceDirection)
 				return { vector, label }
 			},
 			{
@@ -155,10 +169,10 @@ export class SpamClassifier {
 		const vectors = trainingInput.map((input) => input.vector)
 		const labels = trainingInput.map((input) => input.label)
 
-		const xs = tensor2d(vectors, [trainingInput.length, this.getInputSize()], undefined)
+		const xs = tensor2d(vectors, [trainingInput.length, this.getInputSize(metaData)], undefined)
 		const ys = tensor1d(labels, undefined)
 
-		const layersModel = this.buildModel(this.getInputSize())
+		const layersModel = this.buildModel(this.getInputSize(metaData))
 
 		const trainingStart = performance.now()
 		await layersModel.fit(xs, ys, {
@@ -181,12 +195,7 @@ export class SpamClassifier {
 		ys.dispose()
 
 		const threshold = this.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount)
-		const metaData: SpamClassificationModelMetaData = {
-			hamCount,
-			spamCount,
-			lastTrainedFromScratchTime: Date.now(),
-			lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
-		}
+
 		const classifier: Classifier = {
 			layersModel: layersModel,
 			metaData,
@@ -238,15 +247,14 @@ export class SpamClassifier {
 			console.log(`no new spam classification training data for mailbox ${ownerGroup} since last update`)
 			return
 		}
+		const classifierToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup))
 
 		const trainingInput = await promiseMap(
 			trainingDataset.trainingData,
-			(d) => {
-				const vector = this.sparseVectorCompressor.binaryToVector(d.vector)
+			async (d) => {
+				const vector = await this.spamMailProcessor.makeModelInput(classifierToUpdate.metaData.spaceForServerResult, d)
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
 				const isSpamConfidence = Number(d.confidence)
-				const { influenceMagnitude, influenceDirection } = SpamClassifier.recoverServerSideInfluenceFromDatum(d)
-				vector.push(influenceMagnitude, influenceDirection)
 				return { vector, label, isSpamConfidence }
 			},
 			{
@@ -262,8 +270,6 @@ export class SpamClassifier {
 			},
 		)
 
-		const classifierToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup))
-
 		// we clone the layersModel to allow predictions while retraining is in progress
 		const layersModelToUpdate = await this.cloneLayersModel(classifierToUpdate)
 
@@ -273,7 +279,7 @@ export class SpamClassifier {
 				const vectors = trainingInput.map((input) => input.vector)
 				const labels = trainingInput.map((input) => input.label)
 
-				const xs = tensor2d(vectors, [vectors.length, this.getInputSize()], "int32")
+				const xs = tensor2d(vectors, [vectors.length, this.getInputSize(classifierToUpdate.metaData)], "int32")
 				const ys = tensor1d(labels, "int32")
 
 				// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
@@ -305,8 +311,9 @@ export class SpamClassifier {
 			classifierToUpdate.metaData = {
 				hamCount: classifierToUpdate.metaData.hamCount + trainingDataset.hamCount,
 				spamCount: classifierToUpdate.metaData.spamCount + trainingDataset.spamCount,
-				lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
+				spaceForServerResult: classifierToUpdate.metaData.spaceForServerResult,
 				// lastTrainedFromScratchTime update only happens on full training
+				lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
 				lastTrainedFromScratchTime: classifierToUpdate.metaData.lastTrainedFromScratchTime,
 			}
 			classifierToUpdate.layersModel = layersModelToUpdate
@@ -322,13 +329,13 @@ export class SpamClassifier {
 
 	// visibleForTesting
 	public async predict(vector: number[], ownerGroup: Id): Promise<Nullable<boolean>> {
-		const classifier = this.classifierByMailGroup.get(ownerGroup)
+		const classifier = this.classifierByMailGroup.get(ownerGroup) ?? null
 		if (!classifier) {
 			return null
 		}
 
 		const vectors = [vector]
-		const inputSize = this.getInputSize()
+		const inputSize = this.getInputSize(classifier.metaData)
 		const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
 
 		const predictionTensor = classifier.layersModel.predict(xs) as Tensor
@@ -344,8 +351,8 @@ export class SpamClassifier {
 		return prediction > classifier.threshold
 	}
 
-	private getInputSize() {
-		return this.sparseVectorCompressor.dimension + 2 // for serverSideInfluence
+	private getInputSize(classifierMetadata: SpamClassificationModelMetaData) {
+		return this.sparseVectorCompressor.dimension + classifierMetadata.spaceForServerResult
 	}
 
 	// visibleForTesting
@@ -386,12 +393,10 @@ export class SpamClassifier {
 		return model
 	}
 
-	public async compress(vector: number[]) {
-		return await this.spamMailProcessor.compress(vector)
-	}
-
-	public async vectorize(mailDatum: SpamMailDatum) {
-		return await this.spamMailProcessor.vectorize(mailDatum)
+	public async createModelInputAndUploadVector(ownerGroup: Id, mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+		const spaceForServerClassifier = assertNotNull(this.classifierByMailGroup.get(ownerGroup)).metaData.spaceForServerResult
+		const datum = createSpamMailDatum(mail, mailDetails, sourceFolder)
+		return await this.spamMailProcessor.createModelInputAndUploadVector(spaceForServerClassifier, datum)
 	}
 
 	// visibleForTesting
@@ -493,30 +498,5 @@ export class SpamClassifier {
 				reject(err)
 			})
 		})
-	}
-
-	//TODO: this is being used by processInboxHandler and SpamClassificationHandler,
-	// both are on main and thus we had to do some static and non static usage
-	// and that then allows us to build but it probably has a better way.
-	public extractServerSideInfluenceFromMail(mail: Mail, targetFolder: MailSet) {
-		return SpamClassifier.extractServerSideInfluenceFromMail(mail, targetFolder)
-	}
-
-	public static extractServerSideInfluenceFromMail(mail: Mail, targetFolder: MailSet) {
-		assert(targetFolder.folderType === MailSetKind.SPAM || targetFolder.folderType === MailSetKind.INBOX, "Server should either put mail in spam or inbox")
-		const influence = Math.min(100, Number(mail.serverSideInfluence))
-		const influenceDirection = targetFolder.folderType === MailSetKind.SPAM ? 1 : -1
-		const influenceMagnitude = Math.max(1, Math.abs(influence))
-
-		return { influenceMagnitude, influenceDirection }
-	}
-
-	public static recoverServerSideInfluenceFromDatum(datum: UnencryptedProcessInboxDatum | ClientSpamTrainingDatum) {
-		const influence = Number(assertNotNull(datum.serverSideInfluence))
-		assert(influence !== 0 && influence <= 100 && influence >= -100, "server side influence should be between -100 to 100 excluding 0")
-		const influenceMagnitude = Math.abs(influence)
-		const influenceDirection = influence > 0 ? 1 : -1
-
-		return { influenceMagnitude, influenceDirection }
 	}
 }

@@ -21,9 +21,7 @@ import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
-import { createSpamMailDatum } from "../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { LoginController } from "../../../src/common/api/main/LoginController"
-import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 
 const { anything } = matchers
 
@@ -59,12 +57,10 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
 			processNeeded: true,
-			serverSideInfluence: "10",
 		})
 		folderSystem = object<FolderSystem>()
 		mailboxDetail = object()
 
-		when(spamHandler.extractServerSideInfluenceFromMail(anything(), anything())).thenDo((m, f) => SpamClassifier.extractServerSideInfluenceFromMail(m, f))
 		when(mailFacade.moveMails(anything(), anything(), anything())).thenResolve([])
 		when(
 			mailFacade.loadMailDetailsBlob(
@@ -102,7 +98,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -129,7 +124,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -158,7 +152,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -187,7 +180,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: trashFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -280,7 +272,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -302,7 +293,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -324,7 +314,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: spamFolder,
@@ -346,7 +335,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: new Uint8Array(),
-			serverSideInfluence: "10",
 		}
 		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
 			targetFolder: inboxFolder,
@@ -365,8 +353,10 @@ o.spec("ProcessInboxHandlerTest", function () {
 		mail.sets = [inboxFolder._id]
 		const compressedVector = new Uint8Array([2, 4, 8, 16])
 
-		const datum = createSpamMailDatum(mail, mailDetails)
-		when(mailFacade.vectorizeAndCompressMails({ mail, mailDetails })).thenResolve(compressedVector)
+		when(mailFacade.createModelInputAndUploadVector(anything(), mail, mailDetails, inboxFolder)).thenResolve({
+			modelInput: [],
+			vectorToUpload: compressedVector,
+		})
 		processInboxHandler = new ProcessInboxHandler(
 			logins,
 			mailFacade,
@@ -382,7 +372,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vector: compressedVector,
-			serverSideInfluence: "-10",
 		}
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 
