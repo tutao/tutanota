@@ -1,4 +1,13 @@
-import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/node-mimimi"
+import {
+	ImporterApi,
+	ImportErrorKind,
+	ImportOkKind,
+	ImportProgressAction,
+	MailImportErrorMessage,
+	MailImportMessage,
+	PreparationError,
+	TutaCredentials,
+} from "@tutao/node-mimimi"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
@@ -68,6 +77,7 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 
 		// this one is very actionable, but we don't have associated data currently to show the user which file is bad.
 		case PreparationError.NotAValidEmailFile:
+		case PreparationError.FinalisedImportCannotBeResumed:
 			return { category: ImportErrorCategories.ImportIncomplete, source }
 
 		default:

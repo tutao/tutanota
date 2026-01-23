@@ -91,6 +91,8 @@ pub enum PreparationError {
 	NotAValidEmailFile,
 	/// Can not write eml file to import dir
 	EmlFileWriteFailure,
+	/// An import in a finalised state (Cancelled or Finished) cannot be resumed
+	FinalisedImportCannotBeResumed,
 }
 
 /// Unification of Imap & File IterationError
@@ -149,6 +151,7 @@ impl From<PreparationError> for napi::Error {
 			PreparationError::FileReadError => "FileReadError",
 			PreparationError::NotAValidEmailFile => "NotAValidEmailFile",
 			PreparationError::EmlFileWriteFailure => "EmlFileWriteFailure",
+			PreparationError::FinalisedImportCannotBeResumed => "FinalisedImportCannotBeResumed",
 		};
 
 		napi::Error::from_reason(code)
