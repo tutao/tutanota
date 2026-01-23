@@ -47,7 +47,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/com
 import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
@@ -90,6 +89,8 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
+import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 
 assertWorkerOrNode()
 
@@ -309,7 +310,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
 	})
 
-	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
+	const publicEncryptionKeyCache = new PublicEncryptionKeyCache() // should not expose this
+	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification, publicEncryptionKeyCache)
 
 	const adminKeyLoaderProvider = () => locator.adminKeyLoader
 
@@ -338,11 +340,12 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.restClient,
 		locator.serviceExecutor,
 		locator.instancePipeline,
-		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor, typeModelResolver),
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
 		asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
+		new InstanceSessionKeysCache(),
+		locator.cryptoWrapper,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
 		async (error: Error) => {

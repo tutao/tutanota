@@ -27,7 +27,7 @@ import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
 	FolderInfo,
 	getFolderName,
@@ -261,7 +261,7 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 	const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveText)
 
 	if (shouldReportMails && undoResult !== MoveMailSnackbarResult.Undo) {
-		const reportableMails = (await mailModel.loadAllMails(reportableMailIds)).filter((mail) => !isTutanotaTeamMail(mail))
+		const reportableMails = (await mailModel.loadAllMails(reportableMailIds)).filter((mail) => !isTutaTeamMail(mail))
 		await mailModel.reportMails(MailReportType.SPAM, reportableMails)
 	}
 }

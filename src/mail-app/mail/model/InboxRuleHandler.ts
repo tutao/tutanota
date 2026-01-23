@@ -114,6 +114,7 @@ export class InboxRuleHandler {
 					targetMoveFolder: targetFolder._id,
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
 					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+					ownerEncMailSessionKeys: [],
 				}
 				return { targetFolder, processInboxDatum }
 			} else {

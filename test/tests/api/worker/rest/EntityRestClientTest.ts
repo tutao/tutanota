@@ -57,16 +57,16 @@ import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/In
 import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
 import { aes256RandomKey, AesKey, decryptKey } from "@tutao/tutanota-crypto"
-import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 
 const { anything, argThat, captor } = matchers
 
@@ -114,6 +114,7 @@ o.spec("EntityRestClient", function () {
 	let encryptedSessionKey
 	let currentDebuggingStatus
 	let typeModelResolver: TypeModelResolver
+	let cryptoWrapper: CryptoWrapper
 
 	async function typeRefToRestPath(typeRef: TypeRef<unknown>): Promise<string> {
 		return typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
@@ -125,12 +126,13 @@ o.spec("EntityRestClient", function () {
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
+		cryptoWrapper = new CryptoWrapper()
 
 		restClient = object()
 
 		sk = aes256RandomKey()
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
-		encryptedSessionKey = _encryptKeyWithVersionedKey(ownerGroupKey, sk)
+		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, 0)).thenResolve(ownerGroupKey.object)
 
 		fullyLoggedIn = true
@@ -140,11 +142,12 @@ o.spec("EntityRestClient", function () {
 			restClient,
 			instance(ServiceExecutor),
 			instancePipeline,
-			instance(OwnerEncSessionKeysUpdateQueue),
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
 			instance(PublicEncryptionKeyProvider),
+			new InstanceSessionKeysCache(),
+			cryptoWrapper,
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
 			async () => {
@@ -303,7 +306,7 @@ o.spec("EntityRestClient", function () {
 			const id1 = "id1"
 			const ownerKeyProviderSk = aes256RandomKey()
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-			const ownerKeyProviderEncryptedSessionKey = _encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
+			const ownerKeyProviderEncryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
 			const calendar = createTestEntity(CalendarEventTypeRef, {
 				_id: [calendarListId, id1],
 				_permissions: "some id",
@@ -1219,7 +1222,7 @@ o.spec("EntityRestClient", function () {
 			const version = typeModel.version
 			const ownerKeyProviderSk = aes256RandomKey()
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-			const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
+			const ownerEncSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
 			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
 				_id: "id1",
 				_permissions: "permissionsId",

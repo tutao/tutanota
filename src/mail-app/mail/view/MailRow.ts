@@ -28,7 +28,7 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
-import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
+import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft, isMailScheduled } from "../model/MailChecks"
 
 const iconMap: Record<MailSetKind, string> = {
@@ -122,7 +122,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 		const labels = this.updateLabels(mail)
 
-		const isTeamMail = isTutanotaTeamMail(mail)
+		const isTeamMail = isTutaTeamMail(mail)
 		setVisibility(this.teamLabelDom, isTeamMail)
 		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
 

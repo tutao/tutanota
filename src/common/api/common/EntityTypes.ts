@@ -229,6 +229,7 @@ export type ServerModelUntypedInstance = Distinct<UntypedInstance, ServerModelTy
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
+	_id?: Id | IdTuple
 	_original?: this
 	bucketKey?: null | BucketKey
 	_ownerGroup?: null | Id
@@ -243,16 +244,16 @@ export interface Entity {
 /**
  * Entity types with instances that stand on their own, not being part of a list
  */
-export interface ElementEntity extends Entity, Element {}
+export type ElementEntity = Entity & Element
 
 /**
  * Entity types with instances that are part of a list
  */
-export interface ListElementEntity extends Entity, ListElement {}
+export type ListElementEntity = Entity & ListElement
 
 /**
  * Entity types that are stored in an immutable blob storage
  */
-export interface BlobElementEntity extends Entity, BlobElement {}
+export type BlobElementEntity = Entity & BlobElement
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity

@@ -26,7 +26,7 @@ import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { getMailAddressDisplayText, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getMailAddressDisplayText, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
@@ -675,7 +675,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private tutaoBadge(viewModel: MailViewerViewModel): Children {
-		return isTutanotaTeamMail(viewModel.mail)
+		return isTutaTeamMail(viewModel.mail)
 			? m(
 					Badge,
 					{

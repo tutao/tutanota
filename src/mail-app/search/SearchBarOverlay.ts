@@ -25,7 +25,7 @@ import { getContactListName } from "../../common/contactsFunctionality/ContactUt
 import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
-import { isTutanotaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
+import { isTutaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -238,7 +238,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	private renderMailResult(mail: Mail, state: SearchBarState): Children {
 		return [
 			m(".top.flex-space-between.badge-line-height", [
-				isTutanotaTeamMail(mail)
+				isTutaTeamMail(mail)
 					? m(
 							Badge,
 							{

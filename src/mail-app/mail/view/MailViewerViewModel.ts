@@ -73,7 +73,7 @@ import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
@@ -374,10 +374,9 @@ export class MailViewerViewModel {
 
 	private isHardMailAuthenticationFailure(): boolean {
 		return (
-			(this.mailDetails != null &&
-				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
-				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
-			this.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			this.mailDetails != null &&
+			!this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
+			!this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)
 		)
 	}
 
@@ -492,15 +491,11 @@ export class MailViewerViewModel {
 	}
 
 	didErrorsOccur(): boolean {
-		let bodyErrors = false
-		if (this.mailDetails) {
-			bodyErrors = typeof downcast(this.mailDetails.body)._errors !== "undefined"
-		}
-		return this.errorOccurredWhileLoadingMailDetails || typeof this.mail._errors !== "undefined" || bodyErrors
+		return this.errorOccurredWhileLoadingMailDetails || typeof this.mail._errors !== "undefined"
 	}
 
 	isTutanotaTeamMail(): boolean {
-		return isTutanotaTeamMail(this.mail)
+		return isTutaTeamMail(this.mail)
 	}
 
 	isShowingExternalContent(): boolean {
@@ -816,13 +811,14 @@ export class MailViewerViewModel {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
 		let isDraftMail = isDraft(mail)
-		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraftMail && this.sanitizeResult != null) {
+		// in case we got errors earlier we also want to retry, e.g. to fix temporary decryption failures (when the sender key cannot be fetched)
+		if (!this.didErrorsOccur() && this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraftMail && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids
 		}
 
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
-			this.errorOccurredWhileLoadingMailDetails = false
+			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
@@ -1166,7 +1162,7 @@ export class MailViewerViewModel {
 		})
 		const sanitizeResult = getHtmlSanitizer().sanitizeFragment(urlified, {
 			blockExternalContent,
-			allowRelativeLinks: isTutanotaTeamMail(mail),
+			allowRelativeLinks: isTutaTeamMail(mail),
 			highlightedStrings: this.highlightedStrings,
 		})
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult

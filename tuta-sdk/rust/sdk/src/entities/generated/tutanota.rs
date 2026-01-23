@@ -4129,6 +4129,8 @@ pub struct ProcessInboxDatum {
 	pub mailId: IdTupleGenerated,
 	#[serde(rename = "1761")]
 	pub targetMoveFolder: IdTupleGenerated,
+	#[serde(rename = "1811")]
+	pub ownerEncMailSessionKeys: Vec<super::sys::InstanceSessionKey>,
 }
 
 impl Entity for ProcessInboxDatum {
@@ -4148,7 +4150,7 @@ pub struct ProcessInboxPostIn {
 	#[serde(rename = "1766")]
 	pub mailOwnerGroup: GeneratedId,
 	#[serde(rename = "1767")]
-	pub processInboxDatum: Vec<ProcessInboxDatum>,
+	pub processInboxData: Vec<ProcessInboxDatum>,
 }
 
 impl Entity for ProcessInboxPostIn {
@@ -4198,7 +4200,7 @@ pub struct PopulateClientSpamTrainingDataPostIn {
 	#[serde(rename = "1780")]
 	pub mailOwnerGroup: GeneratedId,
 	#[serde(rename = "1781")]
-	pub populateClientSpamTrainingDatum: Vec<PopulateClientSpamTrainingDatum>,
+	pub populateClientSpamTrainingData: Vec<PopulateClientSpamTrainingDatum>,
 }
 
 impl Entity for PopulateClientSpamTrainingDataPostIn {

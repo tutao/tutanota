@@ -669,13 +669,12 @@ export class MailFacade {
 	}
 
 	async getReplyTos(draft: Mail): Promise<EncryptedMailAddress[]> {
-		const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = this.keyProviderFromInstance(draft)
 		const mailDetailsDraftId = assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft")
 		const mailDetails = await this.entityClient.loadMultiple(
 			MailDetailsDraftTypeRef,
 			listIdPart(mailDetailsDraftId),
 			[elementIdPart(mailDetailsDraftId)],
-			ownerEncSessionKeyProvider,
+			this.keyProviderFromInstance(draft),
 		)
 		if (mailDetails.length === 0) {
 			throw new NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
@@ -1133,11 +1132,15 @@ export class MailFacade {
 		}
 	}
 
-	private keyProviderFromInstance(mail: Mail) {
-		return async () => ({
-			key: assertNotNull(mail._ownerEncSessionKey),
-			encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
-		})
+	private keyProviderFromInstance(mail: Mail): OwnerEncSessionKeyProvider | undefined {
+		// only use the provider if there is an _ownerEncSessionKey
+		// this is not guaranteed in case of (temporary) decryption failures!
+		return mail._ownerEncSessionKey != null
+			? async () => ({
+					key: assertNotNull(mail._ownerEncSessionKey),
+					encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
+				})
+			: undefined
 	}
 
 	/**
@@ -1258,6 +1261,7 @@ export class MailFacade {
 					classifierType,
 					mailId,
 					targetMoveFolder,
+					ownerEncMailSessionKeys: unencryptedProcessInboxDatum.ownerEncMailSessionKeys,
 				}),
 			)
 		}
@@ -1273,7 +1277,7 @@ export class MailFacade {
 					ProcessInboxService,
 					createProcessInboxPostIn({
 						mailOwnerGroup: mailGroupId,
-						processInboxDatum: inboxData,
+						processInboxData: inboxData,
 					}),
 				),
 			{ concurrency: 5 },
@@ -1319,7 +1323,7 @@ export class MailFacade {
 					PopulateClientSpamTrainingDataService,
 					createPopulateClientSpamTrainingDataPostIn({
 						mailOwnerGroup: mailGroupId,
-						populateClientSpamTrainingDatum: clientSpamTrainingData,
+						populateClientSpamTrainingData: clientSpamTrainingData,
 					}),
 				),
 			{ concurrency: 5 },

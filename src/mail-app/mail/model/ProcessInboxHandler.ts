@@ -9,6 +9,10 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { isSameId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
+import { LockedError } from "../../../common/api/common/error/RestError"
+import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
+import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 
 assertMainOrNode()
 
@@ -16,21 +20,23 @@ export type UnencryptedProcessInboxDatum = Omit<StrippedEntity<ProcessInboxDatum
 	vector: Uint8Array
 }
 
-const DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
+const DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500
 
 export class ProcessInboxHandler {
-	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
+	private processInboxProgressMonitor: ProgressMonitorDelegate | null = null
 
 	constructor(
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
+		private readonly cryptoFacade: CryptoFacade,
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
+		private progressTracker: ProgressTracker,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
-		private readonly debounceTimeout: number = DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
+		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
-		this.sendProcessInboxServiceRequest = throttle(this.debounceTimeout, async (mailFacade: MailFacade) => {
-			// we debounce the requests to a rate of DEFAULT_DEBOUNCE_PROCESS_INBOX_SERVICE_REQUESTS_MS
+		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
+			// we debounce the requests to a rate of DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS
 			if (this.processedMailsByMailGroup.size > 0) {
 				// copy map to prevent inserting into map while we await the server
 				const map = this.processedMailsByMailGroup
@@ -38,12 +44,34 @@ export class ProcessInboxHandler {
 				for (const [mailGroup, processedMails] of map) {
 					// send request to server
 					if (!isEmpty(processedMails)) {
-						await mailFacade.processNewMails(mailGroup, processedMails)
+						try {
+							if (this.processInboxProgressMonitor && !this.processInboxProgressMonitor.isDone()) {
+								const newTotalWork = this.processInboxProgressMonitor.totalWork + processedMails.length
+								this.processInboxProgressMonitor.updateTotalWork(newTotalWork)
+							} else {
+								this.processInboxProgressMonitor = new ProgressMonitorDelegate(this.progressTracker, processedMails.length)
+							}
+							this.processInboxProgressMonitor.workDone(processedMails.length * 0.2)
+							await mailFacade.processNewMails(mailGroup, processedMails)
+						} catch (e) {
+							if (e instanceof LockedError) {
+								// retry in case of LockedError
+								this.processInboxProgressMonitor?.completed()
+
+								this.processedMailsByMailGroup.set(mailGroup, processedMails)
+								this.sendProcessInboxServiceRequest(mailFacade)
+							} else {
+								console.log("error during processInboxService call:", e.name, processedMails.length)
+								throw e
+							}
+						}
 					}
 				}
 			}
 		})
 	}
+
+	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
 
 	public async handleIncomingMail(
 		mail: Mail,
@@ -57,6 +85,9 @@ export class ProcessInboxHandler {
 		if (!mail.processNeeded) {
 			return sourceFolder
 		}
+
+		// resolve sessionKeys for mail and their corresponding files
+		const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
 
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 
@@ -94,8 +125,12 @@ export class ProcessInboxHandler {
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
 				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
+				ownerEncMailSessionKeys: [],
 			}
 		}
+
+		// the ProcessInboxService is updating sessionKeys for mail and files on the server by calling UpdateSessionKeyService
+		finalProcessInboxDatum.ownerEncMailSessionKeys = resolvedSessionKeys.instanceSessionKeys
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
 		if (this.processedMailsByMailGroup.has(mailGroupId)) {
@@ -113,6 +148,15 @@ export class ProcessInboxHandler {
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
 		return moveToFolder
+	}
+
+	public async handleProcessedMail(mail: Mail) {
+		if (mail.processNeeded) {
+			return
+		}
+		// 0.2 work is done immediately after a work per mail is announced when sending the request to show progress immediately,
+		// the remaining 0.8 work are done here after entity event processing for the update event
+		this.processInboxProgressMonitor?.workDone(0.8)
 	}
 
 	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {

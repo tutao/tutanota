@@ -264,7 +264,7 @@ export function isTutanotaTeamAddress(address: string): boolean {
 /**
  * Is this a tutao team member email or a system notification
  */
-export function isTutanotaTeamMail(mail: Mail): boolean {
+export function isTutaTeamMail(mail: Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		confidential &&

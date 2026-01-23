@@ -293,8 +293,8 @@ export function removeOriginals<T extends Entity>(instance: T | null): T | null 
 }
 
 export function removeAggregateIds(instance: Entity, aggregate: boolean = false): Entity {
-	if (aggregate && instance["_id"]) {
-		instance["_id"] = null
+	if (aggregate && instance["_id"] !== undefined) {
+		delete instance["_id"]
 	}
 	const keys = Object.keys(instance)
 	for (const key of keys) {

@@ -58,7 +58,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/com
 import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
-import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
+
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
@@ -116,6 +116,8 @@ import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/Ide
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
+import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 
 assertWorkerOrNode()
 
@@ -484,7 +486,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
 	})
 
-	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
+	const publicEncryptionKeyCache = new PublicEncryptionKeyCache() // should not expose this
+	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification, publicEncryptionKeyCache)
 	const adminKeyLoaderProvider = () => locator.adminKeyLoader
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
@@ -513,11 +516,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.restClient,
 		locator.serviceExecutor,
 		locator.instancePipeline,
-		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor, typeModelResolver),
 		cache,
 		locator.keyLoader,
 		locator.asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
+		new InstanceSessionKeysCache(),
+		locator.cryptoWrapper,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
 		async (error: Error) => {
