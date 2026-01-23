@@ -127,6 +127,7 @@ import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
+import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
 
 // Interval where we save drafts locally.
 //
@@ -1257,13 +1258,19 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				dialog.close()
 
 				if (model.undoModel && deviceConfig.getIsUndoSendEnabled()) {
-					const undoResult = await showUndoMailSnackbar(
-						model.undoModel,
-						async () => {
-							noOp()
-						},
-						"Message sent",
-					)
+					if (sendAtDate) {
+						// Cannot undo a scheduled mail (should just go to the scheduled folder and cancel it)
+						// But we do want to show something to confirm the email, since it will be expected that a snackbar shows when sending a mail
+						showInfoSnackbar("emailScheduled_msg")
+					} else {
+						const undoResult = await showUndoMailSnackbar(
+							model.undoModel,
+							async () => {
+								noOp()
+							},
+							"emailSent_msg",
+						)
+					}
 				}
 
 				const { handleRatingByEvent } = await import("../../../common/ratings/UserSatisfactionDialog.js")

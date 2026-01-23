@@ -22,7 +22,7 @@ import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 import { lazy, Versioned } from "@tutao/tutanota-utils"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
-import { showSnackBar } from "../../gui/base/SnackBar"
+import { showInfoSnackbar, showSnackBar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
 import { GroupTypeRef } from "../../api/entities/sys/TypeRefs"
@@ -214,13 +214,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					action: {
 						onClick: async () => {
 							await copyToClipboard(ownIdentity.fingerprint)
-							await showSnackBar({
-								message: "copied_msg",
-								button: {
-									label: "close_alt",
-									click: () => {},
-								},
-							})
+							showInfoSnackbar("copied_msg")
 						},
 						icon: Icons.CopyOutline,
 						tooltip: "copyToClipboard_action",
