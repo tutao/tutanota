@@ -108,7 +108,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "moveOutOfSpam_action",
 				click: moveOutOfSpamAction,
-				icon: Icons.Book,
+				icon: Icons.NotBug,
 			})
 		)
 	}
