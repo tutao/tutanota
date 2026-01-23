@@ -12,7 +12,7 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { locator } from "../api/main/CommonLocator"
 import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import { mailLocator } from "../../mail-app/mailLocator.js"
-import { showSnackBar } from "../gui/base/SnackBar.js"
+import { showInfoSnackbar, showSnackBar } from "../gui/base/SnackBar.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { AffiliateViewModel } from "./AffiliateViewModel.js"
 
@@ -91,13 +91,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 
 	private onCopyButtonClick(shareUrl: string): void {
 		copyToClipboard(shareUrl).then(() => {
-			showSnackBar({
-				message: "linkCopied_msg",
-				button: {
-					label: "close_alt",
-					click: () => {},
-				},
-			})
+			showInfoSnackbar("linkCopied_msg")
 		})
 	}
 
