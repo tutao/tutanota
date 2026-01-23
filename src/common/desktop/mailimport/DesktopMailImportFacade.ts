@@ -12,6 +12,7 @@ import path from "node:path"
 
 const TAG = "[DesktopMailImportFacade]"
 type Listener = DeferredObject<MailImportErrorMessage>["reject"]
+const ImportProgressActionStop = 2
 
 export type ImportErrorData =
 	| { category: ImportErrorCategories.ImportFeatureDisabled }
@@ -64,6 +65,7 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 
 		// errors that happen before we even talk to the server. usually not actionable.
 		case PreparationError.NoNativeRestClient:
+		case PreparationError.IncorrectImportStatus:
 			return { category: ImportErrorCategories.LocalSdkError, source }
 
 		// this one is very actionable, but we don't have associated data currently to show the user which file is bad.
@@ -172,6 +174,13 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		if (importerApiPromise) {
 			const importerApi = await importerApiPromise
 			await importerApi.setProgressAction(progressAction)
+
+			// Required cleanup in case of progress action stop. Allows user to
+			// start importing again in case they delete folder they started an import for
+			// TODO: discuss this causes error if importing the actual enum?
+			if (progressAction === ImportProgressActionStop) {
+				this.importerApis.delete(mailboxId)
+			}
 		} else {
 			console.warn(TAG, "received progress action for nonexistent import")
 			// we can ignore this - the worst that can happen is that we have an unresponsive button.

@@ -54,14 +54,22 @@ impl ImporterApi {
 			None => Ok(None),
 
 			Some(saved_id_tuple) => {
-				let importer = Importer::resume_file_importer(
+				let importer_result = Importer::resume_file_importer(
 					&mailbox_id,
 					config_directory,
 					target_owner_group,
 					tuta_credentials,
 					saved_id_tuple,
 				)
-				.await?;
+				.await;
+
+				let importer = match importer_result {
+					Ok(importer) => importer,
+					Err(preparation_error) => match preparation_error {
+						PreparationError::IncorrectImportStatus => return Ok(None),
+						_ => return Err(preparation_error.into()),
+					},
+				};
 
 				Ok(Some(ImporterApi {
 					importer: Arc::new(importer),

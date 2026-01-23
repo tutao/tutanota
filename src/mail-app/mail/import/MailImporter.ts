@@ -263,6 +263,8 @@ export class MailImporter {
 				unencryptedCredentials,
 				apiUrl,
 			)
+
+			await importFacade.setProgressAction(mailboxId, ImportProgressAction.Continue)
 		} catch (e) {
 			this.resetStatus()
 			m.redraw()
@@ -273,7 +275,6 @@ export class MailImporter {
 				throw e
 			}
 		}
-		await importFacade.setProgressAction(mailboxId, ImportProgressAction.Continue)
 	}
 
 	async onPauseBtnClick() {

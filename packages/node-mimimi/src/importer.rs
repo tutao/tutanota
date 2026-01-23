@@ -383,6 +383,14 @@ impl Importer {
 				PreparationError::CannotLoadRemoteState
 			})?;
 
+		// Import cannot be resumed if it was already cancelled or finished.
+		let import_is_cancelled_or_finished = remote_import_state.status
+			== ImportStatus::Canceled as i64
+			|| remote_import_state.status == ImportStatus::Finished as i64;
+		if import_is_cancelled_or_finished {
+			return Err(PreparationError::IncorrectImportStatus);
+		}
+
 		let target_mailset = remote_import_state.targetFolder;
 
 		let importer = Importer::initialize(
