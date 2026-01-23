@@ -2266,8 +2266,8 @@ styles.registerStyle("main", () => {
 			border: `1px solid ${theme.primary}`,
 		},
 		".buyOptionBox.highlighted": {
-			border: `2px solid ${theme.primary}`,
-			padding: px(9),
+			border: `5px solid ${theme.primary}`,
+			padding: px(6),
 		},
 		".info-badge": {
 			"border-radius": px(8),
