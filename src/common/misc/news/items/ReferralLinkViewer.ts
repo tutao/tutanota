@@ -2,7 +2,7 @@ import { InfoLink, lang } from "../../LanguageViewModel.js"
 import { isApp } from "../../../api/common/Env.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
-import { showSnackBar } from "../../../gui/base/SnackBar.js"
+import { showInfoSnackbar, showSnackBar } from "../../../gui/base/SnackBar.js"
 import { createReferralCodePostIn } from "../../../api/entities/sys/TypeRefs.js"
 import { ReferralCodeService } from "../../../api/entities/sys/Services.js"
 import { TextField, TextFieldAttrs } from "../../../gui/base/TextField.js"
@@ -64,13 +64,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 
 	private async copyAction(referralLink: string): Promise<void> {
 		await copyToClipboard(referralLink)
-		await showSnackBar({
-			message: "linkCopied_msg",
-			button: {
-				label: "close_alt",
-				click: () => {},
-			},
-		})
+		showInfoSnackbar("linkCopied_msg")
 	}
 
 	private async shareAction(referralLink: string): Promise<void> {
