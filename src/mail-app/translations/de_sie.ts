@@ -2222,6 +2222,8 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"undoSend_label": "Undo Send",
+		"undoSend_label": "Undo send",
+		"emailScheduled_msg": "Email scheduled",
+		"emailSent_msg": "Email sent",
 	}
 }

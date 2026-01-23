@@ -4,7 +4,7 @@ import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay, PositionRect } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
-import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
@@ -13,6 +13,7 @@ import { isNotEmpty, remove } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
+import { Icons } from "./icons/Icons"
 
 assertMainOrNode()
 const SNACKBAR_SHOW_TIME = 6000 // ms
@@ -82,6 +83,22 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
 		click: button.click,
 		type: ButtonType.Secondary,
 	}
+}
+
+// A snackbar with only a message and dismiss button, shows for 10 seconds
+export function showInfoSnackbar(message: TranslationKey) {
+	let cancelSnackbar: () => void
+
+	cancelSnackbar = showSnackBar({
+		message,
+		dismissButton: {
+			title: "close_alt",
+			click: () => cancelSnackbar(),
+			icon: Icons.Cancel,
+		},
+		showingTime: 10 * 1000,
+		replace: true,
+	})
 }
 
 /**

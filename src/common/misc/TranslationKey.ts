@@ -2221,3 +2221,5 @@ export type TranslationKeyType =
 	| "importContactDuplicates_msg"
 	| "emptyString_msg"
 	| "undoSend_label"
+	| "emailScheduled_msg"
+	| "emailSent_msg"

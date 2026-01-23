@@ -209,6 +209,7 @@ o.spec("DeviceConfig", function () {
 				isCredentialsMigratedToNative: false,
 				offlineTimeRangeDateByUser: { userId1: getStartOfDay(getDayShifted(new Date(), -42)).getTime() },
 				installationDate: getStartOfDay(new Date()).getTime().toString(),
+				isUndoSendEnabled: true,
 			}
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly
