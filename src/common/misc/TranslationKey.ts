@@ -2216,3 +2216,5 @@ export type TranslationKeyType =
 	| "dataOutOfSyncOfflineDb_msg"
 	| "dataOutOfSync_msg"
 	| "undoSend_label"
+	| "emailScheduled_msg"
+	| "emailSent_msg"
