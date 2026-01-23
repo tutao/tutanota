@@ -2233,6 +2233,8 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"reportNotSpam_action": "Not spam",
-		"undoSend_label": "Undo Send"
+		"undoSend_label": "Undo send",
+		"emailScheduled_msg": "Email scheduled",
+		"emailSent_msg": "Email sent",
 	}
 }

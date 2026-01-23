@@ -2232,3 +2232,5 @@ export type TranslationKeyType =
 	| "oneConversationSelected_msg"
 	| "nbrOfConversationsSelected_msg"
 	| "undoSend_label"
+	| "emailScheduled_msg"
+	| "emailSent_msg"
