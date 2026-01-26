@@ -117,7 +117,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -135,7 +135,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -153,7 +153,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -171,7 +171,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -189,7 +189,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -213,7 +213,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -234,7 +234,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -254,7 +254,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -274,7 +274,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [], //TODO: verify actual keys
+			ownerEncMailSessionKeys: [],
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
