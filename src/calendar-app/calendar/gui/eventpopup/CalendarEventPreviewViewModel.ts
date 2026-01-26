@@ -142,7 +142,10 @@ export class CalendarEventPreviewViewModel {
 			this.ownAttendee.status = status
 			this.uiUpdateCallback()
 			// no per-instance attendees yet.
-			const model = await this.eventModelFactory(CalendarOperation.EditAll, this.calendarEvent)
+			const model = await this.eventModelFactory(
+				this.calendarEvent.recurrenceId === null ? CalendarOperation.EditAll : CalendarOperation.EditThis,
+				this.calendarEvent,
+			)
 			if (model) {
 				model.editModels.whoModel.setOwnAttendance(status)
 				model.editModels.whoModel.isConfidential = this.calendarEvent.invitedConfidentially ?? false

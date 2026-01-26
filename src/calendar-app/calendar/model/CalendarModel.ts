@@ -330,8 +330,9 @@ export class CalendarModel {
 		if (
 			existingEvent._ownerGroup !== groupRoot._id ||
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
-			(await didLongStateChange(newEvent, existingEvent, zone)) // why async?
+			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
+			console.log("replaceEvent with inputs:", "existingEvent:", existingEvent, "newEvent:", newEvent)
 			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms)
 
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
@@ -339,6 +340,7 @@ export class CalendarModel {
 		} else {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest version
+			console.log("updateCalendarEvent with inputs:", "existingEvent:", existingEvent, "newEvent:", newEvent)
 			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
 			this.requestWidgetRefresh()
 			return newEvent
@@ -766,6 +768,7 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
+		console.log(TAG, "calendarFacade.createCalendarEvent", "event:", event)
 		await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
 		return this.requestWidgetRefresh()
 	}
@@ -1073,6 +1076,7 @@ export class CalendarModel {
 		const updateEventTime = parsedCalendarDataEvent.recurrenceId?.getTime()
 		const targetDbEvent = updateEventTime == null ? target.progenitor : target.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
 		// this is not a database lookup -- it is looking to see if what was retrieved from the database is an altered instance or a progenitor.
+		console.log("METHOD:", method)
 		if (targetDbEvent == null) {
 			if (method === CalendarMethod.REQUEST) {
 				// we got a REQUEST for which we do not have a saved version of the particular instance (progenitor or altered)
@@ -1080,7 +1084,7 @@ export class CalendarModel {
 				// - a single-instance update that created a brand new altered instance
 				// - the user got the progenitor invite for a series. it's possible that there's
 				//   already altered instances of this series on the server.
-				return await this.processAlteredInstanceOrNewEvent(target, parsedCalendarDataEvent, parsedCalendarDataAlarms, sender) // TODO: new altered instances are being processed here as though they are entirely new requests
+				return await this.processAlteredInstanceOrNewEvent(target, parsedCalendarDataEvent, parsedCalendarDataAlarms, sender)
 			} else if (target.progenitor?.repeatRule != null && parsedCalendarDataEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
 				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
 				// users delete a single instance from a series even though that instance was never published as altered.
@@ -1124,6 +1128,7 @@ export class CalendarModel {
 
 		if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null) {
 			// the update is for a repeating progenitor. we need to exclude all known altered instances from its repeat rule.
+			console.log("update a repeating progenitor")
 			const alteredInstances = dbTarget.alteredInstances.map((r) => r.recurrenceId)
 			if (dbEvent.repeatRule?._id) {
 				updateEvent.repeatRule._id = dbEvent.repeatRule?._id // ensures the progenitor's repeat rule gets updated instead of replaced
@@ -1131,9 +1136,17 @@ export class CalendarModel {
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
 
+		// const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
+		// const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(updateEvent.attendees, ownMailAddresses)
+		//
+		// dbEvent.pendingInvitation = (ownAttendee?.status as CalendarAttendeeStatus) === CalendarAttendeeStatus.NEEDS_ACTION
 		// When processing calendar update message REQUEST message with changed start time we want that the guest needs to make a decision about is participation status
-		if (updateEvent.startTime.getTime() !== dbEvent.startTime.getTime()) {
+		if (dbEvent.pendingInvitation || updateEvent.startTime.getTime() !== dbEvent.startTime.getTime()) {
 			dbEvent.pendingInvitation = true
+		} else {
+			// something about setting dbEvent.pendingInvitation = false when this is falsy makes it work when reply sent from eventBanner
+			// BUT it also deactivates ghostBubble when the organizer makes minor edits.  How do we prevent this?
+			dbEvent.pendingInvitation = false
 		}
 
 		const calendarEvent = await this.updateEventWithExternal(dbEvent, updateEvent)
@@ -1163,6 +1176,7 @@ export class CalendarModel {
 	 * @param sender email address that the event request was received from
 	 */
 	private async processAlteredInstanceOrNewEvent(
+		// is this only for NEW altered instances?
 		dbTarget: CalendarEventUidIndexEntry,
 		updateEvent: Require<"uid", CalendarEvent>,
 		alarms: Array<AlarmInfoTemplate>,
@@ -1174,13 +1188,23 @@ export class CalendarModel {
 		if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
 			// request for a new altered instance. we'll try adding the exclusion for this instance to the progenitor if possible
 			// since not all calendar apps add altered instances to the list of exclusions.
+
 			const updatedProgenitor = clone(dbTarget.progenitor)
 			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId], this.zone)
 			dbTarget.progenitor = (await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)) as CalendarEventProgenitor
-			updateEvent.pendingInvitation = true // TODO: how do we update the ALTERED INSTANCE pendingInvitation status without updating the original event?
+
+			// Check to see if start time is the same as the recurrenceId.  This means that the new altered instance has not had start time changed, and should not be a pending invitation.
+			console.log("ABOUT TO CHECK TIME FOR NEW UPDATE EVENT")
+			if (updateEvent.startTime.getTime() === updateEvent.recurrenceId.getTime()) {
+				console.log("pending invitation status matching progenitor")
+				// this means the start time is the same as the original time of the recurrence
+				updateEvent.pendingInvitation = updatedProgenitor.pendingInvitation
+			} else {
+				console.log("pending invitation will be true")
+				updateEvent.pendingInvitation = true
+			}
 		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
 			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
-			// TODO: figure out -- is this branch for adding a progenitor where you already have already been invited to altered instances?
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
 				updateEvent,
 				dbTarget.alteredInstances.map((r) => r.recurrenceId),
@@ -1257,7 +1281,7 @@ export class CalendarModel {
 		newEvent.recurrenceId = icsEvent.recurrenceId
 
 		// do not take pendingInvitation status from icsEvent, as it will never be part of the ics file.
-
+		console.log(TAG, "WRITING updateEventWithExternal", "newEvent:", newEvent, "oldEvent:", dbEvent)
 		return await this.doUpdateEvent(dbEvent, newEvent)
 	}
 
@@ -1273,6 +1297,7 @@ export class CalendarModel {
 	 * @return Promise<CalendarEvent> - A promise with the newly updated event
 	 */
 	async doUpdateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<CalendarEvent> {
+		console.log("doUpdateEvent")
 		const [alarms, groupRoot] = await Promise.all([
 			this.loadAlarms(dbEvent.alarmInfos, this.logins.getUserController().user),
 			this.entityClient.load<CalendarGroupRoot>(CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup)),
