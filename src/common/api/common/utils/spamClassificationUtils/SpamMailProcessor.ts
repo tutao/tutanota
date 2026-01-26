@@ -280,3 +280,7 @@ export function getSpamConfidence(mail: Mail): string {
  */
 export const MAX_WORD_FREQUENCY = 31
 export const DEFAULT_VECTOR_MAX_LENGTH = 2048
+/** Number of bytes required to store server spam result while passing as modelInput. Currently it is:
+ * number of server classifier + 1 ( for unknown ) + 1 ( for isSpam flag )
+ */
+export const CURRENT_SPACE_FOR_SERVER_RESULT = 16
