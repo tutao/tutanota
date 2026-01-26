@@ -561,7 +561,7 @@ dependencies = [
 
 [[package]]
 name = "crypto-primitives"
-version = "322.260120.0"
+version = "324.260126.0"
 dependencies = [
  "base64",
  "console_error_panic_hook",
@@ -2639,7 +2639,7 @@ dependencies = [
 
 [[package]]
 name = "tuta-sdk"
-version = "322.260120.0"
+version = "324.260126.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2689,7 +2689,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "322.260120.0"
+version = "324.260126.0"
 dependencies = [
  "base64",
  "crypto-primitives",
