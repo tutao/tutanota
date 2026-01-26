@@ -2,7 +2,7 @@ import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clone, filterInt, newPromise, noOp, Require } from "@tutao/tutanota-utils"
 import { findFirstPrivateCalendar } from "../../../common/calendar/date/CalendarUtils.js"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -20,7 +20,6 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { newPromise } from "@tutao/tutanota-utils"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -163,7 +162,10 @@ export class CalendarInviteHandler {
 		mailboxDetails: MailboxDetail,
 		comment?: string,
 	): Promise<ReplyResult> {
+		console.log("CALLING replyToEventInvitation")
+
 		const eventClone = clone(event)
+		eventClone.pendingInvitation = false
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 		foundAttendee.status = decision
 
@@ -205,6 +207,7 @@ export class CalendarInviteHandler {
 		if (calendar == null) return ReplyResult.ReplyNotSent
 		if (decision !== CalendarAttendeeStatus.DECLINED && eventClone.uid != null) {
 			const dbEvents = await this.calendarModel.getEventsByUid(eventClone.uid)
+			console.log("CALLING processCalendarEventMessage in CalendarInviteHandler")
 			await this.calendarModel.processCalendarEventMessage(
 				previousMail.sender.address,
 				CalendarMethod.REQUEST,
