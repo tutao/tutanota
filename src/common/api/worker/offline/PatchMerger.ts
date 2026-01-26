@@ -16,8 +16,8 @@ import {
 	ServerModelUntypedInstance,
 	ServerTypeModel,
 } from "../../common/EntityTypes"
-import { Patch } from "../../entities/sys/TypeRefs"
-import { assertNotNull, Base64, deepEqual, isEmpty, lazy, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { Patch, UserTypeRef } from "../../entities/sys/TypeRefs"
+import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, lazy, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../../common/AttributeModel"
 import { CacheStorage } from "../rest/DefaultEntityRestCache"
 import { PatchOperationError } from "../../common/error/PatchOperationError"
@@ -135,7 +135,10 @@ export class PatchMerger {
 				let associationArray = instanceToChange[attributeId] as ParsedAssociation
 				const valuesToAdd = value as ParsedAssociation
 				const commonAssociationItems = associationArray.filter((association) => valuesToAdd.some((item) => deepEqual(item, association)))
-				if (!isEmpty(commonAssociationItems)) {
+
+				// We fetch the latest state of the user immediately in LoginFacade#initSession, but we still receive
+				// patches from the server for the group memberships of the user. This is fine, so we don't want to log it
+				if (!isEmpty(commonAssociationItems) && !isSameTypeRef(UserTypeRef, new TypeRef(typeModel.app, typeModel.id))) {
 					console.log(
 						`PatchMerger attempted to add an already existing item to an association. Common items: ${JSON.stringify(commonAssociationItems)}`,
 					)
