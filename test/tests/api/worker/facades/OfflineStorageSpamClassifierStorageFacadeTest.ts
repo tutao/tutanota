@@ -5,7 +5,9 @@ import {
 	OfflineStorageSpamClassifierStorageFacade,
 	SpamClassificationTableDefinitions,
 } from "../../../../../src/common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade"
-import { CURRENT_SPACE_FOR_SERVER_RESULT, SpamClassificationModel } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { SpamClassificationModel } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

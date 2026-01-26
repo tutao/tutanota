@@ -17,6 +17,7 @@ import type { ModelFitArgs } from "@tensorflow/tfjs-layers"
 import type { Tensor } from "@tensorflow/tfjs-core"
 import {
 	createSpamMailDatum,
+	CURRENT_SPACE_FOR_SERVER_RESULT,
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamMailProcessor,
 } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
@@ -47,7 +48,6 @@ export type SpamClassificationModel = {
 
 export const DEFAULT_PREDICTION_THRESHOLD = 0.55
 
-export const CURRENT_SPACE_FOR_SERVER_RESULT = 16 // number of server classifier + 1 ( for unknown ) + 1 ( for isSpam flag )
 const TRAINING_INTERVAL = 1000 * 60 * 10 // 10 minutes
 const FULL_RETRAINING_INTERVAL = 1000 * 60 * 60 * 24 * 7 // 1 week
 
