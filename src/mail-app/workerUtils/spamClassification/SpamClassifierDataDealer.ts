@@ -26,8 +26,7 @@ import {
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
-import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { CURRENT_SPACE_FOR_SERVER_RESULT } from "./SpamClassifier"
+import { CURRENT_SPACE_FOR_SERVER_RESULT, getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { isAppleDevice, isDesktop } from "../../../common/api/common/Env"
 
 // visible for testing
