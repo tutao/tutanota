@@ -12,7 +12,12 @@ assertMainOrNode()
 /// tutadb ClassifierType
 /// If this classifier decided something in serverSide already, we can trust the decision
 /// and not run predictional locally
-export const SERVER_CLASSIFIERS_TO_TRUST = Object.freeze(new Set<number>())
+export const SERVER_CLASSIFIERS_TO_TRUST = Object.freeze(
+	new Set<number>([
+		2, 14, 22, 5, 6, 4, 8, 23,
+		/// NOTE: Generate from: tutadb#ClassifierTypeTest#tutanota3_SERVER_CLASSIFIERS_TO_TRUST
+	]),
+)
 
 export class SpamClassificationHandler {
 	public constructor(private readonly spamClassifier: SpamClassifier) {}

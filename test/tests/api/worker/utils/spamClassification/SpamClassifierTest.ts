@@ -3,7 +3,6 @@ import fs from "node:fs"
 import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import {
 	Classifier,
-	CURRENT_SPACE_FOR_SERVER_RESULT,
 	DEFAULT_PREDICTION_THRESHOLD,
 	SpamClassificationModelMetaData,
 	SpamClassifier,
@@ -19,6 +18,7 @@ import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef, MailTypeRef } 
 import { Sequential } from "@tensorflow/tfjs-layers"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import {
+	CURRENT_SPACE_FOR_SERVER_RESULT,
 	DEFAULT_IS_SPAM_CONFIDENCE,
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamMailDatum,

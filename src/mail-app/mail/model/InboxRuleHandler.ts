@@ -13,7 +13,8 @@ import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../workerUtils/spamClassification/SpamClassifier"
+
+import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 assertMainOrNode()
 
