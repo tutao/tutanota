@@ -23,7 +23,7 @@ import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
-import { InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
+import { BucketKeyTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 import { LockedError } from "../../../src/common/api/common/error/RestError"
 
 const { captor, anything } = matchers
@@ -61,6 +61,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
 			processNeeded: true,
+			bucketKey: createTestEntity(BucketKeyTypeRef),
 		})
 		folderSystem = object<FolderSystem>()
 		mailboxDetail = object()
@@ -130,7 +131,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			o(assertNotNull(processInboxDatumCaptor.value)[0].ownerEncMailSessionKeys).deepEquals(mailInstanceSessionKeys)
 		})
 
-		o("no instanceSessionKeys sent if sendServerRequest == false", async function () {
+		o("no instanceSessionKeys sent if isLeaderClient == false", async function () {
 			mail.sets = [inboxFolder._id]
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
 				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -171,6 +172,50 @@ o.spec("ProcessInboxHandlerTest", function () {
 			await delay(0)
 			verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
 		})
+	})
+
+	o("no instanceSessionKeys sent if no bucketKey on mail", async function () {
+		mail.sets = [inboxFolder._id]
+		// set the bucketKey to null, as it has already been resolved by e.g. another client
+		mail.bucketKey = null
+
+		const processInboxDatum: UnencryptedProcessInboxDatum = {
+			classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+			mailId: mail._id,
+			targetMoveFolder: trashFolder._id,
+			vector: new Uint8Array(),
+			ownerEncMailSessionKeys: [],
+		}
+		when(spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)).thenResolve({
+			targetFolder: inboxFolder,
+			processInboxDatum: processInboxDatum,
+		})
+		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+
+		const mailInstanceSessionKeys = [
+			createTestEntity(InstanceSessionKeyTypeRef, {
+				instanceId: "mailInstanceId",
+				instanceList: "mailInstanceList",
+				typeInfo: createTestEntity(TypeInfoTypeRef),
+				symEncSessionKey: new Uint8Array([1, 2, 3]),
+			}),
+			createTestEntity(InstanceSessionKeyTypeRef, {
+				instanceId: "fileInstanceId",
+				instanceList: "fileInstanceList",
+				typeInfo: createTestEntity(TypeInfoTypeRef),
+				symEncSessionKey: new Uint8Array([4, 5, 6]),
+			}),
+		]
+
+		const _ = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
+
+		await delay(0)
+		const processInboxDatumCaptor = captor()
+		await delay(0)
+		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), processInboxDatumCaptor.capture()))
+		o(assertNotNull(processInboxDatumCaptor.value)[0].ownerEncMailSessionKeys).deepEquals([])
+		verify(cryptoFacade.resolveWithBucketKey(mail), { times: 0 })
 	})
 
 	o("handleIncomingMail does move mail if it has been processed already", async function () {

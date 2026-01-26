@@ -11,6 +11,7 @@ import { isSameId, StrippedEntity } from "../../../common/api/common/utils/Entit
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
 import { LockedError } from "../../../common/api/common/error/RestError"
+import { InstanceSessionKey } from "../../../common/api/entities/sys/TypeRefs"
 
 assertMainOrNode()
 
@@ -64,7 +65,7 @@ export class ProcessInboxHandler {
 		sourceFolder: MailSet,
 		mailboxDetail: MailboxDetail,
 		folderSystem: FolderSystem,
-		sendServerRequest: boolean,
+		isLeaderClient: boolean,
 	): Promise<MailSet> {
 		await this.logins.loadCustomizations()
 		const isSpamClassificationFeatureEnabled = this.logins.isEnabled(FeatureType.SpamClientClassification)
@@ -72,8 +73,14 @@ export class ProcessInboxHandler {
 			return sourceFolder
 		}
 
-		// resolve sessionKeys for mail and their corresponding files
-		const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+		let instanceSessionKeys: InstanceSessionKey[] = []
+		// resolve sessionKeys for mail and their corresponding files if bucket key exists, and we are the
+		// leader client, i.e. isLeaderClient == true
+		// we resolveWithBucketKey before predicting spam to have an encryptionAuthStatus on the mail instance
+		if (isLeaderClient && mail.bucketKey) {
+			const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+			instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
+		}
 
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 
@@ -116,7 +123,7 @@ export class ProcessInboxHandler {
 		}
 
 		// the ProcessInboxService is updating sessionKeys for mail and files on the server by calling UpdateSessionKeyService
-		finalProcessInboxDatum.ownerEncMailSessionKeys = resolvedSessionKeys.instanceSessionKeys
+		finalProcessInboxDatum.ownerEncMailSessionKeys = instanceSessionKeys
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
 		if (this.processedMailsByMailGroup.has(mailGroupId)) {
@@ -129,7 +136,7 @@ export class ProcessInboxHandler {
 			this.processedMailsByMailGroup.set(mailGroupId, [finalProcessInboxDatum])
 		}
 
-		if (sendServerRequest) {
+		if (isLeaderClient) {
 			// noinspection ES6MissingAwait
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
