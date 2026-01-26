@@ -117,6 +117,7 @@ pipeline {
 								if (params.UPLOAD) {
 									util.runFastlane("de.tutao.tutanota", "build_mail_prod")
 									stash includes: "app-ios/releases/tutanota-${VERSION}.ipa", name: 'ipa-production'
+									stash includes: "app-ios/releases/tutanota-${VERSION}.app.dSYM.zip", name: 'dsym-production'
 								}
 								stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 							}
@@ -153,9 +154,11 @@ pipeline {
 					steps {
 						unstash 'ipa-adhoc-production'
 						unstash 'ipa-production'
+						unstash 'dsym-production'
 
                         uploadToNexus("ios", "tutanota-${VERSION}-adhoc.ipa", "adhoc.ipa")
                         uploadToNexus("ios", "tutanota-${VERSION}.ipa", "ipa")
+                        uploadToNexus("ios", "tutanota-${VERSION}.app.dSYM.zip", "zip")
 					}
 				}
 			} // parallel
