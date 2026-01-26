@@ -192,9 +192,8 @@ export async function makeCalendarEventModel(
 		}
 	}
 
-	const user = logins.getUserController().user
 	const [alarms, calendars] = await Promise.all([
-		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
+		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, logins.getUserController().user),
 		calendarModel.getCalendarInfos(),
 	])
 	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
@@ -522,6 +521,10 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 		sequence: incrementSequence(oldSequence),
 		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
 	})
+
+	if (newEvent.startTime !== existingEvent.startTime) {
+		editModels.whoModel.resetGuestsStatus()
+	}
 
 	assertEventValidity(newEvent)
 

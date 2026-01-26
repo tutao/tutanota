@@ -18,6 +18,7 @@ import {
 } from "@tutao/tutanota-utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
+	CalendarAttendeeStatus,
 	CalendarMethod,
 	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	DEFAULT_CALENDAR_COLOR,
@@ -40,6 +41,7 @@ import {
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
 	CalendarEvent,
+	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
 	CalendarEventUpdateTypeRef,
@@ -125,6 +127,7 @@ import { NativePushServiceApp } from "../../../common/native/main/NativePushServ
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 import { TutanotaError } from "@tutao/tutanota-error"
+import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -325,6 +328,8 @@ export class CalendarModel {
 		if (existingEvent.uid != null && newEvent.uid !== existingEvent.uid) {
 			throw new Error("Invalid existing event for update: mismatched uids.")
 		}
+
+		newEvent.pendingInvitation = this.isPendingInvitation(newEvent)
 
 		// in cases where start time or calendar changed, we need to change the event id and so need to delete/recreate.
 		// it's also possible that the event has to be moved from the long event list to the short event list or vice versa.
@@ -761,6 +766,9 @@ export class CalendarModel {
 		if (event.repeatRule != null) {
 			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
 		}
+
+		event.pendingInvitation = this.isPendingInvitation(event)
+
 		// Reset permissions because server will assign them
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
@@ -788,12 +796,21 @@ export class CalendarModel {
 		if (newEvent.repeatRule != null) {
 			newEvent.repeatRule.excludedDates = newEvent.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
 		}
+
+		newEvent.pendingInvitation = this.isPendingInvitation(newEvent)
 		// Reset permissions because server will assign them
 		downcast(newEvent)._permissions = null
 		newEvent._ownerGroup = groupRoot._id
 
 		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
 		return this.requestWidgetRefresh()
+	}
+
+	isPendingInvitation(event: CalendarEvent) {
+		const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
+		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(event.attendees, ownMailAddresses)
+
+		return ownAttendee?.status === CalendarAttendeeStatus.NEEDS_ACTION || ownAttendee?.status === CalendarAttendeeStatus.ADDED
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
@@ -1039,7 +1056,6 @@ export class CalendarModel {
 			const calendarEvent: CalendarEvent = {
 				...parsed.event,
 				sender,
-				pendingInvitation: true,
 			}
 
 			return this.doCreate(calendarEvent, this.zone, destinationCalendarGroupRoot, []) // existingEvent is undefined when trying to reschedule a pending event.  should it be?
@@ -1132,20 +1148,6 @@ export class CalendarModel {
 			}
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(updateEvent, alteredInstances, this.zone)
 		}
-
-		// const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
-		// const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(updateEvent.attendees, ownMailAddresses)
-		//
-		// dbEvent.pendingInvitation = (ownAttendee?.status as CalendarAttendeeStatus) === CalendarAttendeeStatus.NEEDS_ACTION
-		// When processing calendar update message REQUEST message with changed start time we want that the guest needs to make a decision about is participation status
-		if (dbEvent.pendingInvitation || updateEvent.startTime.getTime() !== dbEvent.startTime.getTime()) {
-			dbEvent.pendingInvitation = true
-		} else {
-			// something about setting dbEvent.pendingInvitation = false when this is falsy makes it work when reply sent from eventBanner
-			// BUT it also deactivates ghostBubble when the organizer makes minor edits.  How do we prevent this?
-			dbEvent.pendingInvitation = false
-		}
-
 		const calendarEvent = await this.updateEventWithExternal(dbEvent, updateEvent)
 
 		// If the update is for the altered occurrence, we do not need to update the progenitor, it already has the exclusion.
@@ -1189,17 +1191,6 @@ export class CalendarModel {
 			const updatedProgenitor = clone(dbTarget.progenitor)
 			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId], this.zone)
 			dbTarget.progenitor = (await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)) as CalendarEventProgenitor
-
-			// Check to see if start time is the same as the recurrenceId.  This means that the new altered instance has not had start time changed, and should not be a pending invitation.
-			console.log("ABOUT TO CHECK TIME FOR NEW UPDATE EVENT")
-			if (updateEvent.startTime.getTime() === updateEvent.recurrenceId.getTime()) {
-				console.log("pending invitation status matching progenitor")
-				// this means the start time is the same as the original time of the recurrence
-				updateEvent.pendingInvitation = updatedProgenitor.pendingInvitation
-			} else {
-				console.log("pending invitation will be true")
-				updateEvent.pendingInvitation = true
-			}
 		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
 			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
