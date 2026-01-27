@@ -44,9 +44,9 @@ async function run({ platform }) {
 	}
 
 	if (platform === "all" || platform === "android") {
-		await bumpAndroidVersion("app-android/app/build.gradle")
+		await bumpAndroidVersion("app-android/app/build.gradle.kts")
 		await bumpAndroidVersion("app-android/calendar/build.gradle.kts")
-		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/app/build.gradle")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/app/build.gradle.kts")
 		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
 	}
 
@@ -142,7 +142,7 @@ async function bumpAndroidVersion(buildGradlePath) {
 
 	const versionCodeToWrite = `versionCode ${buildGradlePath.endsWith("kts") ? "= " : ""}${newVersionCodeString}`
 	const newBuildGradleString = buildGradleString.replace(new RegExp(versionRegex), versionCodeToWrite)
-	console.log(`Bumped Android versionCode: ${oldVersionCodeString} -> ${newVersionCodeString}`)
+	console.log(`Bumped Android versionCode: ${oldVersionCodeString} -> ${newVersionCodeString} (${buildGradlePath})`)
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
 }
 
@@ -155,7 +155,7 @@ async function bumpAndroidVersion(buildGradlePath) {
 async function bumpAndroidVersionName(currentVersion, newVersionString, buildGradlePath) {
 	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
 	const newBuildGradleString = buildGradleString.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
-	console.log(`Bumped Android versionName: ${currentVersion.join("\\.")} -> ${newVersionString}`)
+	console.log(`Bumped Android versionName: ${currentVersion.join("\\.")} -> ${newVersionString} (${buildGradlePath})`)
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
 }
 

@@ -1,41 +1,39 @@
-import com.android.build.gradle.internal.tasks.FinalizeBundleTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
 	id("com.android.application")
-	id("org.jetbrains.kotlin.android")
-	id("kotlin-kapt")
+	id("kotlin-android")
 	alias(libs.plugins.kotlin.serialization)
-	// FIXME
-	id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" // this version matches the Kotlin version
+	alias(libs.plugins.google.ksp)
 	alias(libs.plugins.tutao.testconvention)
 }
 
 group = "de.tutao"
 
 android {
-	namespace = "de.tutao.calendar"
+	namespace = "de.tutao.tutanota"
 
 	defaultConfig {
 		compileSdk = 36
-		applicationId = "de.tutao.calendar"
+		applicationId = "de.tutao.tutanota"
 		minSdk = 26
 		targetSdk = 35
-		versionCode = 226
+		versionCode = 396586
 		versionName = "324.260127.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-		javaCompileOptions {
-			annotationProcessorOptions {
-				this.arguments["room.schemaLocation"] = "$projectDir/schemas"
-			}
+		// https://issuetracker.google.com/issues/181593646
+		ksp {
+			arg("room.schemaLocation", "$projectDir/schemas")
+			arg("room.generateKotlin", "true")
 		}
 	}
-
 	signingConfigs {
 		create("release") {
-			// Provide non-empty placeholders because otherwise configuration will braek even in debug.
+			// Provide non-empty placeholders because otherwise configuration will break even in debug.
+			// for local dev builds, you can use the keystore that's deployed automatically to dev systems.
 			storeFile = file(System.getenv("APK_SIGN_STORE") ?: "EMPTY")
 			storePassword = System.getenv("APK_SIGN_STORE_PASS") ?: "EMPTY"
 			keyAlias = System.getenv("APK_SIGN_ALIAS") ?: "EMPTY"
@@ -45,9 +43,7 @@ android {
 			enableV2Signing = true
 		}
 	}
-
 	flavorDimensions("releaseType")
-
 	productFlavors {
 		create("tutao") {
 			signingConfig = signingConfigs.getByName("release")
@@ -55,26 +51,27 @@ android {
 		create("fdroid") {
 		}
 	}
-
 	buildTypes {
 		debug {
-			resValue("string", "package_name", "de.tutao.calendar.debug")
+			resValue("string", "package_name", "de.tutao.tutanota.debug")
+			resValue("string", "account_type", "de.tutao.tutanota.debug")
 			manifestPlaceholders.clear()
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.debug"
 			applicationIdSuffix = ".debug"
 			isJniDebuggable = true
 		}
 		release {
-			manifestPlaceholders += mapOf()
 			isMinifyEnabled = true
-			resValue("string", "package_name", "de.tutao.calendar")
+			resValue("string", "package_name", "de.tutao.tutanota")
+			resValue("string", "account_type", "de.tutao.tutanota")
+			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
-
 		}
 		create("releaseTest") {
 			initWith(getByName("release"))
 			isMinifyEnabled = true
-			resValue("string", "package_name", "de.tutao.calendar.test")
+			resValue("string", "package_name", "de.tutao.tutanota.test")
+			resValue("string", "account_type", "de.tutao.tutanota.test")
 			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.test"
 			applicationIdSuffix = ".test"
@@ -82,46 +79,22 @@ android {
 	}
 
 	buildFeatures {
-		viewBinding = true
-		this.buildConfig = true
-		compose = true
+		buildConfig = true
 	}
 
 	applicationVariants.configureEach {
 		val variant = this
 		variant.outputs.configureEach {
 			val flavor = variant.productFlavors[0].name
-
 			// The cast is needed because outputFileName isn't directly accessible in .kts files
 			// And the outputFile.renameTo function runs at the beginning of the build process
 			// which will make the build script try to move a file that doesn't exist (yet)
 			(this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-				"calendar-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
-
-			val bundleName = "calendar-$flavor-${variant.buildType.name}-${variant.versionName}.aab"
-
-			val taskName = StringBuilder("sign").run {
-				//Add a task to rename the output file
-				productFlavors.forEach {
-					append(it.name.capitalized())
-				}
-
-				append(buildType.name.capitalized())
-				append("Bundle")
-
-				toString()
-			}
-
-			// Register the task to run at the end of the build
-			tasks.named(taskName, FinalizeBundleTask::class.java) {
-				val file = finalBundleFile.asFile.get()
-				val finalFile = File(file.parentFile, bundleName)
-				finalBundleFile.set(finalFile)
-			}
+				"tutanota-app-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
 		}
 	}
 
-	buildTypes.map {
+	buildTypes.forEach {
 		it.buildConfigField(
 			"String",
 			"FILE_PROVIDER_AUTHORITY",
@@ -140,20 +113,13 @@ android {
 
 	packaging {
 		resources {
-			this.excludes += listOf("META-INF/LICENSE", "META-INF/ASL2.0")
+			excludes += listOf("META-INF/LICENSE", "META-INF/ASL2.0")
 		}
 	}
 
 	lint {
 		this.disable.add("MissingTranslation")
 	}
-
-	sourceSets {
-		this.getByName("androidTest") {
-			assets.srcDirs(files("$projectDir/schemas"))
-		}
-	}
-
 	ndkVersion = "28.2.13676358"
 }
 
@@ -163,19 +129,22 @@ kotlin {
 	}
 }
 
+tasks.withType<Test>().configureEach {
+	testLogging {
+		exceptionFormat = TestExceptionFormat.FULL
+		events("started", "skipped", "passed", "failed")
+		showStandardStreams = true
+	}
+}
 
 tasks.register("itest") {
 	dependsOn("testDeviceFdroidDebugAndroidTest")
 }
 
 dependencies {
-	implementation(libs.androidx.appcompat)
-
 	implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
 
-	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
-	//noinspection GradleDependency
 	implementation(libs.commons.io)
 
 	implementation(libs.androidx.core.ktx)
@@ -185,12 +154,12 @@ dependencies {
 	implementation(libs.androidx.splashscreen)
 	implementation(libs.androidx.datastore.preferences)
 
-	implementation(libs.androidx.room.runtime)
-	// For Kotlin use kapt instead of annotationProcessor. we should migrate to ksp
-	kapt(libs.androidx.room.compiler)
+	implementation(libs.androidx.room.ktx)
+	ksp(libs.androidx.room.compiler)
 
 
 	implementation(files("../libs/sqlcipher-android.aar"))
+
 
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 
@@ -214,53 +183,14 @@ dependencies {
 	testImplementation(libs.kotlinx.coroutines.test)
 
 	androidTestImplementation(libs.mockito.inline) {
-		exclude(group = "org.mockito", module = "mockito-core")
+		exclude(group = "org.mockito'", module = "mockito-core")
 	}
-	androidTestImplementation(libs.mockito.kotlin)
 	androidTestImplementation(libs.mockito.core)
+	androidTestImplementation(libs.mockito.kotlin)
 	androidTestImplementation(libs.androidx.test.espresso.core)
 	androidTestImplementation(libs.androidx.test.runner)
 	androidTestImplementation(libs.androidx.test.junit.ktx)
 	androidTestImplementation(libs.androidx.test.rules)
 	androidTestImplementation(libs.jackson.databind)
 	androidTestImplementation(libs.androidx.room.testing)
-
-	// Setup for Jetpack Compose
-	val composeBom = platform(libs.androidx.compose.bom)
-	implementation(composeBom)
-	androidTestImplementation(composeBom)
-	implementation(libs.androidx.compose.m3)
-
-	// Android Studio Preview support
-	implementation(libs.androidx.compose.ui.preview)
-	debugImplementation(libs.androidx.compose.ui.tooling)
-
-	// UI Tests
-	androidTestImplementation(libs.androidx.compose.ui.junit)
-	debugImplementation(libs.androidx.compose.ui.test.manifest)
-
-	// Optional - Icons
-	implementation(libs.androidx.compose.material.icons.core)
-	// Optional - Add full set of material icons
-	implementation(libs.androidx.compose.material.icons.ext)
-
-	// Optional - Integration with activities
-	implementation(libs.androidx.compose.activity)
-	// Optional - Integration with ViewModels
-	implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-	// Jetpack WorkManager for background sync
-	implementation(libs.androidx.work.runtime.ktx)
-
-
-	// For interop APIs with Material 3
-	implementation(libs.androidx.glance.m3)
-
-	// For AppWidgets support and preview
-	implementation(libs.androidx.glance)
-	implementation(libs.androidx.glance.appwidget)
-	implementation(libs.androidx.glance.appwidget.preview)
-	implementation(libs.androidx.glance.preview)
 }
-
-private fun String.capitalized() = replaceFirstChar { it.uppercaseChar() }
