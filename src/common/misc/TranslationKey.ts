@@ -2207,3 +2207,5 @@ export type TranslationKeyType =
 	| "movingItem_title"
 	| "chooseDestination_title"
 	| "moveItemHere_action"
+	| "file_label"
+	| "folder_label"

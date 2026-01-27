@@ -2209,5 +2209,7 @@ export default {
 		"movingItem_title": "Moving: {itemName}",
 		"chooseDestination_title": "Choose a destination",
 		"moveItemHere_action": "Move here",
+		"file_label": "File",
+		"folder_label": "Folder",
 	}
 }

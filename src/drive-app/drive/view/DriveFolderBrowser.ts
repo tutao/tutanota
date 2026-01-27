@@ -21,6 +21,7 @@ export class DriveFolderBrowser implements Component<DriveMiniFolderContentAttrs
 			".flex.col.gap-4.scroll",
 			{
 				style,
+				role: "list",
 			},
 			newFolder == null ? null : m(DriveFolderBrowserNewFolderEntry, newFolder),
 			isEmpty(items)
