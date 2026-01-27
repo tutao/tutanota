@@ -521,8 +521,7 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 		sequence: incrementSequence(oldSequence),
 		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
 	})
-
-	if (newEvent.startTime !== existingEvent.startTime) {
+	if (newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
 		editModels.whoModel.resetGuestsStatus()
 	}
 
