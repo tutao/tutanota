@@ -97,7 +97,7 @@ o.spec("CalendarModel", function () {
 	let groupMemberMock: GroupMember
 
 	let baseInvitation: ParsedCalendarData
-	let baseExistingEvent: CalendarEvent
+	let baseExistingProgenitor: CalendarEvent
 	let baseCalendarEventUidIndexEntry: CalendarEventUidIndexEntry
 
 	let userControllerMock: DoubledObject<{ user: User; userGroupInfo: GroupInfo; getCalendarMemberships: () => Array<GroupMembership> }>
@@ -194,7 +194,7 @@ o.spec("CalendarModel", function () {
 			languageViewModelMock,
 		)
 
-		baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
+		baseExistingProgenitor = createTestEntity(CalendarEventTypeRef, {
 			_id: ["listId", "eventId"],
 			uid,
 			_ownerGroup: calendarGroupRoot._id,
@@ -223,7 +223,7 @@ o.spec("CalendarModel", function () {
 
 		baseCalendarEventUidIndexEntry = object()
 		baseCalendarEventUidIndexEntry.ownerGroup = calendarGroupRoot._id
-		baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+		baseCalendarEventUidIndexEntry.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 		baseCalendarEventUidIndexEntry.alteredInstances = []
 	})
 
@@ -240,7 +240,7 @@ o.spec("CalendarModel", function () {
 			baseParsedEventReply = {
 				event: createTestEntity(CalendarEventTypeRef, {
 					uid,
-					summary: baseExistingEvent.summary,
+					summary: baseExistingProgenitor.summary,
 					attendees: [
 						createTestEntity(CalendarEventAttendeeTypeRef, {
 							// should be ignored
@@ -327,7 +327,12 @@ o.spec("CalendarModel", function () {
 
 	o.spec("processCalendarData - CalendarMethod.REQUEST", function () {
 		o.beforeEach(function () {
-			baseExistingEvent = createTestEntity(CalendarEventTypeRef, {
+			userGroupInfo = object()
+			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddress = GUEST
+			userControllerMock.userGroupInfo = userGroupInfo
+
+			baseExistingProgenitor = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				_ownerGroup: calendarGroupRoot._id,
 				summary: "v1",
@@ -353,6 +358,12 @@ o.spec("CalendarModel", function () {
 									}),
 									status: CalendarAttendeeStatus.ACCEPTED,
 								}),
+								createTestEntity(CalendarEventAttendeeTypeRef, {
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
+										address: GUEST,
+									}),
+									status: CalendarAttendeeStatus.NEEDS_ACTION,
+								}),
 							],
 						}) as CalendarEventProgenitor,
 						alarms: [],
@@ -360,7 +371,7 @@ o.spec("CalendarModel", function () {
 				],
 			}
 
-			baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+			baseCalendarEventUidIndexEntry.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 		})
 
 		o.spec("Pending events", function () {
@@ -405,19 +416,23 @@ o.spec("CalendarModel", function () {
 			})
 
 			o(
-				"new altered instances with new start time SHOULD be pendingInvitations even if progenitor invitation has been accepted, and progenitor should NOT be reset to pendingInvitation",
+				"new altered instances with new start time SHOULD be a pendingInvitation even if progenitor invitation has been accepted, and progenitor should keep its pendingInvitation status",
 				async function () {
 					// Arrange
-					baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					baseExistingProgenitor.repeatRule = createTestEntity(RepeatRuleTypeRef, {
 						frequency: RepeatPeriod.DAILY,
 						interval: "1",
 					})
-					baseExistingEvent.pendingInvitation = false
-					baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+					baseExistingProgenitor.pendingInvitation = false
+					baseCalendarEventUidIndexEntry.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 
-					when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
+					when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingProgenitor.uid), CachingMode.Bypass)).thenResolve(
+						baseCalendarEventUidIndexEntry,
+					)
 
 					const alteredInstanceInvitation = clone(baseInvitation)
+					const guestAttendee = baseInvitation.contents[0].event.attendees.find((attendee) => attendee.address.address === GUEST)!
+					guestAttendee.status = CalendarAttendeeStatus.ACCEPTED // Guest has previously accepted the invitation for the whole series
 
 					// recurrenceId must correspond with original start time of scheduled recurrence.  used baseStartTime+1 because the time is one day
 					const alteredInstanceRecurrenceId = DateTime.fromJSDate(baseStartTime).plus({ days: 1 }).toJSDate()
@@ -429,18 +444,18 @@ o.spec("CalendarModel", function () {
 					alteredInstanceEvent.summary = "ALTERED INSTANCE" // for identifying during debugging
 					alteredInstanceEvent.startTime = alteredInstanceStartTime
 					alteredInstanceEvent.endTime = alteredInstanceEndTime
-					alteredInstanceEvent.recurrenceId = alteredInstanceStartTime
 					alteredInstanceEvent.recurrenceId = alteredInstanceRecurrenceId
+
+					alteredInstanceInvitation.contents.push({ event: alteredInstanceEvent, alarms: [] })
 
 					// Act
 					await calendarModel.processCalendarData(ORGANIZER, alteredInstanceInvitation)
-					await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
 
 					// Assert
 					const alteredInstanceCaptor = matchers.captor()
 					verify(calendarFacadeMock.createCalendarEvent(alteredInstanceCaptor.capture(), matchers.anything()))
 					const actualAlteredInstance: CalendarEvent = alteredInstanceCaptor.value
-					o.check(actualAlteredInstance.pendingInvitation).equals(true) // true because start time has changed (i.e. does not match recurrenceId)
+					o.check(actualAlteredInstance.pendingInvitation).equals(true) // true because start time has changed (i.e. does not match recurrenceId) so organizer should send the guest status as NEEDS_ACTION
 					o.check(actualAlteredInstance.startTime).equals(alteredInstanceStartTime)
 					o.check(actualAlteredInstance.endTime).equals(alteredInstanceEndTime)
 					o.check(actualAlteredInstance.recurrenceId).equals(alteredInstanceRecurrenceId)
@@ -450,101 +465,47 @@ o.spec("CalendarModel", function () {
 					const updatedProgenitor: CalendarEvent = updatedProgenitorCaptor.value
 					o.check(updatedProgenitor.pendingInvitation).equals(false) // progenitor keeps existing pendingInvitation state
 					const excludedDate = getFirstOrThrow(updatedProgenitor.repeatRule!.excludedDates)
-					o.check(excludedDate.date).equals(alteredInstanceEvent.recurrenceId) // progenitor
+					o.check(excludedDate.date.getTime()).equals(alteredInstanceEvent.recurrenceId.getTime()) // progenitor
 				},
 			)
 
-			o("new altered instances SHOULD be pendingInvitations if progenitor invitation has not been accepted", async function () {
-				// Arrange
-				baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
-					frequency: RepeatPeriod.DAILY,
-					interval: "1",
-				})
-				baseExistingEvent.pendingInvitation = true
-				baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
-
-				when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
-
-				const alteredInstanceInvitation = clone(baseInvitation)
-
-				const alteredInstanceStartTime = DateTime.fromJSDate(baseStartTime).plus({ days: 1 }).toJSDate()
-				const alteredInstanceEndTime = DateTime.fromJSDate(baseEndTime).plus({ days: 1 }).toJSDate()
-				const alteredInstanceEvent = alteredInstanceInvitation.contents[0].event
-
-				alteredInstanceEvent.startTime = alteredInstanceStartTime
-				alteredInstanceEvent.endTime = alteredInstanceEndTime
-				alteredInstanceEvent.recurrenceId = alteredInstanceStartTime
-
-				// Act
-				await calendarModel.processCalendarData(ORGANIZER, alteredInstanceInvitation)
-
-				// Assert
-				const eventCaptor = matchers.captor()
-				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), matchers.anything()))
-				const capturedEventInput: CalendarEvent = eventCaptor.value
-				o.check(capturedEventInput.pendingInvitation).equals(true)
-				o.check(capturedEventInput.startTime).equals(alteredInstanceStartTime)
-			})
-
-			o("Updating fields other than startTime should NOT set pendingInvitation to true", async function () {
-				/*
-				Simple updates for pending events are treated the same way as an invitation that was already replied.
-				The event doesn't have to be deleted and recreated
-				 */
+			o("Guest attendance status as NEEDS_ACTION sets pendingInvitation to true", async function () {
 				const eventByUid: CalendarEventUidIndexEntry = object()
-				baseExistingEvent.pendingInvitation = false
-				eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
+				baseExistingProgenitor.pendingInvitation = false
+				eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 				eventByUid.alteredInstances = []
 
 				when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
 
-				const sentEvent = createTestEntity(CalendarEventTypeRef, {
-					summary: "v2",
-					uid: baseExistingEvent.uid,
-					sequence: "2",
-					startTime: new Date(baseStartTime),
-					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-						address: ORGANIZER,
-					}),
-				})
-
 				// Act
-				await calendarModel.processCalendarData(ORGANIZER, {
-					method: CalendarMethod.REQUEST,
-					contents: [
-						{
-							event: sentEvent as CalendarEventProgenitor,
-							alarms: [],
-						},
-					],
-				})
+				await calendarModel.processCalendarData(ORGANIZER, baseInvitation)
 
 				const eventCaptor = matchers.captor()
 				const oldEventCaptor = matchers.captor()
 				verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), matchers.anything(), oldEventCaptor.capture()), { times: 1 })
 
 				const oldEvent: CalendarEvent = oldEventCaptor.value
-				o.check(oldEvent).deepEquals(baseExistingEvent)
+				o.check(oldEvent).deepEquals(baseExistingProgenitor)
 
 				const updatedEvent: CalendarEvent = eventCaptor.value
 				o.check(updatedEvent._id).deepEquals(oldEvent._id)
-				o.check(updatedEvent.summary).equals(sentEvent.summary)
-				o.check(updatedEvent.sequence).equals(sentEvent.sequence)
+				o.check(updatedEvent.summary).equals(baseExistingProgenitor.summary)
+				o.check(updatedEvent.sequence).equals(baseExistingProgenitor.sequence)
 				o.check(updatedEvent.pendingInvitation).equals(false)
 			})
 
-			o("for new altered instances, updating fields other than start time should NOT set it as a pendingInvitation", async function () {
+			o("new altered instances created from updating fields other than start time, should NOT be set as a pendingInvitation", async function () {
 				// Arrange
-				baseExistingEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+				baseExistingProgenitor.repeatRule = createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 				})
-				baseExistingEvent.startTime = baseStartTime
-				baseExistingEvent.endTime = baseEndTime
-				baseExistingEvent.pendingInvitation = false
-				baseCalendarEventUidIndexEntry.progenitor = baseExistingEvent as CalendarEventProgenitor
+				baseExistingProgenitor.startTime = baseStartTime
+				baseExistingProgenitor.endTime = baseEndTime
+				baseExistingProgenitor.pendingInvitation = false // User already replied to original series
+				baseCalendarEventUidIndexEntry.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 
-				when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingEvent.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
+				when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingProgenitor.uid), CachingMode.Bypass)).thenResolve(baseCalendarEventUidIndexEntry)
 
 				const alteredInstanceInvitation = clone(baseInvitation)
 
@@ -558,7 +519,6 @@ o.spec("CalendarModel", function () {
 				alteredInstanceEvent.summary = "ALTERED INSTANCE" // for identifying during debugging
 				alteredInstanceEvent.startTime = alteredInstanceStartTime
 				alteredInstanceEvent.endTime = alteredInstanceEndTime
-				alteredInstanceEvent.recurrenceId = alteredInstanceStartTime
 				alteredInstanceEvent.recurrenceId = alteredInstanceRecurrenceId
 
 				// Act
@@ -580,7 +540,7 @@ o.spec("CalendarModel", function () {
 			o("Change to event start time should create a new pending event and delete the old one", async function () {
 				// Arrange
 				const eventByUid: CalendarEventUidIndexEntry = object()
-				eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
+				eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 				eventByUid.alteredInstances = []
 				when(calendarFacadeMock.getEventsByUid(anything(), CachingMode.Bypass)).thenResolve(eventByUid)
 				when(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything())).thenResolve(undefined)
@@ -618,7 +578,7 @@ o.spec("CalendarModel", function () {
 				const oldEvent: CalendarEvent = oldEventCaptor.value
 				const newEvent: CalendarEvent = newEventCaptor.value
 
-				o.check(oldEvent).deepEquals(baseExistingEvent)
+				o.check(oldEvent).deepEquals(baseExistingProgenitor)
 				o.check(oldEvent._id).notEquals(newEvent._id)
 				o.check(oldEvent.uid).equals(newEvent.uid)
 				o.check(newEvent.pendingInvitation).equals(true)
@@ -627,8 +587,8 @@ o.spec("CalendarModel", function () {
 
 		o("Simple update to already replied event should NOT create a ghost bubble", async function () {
 			const eventByUid: CalendarEventUidIndexEntry = object()
-			baseExistingEvent.pendingInvitation = false
-			eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
+			baseExistingProgenitor.pendingInvitation = false
+			eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 			eventByUid.alteredInstances = []
 			when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
 
@@ -639,7 +599,7 @@ o.spec("CalendarModel", function () {
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: ORGANIZER,
 				}),
-				startTime: baseExistingEvent.startTime,
+				startTime: baseExistingProgenitor.startTime,
 			})
 
 			await calendarModel.processCalendarData(ORGANIZER, {
@@ -661,7 +621,7 @@ o.spec("CalendarModel", function () {
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedEvent.pendingInvitation).equals(false)
-			o(oldEvent).deepEquals(baseExistingEvent)
+			o(oldEvent).deepEquals(baseExistingProgenitor)
 		})
 
 		o("event entity is re-created when the start time changes", async function () {
@@ -681,7 +641,7 @@ o.spec("CalendarModel", function () {
 
 			when(entityClientMock.loadMultiple(UserAlarmInfoTypeRef, listIdPart(alarmInfos[0]), alarmInfos.map(elementIdPart))).thenResolve([userAlarmInfo])
 
-			baseExistingEvent.startTime = DateTime.fromObject(
+			baseExistingProgenitor.startTime = DateTime.fromObject(
 				{
 					year: 2020,
 					month: 5,
@@ -689,11 +649,11 @@ o.spec("CalendarModel", function () {
 				},
 				{ zone: "UTC" },
 			).toJSDate()
-			baseExistingEvent.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
+			baseExistingProgenitor.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
 				address: ORGANIZER,
 			})
-			baseExistingEvent.alarmInfos = [[alarmsListId, alarmInfo._id]]
-			baseExistingEvent.pendingInvitation = false
+			baseExistingProgenitor.alarmInfos = [[alarmsListId, alarmInfo._id]]
+			baseExistingProgenitor.pendingInvitation = false
 
 			const icsEvent = baseInvitation.contents[0].event
 			icsEvent.summary = "v2"
@@ -711,11 +671,11 @@ o.spec("CalendarModel", function () {
 			})
 
 			const eventByUid: CalendarEventUidIndexEntry = object()
-			eventByUid.progenitor = baseExistingEvent as CalendarEventProgenitor
+			eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 
 			when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
 
-			const expectedNewEvent = clone(baseExistingEvent)
+			const expectedNewEvent = clone(baseExistingProgenitor)
 			expectedNewEvent.startTime = icsEvent.startTime
 			expectedNewEvent.summary = icsEvent.summary
 			expectedNewEvent.sequence = icsEvent.sequence
@@ -748,7 +708,7 @@ o.spec("CalendarModel", function () {
 			o(updatedEvent.uid).equals(uid)
 			o(updatedEvent.pendingInvitation).equals(true)
 			o(updatedAlarms).deepEquals([alarmInfo])
-			o(oldEvent).deepEquals(baseExistingEvent)
+			o(oldEvent).deepEquals(baseExistingProgenitor)
 		})
 
 		// this is an integration test because it results in real calls to CalendarImporter.parseCalendarFile
@@ -824,7 +784,7 @@ o.spec("CalendarModel", function () {
 			const baseParsedEvent = {
 				event: createTestEntity(CalendarEventTypeRef, {
 					uid,
-					summary: baseExistingEvent.summary,
+					summary: baseExistingProgenitor.summary,
 					attendees: [
 						createTestEntity(CalendarEventAttendeeTypeRef, {
 							address: createTestEntity(EncryptedMailAddressTypeRef, {
@@ -852,7 +812,7 @@ o.spec("CalendarModel", function () {
 
 			const deletedEventCaptor = matchers.captor()
 			verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
-			o(deletedEventCaptor.value).deepEquals(baseExistingEvent)
+			o(deletedEventCaptor.value).deepEquals(baseExistingProgenitor)
 		})
 
 		o("event cannot be cancelled by someone other than organizer", async function () {
