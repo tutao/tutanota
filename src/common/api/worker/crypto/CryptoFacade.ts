@@ -148,17 +148,16 @@ export class CryptoFacade {
 		}
 
 		try {
-			if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(assertNotNull(instance._ownerGroup))) {
-				if (!instance.bucketKey) {
-					this.instanceSessionKeysCache.delete(instance)
-				}
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), parseKeyVersion(instance._ownerKeyVersion ?? "0"))
-				return this.decryptSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
-			} else if (instance.bucketKey) {
+			if (instance.bucketKey) {
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
 				const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
+			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(assertNotNull(instance._ownerGroup))) {
+				this.instanceSessionKeysCache.delete(instance)
+
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), parseKeyVersion(instance._ownerKeyVersion ?? "0"))
+				return this.decryptSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
 			} else {
 				// See PermissionType jsdoc for more info on permissions
 				const permissions = await this.entityClient.loadAll(PermissionTypeRef, assertNotNull(instance._permissions))
@@ -212,8 +211,17 @@ export class CryptoFacade {
 					isSameId(instanceId, [instanceSessionKey.instanceList, instanceSessionKey.instanceId]),
 				),
 			)
-			const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), parseKeyVersion(instance._ownerKeyVersion ?? "0"))
-			const resolvedSessionKeyForInstance = this.decryptSessionKeyWithOwnerKey(assertNotNull(encryptedSessionKeyForInstance)?.symEncSessionKey, gk)
+
+			const symEncSessionKey = assertNotNull(encryptedSessionKeyForInstance)?.symEncSessionKey
+			const symKeyVersion = parseKeyVersion(assertNotNull(encryptedSessionKeyForInstance)?.symKeyVersion ?? "0")
+			const ownerEncSessionKey = {
+				key: symEncSessionKey,
+				encryptingKeyVersion: symKeyVersion,
+			} as VersionedEncryptedKey
+			this.setOwnerEncSessionKey(instance, ownerEncSessionKey)
+
+			const gk = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(instance._ownerGroup), symKeyVersion)
+			const resolvedSessionKeyForInstance = this.decryptSessionKeyWithOwnerKey(symEncSessionKey, gk)
 			return {
 				resolvedSessionKeyForInstance,
 				instanceSessionKeys: instanceSessionKeysFromCache,
