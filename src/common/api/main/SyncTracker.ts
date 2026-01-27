@@ -8,6 +8,9 @@ import { defer, DeferredObject } from "@tutao/tutanota-utils"
  * Additionally, this tracker allows registering listeners to be executed sequentially
  * after the sync is done. The listeners are executed in descending order of priority,
  * i.e., the listener with the highest priority will be executed first.
+ *
+ * Actions executed by the listeners could still not be awaited and be executed in parallel. (e.g. MailIndexer)
+ * The listener only determines the order of execution.
  */
 
 const TAG = "[SyncTracker]"
@@ -36,6 +39,11 @@ export class SyncTracker {
 			console.warn(TAG, "Adding the same listener twice!")
 		} else {
 			this.syncDoneListeners.add(listener)
+
+			// if the sync is already done, execute the listener immediately
+			if (this._isSyncDone) {
+				listener.onSyncDone()
+			}
 		}
 	}
 
