@@ -19,6 +19,7 @@ import { prepareCalendarDescription } from "../../../../common/api/common/utils/
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { EventWrapper } from "../../view/CalendarViewModel"
+import { CalendarInviteHandler } from "../../view/CalendarInvites"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -66,6 +67,7 @@ export class CalendarEventPreviewViewModel {
 	 * @param ownAttendee will be cloned to have a copy that's not influencing the actual event but can be changed to quickly update the UI
 	 * @param lazyIndexEntry async function to resolve the progenitor of the shown event
 	 * @param eventModelFactory
+	 * @param calendarInviteHandler
 	 * @param highlightedStrings
 	 * @param uiUpdateCallback
 	 */
@@ -77,6 +79,7 @@ export class CalendarEventPreviewViewModel {
 		ownAttendee: CalendarEventAttendee | null,
 		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
 		private readonly eventModelFactory: (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>,
+		private readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>,
 		private readonly highlightedStrings?: readonly SearchToken[],
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
@@ -141,19 +144,8 @@ export class CalendarEventPreviewViewModel {
 		try {
 			this.ownAttendee.status = status
 			this.uiUpdateCallback()
-			// no per-instance attendees yet.
-			const model = await this.eventModelFactory(
-				this.calendarEvent.recurrenceId === null ? CalendarOperation.EditAll : CalendarOperation.EditThis,
-				this.calendarEvent,
-			)
-			if (model) {
-				model.editModels.whoModel.setOwnAttendance(status)
-				model.editModels.whoModel.isConfidential = this.calendarEvent.invitedConfidentially ?? false
-				model.editModels.comment.content = this.comment || ""
-				await model.apply()
-			} else {
-				this.ownAttendee.status = oldStatus
-			}
+			const inviteHandler = await this.calendarInviteHandler()
+			await inviteHandler.replyToEventInvitation(this.calendarEvent, this.ownAttendee, status, null, null, this.comment)
 		} catch (e) {
 			this.ownAttendee.status = oldStatus
 			throw e
