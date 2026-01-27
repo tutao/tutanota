@@ -2184,7 +2184,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		// FIXME: add
 		"driveView_action": "Drive",
 		"driveHome_label": "Home",
 		"driveTrash_label": "Trash",
