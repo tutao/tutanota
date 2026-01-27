@@ -143,8 +143,7 @@ impl EntityFacadeImpl {
 			let value_id_string = String::from(value_id);
 			let instance_value = instance.get(&value_id_string).ok_or_else(|| {
 				ApiCallError::internal(format!(
-					"Can not find key: {} in instance: {instance:?}",
-					value_id_string
+					"Can not find key: {value_id_string} in instance: {instance:?}"
 				))
 			})?;
 
@@ -169,8 +168,7 @@ impl EntityFacadeImpl {
 				.get_attribute_id_by_attribute_name(ID_FIELD)
 				.map_err(|err| {
 					ApiCallError::internal(format!(
-						"{ID_FIELD} field not found on the aggregate {:?}",
-						err
+						"{ID_FIELD} field not found on the aggregate {err:?}"
 					))
 				})?;
 
@@ -235,7 +233,7 @@ impl EntityFacadeImpl {
 			.type_model_provider
 			.resolve_client_type_ref(&dependency_type_ref)
 			.ok_or_else(|| {
-				ApiCallError::internal(format!("unknown type model: {:?}", dependency_type_ref))
+				ApiCallError::internal(format!("unknown type model: {dependency_type_ref:?}"))
 			})?;
 		let instance_association = instance.get(&association_id.to_string()).unwrap();
 
@@ -321,14 +319,13 @@ impl EntityFacadeImpl {
 			let aggregate_type_model = self
 				.type_model_provider
 				.resolve_server_type_ref(&dependency_typeref)
-				.unwrap_or_else(|| panic!("Undefined aggregate type_model {}", dependency_typeref));
+				.unwrap_or_else(|| panic!("Undefined aggregate type_model {dependency_typeref}"));
 
 			let mut aggregate_vec = Vec::with_capacity(association_data.assert_array_ref().len());
 			let ElementValue::Array(association_data) = association_data else {
 				return Err(ApiCallError::InternalSdkError {
 					error_message: format!(
-						"Invalid aggregate format. {} isn't an array",
-						association_name
+						"Invalid aggregate format. {association_name} isn't an array"
 					),
 				});
 			};
@@ -341,7 +338,7 @@ impl EntityFacadeImpl {
 						// Errors should be grouped inside the top-most object, so they should be
 						// extracted and removed from aggregates
 						if decrypted_aggregate.contains_key("_errors") {
-							let error_key = &format!("{}_{}", association_name, index);
+							let error_key = &format!("{association_name}_{index}");
 							self.extract_errors(error_key, &mut errors, &mut decrypted_aggregate);
 						}
 
@@ -350,8 +347,7 @@ impl EntityFacadeImpl {
 					_ => {
 						return Err(ApiCallError::InternalSdkError {
 							error_message: format!(
-								"Invalid aggregate format. {} isn't a dict",
-								association_name
+								"Invalid aggregate format. {association_name} isn't a dict"
 							),
 						})
 					},

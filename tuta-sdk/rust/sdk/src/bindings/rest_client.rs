@@ -79,7 +79,7 @@ where
 		.into_iter()
 		.filter(|(k, v)| !k.as_ref().is_empty() && !v.as_ref().is_empty())
 		.map(|(k, v)| (encode(k.as_ref()), encode(v.as_ref())))
-		.map(|(k, v)| format!("{}={}", k, v))
+		.map(|(k, v)| format!("{k}={v}"))
 		.collect::<Vec<_>>();
 
 	if pairs.is_empty() {
