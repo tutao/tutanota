@@ -2211,5 +2211,6 @@ export default {
 		"moveItemHere_action": "Move here",
 		"file_label": "File",
 		"folder_label": "Folder",
+		"untitledFolder_label": "Untitled folder"
 	}
 }

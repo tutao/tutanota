@@ -2209,3 +2209,4 @@ export type TranslationKeyType =
 	| "moveItemHere_action"
 	| "file_label"
 	| "folder_label"
+	| "untitledFolder_label"

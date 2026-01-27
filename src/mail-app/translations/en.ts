@@ -2210,6 +2210,7 @@ export default {
 		"chooseDestination_title": "Choose a destination",
 		"moveItemHere_action": "Move here",
 		"file_label": "File",
-			"folder_label": "Folder",
+		"folder_label": "Folder",
+		"untitledFolder_label": "Untitled folder"
 	}
 }

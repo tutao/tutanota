@@ -32,11 +32,14 @@ export async function showNewFileDialog(uploadFiles: (files: File[]) => Promise<
 }
 
 export async function showNewFolderDialog(createFolder: (folderName: string) => Promise<void>, updateUi: () => void): Promise<void> {
+	const defaultFolderName = lang.getTranslationText("untitledFolder_label")
+
 	Dialog.showProcessTextInputDialog(
 		{
 			title: lang.makeTranslation("newFolder_title", () => "New folder"),
 			label: lang.makeTranslation("newFolder_label", () => "Folder name"),
-			defaultValue: "Untitled folder",
+			defaultValue: defaultFolderName,
+			selectionRange: [0, defaultFolderName.length],
 		},
 		async (newName) => {
 			const folderName = newName
