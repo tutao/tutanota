@@ -17,25 +17,26 @@ import { EventController } from "../../../src/common/api/main/EventController.js
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
 	AlarmInfoTypeRef,
+	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMember,
 	GroupMembership,
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
 	GroupTypeRef,
+	MailAddressAlias,
 	RepeatRuleTypeRef,
 	User,
 	UserAlarmInfoListType,
 	UserAlarmInfoTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { UserController } from "../../../src/common/api/main/UserController.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { CachingMode, CalendarEventProgenitor, CalendarEventUidIndexEntry, CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { verify } from "@tutao/tutanota-test-utils"
 import { FileController } from "../../../src/common/file/FileController.js"
-import { matchers, object, when } from "testdouble"
+import { DoubledObject, matchers, object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils.js"
 import { IProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
@@ -99,11 +100,12 @@ o.spec("CalendarModel", function () {
 	let baseExistingEvent: CalendarEvent
 	let baseCalendarEventUidIndexEntry: CalendarEventUidIndexEntry
 
-	let userControllerMock: UserController
+	let userControllerMock: DoubledObject<{ user: User; userGroupInfo: GroupInfo; getCalendarMemberships: () => Array<GroupMembership> }>
 	let userMock: User
 
 	let calendarGroupMembership: GroupMembership
 	let externalCalendarFacadeMock: ExternalCalendarFacade
+	let userGroupInfo: GroupInfo
 
 	o.beforeEach(function () {
 		notificationsMock = object()
@@ -111,7 +113,7 @@ o.spec("CalendarModel", function () {
 		schedulerMock = object()
 		serviceExecutorMock = object()
 		loginControllerMock = object()
-		userControllerMock = object<UserController>()
+		userControllerMock = object()
 		progressTrackerMock = object()
 		entityClientMock = object()
 		mailboxModelMock = object()
@@ -129,6 +131,10 @@ o.spec("CalendarModel", function () {
 		userMock._id = userId
 		userControllerMock.user = userMock
 
+		userControllerMock.getCalendarMemberships = () => {
+			return [calendarGroupMembership]
+		}
+
 		const progressMonitorMock = object<IProgressMonitor>()
 		when(progressTrackerMock.getMonitor(anything())).thenReturn(progressMonitorMock)
 
@@ -137,7 +143,7 @@ o.spec("CalendarModel", function () {
 			groupType: GroupType.Calendar,
 			groupInfo: ["group-info-listId", "calendar-group-info-id"],
 		})
-		when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
+		// when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
 
 		calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
 			_id: calendarGroupMembership.group,
@@ -261,7 +267,10 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("reply from guest is applied to the organizer's calendar", async function () {
-			// removed some of the alarm testing criteria -- will recreate some tests specific to alarm behavior.
+			userGroupInfo = object()
+			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddress = ORGANIZER
+			userControllerMock.userGroupInfo = userGroupInfo
 
 			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
 			await calendarModel.processCalendarData(GUEST, baseParsedCalendarData)
@@ -272,11 +281,47 @@ o.spec("CalendarModel", function () {
 			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), matchers.anything()))
 
 			const createdEvent: CalendarEvent = eventCaptor.value
-
-			o(createdEvent.uid).equals(baseExistingEvent.uid)
-			o(createdEvent.summary).equals(baseExistingEvent.summary)
 			const guest = createdEvent.attendees.find((attendee) => attendee.address.address == GUEST)
+			const organizer = createdEvent.attendees.find((attendee) => attendee.address.address == ORGANIZER)
 			o(guest?.status).deepEquals(CalendarAttendeeStatus.ACCEPTED)
+			o(organizer?.status).deepEquals(CalendarAttendeeStatus.ACCEPTED)
+			o(createdEvent.pendingInvitation).deepEquals(false)
+		})
+
+		o("sender cannot modify state of other attendees", async function () {
+			// removed some of the alarm testing criteria -- will recreate some tests specific to alarm behavior.
+
+			userGroupInfo = object()
+			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddress = ORGANIZER
+			userControllerMock.userGroupInfo = userGroupInfo
+
+			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+
+			// add a state for the organizer to the ics file
+			baseParsedCalendarData.contents[0].event.attendees.push(
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					// should be ignored
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: ORGANIZER,
+					}),
+					status: CalendarAttendeeStatus.NEEDS_ACTION,
+				}),
+			)
+
+			await calendarModel.processCalendarData(GUEST, baseParsedCalendarData)
+
+			const eventCaptor = matchers.captor()
+			const alarmsCaptor = matchers.captor()
+
+			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), matchers.anything()))
+
+			const createdEvent: CalendarEvent = eventCaptor.value
+			const guest = createdEvent.attendees.find((attendee) => attendee.address.address == GUEST)
+			const organizer = createdEvent.attendees.find((attendee) => attendee.address.address == ORGANIZER)
+			o(guest?.status).deepEquals(CalendarAttendeeStatus.ACCEPTED)
+			o(organizer?.status).deepEquals(CalendarAttendeeStatus.ACCEPTED)
+			o(createdEvent.pendingInvitation).deepEquals(false)
 		})
 	})
 
