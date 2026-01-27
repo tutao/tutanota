@@ -181,7 +181,7 @@ impl KeyLoaderFacade {
 			.to_custom_string()
 			.parse()
 			.map_err(|_| KeyLoadError {
-				reason: format!("Failed to decode group key version: {}", element_id),
+				reason: format!("Failed to decode group key version: {element_id}"),
 			})
 	}
 
