@@ -300,8 +300,6 @@ export function getVisiblePaymentMethods({
 export function validateInvoiceData({ address, isBusiness }: { address: string; isBusiness: boolean }): TranslationKey | null {
 	if (isBusiness && (address.trim() === "" || address.split("\n").length > 5)) {
 		return "invoiceAddressInfoBusiness_msg"
-	} else if (address.split("\n").length > 4) {
-		return "invoiceAddressInfoBusiness_msg"
 	}
 	// no error
 	return null
