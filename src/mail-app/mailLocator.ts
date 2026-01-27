@@ -1181,6 +1181,7 @@ class MailLocator implements CommonLocator {
 			ownAttendee,
 			lazyIndexEntry,
 			async (mode: CalendarOperation, event: CalendarEvent) => this.calendarEventModel(mode, event, mailboxDetails, mailboxProperties, null),
+			this.calendarInviteHandler,
 			highlightedTokens,
 		)
 
