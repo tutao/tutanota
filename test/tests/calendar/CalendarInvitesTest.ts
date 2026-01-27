@@ -25,7 +25,6 @@ import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/v
 import { mockAttribute } from "@tutao/tutanota-test-utils"
 import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 
 const { anything, argThat } = matchers
 
@@ -87,6 +86,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 			const attendee = "attendee@example.com"
 			const event = createTestEntity(CalendarEventTypeRef, {
 				uid: "uid",
+				organizer: createTestEntity(EncryptedMailAddressTypeRef),
 				attendees: [
 					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: createTestEntity(EncryptedMailAddressTypeRef, {
@@ -117,6 +117,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 			const attendee = "attendee@example.com"
 			const event = createTestEntity(CalendarEventTypeRef, {
 				uid: "uid",
+				organizer: createTestEntity(EncryptedMailAddressTypeRef),
 				attendees: [
 					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: createTestEntity(EncryptedMailAddressTypeRef, {
