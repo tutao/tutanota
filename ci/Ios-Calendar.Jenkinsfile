@@ -86,6 +86,7 @@ pipeline {
 								if (params.RELEASE) {
 									util.runFastlane("de.tutao.calendar", "build_calendar_prod")
 									stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
+									stash includes: "app-ios/releases/calendar-${VERSION}.app.dSYM.zip", name: 'dsym-production'
 								} else {
 									stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
 								}
@@ -111,17 +112,19 @@ pipeline {
 					if (params.STAGING) {
 						unstash 'ipa-testing'
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
-							publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa")
+							publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa", "ipa")
 						}
 					}
 
 					if (params.PROD) {
 						unstash 'ipa-production'
+						unstash 'dsym-production'
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
 							if (params.RELEASE) {
-								publishToNexus("calendar-ios", "calendar-${VERSION}.ipa")
+								publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
+                                publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 							} else {
-								publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa")
+								publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "ipa")
 							}
 						}
 					}
@@ -168,12 +171,12 @@ void generateXCodeProjects() {
 	generateXCodeProject("tuta-sdk/ios", "project")
 }
 
-void publishToNexus(String artifactId, String ipaFileName) {
+void publishToNexus(String artifactId, String ipaFileName, String extension) {
 	def util = load "ci/jenkins-lib/util.groovy"
 	util.publishToNexus(groupId: "app",
 			artifactId: "${artifactId}",
 			version: "${VERSION}",
 			assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
-			fileExtension: "ipa"
+			fileExtension: extension
 	)
 }

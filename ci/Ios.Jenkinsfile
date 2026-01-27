@@ -158,7 +158,7 @@ pipeline {
 
                         uploadToNexus("ios", "tutanota-${VERSION}-adhoc.ipa", "adhoc.ipa")
                         uploadToNexus("ios", "tutanota-${VERSION}.ipa", "ipa")
-                        uploadToNexus("ios", "tutanota-${VERSION}.app.dSYM.zip", "zip")
+                        uploadToNexus("ios", "tutanota-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 					}
 				}
 			} // parallel
