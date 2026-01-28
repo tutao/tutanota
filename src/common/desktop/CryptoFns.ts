@@ -14,8 +14,8 @@ import {
 	encryptKey,
 	random,
 	uint8ArrayToKey,
-	unauthenticatedAesDecrypt,
-	unauthenticatedDecryptKey,
+	aesDecryptUnauthenticated,
+	decryptKeyUnauthenticated,
 } from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy
@@ -82,14 +82,14 @@ export const cryptoFns: CryptoFunctions = {
 	 * @deprecated
 	 */
 	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
-		return unauthenticatedAesDecrypt(key, encryptedBytes)
+		return aesDecryptUnauthenticated(key, encryptedBytes)
 	},
 
 	/**
 	 * @deprecated
 	 */
 	unauthenticatedDecryptKey(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
-		return unauthenticatedDecryptKey(key, encryptedBytes)
+		return decryptKeyUnauthenticated(key, encryptedBytes)
 	},
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {

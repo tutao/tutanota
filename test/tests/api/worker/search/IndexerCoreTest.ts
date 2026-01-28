@@ -21,7 +21,7 @@ import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
-import { Aes256Key, aes256RandomKey, aesEncrypt, FIXED_IV, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, aesEncrypt, FIXED_IV, IV_BYTE_LENGTH, random, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
 import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
@@ -478,7 +478,7 @@ o.spec("IndexerCore", () => {
 		o.check(rowKey).equals(encInstanceId)
 		const [listIdValue, encRowsValue, ownerGroupValue] = value
 		o.check(listIdValue).equals(listId)
-		o.check(Array.from(unauthenticatedAesDecrypt(key, encRowsValue))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
+		o.check(Array.from(aesDecryptUnauthenticated(key, encRowsValue))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
 		o.check(ownerGroupValue).equals(groupId)
 	})
 	o.spec("writeIndexUpdate _insertNewIndexEntries ", function () {

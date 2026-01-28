@@ -3,7 +3,7 @@ import { CryptoError } from "../../misc/CryptoError.js"
 import { Base64, base64ToBase64Url, base64ToUint8Array, Base64Url, hexToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
-import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./AesKeyLength.js"
+import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
 
 export const FIXED_IV = hexToUint8Array("88888888888888888888888888888888")
 export const BLOCK_SIZE_BYTES = 16
@@ -16,7 +16,6 @@ export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
 export const SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES = SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES + SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES
 
 export type BitArray = number[]
-export const MAC_LENGTH_BYTES = 32
 export type Aes256Key = BitArray
 export type Aes128Key = BitArray
 export type AesKey = Aes128Key | Aes256Key
@@ -64,9 +63,7 @@ export function keyToBase64(key: AesKey): Base64 {
  */
 export function base64ToKey(base64: Base64): AesKey {
 	try {
-		let key = uint8ArrayToKey(base64ToUint8Array(base64))
-		getAndVerifyAesKeyLength(key)
-		return key
+		return uint8ArrayToKey(base64ToUint8Array(base64))
 	} catch (e) {
 		throw new CryptoError("hex to aes key failed", e as Error)
 	}
@@ -88,15 +85,5 @@ export function keyToUint8Array(key: BitArray): Uint8Array {
  * @return The key.
  */
 export function aes256RandomKey(): Aes256Key {
-	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthAsBytes(AesKeyLength.Aes256)))
-}
-
-export function extractIvFromCipherText(encrypted: Base64): Uint8Array {
-	const encryptedBytes = base64ToUint8Array(encrypted)
-	const hasMac = encryptedBytes.length % 2 === 1
-	const cipherTextWithoutMac = hasMac ? encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES) : encryptedBytes
-	if (cipherTextWithoutMac.length < IV_BYTE_LENGTH) {
-		throw new CryptoError(`insufficient bytes in cipherTextWithoutMac to extract iv: ${cipherTextWithoutMac.length}`)
-	}
-	return cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
+	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256)))
 }

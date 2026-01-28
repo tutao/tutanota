@@ -24,7 +24,7 @@ import {
 	extractKyberPublicKeyFromKyberPrivateKey,
 	extractRawPublicRsaKeyFromPrivateRsaKey,
 	generateX25519KeyPair,
-	getKeyLengthAsBytes,
+	getKeyLengthInBytes,
 	hkdf,
 	HkdfKeyDerivationDomains,
 	hmacSha256,
@@ -149,7 +149,7 @@ export class CryptoWrapper {
 			salt,
 			key,
 			info: context,
-			length: getKeyLengthAsBytes(AesKeyLength.Aes256),
+			length: getKeyLengthInBytes(AesKeyLength.Aes256),
 		})
 	}
 

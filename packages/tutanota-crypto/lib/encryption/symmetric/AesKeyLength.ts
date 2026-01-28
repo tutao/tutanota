@@ -12,7 +12,7 @@ const ACCEPTED_BIT_LENGTHS: AesKeyLength[] = Object.keys(AesKeyLength).map((key)
 	return AesKeyLength[key]
 })
 
-export function getKeyLengthAsBytes(keyLength: AesKeyLength): number {
+export function getKeyLengthInBytes(keyLength: AesKeyLength): number {
 	return keyLength / 8
 }
 

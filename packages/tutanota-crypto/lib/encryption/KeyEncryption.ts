@@ -7,7 +7,7 @@ import { X25519PrivateKey } from "./X25519.js"
 import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "./PQKeyPairs.js"
 import { Aes256Key, AesKey } from "./symmetric/SymmetricCipherUtils.js"
-import { AesKeyLength, getKeyLengthAsBytes } from "./symmetric/AesKeyLength.js"
+import { AesKeyLength, getKeyLengthInBytes } from "./symmetric/AesKeyLength.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
 
 export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaX25519KeyPairs
@@ -74,14 +74,14 @@ export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array):
 /**
  * @deprecated
  */
-export function unauthenticatedDecryptKey(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
+export function decryptKeyUnauthenticated(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
 	return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticated(key, encryptedBytes)
 }
 
 export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
-	// legacy case: recovery code without IV/macas
-	if (keyToBeDecrypted.length === getKeyLengthAsBytes(AesKeyLength.Aes128)) {
-		return unauthenticatedDecryptKey(encryptionKey, keyToBeDecrypted)
+	// legacy case: recovery code with fixed IV and without mac
+	if (keyToBeDecrypted.length === getKeyLengthInBytes(AesKeyLength.Aes128)) {
+		return decryptKeyUnauthenticated(encryptionKey, keyToBeDecrypted)
 	} else {
 		return decryptKey(encryptionKey, keyToBeDecrypted)
 	}

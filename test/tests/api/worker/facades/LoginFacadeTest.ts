@@ -17,7 +17,7 @@ import {
 	AesKeyLength,
 	createAuthVerifier,
 	encryptKey,
-	getKeyLengthAsBytes,
+	getKeyLengthInBytes,
 	keyToUint8Array,
 	sha256Hash,
 	uint8ArrayToKey,
@@ -54,7 +54,7 @@ import { LoginFailReason } from "../../../../../src/common/api/main/PageContextL
 
 const { anything, argThat } = matchers
 
-const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthAsBytes(AesKeyLength.Aes256)).keys()))
+const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
 
 /** Verify using testdouble, but register as an ospec assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {

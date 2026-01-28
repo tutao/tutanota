@@ -25,9 +25,6 @@ export function aesEncryptConfigurationDatabaseItem(key: AesKey, bytes: Uint8Arr
 
 /**
  * Encrypts bytes with AES 256 in CBC mode without mac. This is legacy code and should be removed once the index has been migrated.
- * @param key The key to use for the encryption.
- * @param bytes The plain text.
- * @return The encrypted text as words (sjcl internal structure)..
  * @deprecated
  */
 export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array): Uint8Array {
@@ -63,6 +60,6 @@ export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array 
  * @return The decrypted bytes.
  * @deprecated
  */
-export function unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
+export function aesDecryptUnauthenticated(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
 	return SYMMETRIC_CIPHER_FACADE.decryptBytesDeprecatedUnauthenticated(key, encryptedBytes)
 }

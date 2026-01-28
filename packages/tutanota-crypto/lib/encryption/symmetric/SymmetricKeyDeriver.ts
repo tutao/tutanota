@@ -1,4 +1,4 @@
-import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./AesKeyLength.js"
+import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { Aes256Key, AesKey, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
@@ -35,18 +35,19 @@ export class SymmetricKeyDeriver {
 						hashedKey = sha512Hash(keyToUint8Array(key))
 						break
 				}
+				const keyLengthInBytes = getKeyLengthInBytes(keyLength)
 				return {
-					encryptionKey: uint8ArrayToKey(hashedKey.subarray(0, getKeyLengthAsBytes(keyLength))),
-					authenticationKey: uint8ArrayToKey(hashedKey.subarray(getKeyLengthAsBytes(keyLength), hashedKey.length)),
+					encryptionKey: uint8ArrayToKey(hashedKey.subarray(0, keyLengthInBytes)),
+					authenticationKey: uint8ArrayToKey(hashedKey.subarray(keyLengthInBytes, hashedKey.length)),
 				}
 			}
 			case SymmetricCipherVersion.Aead: {
-				//(EK , AK ) ← HKDF (K , null, "AEAD key splitting"||VAEAD , 2 ∗ 256)
 				const infoWithCipherVersion = concat(Uint8Array.from(AEAD_KEY_DERIVATION_INFO), symmetricCipherVersionToUint8Array(symmetricCipherVersion))
-				const outputKeyLength = 2 * getKeyLengthAsBytes(AesKeyLength.Aes256)
+				const keyLengthInBytes = getKeyLengthInBytes(AesKeyLength.Aes256)
+				const outputKeyLength = 2 * keyLengthInBytes
 				const derivedKeys = hkdf(null, keyBytes, infoWithCipherVersion, outputKeyLength)
-				const encryptionKey: Aes256Key = uint8ArrayToKey(derivedKeys.subarray(0, getKeyLengthAsBytes(AesKeyLength.Aes256)))
-				const authenticationKey: Aes256Key = uint8ArrayToKey(derivedKeys.subarray(getKeyLengthAsBytes(AesKeyLength.Aes256), outputKeyLength))
+				const encryptionKey: Aes256Key = uint8ArrayToKey(derivedKeys.subarray(0, keyLengthInBytes))
+				const authenticationKey: Aes256Key = uint8ArrayToKey(derivedKeys.subarray(keyLengthInBytes, outputKeyLength))
 				return { encryptionKey, authenticationKey }
 			}
 			default:

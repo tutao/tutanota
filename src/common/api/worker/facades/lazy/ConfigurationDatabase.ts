@@ -13,7 +13,7 @@ import {
 	decryptKey,
 	IV_BYTE_LENGTH,
 	random,
-	unauthenticatedAesDecrypt,
+	aesDecryptUnauthenticated,
 } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import {
@@ -53,7 +53,7 @@ export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array):
 }
 
 export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {
-	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(iv, encryptedAddress)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(iv, encryptedAddress)))
 }
 
 /**
@@ -350,7 +350,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 async function decryptMetaData(keyLoaderFacade: KeyLoaderFacade, metaData: EncryptedDbKeyBaseMetaData): Promise<EncryptionMetadata> {
 	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
 	const key = decryptKey(userGroupKey, metaData.userEncDbKey)
-	const iv = unauthenticatedAesDecrypt(key, metaData.encDbIv)
+	const iv = aesDecryptUnauthenticated(key, metaData.encDbIv)
 	return {
 		key,
 		iv,

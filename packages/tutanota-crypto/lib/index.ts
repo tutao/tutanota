@@ -3,7 +3,7 @@ export {
 	aesEncryptConfigurationDatabaseItem,
 	aesDecrypt,
 	aes256EncryptSearchIndexEntry,
-	unauthenticatedAesDecrypt,
+	aesDecryptUnauthenticated,
 	aes256EncryptSearchIndexEntryWithIV,
 } from "./encryption/Aes.js"
 export {
@@ -77,7 +77,7 @@ export {
 	encryptX25519Key,
 	encryptKyberKey,
 	aes256DecryptWithRecoveryKey,
-	unauthenticatedDecryptKey,
+	decryptKeyUnauthenticated,
 } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export {
@@ -130,8 +130,7 @@ export {
 	AesKey,
 	Aes128Key,
 	Aes256Key,
-	extractIvFromCipherText,
 	IV_BYTE_LENGTH,
 	FIXED_IV,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
-export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./encryption/symmetric/AesKeyLength.js"
+export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
