@@ -2,7 +2,7 @@ import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, assertNotNull, clone, filterInt, Require } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clone, filterInt } from "@tutao/tutanota-utils"
 import { findFirstPrivateCalendar } from "../../../common/calendar/date/CalendarUtils.js"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -176,26 +176,26 @@ export class CalendarInviteHandler {
 			resolvedEvent.attendees = eventClone.attendees
 			console.log("CALLING processCalendarEventMessage in CalendarInviteHandler")
 
-			let method = CalendarMethod.REQUEST
+			const updateEventTime = event.recurrenceId?.getTime()
+			const targetDbEvent =
+				updateEventTime == null ? dbEvents?.progenitor : dbEvents?.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
+			if (!dbEvents || !targetDbEvent) {
+				console.warn("Replying to an invitation without a persisted event counterpart")
+				return ReplyResult.ReplySent
+			}
 
 			// At the moment, if there is a previous email that means we are replying from the event banner
 			// and in case the user decline the invitation we should delete the pending events
-			if (previousMail !== null && event.pendingInvitation && decision === CalendarAttendeeStatus.DECLINED) {
-				method = CalendarMethod.CANCEL
+			if (previousMail && event.pendingInvitation && decision === CalendarAttendeeStatus.DECLINED) {
+				await this.calendarModel.deletePersistedEvents(targetDbEvent)
+			} else {
+				await this.calendarModel.processCalendarUpdate(dbEvents, targetDbEvent, resolvedEvent)
 			}
-
-			await this.calendarModel.processCalendarEventMessage(
-				sender,
-				method,
-				resolvedEvent as Require<"uid", CalendarEvent>,
-				[],
-				dbEvents ?? { ownerGroup: calendar.group._id, progenitor: null, alteredInstances: [] },
-			)
 		}
 		return ReplyResult.ReplySent
 	}
 
-	async getResponseModelForMail(
+	private async getResponseModelForMail(
 		previousMail: Mail | null,
 		mailboxDetails: MailboxDetail,
 		responder: string,
@@ -210,7 +210,7 @@ export class CalendarInviteHandler {
 		model.setEmailTypeFromAttendeeStatus(responseDecision)
 		await model.addRecipient(RecipientField.TO, { address: sender })
 
-		if (previousMail === null) {
+		if (!previousMail) {
 			await model.initWithTemplate({}, "", "")
 			return model
 		}

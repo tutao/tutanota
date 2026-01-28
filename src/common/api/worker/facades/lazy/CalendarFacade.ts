@@ -336,8 +336,9 @@ export class CalendarFacade {
 		if (newEvent.uid == null) throw new Error("no uid set on the event")
 		newEvent.hashedUid = hashUid(newEvent.uid)
 
+		console.log("Erasing event in replaceCalendarEvent", oldEvent)
 		await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
-
+		console.log("saving new event in replaceCalendarEvent:", newEvent)
 		return await this.saveCalendarEvents(
 			[
 				{
@@ -378,6 +379,7 @@ export class CalendarFacade {
 		// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
 		// Server takes care of the removed alarms,
 		event.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId)).concat(alarmInfoIds)
+		console.log("updating event in CalendarFacade.updateCalendarEvent", event)
 		await this.cachingEntityClient.update(event)
 
 		if (alarmNotifications.length > 0) {

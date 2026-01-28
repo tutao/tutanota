@@ -6,7 +6,7 @@
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { assertNotNull, clone, identity, incrementDate } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, identity, incrementDate, isNotEmpty } from "@tutao/tutanota-utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
@@ -19,6 +19,8 @@ import {
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { DateTime } from "luxon"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
+import { StrippedEntity } from "../../../../common/api/common/utils/EntityUtils"
+import { isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */
@@ -40,6 +42,7 @@ export class CalendarEventApplyStrategies {
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
 		private readonly notificationModel: CalendarNotificationModel,
+		private readonly makeEditModels: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
 		private readonly lazyRecurrenceIds: (uid?: string | null) => Promise<Array<Date>>,
 		private readonly showProgress: ShowProgressCallback = identity,
 		private readonly zone: string,
@@ -93,12 +96,13 @@ export class CalendarEventApplyStrategies {
 				const index = await this.calendarModel.getEventsByUid(uid)
 				if (index == null) return
 
-				// TODO: this note is interesting and might explain why we are having issues
 				// note: if we ever allow editing guests separately, we need to update this to not use the
 				// note: progenitor edit models since the guest list might be different from the instance
 				// note: we're looking at.
+				console.log("ALTERED INSTANCES,", index.alteredInstances)
 				for (const occurrence of index.alteredInstances) {
 					if (invalidateAlteredInstances) {
+						console.log("invalidateAlteredInstances === TRUE")
 						editModelsForProgenitor.whoModel.shouldSendUpdates = true
 						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
 						// in cases where guests were removed and the start time/repeat rule changed, we might
@@ -202,7 +206,7 @@ export class CalendarEventApplyStrategies {
 				const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
 				if (alteredOccurrences) {
 					for (const occurrence of alteredOccurrences.alteredInstances) {
-						if (occurrence.attendees.length === 0) continue
+						if (occurrence.attendees.length === 0) continue // TODO: WHY IS ATTENDEE LIST EMPTY?
 						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
@@ -243,8 +247,8 @@ export class CalendarEventApplyStrategies {
 		)
 	}
 
-	/** only remove a single altered instance from the server & the uid index. will not modify the progenitor. */
-	async deleteAlteredInstance(editModels: CalendarEventEditModels, existingAlteredInstance: CalendarEvent): Promise<void> {
+	/** only remove a single altered instance from the server & the uid index, and sends email Cancel notification. will not modify the progenitor. */
+	async handleDeleteAlteredInstance(editModels: CalendarEventEditModels, existingAlteredInstance: CalendarEvent): Promise<void> {
 		editModels.whoModel.shouldSendUpdates = true
 		const { sendModels } = assembleCalendarEventEditResult(editModels)
 		sendModels.cancelModel = sendModels.updateModel
@@ -275,21 +279,30 @@ export class CalendarEventApplyStrategies {
 		const repeatRule = editModels.whenModel.assertHasAValidEndDateCondition()
 		const repeatRuleEndDate = new Date(parseInt(repeatRule.endValue!))
 		const originalExcludedDates = clone(repeatRule.excludedDates)
-
-		const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
 		const inclusiveRecurrenceEndDate = incrementDate(repeatRuleEndDate, 1)
-		if (alteredOccurrences) {
-			for (const occurrence of alteredOccurrences.alteredInstances) {
-				if (occurrence.attendees.length === 0 || occurrence.startTime < inclusiveRecurrenceEndDate) continue
-				const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
-				sendModels.cancelModel = sendModels.updateModel
-				sendModels.updateModel = null
-				await this.notificationModel.send(occurrence, [], sendModels, existingEvent)
+
+		const uidIndexEntry = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
+		const alteredInstances = uidIndexEntry?.alteredInstances
+		if (alteredInstances) {
+			for (const occurrence of uidIndexEntry.alteredInstances) {
+				if (isBefore(occurrence.startTime, inclusiveRecurrenceEndDate, "date")) {
+					continue
+				}
+				if (isNotEmpty(occurrence.attendees)) {
+					const alteredInstanceEditModels = this.makeEditModels(occurrence)
+					await this.handleDeleteAlteredInstance(alteredInstanceEditModels, occurrence)
+				} else {
+					await this.calendarModel.deleteEvent(occurrence)
+				}
+				// sendModels.cancelModel = sendModels.updateModel
+				// sendModels.updateModel = null
+				// await this.notificationModel.send(occurrence, [], sendModels, existingEvent)
 			}
 		}
-		if (existingEvent.uid != null) {
-			await this.calendarModel.deleteInstancesAfterDate(existingEvent.uid, inclusiveRecurrenceEndDate)
-		}
+		//
+		// if (existingEvent.uid != null) {
+		// 	await this.calendarModel.deleteInstancesAfterDate(existingEvent.uid, inclusiveRecurrenceEndDate)
+		// }
 
 		const {
 			newEvent,
