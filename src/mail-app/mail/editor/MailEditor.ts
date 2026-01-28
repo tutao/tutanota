@@ -138,6 +138,9 @@ const AUTOSAVE_LOCAL_TIMEOUT: number = secondsToMillis(5)
 // If the editor is left untouched for this amount of time, then the draft will automatically save to the server.
 const AUTOSAVE_REMOTE_TIMEOUT: number = minutesToMillis(5)
 
+// Maximum allowed time before the undo button hides.
+const UNDO_SEND_TIMEOUT: number = secondsToMillis(10)
+
 export type MailEditorAttrs = {
 	model: SendMailModel
 	doBlockExternalContent: Stream<boolean>
@@ -1268,7 +1271,8 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 							async () => {
 								noOp()
 							},
-							"emailSent_msg",
+							lang.getTranslation("emailSent_msg"),
+							UNDO_SEND_TIMEOUT,
 						)
 					}
 				}
