@@ -188,6 +188,10 @@ export class CalendarWorkerImpl implements NativeInterface {
 			async applicationTypesFacade() {
 				return locator.applicationTypesFacade
 			},
+
+			async driveFacade() {
+				return locator.driveFacade()
+			},
 		}
 	}
 

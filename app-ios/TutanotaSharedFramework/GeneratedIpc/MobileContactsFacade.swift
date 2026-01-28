@@ -19,7 +19,7 @@ public protocol MobileContactsFacade {
 	func saveContacts(
 		_ username: String,
 		_ contacts: [StructuredContact]
-	) async throws -> Void
+	) async throws
 	/**
 	 * Sync all Tuta contacts with system's contact book, this operation includes Inserts, Updates and Deletions
 	 */
@@ -45,7 +45,7 @@ public protocol MobileContactsFacade {
 	func deleteContacts(
 		_ username: String,
 		_ contactId: String?
-	) async throws -> Void
+	) async throws
 	/**
 	 * Whether contacts can be persisted locally
 	 */
@@ -62,5 +62,5 @@ public protocol MobileContactsFacade {
 	 */
 	func deleteLocalContacts(
 		_ contacts: [String]
-	) async throws -> Void
+	) async throws
 }

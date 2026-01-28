@@ -98,10 +98,12 @@ class FileFacadeReceiveDispatcher(
 				val sourceUrl: String = json.decodeFromString(arg[0])
 				val filename: String = json.decodeFromString(arg[1])
 				val headers: Map<String, String> = json.decodeFromString(arg[2])
+				val fileId: String = json.decodeFromString(arg[3])
 				val result: DownloadTaskResponse = this.facade.download(
 					sourceUrl,
 					filename,
 					headers,
+					fileId,
 				)
 				return json.encodeToString(result)
 			}

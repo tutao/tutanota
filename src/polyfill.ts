@@ -1,6 +1,7 @@
 const globalContext = typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : self
 
-const noOp = function () {}
+// deliberately named differently than noOp because typescript gets very confused otherwise
+const noOpFn = function () {}
 
 if (typeof performance === "undefined") {
 	// @ts-ignore
@@ -16,12 +17,12 @@ if (typeof performance === "undefined") {
 
 if (typeof performance.mark !== "function") {
 	// @ts-ignore
-	performance.mark = noOp
+	performance.mark = noOpFn
 }
 
 if (typeof performance.measure !== "function") {
 	// @ts-ignore
-	performance.measure = noOp
+	performance.measure = noOpFn
 }
 
 // We need BigInt stub for cborg

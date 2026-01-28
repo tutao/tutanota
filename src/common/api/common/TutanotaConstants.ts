@@ -704,6 +704,7 @@ export enum FeatureType {
 	SpamClientClassification = "19",
 	QuickActions = "20",
 	ReceivesNoTutaNewsletters = "21",
+	DriveInternalBeta = "22", // Enables drive access for internal testing
 }
 
 export const FULL_INDEXED_TIMESTAMP: number = 0
@@ -1098,6 +1099,10 @@ export const Keys = Object.freeze({
 		code: "v",
 		name: "V",
 	},
+	X: {
+		code: "x",
+		name: "X",
+	},
 	Z: {
 		code: "z",
 		name: "Z",
@@ -1387,6 +1392,8 @@ export const enum ArchiveDataType {
 	AuthorityRequests = "0",
 	Attachments = "1",
 	MailDetails = "2",
+	ErrorReports = "3",
+	DriveFile = "4",
 }
 
 export const OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
@@ -1541,3 +1548,5 @@ export enum ProcessingState {
 }
 
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
+
+export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"

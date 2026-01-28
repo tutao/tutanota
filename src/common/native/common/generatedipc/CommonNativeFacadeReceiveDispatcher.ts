@@ -63,6 +63,11 @@ export class CommonNativeFacadeReceiveDispatcher {
 				const logs: string = arg[0]
 				return this.facade.sendLogs(logs)
 			}
+			case "downloadProgress": {
+				const fileId: string = arg[0]
+				const bytes: number = arg[1]
+				return this.facade.downloadProgress(fileId, bytes)
+			}
 		}
 	}
 }

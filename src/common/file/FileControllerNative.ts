@@ -8,7 +8,7 @@ import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { FileController, ProgressObserver, zipDataFiles } from "./FileController.js"
+import { FileController, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
 
@@ -20,11 +20,10 @@ assertMainOrNode()
 export class FileControllerNative extends FileController {
 	constructor(
 		blobFacade: BlobFacade,
-		guiDownload: ProgressObserver,
 		private readonly fileApp: NativeFileApp,
 	) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
-		super(blobFacade, guiDownload)
+		super(blobFacade)
 	}
 
 	protected async cleanUp(files: Array<FileReference | DataFile>) {
@@ -65,9 +64,9 @@ export class FileControllerNative extends FileController {
 	}
 
 	/** Public for testing */
-	async downloadAndDecrypt(tutanotaFile: TutanotaFile): Promise<FileReference> {
+	async downloadAndDecrypt(tutanotaFile: TutanotaFile, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(
-			ArchiveDataType.Attachments,
+			archiveType,
 			createReferencingInstance(tutanotaFile),
 			tutanotaFile.name,
 			assertNotNull(tutanotaFile.mimeType, "tried to call blobfacade.downloadAndDecryptNative with null mimeType"),

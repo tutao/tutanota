@@ -18,7 +18,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { CALENDAR_MIME_TYPE, FileController, guiDownload, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -158,6 +158,11 @@ import { SpamClassificationHandler } from "./mail/model/SpamClassificationHandle
 import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 import { ProcessInboxHandler } from "./mail/model/ProcessInboxHandler"
 import type { QuickActionsModel } from "../common/misc/quickactions/QuickActionsModel"
+import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
+import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
+import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
+import { DriveUploadStackModel } from "../drive-app/drive/view/DriveUploadStackModel"
+import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 
 assertMainOrNode()
 
@@ -227,6 +232,8 @@ class MailLocator implements CommonLocator {
 	spamClassifier!: SpamClassifier
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	autosaveFacade!: AutosaveFacade
+	driveFacade!: DriveFacade
+	transferProgressDispatcher!: TransferProgressDispatcher
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -575,6 +582,7 @@ class MailLocator implements CommonLocator {
 				highlightedTokens ?? [],
 				eventRepository,
 				undoModel,
+				this.transferProgressDispatcher,
 			)
 	}
 
@@ -798,6 +806,7 @@ class MailLocator implements CommonLocator {
 			contactSearchFacade,
 			autosaveFacade,
 			spamClassifier,
+			driveFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -821,6 +830,7 @@ class MailLocator implements CommonLocator {
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
+		this.driveFacade = driveFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController(
@@ -885,6 +895,9 @@ class MailLocator implements CommonLocator {
 		this.Const = Const
 		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
 		this.spamClassifier = spamClassifier
+
+		this.transferProgressDispatcher = new TransferProgressDispatcher()
+
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
@@ -920,6 +933,7 @@ class MailLocator implements CommonLocator {
 					(userId, action, date, eventId) => openCalendarHandler.openCalendar(userId, action, date, eventId),
 					AppType.Integrated,
 					(path) => openSettingsHandler.openSettings(path),
+					this.blobFacade,
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -1012,9 +1026,7 @@ class MailLocator implements CommonLocator {
 		})
 
 		this.fileController =
-			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, guiDownload)
-				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
+			this.nativeInterfaces == null ? new FileControllerBrowser(blobFacade) : new FileControllerNative(blobFacade, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
 		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, this.contactSearchFacade)
@@ -1290,6 +1302,36 @@ class MailLocator implements CommonLocator {
 			const { WebCredentialsFacade } = await import("../common/misc/credentials/WebCredentialsFacade.js")
 			return new CredentialsProvider(new WebCredentialsFacade(deviceConfig), null, null)
 		}
+	}
+
+	readonly driveViewModel = lazyMemoized(async () => {
+		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
+		const router = new ScopedRouter(this.throttledRouter(), "/drive")
+		const { DriveUploadStackModel } = await import("../drive-app/drive/view/DriveUploadStackModel.js")
+
+		const redraw = await this.redraw()
+		const driveUploadStackModel = new DriveUploadStackModel(this.driveFacade, this.blobFacade, redraw)
+
+		const model = new DriveViewModel(
+			this.entityClient,
+			this.driveFacade,
+			router,
+			this.transferProgressDispatcher,
+			this.eventController,
+			this.logins,
+			this.userManagementFacade,
+			this.fileController,
+			driveUploadStackModel,
+			redraw,
+		)
+		await model.init()
+
+		return model
+	})
+
+	async showMoveItemDialog(item: FolderItem) {
+		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
+		showMoveDialog(this.entityClient, this.driveFacade, item)
 	}
 }
 

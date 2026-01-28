@@ -16,7 +16,7 @@ o.spec("ListModel", function () {
 	let currentSelectBehavior = ListAutoSelectBehavior.OLDER
 	const defaultListConfig: ListModelConfig<KnowledgeBaseEntry, Id> = {
 		fetch: () => fetchDefer.promise,
-		sortCompare: sortCompareById,
+		sortCompare: (l, r) => l.title.localeCompare(r.title),
 		autoSelectBehavior: () => currentSelectBehavior,
 		getItemId: getElementId,
 		isSameId: (id1: string, id2: string) => id1 === id2,
@@ -117,7 +117,7 @@ o.spec("ListModel", function () {
 		return listModel.getSelectedAsArray().sort(sortCompareById)
 	}
 
-	o.spec("selection controls", function () {
+	o.spec("selection controls selectPrevious/selectNext", function () {
 		o.spec("single", function () {
 			o("when selectNext and the list is empty nothing happens", async function () {
 				await setItems([])
@@ -153,6 +153,19 @@ o.spec("ListModel", function () {
 				o(listModel.state.activeIndex).equals(3)
 			})
 
+			o("when selectNext and the next item has the same sorting order it gets selected", async function () {
+				const itemAWithTitleB = createTestEntity(KnowledgeBaseEntryTypeRef, {
+					_id: itemB._id,
+					title: itemA.title,
+				})
+				await setItems([itemA, itemAWithTitleB, itemC])
+				listModel.onSingleSelection(itemA)
+				listModel.selectNext(false)
+				o(getSortedSelection()).deepEquals([itemAWithTitleB])
+				o(listModel.state.inMultiselect).equals(false)
+				o(listModel.state.activeIndex).equals(1)
+			})
+
 			o("when selectPrevious and nothing is selected it select the first item", async function () {
 				await setItems(items)
 				listModel.selectPrevious(false)
@@ -169,9 +182,22 @@ o.spec("ListModel", function () {
 				o(listModel.state.inMultiselect).equals(false)
 				o(listModel.state.activeIndex).equals(0)
 			})
+
+			o("when selectPrevious and the next item has the same sorting order it gets selected", async function () {
+				const itemCWithTitleB = createTestEntity(KnowledgeBaseEntryTypeRef, {
+					_id: itemC._id,
+					title: itemB.title,
+				})
+				await setItems([itemA, itemB, itemCWithTitleB])
+				listModel.onSingleSelection(itemCWithTitleB)
+				listModel.selectPrevious(false)
+				o(getSortedSelection()).deepEquals([itemB])
+				o(listModel.state.inMultiselect).equals(false)
+				o(listModel.state.activeIndex).equals(1)
+			})
 		})
 
-		o.spec("selectPrevious/selectNext", function () {
+		o.spec("multiselect", function () {
 			o("when selectNext and the list is empty nothing happens", async function () {
 				await setItems([])
 				listModel.selectNext(true)
@@ -453,6 +479,60 @@ o.spec("ListModel", function () {
 			})
 		})
 
+		o("when selectPrevious the item with the same sorting order above the anchor it gets selected", async function () {
+			const itemBWithTitleC = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: itemB._id,
+				title: itemC.title,
+			})
+			await setItems([itemA, itemBWithTitleC, itemC, itemD])
+			listModel.onSingleSelection(itemC)
+			listModel.selectPrevious(true)
+			o(getSortedSelection()).deepEquals([itemBWithTitleC, itemC])
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(1)
+		})
+
+		o("when selectPrevious the item with the same sorting order below the anchor it gets deselected", async function () {
+			const itemDWithTitleC = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: itemD._id,
+				title: itemC.title,
+			})
+			await setItems([itemA, itemB, itemC, itemDWithTitleC])
+			listModel.onSingleSelection(itemC)
+			listModel.selectNext(true)
+			listModel.selectPrevious(true)
+			o(getSortedSelection()).deepEquals([itemC])
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(2)
+		})
+
+		o("when selectNext the item with the same sorting order below the anchor it gets selected", async function () {
+			const itemCWithTitleB = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: itemC._id,
+				title: itemB.title,
+			})
+			await setItems([itemA, itemB, itemCWithTitleB, itemD])
+			listModel.onSingleSelection(itemB)
+			listModel.selectNext(true)
+			o(getSortedSelection()).deepEquals([itemB, itemCWithTitleB])
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(2)
+		})
+
+		o("when selectNext the item with the same sorting order above the anchor it gets deselected", async function () {
+			const itemDWithTitleC = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: itemD._id,
+				title: itemC.title,
+			})
+			await setItems([itemA, itemB, itemC, itemDWithTitleC])
+			listModel.onSingleSelection(itemDWithTitleC)
+			listModel.selectPrevious(true)
+			listModel.selectNext(true)
+			o(getSortedSelection()).deepEquals([itemDWithTitleC])
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(3)
+		})
+
 		o("selectRangeTowards towards item below", async function () {
 			await setItems(items)
 			listModel.onSingleSelection(itemA)
@@ -638,6 +718,20 @@ o.spec("ListModel", function () {
 				o.check(listModel.getSelectedAsArray()).deepEquals([items[0]])
 			})
 
+			o.test("when ListAutoSelectBehavior.NEWER with equally sorted items the previous item is selected", async function () {
+				currentSelectBehavior = ListAutoSelectBehavior.NEWER
+				const itemCWithTitleB = createTestEntity(KnowledgeBaseEntryTypeRef, {
+					_id: itemC._id,
+					title: itemB.title,
+				})
+
+				const items = Object.freeze([itemA, itemB, itemCWithTitleB])
+				await setItems(items)
+				listModel.onSingleSelection(itemCWithTitleB)
+				await listModel.deleteLoadedItem(getElementId(itemCWithTitleB))
+				o.check(listModel.getSelectedAsArray()).deepEquals([itemB])
+			})
+
 			o.test("when ListAutoSelectBehavior.OLDER and no older items the last remaining one is selected", async function () {
 				currentSelectBehavior = ListAutoSelectBehavior.OLDER
 				await setItems(items)
@@ -652,6 +746,20 @@ o.spec("ListModel", function () {
 				listModel.onSingleSelection(getFirstOrThrow(items))
 				await listModel.deleteLoadedItem(getElementId(getFirstOrThrow(items)))
 				o.check(listModel.getSelectedAsArray()).deepEquals([items[1]])
+			})
+
+			o.test("when ListAutoSelectBehavior.OLDER with equally sorted items the next item is selected", async function () {
+				currentSelectBehavior = ListAutoSelectBehavior.OLDER
+				const itemBWithTitleA = createTestEntity(KnowledgeBaseEntryTypeRef, {
+					_id: itemB._id,
+					title: itemA.title,
+				})
+
+				const items = Object.freeze([itemA, itemBWithTitleA, itemC])
+				await setItems(items)
+				listModel.onSingleSelection(itemA)
+				await listModel.deleteLoadedItem(getElementId(itemA))
+				o.check(listModel.getSelectedAsArray()).deepEquals([itemBWithTitleA])
 			})
 
 			o.test("items is not included it afterwards", async function () {

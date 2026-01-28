@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+	<style>
+		body {
+			background: lightgray;
+			font-family: sans-serif;
+		}
+
+		.folder-entries {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+		}
+
+		.folder-row {
+			display: flex;
+			flex-direction: row;
+			padding: 16px;
+			gap: 16px;
+		}
+
+		.folder-row > div:nth-child(1) {
+			width: 20px;
+		}
+
+		.folder-row > div:nth-child(2) {
+			width: 20px;
+		}
+
+		.folder-row > div:nth-child(3) {
+			flex-grow: 1;
+			flex-shrink: 0;
+		}
+
+		.folder-row > div:nth-child(4) {
+			width: 80px;
+		}
+
+		.folder-row > div:nth-child(5) {
+			width: 80px;
+		}
+
+		.folder-row > div:nth-child(6) {
+			width: 80px;
+		}
+
+		.folder-row > div:nth-child(7) {
+			width: 80px;
+		}
+
+		.folder-entry {
+			background: #fff;
+			border-radius: 8px;
+		}
+	</style>
+</head>
+<body>
+<div class="folder-contents">
+	<div class="folder-row folder-header">
+		<div>xxx</div>
+		<div>xxx</div>
+		<div>Name</div>
+		<div>Type</div>
+		<div>Size</div>
+		<div>Date</div>
+		<div>Actions</div>
+	</div>
+	<div class="folder-entries">
+		<div class="folder-row folder-entry">
+			<div><input type="checkbox"></div>
+			<div>[F]</div>
+			<div>Untitled folder</div>
+			<div>Folder</div>
+			<div>0 kB</div>
+			<div>01/10/2025</div>
+			<div>[actions]</div>
+		</div>
+		<div class="folder-row folder-entry">
+			<div><input type="checkbox"></div>
+			<div></div>
+			<div>huey.jpg</div>
+			<div>JPEG File</div>
+			<div>250.9 kB</div>
+			<div>02/10/2025</div>
+			<div>[actions]</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

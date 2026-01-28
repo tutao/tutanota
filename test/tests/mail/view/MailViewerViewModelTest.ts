@@ -46,6 +46,7 @@ import { UndoModel } from "../../../../src/mail-app/UndoModel"
 import { isBrowser } from "../../../../src/common/api/common/Env"
 import { CommonSystemFacade } from "../../../../src/common/native/common/generatedipc/CommonSystemFacade"
 import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
+import { TransferProgressDispatcher } from "../../../../src/common/api/main/TransferProgressDispatcher"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -69,6 +70,7 @@ o.spec("MailViewerViewModel", function () {
 	let contactImporter: ContactImporter
 	let eventsRepository: CalendarEventsRepository
 	let undoModel: UndoModel
+	let transferProgressDispatcher: TransferProgressDispatcher
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -89,6 +91,7 @@ o.spec("MailViewerViewModel", function () {
 		eventsRepository = object()
 		prepareMailWithHeaders(mailFacade, headers)
 		undoModel = object()
+		transferProgressDispatcher = object()
 
 		return new MailViewerViewModel(
 			mail,
@@ -110,6 +113,7 @@ o.spec("MailViewerViewModel", function () {
 			[],
 			eventsRepository,
 			undoModel,
+			transferProgressDispatcher,
 		)
 	}
 

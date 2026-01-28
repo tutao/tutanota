@@ -1,3 +1,5 @@
+import { default as stream } from "node:stream"
+import { pipeline } from "node:stream/promises"
 import { FileFacade } from "../../native/common/generatedipc/FileFacade.js"
 import { DownloadTaskResponse } from "../../native/common/generatedipc/DownloadTaskResponse.js"
 import { IpcClientRect } from "../../native/common/generatedipc/IpcClientRect.js"
@@ -8,13 +10,20 @@ import { FileUri } from "../../native/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { sha256Hash } from "@tutao/tutanota-crypto"
-import { assertNotNull, newPromise, splitUint8ArrayInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	newPromise,
+	splitUint8ArrayInChunks,
+	stringToUtf8Uint8Array,
+	throttle,
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+} from "@tutao/tutanota-utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
 import type { WriteStream } from "node:fs"
 import FsModule from "node:fs"
 import { Buffer } from "node:buffer"
-import { default as stream } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { lang } from "../../misc/LanguageViewModel.js"
@@ -28,6 +37,7 @@ import { HttpMethod } from "../../api/common/EntityFunctions"
 import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
+import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -46,6 +56,7 @@ export class DesktopFileFacade implements FileFacade {
 		private readonly path: PathExports,
 		private readonly commandExecutor: CommandExecutor,
 		private readonly process: NodeJS.Process,
+		private readonly progressTracker: Pick<CommonNativeFacade, "downloadProgress">,
 	) {
 		this.lastOpenedFileManagerAt = null
 	}
@@ -59,7 +70,7 @@ export class DesktopFileFacade implements FileFacade {
 		return await this.fs.promises.unlink(filename)
 	}
 
-	async download(sourceUrl: string, fileName: string, headers: Record<string, string>): Promise<DownloadTaskResponse> {
+	async download(sourceUrl: string, fileName: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse> {
 		const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers })
 
 		let encryptedFilePath
@@ -67,7 +78,11 @@ export class DesktopFileFacade implements FileFacade {
 			const downloadDirectory = await this.tfs.ensureEncryptedDir()
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			const readable: stream.Readable = bodyToReadable(body)
-			await this.pipeIntoFile(readable, encryptedFilePath)
+			// debounce so that we don't post the message too often
+			const onProgress = throttle(100, (bytes: number) => {
+				this.progressTracker.downloadProgress(fileId, bytes)
+			})
+			await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
 		} else {
 			encryptedFilePath = null
 		}
@@ -84,18 +99,22 @@ export class DesktopFileFacade implements FileFacade {
 		return result
 	}
 
-	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string) {
+	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {
 		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, { emitClose: true })
 		try {
-			await pipeStream(response, fileStream)
-			await closeFileStream(fileStream)
+			await pipeline(
+				response,
+				async function* (source) {
+					let downloadedBytes = 0
+					for await (const chunk of source) {
+						downloadedBytes += chunk.length
+						progress(downloadedBytes)
+						yield chunk
+					}
+				},
+				fileStream,
+			)
 		} catch (e) {
-			// Close first, delete second
-			// Also yes, we do need to close it manually:
-			// > One important caveat is that if the Readable stream emits an error during processing, the Writable destination is not closed automatically.
-			// > If an error occurs, it will be necessary to manually close each stream in order to prevent memory leaks.
-			// see https://nodejs.org/api/stream.html#readablepipedestination-options
-			await closeFileStream(fileStream)
 			await this.fs.promises.unlink(encryptedFilePath)
 			throw e
 		}
@@ -377,15 +396,6 @@ export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8
 function getHttpHeader(headers: Headers, name: string): string | null {
 	// All headers are in lowercase. Lowercase them just to be sure
 	return headers.get(name.toLowerCase())
-}
-
-function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<void> {
-	return newPromise((resolve, reject) => {
-		stream.on("error", reject)
-		stream.pipe(into)
-		into.on("finish", resolve)
-		into.on("error", reject)
-	})
 }
 
 function bodyToReadable(body: ReadableStream<unknown>): stream.Readable {

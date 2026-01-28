@@ -131,6 +131,7 @@ export const allowedImports = {
 	qr: ["polyfill-helpers"],
 	pdf: ["common-min", "qr"],
 	"material-color-utilities": [],
+	drive: ["common-min", "common", "boot", "gui-base", "main"],
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
@@ -321,6 +322,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "material-color-utilities"
 	} else if (isIn("libs/jsQR") || isIn("libs/qrcode")) {
 		return "qr"
+	} else if (isIn("src/drive-app")) {
+		return "drive"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

@@ -13,13 +13,9 @@ import { FileControllerBrowser } from "../../../src/common/file/FileControllerBr
 import { ConnectionError } from "../../../src/common/api/common/error/RestError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { Mode } from "../../../src/common/api/common/Env.js"
-import Stream from "mithril/stream"
 import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
 
 const { anything, argThat } = matchers
-const guiDownload = async function (somePromise: Promise<void>, progress?: Stream<number>) {
-	return somePromise
-}
 
 o.spec("FileControllerTest", function () {
 	let blobFacadeMock: BlobFacade
@@ -35,7 +31,7 @@ o.spec("FileControllerTest", function () {
 
 		o.beforeEach(function () {
 			fileAppMock = object()
-			fileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock)
+			fileController = new FileControllerNative(blobFacadeMock, fileAppMock)
 		})
 
 		o("should download non-legacy file natively using the blob service", async function () {
@@ -48,7 +44,7 @@ o.spec("FileControllerTest", function () {
 			})
 			const fileReference = object<FileReference>()
 			when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), anything(), anything())).thenResolve(fileReference)
-			const result = await withOverriddenEnv(androidEnv, () => fileController.downloadAndDecrypt(file))
+			const result = await withOverriddenEnv(androidEnv, () => fileController.downloadAndDecrypt(file, ArchiveDataType.Attachments))
 			verify(
 				blobFacadeMock.downloadAndDecryptNative(
 					ArchiveDataType.Attachments,
@@ -64,7 +60,7 @@ o.spec("FileControllerTest", function () {
 
 		o.spec("download with connection errors", function () {
 			o("immediately no connection", async function () {
-				const testableFileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock)
+				const testableFileController = new FileControllerNative(blobFacadeMock, fileAppMock)
 				const blobs = [createTestEntity(BlobTypeRef)]
 				const file = createTestEntity(FileTypeRef, {
 					blobs: blobs,
@@ -77,7 +73,7 @@ o.spec("FileControllerTest", function () {
 				verify(fileAppMock.deleteFile(anything()), { times: 0 }) // mock for cleanup
 			})
 			o("connection lost after 1 already downloaded attachment- already downloaded attachments are processed", async function () {
-				const testableFileController = new FileControllerNative(blobFacadeMock, guiDownload, fileAppMock)
+				const testableFileController = new FileControllerNative(blobFacadeMock, fileAppMock)
 				const blobs = [createTestEntity(BlobTypeRef)]
 				const fileWorks = createTestEntity(FileTypeRef, {
 					blobs: blobs,
@@ -102,7 +98,8 @@ o.spec("FileControllerTest", function () {
 				when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), "broken.txt", anything())).thenReject(new ConnectionError("no connection"))
 				await assertThrows(
 					ConnectionError,
-					async () => await withOverriddenEnv(androidEnv, () => testableFileController.downloadAll([fileWorks, fileNotWorks])),
+					async () =>
+						await withOverriddenEnv(androidEnv, () => testableFileController.downloadAll([fileWorks, fileNotWorks], ArchiveDataType.Attachments)),
 				)
 				verify(fileAppMock.deleteFile(anything()), { times: 1 }) // mock for cleanup
 			})
@@ -113,7 +110,7 @@ o.spec("FileControllerTest", function () {
 		let fileController: FileControllerBrowser
 
 		o.beforeEach(function () {
-			fileController = new FileControllerBrowser(blobFacadeMock, guiDownload)
+			fileController = new FileControllerBrowser(blobFacadeMock)
 		})
 
 		o("should download non-legacy file non-natively using the blob service", async function () {
@@ -126,7 +123,7 @@ o.spec("FileControllerTest", function () {
 			})
 			const data = new Uint8Array([1, 2, 3])
 			when(blobFacadeMock.downloadAndDecrypt(anything(), anything())).thenResolve(data)
-			const result = await fileController.downloadAndDecrypt(file)
+			const result = await fileController.downloadAndDecrypt(file, ArchiveDataType.Attachments)
 			verify(
 				blobFacadeMock.downloadAndDecrypt(
 					ArchiveDataType.Attachments,

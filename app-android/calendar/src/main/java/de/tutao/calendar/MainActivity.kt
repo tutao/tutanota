@@ -132,7 +132,16 @@ class MainActivity : FragmentActivity() {
 
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
-			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
+			AndroidFileFacade(
+				this,
+				localNotificationsFacade,
+				SecureRandom(),
+				NetworkUtils.defaultClient,
+				{ fileId, bytes ->
+					lifecycleScope.launch {
+						commonNativeFacade.downloadProgress(fileId, bytes)
+					}
+				})
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
@@ -155,7 +164,8 @@ class MainActivity : FragmentActivity() {
 		themeFacade = AndroidThemeFacade(this, this)
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
-		commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
+		commonSystemFacade =
+			AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 

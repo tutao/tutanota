@@ -81,4 +81,11 @@ interface CommonNativeFacade {
 	suspend fun sendLogs(
 		logs: String,
 	): Unit
+	/**
+	 * Download has progressed
+	 */
+	suspend fun downloadProgress(
+		fileId: String,
+		bytes: Int,
+	): Unit
 }

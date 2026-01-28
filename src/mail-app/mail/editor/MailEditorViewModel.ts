@@ -16,6 +16,7 @@ import { DataFile } from "../../../common/api/common/DataFile"
 import { showFileChooser } from "../../../common/file/FileController.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../common/gui/AttachmentBubble.js"
+import { showDownloadProgressDialog } from "../view/MailGuiUtils"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,
@@ -99,14 +100,14 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageEle
 	}))
 }
 
-async function _openAndDownloadAttachment(attachment: Attachment) {
+export async function _openAndDownloadAttachment(attachment: Attachment) {
 	try {
 		if (isFileReference(attachment)) {
 			await locator.fileApp.open(attachment)
 		} else if (isDataFile(attachment)) {
 			await locator.fileController.saveDataFile(attachment)
 		} else if (isTutanotaFile(attachment)) {
-			await locator.fileController.open(attachment)
+			await showDownloadProgressDialog(locator.transferProgressDispatcher, [attachment], locator.fileController.open(attachment))
 		} else {
 			throw new ProgrammingError("attachment is neither reference, datafile nor tutanotafile!")
 		}

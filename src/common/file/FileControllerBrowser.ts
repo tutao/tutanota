@@ -1,24 +1,25 @@
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode } from "../api/common/Env"
-import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
-import { FileController, openDataFileInBrowser, ProgressObserver, zipDataFiles } from "./FileController.js"
+import { FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/tutanota-utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { assertOnlyDataFiles, FileReference } from "../api/common/utils/FileUtils.js"
+import { ArchiveDataType } from "../api/common/TutanotaConstants"
+import { DownloadableFileEntity } from "../api/common/utils/BlobUtils"
 
 assertMainOrNode()
 
 export class FileControllerBrowser extends FileController {
-	constructor(blobFacade: BlobFacade, guiDownload: ProgressObserver) {
-		super(blobFacade, guiDownload)
+	constructor(blobFacade: BlobFacade) {
+		super(blobFacade)
 	}
 
 	async saveDataFile(file: DataFile): Promise<void> {
 		return openDataFileInBrowser(file)
 	}
 
-	async downloadAndDecrypt(file: TutanotaFile): Promise<DataFile | FileReference> {
-		return this.getAsDataFile(file)
+	async downloadAndDecrypt(file: DownloadableFileEntity, archiveType: ArchiveDataType): Promise<DataFile | FileReference> {
+		return this.getAsDataFile(file, archiveType)
 	}
 
 	async writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {

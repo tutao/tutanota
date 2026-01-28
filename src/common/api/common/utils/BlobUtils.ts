@@ -1,7 +1,6 @@
-import { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
 import { elementIdPart, listIdPart } from "./EntityUtils.js"
 import { Blob } from "../../entities/sys/TypeRefs.js"
-import { SomeEntity } from "../EntityTypes.js"
+import { ListElementEntity, SomeEntity } from "../EntityTypes.js"
 
 /**
  * Common interface for instances that are referencing blobs. Main purpose is to have a proper way to access the attribute for the Blob aggregated type
@@ -13,12 +12,26 @@ export type BlobReferencingInstance = {
 
 	listId: Id | null
 
-	blobs: Blob[]
+	blobs: readonly Blob[]
 
 	entity: SomeEntity
 }
 
-export function createReferencingInstance(tutanotaFile: TutanotaFile): BlobReferencingInstance {
+/**
+ * Another abstraction over various entities that can be downloaded as data. This one is not a concrete type but
+ * rather a common denominator for entity before the conversion.
+ */
+export interface DownloadableFileEntity extends ListElementEntity {
+	_id: IdTuple
+	name: string
+	size: NumberString
+	mimeType: null | string
+	cid?: string | null
+
+	blobs: readonly Blob[]
+}
+
+export function createReferencingInstance(tutanotaFile: DownloadableFileEntity): BlobReferencingInstance {
 	return {
 		blobs: tutanotaFile.blobs,
 		elementId: elementIdPart(tutanotaFile._id),

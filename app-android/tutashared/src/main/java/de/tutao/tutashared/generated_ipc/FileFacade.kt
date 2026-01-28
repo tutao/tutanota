@@ -70,6 +70,7 @@ interface FileFacade {
 		sourceUrl: String,
 		filename: String,
 		headers: Map<String, String>,
+		fileId: String,
 	): DownloadTaskResponse
 	/**
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.

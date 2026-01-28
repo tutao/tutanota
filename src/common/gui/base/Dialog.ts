@@ -74,6 +74,9 @@ export interface TextInputDialogParams {
 
 	/** Text field type to display (determines what keyboard to display on mobile devices) */
 	textFieldType?: TextFieldType
+
+	/** For pre-selecting a range of text when the input field is displayed */
+	selectionRange?: [number, number]
 }
 
 export class Dialog implements ModalComponent {
@@ -88,7 +91,7 @@ export class Dialog implements ModalComponent {
 	private focusedBeforeShown: HTMLElement | null = null
 	private injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
 
-	constructor(dialogType: DialogType, childComponent: Component) {
+	constructor(dialogType: DialogType, childComponent: Component | Class<Component>) {
 		this.visible = false
 
 		this.focusOnLoadFunction = () => this.defaultFocusOnLoad(assertNotNull(this.domDialog))
@@ -259,7 +262,7 @@ export class Dialog implements ModalComponent {
 		} else if (dialogType === DialogType.EditMedium) {
 			dialogStyle += ".dialog-width-m.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
-			dialogStyle += ".dialog-width-l"
+			dialogStyle += ".dialog-width-l.border-radius-bottom-8"
 		}
 
 		return dialogStyle
@@ -958,29 +961,37 @@ export class Dialog implements ModalComponent {
 		let textFieldType = props.textFieldType ?? TextFieldType.Text
 
 		let result = props.defaultValue ?? ""
-		Dialog.showActionDialog({
+		let dialog: Dialog
+		const wrappedOkAction = async () => {
+			try {
+				await okAction(result)
+				dialog.close()
+			} catch (error) {
+				if (!isOfflineError(error)) {
+					dialog.close()
+				}
+				throw error
+			}
+		}
+		dialog = Dialog.showActionDialog({
 			title: props.title,
 			child: () =>
 				m(TextField, {
 					label: props.label,
 					value: result,
 					type: textFieldType,
+					onReturnKeyPressed: wrappedOkAction,
 					oninput: (newValue) => (result = newValue),
+					onDomInputCreated: (dom) => {
+						if (props.selectionRange) {
+							dom.setSelectionRange(props.selectionRange[0], props.selectionRange[1])
+						}
+					},
 					helpLabel: () => (props.infoMsgId ? lang.getTranslationText(props.infoMsgId) : ""),
 				}),
 			validator: () => (props.inputValidator ? props.inputValidator(result) : null),
 			allowOkWithReturn: true,
-			okAction: async (dialog: Dialog) => {
-				try {
-					await okAction(result)
-					dialog.close()
-				} catch (error) {
-					if (!isOfflineError(error)) {
-						dialog.close()
-					}
-					throw error
-				}
-			},
+			okAction: wrappedOkAction,
 		})
 	}
 
