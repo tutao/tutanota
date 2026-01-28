@@ -88,7 +88,7 @@ import {
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses, isBefore, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
@@ -340,6 +340,7 @@ export class CalendarModel {
 			console.log("replaceEvent with inputs:", "existingEvent:", existingEvent, "newEvent:", newEvent)
 			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms)
 
+			this.requestWidgetRefresh()
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
@@ -528,6 +529,7 @@ export class CalendarModel {
 				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
 				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
 			} catch (error) {
+				console.error(error)
 				let calendarName = calendar.name
 				console.log("failed to sync external calendar", error)
 				if (!calendarName) {
@@ -817,6 +819,7 @@ export class CalendarModel {
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
+		console.log("DELETING EVENT:", event)
 		await this.entityClient.erase(event)
 		return this.requestWidgetRefresh()
 	}
@@ -980,22 +983,6 @@ export class CalendarModel {
 		}
 	}
 
-	/** Delete altered instances that starts after a given date */
-	async deleteInstancesAfterDate(uid: string, date: Date): Promise<void> {
-		const entry = await this.calendarFacade.getEventsByUid(uid)
-		if (entry == null) {
-			console.log("could not find an uid index entry to delete event")
-			return
-		}
-
-		for (const ai of entry.alteredInstances) {
-			if (isBefore(ai.startTime, date, "date")) {
-				continue
-			}
-			await this.deleteEvent(ai)
-		}
-	}
-
 	/** process a calendar update retrieved from the server automatically. will not apply updates to event series that do not
 	 *  exist on the server yet (that's being done by calling processCalendarEventMessage manually)
 	 *
@@ -1120,7 +1107,7 @@ export class CalendarModel {
 			} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
 				return await this.processCalendarUpdate(target, targetDbEvent, parsedCalendarDataEvent)
 			} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
-				return await this.processCalendarCancellation(targetDbEvent)
+				return await this.deletePersistedEvents(targetDbEvent)
 			} else {
 				console.log(TAG, `${method} update sent not by organizer, ignoring.`)
 			}
@@ -1131,7 +1118,7 @@ export class CalendarModel {
 	 * @param dbTarget the uid entry containing the other events that are known to us that belong to this event series.
 	 * @param dbEvent the version of updateEvent stored on the server. must be identical to dbTarget.progenitor or one of dbTarget.alteredInstances
 	 * @param updateEvent the event that contains the new version of dbEvent. */
-	private async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
+	public async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
 		console.log(TAG, "processing request for existing event instance")
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 		// some providers do not increment the sequence for all edit operations (like google when changing the summary)
@@ -1241,9 +1228,9 @@ export class CalendarModel {
 		await this.doUpdateEvent(dbEvent, newEvent)
 	}
 
-	/** handle an event cancellation - either the whole series (progenitor got cancelled)
+	/** delete an event in case of cancellation or guest declining - either the whole series (progenitor got cancelled)
 	 * or the altered occurrence. */
-	private async processCalendarCancellation(dbEvent: CalendarEventInstance): Promise<void> {
+	async deletePersistedEvents(dbEvent: CalendarEventInstance): Promise<void> {
 		console.log(TAG, "processing cancellation")
 		// not having UID is technically an error, but we'll do our best (the event came from the server after all)
 		if (dbEvent.recurrenceId == null && dbEvent.uid != null) {
