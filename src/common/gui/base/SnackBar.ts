@@ -9,23 +9,27 @@ import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { isNotEmpty, remove } from "@tutao/tutanota-utils"
+import { isNotEmpty, remove, secondsToMillis } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { Icons } from "./icons/Icons"
 
 assertMainOrNode()
-const SNACKBAR_SHOW_TIME = 6000 // ms
-const SNACKBAR_HIDE_DELAY_TIME = 1500 // ms
+
+const SNACKBAR_SHOW_TIME = secondsToMillis(6)
+const SNACKBAR_HIDE_DELAY_TIME = secondsToMillis(1.5)
+const INFO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
 	label: MaybeTranslation
 	click: ClickHandler
+	isVisible?: () => boolean
 }
 type SnackBarAttrs = {
 	message: MaybeTranslation
 	button: ButtonAttrs | null
+	isSnackbarButtonVisible: () => boolean
 	dismissButton?: IconButtonAttrs
 	onHoverChange: (hovered: boolean) => void
 	leadingIcon?: AllIcons
@@ -69,7 +73,15 @@ class SnackBar implements Component<SnackBarAttrs> {
 					m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
 				]),
 				m(".flex.gap-8.items-center", [
-					vnode.attrs.button ? m(".flex-end.center-vertically.pl-12", m(Button, vnode.attrs.button)) : null,
+					vnode.attrs.button
+						? m(
+								".flex-end.center-vertically.pl-12",
+								{
+									class: a.isSnackbarButtonVisible() ? "" : "hidden",
+								},
+								m(Button, vnode.attrs.button),
+							)
+						: null,
 					vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
 				]),
 			],
@@ -96,7 +108,7 @@ export function showInfoSnackbar(message: TranslationKey) {
 			click: () => cancelSnackbar(),
 			icon: Icons.Cancel,
 		},
-		showingTime: 10 * 1000,
+		showingTime: INFO_SNACKBAR_SHOW_TIME,
 		replace: true,
 	})
 }
@@ -141,6 +153,7 @@ export function showSnackBar(args: {
 		dismissButton: dismissButton,
 		onClose: onClose ?? null,
 		onShow: onShow ?? null,
+		isSnackbarButtonVisible: button?.isVisible ?? (() => true),
 		doCancel,
 		showingTime,
 		leadingIcon,
@@ -206,7 +219,7 @@ function getSnackBarPosition() {
 }
 
 function showNextNotification() {
-	const { message, button, dismissButton, onClose, onShow, doCancel, showingTime, leadingIcon } = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, dismissButton, onClose, onShow, doCancel, showingTime, leadingIcon, isSnackbarButtonVisible } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
 
@@ -219,12 +232,13 @@ function showNextNotification() {
 			view: () =>
 				m(SnackBar, {
 					message,
-					button,
 					dismissButton: dismissButton,
 					onHoverChange: (isHovered) => {
 						hovered = isHovered
 					},
 					leadingIcon,
+					button,
+					isSnackbarButtonVisible,
 				}),
 		},
 		"slide-bottom",
