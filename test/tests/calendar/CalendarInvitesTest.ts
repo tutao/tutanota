@@ -2,10 +2,13 @@ import o from "@tutao/otest"
 import { CalendarInviteHandler, ReplyResult } from "../../../src/calendar-app/calendar/view/CalendarInvites.js"
 import { createTestEntity } from "../TestUtils.js"
 import {
+	CalendarEvent,
+	CalendarEventAttendee,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	createMailAddress,
 	EncryptedMailAddressTypeRef,
+	Mail,
 	MailboxGroupRootTypeRef,
 	type MailboxProperties,
 	MailboxPropertiesTypeRef,
@@ -22,22 +25,51 @@ import { GroupInfoTypeRef, GroupTypeRef, User } from "../../../src/common/api/en
 import { calendars, makeUserController } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
-import { mockAttribute } from "@tutao/tutanota-test-utils"
+import { mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
+import { CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
 
 const { anything, argThat } = matchers
 
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
-		calendarIniviteHandler: CalendarInviteHandler,
+		calendarInviteHandler: CalendarInviteHandler,
 		calendarModel: CalendarModel,
 		logins: LoginController,
 		sendMailModel: SendMailModel
 	let calendarNotificationSender: CalendarNotificationSender
 	let mailboxDetails: MailboxDetail
 
+	const sender = "sender@example.com"
+	const attendee = "attendee@example.com"
+
+	let ownAttendee: CalendarEventAttendee
+	let mail: Mail
+	let event: CalendarEvent
+
 	o.beforeEach(function () {
+		event = createTestEntity(CalendarEventTypeRef, {
+			uid: "uid",
+			organizer: createTestEntity(EncryptedMailAddressTypeRef),
+			attendees: [
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: sender,
+					}),
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: attendee,
+					}),
+					status: CalendarAttendeeStatus.NEEDS_ACTION,
+				}),
+			],
+			pendingInvitation: true,
+		})
+		ownAttendee = findAttendeeInAddresses(event.attendees, [attendee])!
+
 		const customerId = "customerId"
 		const user = {
 			_id: "userId",
@@ -60,11 +92,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 		when(maiboxModel.getMailboxProperties(anything())).thenResolve(mailboxProperties)
 
 		calendarModel = instance(CalendarModel)
-		when(calendarModel.getEventsByUid(anything())).thenResolve({
-			ownerGroup: "whatever",
-			progenitor: null,
-			alteredInstances: [],
-		})
+		when(calendarModel.getEventsByUid(matchers.anything())).thenResolve({ progenitor: event as CalendarEventProgenitor })
 		//processCalendarEventMessage is mocked to get call count
 		mockAttribute(calendarModel, calendarModel.processCalendarEventMessage, () => Promise.resolve())
 
@@ -75,77 +103,67 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 		sendMailModel = instance(SendMailModel)
 
-		calendarIniviteHandler = new CalendarInviteHandler(maiboxModel, calendarModel, logins, calendarNotificationSender, async () => {
+		calendarInviteHandler = new CalendarInviteHandler(maiboxModel, calendarModel, logins, calendarNotificationSender, async () => {
 			return sendMailModel
 		})
 	})
 
 	o.spec("ReplyToEventInvitation", function () {
-		o("respond yes to event", async function () {
-			const sender = "sender@example.com"
-			const attendee = "attendee@example.com"
-			const event = createTestEntity(CalendarEventTypeRef, {
-				uid: "uid",
-				organizer: createTestEntity(EncryptedMailAddressTypeRef),
-				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: sender,
-						}),
-						status: CalendarAttendeeStatus.ACCEPTED,
-					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: attendee,
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-				],
-			})
-			const ownAttendee = findAttendeeInAddresses(event.attendees, [attendee])
-			let mail = createTestEntity(MailTypeRef)
+		o("respond yes to event from eventBanner", async function () {
+			mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
+
+			const processCalendarUpdate = spy()
+			const mockedMethod = mockAttribute(calendarModel, calendarModel.processCalendarUpdate, processCalendarUpdate)
+
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
-			o(calendarModel.processCalendarEventMessage.callCount).equals(1)
+			o(calendarModel.processCalendarUpdate.callCount).equals(1)
+			const capturedEvent: CalendarEvent = calendarModel.processCalendarUpdate.args[2]
+			const guestAttendee = capturedEvent.attendees[1]
+			o(guestAttendee.status).equals(CalendarAttendeeStatus.ACCEPTED)
+			unmockAttribute(mockedMethod)
 		})
 
-		o("respond no to event", async function () {
-			const sender = "sender@example.com"
-			const attendee = "attendee@example.com"
-			const event = createTestEntity(CalendarEventTypeRef, {
-				uid: "uid",
-				organizer: createTestEntity(EncryptedMailAddressTypeRef),
-				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: sender,
-						}),
-						status: CalendarAttendeeStatus.ACCEPTED,
-					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: attendee,
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-				],
-			})
-			const ownAttendee = findAttendeeInAddresses(event.attendees, [attendee])
-			let mail = createTestEntity(MailTypeRef)
+		o("respond no to event from eventBanner", async function () {
+			mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+
+			const deletePersistedEvents = spy()
+			const mockedMethod = mockAttribute(calendarModel, calendarModel.deletePersistedEvents, deletePersistedEvents)
+
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
-			o(calendarModel.processCalendarEventMessage.callCount).equals(0)
+			o(calendarModel.deletePersistedEvents.callCount).equals(1)
+			const removedEvent: CalendarEvent = calendarModel.deletePersistedEvents.args[0]
+			o(removedEvent).deepEquals(event)
+			unmockAttribute(mockedMethod)
+		})
+
+		o("respond no to event from eventPreview", async function () {
+			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
+
+			const processCalendarUpdate = spy()
+			const mockedMethod = mockAttribute(calendarModel, calendarModel.processCalendarUpdate, processCalendarUpdate)
+
+			// previousMail is null because eventPreview is part of calendar app and will not receive a Mail object
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, null, mailboxDetails)).equals(
+				ReplyResult.ReplySent,
+			)
+
+			o(calendarModel.processCalendarUpdate.callCount).equals(1)
+
+			const capturedEvent: CalendarEvent = calendarModel.processCalendarUpdate.args[2]
+			const guestAttendee = capturedEvent.attendees[1]
+			o(guestAttendee.status).equals(CalendarAttendeeStatus.DECLINED)
+			unmockAttribute(mockedMethod)
 		})
 
 		o("respond yes to event on read only shared calendar", async function () {
-			const sender = "sender@example.com"
-			const attendee = "attendee@example.com"
 			const event = createTestEntity(CalendarEventTypeRef, {
 				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: sender, name: "sender" }),
 				_ownerGroup: "ownergroup",
@@ -164,14 +182,23 @@ o.spec("CalendarInviteHandlerTest", function () {
 					}),
 				],
 			})
-			const ownAttendee = findAttendeeInAddresses(event.attendees, [attendee])
-			let mail = createTestEntity(MailTypeRef)
+			const processCalendarUpdate = spy()
+			const mockedProcessCalendarUpdate = mockAttribute(calendarModel, calendarModel.processCalendarUpdate, processCalendarUpdate)
+
+			const deletePersistedEvents = spy()
+			const mockedDeletePersistedEvents = mockAttribute(calendarModel, calendarModel.deletePersistedEvents, deletePersistedEvents)
+
+			mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(new Map())
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
-			o(calendarModel.processCalendarEventMessage.callCount).equals(0)
+			o(calendarModel.deletePersistedEvents.callCount).equals(0)
+			o(calendarModel.processCalendarUpdate.callCount).equals(0)
+
+			unmockAttribute(mockedProcessCalendarUpdate)
+			unmockAttribute(mockedDeletePersistedEvents)
 		})
 	})
 })

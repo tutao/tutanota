@@ -27,6 +27,9 @@ import { IconMessageBox } from "../../../../common/gui/base/ColumnEmptyMessageBo
 import { PasswordInput } from "../../../../common/gui/PasswordInput.js"
 import { Switch } from "../../../../common/gui/base/Switch.js"
 import { Divider } from "../../../../common/gui/Divider.js"
+import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils"
+import { createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs"
+import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -131,7 +134,9 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 									Dialog.message("contactAdmin_msg")
 								}
 							} else {
-								whoModel.addAttendee(address, contact)
+								const name = contact != null ? getContactDisplayName(contact) : ""
+								const cleanAddress = cleanMailAddress(address)
+								whoModel.addAttendee(createEncryptedMailAddress({ address: cleanAddress, name }))
 							}
 						},
 						search: recipientsSearch,
@@ -225,7 +230,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							onchange: (option) => {
 								const organizer = whoModel.possibleOrganizers.find((organizer) => organizer.address === option.address)
 								if (organizer) {
-									whoModel.addAttendee(organizer.address, null)
+									whoModel.addAttendee(organizer)
 								}
 							},
 							selected,

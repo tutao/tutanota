@@ -164,7 +164,7 @@ export type DraggedEventContainer = {
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
 export type CalendarEventBubbleKeyDownHandler = (arg0: CalendarEvent, arg1: KeyboardEvent) => unknown
-export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
+export type CalendarEventModelFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
 
 export type CalendarEventPreviewModelFactory = (
 	selectedEvent: CalendarEvent,
@@ -223,7 +223,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	constructor(
 		private readonly logins: LoginController,
-		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
+		private readonly createCalendarEventModel: CalendarEventModelFactory,
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
@@ -510,25 +510,25 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	async duplicateEvent(event: CalendarEvent, timeToMoveBy: number) {
-		const editModel = await this.createCalendarEventEditModel(CalendarOperation.Create, event)
-		if (!editModel) {
-			throw new Error("Failed to duplicate event ${event._id} - Failed to instantiate editModel")
+		const calendarEventModel = await this.createCalendarEventModel(CalendarOperation.Create, event)
+		if (!calendarEventModel) {
+			throw new Error("Failed to duplicate event ${event._id} - Failed to instantiate calendarEventModel")
 		}
 
-		editModel.editModels.summary.content = lang.get("copyOf_title", {
-			"{title}": editModel.editModels.summary.content,
+		calendarEventModel.editModels.summary.content = lang.get("copyOf_title", {
+			"{title}": calendarEventModel.editModels.summary.content,
 		})
-		editModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
-		editModel.editModels.whenModel.deleteExcludedDates()
-		editModel.editModels.whoModel.resetGuestsStatus()
+		calendarEventModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
+		calendarEventModel.editModels.whenModel.deleteExcludedDates()
+		calendarEventModel.editModels.whoModel.resetGuestsStatus()
 
-		await editModel.editModels.alarmModel.removeCalendarDefaultAlarms(
+		await calendarEventModel.editModels.alarmModel.removeCalendarDefaultAlarms(
 			event._ownerGroup,
 			this.logins.getUserController().userSettingsGroupRoot.groupSettings,
 		)
 
 		const dialog = new EventEditorDialog()
-		return await dialog.showNewCalendarEventEditDialog(editModel)
+		return await dialog.showNewCalendarEventEditDialog(calendarEventModel)
 	}
 
 	onDragCancel() {
@@ -638,7 +638,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			throw new ProgrammingError("called moveEvent for an event without uid")
 		}
 
-		const editModel = await this.createCalendarEventEditModel(mode, event)
+		const editModel = await this.createCalendarEventModel(mode, event)
 		if (editModel == null) {
 			return EventSaveResult.Failed
 		}
@@ -672,8 +672,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return await this.moveEvent(event, diff, CalendarOperation.EditAll)
 		}
 
-		const progenitorModel = await this.createCalendarEventEditModel(CalendarOperation.StopSeriesAtDate, progenitor)
-		const newEventModel = await this.createCalendarEventEditModel(CalendarOperation.Create, event)
+		const progenitorModel = await this.createCalendarEventModel(CalendarOperation.StopSeriesAtDate, progenitor)
+		const newEventModel = await this.createCalendarEventModel(CalendarOperation.Create, event)
 
 		if (!newEventModel) {
 			throw new Error("Failed to split original series and instantiate a new event model.")
