@@ -5,7 +5,7 @@ import { Keys, TabIndex, TimeFormat } from "../../../../common/api/common/Tutano
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
-import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
+import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../common/gui/base/SingleLineTextField.js"
 import { isApp } from "../../../../common/api/common/Env.js"
 import { px, size } from "../../../../common/gui/size.js"
 import stream from "mithril/stream"
@@ -198,18 +198,49 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		}
 		return Time.fromDateTime({ hour: time.hours, minute: time.minutes === 30 ? 30 : 0 } as DateTime).toString()
 	}
-
 	private renderTimeSelectInput(attrs: TimePickerAttrs) {
 		return m(SingleLineTextField, {
 			classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
 			value: this.value,
+			oninput: (val: string) => {
+				if (this.value === val) {
+					return
+				}
+
+				this.value = val
+			},
 			disabled: attrs.disabled,
 			ariaLabel: lang.getTranslationText(attrs.ariaLabel),
-			type: TextFieldType.Text,
 			style: {
 				textAlign: "center",
 			},
-		})
+			onclick: (e: MouseEvent) => {
+				e.stopImmediatePropagation()
+				if (!this.isExpanded) {
+					;(e.target as HTMLElement).parentElement?.click()
+					this.isExpanded = true
+				}
+			},
+			onfocus: () => {
+				this.focused = true
+			},
+			onkeydown: (e: KeyboardEvent) => {
+				if (isKeyPressed(e.key, Keys.RETURN) && !this.isExpanded) {
+					this.focused = true
+					;(e.target as HTMLElement).parentElement?.click()
+					this.isExpanded = true
+					m.redraw.sync()
+				}
+			},
+			onblur: (e: any) => {
+				if (this.focused) {
+					this.onSelected(attrs)
+				}
+
+				e.redraw = false
+			},
+			type: TextFieldType.Text,
+		} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>)
 	}
 
 	private renderTextFieldCustomTextPicker(attrs: TimePickerAttrs): Children {
