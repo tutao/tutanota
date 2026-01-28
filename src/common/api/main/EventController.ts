@@ -51,7 +51,7 @@ export class EventController {
 			// this should not be a problem anymore as we prefetch now
 
 			// noinspection ES6MissingAwait
-			listener(entityUpdates, eventOwnerGroupId)
+			await listener(entityUpdates, eventOwnerGroupId)
 		}
 	}
 

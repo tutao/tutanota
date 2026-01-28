@@ -314,7 +314,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	}
 
 	private renderEventsForDay(events: readonly EventWrapper[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
-		const { groupColors: colors, onEventClicked: click, onEventKeyDown: keyDown, eventPreviewModel: modelPromise } = attrs
+		const { groupColors: colors, onEventClicked, onEventKeyDown: keyDown, eventPreviewModel: modelPromise } = attrs
 		const agendaItemHeight = 62
 		const agendaGap = 3
 		const currentTime = attrs.selectedTime?.toDate()
@@ -368,9 +368,9 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					key: getListId(eventWrapper.event) + getElementId(eventWrapper.event) + eventWrapper.event.startTime.toISOString(),
 					id: base64ToBase64Url(stringToBase64(eventWrapper.event._id.join("/"))),
 					event: eventWrapper,
-					color: eventColor,
+					calendarColor: eventColor,
 					selected: eventWrapper.event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
-					click: (domEvent) => click(eventWrapper.event, domEvent),
+					click: (domEvent) => onEventClicked(eventWrapper.event, domEvent),
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement
 						if (isKeyPressed(domEvent.key, Keys.UP, Keys.K) && !domEvent.repeat) {

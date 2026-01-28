@@ -192,9 +192,8 @@ export async function makeCalendarEventModel(
 		}
 	}
 
-	const user = logins.getUserController().user
 	const [alarms, calendars] = await Promise.all([
-		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
+		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, logins.getUserController().user),
 		calendarModel.getCalendarInfos(),
 	])
 	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
@@ -500,6 +499,8 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
 			// fields related to the event instance's identity are excluded.
 			// reminders. will be set up separately.
 			alarmInfos: [],
+			pendingInvitation: null,
+			sender: null,
 		},
 		newAlarms: alarmResult.alarms,
 		sendModels: whoResult,
@@ -520,6 +521,9 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 		sequence: incrementSequence(oldSequence),
 		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
 	})
+	if (newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
+		editModels.whoModel.resetGuestsStatus()
+	}
 
 	assertEventValidity(newEvent)
 
@@ -572,6 +576,8 @@ function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 		attendees: [],
 		organizer: null,
 		sequence: "",
+		pendingInvitation: null,
+		sender: null,
 	}
 }
 
