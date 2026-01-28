@@ -118,13 +118,13 @@ enum UndoSnackbarResult {
  * Show an undo snackbar for mail
  * @param undoModel undo model to use
  * @param onUndo callback for if the undo button is selected
- * @param undoText text to display
+ * @param undoMessage text to display
  * @param undoExpiration maximum time in milliseconds before the undo button expires
  */
 export async function showUndoMailSnackbar(
 	undoModel: UndoModel,
 	onUndo: () => Promise<void>,
-	undoText: string,
+	undoMessage: Translation,
 	undoExpiration?: number,
 ): Promise<UndoSnackbarResult> {
 	return new Promise((resolve) => {
@@ -150,10 +150,6 @@ export async function showUndoMailSnackbar(
 		}
 
 		const clearUndoAction = lazyMemoized(() => undoModel.clearUndoActionIfPresent(undoAction))
-		const undoMessage: Translation = {
-			testId: "undoMoveMail_msg",
-			text: undoText,
-		}
 
 		let isVisible = true
 		if (undoExpiration != null) {
@@ -278,6 +274,8 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 		? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(firstTargetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
 		: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(firstTargetFolder) }).text
 
+	const undoMoveMessage = lang.makeTranslation("undoMoveMail_msg", undoMoveText)
+
 	const onUndoMove = async () => {
 		for (const { sourceFolder: sourceFolderId, mailIds, targetFolder: targetFolderId } of movedMails) {
 			const sourceFolder = await mailModel.getMailSetById(elementIdPart(sourceFolderId))
@@ -293,7 +291,7 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 		}
 	}
 
-	const undoResult = await showUndoMailSnackbar(undoModel, onUndoMove, undoMoveText)
+	const undoResult = await showUndoMailSnackbar(undoModel, onUndoMove, undoMoveMessage)
 
 	if (shouldReportMails && undoResult !== UndoSnackbarResult.Undo) {
 		const reportableMails = (await mailModel.loadAllMails(reportableMailIds)).filter((mail) => !isTutanotaTeamMail(mail))
