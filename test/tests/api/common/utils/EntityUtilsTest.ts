@@ -3,7 +3,6 @@ import {
 	constructMailSetEntryId,
 	create,
 	deconstructMailSetEntryId,
-	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
 	removeTechnicalFields,
@@ -13,28 +12,9 @@ import {
 import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
 
-import { ClientModelEncryptedParsedInstance, ClientTypeModel, ElementEntity } from "../../../../../src/common/api/common/EntityTypes.js"
-import { assertNotNull, base64ToUint8Array, clone, TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { ElementEntity } from "../../../../../src/common/api/common/EntityTypes.js"
+import { clone, TypeRef } from "@tutao/tutanota-utils"
 import { hasError } from "../../../../../src/common/api/common/utils/ErrorUtils.js"
-import {
-	dummyResolver,
-	TestAggregate,
-	testAggregateModel,
-	TestAggregateOnAggregate,
-	TestAggregateOnAggregateRef,
-	TestAggregateRef,
-	TestEntity,
-	testTypeModel,
-	TestTypeRef,
-} from "../../worker/crypto/InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, PatchOperationType, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { createTestEntityWithDummyResolver } from "../../../TestUtils"
-import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel.js"
-import { createPatch } from "../../../../../src/common/api/entities/sys/TypeRefs"
-import { ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { areValuesDifferent, computePatches } from "../../../../../src/common/api/common/utils/PatchGenerator"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {

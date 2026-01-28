@@ -60,6 +60,14 @@ export const testTypeModel: TypeModel = {
 			final: true,
 			encrypted: false,
 		},
+		"15": {
+			id: 15,
+			name: "testFinalBoolean",
+			type: ValueType.Boolean,
+			cardinality: Cardinality.One,
+			final: true,
+			encrypted: true,
+		},
 	},
 	associations: {
 		"3": {
@@ -212,6 +220,7 @@ export type TestEntity = Entity & {
 	testElementAssociation: Id | null
 	testListElementAssociation: IdTuple[]
 	testZeroOrOneListElementAssociation: IdTuple | null
+	testFinalBoolean: boolean
 }
 
 export const dummyResolver = (tr: TypeRef<unknown>) => {

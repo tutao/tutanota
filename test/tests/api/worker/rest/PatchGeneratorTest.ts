@@ -70,6 +70,25 @@ o.spec("computePatches", function () {
 		])
 	})
 
+	o("computePatches returns empty for final values", async function () {
+		const testEntity = await createFilledTestEntity()
+		testEntity.testFinalBoolean = false
+
+		let sk = aes256RandomKey()
+		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
+		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const objectDiff = await computePatches(
+			originalParsedInstance,
+			currentParsedInstance,
+			currentUntypedInstance,
+			testTypeModel,
+			dummyTypeReferenceResolver,
+			false,
+		)
+		o(objectDiff).deepEquals([])
+	})
+
 	o("computePatches works when setting values to null", async function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testBoolean = null
@@ -665,6 +684,7 @@ o.spec("computePatches", function () {
 			testValue: "some encrypted string",
 			testGeneratedId: GENERATED_MIN_ID,
 			_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
+			testFinalBoolean: true,
 		})
 	}
 })

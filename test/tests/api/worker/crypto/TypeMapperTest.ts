@@ -25,6 +25,7 @@ const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
 	"4:testListAssociation": ["assocId"],
 	"5:testDate": "1735736415000",
 	"7:testBoolean": "encryptedBool",
+	"15:testFinalBoolean": "encryptedFinalBool",
 } as unknown as ServerModelUntypedInstance
 
 const serverModelUntypedInstance: ServerModelUntypedInstance = {
@@ -33,6 +34,7 @@ const serverModelUntypedInstance: ServerModelUntypedInstance = {
 	"4": ["assocId"],
 	"5": "1735736415000",
 	"7": "encryptedBool",
+	"15": "encryptedFinalBool",
 } as unknown as ServerModelUntypedInstance
 
 const clientModelEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
@@ -41,6 +43,7 @@ const clientModelEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
 	"4": ["assocId"],
 	"5": new Date("2025-01-01T13:00:15Z"),
 	"7": "encryptedBool",
+	"15": "encryptedFinalBool",
 } as unknown as ClientModelEncryptedParsedInstance
 
 const faultyEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {

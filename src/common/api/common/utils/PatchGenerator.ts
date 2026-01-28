@@ -67,7 +67,7 @@ export async function computePatches(
 ): Promise<Patch[]> {
 	let patches: Patch[] = []
 	for (const [valueIdStr, modelValue] of Object.entries(typeModel.values)) {
-		if (IDENTITY_FIELDS.includes(modelValue.name)) {
+		if (IDENTITY_FIELDS.includes(modelValue.name) || modelValue.final) {
 			continue
 		}
 		const attributeId = parseInt(valueIdStr)

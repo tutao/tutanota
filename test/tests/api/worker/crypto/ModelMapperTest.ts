@@ -157,6 +157,7 @@ o.spec("ModelMapper", function () {
 				testValue: "some encrypted string",
 				testGeneratedId: GENERATED_MIN_ID,
 				_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
+				testFinalBoolean: false,
 			}
 			const parsedInstance: ClientModelParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, instance)
 
