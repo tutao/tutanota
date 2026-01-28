@@ -1,4 +1,4 @@
-import { aes256EncryptSearchIndexEntry, Aes256Key, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aes256EncryptSearchIndexEntryWithIV, Aes256Key, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
 import { Base64, concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type {
 	DecryptedSearchIndexEntry,
@@ -16,11 +16,11 @@ export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Ui
 }
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
-	return aes256EncryptSearchIndexEntry(key, stringToUtf8Uint8Array(indexKey), dbIv, true).slice(dbIv.length)
+	return aes256EncryptSearchIndexEntryWithIV(key, stringToUtf8Uint8Array(indexKey), dbIv).slice(dbIv.length)
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): string {
-	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(dbIv, encIndexKey), true))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbIv, encIndexKey)))
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
@@ -38,7 +38,7 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): DecryptedSearchIndexEntry {
 	const encId = getIdFromEncSearchIndexEntry(entry)
 	let id = decryptIndexKey(key, encId, dbIv)
-	const data = unauthenticatedAesDecrypt(key, entry.subarray(16), true)
+	const data = aesDecryptUnauthenticated(key, entry.subarray(16))
 	let offset = 0
 	const attribute = decodeNumberBlock(data, offset)
 	offset += calculateNeededSpaceForNumber(attribute)
@@ -86,7 +86,7 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDa
 		}
 	}
 
-	const numbersBlock = unauthenticatedAesDecrypt(key, encryptedMeta.rows, true)
+	const numbersBlock = aesDecryptUnauthenticated(key, encryptedMeta.rows)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows: SearchIndexMetadataEntry[] = []
 

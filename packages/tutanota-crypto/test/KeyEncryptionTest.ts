@@ -1,10 +1,12 @@
 import o from "@tutao/otest"
-import { base64ToUint8Array } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, concat } from "@tutao/tutanota-utils"
 import { aes256DecryptWithRecoveryKey, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
 import { hexToRsaPrivateKey } from "../lib/encryption/Rsa.js"
-import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
-import { _aes128RandomKey, aes256RandomKey } from "../lib/encryption/Aes.js"
-import { aes256EncryptLegacy } from "./AesTest.js"
+import { _aes128RandomKey } from "./AesTest.js"
+import { Aes256Key, aes256RandomKey, bitArrayToUint8Array, FIXED_IV, keyToUint8Array, uint8ArrayToBitArray } from "../lib/index.js"
+import sjcl from "../lib/internal/sjcl.js"
+import { SYMMETRIC_KEY_DERIVER } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
+import { SymmetricCipherVersion } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =
@@ -23,7 +25,7 @@ o.spec("key encryption", function () {
 		const gk = [3957386659, 354339016, 3786337319, 3366334248]
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		const iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		const encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
+		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
 		o(encryptedPrivateKey.length % 2).equals(1) // make sure a mac is present
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
@@ -32,7 +34,7 @@ o.spec("key encryption", function () {
 		const gk = aes256RandomKey()
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		const iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		const encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
+		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
@@ -51,7 +53,7 @@ o.spec("key encryption", function () {
 		const key = _aes128RandomKey()
 		const encryptionKey = aes256RandomKey()
 
-		const encryptedKey = aes256EncryptLegacy(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
+		const encryptedKey = legacyAes256EncryptWithRecoveryKey(encryptionKey, keyToUint8Array(key)).slice(FIXED_IV.length)
 		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
 		o(key).deepEquals(decryptedKey)("decrypting sliced, fixed iv aes256 key")
@@ -67,3 +69,18 @@ o.spec("key encryption", function () {
 		o(key).deepEquals(decryptedKey)("decrypting sliced, fixed iv aes256 key")
 	})
 })
+
+//Do not use outside this test!!!
+//No padding, no mac, fixed IV
+function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
+	let subKeys = SYMMETRIC_KEY_DERIVER.deriveSubKeys(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
+	let encryptedBits = sjcl.mode.cbc.encrypt(
+		new sjcl.cipher.aes(subKeys.encryptionKey),
+		uint8ArrayToBitArray(bytes),
+		uint8ArrayToBitArray(FIXED_IV),
+		[],
+		false,
+	)
+	let data = concat(FIXED_IV, bitArrayToUint8Array(encryptedBits))
+	return data
+}

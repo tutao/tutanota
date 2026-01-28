@@ -68,11 +68,11 @@ import {
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
-	bitArrayToUint8Array,
 	decryptKey,
 	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
+	keyToUint8Array,
 	PublicKey,
 	sha256Hash,
 	X25519PublicKey,
@@ -176,7 +176,7 @@ export class CryptoFacade {
 	/** Helper for the rare cases when we needed it on the client side. */
 	async resolveSessionKeyForInstanceBinary(instance: Entity): Promise<Uint8Array | null> {
 		const key = await this.resolveSessionKey(instance)
-		return key == null ? null : bitArrayToUint8Array(key)
+		return key == null ? null : keyToUint8Array(key)
 	}
 
 	/**

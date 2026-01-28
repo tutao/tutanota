@@ -1,5 +1,5 @@
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
@@ -27,7 +27,7 @@ export class SuggestionFacade<T> {
 			const typeName = (await this.typeModelResolver.resolveClientTypeReference(new TypeRef(this.type.app, this.type.typeId))).name.toLowerCase()
 			return t.get(SearchTermSuggestionsOS, typeName).then((encSuggestions) => {
 				if (encSuggestions) {
-					this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, encSuggestions, true)))
+					this._suggestions = JSON.parse(utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, encSuggestions)))
 				} else {
 					this._suggestions = {}
 				}

@@ -2,11 +2,10 @@
 import bCrypt from "../internal/bCrypt.js"
 import { random } from "../random/Randomizer.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { uint8ArrayToBitArray } from "../misc/Utils.js"
 import { KeyLength } from "../misc/Constants.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "./Sha256.js"
-import { AesKey } from "../encryption/Aes.js"
+import { AesKey, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 
 const logRounds = 8 // pbkdf2 number of iterations
 
@@ -33,9 +32,9 @@ export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, 
 	let bytes = crypt_raw(passphraseBytes, salt, logRounds)
 
 	if (keyLengthType === KeyLength.b128) {
-		return uint8ArrayToBitArray(bytes.slice(0, 16))
+		return uint8ArrayToKey(bytes.slice(0, 16))
 	} else {
-		return uint8ArrayToBitArray(sha256Hash(bytes))
+		return uint8ArrayToKey(sha256Hash(bytes))
 	}
 }
 

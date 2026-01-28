@@ -12,7 +12,7 @@ import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../sr
 import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { aes256RandomKey, fixedIv, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, FIXED_IV, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 import {
@@ -27,8 +27,8 @@ import {
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
-		let encryptedKey = encryptIndexKeyBase64(key, "blubb", fixedIv)
-		let decrypted = unauthenticatedAesDecrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true)
+		let encryptedKey = encryptIndexKeyBase64(key, "blubb", FIXED_IV)
+		let decrypted = aesDecryptUnauthenticated(key, concat(FIXED_IV, base64ToUint8Array(encryptedKey)))
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
@@ -38,16 +38,16 @@ o.spec("Index Utils", () => {
 			attribute: 84,
 			positions: [12, 536, 3],
 		}
-		let encId = encryptIndexKeyUint8Array(key, entry.id, fixedIv)
+		let encId = encryptIndexKeyUint8Array(key, entry.id, FIXED_IV)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
 		// attribute 84 => 0x54,
 		// position[0] 12 => 0xC
 		// position[1] 536 = 0x218 => length of number = 2 | 0x80 = 0x82 numbers: 0x02, 0x18
 		// position[2] 3 => 0x03
 		const encodedIndexEntry = [0x54, 0xc, 0x82, 0x02, 0x18, 0x03]
-		const result = unauthenticatedAesDecrypt(key, encryptedEntry.slice(16), true)
+		const result = aesDecryptUnauthenticated(key, encryptedEntry.slice(16))
 		o(Array.from(result)).deepEquals(Array.from(encodedIndexEntry))
-		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
+		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, FIXED_IV)
 		o(JSON.stringify(decrypted.encId)).equals(JSON.stringify(encId))
 		const withoutEncId: any = decrypted
 		delete withoutEncId.encId
@@ -78,7 +78,7 @@ o.spec("Index Utils", () => {
 		const encryptedMeta = encryptMetaData(key, meta)
 		o(encryptedMeta.id).equals(meta.id)
 		o(encryptedMeta.word).equals(meta.word)
-		o(Array.from(unauthenticatedAesDecrypt(key, encryptedMeta.rows, true))).deepEquals([
+		o(Array.from(aesDecryptUnauthenticated(key, encryptedMeta.rows))).deepEquals([
 			// First row
 			1,
 			64,

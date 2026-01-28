@@ -14,12 +14,13 @@ import {
 import {
 	aes256RandomKey,
 	AesKey,
-	bitArrayToUint8Array,
+	AesKeyLength,
 	createAuthVerifier,
 	encryptKey,
-	KEY_LENGTH_BYTES_AES_256,
+	getKeyLengthInBytes,
+	keyToUint8Array,
 	sha256Hash,
-	uint8ArrayToBitArray,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { LoginFacade, LoginListener } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
@@ -53,7 +54,7 @@ import { LoginFailReason } from "../../../../../src/common/api/main/PageContextL
 
 const { anything, argThat } = matchers
 
-const PASSWORD_KEY = uint8ArrayToBitArray(new Uint8Array(Array(KEY_LENGTH_BYTES_AES_256).keys()))
+const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
 
 /** Verify using testdouble, but register as an ospec assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {
@@ -98,7 +99,7 @@ async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, user
 async function createSession(userId: string, accessKey: number[], instancePipeline: InstancePipeline) {
 	const session = createTestEntity(SessionTypeRef, {
 		user: userId,
-		accessKey: bitArrayToUint8Array(accessKey),
+		accessKey: keyToUint8Array(accessKey),
 	})
 	const untypedSession = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, aes256RandomKey())
 	return untypedSession
