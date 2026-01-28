@@ -1272,7 +1272,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 							async () => {
 								noOp()
 							},
-							"emailSent_msg",
+							lang.getTranslation("emailSent_msg"),
 							UNDO_SEND_TIMEOUT,
 						)
 					}
