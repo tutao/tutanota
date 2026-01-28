@@ -5,7 +5,20 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, clamp, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import {
+	$Promisable,
+	assertNotNull,
+	clamp,
+	delay,
+	first,
+	isEmpty,
+	isNotEmpty,
+	lazyMemoized,
+	neverNull,
+	noOp,
+	promiseMap,
+	secondsToMillis,
+} from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -48,8 +61,9 @@ import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 import { computeColor, rgbToHSL } from "../../../common/gui/base/Color"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+import m from "mithril"
 
-const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
+const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
@@ -100,7 +114,19 @@ enum UndoSnackbarResult {
 	Replaced,
 }
 
-export async function showUndoMailSnackbar(undoModel: UndoModel, onUndo: () => Promise<void>, undoText: string): Promise<UndoSnackbarResult> {
+/**
+ * Show an undo snackbar for mail
+ * @param undoModel undo model to use
+ * @param onUndo callback for if the undo button is selected
+ * @param undoText text to display
+ * @param undoExpiration maximum time in milliseconds before the undo button expires
+ */
+export async function showUndoMailSnackbar(
+	undoModel: UndoModel,
+	onUndo: () => Promise<void>,
+	undoText: string,
+	undoExpiration?: number,
+): Promise<UndoSnackbarResult> {
 	return new Promise((resolve) => {
 		let result: UndoSnackbarResult | null = null
 
@@ -128,6 +154,15 @@ export async function showUndoMailSnackbar(undoModel: UndoModel, onUndo: () => P
 			testId: "undoMoveMail_msg",
 			text: undoText,
 		}
+
+		let isVisible = true
+		if (undoExpiration != null) {
+			delay(undoExpiration).then(() => {
+				isVisible = false
+				m.redraw()
+			})
+		}
+
 		cancelSnackbar = showSnackBar({
 			message: undoMessage,
 			button: {
@@ -139,6 +174,7 @@ export async function showUndoMailSnackbar(undoModel: UndoModel, onUndo: () => P
 					// different undo action pending
 					clearUndoAction()
 				},
+				isVisible: () => isVisible,
 			},
 			dismissButton: {
 				title: "close_alt",
