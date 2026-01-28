@@ -34,7 +34,7 @@ const { anything, argThat } = matchers
 
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
-		calendarIniviteHandler: CalendarInviteHandler,
+		calendarInviteHandler: CalendarInviteHandler,
 		calendarModel: CalendarModel,
 		logins: LoginController,
 		sendMailModel: SendMailModel
@@ -103,7 +103,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 		sendMailModel = instance(SendMailModel)
 
-		calendarIniviteHandler = new CalendarInviteHandler(maiboxModel, calendarModel, logins, calendarNotificationSender, async () => {
+		calendarInviteHandler = new CalendarInviteHandler(maiboxModel, calendarModel, logins, calendarNotificationSender, async () => {
 			return sendMailModel
 		})
 	})
@@ -117,7 +117,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 			const processCalendarUpdate = spy()
 			const mockedMethod = mockAttribute(calendarModel, calendarModel.processCalendarUpdate, processCalendarUpdate)
 
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
 			o(calendarModel.processCalendarUpdate.callCount).equals(1)
@@ -135,7 +135,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 			const deletePersistedEvents = spy()
 			const mockedMethod = mockAttribute(calendarModel, calendarModel.deletePersistedEvents, deletePersistedEvents)
 
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
 			o(calendarModel.deletePersistedEvents.callCount).equals(1)
@@ -150,10 +150,13 @@ o.spec("CalendarInviteHandlerTest", function () {
 			const processCalendarUpdate = spy()
 			const mockedMethod = mockAttribute(calendarModel, calendarModel.processCalendarUpdate, processCalendarUpdate)
 
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+			// previousMail is null because eventPreview is part of calendar app and will not receive a Mail object
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, null, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
+
 			o(calendarModel.processCalendarUpdate.callCount).equals(1)
+
 			const capturedEvent: CalendarEvent = calendarModel.processCalendarUpdate.args[2]
 			const guestAttendee = capturedEvent.attendees[1]
 			o(guestAttendee.status).equals(CalendarAttendeeStatus.DECLINED)
@@ -179,14 +182,23 @@ o.spec("CalendarInviteHandlerTest", function () {
 					}),
 				],
 			})
+			const processCalendarUpdate = spy()
+			const mockedProcessCalendarUpdate = mockAttribute(calendarModel, calendarModel.processCalendarUpdate, processCalendarUpdate)
+
+			const deletePersistedEvents = spy()
+			const mockedDeletePersistedEvents = mockAttribute(calendarModel, calendarModel.deletePersistedEvents, deletePersistedEvents)
+
 			mail = createTestEntity(MailTypeRef)
 			mail.sender = createMailAddress({ address: sender, name: "whatever", contact: null })
 			when(calendarModel.getCalendarInfos()).thenResolve(new Map())
-			o(await calendarIniviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
+			o(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 				ReplyResult.ReplySent,
 			)
 			o(calendarModel.deletePersistedEvents.callCount).equals(0)
 			o(calendarModel.processCalendarUpdate.callCount).equals(0)
+
+			unmockAttribute(mockedProcessCalendarUpdate)
+			unmockAttribute(mockedDeletePersistedEvents)
 		})
 	})
 })
