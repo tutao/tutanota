@@ -13,7 +13,7 @@ public protocol FileFacade {
 	func open(
 		_ location: String,
 		_ mimeType: String
-	) async throws -> Void
+	) async throws
 	/**
 	 * Opens OS file picker. Returns the list of URIs for the selected files. add a list of extensions (without dot) to filter the options.
 	 */
@@ -34,7 +34,7 @@ public protocol FileFacade {
 	) async throws -> [String]
 	func deleteFile(
 		_ file: String
-	) async throws -> Void
+	) async throws
 	func getName(
 		_ file: String
 	) async throws -> String
@@ -76,7 +76,7 @@ public protocol FileFacade {
 		_ fileUri: String
 	) async throws -> String
 	func clearFileData(
-	) async throws -> Void
+	) async throws
 	/**
 	 * given a list of chunk file locations, will re-join them in order to reconstruct a single file and returns the location of that file on disk.
 	 */
@@ -103,7 +103,7 @@ public protocol FileFacade {
 	func writeToAppDir(
 		_ content: DataWrapper,
 		_ path: String
-	) async throws -> Void
+	) async throws
 	/**
 	 * Read file from given path relative to app data folder
 	 */

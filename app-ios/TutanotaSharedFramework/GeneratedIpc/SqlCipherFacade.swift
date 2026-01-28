@@ -7,16 +7,16 @@ public protocol SqlCipherFacade {
 	func openDb(
 		_ userId: String,
 		_ dbKey: DataWrapper
-	) async throws -> Void
+	) async throws
 	func closeDb(
-	) async throws -> Void
+	) async throws
 	func deleteDb(
 		_ userId: String
-	) async throws -> Void
+	) async throws
 	func run(
 		_ query: String,
 		_ params: [TaggedSqlValue]
-	) async throws -> Void
+	) async throws
 	/**
 	 * get a single object or null if the query returns nothing
 	 */

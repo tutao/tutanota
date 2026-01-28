@@ -24,7 +24,7 @@ public protocol MobilePaymentsFacade {
 	 * Display a view for the user to configure their subscription.
 	 */
 	func showSubscriptionConfigView(
-	) async throws -> Void
+	) async throws
 	/**
 	 * Check if the latest transaction using the current Store Account belongs to the user
 	 */
