@@ -1159,6 +1159,7 @@ export default {
 		"neverReport_action": "Nunca denunciar",
 		"newCalendarSubscriptionsDialog_title": "Nueva suscripción",
 		"newContact_action": "Nuevo contacto",
+		"newDriveItem_action": "Nuevo",
 		"newEvent_action": "Nuevo evento",
 		"newMail_action": "Nuevo correo",
 		"newMails_msg": "Recibido un nuevo correo Tuta.",
