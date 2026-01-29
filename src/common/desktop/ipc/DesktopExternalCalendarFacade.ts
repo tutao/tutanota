@@ -7,11 +7,15 @@ export class DesktopExternalCalendarFacade implements ExternalCalendarFacade {
 	constructor(private readonly userAgent: string) {}
 
 	async fetchExternalCalendar(url: string): Promise<string> {
-		const response = await fetch(url, {
+		const requestHeaders = {
 			method: "GET",
-			headers: { "User-Agent": this.userAgent },
-		})
-		if (!response.ok) throw new Error(`Failed to fetch external calendar ${response.statusText}`)
+			headers: {
+				"User-Agent": this.userAgent,
+				"Accept-Language": "en",
+			},
+		}
+		const response = await fetch(url, requestHeaders)
+		if (!response.ok) throw new Error(`Failed to fetch external calendar statusCode: ${response.status} message: ${response.statusText}`)
 		return await response.text()
 	}
 }

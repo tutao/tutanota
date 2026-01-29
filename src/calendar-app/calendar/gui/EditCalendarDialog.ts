@@ -37,7 +37,10 @@ export const defaultCalendarProperties: Readonly<CalendarProperties> & {
 export async function handleUrlSubscription(calendarModel: CalendarModel, url: string): Promise<string | Error> {
 	if (!locator.logins.isFullyLoggedIn()) return new Error("notFullyLoggedIn_msg")
 
-	const externalIcalStr: string | Error = await calendarModel.fetchExternalCalendar(url).catch((e) => e as Error)
+	const externalIcalStr: string | Error = await calendarModel.fetchExternalCalendar(url).catch((e) => {
+		console.log("fetching external calendar failed", e)
+		return e as Error
+	})
 	if (externalIcalStr instanceof Error || externalIcalStr.trim() === "") return new Error("fetchingExternalCalendar_error")
 
 	if (!isIcal(externalIcalStr)) return new Error("invalidICal_error")

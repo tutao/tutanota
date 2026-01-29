@@ -508,6 +508,7 @@ export class CalendarModel {
 				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
 			} catch (error) {
 				let calendarName = calendar.name
+				console.log("failed to sync external calendar", error)
 				if (!calendarName) {
 					const calendars = await this.getCalendarInfos()
 					calendarName = calendars.get(calendar.group)?.groupInfo.name!
