@@ -3,8 +3,8 @@ import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
-	ContactTypeRef,
 	createCalendarEventAttendee,
+	EncryptedMailAddressTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
@@ -273,7 +273,7 @@ o.spec("CalendarEventWhoModel", function () {
 				organizer: ownAddresses[0],
 			})
 
-			model.addAttendee(ownerAlias.address, null)
+			model.addAttendee(ownerAlias)
 			await model.recipientsSettled
 			o(model.guests).deepEquals([
 				{
@@ -318,7 +318,7 @@ o.spec("CalendarEventWhoModel", function () {
 				attendees: [],
 				organizer: null,
 			})
-			model.addAttendee(otherAddress.address, otherRecipient.contact)
+			model.addAttendee(otherAddress)
 			await model.recipientsSettled
 			o(model.organizer).deepEquals({
 				address: ownAddresses[0].address,
@@ -337,7 +337,7 @@ o.spec("CalendarEventWhoModel", function () {
 				attendees: [],
 				organizer: null,
 			})
-			model.addAttendee(otherAddress.address, otherRecipient.contact)
+			model.addAttendee(otherAddress)
 			o(model.organizer).notEquals(null)
 			model.removeAttendee(otherAddress.address)
 			const result = model.result
@@ -366,7 +366,7 @@ o.spec("CalendarEventWhoModel", function () {
 				organizer: ownerAddress,
 			})
 			model.removeAttendee(otherAddress.address)
-			model.addAttendee(otherAddress2.address, otherRecipient2.contact)
+			model.addAttendee(otherAddress2)
 			o(model.result).deepEquals(model.result)
 		})
 		o("removing an attendee while there are other attendees removes only that attendee", async function () {
@@ -377,8 +377,8 @@ o.spec("CalendarEventWhoModel", function () {
 				],
 				organizer: ownerAddress,
 			})
-			model.addAttendee(otherAddress.address, otherRecipient.contact)
-			model.addAttendee(otherAddress2.address, otherRecipient2.contact)
+			model.addAttendee(otherAddress)
+			model.addAttendee(otherAddress2)
 			await model.recipientsSettled
 			const resultBeforeRemove = model.result
 			o(resultBeforeRemove.attendees).deepEquals([
@@ -457,7 +457,7 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 		o("adding only oneself as an organizer but no attendees results in a result without organizer or attendees", function () {
 			const model = getNewModel({})
-			model.addAttendee(ownAddresses[0].address)
+			model.addAttendee(createTestEntity(EncryptedMailAddressTypeRef, { address: ownAddresses[0].address }))
 			o(model.guests.length).equals(0)
 			o(model.organizer?.address).equals(ownAddresses[0].address)
 			o(model.result.organizer).equals(null)
@@ -517,7 +517,7 @@ o.spec("CalendarEventWhoModel", function () {
 			)
 			model.shouldSendUpdates = true
 			model.removeAttendee(otherAddress2.address)
-			model.addAttendee(otherAddress.address, createTestEntity(ContactTypeRef, { nickname: otherAddress.name }))
+			model.addAttendee(otherAddress)
 			const result = model.result
 			// this is not an invite to us, so we do not respond
 			o(result.responseModel).equals(null)
@@ -563,7 +563,7 @@ o.spec("CalendarEventWhoModel", function () {
 				passwordStrengthModel,
 				() => sendModels.pop()!,
 			)
-			model.addAttendee(otherAddress.address, createTestEntity(ContactTypeRef, { nickname: otherAddress.name }))
+			model.addAttendee(otherAddress)
 			const result = model.result
 			o(result.responseModel).equals(null)
 			o(sendModels.length).equals(0)
@@ -614,7 +614,7 @@ o.spec("CalendarEventWhoModel", function () {
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldModel({})
-				model.addAttendee(otherAddress.address)
+				model.addAttendee(otherAddress)
 				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("ownSharedCalendar")!])
 			})
 
@@ -655,7 +655,7 @@ o.spec("CalendarEventWhoModel", function () {
 
 		o("changing the calendar to a shared one while the event has attendees is an error", function () {
 			const model = getNewModel({})
-			model.addAttendee(otherAddress.address)
+			model.addAttendee(otherAddress)
 			o(model.guests.length).equals(1)
 			o(() => (model.selectedCalendar = calendars.get("sharedCalendar")!)).throws(ProgrammingError)
 			o(model.selectedCalendar).deepEquals(calendars.get("ownCalendar")!)

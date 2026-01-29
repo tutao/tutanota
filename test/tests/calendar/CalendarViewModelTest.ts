@@ -19,7 +19,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
 	CalendarContactPreviewModelFactory,
-	CalendarEventEditModelsFactory,
+	CalendarEventModelFactory,
 	CalendarEventPreviewModelFactory,
 	CalendarViewModel,
 	EventWrapper,
@@ -38,7 +38,7 @@ o.spec("CalendarViewModel", function () {
 	let entityClientMock: EntityRestClientMock
 
 	function initCalendarViewModel(
-		makeViewModelCallback: CalendarEventEditModelsFactory,
+		makeViewModelCallback: CalendarEventModelFactory,
 		eventController?,
 	): {
 		viewModel: CalendarViewModel
