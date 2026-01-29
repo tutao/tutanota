@@ -286,7 +286,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		case OPEN_CONTACT_EDITOR_CONTACT_ID:
 			do { try await self.bridge.commonNativeFacade.openContactEditor(info.value!) } catch { TUTSLog("failed to open contact editor: \(error)") }
 		case OPEN_SETTINGS: do { try await self.bridge.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
-		default: throw TutanotaError(message: "Invalid interop operation")
+		default: throw TutanotaError(message: "invalid interop operation")
 		}
 	}
 
