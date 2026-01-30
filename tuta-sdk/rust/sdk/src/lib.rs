@@ -639,7 +639,7 @@ impl ApiCallError {
 	}
 	pub fn internal_with_err<E: Error>(error: E, message: &str) -> ApiCallError {
 		ApiCallError::InternalSdkError {
-			error_message: format!("{}: {}", error, message),
+			error_message: format!("{error}: {message}"),
 		}
 	}
 }

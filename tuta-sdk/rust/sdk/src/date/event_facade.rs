@@ -1726,7 +1726,7 @@ impl EventFacade {
 			uid: Some(uid),
 			_id: Some(IdTupleCustom {
 				list_id: birthday_calendar_id.clone(),
-				element_id: CustomId(format!("{}#{}", encoded_event_id, encoded_contact_id)),
+				element_id: CustomId(format!("{encoded_event_id}#{encoded_contact_id}")),
 			}),
 			_permissions: GeneratedId::min_id(),
 			_format: 0,
