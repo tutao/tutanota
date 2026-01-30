@@ -304,6 +304,7 @@ impl TypeModel {
 pub enum AppName {
 	Accounting,
 	Base,
+	Drive,
 	Gossip,
 	Monitor,
 	Storage,
@@ -322,6 +323,7 @@ impl TryFrom<&str> for AppName {
 		match value {
 			"accounting" => Ok(AppName::Accounting),
 			"base" => Ok(AppName::Base),
+			"drive" => Ok(AppName::Drive),
 			"gossip" => Ok(AppName::Gossip),
 			"monitor" => Ok(AppName::Monitor),
 			"storage" => Ok(AppName::Storage),
@@ -342,6 +344,7 @@ impl Display for AppName {
 		match self {
 			AppName::Accounting => write!(f, "accounting"),
 			AppName::Base => write!(f, "base"),
+			AppName::Drive => write!(f, "drive"),
 			AppName::Gossip => write!(f, "gossip"),
 			AppName::Monitor => write!(f, "monitor"),
 			AppName::Storage => write!(f, "storage"),

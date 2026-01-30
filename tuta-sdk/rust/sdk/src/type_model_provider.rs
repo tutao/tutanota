@@ -51,6 +51,7 @@ pub static CLIENT_TYPE_MODEL: std::sync::LazyLock<ApplicationModels> =
 		read_type_models![
 			"accounting",
 			"base",
+			"drive",
 			"gossip",
 			"monitor",
 			"storage",
