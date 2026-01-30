@@ -192,9 +192,8 @@ export async function makeCalendarEventModel(
 		}
 	}
 
-	const user = logins.getUserController().user
 	const [alarms, calendars] = await Promise.all([
-		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
+		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, logins.getUserController().user),
 		calendarModel.getCalendarInfos(),
 	])
 	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
@@ -235,7 +234,7 @@ export async function makeCalendarEventModel(
 	const recurrenceIds = async (uid?: string) =>
 		uid == null ? [] : ((await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? [])
 	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
-	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, recurrenceIds, showProgress, zone)
+	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, makeEditModels, recurrenceIds, showProgress, zone)
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
 	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
@@ -283,7 +282,7 @@ async function selectStrategy(
 			mayRequireSendingUpdates = () => true
 			editModels = makeEditModels(cleanInitialValues)
 		} else {
-			editModels = makeEditModels(cleanInitialValues)
+			editModels = makeEditModels(existingInstanceIdentity)
 			apply = () => applyStrategies.saveExistingAlteredInstance(editModels, existingInstanceIdentity)
 			mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 		}
@@ -298,7 +297,7 @@ async function selectStrategy(
 			mayRequireSendingUpdates = () => true
 		} else {
 			editModels = makeEditModels(cleanInitialValues)
-			apply = () => applyStrategies.deleteAlteredInstance(editModels, existingInstanceIdentity)
+			apply = () => applyStrategies.handleDeleteAlteredInstance(editModels, existingInstanceIdentity)
 			mayRequireSendingUpdates = () => true
 		}
 	} else if (operation === CalendarOperation.EditAll) {
@@ -306,7 +305,7 @@ async function selectStrategy(
 		if (progenitor == null) {
 			return null
 		}
-		editModels = makeEditModels(cleanInitialValues)
+		editModels = makeEditModels(progenitor)
 		apply = () => applyStrategies.saveEntireExistingEvent(editModels, progenitor)
 		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 	} else if (operation === CalendarOperation.DeleteAll) {
@@ -500,6 +499,8 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
 			// fields related to the event instance's identity are excluded.
 			// reminders. will be set up separately.
 			alarmInfos: [],
+			pendingInvitation: null,
+			sender: null,
 		},
 		newAlarms: alarmResult.alarms,
 		sendModels: whoResult,
@@ -520,6 +521,10 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 		sequence: incrementSequence(oldSequence),
 		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
 	})
+
+	if (newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
+		editModels.whoModel.resetGuestsStatus()
+	}
 
 	assertEventValidity(newEvent)
 
@@ -572,6 +577,8 @@ function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 		attendees: [],
 		organizer: null,
 		sequence: "",
+		pendingInvitation: null,
+		sender: null,
 	}
 }
 

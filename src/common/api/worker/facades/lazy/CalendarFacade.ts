@@ -36,8 +36,15 @@ import {
 } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
-import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../../entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteData } from "../../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	CalendarEventTypeRef,
+	CalendarEventUidIndex,
+	CalendarEventUidIndexTypeRef,
+	CalendarGroupRootTypeRef,
+	CalendarRepeatRule,
+	createCalendarDeleteIn,
+} from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
@@ -71,7 +78,7 @@ import type { EventAlarmsTuple } from "../../../../calendar/gui/ImportExportUtil
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
 import { ClientModelUntypedInstance } from "../../../common/EntityTypes"
-import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel"
+import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 assertWorkerOrNode()
 
@@ -154,6 +161,7 @@ export class CalendarFacade {
 				flags: {
 					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
 					isAlteredInstance: e.recurrenceId != null,
+					isGhost: !!e.pendingInvitation,
 				},
 				color,
 			}))
@@ -162,6 +170,7 @@ export class CalendarFacade {
 				flags: {
 					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
 					isAlteredInstance: e.recurrenceId != null,
+					isGhost: !!e.pendingInvitation,
 				},
 				color,
 			}))
@@ -291,15 +300,17 @@ export class CalendarFacade {
 		return eventsWithAlarms
 	}
 
-	async saveCalendarEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, oldEvent: CalendarEvent | null): Promise<void> {
+	/**
+	 * Create new event in the calendar, with its own database entity.
+	 *
+	 * @param event
+	 * @param alarmInfos
+	 */
+	async createCalendarEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>): Promise<void> {
 		if (event._id == null) throw new Error("No id set on the event")
 		if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
 		if (event.uid == null) throw new Error("no uid set on the event")
 		event.hashedUid = hashUid(event.uid)
-
-		if (oldEvent) {
-			await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
-		}
 
 		return await this.saveCalendarEvents(
 			[
@@ -312,6 +323,41 @@ export class CalendarFacade {
 		)
 	}
 
+	/**
+	 * Destructively apply changes to a calendar event, deleting the original database entity and creating a new one (but preserving the values of uid and unchanged fields).
+	 * This is necessary because some changes (like to event start time etc) can change the ID of an event.
+	 *
+	 * @param oldEvent
+	 * @param newEvent
+	 * @param alarmInfos
+	 */
+	async replaceCalendarEvent(oldEvent: CalendarEvent, newEvent: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>) {
+		if (newEvent._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
+		if (newEvent._id == null) throw new Error("No id set on the event")
+		if (newEvent.uid == null) throw new Error("no uid set on the event")
+		newEvent.hashedUid = hashUid(newEvent.uid)
+
+		console.log("Erasing event in replaceCalendarEvent", oldEvent)
+		await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
+		console.log("saving new event in replaceCalendarEvent:", newEvent)
+		return await this.saveCalendarEvents(
+			[
+				{
+					event: newEvent,
+					alarms: alarmInfos,
+				},
+			],
+			() => Promise.resolve(),
+		)
+	}
+
+	/**
+	 * Non-destructively apply updates to a calendar event, without deleting the original database entity or updating the ID.
+	 *
+	 * @param event
+	 * @param newAlarms
+	 * @param existingEvent
+	 */
 	async updateCalendarEvent(event: CalendarEvent, newAlarms: ReadonlyArray<AlarmInfoTemplate>, existingEvent: CalendarEvent): Promise<void> {
 		event._id = existingEvent._id
 		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
@@ -334,6 +380,7 @@ export class CalendarFacade {
 		// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
 		// Server takes care of the removed alarms,
 		event.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId)).concat(alarmInfoIds)
+		console.log("updating event in CalendarFacade.updateCalendarEvent", event)
 		await this.cachingEntityClient.update(event)
 
 		if (alarmNotifications.length > 0) {
@@ -360,7 +407,7 @@ export class CalendarFacade {
 	}
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
-		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({ groupRootId }))
+		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId }))
 	}
 
 	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {

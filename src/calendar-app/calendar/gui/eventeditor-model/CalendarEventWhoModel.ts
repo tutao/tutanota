@@ -1,7 +1,6 @@
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
-	Contact,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
@@ -15,8 +14,8 @@ import {
 	CalendarAttendeeStatus,
 	ConversationType,
 	getAttendeeStatus,
-	ShareCapability,
 	PresentableKeyVerificationState,
+	ShareCapability,
 } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
@@ -181,7 +180,6 @@ export class CalendarEventWhoModel {
 	 * Prevent moving the event to another calendar if you only have read permission or if the event has attendees.
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
-		const { groupSettings } = this.userController.userSettingsGroupRoot
 		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !cal.isExternal)
 
 		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {
@@ -208,9 +206,8 @@ export class CalendarEventWhoModel {
 
 	resetGuestsStatus() {
 		for (const attendee of this.initialAttendees.values()) {
-			this.removeAttendee(attendee.address.address)
-			this.initialAttendees.delete(attendee.address.address)
-			this.addOtherAttendee(attendee.address)
+			attendee.status = CalendarAttendeeStatus.NEEDS_ACTION
+			this.addAttendee(attendee.address)
 		}
 	}
 
@@ -411,34 +408,6 @@ export class CalendarEventWhoModel {
 	}
 
 	/**
-	 * add a mail address to the list of invitees.
-	 * the organizer will always be set to the last of the current user's mail addresses that has been added.
-	 *
-	 * if an attendee is deleted an re-added, the status is retained.
-	 *
-	 * @param address the mail address to send the invite to
-	 * @param contact a contact for a display name.
-	 */
-	addAttendee(address: string, contact: Contact | null = null): void {
-		if (!this.canModifyGuests) {
-			throw new UserError(lang.makeTranslation("cannotAddAttendees_msg", "Cannot add attendees"))
-		}
-		const cleanAddress = cleanMailAddress(address)
-		// We don't add an attendee if they are already an attendee
-		if (this._attendees.has(cleanAddress) || this._organizer?.address.address === cleanAddress || this._ownAttendee?.address.address === cleanAddress) {
-			return
-		}
-
-		const ownAttendee = findRecipientWithAddress(this.ownMailAddresses, cleanAddress)
-		if (ownAttendee != null) {
-			this.addOwnAttendee(ownAttendee)
-		} else {
-			const name = contact != null ? getContactDisplayName(contact) : ""
-			this.addOtherAttendee(createEncryptedMailAddress({ address: cleanAddress, name }))
-		}
-	}
-
-	/**
 	 * this is a no-op if there are already
 	 * @param address MUST be one of ours and MUST NOT be in the attendees array or set on _organizer
 	 * @private
@@ -460,18 +429,28 @@ export class CalendarEventWhoModel {
 	}
 
 	/**
+	 * add a mail address to the list of invitees.
 	 *
-	 * @param address must NOT be one of ours.
-	 * @private
+	 * @param address the EncryptedMailAddress to send the invite to
 	 */
-	private addOtherAttendee(address: EncryptedMailAddress) {
-		if (this._ownAttendee == null) {
-			// we're adding someone that's not us while we're not an attendee,
-			// so we add ourselves as an attendee and as organizer.
-			this.addOwnAttendee(this.ownMailAddresses[0])
+	public addAttendee(address: EncryptedMailAddress) {
+		if (!this.canModifyGuests) {
+			throw new UserError(lang.makeTranslation("cannotAddAttendees_msg", "Cannot add attendees"))
 		}
 
 		address.address = cleanMailAddress(address.address)
+
+		const ownAttendee = findRecipientWithAddress(this.ownMailAddresses, address.address)
+		if (this._ownAttendee == null || ownAttendee) {
+			// we're adding someone that's not us while we're not an attendee,
+			// so we add ourselves as an attendee and as organizer.
+			this.addOwnAttendee(ownAttendee ?? this.ownMailAddresses[0])
+			if (ownAttendee) {
+				// We don`t want to add the organizer in the guest list yet, this is handled by assembleAttendees
+				return
+			}
+		}
+
 		const previousAttendee = this.initialAttendees.get(address.address)
 
 		//  we now know that this address is not in the list and that it's also

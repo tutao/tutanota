@@ -541,6 +541,8 @@ o.spec("CalendarImporter", function () {
 							).toJSDate(),
 							uid: "test@tuta.com",
 							hashedUid: null,
+							pendingInvitation: null,
+							sender: null,
 							repeatRule: createRepeatRule({
 								endType: EndType.Never,
 								interval: "3",
@@ -592,6 +594,8 @@ o.spec("CalendarImporter", function () {
 							recurrenceId: null,
 							repeatRule: null,
 							summary: "s",
+							pendingInvitation: null,
+							sender: null,
 							startTime: DateTime.fromObject(
 								{
 									year: 2019,
@@ -670,6 +674,8 @@ o.spec("CalendarImporter", function () {
 							recurrenceId: null,
 							repeatRule: null,
 							summary: "s",
+							pendingInvitation: null,
+							sender: null,
 							startTime: DateTime.fromObject(
 								{
 									year: 2019,
@@ -750,6 +756,8 @@ o.spec("CalendarImporter", function () {
 							recurrenceId: null,
 							repeatRule: null,
 							summary: "s",
+							pendingInvitation: null,
+							sender: null,
 							startTime: DateTime.fromObject(
 								{
 									year: 2019,
@@ -827,6 +835,8 @@ o.spec("CalendarImporter", function () {
 						recurrenceId: null,
 						repeatRule: null,
 						summary: "Labor Day / May Day",
+						pendingInvitation: null,
+						sender: null,
 						startTime: getAllDayDateUTCFromZone(
 							DateTime.fromObject(
 								{
@@ -874,6 +884,8 @@ o.spec("CalendarImporter", function () {
 					endTime: new Date("2023-07-04T15:30:00.000Z"),
 					sequence: "1",
 					summary: "bkbkbkb",
+					pendingInvitation: null,
+					sender: null,
 					recurrenceId: null,
 				}),
 				alarms: [],
@@ -937,6 +949,8 @@ o.spec("CalendarImporter", function () {
 						recurrenceId: null,
 						repeatRule: null,
 						summary: "Labor Day / May Day",
+						pendingInvitation: null,
+						sender: null,
 						startTime: getAllDayDateUTCFromZone(
 							DateTime.fromObject(
 								{
@@ -1006,6 +1020,8 @@ o.spec("CalendarImporter", function () {
 								organizer: null,
 								recurrenceId: null,
 								summary: "Word \\ ; \n",
+								pendingInvitation: null,
+								sender: null,
 								startTime: DateTime.fromObject(
 									{
 										year: 2019,
@@ -1081,6 +1097,8 @@ o.spec("CalendarImporter", function () {
 								invitedConfidentially: null,
 								description: "",
 								summary: "Word \\ ; \n",
+								pendingInvitation: null,
+								sender: null,
 								startTime: DateTime.fromObject(
 									{
 										year: 2019,
@@ -1154,6 +1172,8 @@ o.spec("CalendarImporter", function () {
 								organizer: null,
 								attendees: [],
 								summary: "Word \\ ; \n",
+								pendingInvitation: null,
+								sender: null,
 								startTime: DateTime.fromObject(
 									{
 										year: 2019,
@@ -1240,6 +1260,8 @@ END:VCALENDAR`
 						invitedConfidentially: null,
 						_id: ["123", "456"],
 						summary: "Word \\ ; \n simple",
+						pendingInvitation: null,
+						sender: null,
 						startTime: DateTime.fromObject(
 							{
 								year: 2019,
@@ -1280,6 +1302,8 @@ END:VCALENDAR`
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n alarms",
+						pendingInvitation: null,
+						sender: null,
 						startTime: DateTime.fromObject(
 							{
 								year: 2019,
@@ -1319,6 +1343,8 @@ END:VCALENDAR`
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
+						pendingInvitation: null,
+						sender: null,
 						startTime: DateTime.fromObject(
 							{
 								year: 2019,
@@ -1375,6 +1401,8 @@ END:VCALENDAR`
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
+						pendingInvitation: null,
+						sender: null,
 						startTime: getAllDayDateUTC(
 							DateTime.fromObject({
 								year: 2019,
