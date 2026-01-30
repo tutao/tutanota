@@ -114,6 +114,7 @@ class TutanotaNotificationsHandler(
 				// tries are not decremented and we don't return, we just wait and try again.
 				// waiting happens above with `deferRequest`
 			} catch (e: TooManyRequestsException) {
+				// comes here
 				Log.d(
 					TAG, "TooManyRequestsException when downloading missed notification, waiting " +
 							e.retryAfterSeconds + "s"

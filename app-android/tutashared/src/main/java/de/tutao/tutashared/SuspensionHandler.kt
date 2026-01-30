@@ -18,6 +18,10 @@ class SuspensionHandler(private val dateProvider: DateProvider) {
 	private var suspensionEndTime: Date? = null
 	private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
+	fun isSuspended (): Boolean {
+		return this.suspensionEndTime == null
+	}
+
 	fun activateSuspensionIfInactive(suspensionDurationSeconds: Int, resourceURL: String) {
 		if (this.suspensionEndTime == null) {
 			Log.d(TAG, "Activating suspension $resourceURL: ${suspensionDurationSeconds}s")
@@ -32,7 +36,10 @@ class SuspensionHandler(private val dateProvider: DateProvider) {
 	}
 
 	suspend inline fun <T> deferRequest(request: () -> T): T {
-		waitForSuspension()
+		while(isSuspended()) {
+			waitForSuspension()
+		}
+
 		return request()
 	}
 
