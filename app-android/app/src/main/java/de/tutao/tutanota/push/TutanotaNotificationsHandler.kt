@@ -24,6 +24,7 @@ import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toSdkIdTupleGenerated
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -39,6 +40,9 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+const val MISSED_NOTIFICATION_RESOURCE = "missed notification"
+const val MAIL_RESOURCE = "mail"
+
 class TutanotaNotificationsHandler(
 	private val localNotificationsFacade: LocalNotificationsFacade,
 	private val sseStorage: SseStorage,
@@ -50,6 +54,7 @@ class TutanotaNotificationsHandler(
 	private val appDir: File,
 	private val suspensionHandler: SuspensionHandler
 ) {
+
 
 	private val json = Json { ignoreUnknownKeys = true }
 
@@ -93,8 +98,17 @@ class TutanotaNotificationsHandler(
 			}
 			userId = sseInfo.userIds.iterator().next()
 			try {
-				Log.d(TAG, "Downloading missed notification with user id $userId")
-				return suspensionHandler.deferRequest { executeMissedNotificationDownload(sseInfo, userId) }
+				// Only make requests if not in a current suspension...
+				if (suspensionHandler.isSuspended(MISSED_NOTIFICATION_RESOURCE)) {
+					Log.d(TAG, "Device is currently in a suspension for missed notification")
+					return null
+				} else {
+					Log.d(TAG, "Downloading missed notification with user id $userId")
+					return suspensionHandler.deferRequest(
+						{ executeMissedNotificationDownload(sseInfo, userId) },
+						MISSED_NOTIFICATION_RESOURCE
+					)
+				}
 			} catch (e: FileNotFoundException) {
 				Log.i(TAG, "MissedNotification is not found, ignoring: " + e.message)
 				return null
@@ -110,17 +124,13 @@ class TutanotaNotificationsHandler(
 					TAG, "ServiceUnavailable when downloading missed notification, waiting " +
 							e.suspensionSeconds + "s"
 				)
-				suspensionHandler.activateSuspensionIfInactive(e.suspensionSeconds, "missed notification")
-				// tries are not decremented and we don't return, we just wait and try again.
-				// waiting happens above with `deferRequest`
+				activateSuspensionAndWait(e.suspensionSeconds, triesLeft)
 			} catch (e: TooManyRequestsException) {
 				Log.d(
 					TAG, "TooManyRequestsException when downloading missed notification, waiting " +
 							e.retryAfterSeconds + "s"
 				)
-				suspensionHandler.activateSuspensionIfInactive(e.retryAfterSeconds, "missed notification")
-				// tries are not decremented and we don't return, we just wait and try again.
-				// waiting happens above with `deferRequest`
+				activateSuspensionAndWait(e.retryAfterSeconds, triesLeft)
 			} catch (e: ServerResponseException) {
 				triesLeft--
 				Log.w(TAG, e)
@@ -139,6 +149,15 @@ class TutanotaNotificationsHandler(
 			}
 		}
 		return null
+	}
+
+	private suspend fun activateSuspensionAndWait(suspensionDuration: Int, triesLeft: Int) {
+		suspensionHandler.activateSuspensionIfInactive(suspensionDuration, MISSED_NOTIFICATION_RESOURCE)
+		//Wait additional 1 second to be sure the other coroutine has ran and unset the suspension.
+		delay(TimeUnit.SECONDS.toMillis(suspensionDuration + 1L))
+		// tries are not decremented and we don't return, we just wait and try again.
+		// waiting happens here because every new try must be stopped to keep this one alive.
+		Log.d(TAG, "Waited on Delay to try again $triesLeft")
 	}
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
@@ -228,15 +247,18 @@ class TutanotaNotificationsHandler(
 		val metadatas = notificationInfos.map { notificationInfo ->
 			try {
 				val metaData = try {
-					suspensionHandler.deferRequest { downloadEmailMetadata(sseInfo, notificationInfo) }
+					suspensionHandler.deferRequest({ downloadEmailMetadata(sseInfo, notificationInfo) }, MAIL_RESOURCE)
 				} catch (e: ApiCallException.ServerResponseException) {
 					val source = e.source
 					if (source is HttpError.TooManyRequestsError && source.suspensionTimeSec != null) {
 						suspensionHandler.activateSuspensionIfInactive(
 							source.suspensionTimeSec!!.toInt(),
-							"mail"
+							MAIL_RESOURCE
 						)
-						suspensionHandler.deferRequest { downloadEmailMetadata(sseInfo, notificationInfo) }
+						suspensionHandler.deferRequest(
+							{ downloadEmailMetadata(sseInfo, notificationInfo) },
+							MAIL_RESOURCE
+						)
 					} else {
 						throw e
 					}
