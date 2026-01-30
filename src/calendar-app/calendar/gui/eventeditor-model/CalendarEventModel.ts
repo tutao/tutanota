@@ -282,7 +282,7 @@ async function selectStrategy(
 			mayRequireSendingUpdates = () => true
 			editModels = makeEditModels(cleanInitialValues)
 		} else {
-			editModels = makeEditModels(cleanInitialValues)
+			editModels = makeEditModels(existingInstanceIdentity)
 			apply = () => applyStrategies.saveExistingAlteredInstance(editModels, existingInstanceIdentity)
 			mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 		}
