@@ -2,19 +2,21 @@ import Foundation
 
 private let MISSED_NOTIFICATION_TTL_SEC: Int64 = 30 * 24 * 60 * 60  // 30 days
 
-/// Downlaods notifications and dispatches them to AlarmManager
+/// Downloads notifications and dispatches them to AlarmManager
 public class NotificationsHandler {
 	private let alarmManager: AlarmManager
 	private let notificationStorage: NotificationStorage
 	private let httpClient: HttpClient
 	private let dateProvider: DateProvider
 	private let taskQueue = AsyncQueue()
+	private let suspensionTime: UInt64
 
 	public init(alarmManager: AlarmManager, notificationStorage: NotificationStorage, httpClient: HttpClient, dateProvider: DateProvider) {
 		self.alarmManager = alarmManager
 		self.notificationStorage = notificationStorage
 		self.httpClient = httpClient
 		self.dateProvider = dateProvider
+		self.suspensionTime = 0
 	}
 
 	public func initialize() {
@@ -81,6 +83,14 @@ public class NotificationsHandler {
 			self.alarmManager.unscheduleAllAlarms(userId: nil)
 			return
 		}
+
+		// If we are suspended by another missed notification, that notification will retry after the wait time.
+		// We can safely ignore further ones as that request will also contain what the next ones would query for.
+		if self.suspensionTime > 0 {
+			printLog("MissedNotification request was suspended by another request, waiting for \(self.suspensionTime) ")
+			return
+		}
+
 		let requestTime = dateProvider.now
 
 		let url = self.missedNotificationUrl(origin: sseInfo.sseOrigin, pushIdentifier: sseInfo.pushIdentifier)
@@ -103,7 +113,10 @@ public class NotificationsHandler {
 		case .serviceUnavailable, .tooManyRequests:
 			let suspensionTime = extractSuspensionTime(from: httpResponse)
 			printLog("ServiceUnavailable when downloading missed notification, waiting for \(suspensionTime)s")
+			self.suspensionTime = suspensionTime.nanos
 			try await Task.sleep(nanoseconds: suspensionTime.nanos)
+			self.suspensionTime = 0
+			printLog("Waited for \(suspensionTime)s, retrying to fetch missed notifications")
 			try await self.doFetchMissedNotifications()
 		case .notFound: return
 		case .ok:
