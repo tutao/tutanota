@@ -44,8 +44,8 @@ import {
 	Contact,
 	ContactTypeRef,
 	ConversationEntry,
+	ConversationEntryTypeRef,
 	createTranslationGetIn,
-	File as TutanotaFile,
 	Mail,
 	MailboxProperties,
 	MailDetails,
@@ -65,7 +65,13 @@ import {
 	throttle,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids, showDownloadProgressDialog, showUndoMailSnackbar } from "../view/MailGuiUtils"
+import {
+	createInlineImage,
+	replaceCidsWithInlineImages,
+	replaceInlineImagesWithCids,
+	showDownloadProgressDialog,
+	showUndoMailSnackbar,
+} from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -128,6 +134,7 @@ import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
+import { loadMailDetails } from "../view/MailViewerUtils"
 
 // Interval where we save drafts locally.
 //
@@ -1248,22 +1255,24 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 
 		isSending = true
 		try {
+			const scheduledDate = model.getSendAtDate()
+			const undoEnabled = model.undoModel && deviceConfig.getIsUndoSendEnabled()
+			const delayDate: Date | null = !scheduledDate && undoEnabled ? new Date(new Date().getTime() + secondsToMillis(15)) : null
 			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
 			// triggered by the user, so this is acceptable.
-			const sendAtDate = model.getSendAtDate()
 			const success = await model.send(
 				MailMethod.NONE,
 				Dialog.confirm,
 				showProgressDialog,
-				sendAtDate,
-				sendAtDate ? "tooManyScheduledMails_msg" : undefined,
+				scheduledDate ?? delayDate,
+				scheduledDate ? "tooManyScheduledMails_msg" : undefined,
 			)
 			if (success) {
 				dispose()
 				dialog.close()
 
-				if (model.undoModel && deviceConfig.getIsUndoSendEnabled()) {
-					if (sendAtDate) {
+				if (undoEnabled) {
+					if (scheduledDate) {
 						// Cannot undo a scheduled mail (should just go to the scheduled folder and cancel it)
 						// But we do want to show something to confirm the email, since it will be expected that a snackbar shows when sending a mail
 						showInfoSnackbar("emailScheduled_msg")
@@ -1271,7 +1280,23 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						const undoResult = await showUndoMailSnackbar(
 							model.undoModel,
 							async () => {
-								noOp()
+								// FIXME: make sure that the model will not clear the draft before this point!
+								if (model.draft) {
+									mailLocator.mailModel.unscheduleMail(model.draft)
+									const conversationEntry = await locator.entityClient.load(ConversationEntryTypeRef, model.draft.conversationEntry)
+									// FIXME: set blockExternalContent to true because I was not sure what to do here
+									const editorDialog = await newMailEditorFromDraft(
+										model.draft,
+										await loadMailDetails(locator.mailFacade, model.draft),
+										conversationEntry,
+										model.getAttachments(),
+										model.loadedInlineImages,
+										true,
+										undefined,
+										model.mailboxDetails,
+									)
+									editorDialog?.show()
+								}
 							},
 							lang.getTranslation("emailSent_msg"),
 							UNDO_SEND_TIMEOUT,
@@ -1573,7 +1598,7 @@ export async function newMailEditorFromDraft(
 	mail: Mail,
 	mailDetails: MailDetails,
 	conversationEntry: ConversationEntry,
-	attachments: TutanotaFile[],
+	attachments: Attachment[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
 	localDraftData?: LocalAutosavedDraftData,
