@@ -522,7 +522,7 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
 	})
 
-	if (newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
+	if (editModels.whoModel.canModifyGuests && newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
 		editModels.whoModel.resetGuestsStatus()
 	}
 
