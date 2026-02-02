@@ -204,7 +204,8 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
-				if (alteredOccurrences) {
+				const userIsOrganizer = existingEvent.organizer != null && editModels.whoModel.ownGuest?.address === existingEvent.organizer.address
+				if (alteredOccurrences && userIsOrganizer) {
 					for (const occurrence of alteredOccurrences.alteredInstances) {
 						if (occurrence.attendees.length === 0) continue // TODO: WHY IS ATTENDEE LIST EMPTY?
 						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
