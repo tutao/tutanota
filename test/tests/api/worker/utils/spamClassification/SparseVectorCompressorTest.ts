@@ -58,8 +58,8 @@ export function createRandomString(length) {
 	let result = ""
 	const randomArray = new Uint8Array(length)
 	crypto.getRandomValues(randomArray)
-	randomArray.forEach((number) => {
+	for (const number of randomArray) {
 		result += chars[number % chars.length]
-	})
+	}
 	return result
 }
