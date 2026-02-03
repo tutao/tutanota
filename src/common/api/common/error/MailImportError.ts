@@ -10,6 +10,7 @@ export const enum ImportErrorCategories {
 	InvalidImportFilesErrors,
 	ImportIncomplete,
 	ConcurrentImport,
+	ImportTargetFolderDeleted,
 }
 
 export class MailImportError extends TutanotaError {

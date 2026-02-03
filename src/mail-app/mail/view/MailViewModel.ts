@@ -31,7 +31,7 @@ import {
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
+import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import {
 	getMailSetKind,
 	ImportStatus,
@@ -737,6 +737,7 @@ export class MailViewModel {
 			}
 
 			await listModel.handleEntityUpdate(update)
+
 			for (let importMailStateUpdate of importMailStateUpdates) {
 				await this.processImportedMails(importMailStateUpdate)
 			}
@@ -745,40 +746,47 @@ export class MailViewModel {
 
 	private async processImportedMails(update: EntityUpdateData<ImportMailState>) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-		const importedFolder = await this.entityClient.load(MailSetTypeRef, importMailState.targetFolder)
-
 		let status = parseInt(importMailState.status) as ImportStatus
 
 		if (status === ImportStatus.Finished || status === ImportStatus.Canceled) {
-			let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
-			if (isEmpty(importedMailEntries)) return Promise.resolve()
-			if (this._folder == null || !isSameId(this._folder._id, importMailState.targetFolder)) {
-				return
+			let importedFolder
+			try {
+				importedFolder = await this.entityClient.load(MailSetTypeRef, importMailState.targetFolder)
+			} catch (e) {
+				if (isExpectedErrorForSynchronization(e)) {
+					// in case the import folder was deleted, we can return
+					return Promise.resolve()
+				}
+				throw e
 			}
-			const listModelOfImport = assertNotNull(this._listModel)
+
+			let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+			if (isEmpty(importedMailEntries)) {
+				return Promise.resolve()
+			}
 
 			const mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
 			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
-			if (isEmpty(importedMailSetEntries)) return Promise.resolve()
+			if (isEmpty(importedMailSetEntries)) {
+				return Promise.resolve()
+			}
 
 			// put mails into the cache before the list model downloads them one by one
 			await this.preloadMails(importedMailSetEntries)
 
-			let selectedFolder = this.getFolder()
-			if (selectedFolder != null && isSameId(importMailState.targetFolder, selectedFolder?._id)) {
-				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
-					return listModelOfImport.handleEntityUpdate({
-						instanceId: elementIdPart(importedMailSetEntry._id),
-						instanceListId: importedFolder.entries as NonEmptyString,
-						operation: OperationType.CREATE,
-						typeRef: MailSetEntryTypeRef,
-						instance: null,
-						patches: null,
-						prefetchStatus: PrefetchStatus.Prefetched,
-					})
+			const listModelOfImport = assertNotNull(this._listModel)
+			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
+				return listModelOfImport.handleEntityUpdate({
+					instanceId: elementIdPart(importedMailSetEntry._id),
+					instanceListId: importedFolder.entries as NonEmptyString,
+					operation: OperationType.CREATE,
+					typeRef: MailSetEntryTypeRef,
+					instance: null,
+					patches: null,
+					prefetchStatus: PrefetchStatus.Prefetched,
 				})
-			}
+			})
 		}
 	}
 

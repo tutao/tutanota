@@ -213,6 +213,8 @@ impl FromStr for UsageTestFailureReason {
 pub enum ImportFailureReason {
 	#[error("ImportDisabled")]
 	ImportDisabled,
+	#[error("ImportTargetFolderDeleted")]
+	ImportTargetFolderDeleted,
 }
 
 impl FromStr for ImportFailureReason {
@@ -222,6 +224,7 @@ impl FromStr for ImportFailureReason {
 		use ImportFailureReason::*;
 		match s {
 			"import.disabled" => Ok(ImportDisabled),
+			"import.target_folder_deleted" => Ok(ImportTargetFolderDeleted),
 			_ => Err(ParseFailureError),
 		}
 	}
@@ -453,6 +456,16 @@ mod tests {
 		let expected_reason =
 			PreconditionFailedReason::ImportFailure(ImportFailureReason::ImportDisabled);
 		assert_precondition_failed_error(Some("import.disabled"), Some(expected_reason))
+	}
+
+	#[test]
+	fn from_http_response_precondition_failed_error_import_reason_target_folder_deleted_test() {
+		let expected_reason =
+			PreconditionFailedReason::ImportFailure(ImportFailureReason::ImportTargetFolderDeleted);
+		assert_precondition_failed_error(
+			Some("import.target_folder_deleted"),
+			Some(expected_reason),
+		)
 	}
 
 	/// Returns the Ok value from `from_http_response` and panics if the value is None
