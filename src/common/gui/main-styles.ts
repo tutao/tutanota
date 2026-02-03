@@ -939,7 +939,7 @@ styles.registerStyle("main", () => {
 		},
 		"*": {
 			"scrollbar-color": `${theme.on_surface_variant} transparent`,
-			"scrollbar-width": "thin",
+			"scrollbar-width": !client.isMobileDevice() ? "thin" : "none",
 		},
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
