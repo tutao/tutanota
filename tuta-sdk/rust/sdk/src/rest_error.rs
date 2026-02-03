@@ -352,7 +352,7 @@ impl HttpError {
 			405 => Ok(MethodNotAllowedError),
 			408 => Ok(RequestTimeoutError),
 			412 => {
-				let reason = match headers.get(PRECONDITION_HEADER) {
+				let reason = match headers.get(PRECONDITION_FAILED_HEADER) {
 					Some(x) => Some(PreconditionFailedReason::from_str(x)?),
 					None => None,
 				};
@@ -388,7 +388,7 @@ impl HttpError {
 /// Swift and Kotlin impls also uphold this contract.
 pub const RETRY_AFTER_HEADER: &str = "retry-after";
 pub const SUSPENSION_TIME_HEADER: &str = "suspension-time";
-const PRECONDITION_HEADER: &str = "precondition";
+pub const PRECONDITION_FAILED_HEADER: &str = "precondition";
 
 fn get_suspension_time_sec(headers: &HashMap<String, String>) -> Option<u64> {
 	let time = headers
@@ -459,8 +459,10 @@ mod tests {
 	fn assert_from_http_response(status: u32, precondition: Option<&str>) -> HttpError {
 		let mut headers = HashMap::new();
 		if let Some(precondition) = precondition {
-			// important: the header names are expected to be lowercase
-			headers.insert("precondition".to_owned(), precondition.to_owned());
+			headers.insert(
+				PRECONDITION_FAILED_HEADER.to_string(),
+				precondition.to_owned(),
+			);
 		}
 		let result = HttpError::from_http_response(status, &headers);
 		result.expect("An error occurred while testing precondition_failed!")
