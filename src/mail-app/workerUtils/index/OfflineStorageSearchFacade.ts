@@ -64,15 +64,6 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			// An empty string will match any ID
 			const idToSearch = first(restriction.folderIds) ?? ""
 
-			// Match a field to a column.
-			//
-			// In FTS5, single columns are matched like `column : "token1" "token2"` or, for multiple columns (as OR), you
-			// can use `{column1 column2} : "token1" "token2" (note that matching one column like this is also allowed).
-			//
-			// Otherwise, we pass the query string as-is.
-			const columnList = mailFieldToColumn(restriction.field)?.join(" ")
-			const queryString = columnList != null ? `{${columnList}} : ${normalizedQuery}` : normalizedQuery
-
 			// Do the actual search query.
 			//
 			// This will also filter based on date range and sets, and it will order by received date in descending order so
@@ -80,6 +71,11 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			//
 			// Note: We use instr() for checking for sets, but there's a small gotcha: instr() is 1-indexed, returning 0
 			// if not found, 1 for the first char, etc.; see https://www.sqlitetutorial.net/sqlite-functions/sqlite-instr/
+			//
+			// Field filtering: FTS5 contentless tables ignore column filters (e.g., {sender} : term), so we must
+			// filter by the actual field content stored in content_mail_index using SQL WHERE clauses.
+			// We check if ALL tokens appear in the target field(s) using INSTR for each token.
+			const fieldFilter = this.buildFieldFilterClause(tokens, restriction.field)
 			const preparedSqlQuery = sql`
                 SELECT list_entities.listId,
                        list_entities.elementId
@@ -88,10 +84,11 @@ export class OfflineStorageSearchFacade implements SearchFacade {
                     mail_index.rowid = list_entities.rowid
                          INNER JOIN content_mail_index ON
                     list_entities.rowid = content_mail_index.rowid
-                WHERE mail_index = ${queryString}
+                WHERE mail_index = ${normalizedQuery}
                   AND instr(content_mail_index.sets, ${idToSearch}) > 0
                   AND content_mail_index.receivedDate <= ${restriction.start ?? Number.MAX_SAFE_INTEGER}
                   AND content_mail_index.receivedDate >= ${restriction.end ?? 0}
+                  ${fieldFilter}
                 ORDER BY content_mail_index.receivedDate DESC`
 			const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 			const resultIds = resultRows.map(({ listId, elementId }) => {
@@ -223,9 +220,80 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 
 		return normalizedQuery.join(" ")
 	}
+
+	/**
+	 * Build a SQL clause to filter search results by specific mail fields.
+	 *
+	 * FTS5 contentless tables ignore column filters (e.g., {sender} : term), so we need to
+	 * filter by the actual field content stored in content_mail_index using SQL WHERE clauses.
+	 * For each token, we check if it appears in the target field(s) using INSTR (case-insensitive via LOWER).
+	 *
+	 * @param tokens the search tokens
+	 * @param field the field to filter by (null means no field filtering)
+	 * @returns SQL clause string to append to WHERE, or empty string if no filtering needed
+	 * @private
+	 */
+	private buildFieldFilterClause(tokens: readonly SearchToken[], field: string | null): string {
+		if (field == null) {
+			return ""
+		}
+
+		const columns = mailFieldToContentColumn(field)
+		if (columns == null) {
+			return ""
+		}
+
+		// For each token, we need to ensure it appears in at least one of the target columns.
+		// We use LOWER() for case-insensitive matching and INSTR to check for substring presence.
+		const tokenClauses: string[] = []
+		for (const token of tokens) {
+			const columnChecks = columns.map((col) => `INSTR(LOWER(content_mail_index.${col}), LOWER('${this.escapeForSql(token.token)}')) > 0`)
+			// Token must appear in at least one of the target columns
+			tokenClauses.push(`(${columnChecks.join(" OR ")})`)
+		}
+
+		if (tokenClauses.length === 0) {
+			return ""
+		}
+
+		// All tokens must match (AND between token clauses)
+		return `AND (${tokenClauses.join(" AND ")})`
+	}
+
+	/**
+	 * Escape a string for safe use in SQL. Escapes single quotes by doubling them.
+	 * @private
+	 */
+	private escapeForSql(value: string): string {
+		return value.replace(/'/g, "''")
+	}
+}
+
+/**
+ * Map search field names to content_mail_index column names for field-specific filtering.
+ * Note: subject, body, and attachments are NOT stored in content_mail_index,
+ * so field filtering for those is not supported (falls back to FTS5 matching).
+ */
+function mailFieldToContentColumn(field: string | null): string[] | null {
+	switch (field) {
+		case null:
+			return null
+		case "from":
+			return ["sender"]
+		case "to":
+			return ["toRecipients", "ccRecipients", "bccRecipients"]
+		case "subject":
+		case "body":
+		case "attachment":
+			// These fields are not stored in content_mail_index, so no additional filtering possible
+			return null
+		default:
+			throw new ProgrammingError(`Unknown field "${field}" passed into mailFieldToContentColumn`)
+	}
 }
 
 // Important: This should be kept up-to-date with SEARCH_MAIL_FIELDS
+// Note: This function is no longer used for contentless FTS5 filtering but kept for reference
 function mailFieldToColumn(field: string | null): string[] | null {
 	switch (field) {
 		case null:

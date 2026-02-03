@@ -43,8 +43,11 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 
 	// Content of the mail that we might need while matching, but that should not be indexed by fts5
 	// we would love to use the contentless_unindexed option, but it's only available from SQLite 3.47.0 onwards
+	// Note: We store sender/recipient fields here because FTS5 contentless tables ignore column filters,
+	// so we need to filter by these fields using regular SQL WHERE clauses.
 	content_mail_index: {
-		definition: "CREATE TABLE IF NOT EXISTS content_mail_index (receivedDate NUMBER NOT NULL, sets STRING NOT NULL)",
+		definition:
+			"CREATE TABLE IF NOT EXISTS content_mail_index (receivedDate NUMBER NOT NULL, sets STRING NOT NULL, sender STRING NOT NULL DEFAULT '', toRecipients STRING NOT NULL DEFAULT '', ccRecipients STRING NOT NULL DEFAULT '', bccRecipients STRING NOT NULL DEFAULT '')",
 		purgedWithCache: true,
 	},
 
@@ -156,10 +159,14 @@ export class OfflineStoragePersistence {
 			const serializedSets = this.formatSetsValue(mail)
 
 			const contentQuery = sql`INSERT
-            OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
+            OR REPLACE INTO content_mail_index(rowid, sets, receivedDate, sender, toRecipients, ccRecipients, bccRecipients) VALUES (
             ${rowid},
             ${serializedSets},
-            ${mail.receivedDate.getTime()}
+            ${mail.receivedDate.getTime()},
+            ${serializeMailAddresses([mail.sender])},
+            ${serializeMailAddresses(recipients.toRecipients)},
+            ${serializeMailAddresses(recipients.ccRecipients)},
+            ${serializeMailAddresses(recipients.bccRecipients)}
             )`
 			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}

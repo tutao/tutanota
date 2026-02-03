@@ -9,6 +9,7 @@ import { offline8 } from "./migrations/offline-v8"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { offline9 } from "./migrations/offline-v9"
 import { offline10 } from "./migrations/offline-v10"
+import { offline11 } from "./migrations/offline-v11"
 
 export interface OfflineMigration {
 	readonly version: number
@@ -22,11 +23,11 @@ export interface OfflineMigration {
  * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
-export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [offline5, offline6, offline7, offline8, offline9, offline10]
+export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [offline5, offline6, offline7, offline8, offline9, offline10, offline11]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
 // and we create a new offline database, we still need to set the offline version to the current value.
-export const CURRENT_OFFLINE_VERSION = 10
+export const CURRENT_OFFLINE_VERSION = 11
 
 /**
  * Migrator for the offline storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an
