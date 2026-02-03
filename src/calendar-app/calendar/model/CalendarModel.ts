@@ -8,6 +8,7 @@ import {
 	delay,
 	downcast,
 	filterInt,
+	findAndRemove,
 	getFromMap,
 	isNotEmpty,
 	isSameDay,
@@ -1107,11 +1108,26 @@ export class CalendarModel {
 			} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
 				return await this.processCalendarUpdate(target, targetDbEvent, parsedCalendarDataEvent)
 			} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
-				return await this.deletePersistedEvents(targetDbEvent)
+				return await this.processCalendarCancel(target, targetDbEvent)
 			} else {
 				console.log(TAG, `${method} update sent not by organizer, ignoring.`)
 			}
 		}
+	}
+
+	private async processCalendarCancel(target: CalendarEventUidIndexEntry, targetDbEvent: CalendarEventInstance) {
+		const progenitor = target.progenitor
+		if (progenitor && progenitor.repeatRule?.excludedDates) {
+			const newProgenitor = clone(progenitor)
+			const exclusionDateRemoved = findAndRemove(
+				newProgenitor.repeatRule!.excludedDates,
+				(dateWrapper) => dateWrapper.date.getTime() === targetDbEvent.recurrenceId?.getTime(),
+			)
+			if (exclusionDateRemoved) {
+				await this.doUpdateEvent(progenitor, newProgenitor)
+			}
+		}
+		return await this.deletePersistedEvents(targetDbEvent)
 	}
 
 	/** process either a request for an existing progenitor or an existing altered instance.

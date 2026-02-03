@@ -17,6 +17,7 @@ import { EventController } from "../../../src/common/api/main/EventController.js
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
 	AlarmInfoTypeRef,
+	createDateWrapper,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMember,
@@ -680,6 +681,11 @@ o.spec("CalendarModel", function () {
 		let baseParsedEvent: ParsedEvent
 
 		o.beforeEach(function () {
+			userGroupInfo = object()
+			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddress = GUEST
+			userControllerMock.userGroupInfo = userGroupInfo
+
 			baseParsedEvent = {
 				event: createTestEntity(CalendarEventTypeRef, {
 					uid,
@@ -703,7 +709,7 @@ o.spec("CalendarModel", function () {
 			o(deletedEventCaptor.value).deepEquals(baseExistingProgenitor)
 		})
 
-		o("altered instance is deleted from guest's calendar when cancelled by organizer", async function () {
+		o("altered instance is deleted from guest's calendar when cancelled by organizer and progenitor is not updated", async function () {
 			baseParsedEvent.event.summary = "Altered Instance"
 			baseParsedEvent.event.recurrenceId = new Date()
 			baseParsedEvent.event.repeatRule = null
@@ -718,7 +724,39 @@ o.spec("CalendarModel", function () {
 			const deletedEventCaptor = matchers.captor()
 			verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
 			o(deletedEventCaptor.value).deepEquals(baseParsedEvent.event)
+
+			verify(calendarFacadeMock.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
+
+		o(
+			"altered instance is deleted from guest's calendar when cancelled by organizer and updates progenitor by removing its exclusion date",
+			async function () {
+				baseParsedEvent.event.summary = "Altered Instance"
+				baseParsedEvent.event.recurrenceId = new Date()
+				baseParsedEvent.event.repeatRule = null
+				baseParsedEvent.event.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
+					address: ORGANIZER,
+				})
+				baseCalendarEventUidIndexEntry.alteredInstances.push(baseParsedEvent.event as CalendarEventAlteredInstance)
+
+				baseExistingProgenitor.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					excludedDates: [createDateWrapper({ date: baseParsedEvent.event.recurrenceId })],
+				})
+
+				when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+
+				await calendarModel.processCalendarData(ORGANIZER, baseParsedCalendarDataCancel)
+
+				const deletedEventCaptor = matchers.captor()
+				verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
+				o(deletedEventCaptor.value).deepEquals(baseParsedEvent.event)
+
+				const progenitorCaptor = matchers.captor()
+				verify(calendarFacadeMock.updateCalendarEvent(progenitorCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
+				const capturedProgenitor: CalendarEventProgenitor = progenitorCaptor.value
+				o.check(capturedProgenitor.repeatRule?.excludedDates.length).equals(0)
+			},
+		)
 
 		o("event cannot be cancelled by someone other than organizer", async function () {
 			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
