@@ -1,13 +1,4 @@
-import {
-	ImporterApi,
-	ImportErrorKind,
-	ImportOkKind,
-	ImportProgressAction,
-	MailImportErrorMessage,
-	MailImportMessage,
-	PreparationError,
-	TutaCredentials,
-} from "@tutao/node-mimimi"
+import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/node-mimimi"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
@@ -29,6 +20,7 @@ export type ImportErrorData =
 	| { category: ImportErrorCategories.ServerCommunicationError; source: string }
 	| { category: ImportErrorCategories.InvalidImportFilesErrors; source: string }
 	| { category: ImportErrorCategories.ImportIncomplete; source: string }
+	| { category: ImportErrorCategories.ImportTargetFolderDeleted; source: string }
 
 function asyncImportErrorToMailImportErrorData(message: MailImportErrorMessage): ImportErrorData {
 	const { kind } = message
@@ -46,6 +38,9 @@ function asyncImportErrorToMailImportErrorData(message: MailImportErrorMessage):
 		case ImportErrorKind.TooBigChunk:
 		case ImportErrorKind.SourceExhaustedSomeError:
 			return { category: ImportErrorCategories.ImportIncomplete, source: kind }
+
+		case ImportErrorKind.ImportTargetFolderDeleted:
+			return { category: ImportErrorCategories.ImportTargetFolderDeleted, source: kind }
 	}
 }
 
@@ -168,7 +163,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		try {
 			importerApi = await importerApiPromise
 		} catch (e) {
-			this.showImportFailNotification(null)
+			this.showImportFailNotification(null, ImportErrorCategories.LocalSdkError)
 			throw new MailImportError(mimimiErrorToImportErrorData(e))
 		}
 		importerApi.setMessageHook((message: MailImportMessage) => this.processMimimiMessage(mailboxId, message))
@@ -241,10 +236,10 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		// this is the only category where it does not make sense for user to retry
 		// because we would have already cleaned up the local state and all the files will be renamed to failed.eml
-		if (errorData.category === ImportErrorCategories.ImportIncomplete) {
+		if (errorData.category === ImportErrorCategories.ImportIncomplete || errorData.category === ImportErrorCategories.ImportTargetFolderDeleted) {
 			this.importerApis.delete(mailboxId)
 		}
-		this.showImportFailNotification(mailboxId)
+		this.showImportFailNotification(mailboxId, errorData.category)
 
 		let listeners = this.currentListeners.get(mailboxId)
 		if (listeners != null) {
@@ -261,13 +256,14 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	 *
 	 * @param mailboxId this is the name of the import  subdirectory we show on click. if null, the notification does nothing,
 	 * for example if the directory hasn't been created yet.
+	 * @param errorCategory
 	 */
-	private showImportFailNotification(mailboxId: string | null) {
+	private showImportFailNotification(mailboxId: string | null, errorCategory: ImportErrorCategories) {
 		this.notifier.showOneShot({
 			title: this.lang.get("importIncomplete_title"),
 			body: this.lang.get("importIncomplete_msg"),
 			onClick: () => {
-				if (mailboxId != null) {
+				if (mailboxId != null && errorCategory === ImportErrorCategories.ImportIncomplete) {
 					this.electron.shell.showItemInFolder(path.join(this.configDirectory, "current_imports", mailboxId, "dummy.eml"))
 				}
 			},

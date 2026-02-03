@@ -819,6 +819,7 @@ export default {
 		"importPre1970StartInEvent_msg": "{amount} of {total} events start or end before 1970 and will not be imported.",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importTargetFolderDeleted_msg": "Import canceled, the import folder was deleted.",
+		"importFailedConcurrentImport_msg": "Import failed, another import is already in progress.",
 		"importUsers_action": "Import users",
 		"importVCard_action": "Import vCard",
 		"importVCardError_msg": "Can not read vCard file.",
