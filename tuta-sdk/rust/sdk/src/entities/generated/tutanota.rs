@@ -1294,6 +1294,8 @@ pub struct SendDraftData {
 	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
 	#[serde(rename = "1809")]
 	pub sendAt: Option<DateTime>,
+	#[serde(rename = "1812")]
+	pub allowUndo: bool,
 	#[serde(rename = "553")]
 	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
 	#[serde(rename = "554")]
