@@ -915,7 +915,7 @@ export default {
 		"keyManagement.keyVerification_subtitle_label": "Here you can manage your verified keys.",
 		"keyManagement.mailRecipientsVerificationMismatchError_msg": "This email couldn't be sent because key verification failed for the recipients listed below. Sending remains disabled until those recipients have been removed or their keys re-verified.",
 		"keyManagement.permissionWaiting_msg": "Waiting for permission",
-		"keyManagement.publicKeyFingerprintQrInfo_msg": "This is the verification code of the public key associated with your user account, embedded in a QR code.",
+		"keyManagement.publicKeyFingerprintQrInfo_msg": "This is the verification code of the public key associated with your user account, embedded in a QR code. Please note: This is not the recovery code you need if you have forgotten your password.",
 		"keyManagement.qrCode_label": "QR code",
 		"keyManagement.qrCodeInvalid_msg": "The scanned verification QR code is not supported.",
 		"keyManagement.qrMailAddressNotFound_msg": "The email address in this QR code does not exist. Make sure the QR code is up to date.",

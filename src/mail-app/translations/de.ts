@@ -915,7 +915,7 @@ export default {
 		"keyManagement.keyVerification_subtitle_label": "Hier kannst du deine verifizierten Schlüssel verwalten.",
 		"keyManagement.mailRecipientsVerificationMismatchError_msg": "Diese E-Mail konnte nicht gesendet werden, da die Schlüsselüberprüfung für die unten aufgeführten Empfänger fehlgeschlagen ist. Der Versand bleibt deaktiviert, bis diese Empfänger entfernt oder ihre Schlüssel erneut verifiziert wurden.",
 		"keyManagement.permissionWaiting_msg": "Warte auf Berechtigung",
-		"keyManagement.publicKeyFingerprintQrInfo_msg": "Dies ist der Verifizierungscode des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels, dargestellt als QR-Code.",
+		"keyManagement.publicKeyFingerprintQrInfo_msg": "Dies ist der Verifizierungscode des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels, dargestellt als QR-Code. Achtung: Dies ist nicht der Wiederherstellungs-Code, den du benötigst, wenn du dein Passwort vergessen hast.",
 		"keyManagement.qrCode_label": "QR-Code",
 		"keyManagement.qrCodeInvalid_msg": "Der gescannte Verifizierungs-QR-Code wird nicht unterstützt.",
 		"keyManagement.qrMailAddressNotFound_msg": "Die E-Mail-Adresse in diesem QR-Code existiert nicht. Stelle sicher, dass der QR-Code aktuell ist.",
