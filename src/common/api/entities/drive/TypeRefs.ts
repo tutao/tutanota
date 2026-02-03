@@ -137,6 +137,7 @@ export type DriveUploadedFile = {
 	fileName: string;
 	mimeType: string;
 	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
@@ -153,6 +154,7 @@ export type DrivePostIn = {
 	_format: NumberString;
 	ownerEncRootFolderSessionKey: Uint8Array;
 	ownerEncTrashFolderSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 
 	fileGroupId: Id;
 }
@@ -232,6 +234,7 @@ export type DriveFolderServicePostIn = {
 	_format: NumberString;
 	folderName: string;
 	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
 
 	parent: IdTuple;
 }

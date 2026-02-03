@@ -9,7 +9,7 @@ export const typeModels = {
 	"0": {
 		"name": "DriveFolder",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 0,
@@ -132,7 +132,7 @@ export const typeModels = {
 	"14": {
 		"name": "DriveFile",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 14,
@@ -263,7 +263,7 @@ export const typeModels = {
 	"30": {
 		"name": "DriveFileRef",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 30,
@@ -329,7 +329,7 @@ export const typeModels = {
 	"39": {
 		"name": "DriveFileBag",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 39,
@@ -362,7 +362,7 @@ export const typeModels = {
 	"42": {
 		"name": "DriveFolderBag",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 42,
@@ -395,7 +395,7 @@ export const typeModels = {
 	"45": {
 		"name": "DriveGroupRoot",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "ELEMENT_TYPE",
 		"id": 45,
@@ -479,7 +479,7 @@ export const typeModels = {
 	"55": {
 		"name": "DriveUploadedFile",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 55,
@@ -519,6 +519,14 @@ export const typeModels = {
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"112": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 112,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -536,7 +544,7 @@ export const typeModels = {
 	"61": {
 		"name": "DrivePostIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 61,
@@ -568,6 +576,14 @@ export const typeModels = {
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"113": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 113,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -585,7 +601,7 @@ export const typeModels = {
 	"67": {
 		"name": "DriveItemPostIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 67,
@@ -627,7 +643,7 @@ export const typeModels = {
 	"71": {
 		"name": "DriveItemPostOut",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 71,
@@ -660,7 +676,7 @@ export const typeModels = {
 	"74": {
 		"name": "DriveItemPutIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 74,
@@ -710,7 +726,7 @@ export const typeModels = {
 	"79": {
 		"name": "DriveItemDeleteIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 79,
@@ -752,7 +768,7 @@ export const typeModels = {
 	"84": {
 		"name": "DriveFolderServicePostIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 84,
@@ -784,6 +800,14 @@ export const typeModels = {
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"114": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 114,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -801,7 +825,7 @@ export const typeModels = {
 	"89": {
 		"name": "DriveFolderServicePostOut",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 89,
@@ -834,7 +858,7 @@ export const typeModels = {
 	"92": {
 		"name": "DriveRenameData",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 92,
@@ -884,7 +908,7 @@ export const typeModels = {
 	"97": {
 		"name": "DriveFolderServicePutIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 97,
@@ -926,7 +950,7 @@ export const typeModels = {
 	"101": {
 		"name": "DriveFolderServiceDeleteIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 101,
@@ -976,7 +1000,7 @@ export const typeModels = {
 	"107": {
 		"name": "DriveCopyServicePostIn",
 		"app": "drive",
-		"version": 1,
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 107,

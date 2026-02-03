@@ -156,6 +156,7 @@ export class DriveFacade {
 			DriveService,
 			createDrivePostIn({
 				fileGroupId: fileGroupId,
+				ownerKeyVersion: String(fileGroupKey.version),
 				ownerEncRootFolderSessionKey: encRootFolderSessionKey,
 				ownerEncTrashFolderSessionKey: encTrashFolderSessionKey,
 			}),
@@ -219,6 +220,7 @@ export class DriveFacade {
 			fileName: fileName,
 			mimeType: getCleanedMimeType(file.type),
 			ownerEncSessionKey: ownerEncSessionKey,
+			ownerKeyVersion: String(fileGroupKey.version),
 			_ownerGroup: assertNotNull(fileGroupId),
 		})
 		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
@@ -245,6 +247,7 @@ export class DriveFacade {
 			folderName,
 			parent: parentFolder,
 			ownerEncSessionKey,
+			ownerKeyVersion: String(fileGroupKey.version),
 		})
 		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { sessionKey })
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)

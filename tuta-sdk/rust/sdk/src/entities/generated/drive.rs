@@ -198,6 +198,8 @@ pub struct DriveUploadedFile {
 	#[serde(rename = "59")]
 	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "112")]
+	pub ownerKeyVersion: i64,
 	#[serde(rename = "60")]
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 
@@ -225,6 +227,8 @@ pub struct DrivePostIn {
 	#[serde(rename = "65")]
 	#[serde(with = "serde_bytes")]
 	pub ownerEncTrashFolderSessionKey: Vec<u8>,
+	#[serde(rename = "113")]
+	pub ownerKeyVersion: i64,
 	#[serde(rename = "63")]
 	pub fileGroupId: GeneratedId,
 }
@@ -334,6 +338,8 @@ pub struct DriveFolderServicePostIn {
 	#[serde(rename = "87")]
 	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "114")]
+	pub ownerKeyVersion: i64,
 	#[serde(rename = "88")]
 	pub parent: IdTupleGenerated,
 
