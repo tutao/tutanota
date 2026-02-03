@@ -6,12 +6,16 @@ import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
+import { px } from "../../../common/gui/size"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper
 	startsBefore: boolean
 	endsAfter: boolean
+	backgroundColor: string
 	color: string
+	border: string
+	height: number
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	showTime: EventTextTimeOption | null
@@ -29,22 +33,27 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 	view({ attrs }: Vnode<LegacyContinuingCalendarEventBubbleAttrs>): Children {
 		const eventTitle = getDisplayEventTitle(attrs.eventWrapper.event.summary)
 
+		const normalizedBackgroundColor = attrs.backgroundColor.includes("#") ? attrs.backgroundColor : `#${attrs.backgroundColor}`
+
 		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.startsBefore
 				? m(".event-continues-right-arrow", {
 						style: {
 							"border-left-color": "transparent",
-							"border-top-color": "#" + attrs.color,
-							"border-bottom-color": "#" + attrs.color,
+							"border-top-color": normalizedBackgroundColor,
+							"border-bottom-color": normalizedBackgroundColor,
 							opacity: attrs.opacity,
+							height: px(attrs.height),
 						},
 					})
 				: null,
 			m(
 				".flex-grow.overflow-hidden",
 				m(LegacyCalendarEventBubble, {
-					text: (attrs.showTime != null ? formatEventTime(attrs.eventWrapper.event, attrs.showTime) + " " : "") + eventTitle,
 					color: attrs.color,
+					border: attrs.border,
+					text: (attrs.showTime != null ? formatEventTime(attrs.eventWrapper.event, attrs.showTime) + " " : "") + eventTitle,
+					backgroundColor: normalizedBackgroundColor,
 					click: (e) => attrs.onEventClicked(attrs.eventWrapper.event, e),
 					keyDown: (e) => attrs.onEventKeyDown(attrs.eventWrapper.event, e),
 					noBorderLeft: attrs.startsBefore,
@@ -60,8 +69,9 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 			attrs.endsAfter
 				? m(".event-continues-right-arrow", {
 						style: {
-							"border-left-color": "#" + attrs.color,
+							"border-left-color": normalizedBackgroundColor,
 							opacity: attrs.opacity,
+							height: px(attrs.height),
 						},
 					})
 				: null,

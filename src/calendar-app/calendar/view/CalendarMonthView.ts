@@ -14,12 +14,12 @@ import {
 } from "../../../common/calendar/date/CalendarUtils"
 import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { styles } from "../../../common/gui/styles"
-import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
-import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
+import { colorForBg, getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import {
@@ -45,6 +45,7 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
+import { theme } from "../../../common/gui/theme"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -71,7 +72,7 @@ type SimplePosRect = {
 /** height of the day number indicator at the top of the day square */
 const dayHeight = () => (styles.isDesktopLayout() ? 32 : 24)
 
-const spaceBetweenEvents = () => (styles.isDesktopLayout() ? 2 : 1)
+const spaceBetweenEvents = styles.isDesktopLayout() ? 2 : 1
 
 const EVENT_BUBBLE_VERTICAL_OFFSET = 5
 
@@ -397,7 +398,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 		const weekHeight = this.getHeightForWeek()
 
-		const eventHeight = layout_size.calendar_line_height + spaceBetweenEvents() // height + border
+		const eventHeight = CALENDAR_EVENT_HEIGHT + spaceBetweenEvents // height + gap
 
 		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
 		const numberOfEventsPerDayToRender = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
@@ -510,9 +511,12 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			},
 			m(LegacyContinuingCalendarEventBubble, {
 				eventWrapper: eventWrapper,
-				startsBefore: eventStart < firstDayOfWeek,
+				startsBefore: isBefore(eventStart, firstDayOfWeek),
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				color: eventWrapper.color,
+				backgroundColor: eventWrapper.flags.isGhost ? theme.surface_container_high : eventWrapper.color,
+				color: eventWrapper.flags.isGhost ? theme.on_surface_variant : colorForBg("#" + eventWrapper.color),
+				border: eventWrapper.flags.isGhost ? `1px dashed ${theme.outline}` : `1px solid #${eventWrapper.color}`,
+				height: styles.isDesktopLayout() ? CALENDAR_EVENT_HEIGHT : 19, // Honestly we are not sure why, but for mobile the inner component has a decimal sized border, around 0.6 and ends up rounding the size to 19px
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {
@@ -537,7 +541,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		calendarDayHeight: number,
 		columnIndex: number,
 	): SimplePosRect {
-		const top = (layout_size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
+		const top = (CALENDAR_EVENT_HEIGHT + spaceBetweenEvents) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
 		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
 		const calendarEventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
