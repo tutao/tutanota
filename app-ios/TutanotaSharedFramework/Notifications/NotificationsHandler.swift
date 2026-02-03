@@ -84,11 +84,11 @@ public class NotificationsHandler {
 			return
 		}
 
-        // If we are suspended by another missed notification, that notification will retry after the wait time.
-        // We can safely ignore further ones as that request will also contain what the next ones would query for.
-		if self.suspensionTime > 0  {
-		    printLog("MissedNotification request was suspended by another request, waiting for \(self.suspensionTime) ")
-            return
+		// If we are suspended by another missed notification, that notification will retry after the wait time.
+		// We can safely ignore further ones as that request will also contain what the next ones would query for.
+		if self.suspensionTime > 0 {
+			printLog("MissedNotification request was suspended by another request, waiting for \(self.suspensionTime) ")
+			return
 		}
 
 		let requestTime = dateProvider.now
