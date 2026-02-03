@@ -412,6 +412,9 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 	}
 
 	private prepareEventDrag(eventWrapper: EventWrapper, keepTime: boolean) {
+		if (eventWrapper.flags.isGhost) {
+			return
+		}
 		const lastMousePos = this.dragState.lastMousePos
 
 		if (this.dragState.dateUnderMouse && lastMousePos) {
