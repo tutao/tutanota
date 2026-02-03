@@ -2215,5 +2215,7 @@ export type TranslationKeyType =
 	| "importFailedConcurrentImport_msg"
 	| "tooManyAttachments_msg"
 	| "cannotMoveFolderIntoItself_msg"
+	| "importFailedTargetFolderDeleted_msg"
+	| "importFailedConcurrentImport_msg"
 	| "transferWaiting_msg"
 	| "emptyString_msg"

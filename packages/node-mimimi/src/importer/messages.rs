@@ -10,16 +10,20 @@ pub enum ImportErrorKind {
 	SdkError,
 	/// No import feature on the server (it's disabled)
 	ImportFeatureDisabled,
-	/// Blob responded with empty server url list
+	/// Blob responded with an empty server url list
 	EmptyBlobServerList,
 	/// Some mail was too big
 	TooBigChunk,
-	/// Error that occured when deleting a file
+	/// Error that occurred when deleting a file
 	FileDeletionError,
 	/// The import was finished, but some files
 	/// were left behind and marked as failures.
 	/// the path is the directory where the failures can be inspected
 	SourceExhaustedSomeError,
+	/// This is returned when the server canceled an
+	/// ongoing import because the target MailSet is
+	/// deleted, and we therefore cannot continue the import.
+	ImportTargetFolderDeleted,
 }
 
 #[napi_derive::napi(string_enum)]
@@ -175,6 +179,12 @@ impl ImportErrorKind {
 			ImportFailureReason::ImportDisabled,
 		))),
 	};
+
+	pub const IMPORT_TARGET_FOLDER_DELETED: ApiCallError = ApiCallError::ServerResponseError {
+		source: HttpError::PreconditionFailedError(Some(ImportFailure(
+			ImportFailureReason::ImportTargetFolderDeleted,
+		))),
+	};
 }
 
 impl MailImportErrorMessage {
@@ -184,6 +194,8 @@ impl MailImportErrorMessage {
 
 		let kind = if error == ImportErrorKind::IMPORT_DISABLED_ERROR {
 			ImportErrorKind::ImportFeatureDisabled
+		} else if error == ImportErrorKind::IMPORT_TARGET_FOLDER_DELETED {
+			ImportErrorKind::ImportTargetFolderDeleted
 		} else {
 			ImportErrorKind::SdkError
 		};

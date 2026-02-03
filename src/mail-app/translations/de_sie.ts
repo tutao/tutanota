@@ -819,6 +819,7 @@ export default {
 		"importPre1970StartInEvent_msg": "{amount} von {total} Terminen liegen vor 1970 und werden nicht importiert.",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importTargetFolderDeleted_msg": "Der Import wurde abgebrochen, da der Importordner gelöscht wurde.",
+		"importFailedConcurrentImport_msg": "Der Import ist fehlgeschlagen, ein anderer Import läuft bereits.",
 		"importUsers_action": "Benutzer*innen importieren",
 		"importVCard_action": "VCard importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",

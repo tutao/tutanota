@@ -28,16 +28,11 @@ import { client } from "../../common/misc/ClientDetector"
  */
 export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer {
 	private isImportHistoryExpanded: boolean = true
-	private importStatePoolHandle: TimeoutID
 
 	constructor(private readonly mailImporter: lazy<MailImporter>) {}
 
 	async oninit(): Promise<void> {
 		await this.mailImporter().initImportMailStates()
-	}
-
-	onbeforeremove(): void {
-		clearInterval(this.importStatePoolHandle)
 	}
 
 	view(): Children {
