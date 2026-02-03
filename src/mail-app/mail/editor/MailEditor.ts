@@ -65,7 +65,13 @@ import {
 	throttle,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids, showDownloadProgressDialog, showUndoMailSnackbar } from "../view/MailGuiUtils"
+import {
+	createInlineImage,
+	replaceCidsWithInlineImages,
+	replaceInlineImagesWithCids,
+	showDownloadProgressDialog,
+	showUndoMailSnackbar,
+} from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -1251,27 +1257,33 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
 			// triggered by the user, so this is acceptable.
 			const sendAtDate = model.getSendAtDate()
-			const success = await model.send(
+			const allowUndo = model.undoModel != null && deviceConfig.getIsUndoSendEnabled()
+
+			const sendResult = await model.send(
 				MailMethod.NONE,
 				Dialog.confirm,
 				showProgressDialog,
 				sendAtDate,
 				sendAtDate ? "tooManyScheduledMails_msg" : undefined,
+				allowUndo,
 			)
-			if (success) {
+			if (sendResult.success) {
 				dispose()
 				dialog.close()
 
-				if (model.undoModel && deviceConfig.getIsUndoSendEnabled()) {
+				const { sendJob } = sendResult
+				const sentMail = assertNotNull(model.draft?._id)
+
+				if (allowUndo && sendJob != null) {
 					if (sendAtDate) {
 						// Cannot undo a scheduled mail (should just go to the scheduled folder and cancel it)
 						// But we do want to show something to confirm the email, since it will be expected that a snackbar shows when sending a mail
 						showInfoSnackbar("emailScheduled_msg")
 					} else {
-						const undoResult = await showUndoMailSnackbar(
+						showUndoMailSnackbar(
 							model.undoModel,
 							async () => {
-								noOp()
+								await model.mailFacade.undoSendMail(sentMail, sendJob)
 							},
 							lang.getTranslation("emailSent_msg"),
 							UNDO_SEND_TIMEOUT,
