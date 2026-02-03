@@ -2608,8 +2608,6 @@ styles.registerStyle("main", () => {
 			"border-top": "9px solid transparent",
 			"border-bottom": "9px solid transparent",
 			"border-left": "6px solid green",
-			"margin-top": px(1),
-			"margin-bottom": px(1),
 		},
 		".time-field": {
 			width: "80px",
