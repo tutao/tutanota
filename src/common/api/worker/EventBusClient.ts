@@ -45,7 +45,7 @@ import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
 import { AttributeModel } from "../common/AttributeModel"
 import { newSyncMetrics } from "./utils/SyncMetrics"
 import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
-import { hasError } from "../common/utils/ErrorUtils"
+import { hasError, isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel"
 
@@ -744,8 +744,10 @@ export class EventBusClient {
 				this.serviceUnavailableRetry = retryPromise
 				return retryPromise
 			} else {
-				console.log("EVENT", "error", e)
-				throw e
+				if (!isExpectedErrorForSynchronization(e)) {
+					console.log("EVENT", "error", e)
+					throw e
+				}
 			}
 		}
 	}
