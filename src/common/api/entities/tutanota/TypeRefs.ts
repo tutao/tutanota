@@ -819,6 +819,7 @@ export type SendDraftData = {
 	calendarMethod: boolean;
 	sessionEncEncryptionAuthStatus: null | Uint8Array;
 	sendAt: null | Date;
+	allowUndo: boolean;
 
 	internalRecipientKeyData: InternalRecipientKeyData[];
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
@@ -843,6 +844,7 @@ export type SendDraftReturn = {
 
 	notifications: NotificationMail[];
 	sentMail: IdTuple;
+	sendJob: null | IdTuple;
 }
 export const ReceiveInfoServiceDataTypeRef: TypeRef<ReceiveInfoServiceData> = new TypeRef("tutanota", 570)
 
@@ -2741,6 +2743,7 @@ export type SendDraftDeleteIn = {
 	_format: NumberString;
 
 	mail: IdTuple;
+	sendJob: null | IdTuple;
 }
 export const SendDraftParametersTypeRef: TypeRef<SendDraftParameters> = new TypeRef("tutanota", 1788)
 

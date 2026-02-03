@@ -1296,6 +1296,8 @@ pub struct SendDraftData {
 	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
 	#[serde(rename = "1809")]
 	pub sendAt: Option<DateTime>,
+	#[serde(rename = "1822")]
+	pub allowUndo: bool,
 	#[serde(rename = "553")]
 	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
 	#[serde(rename = "554")]
@@ -1332,6 +1334,8 @@ pub struct SendDraftReturn {
 	pub notifications: Vec<NotificationMail>,
 	#[serde(rename = "562")]
 	pub sentMail: IdTupleGenerated,
+	#[serde(rename = "1823")]
+	pub sendJob: Option<IdTupleGenerated>,
 }
 
 impl Entity for SendDraftReturn {
@@ -4234,6 +4238,8 @@ pub struct SendDraftDeleteIn {
 	pub _format: i64,
 	#[serde(rename = "1787")]
 	pub mail: IdTupleGenerated,
+	#[serde(rename = "1824")]
+	pub sendJob: Option<IdTupleGenerated>,
 }
 
 impl Entity for SendDraftDeleteIn {

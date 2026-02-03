@@ -12,6 +12,7 @@ import {
 	MailDetails,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
+	SendDraftReturn,
 } from "../api/entities/tutanota/TypeRefs.js"
 import {
 	ApprovalStatus,
@@ -970,10 +971,11 @@ export class SendMailModel {
 	async send(
 		mailMethod: MailMethod,
 		getConfirmation: (arg0: MaybeTranslation) => Promise<boolean> = (_) => Promise.resolve(true),
-		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
+		waitHandler: (arg0: MaybeTranslation, arg1: Promise<SendMailResult>) => Promise<unknown> = (_, p) => p,
 		sendAt: Date | null = null,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
-	): Promise<boolean> {
+		allowUndo: boolean = false,
+	): Promise<SendMailResult> {
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
 		// If you need to do something async here put it into `asyncSend`
@@ -984,7 +986,10 @@ export class SendMailModel {
 		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
 			await this.sendApprovalMail(this.getBody())
 			await this.clearLocalAutosave() // because this approval mail is "sent" in an odd way, it will not clear the local autosave
-			return true
+			return {
+				success: true,
+				sendJob: null,
+			}
 		}
 
 		if (this.toRecipients().length === 0 && this.ccRecipients().length === 0 && this.bccRecipients().length === 0) {
@@ -995,12 +1000,18 @@ export class SendMailModel {
 
 		// Many recipients is a warning
 		if (numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS && !(await getConfirmation("manyRecipients_msg"))) {
-			return false
+			return {
+				success: false,
+				sendJob: null,
+			}
 		}
 
 		// Empty subject is a warning
 		if (this.getSubject().length === 0 && !(await getConfirmation("noSubject_msg"))) {
-			return false
+			return {
+				success: false,
+				sendJob: null,
+			}
 		}
 
 		const asyncSend = async () => {
@@ -1015,7 +1026,10 @@ export class SendMailModel {
 
 			// Weak password is a warning
 			if (this.isConfidentialExternal() && this.hasInsecurePasswords() && !(await getConfirmation("presharedPasswordNotStrongEnough_msg"))) {
-				return false
+				return {
+					success: false,
+					sendJob: null,
+				}
 			}
 
 			// Don't safe unnecessarily.
@@ -1024,14 +1038,26 @@ export class SendMailModel {
 			}
 
 			await this.updateContacts(recipients)
-			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage, sendAt)
+			const sendReturn = await this.mailFacade.sendDraft(
+				assertNotNull(this.draft, "draft was null?"),
+				recipients,
+				this.selectedNotificationLanguage,
+				sendAt,
+				allowUndo,
+			)
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
 			this.updateExternalLanguage()
-			return true
+			return {
+				success: true,
+				sendJob: sendReturn.sendJob,
+			}
 		}
 
-		return waitHandler(this.getWaitMessage(), asyncSend())
+		const sendPromise = asyncSend()
+
+		return waitHandler(this.getWaitMessage(), sendPromise)
+			.then(() => sendPromise, undefined)
 			.catch(
 				ofClass(LockedError, () => {
 					throw new UserError("operationStillActive_msg")
@@ -1068,7 +1094,10 @@ export class SendMailModel {
 					// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
 					return checkApprovalStatus(this.logins, true, ApprovalStatus.SPAM_SENDER).then(() => {
 						console.log("could not send mail (blocked access)", e)
-						return false
+						return {
+							success: false,
+							sendJob: null,
+						}
 					})
 				}),
 			)
@@ -1101,6 +1130,11 @@ export class SendMailModel {
 					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(({ showMultiRecipientsKeyVerificationRecoveryDialog }) =>
 						showMultiRecipientsKeyVerificationRecoveryDialog(failedRecipients),
 					)
+
+					return {
+						success: false,
+						sendJob: null,
+					}
 				}),
 			)
 	}
@@ -1434,4 +1468,9 @@ function recipientsFilter(recipientList: ReadonlyArray<PartialRecipient>): Array
 			cleaned: cleanMailAddress(a.address),
 		}))
 	return deduplicate(cleanedList, (a, b) => a.cleaned === b.cleaned).map((a) => a.recipient)
+}
+
+export interface SendMailResult {
+	success: boolean
+	sendJob: IdTuple | null
 }
