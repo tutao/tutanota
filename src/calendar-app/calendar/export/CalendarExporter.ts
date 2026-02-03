@@ -82,13 +82,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		`SEQUENCE:${event.sequence}`,
 		`SUMMARY:${serializeIcalText(event.summary)}`,
 	]
-		.concat(
-			event.recurrenceId != null
-				? isAllDay
-					? `RECURRENCE-ID;VALUE=DATE:${formatDate(getAllDayDateLocal(event.recurrenceId), localZone)}`
-					: `RECURRENCE-ID;VALUE=DATETIME:${formatDateTimeUTC(event.recurrenceId)}`
-				: [],
-		)
+		.concat(event.recurrenceId != null ? `RECURRENCE-ID;VALUE=DATETIME:${formatDateTimeUTC(event.recurrenceId)}` : [])
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${serializeIcalText(event.description)}` : [])
 		.concat(event.recurrenceId == null ? serializeRepeatRule(repeatRule, isAllDay, timeZone) : [])
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${serializeIcalText(event.location)}` : [])
