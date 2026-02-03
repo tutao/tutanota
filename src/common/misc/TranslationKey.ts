@@ -2212,3 +2212,5 @@ export type TranslationKeyType =
 	| "folderIsEmpty_msg"
 	| "movingItem_title"
 	| "emptyString_msg"
+	| "importFailedTargetFolderDeleted_msg"
+	| "importFailedConcurrentImport_msg"
