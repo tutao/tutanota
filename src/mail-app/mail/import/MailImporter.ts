@@ -206,23 +206,18 @@ export class MailImporter {
 			this.activeImport.uiStatus = UiImportStatus.Paused
 			this.activeImport.progressMonitor.pauseEstimation()
 		}
+
+		const navigateToImportSettings: SnackBarButtonAttrs = {
+			label: "show_action",
+			click: () => this.openSettingsHandler.openSettings("mailImport"),
+		}
 		if (err.data.category === ImportErrorCategories.ImportFeatureDisabled) {
 			await Dialog.message("mailImportErrorServiceUnavailable_msg")
 		} else if (err.data.category === ImportErrorCategories.ConcurrentImport) {
-			console.log("Tried to start concurrent import")
-			showSnackBar({
-				message: "pleaseWait_msg",
-				button: {
-					label: "ok_action",
-					click: () => {},
-				},
-			})
+			showSnackBar({ message: "importFailedConcurrentImport_msg", button: navigateToImportSettings })
+		} else if (err.data.category === ImportErrorCategories.ImportTargetFolderDeleted) {
+			showSnackBar({ message: "importTargetFolderDeleted_msg", button: navigateToImportSettings })
 		} else {
-			console.log(`Error while importing mails, category: ${err.data.category}, source: ${err.data.source}`)
-			const navigateToImportSettings: SnackBarButtonAttrs = {
-				label: "show_action",
-				click: () => this.openSettingsHandler.openSettings("mailImport"),
-			}
 			showSnackBar({ message: "someMailFailedImport_msg", button: navigateToImportSettings })
 		}
 	}

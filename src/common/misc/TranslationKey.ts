@@ -2215,6 +2215,8 @@ export type TranslationKeyType =
 	| "tooManyAttachments_msg"
 	| "cannotMoveFolderIntoItself_msg"
 	| "transferWaiting_msg"
+	| "emptyString_msg"
+	| "importContactDuplicates_msg"
 	| "dataOutOfSync_label"
 	| "dataOutOfSyncOfflineDb_msg"
 	| "dataOutOfSync_msg"
