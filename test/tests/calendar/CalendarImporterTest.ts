@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import {
+	formatDateTimeUTC,
 	serializeCalendar,
 	serializeEvent,
 	serializeExcludedDates,
@@ -29,7 +30,7 @@ import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCal
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
-import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calendar/date/CalendarUtils.js"
 import {
 	checkURLString,
 	EventImportRejectionReason,
@@ -38,7 +39,7 @@ import {
 	sortOutParsedEvents,
 } from "../../../src/common/calendar/gui/ImportExportUtils.js"
 
-const zone = "Europe/Berlin"
+const zone = getTimeZone()
 const now = new Date("2019-08-13T14:01:00.630Z")
 
 function jsonEquals(actual: unknown, expected: unknown, message): { pass: boolean; message: string } {
@@ -267,220 +268,310 @@ o.spec("CalendarImporter", function () {
 				"END:VEVENT",
 			])
 		})
-		o("with repeat rule (never ends)", function () {
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						repeatRule: createTestEntity(RepeatRuleTypeRef, {
-							endType: EndType.Never,
-							interval: "3",
-							frequency: RepeatPeriod.WEEKLY,
-							timeZone: zone,
+		o.spec("Repeat rule", function () {
+			o("with repeat rule (never ends)", function () {
+				o(
+					serializeEvent(
+						createTestEntity(CalendarEventTypeRef, {
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n",
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							repeatRule: createTestEntity(RepeatRuleTypeRef, {
+								endType: EndType.Never,
+								interval: "3",
+								frequency: RepeatPeriod.WEEKLY,
+								timeZone: zone,
+							}),
 						}),
-					}),
-					[],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				`DTSTART;TZID=${zone}:20190813T050600`,
-				`DTEND;TZID=${zone}:20190913T050600`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"RRULE:FREQ=WEEKLY;INTERVAL=3",
-				"END:VEVENT",
-			])
-		})
-		o("with repeat rule (ends after occurrences)", function () {
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						repeatRule: createTestEntity(RepeatRuleTypeRef, {
-							endType: EndType.Count,
-							interval: "3",
-							frequency: RepeatPeriod.DAILY,
-							endValue: "100",
-							timeZone: zone,
+						[],
+						now,
+						zone,
+					),
+				).deepEquals([
+					"BEGIN:VEVENT",
+					`DTSTART;TZID=${zone}:20190813T050600`,
+					`DTEND;TZID=${zone}:20190913T050600`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:ownerId${now.getTime()}@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:Word \\\\ \\; \\n",
+					"RRULE:FREQ=WEEKLY;INTERVAL=3",
+					"END:VEVENT",
+				])
+			})
+			o("with repeat rule (ends after occurrences)", function () {
+				o(
+					serializeEvent(
+						createTestEntity(CalendarEventTypeRef, {
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n",
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							repeatRule: createTestEntity(RepeatRuleTypeRef, {
+								endType: EndType.Count,
+								interval: "3",
+								frequency: RepeatPeriod.DAILY,
+								endValue: "100",
+								timeZone: zone,
+							}),
 						}),
-					}),
-					[],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				`DTSTART;TZID=${zone}:20190813T050600`,
-				`DTEND;TZID=${zone}:20190913T050600`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"RRULE:FREQ=DAILY;INTERVAL=3;COUNT=100",
-				"END:VEVENT",
-			])
-		})
-		o("with repeat rule (ends on a date)", function () {
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						repeatRule: createTestEntity(RepeatRuleTypeRef, {
-							endType: EndType.UntilDate,
-							interval: "3",
-							frequency: RepeatPeriod.MONTHLY,
-							endValue: String(
-								DateTime.fromObject(
-									{
-										year: 2019,
-										month: 9,
-										day: 20,
-									},
-									{ zone },
-								).toMillis(),
+						[],
+						now,
+						zone,
+					),
+				).deepEquals([
+					"BEGIN:VEVENT",
+					`DTSTART;TZID=${zone}:20190813T050600`,
+					`DTEND;TZID=${zone}:20190913T050600`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:ownerId${now.getTime()}@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:Word \\\\ \\; \\n",
+					"RRULE:FREQ=DAILY;INTERVAL=3;COUNT=100",
+					"END:VEVENT",
+				])
+			})
+			o("with repeat rule (ends on a date)", function () {
+				o(
+					serializeEvent(
+						createTestEntity(CalendarEventTypeRef, {
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n",
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							repeatRule: createTestEntity(RepeatRuleTypeRef, {
+								endType: EndType.UntilDate,
+								interval: "3",
+								frequency: RepeatPeriod.MONTHLY,
+								endValue: String(
+									DateTime.fromObject(
+										{
+											year: 2019,
+											month: 9,
+											day: 20,
+										},
+										{ zone },
+									).toMillis(),
+								),
+								timeZone: zone,
+							}),
+						}),
+						[],
+						now,
+						zone,
+					),
+				).deepEquals([
+					"BEGIN:VEVENT",
+					`DTSTART;TZID=${zone}:20190813T050600`,
+					`DTEND;TZID=${zone}:20190913T050600`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:ownerId${now.getTime()}@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:Word \\\\ \\; \\n",
+					"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z",
+					"END:VEVENT",
+				])
+			})
+			o("with repeat rule (ends on a date, all-day)", function () {
+				o(
+					serializeEvent(
+						createTestEntity(CalendarEventTypeRef, {
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n",
+							startTime: getAllDayDateUTC(
+								DateTime.fromObject({
+									year: 2019,
+									month: 8,
+									day: 13,
+								}).toJSDate(),
 							),
-							timeZone: zone,
+							endTime: getAllDayDateUTC(
+								DateTime.fromObject({
+									year: 2019,
+									month: 8,
+									day: 15,
+								}).toJSDate(),
+							),
+							repeatRule: createTestEntity(RepeatRuleTypeRef, {
+								endType: EndType.UntilDate,
+								interval: "3",
+								frequency: RepeatPeriod.MONTHLY,
+								// Beginning of 20th will be displayed to the user as 19th
+								endValue: String(
+									getAllDayDateUTC(
+										DateTime.fromObject({
+											year: 2019,
+											month: 9,
+											day: 20,
+										}).toJSDate(),
+									).getTime(),
+								),
+								timeZone: zone,
+							}),
 						}),
-					}),
-					[],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				`DTSTART;TZID=${zone}:20190813T050600`,
-				`DTEND;TZID=${zone}:20190913T050600`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z",
-				"END:VEVENT",
-			])
+						[],
+						now,
+						zone,
+					),
+				).deepEquals([
+					"BEGIN:VEVENT",
+					`DTSTART;VALUE=DATE:20190813`,
+					`DTEND;VALUE=DATE:20190815`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:ownerId${now.getTime()}@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:Word \\\\ \\; \\n",
+					"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919",
+					"END:VEVENT",
+				])
+			})
 		})
-		o("with repeat rule (ends on a date, all-day)", function () {
-			o(
-				serializeEvent(
+		o.spec("Altered instance", function () {
+			o.test("Simple event", function () {
+				const originalStartTime = DateTime.fromObject(
+					{
+						year: 2019,
+						month: 8,
+						day: 13,
+						hour: 5,
+						minute: 6,
+					},
+					{ zone },
+				).toJSDate()
+				const alteredInstanceStartTime = DateTime.fromJSDate(originalStartTime).plus({ day: 1 }).toJSDate()
+				const alteredInstanceEndTime = DateTime.fromJSDate(originalStartTime).plus({ day: 2 }).toJSDate()
+				const serializedEvent = serializeEvent(
 					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: getAllDayDateUTC(
-							DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-							}).toJSDate(),
-						),
-						endTime: getAllDayDateUTC(
-							DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 15,
-							}).toJSDate(),
-						),
-						repeatRule: createTestEntity(RepeatRuleTypeRef, {
-							endType: EndType.UntilDate,
-							interval: "3",
-							frequency: RepeatPeriod.MONTHLY,
-							// Beginning of 20th will be displayed to the user as 19th
-							endValue: String(
-								getAllDayDateUTC(
-									DateTime.fromObject({
-										year: 2019,
-										month: 9,
-										day: 20,
-									}).toJSDate(),
-								).getTime(),
-							),
-							timeZone: zone,
-						}),
+						startTime: alteredInstanceStartTime,
+						endTime: alteredInstanceEndTime,
+						description: "Descr \\ ;, \n",
+						uid: "test@tuta.com",
+						location: "Some location",
+						recurrenceId: originalStartTime,
 					}),
 					[],
 					now,
 					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				`DTSTART;VALUE=DATE:20190813`,
-				`DTEND;VALUE=DATE:20190815`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919",
-				"END:VEVENT",
-			])
+				)
+
+				o.check(serializedEvent).deepEquals([
+					"BEGIN:VEVENT",
+					`DTSTART:${formatDateTimeUTC(alteredInstanceStartTime)}`,
+					`DTEND:${formatDateTimeUTC(alteredInstanceEndTime)}`,
+					`DTSTAMP:20190813T140100Z`,
+					"UID:test@tuta.com",
+					"SEQUENCE:0",
+					"SUMMARY:Word \\\\ \\; \\n",
+					`RECURRENCE-ID;VALUE=DATETIME:${formatDateTimeUTC(originalStartTime)}`,
+					"DESCRIPTION:Descr \\\\ \\;\\, \\n",
+					"LOCATION:Some location",
+					"END:VEVENT",
+				])
+			})
+
+			o.test("All-day event", function () {
+				const originalAlldayStartTime = DateTime.fromObject(
+					{
+						year: 2019,
+						month: 8,
+						day: 13,
+						hour: 0,
+						minute: 0,
+						second: 0,
+					},
+					{ zone: "UTC" },
+				).toJSDate()
+				const alteredInstanceStartTime = DateTime.fromJSDate(originalAlldayStartTime).plus({ day: 1 }).toJSDate()
+				const alteredInstanceEndTime = DateTime.fromJSDate(originalAlldayStartTime).plus({ day: 2 }).toJSDate()
+				const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
+					summary: "Word \\ ; \n",
+					startTime: alteredInstanceStartTime,
+					endTime: alteredInstanceEndTime,
+					description: "Descr \\ ;, \n",
+					uid: "test@tuta.com",
+					location: "Some location",
+					recurrenceId: originalAlldayStartTime,
+				})
+				const serializedEvent = serializeEvent(calendarEvent, [], now, zone)
+
+				o.check(serializedEvent).deepEquals([
+					"BEGIN:VEVENT",
+					"DTSTART;VALUE=DATE:20190814",
+					"DTEND;VALUE=DATE:20190815",
+					`DTSTAMP:20190813T140100Z`,
+					"UID:test@tuta.com",
+					"SEQUENCE:0",
+					"SUMMARY:Word \\\\ \\; \\n",
+					`RECURRENCE-ID;VALUE=DATETIME:${formatDateTimeUTC(originalAlldayStartTime)}`,
+					"DESCRIPTION:Descr \\\\ \\;\\, \\n",
+					"LOCATION:Some location",
+					"END:VEVENT",
+				])
+			})
 		})
 	})
 	o.spec("import", function () {
