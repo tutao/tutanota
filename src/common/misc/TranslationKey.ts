@@ -2217,3 +2217,5 @@ export type TranslationKeyType =
 	| "cannotMoveFolderIntoItself_msg"
 	| "transferWaiting_msg"
 	| "emptyString_msg"
+	| "importFailedTargetFolderDeleted_msg"
+	| "importFailedConcurrentImport_msg"
