@@ -818,6 +818,7 @@ export type SendDraftData = {
 	calendarMethod: boolean;
 	sessionEncEncryptionAuthStatus: null | Uint8Array;
 	sendAt: null | Date;
+	allowUndo: boolean;
 
 	internalRecipientKeyData: InternalRecipientKeyData[];
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];

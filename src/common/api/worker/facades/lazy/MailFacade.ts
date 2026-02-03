@@ -589,7 +589,7 @@ export class MailFacade {
 		})
 	}
 
-	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null): Promise<void> {
+	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<void> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes256RandomKey()
 		const parameters: StrippedEntity<SendDraftParameters> = {
@@ -656,6 +656,7 @@ export class MailFacade {
 			...parameters,
 			parameters: createSendDraftParameters(parameters),
 			sendAt,
+			allowUndo,
 		})
 		await this.serviceExecutor.post(SendDraftService, sendDraftData)
 	}
