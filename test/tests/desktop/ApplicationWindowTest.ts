@@ -334,7 +334,7 @@ o.spec("ApplicationWindow Test", function () {
 				allowRunningInsecureContent: false,
 				preload: "/path/to/app/desktop/preload.js",
 				spellcheck: true,
-				webgl: false,
+				webgl: true,
 				plugins: false,
 				experimentalFeatures: false,
 				webviewTag: false,
