@@ -351,7 +351,7 @@ export class ApplicationWindow {
 				enableRemoteModule: false,
 				allowRunningInsecureContent: false,
 				preload: preloadPath,
-				webgl: false,
+				webgl: true,
 				plugins: false,
 				experimentalFeatures: false,
 				webviewTag: false,
