@@ -3229,6 +3229,14 @@ export const typeModels = {
 				"type": "Date",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"1812": {
+				"final": true,
+				"name": "allowUndo",
+				"id": 1812,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
