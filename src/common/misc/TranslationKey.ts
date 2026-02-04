@@ -2220,7 +2220,6 @@ export type TranslationKeyType =
 	| "dataOutOfSync_label"
 	| "dataOutOfSyncOfflineDb_msg"
 	| "dataOutOfSync_msg"
-	| "importContactDuplicates_msg"
 	| "addManagedCustomers_action"
 	| "adminManagedCustomerList_action"
 	| "adminManagedCustomer_label"
