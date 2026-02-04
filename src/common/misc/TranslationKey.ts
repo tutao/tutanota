@@ -193,6 +193,7 @@ export type TranslationKeyType =
 	| "tooManyGiftCards_msg"
 	| "tooManyCustomDomains_msg"
 	| "tooManyAttempts_msg"
+	| "tooManyAttachments_msg"
 	| "tooBigInlineImages_msg"
 	| "tooBigAttachment_msg"
 	| "tomorrow_label"
