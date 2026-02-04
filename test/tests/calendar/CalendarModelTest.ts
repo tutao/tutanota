@@ -7,6 +7,9 @@ import {
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	Contact,
+	ContactMailAddressTypeRef,
+	ContactTypeRef,
 	EncryptedMailAddressTypeRef,
 	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -59,6 +62,7 @@ import { DateTime } from "luxon"
 import { createDataFile } from "../../../src/common/api/common/DataFile"
 import { SessionKeyNotFoundError } from "../../../src/common/api/common/error/SessionKeyNotFoundError"
 import { DoubledObject, matchers, object, when } from "testdouble"
+import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
@@ -107,12 +111,17 @@ o.spec("CalendarModel", function () {
 	let baseExistingProgenitor: CalendarEvent
 	let baseCalendarEventUidIndexEntry: CalendarEventUidIndexEntry
 
-	let userControllerMock: DoubledObject<{ user: User; userGroupInfo: GroupInfo; getCalendarMemberships: () => Array<GroupMembership> }>
+	let userControllerMock: DoubledObject<{
+		user: User
+		userGroupInfo: GroupInfo
+		getCalendarMemberships: () => Array<GroupMembership>
+	}>
 	let userMock: User
 
 	let calendarGroupMembership: GroupMembership
 	let externalCalendarFacadeMock: ExternalCalendarFacade
 	let userGroupInfo: GroupInfo
+	let contactModelMock: ContactModel
 
 	o.beforeEach(function () {
 		notificationsMock = object()
@@ -126,6 +135,7 @@ o.spec("CalendarModel", function () {
 		mailboxModelMock = object()
 		calendarFacadeMock = object()
 		fileControllerMock = object()
+		contactModelMock = object()
 		deviceConfigMock = object()
 		nativePushServiceAppMock = object()
 		syncTrackMock = object()
@@ -175,6 +185,15 @@ o.spec("CalendarModel", function () {
 			members: "group-member-list-id",
 		})
 
+		const organizerMailAddress = createTestEntity(ContactMailAddressTypeRef, { address: ORGANIZER })
+		const guestMailAddress = createTestEntity(ContactMailAddressTypeRef, { address: GUEST })
+
+		const organizerContactMock = createTestEntity(ContactTypeRef, { mailAddresses: [organizerMailAddress] })
+		const guestContactMock: Contact = createTestEntity(ContactTypeRef, { mailAddresses: [guestMailAddress] })
+
+		when(contactModelMock.searchForContact(ORGANIZER)).thenResolve(organizerContactMock)
+		when(contactModelMock.searchForContact(GUEST)).thenResolve(guestContactMock)
+
 		when(entityClientMock.loadAll(GroupMemberTypeRef, getListId(groupMemberMock))).thenResolve([groupMemberMock])
 		when(entityClientMock.load(CalendarGroupRootTypeRef, calendarGroupRoot._id)).thenResolve(calendarGroupRoot)
 		when(entityClientMock.load(GroupTypeRef, calendarGroup._id)).thenResolve(calendarGroup)
@@ -192,6 +211,7 @@ o.spec("CalendarModel", function () {
 			mailboxModelMock,
 			calendarFacadeMock,
 			fileControllerMock,
+			contactModelMock,
 			"Europe/Berlin",
 			externalCalendarFacadeMock,
 			deviceConfigMock,
@@ -504,6 +524,8 @@ o.spec("CalendarModel", function () {
 				o(updatedEvent.pendingInvitation).equals(false)
 				o(oldEvent).deepEquals(baseExistingProgenitor)
 			})
+
+			o("Update from deleted contact should still be processed", function () {})
 		})
 
 		o("Guest-received new events will not create pendingInvitation if attendance status is Maybe, Accepted, or Declined", async function () {
@@ -767,5 +789,27 @@ o.spec("CalendarModel", function () {
 			await calendarModel.processCalendarData(GUEST, baseParsedCalendarDataCancel)
 			verify(entityClientMock.erase(anything()), { times: 0 })
 		})
+	})
+	o("CalendarEventUpdates from unknown sender (not in contacts) are ignored & do not result in a database lookup", async function () {
+		const sentEvent = createTestEntity(CalendarEventTypeRef, {
+			summary: "v2",
+			uid,
+			sequence: "2",
+			organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+				address: ORGANIZER,
+			}),
+			startTime: baseExistingProgenitor.startTime,
+		})
+
+		await calendarModel.processCalendarData(UNKNOWN_SENDER, {
+			method: CalendarMethod.REQUEST,
+			contents: [
+				{
+					event: sentEvent as CalendarEventProgenitor,
+					alarms: [],
+				},
+			],
+		})
+		verify(calendarFacadeMock.getEventsByUid(anything(), anything()), { times: 0 })
 	})
 })
