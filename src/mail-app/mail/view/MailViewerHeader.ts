@@ -702,7 +702,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderNewsletterBanner(viewModel: MailViewerViewModel): Children | null {
-		if (viewModel.hasListUnsubscribeHeader() && viewModel.getNewsletterBannerRule() === NewsletterBannerRule.Allow) {
+		if (viewModel.hasListUnsubscribeHeader() && viewModel.getNewsletterBannerRule() === NewsletterBannerRule.Allow && !viewModel.isImportedMail()) {
 			return m(InfoBanner, {
 				message: viewModel.isListUnsubscribe() ? "newsletterBanner_msg" : "newsletterBannerUnsubscribed_msg",
 				icon: Icons.PricingMail,
