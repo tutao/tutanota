@@ -2,8 +2,7 @@ import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, assertNotNull, clone, filterInt } from "@tutao/tutanota-utils"
-import { findFirstPrivateCalendar } from "../../../common/calendar/date/CalendarUtils.js"
+import { assert, assertNotNull, clone, filterInt, isEmpty } from "@tutao/tutanota-utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
@@ -19,6 +18,7 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { CalendarEventProgenitor } from "../../../common/api/worker/facades/lazy/CalendarFacade"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -122,7 +122,6 @@ export class CalendarInviteHandler {
 			throw new Error("Replying to an event without an organizer")
 		}
 		const eventClone = clone(event)
-		eventClone.pendingInvitation = false
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 
 		foundAttendee.status = decision
@@ -164,13 +163,32 @@ export class CalendarInviteHandler {
 			// since there is no write permission.
 			return ReplyResult.ReplySent
 		}
-		const calendar = findFirstPrivateCalendar(calendars)
-		if (calendar == null) return ReplyResult.ReplyNotSent
+
 		if (eventClone.uid != null) {
 			const dbEvents = await this.calendarModel.getEventsByUid(eventClone.uid)
+			const isACompletelyNewEventInvitation = !dbEvents || (!dbEvents.progenitor && isEmpty(dbEvents.alteredInstances))
+
+			if (isACompletelyNewEventInvitation) {
+				if (decision === CalendarAttendeeStatus.DECLINED) {
+					return ReplyResult.ReplySent
+				}
+
+				if (!eventClone.uid.trim()) {
+					console.warn("Event missing UID, response email sent but we are unable to create a event for it.")
+					return ReplyResult.ReplySent
+				}
+
+				console.log("Replying to an invitation without a persisted event counterpart, creating new event...")
+				await this.calendarModel.handleNewCalendarInvitation(sender, {
+					method: CalendarMethod.REQUEST,
+					contents: [{ event: eventClone as CalendarEventProgenitor, alarms: [] }],
+				})
+				return ReplyResult.ReplySent
+			}
+
 			const resolvedEvent = eventClone.repeatRule !== null ? dbEvents?.progenitor : eventClone
 			if (!resolvedEvent) {
-				throw new Error("Could not resolve progenitor.")
+				throw new Error("Could not resolve event series progenitor when processing an update.")
 			}
 			resolvedEvent.pendingInvitation = eventClone.pendingInvitation
 			resolvedEvent.attendees = eventClone.attendees
@@ -180,17 +198,10 @@ export class CalendarInviteHandler {
 			const targetDbEvent =
 				updateEventTime == null ? dbEvents?.progenitor : dbEvents?.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
 			if (!dbEvents || !targetDbEvent) {
-				console.warn("Replying to an invitation without a persisted event counterpart")
-				return ReplyResult.ReplySent
+				throw new Error("Replying to an invitation without a persisted event counterpart")
 			}
 
-			// At the moment, if there is a previous email that means we are replying from the event banner
-			// and in case the user decline the invitation we should delete the pending events
-			if (previousMail && event.pendingInvitation && decision === CalendarAttendeeStatus.DECLINED) {
-				await this.calendarModel.deletePersistedEvents(targetDbEvent)
-			} else {
-				await this.calendarModel.processCalendarUpdate(dbEvents, targetDbEvent, resolvedEvent)
-			}
+			await this.calendarModel.processCalendarUpdate(dbEvents, targetDbEvent, resolvedEvent)
 		}
 		return ReplyResult.ReplySent
 	}
