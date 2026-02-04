@@ -129,6 +129,7 @@ import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTrac
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -232,6 +233,7 @@ export class CalendarModel {
 		private readonly mailboxModel: MailboxModel,
 		private readonly calendarFacade: CalendarFacade,
 		private readonly fileController: FileController,
+		private readonly contactModel: ContactModel,
 		private readonly zone: string,
 		private readonly externalCalendarFacade: ExternalCalendarFacade | null,
 		private readonly deviceConfig: DeviceConfig,
@@ -990,13 +992,19 @@ export class CalendarModel {
 	 * @VisibleForTesting
 	 */
 	async processCalendarData(sender: string, calendarData: ParsedCalendarData): Promise<void> {
+		const senderContact = await this.contactModel.searchForContact(sender)
+		if (!senderContact) {
+			console.log(TAG, `CalendarEventUpdate sent from a untrusted sender, ignoring.`)
+			return
+		}
+
 		if (calendarData.contents.length === 0) {
-			console.log(TAG, `Calendar update with no events, ignoring`)
+			console.log(TAG, `CalendarEventUpdate with no events, ignoring`)
 			return
 		}
 
 		if (calendarData.contents[0].event.uid == null) {
-			console.log(TAG, "invalid event update without UID, ignoring.")
+			console.log(TAG, "Invalid CalendarEventUpdate without UID, ignoring.")
 			return
 		}
 
@@ -1009,20 +1017,8 @@ export class CalendarModel {
 		// We want to operate on the latest events only, otherwise we might lose some data.
 		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid, CachingMode.Bypass)
 
-		console.log(
-			"CalendarModel.processCalendarData - ",
-			calendarData.method,
-			calendarData.contents[0].event.recurrenceId ? "altered instance" : "progenitor",
-		)
-
 		if (dbEvents == null) {
-			// Create pending events when processing calendar invites.
-			const calendarInfos = await this.getCalendarInfos()
-			const firstCalendar = findFirstPrivateCalendar(calendarInfos)
-			if (firstCalendar == null) {
-				throw new Error("Missing private calendar")
-			}
-			return await this.handleNewCalendarInvitation(sender, calendarData, firstCalendar.groupRoot)
+			return await this.handleNewCalendarInvitation(sender, calendarData)
 		} else {
 			const method = calendarData.method
 			for (const content of calendarData.contents) {
@@ -1038,9 +1034,15 @@ export class CalendarModel {
 	/**
 	 * Handles new Calendar Invitations. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
-	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData, destinationCalendarGroupRoot: CalendarGroupRoot) {
+	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData) {
 		if (calendarData.method !== CalendarMethod.REQUEST) {
 			return // We don't handle anything different from an invitation
+		}
+
+		const calendarInfos = await this.getCalendarInfos()
+		const firstCalendar = findFirstPrivateCalendar(calendarInfos)
+		if (firstCalendar == null) {
+			throw new Error("Missing private calendar")
 		}
 
 		const eventsPromises = calendarData.contents.map((parsed) => {
@@ -1049,7 +1051,7 @@ export class CalendarModel {
 				sender,
 			}
 
-			return this.doCreate(calendarEvent, this.zone, destinationCalendarGroupRoot, []) // existingEvent is undefined when trying to reschedule a pending event.  should it be?
+			return this.doCreate(calendarEvent, this.zone, firstCalendar.groupRoot, [])
 		})
 
 		await Promise.all(eventsPromises)
@@ -1246,8 +1248,7 @@ export class CalendarModel {
 
 	/** delete an event in case of cancellation or guest declining - either the whole series (progenitor got cancelled)
 	 * or the altered occurrence. */
-	async deletePersistedEvents(dbEvent: CalendarEventInstance): Promise<void> {
-		console.log(TAG, "processing cancellation")
+	private async deletePersistedEvents(dbEvent: CalendarEventInstance): Promise<void> {
 		// not having UID is technically an error, but we'll do our best (the event came from the server after all)
 		if (dbEvent.recurrenceId == null && dbEvent.uid != null) {
 			return await this.deleteEventsByUid(dbEvent.uid)
