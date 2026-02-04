@@ -2220,5 +2220,3 @@ export type TranslationKeyType =
 	| "dataOutOfSync_label"
 	| "dataOutOfSyncOfflineDb_msg"
 	| "dataOutOfSync_msg"
-	| "importContactDuplicates_msg"
-	| "emptyString_msg"

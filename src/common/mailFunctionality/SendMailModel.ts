@@ -1071,8 +1071,12 @@ export class SendMailModel {
 				}),
 			)
 			.catch(
-				ofClass(PreconditionFailedError, () => {
-					throw new UserError("operationStillActive_msg")
+				ofClass(PreconditionFailedError, (e) => {
+					if (e.data?.includes("send_mail.too_many_attachments")) {
+						throw new UserError("tooManyAttachments_msg")
+					} else {
+						throw new UserError("operationStillActive_msg")
+					}
 				}),
 			)
 			.catch(
