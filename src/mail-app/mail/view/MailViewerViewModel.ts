@@ -702,6 +702,10 @@ export class MailViewerViewModel {
 		return !isEmpty(listUnsubscribeHeaders)
 	}
 
+	isImportedMail(): boolean {
+		return this.mailModel.getImportedMailSets().some((mailSet) => this._mail.sets.find((mailSetId) => isSameId(mailSetId, mailSet._id)))
+	}
+
 	private decodeMimeHeader(value: string): string {
 		return value.replace(/=\?([^?]+)\?([QB])\?([^?]+)\?=/gi, (_, _charset, encoding, encodedText) => {
 			if (encoding.toUpperCase() === "Q") {
