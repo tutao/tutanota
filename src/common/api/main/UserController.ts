@@ -257,9 +257,11 @@ export class UserController {
 	deleteSessionSync(): Promise<void> {
 		return newPromise(async (resolve, reject) => {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
+			console.log("was there a SEND beacon?" + sendBeacon)
 
 			if (sendBeacon) {
 				try {
+					console.log("trying to close via beacon")
 					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
 					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
@@ -284,6 +286,7 @@ export class UserController {
 					reject(e)
 				}
 			} else {
+				console.log("trying the XHR to log out...")
 				// Fall back to sync XHR if Beacon API is not available (which it should be everywhere by now but maybe it is suppressed somehow)
 				const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
 				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
@@ -366,11 +369,17 @@ export class UserController {
 		apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
 		apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
 		apiUrl.searchParams.append("cv", env.versionNumber)
+		// atleast in the iOS WebView, we _have_ to use a http(s) URL to sendBeacon to not error out.
+		// our apiUrl is a api(s):// url on iOS, so we just replace the protocol in that case.d
+		if (apiUrl.protocol.startsWith("api")) {
+			apiUrl.protocol = apiUrl.protocol.replace("api", "http")
+		}
 
 		const data = `
-		 Has navigator beacon?${!!navigator.sendBeacon}
-		 the apiBaseUrl ${getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())}
-		 the Api pathname would be: ${apiUrl.pathname}
+		 Has navigator beacon?${!!navigator.sendBeacon} \n
+		 the apiBaseUrl ${getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())}\n
+		 the Api pathname would be: ${apiUrl.pathname}\n
+		 The Protocol?? ${apiUrl.protocol}\n
 		 The JSON of this apiURL? ${apiUrl.toJSON()}
 		`
 		return data

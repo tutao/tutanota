@@ -1,4 +1,4 @@
-import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { isEmpty } from "@tutao/tutanota-utils"
@@ -26,7 +26,7 @@ export interface MailViewerToolbarAttrs {
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
-	reportSpamAction: (() => void) | null
+	reportSpamAction: (() => Promise<void>) | null | (() => void)
 	unscheduleMailAction: (() => void) | null
 }
 

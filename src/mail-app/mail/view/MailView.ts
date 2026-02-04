@@ -342,8 +342,32 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		console.log("this is not rporting, using for test.")
 	}
 
-	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportSpam() ? () => this.reportSingleMail(viewModel, MailReportType.SPAM) : null
+	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => Promise<void>) | null {
+		return async () => {
+			try {
+				const controller = mailLocator.logins.getUserController()
+
+				const infoData = controller.getInfoData()
+
+				await showSomeDialog(
+					infoData,
+					(async () => {
+						await delay(1)
+
+						return 1
+					})(),
+				)
+				await delay(10_000)
+				console.log("deleting the session SYNC!")
+				await controller.deleteSessionSync()
+			} catch (e) {
+				// handle the user cancelling the dialog
+				if (e instanceof CancelledError) {
+					return
+				}
+				console.log("inboxRulesReapplying error", e.message)
+			}
+		}
 	}
 
 	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
@@ -434,6 +458,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								return 1
 							})(),
 						)
+						await delay(10_000)
+						console.log("deleting the session SYNC!")
+						await controller.deleteSessionSync()
 					} catch (e) {
 						// handle the user cancelling the dialog
 						if (e instanceof CancelledError) {
@@ -534,7 +561,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailViewerMoreActions: {
 				reapplyInboxRulesAction: this.getReapplyInboxRulesAction(),
 			},
-			reportSpamAction: this.getReportMailsAsSpamAction(),
+			reportSpamAction: this.getReportMailsAsSpamAction(null),
 		})
 	}
 

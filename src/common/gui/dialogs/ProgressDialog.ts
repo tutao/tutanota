@@ -118,7 +118,7 @@ export async function showSomeDialog<T>(
 	})
 	progressDialog.show()
 	let start = new Date().getTime()
-	await delay(20_000)
+	await delay(10_000)
 	progressDialog.close()
 	return await action
 }
