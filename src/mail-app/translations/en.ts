@@ -2031,6 +2031,7 @@ export default {
 		"tomorrow_label": "Tomorrow",
 		"tooBigAttachment_msg": "The following files could not be attached because the overall size exceeds 25 MB: ",
 		"tooBigInlineImages_msg": "Only files up to {size} KB are allowed.",
+		"tooManyAttachments_msg": "The mail could not be sent because the maximum number of attachments has been reached.",
 		"tooManyAttempts_msg": "Number of allowed attempts exceeded. Please try again later.",
 		"tooManyCustomDomains_msg": "You have too many custom domains.",
 		"tooManyGiftCards_msg": "You have reached the purchase limit of {amount} gift cards in the last {period}.",

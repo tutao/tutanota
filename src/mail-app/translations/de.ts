@@ -2031,6 +2031,7 @@ export default {
 		"tomorrow_label": "Morgen",
 		"tooBigAttachment_msg": "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
 		"tooBigInlineImages_msg": "Es sind nur Bilder bis zu einer Größe von {size} KB erlaubt.",
+		"tooManyAttachments_msg": "Die E-Mail konnte nicht gesendet werden, da die maximale Anzahl an Anhängen erreicht ist.",
 		"tooManyAttempts_msg": "Anzahl erlaubter Versuche überschritten. Bitte versuche es später erneut.",
 		"tooManyCustomDomains_msg": "Du hast zu viele eigene Domains.",
 		"tooManyGiftCards_msg": "Du hast das Limit von {amount} Gutscheinenkäufen innerhalb von {period} erreicht.",
