@@ -25,6 +25,8 @@ export interface BreadcrumbLinkAttrs {
 	onClick?: (event: MouseEvent) => unknown
 }
 
+const BREADCRUMBS_ITEM_MAXWIDTH = "20ch"
+
 class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 	private isDraggedOver: boolean = false
 
@@ -33,9 +35,9 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 			m.route.Link,
 			{
 				href,
-				selector: "a.click.no-text-decoration.state-bg.pl-8.pr-8.pt-4.pb-4.border-radius-4",
+				selector: "a.click.no-text-decoration.state-bg.pl-8.pr-8.pt-4.pb-4.border-radius-4.text-ellipsis",
 				"data-testid": `btn:${lang.getTestId(label)}`,
-				style: { border: this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent` },
+				style: { "max-width": BREADCRUMBS_ITEM_MAXWIDTH, border: this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent` },
 				onclick: onClick,
 				onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
 					if (isKeyPressed(e.key, Keys.SPACE)) {
@@ -102,11 +104,12 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 			currentFolder
 				? [
 						m(
-							".pl-8.pr-8.pt-4.pb-4",
+							".pl-8.pr-8.pt-4.pb-4.text-ellipsis",
 							{
 								style: {
 									// match the border of breadcrumb links
 									border: "1px solid transparent",
+									"max-width": BREADCRUMBS_ITEM_MAXWIDTH,
 								},
 							},
 							" " + driveFolderName(currentFolder).text,

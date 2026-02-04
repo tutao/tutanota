@@ -41,7 +41,7 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 						fill: theme.on_surface,
 					},
 				} satisfies IconAttrs),
-				m(".flex-grow", { class: item.type === "file" ? "translucent" : undefined }, name),
+				m(".flex-grow.text-ellipsis", { class: item.type === "file" ? "translucent" : undefined }, name),
 			],
 		)
 	}

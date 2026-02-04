@@ -179,7 +179,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						},
 					}),
 				),
-				m("div", { style: {} }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
+				m("div.text-ellipsis", { style: {} }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
 				m("div", { style: {} }, thisFileMimeType),
 				m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
 				m("div", { style: {} }, updatedDate.toLocaleString()),
