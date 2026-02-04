@@ -8,7 +8,7 @@ type DriveTransferType = "upload" | "download"
 export interface DriveTransferState {
 	type: DriveTransferType
 	filename: string
-	state: "finished" | "failed" | "active"
+	state: "finished" | "failed" | "active" | "waiting"
 	transferredSize: number // bytes
 	totalSize: number // bytes
 }
@@ -34,10 +34,17 @@ export class DriveUploadStackModel {
 		this._state.set(fileId, {
 			type: "upload",
 			filename,
-			state: "active",
+			state: "waiting",
 			transferredSize: 0,
 			totalSize,
 		})
+	}
+
+	startUpload(fileId: FileId) {
+		const stateForThisFile = this._state.get(fileId)
+		if (stateForThisFile) {
+			stateForThisFile.state = "active"
+		}
 	}
 
 	async onChunkUploaded(fileId: FileId, uploadedBytesSoFar: number): Promise<void> {

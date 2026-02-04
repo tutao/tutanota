@@ -91,6 +91,12 @@ export interface DriveClipboard {
 	action: ClipboardAction
 }
 
+interface PendingUpload {
+	file: File
+	fileId: TransferId
+	fileName: string
+}
+
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	return new ListModel({
 		async fetch(): Promise<ListFetchResult<Item>> {
@@ -405,6 +411,11 @@ export class DriveViewModel {
 		const folderItems = this.listModel.getUnfilteredAsArray()
 		const takenFileNames: Set<string> = new Set(folderItems.map((item) => folderItemEntity(item).name))
 
+		const pendingUploads: PendingUpload[] = []
+
+		// Pending uploads are prepared and added to the upload stack model in this loop
+		// seperated from the core upload loop, as we already want to show them in the
+		// transfer box even before uploading has started.
 		for (const file of files) {
 			const fileId = await this.driveFacade.generateUploadId()
 
@@ -412,9 +423,13 @@ export class DriveViewModel {
 			takenFileNames.add(newName)
 
 			this.driveUploadStackModel.addUpload(fileId, newName, file.size)
+			pendingUploads.push({ file, fileId, fileName: newName })
+		}
 
+		for (const { file, fileId, fileName } of pendingUploads) {
+			this.driveUploadStackModel.startUpload(fileId)
 			try {
-				await this.driveFacade.uploadFile(file, fileId, newName, targetFolderId).catch(
+				await this.driveFacade.uploadFile(file, fileId, fileName, targetFolderId).catch(
 					ofClass(CancelledError, (e) => {
 						console.log("Upload canceled", fileId)
 					}),

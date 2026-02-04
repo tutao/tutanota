@@ -45,7 +45,7 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 			[
 				m(".flex.row.items-center.justify-between.items-center", [
 					m(".flex.items-center.gap-16.overflow-hidden", [
-						state === "active" ? this.renderProgress(percentage) : this.renderTerminateStateIcon(state),
+						state === "active" || state === "waiting" ? this.renderProgress(percentage) : this.renderTerminateStateIcon(state),
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [m(".font-weight-500.text-ellipsis", filename), this.renderStatusText(type, state)]),
 					]),
 
@@ -112,6 +112,8 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 		let translationKey: TranslationKeyType
 		if (state === "failed") {
 			translationKey = "transferFailed_msg"
+		} else if (state === "waiting") {
+			translationKey = "transferWaiting_msg"
 		} else if (state === "active") {
 			translationKey = type === "upload" ? "uploadInProgress_msg" : "downloadInProgress_msg"
 		} else {
