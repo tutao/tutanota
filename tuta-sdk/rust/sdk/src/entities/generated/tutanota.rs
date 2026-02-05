@@ -1332,6 +1332,8 @@ pub struct SendDraftReturn {
 	pub notifications: Vec<NotificationMail>,
 	#[serde(rename = "562")]
 	pub sentMail: IdTupleGenerated,
+	#[serde(rename = "1813")]
+	pub sendJob: Option<IdTupleGenerated>,
 }
 
 impl Entity for SendDraftReturn {
@@ -4221,6 +4223,8 @@ pub struct SendDraftDeleteIn {
 	pub _format: i64,
 	#[serde(rename = "1787")]
 	pub mail: IdTupleGenerated,
+	#[serde(rename = "1814")]
+	pub sendJob: Option<IdTupleGenerated>,
 }
 
 impl Entity for SendDraftDeleteIn {

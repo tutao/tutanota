@@ -3351,6 +3351,15 @@ export const typeModels = {
 				"cardinality": "One",
 				"refTypeId": 97,
 				"dependency": null
+			},
+			"1813": {
+				"final": true,
+				"name": "sendJob",
+				"id": 1813,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 906,
+				"dependency": null
 			}
 		}
 	},
@@ -9772,6 +9781,15 @@ export const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 97,
+				"dependency": null
+			},
+			"1814": {
+				"final": false,
+				"name": "sendJob",
+				"id": 1814,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 906,
 				"dependency": null
 			}
 		}
