@@ -2807,7 +2807,6 @@ styles.registerStyle("main", () => {
 			".print": {
 				color: "black",
 				"background-color": "white",
-				display: "block",
 			},
 			"html, body": {
 				position: "initial",

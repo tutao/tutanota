@@ -628,6 +628,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								onExpandedChange: (change) => {
 									this.filesExpanded = change
 								},
+								isPrintable: true,
 							}),
 				]),
 
