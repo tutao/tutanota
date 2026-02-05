@@ -16,12 +16,12 @@ export function renderSidebarFolders({ rootFolderId, trashFolderId }: { rootFold
 		},
 		[
 			m(DriveFolderRow, {
-				label: lang.makeTranslation("asdf", () => "Home"), // TODO
+				label: lang.getTranslation("driveHome_label"),
 				icon: Icons.Drive,
 				href: `/drive/${listIdPart(rootFolderId)}/${elementIdPart(rootFolderId)}`,
 			}),
 			m(DriveFolderRow, {
-				label: lang.makeTranslation("asdf2", () => "Trash"), // TODO
+				label: lang.getTranslation("driveTrash_label"),
 				icon: Icons.Trash,
 				href: `/drive/${listIdPart(trashFolderId)}/${elementIdPart(trashFolderId)}`,
 			}),
@@ -38,7 +38,7 @@ const DriveFolderRow = pureComponent(({ href, icon, label }: { label: Translatio
 			},
 		},
 		m(NavButton, {
-			label, // TODO
+			label,
 			icon: () => icon,
 			href,
 			colors: NavButtonColor.Nav,

@@ -14,6 +14,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		return m(
 			".flex.col.abs",
 			{
+				"data-testid": "drive:transferstack",
 				style: {
 					width: `min(calc(100vw - ${size.spacing_12}px * 2), 500px)`,
 					bottom: px(size.spacing_12),

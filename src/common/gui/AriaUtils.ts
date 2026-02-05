@@ -62,7 +62,7 @@ export const enum AriaPopupType {
 }
 
 export const enum AriaRole {
-	Menu = "Menu",
+	Menu = "menu",
 	MenuItem = "menuitem",
 	Combobox = "combobox",
 	Listbox = "listbox",
