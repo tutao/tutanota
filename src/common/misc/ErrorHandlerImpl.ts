@@ -292,5 +292,5 @@ if (typeof window !== "undefined") {
 }
 
 export function showUserError(error: UserError): Promise<void> {
-	return Dialog.message(lang.makeTranslation("error_msg", error.message))
+	return Dialog.message(lang.makeTranslation(error.data, error.message))
 }

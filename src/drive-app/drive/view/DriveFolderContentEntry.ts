@@ -102,6 +102,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		return m(
 			"div.flex.row.folder-row.cursor-pointer",
 			{
+				role: "row",
 				draggable: true,
 				style: {
 					"border-radius": "10px",
@@ -179,10 +180,10 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						},
 					}),
 				),
-				m("div.text-ellipsis", { style: {} }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
-				m("div", { style: {} }, thisFileMimeType),
-				m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-				m("div", { style: {} }, updatedDate.toLocaleString()),
+				m("div.text-ellipsis", { "data-testid": "drivecontententry:name" }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
+				m("div", thisFileMimeType),
+				m("div", item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+				m("div", updatedDate.toLocaleString()),
 				m(
 					"div",
 					m("div", [
