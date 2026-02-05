@@ -9,7 +9,7 @@ export const typeModels = {
 	"12": {
 		"name": "ReadCounterData",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 12,
@@ -56,7 +56,7 @@ export const typeModels = {
 	"16": {
 		"name": "ReadCounterReturn",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 16,
@@ -97,7 +97,7 @@ export const typeModels = {
 	"49": {
 		"name": "WriteCounterData",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 49,
@@ -152,7 +152,7 @@ export const typeModels = {
 	"221": {
 		"name": "ApprovalMail",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 14,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 221,
@@ -233,7 +233,7 @@ export const typeModels = {
 	"300": {
 		"name": "CounterValue",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 22,
 		"type": "AGGREGATED_TYPE",
 		"id": 300,
@@ -272,7 +272,7 @@ export const typeModels = {
 	"305": {
 		"name": "ErrorReportFile",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 23,
 		"type": "AGGREGATED_TYPE",
 		"id": 305,
@@ -311,7 +311,7 @@ export const typeModels = {
 	"316": {
 		"name": "ErrorReportData",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 23,
 		"type": "AGGREGATED_TYPE",
 		"id": 316,
@@ -406,7 +406,7 @@ export const typeModels = {
 	"335": {
 		"name": "ReportErrorIn",
 		"app": "monitor",
-		"version": 38,
+		"version": 39,
 		"since": 23,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 335,

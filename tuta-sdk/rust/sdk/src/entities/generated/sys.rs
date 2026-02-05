@@ -716,6 +716,8 @@ pub struct CustomerInfo {
 	pub perUserAliasCount: i64,
 	#[serde(rename = "2098")]
 	pub plan: i64,
+	#[serde(rename = "2682")]
+	pub promotionId: Option<String>,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
@@ -736,6 +738,10 @@ pub struct CustomerInfo {
 	pub customPlan: Option<PlanConfiguration>,
 	#[serde(rename = "2197")]
 	pub supportInfo: Option<GeneratedId>,
+	#[serde(rename = "2681")]
+	pub managedByPartner: Option<GeneratedId>,
+	#[serde(rename = "2683")]
+	pub partnerManagedCustomers: Option<GeneratedId>,
 }
 
 impl Entity for CustomerInfo {
@@ -6226,6 +6232,38 @@ impl Entity for AbuseInfo {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2650),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PartnerManagedCustomer {
+	#[serde(rename = "2674")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2675")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2676")]
+	pub _format: i64,
+	#[serde(rename = "2677")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2678")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2679")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2680")]
+	pub customerInfo: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for PartnerManagedCustomer {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2672),
 		}
 	}
 }

@@ -247,6 +247,7 @@ export type Mail = {
 	processingState: NumberString;
 	processNeeded: boolean;
 	sendAt: null | Date;
+	serverClassificationData: null | string;
 
 	sender: MailAddress;
 	attachments: IdTuple[];
@@ -2637,7 +2638,8 @@ export type ClientSpamTrainingDatum = {
 	_ownerKeyVersion: null | NumberString;
 	confidence: NumberString;
 	spamDecision: NumberString;
-	vector: Uint8Array;
+	vectorLegacy: Uint8Array;
+	vectorWithServerClassifiers: null | Uint8Array;
 }
 export const ClientSpamTrainingDatumIndexEntryTypeRef: TypeRef<ClientSpamTrainingDatumIndexEntry> = new TypeRef("tutanota", 1747)
 
@@ -2669,7 +2671,8 @@ export type ProcessInboxDatum = {
 	ownerEncVectorSessionKey: Uint8Array;
 	ownerKeyVersion: NumberString;
 	classifierType: null | NumberString;
-	encVector: Uint8Array;
+	encVectorLegacy: Uint8Array;
+	encVectorWithServerClassifiers: null | Uint8Array;
 
 	mailId: IdTuple;
 	targetMoveFolder: IdTuple;
@@ -2705,7 +2708,8 @@ export type PopulateClientSpamTrainingDatum = {
 	ownerKeyVersion: NumberString;
 	isSpam: boolean;
 	confidence: NumberString;
-	encVector: Uint8Array;
+	encVectorLegacy: Uint8Array;
+	encVectorWithServerClassifiers: null | Uint8Array;
 
 	mailId: IdTuple;
 }
