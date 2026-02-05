@@ -103,6 +103,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
 		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
+		const labelString = lang.getTranslationText(a.label)
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = this.active ? "2px" : "1px"
@@ -127,7 +128,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				m(
 					"label.abs.text-ellipsis.noselect.z1.i.pr-4",
 					{
-						"aria-hidden": "true",
+						"aria-label": labelString,
 						class: this.active ? "content-accent-fg" : "" + " " + getOperatingClasses(a.disabled),
 						oncreate: (vnode) => {
 							this._domLabel = vnode.dom as HTMLElement
@@ -138,7 +139,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							transition: `transform ${labelTransitionSpeed}ms ease-out, font-size ${labelTransitionSpeed}ms  ease-out`,
 						},
 					},
-					lang.getTranslationText(a.label),
+					labelString,
 				),
 				m(".flex.flex-column", [
 					// another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
