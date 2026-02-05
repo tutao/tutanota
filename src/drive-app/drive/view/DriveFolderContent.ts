@@ -48,8 +48,9 @@ function renderHeaderCell(
 	onSort: DriveFolderContentAttrs["onSort"],
 ): Children {
 	return m(
-		"div",
+		"button",
 		{
+			"data-testid": `btn:${columnName.testId}`,
 			style: { ...columnStyle },
 			onclick: () => {
 				onSort(columnId)
@@ -88,6 +89,8 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				m(
 					".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
 					{
+						role: "grid",
+						"data-testid": "grid:folderContent",
 						style: {
 							"grid-column-start": "1",
 							"grid-column-end": "8",
@@ -243,7 +246,13 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				m(
 					"div",
 					{ style: { ...columnStyle } },
-					m("input.checkbox", { type: "checkbox", checked: selection.type === "multiselect" && selection.selectedAll, onchange: onSelectAll }),
+					m("input.checkbox", {
+						type: "checkbox",
+						"data-testid": "cb:selectAllLoaded_action",
+						title: lang.getTranslationText("selectAllLoaded_action"),
+						checked: selection.type === "multiselect" && selection.selectedAll,
+						onchange: onSelectAll,
+					}),
 				),
 				selection.type === "multiselect"
 					? [m(""), m(".b", lang.getTranslation("itemsSelected_label", { "{number}": selection.selectedItemCount }).text)]
