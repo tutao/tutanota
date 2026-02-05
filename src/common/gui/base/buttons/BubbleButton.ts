@@ -4,7 +4,7 @@ import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 import { AllIcons, Icon } from "../Icon.js"
 import { theme } from "../../theme.js"
 import { styles } from "../../styles.js"
-import { component_size, px, size } from "../../size.js"
+import { component_size, px } from "../../size.js"
 
 export interface BubbleButtonAttrs {
 	label: MaybeTranslation
@@ -49,6 +49,7 @@ export class BubbleButton implements Component<BubbleButtonAttrs> {
 				style: { height: px(bubbleButtonHeight()), maxHeight: px(bubbleButtonHeight()) },
 				class: `smaller bubble flex center-vertically limit-width ${bubbleButtonPadding()} flash`,
 				onclick: attrs.onclick,
+				isPrintable: true,
 			},
 			children,
 		)

@@ -22,6 +22,7 @@ export interface BaseButtonAttrs {
 	class?: string
 	role?: AriaRole
 	iconWrapperSelector?: string
+	isPrintable?: boolean
 }
 
 export class BaseButton implements ClassComponent<BaseButtonAttrs> {
@@ -32,7 +33,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 		const pressed = booleanToAttributeValue(attrs.pressed)
 		const selected = booleanToAttributeValue(attrs.selected)
 		return m(
-			"button",
+			attrs.isPrintable ? "button.print" : "button",
 			{
 				title: lang.getTranslationText(attrs.label),
 				disabled,

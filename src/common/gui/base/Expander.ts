@@ -21,6 +21,7 @@ export type ExpanderAttrs = {
 	showWarning?: boolean
 	color?: string
 	style?: Record<string, any>
+	isPrintable?: boolean
 }
 export type ExpanderPanelAttrs = {
 	expanded: boolean
@@ -33,7 +34,8 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 		return m(
 			".limit-width",
 			m(
-				"button.expander.bg-transparent.pt-8.hover-ul.limit-width.flex.items-center.b.text-ellipsis.flash",
+				"button.expander.bg-transparent.pt-8.hover-ul.limit-width.flex.items-center.b.text-ellipsis.flash" +
+					`${!a.expanded && a.isPrintable ? ".print" : ""}`,
 				{
 					style: a.style,
 					onclick: (event: MouseEvent) => {
