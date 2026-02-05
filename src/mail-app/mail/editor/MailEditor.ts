@@ -1259,7 +1259,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			const sendAtDate = model.getSendAtDate()
 			const allowUndo = model.undoModel != null && deviceConfig.getIsUndoSendEnabled()
 
-			const success = await model.send(
+			const sendResult = await model.send(
 				MailMethod.NONE,
 				Dialog.confirm,
 				showProgressDialog,
@@ -1267,20 +1267,23 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				sendAtDate ? "tooManyScheduledMails_msg" : undefined,
 				allowUndo,
 			)
-			if (success) {
+			if (sendResult.success) {
 				dispose()
 				dialog.close()
 
-				if (allowUndo) {
+				const { sendJob } = sendResult
+				const sentMail = assertNotNull(model.draft?._id)
+
+				if (allowUndo && sendJob != null) {
 					if (sendAtDate) {
 						// Cannot undo a scheduled mail (should just go to the scheduled folder and cancel it)
 						// But we do want to show something to confirm the email, since it will be expected that a snackbar shows when sending a mail
 						showInfoSnackbar("emailScheduled_msg")
 					} else {
-						const undoResult = await showUndoMailSnackbar(
+						showUndoMailSnackbar(
 							model.undoModel,
 							async () => {
-								noOp()
+								await model.mailFacade.undoSendMail(sentMail, sendJob)
 							},
 							lang.getTranslation("emailSent_msg"),
 							UNDO_SEND_TIMEOUT,
