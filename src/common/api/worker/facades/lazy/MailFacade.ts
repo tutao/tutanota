@@ -90,6 +90,7 @@ import {
 	ProcessInboxDatum,
 	ReportedMailFieldMarker,
 	SendDraftParameters,
+	SendDraftReturn,
 	SymEncInternalRecipientKeyData,
 	SymEncInternalRecipientKeyDataTypeRef,
 	TutanotaPropertiesTypeRef,
@@ -588,7 +589,7 @@ export class MailFacade {
 		})
 	}
 
-	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<void> {
+	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<SendDraftReturn> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes256RandomKey()
 		const parameters: StrippedEntity<SendDraftParameters> = {
@@ -657,11 +658,16 @@ export class MailFacade {
 			sendAt,
 			allowUndo,
 		})
-		await this.serviceExecutor.post(SendDraftService, sendDraftData)
+
+		return await this.serviceExecutor.post(SendDraftService, sendDraftData)
 	}
 
 	async unscheduleMail(mail: IdTuple) {
-		await this.serviceExecutor.delete(SendDraftService, createSendDraftDeleteIn({ mail }))
+		await this.serviceExecutor.delete(SendDraftService, createSendDraftDeleteIn({ mail, sendJob: null }))
+	}
+
+	async undoSendMail(mail: IdTuple, sendJob: IdTuple) {
+		await this.serviceExecutor.delete(SendDraftService, createSendDraftDeleteIn({ mail, sendJob }))
 	}
 
 	async getAttachmentIds(draft: Mail): Promise<IdTuple[]> {
