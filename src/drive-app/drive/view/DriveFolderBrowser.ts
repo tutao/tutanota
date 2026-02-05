@@ -10,13 +10,14 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveMiniFolderContentAttrs {
 	items: readonly FolderItem[]
+	disabledTargetIds: ReadonlySet<Id>
 	onItemClicked: (f: FolderItem) => unknown
 	style?: Record<string, unknown>
 	newFolder: DriveFolderBrowserNewFolderEntryAttrs | null
 }
 
 export class DriveFolderBrowser implements Component<DriveMiniFolderContentAttrs> {
-	view({ attrs: { items, onItemClicked, style, newFolder } }: Vnode<DriveMiniFolderContentAttrs>): Children {
+	view({ attrs: { items, disabledTargetIds, onItemClicked, style, newFolder } }: Vnode<DriveMiniFolderContentAttrs>): Children {
 		return m(
 			".flex.col.gap-4.scroll",
 			{
@@ -30,14 +31,16 @@ export class DriveFolderBrowser implements Component<DriveMiniFolderContentAttrs
 						{ "data-testid": lang.getTestId("folderIsEmpty_msg") },
 						lang.getTranslationText("folderIsEmpty_msg"),
 					)
-				: items.map((item) =>
-						m(DriveFolderBrowserEntry, {
-							key: getElementId(folderItemEntity(item)),
+				: items.map((item) => {
+						const elementId = getElementId(folderItemEntity(item))
+						return m(DriveFolderBrowserEntry, {
+							key: elementId,
 							item: item,
+							isInvalidTarget: disabledTargetIds.has(elementId),
 							selected: false,
 							onSingleSelection: onItemClicked,
-						} satisfies DriveFolderBrowserEntryAttrs & { key: string }),
-					),
+						} satisfies DriveFolderBrowserEntryAttrs & { key: string })
+					}),
 		)
 	}
 }

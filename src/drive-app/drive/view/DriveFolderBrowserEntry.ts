@@ -8,12 +8,13 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveFolderBrowserEntryAttrs {
 	item: FolderItem
+	isInvalidTarget: boolean
 	selected: boolean
 	onSingleSelection: (f: FolderItem) => unknown
 }
 
 export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntryAttrs> {
-	view({ attrs: { item, selected, onSingleSelection } }: Vnode<DriveFolderBrowserEntryAttrs>): m.Children {
+	view({ attrs: { item, isInvalidTarget, selected, onSingleSelection } }: Vnode<DriveFolderBrowserEntryAttrs>): m.Children {
 		const name = item.type === "folder" ? item.folder.name : item.file.name
 		const typeLabel = lang.getTranslationText(item.type === "file" ? "file_label" : "folder_label")
 		return m(
@@ -23,7 +24,7 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 				role: "listitem",
 				"aria-disabled": true,
 				"aria-description": typeLabel,
-				class: item.type === "folder" ? "cursor-pointer" : undefined,
+				class: isInvalidTarget ? undefined : "cursor-pointer",
 				style: {
 					background: selected ? theme.state_bg_hover : theme.surface,
 					"border-radius": "10px",
@@ -34,14 +35,14 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 			},
 			[
 				m(Icon, {
-					class: item.type === "file" ? "translucent" : undefined,
+					class: isInvalidTarget ? "translucent" : undefined,
 					icon: item.type === "folder" ? Icons.Folder : Icons.GenericFile,
 					size: IconSize.PX24,
 					style: {
 						fill: theme.on_surface,
 					},
 				} satisfies IconAttrs),
-				m(".flex-grow.text-ellipsis", { class: item.type === "file" ? "translucent" : undefined }, name),
+				m(".flex-grow.text-ellipsis", { class: isInvalidTarget ? "translucent" : undefined }, name),
 			],
 		)
 	}

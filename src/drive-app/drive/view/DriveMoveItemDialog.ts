@@ -10,7 +10,8 @@ import { DriveFolderBrowser } from "./DriveFolderBrowser"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { FolderItem, folderItemToId, moveItems, toFolderItems } from "./DriveUtils"
+import { FolderItem, folderItemEntity, folderItemToId, moveItems, toFolderItems } from "./DriveUtils"
+import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 interface State {
 	currentFolder: DriveFolder
@@ -44,6 +45,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 		class DriveMoveDialog implements Component {
 			view(): Children {
 				const { currentFolder, parents, items: currentFolderItems, newFolderName } = state
+				const disabledTargetIds = new Set([getElementId(folderItemEntity(itemToMove))])
 				return m(
 					".plr-24.pt-24.pb-24.flex.col.gap-16.border-radius-8",
 					{
@@ -70,6 +72,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 						),
 						m(DriveFolderBrowser, {
 							items: currentFolderItems,
+							disabledTargetIds,
 							newFolder:
 								newFolderName != null
 									? {
@@ -81,7 +84,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 										}
 									: null,
 							onItemClicked: (item: FolderItem) => {
-								if (item.type === "folder") {
+								if (item.type === "folder" && !isSameId(item.folder._id, folderItemEntity(itemToMove)._id)) {
 									this.onOpenFolder(item.folder)
 								}
 							},
