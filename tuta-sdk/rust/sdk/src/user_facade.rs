@@ -139,7 +139,7 @@ impl UserFacade {
 			.find(|g| g.groupType == Some(group_type))
 			.map(|m| m.to_owned())
 			.ok_or_else(|| ApiCallError::InternalSdkError {
-				error_message: format!("No group with groupType {} found!", group_type),
+				error_message: format!("No group with groupType {group_type} found!"),
 			})
 	}
 
@@ -161,7 +161,7 @@ impl UserFacade {
 			.find(|g| g.group == *group_id)
 			.map(|m| m.to_owned())
 			.ok_or_else(|| ApiCallError::InternalSdkError {
-				error_message: format!("No group with groupId {} found!", group_id),
+				error_message: format!("No group with groupId {group_id} found!"),
 			})
 	}
 }

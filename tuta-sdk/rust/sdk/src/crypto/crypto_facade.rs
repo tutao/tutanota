@@ -180,7 +180,7 @@ impl CryptoFacade {
 				.map(|e| self.instance_mapper.parse_entity::<Permission>(e))
 				.collect::<Result<Vec<Permission>, _>>()
 				.map_err(|error| SessionKeyResolutionError {
-					reason: format!("Failed to parse permission into proper types: {}", error),
+					reason: format!("Failed to parse permission into proper types: {error}"),
 				})?;
 
 			let resolved_session_key = self.try_symmetric_permission(permissions).await?;

@@ -56,7 +56,7 @@ impl TryFrom<i64> for KdfType {
 			0 => Ok(KdfType::Bcrypt),
 			1 => Ok(KdfType::Argon2id),
 			_ => Err(InternalSdkError {
-				error_message: format!("Failed to convert int {} into KdfType", value),
+				error_message: format!("Failed to convert int {value} into KdfType"),
 			}),
 		}
 	}
@@ -94,7 +94,7 @@ impl LoginFacade {
 	) -> Result<UserFacade, LoginError> {
 		let session_id = parse_session_id(credentials.access_token.as_str()).map_err(|e| {
 			LoginError::InvalidAccessToken {
-				error_message: format!("Could not decode session id: {}", e),
+				error_message: format!("Could not decode session id: {e}"),
 			}
 		})?;
 		// Cannot use typed client because session is encrypted, and we haven't init crypto client yet
