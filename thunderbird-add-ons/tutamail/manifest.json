@@ -1,0 +1,23 @@
+{
+	"manifest_version": 2,
+	"name": "Tuta Mail",
+	"description": "Spaces toolbar quick access Thunderbird Add-on for Tuta Mail",
+	"version": "1.0.0",
+	"author": "Tutao GmbH",
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "@tutamail.thunderbird",
+			"strict_min_version": "140.0",
+			"data_collection_permissions": {
+				"required": ["none"]
+			}
+		}
+	},
+	"icons": {
+		"32": "icon-mail.svg",
+		"64": "icon-mail.svg"
+	},
+	"background": {
+		"scripts": ["app-mail.js"]
+	}
+}
