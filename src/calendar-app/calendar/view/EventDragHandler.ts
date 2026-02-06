@@ -122,10 +122,6 @@ export class EventDragHandler {
 			this.handleMouseCursorClass()
 
 			const dragData = this.data
-			dragData.originalEventWrapper.flags = {
-				...dragData.originalEventWrapper.flags,
-				isTransientEvent: true,
-			}
 
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEventWrapper.event.startTime, dateUnderMouse, dragData.keepTime)
 			// Calculate the distance from the original mouse location to the current mouse location
@@ -149,6 +145,12 @@ export class EventDragHandler {
 				}
 			} else if (distance > DRAG_THRESHOLD) {
 				this.dragging = true
+
+				dragData.originalEventWrapper.flags = {
+					...dragData.originalEventWrapper.flags,
+					isTransientEvent: this.dragging,
+				}
+
 				this.lastDiffBetweenDates = this.getDayUnderMouseDiff(dragData, adjustedDateUnderMouse)
 
 				this.eventDragCallbacks.onDragStart(dragData.originalEventWrapper, this.lastDiffBetweenDates)
