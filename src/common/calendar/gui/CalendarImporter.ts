@@ -1,14 +1,13 @@
 import { DataFile } from "../../api/common/DataFile.js"
-import { Require, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { getTimeZone } from "../date/CalendarUtils.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
-import { component_size, size } from "../../gui/size.js"
+import { component_size } from "../../gui/size.js"
 import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
@@ -21,16 +20,7 @@ import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
 import { handleCalendarImport } from "./CalendarImporterDialog.js"
-import { parseCalendarStringData } from "./ImportExportUtils.js"
-
-export type ParsedEvent = {
-	event: Require<"uid", CalendarEvent>
-	alarms: Array<AlarmInfoTemplate>
-}
-export type ParsedCalendarData = {
-	method: string
-	contents: Array<ParsedEvent>
-}
+import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {

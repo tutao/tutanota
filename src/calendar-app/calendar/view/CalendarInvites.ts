@@ -19,13 +19,14 @@ import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.j
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarEventProgenitor } from "../../../common/api/worker/facades/lazy/CalendarFacade"
+import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
 
 export interface ParsedIcalFileContentData {
 	method: CalendarMethod
-	events: Array<CalendarEvent>
+	events: Array<IcsCalendarEvent>
 	uid: string
 }
 
@@ -34,11 +35,11 @@ export type ParsedIcalFileContent = ParsedIcalFileContentData | None
 async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent> {
 	try {
 		const { contents, method } = await parseCalendarFile(fileData)
-		const uid = contents[0].event.uid
+		const uid = contents[0].icsCalendarEvent.uid
 		if (uid == null) return null
-		assert(!contents.some((c) => c.event.uid !== uid), "received invite with multiple events, but mismatched UIDs")
+		assert(!contents.some((c) => c.icsCalendarEvent.uid !== uid), "received invite with multiple events, but mismatched UIDs")
 		return {
-			events: contents.map((c) => c.event),
+			events: contents.map((c) => c.icsCalendarEvent),
 			uid,
 			method: getAsEnumValue(CalendarMethod, method) || CalendarMethod.PUBLISH,
 		}
@@ -50,11 +51,7 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 
 export async function getEventsFromFile(file: TutanotaFile, invitedConfidentially: boolean): Promise<ParsedIcalFileContent> {
 	const dataFile = await locator.fileController.getAsDataFile(file)
-	const contents = await getParsedEvent(dataFile)
-	for (const event of contents?.events ?? []) {
-		event.invitedConfidentially = invitedConfidentially
-	}
-	return contents
+	return getParsedEvent(dataFile)
 }
 
 /**
@@ -62,9 +59,12 @@ export async function getEventsFromFile(file: TutanotaFile, invitedConfidentiall
  * any calendar (because it has not been stored yet, e.g. in case of invite)
  * the given event is returned.
  */
-export async function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
+export async function getLatestEvent(event: IcsCalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
-	if (uid == null) return event
+	const fromIcsCalendarEvent = makeCalendarEventFromIcsCalendarEvent(event)
+	if (uid == null) {
+		return fromIcsCalendarEvent
+	}
 	const existingEvents = await locator.calendarFacade.getEventsByUid(uid)
 
 	// If the file we are opening is newer than the one which we have on the server, update server version.
@@ -75,11 +75,11 @@ export async function getLatestEvent(event: CalendarEvent): Promise<CalendarEven
 			? existingEvents?.progenitor // the progenitor does not have a recurrence id and is always first in uid index
 			: existingEvents?.alteredInstances.find((e) => e.recurrenceId === event.recurrenceId)
 
-	if (existingEvent == null) return event
+	if (existingEvent == null) return fromIcsCalendarEvent
 
 	if (filterInt(existingEvent.sequence) < filterInt(event.sequence)) {
 		const calendarModel = await locator.calendarModel()
-		return await calendarModel.updateEventWithExternal(existingEvent, event)
+		return await calendarModel.updateEventWithExternal(existingEvent, fromIcsCalendarEvent)
 	} else {
 		return existingEvent
 	}
@@ -122,8 +122,9 @@ export class CalendarInviteHandler {
 			throw new Error("Replying to an event without an organizer")
 		}
 		const eventClone = clone(event)
-		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
+		eventClone.invitedConfidentially = previousMail ? previousMail.confidential : eventClone.invitedConfidentially
 
+		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 		foundAttendee.status = decision
 
 		const notificationModel = new CalendarNotificationModel(this.calendarNotificationSender, this.logins)
@@ -179,9 +180,9 @@ export class CalendarInviteHandler {
 				}
 
 				console.log("Replying to an invitation without a persisted event counterpart, creating new event...")
-				await this.calendarModel.handleNewCalendarInvitation(sender, {
+				await this.calendarModel.handleNewCalendarEventInvitationFromIcs(sender, {
 					method: CalendarMethod.REQUEST,
-					contents: [{ event: eventClone as CalendarEventProgenitor, alarms: [] }],
+					contents: [{ icsCalendarEvent: eventClone as CalendarEventProgenitor, alarms: [] }],
 				})
 				return ReplyResult.ReplySent
 			}
@@ -201,7 +202,7 @@ export class CalendarInviteHandler {
 				throw new Error("Replying to an invitation without a persisted event counterpart")
 			}
 
-			await this.calendarModel.processCalendarUpdate(dbEvents, targetDbEvent, resolvedEvent)
+			await this.calendarModel.processUpdateToCalendarEventFromIcs(dbEvents, targetDbEvent, resolvedEvent)
 		}
 		return ReplyResult.ReplySent
 	}

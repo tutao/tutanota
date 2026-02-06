@@ -128,7 +128,6 @@ import { isEditableDraft, isMailInSpamOrTrash } from "./mail/model/MailChecks.js
 import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import { ParsedEvent } from "../common/calendar/gui/CalendarImporter.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
@@ -163,6 +162,7 @@ import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { DriveUploadStackModel } from "../drive-app/drive/view/DriveUploadStackModel"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
+import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 
 assertMainOrNode()
 

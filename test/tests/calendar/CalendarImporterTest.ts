@@ -19,52 +19,39 @@ import { DateTime } from "luxon"
 import {
 	AlarmInfo,
 	AlarmInfoTypeRef,
-	createDateWrapper,
 	createRepeatRule,
 	DateWrapperTypeRef,
 	RepeatRuleTypeRef,
+	type UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
-import { Require } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, Require } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calendar/date/CalendarUtils.js"
 import {
 	checkURLString,
 	EventImportRejectionReason,
+	IcsCalendarEvent,
+	makeCalendarEventFromIcsCalendarEvent,
 	normalizeCalendarUrl,
 	parseCalendarStringData,
+	ParsedCalendarData,
+	ParsedEvent,
 	sortOutParsedEvents,
 } from "../../../src/common/calendar/gui/ImportExportUtils.js"
 
 const zone = getTimeZone()
 const now = new Date("2019-08-13T14:01:00.630Z")
 
-function jsonEquals(actual: unknown, expected: unknown, message): { pass: boolean; message: string } {
-	// necessary because o(Uint8Array.from([])).deepEquals(Uint8Array.from([])) does not pass
-	const firstJson = JSON.stringify(actual)
-	const secondJson = JSON.stringify(expected)
-	const isEqual = firstJson === secondJson
-	if (isEqual) {
-		return { pass: true, message: "okay" }
-	} else {
-		let firstDiff = 0
-		while (firstJson[firstDiff] === secondJson[firstDiff]) firstDiff++
-		firstDiff = Math.max(firstDiff - 25, 0)
-		return {
-			pass: false,
-			message: `${message}:\nfirst diff in json serialization around \nact: ...${firstJson.substring(
-				firstDiff,
-				firstDiff + 50,
-			)}... vs. \nexp: ...${secondJson.substring(firstDiff, firstDiff + 50)}...`,
-		}
-	}
+function testParsedCalendarDataEquality(actual: ParsedCalendarData, expected: ParsedCalendarData, message?: string): void {
+	o.check(actual).deepEquals(expected)(message ?? "")
 }
 
-function testEventEquality(actual: unknown, expected: unknown, message: string = ""): void {
-	o(actual).satisfies((a) => jsonEquals(a, expected, message))
+function testParsedEventEquality(actual: ParsedEvent, expected: ParsedEvent, message?: string): void {
+	o.check(actual).deepEquals(expected)(message ?? "")
 }
 
 o.spec("CalendarImporter", function () {
@@ -574,7 +561,52 @@ o.spec("CalendarImporter", function () {
 			})
 		})
 	})
+
 	o.spec("import", function () {
+		let expectedParsedCalendarData: ParsedCalendarData
+
+		o.beforeEach(function () {
+			expectedParsedCalendarData = {
+				method: "PUBLISH",
+				contents: [
+					{
+						icsCalendarEvent: {
+							summary: "s",
+							description: "",
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							location: "",
+							uid: "test@tuta.com",
+							sequence: "0",
+							recurrenceId: null,
+							repeatRule: null,
+							attendees: [],
+							organizer: null,
+						},
+						alarms: [],
+					},
+				],
+			}
+		})
+
 		o("regular event", async function () {
 			const actual = await parseCalendarStringData(
 				[
@@ -596,392 +628,22 @@ o.spec("CalendarImporter", function () {
 				].join("\r\n"),
 				zone,
 			)
-			const expected = {
-				method: "PUBLISH",
-				contents: [
-					{
-						event: createCalendarEvent({
-							attendees: [],
-							description: "",
-							alarmInfos: [],
-							invitedConfidentially: null,
-							sequence: "0",
-							location: "",
-							organizer: null,
-							recurrenceId: null,
-							summary: "Word \n \\ ;, \n",
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							uid: "test@tuta.com",
-							hashedUid: null,
-							pendingInvitation: null,
-							sender: null,
-							repeatRule: createRepeatRule({
-								endType: EndType.Never,
-								interval: "3",
-								frequency: RepeatPeriod.WEEKLY,
-								timeZone: zone,
-								advancedRules: [],
-								excludedDates: [],
-								endValue: null,
-							}),
-						}),
-						alarms: [],
-					},
-				],
-			}
-			testEventEquality(actual, expected)
-		})
-		o("with attendee", async function () {
-			const parsedEvent = parseCalendarStringData(
-				[
-					"BEGIN:VCALENDAR",
-					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-					"VERSION:2.0",
-					"CALSCALE:GREGORIAN",
-					"METHOD:PUBLISH",
-					"BEGIN:VEVENT",
-					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:s",
-					"ORGANIZER:mailto:organizer@tuta.com",
-					"ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:test@example.com",
-					"END:VEVENT",
-					"END:VCALENDAR",
-				].join("\r\n"),
-				zone,
-			)
-			const expected = {
-				method: "PUBLISH",
-				contents: [
-					{
-						event: createCalendarEvent({
-							description: "",
-							alarmInfos: [],
-							invitedConfidentially: null,
-							sequence: "0",
-							location: "",
-							recurrenceId: null,
-							repeatRule: null,
-							summary: "s",
-							pendingInvitation: null,
-							sender: null,
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							uid: "test@tuta.com",
-							hashedUid: null,
-							organizer: createEncryptedMailAddress({
-								name: "",
-								address: "organizer@tuta.com",
-							}),
-							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
-										name: "",
-										address: "test@example.com",
-									}),
-									status: CalendarAttendeeStatus.NEEDS_ACTION,
-								}),
-							],
-						}),
-						alarms: [],
-					},
-				],
-			}
-			testEventEquality(parsedEvent, expected)
-		})
-		o("with attendee uppercase mailto", async function () {
-			// GMX does this
-			const parsedEvent = parseCalendarStringData(
-				[
-					"BEGIN:VCALENDAR",
-					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-					"VERSION:2.0",
-					"CALSCALE:GREGORIAN",
-					"METHOD:PUBLISH",
-					"BEGIN:VEVENT",
-					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:s",
-					"ORGANIZER:MAILTO:organizer@tuta.com",
-					"ATTENDEE;PARTSTAT=NEEDS-ACTION:MAILTO:test@example.com",
-					"END:VEVENT",
-					"END:VCALENDAR",
-				].join("\r\n"),
-				zone,
-			)
-			const expected = {
-				method: "PUBLISH",
-				contents: [
-					{
-						event: createCalendarEvent({
-							description: "",
-							alarmInfos: [],
-							invitedConfidentially: null,
-							sequence: "0",
-							location: "",
-							recurrenceId: null,
-							repeatRule: null,
-							summary: "s",
-							pendingInvitation: null,
-							sender: null,
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							uid: "test@tuta.com",
-							hashedUid: null,
-							organizer: createEncryptedMailAddress({
-								name: "",
-								address: "organizer@tuta.com",
-							}),
-							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
-										name: "",
-										address: "test@example.com",
-									}),
-									status: CalendarAttendeeStatus.NEEDS_ACTION,
-								}),
-							],
-						}),
-						alarms: [],
-					},
-				],
-			}
-			testEventEquality(parsedEvent, expected)
-		})
-		o("with attendee without PARTSTAT", async function () {
-			// Outlook 16 does this
-			// RFC says NEEDS-ACTION is default
-			// https://tools.ietf.org/html/rfc5545#section-3.2.12
-			const parsedEvent = parseCalendarStringData(
-				[
-					"BEGIN:VCALENDAR",
-					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-					"VERSION:2.0",
-					"CALSCALE:GREGORIAN",
-					"METHOD:PUBLISH",
-					"BEGIN:VEVENT",
-					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:s",
-					"ORGANIZER:MAILTO:organizer@tuta.com",
-					"ATTENDEE:mailto:test@example.com",
-					"END:VEVENT",
-					"END:VCALENDAR",
-				].join("\r\n"),
-				zone,
-			)
-			const expected = {
-				method: "PUBLISH",
-				contents: [
-					{
-						event: createCalendarEvent({
-							description: "",
-							alarmInfos: [],
-							invitedConfidentially: null,
-							sequence: "0",
-							location: "",
-							recurrenceId: null,
-							repeatRule: null,
-							summary: "s",
-							pendingInvitation: null,
-							sender: null,
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							uid: "test@tuta.com",
-							hashedUid: null,
-							organizer: createEncryptedMailAddress({
-								name: "",
-								address: "organizer@tuta.com",
-							}),
-							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
-										name: "",
-										address: "test@example.com",
-									}),
-									status: CalendarAttendeeStatus.NEEDS_ACTION,
-								}),
-							],
-						}),
-						alarms: [],
-					},
-				],
-			}
-			testEventEquality(parsedEvent, expected)
-		})
-		o("all-day event", async function () {
-			testEventEquality(
-				parseCalendarStringData(
-					[
-						"BEGIN:VCALENDAR",
-						"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-						"VERSION:2.0",
-						"CALSCALE:GREGORIAN",
-						"METHOD:PUBLISH",
-						"BEGIN:VEVENT",
-						"SUMMARY:Labor Day / May Day",
-						"DTSTART;VALUE=DATE:20200501",
-						"DTEND;VALUE=DATE:20200502",
-						"LOCATION:Brazil",
-						"DESCRIPTION:Some description",
-						"UID:5e528f277e20e1582468903@calendarlabs.com",
-						"DTSTAMP:20200223T144143Z",
-						"STATUS:CONFIRMED",
-						"TRANSP:TRANSPARENT",
-						"SEQUENCE:0",
-						"END:VEVENT",
-						"END:VCALENDAR",
-					].join("\r\n"),
-					zone,
-				).contents[0],
-				{
-					event: createCalendarEvent({
-						attendees: [],
-						alarmInfos: [],
-						invitedConfidentially: null,
-						sequence: "0",
-						organizer: null,
-						recurrenceId: null,
-						repeatRule: null,
-						summary: "Labor Day / May Day",
-						pendingInvitation: null,
-						sender: null,
-						startTime: getAllDayDateUTCFromZone(
-							DateTime.fromObject(
-								{
-									year: 2020,
-									month: 5,
-									day: 1,
-								},
-								{ zone },
-							).toJSDate(),
-							zone,
-						),
-						endTime: getAllDayDateUTCFromZone(
-							DateTime.fromObject(
-								{
-									year: 2020,
-									month: 5,
-									day: 2,
-								},
-								{ zone },
-							).toJSDate(),
-							zone,
-						),
-						uid: "5e528f277e20e1582468903@calendarlabs.com",
-						hashedUid: null,
-						description: "Some description",
-						location: "Brazil",
-					}),
-					alarms: [],
-				},
-			)
+
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.summary = "Word \n \\ ;, \n"
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.repeatRule = createRepeatRule({
+				endType: EndType.Never,
+				interval: "3",
+				frequency: RepeatPeriod.WEEKLY,
+				timeZone: zone,
+				advancedRules: [],
+				excludedDates: [],
+				endValue: null,
+			})
+
+			testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
 		})
 		o("recurrence id on event without UID will be deleted", async function () {
-			const expected = {
-				event: createCalendarEvent({
-					attendees: [],
-					description: "",
-					alarmInfos: [],
-					invitedConfidentially: null,
-					location: "",
-					organizer: null,
-					repeatRule: null,
-					uid: null,
-					hashedUid: null,
-					startTime: new Date("2023-07-04T15:00:00.000Z"),
-					endTime: new Date("2023-07-04T15:30:00.000Z"),
-					sequence: "1",
-					summary: "bkbkbkb",
-					pendingInvitation: null,
-					sender: null,
-					recurrenceId: null,
-				}),
-				alarms: [],
-			}
-			const parsed = parseCalendarStringData(
+			const parsedEvent = parseCalendarStringData(
 				[
 					"BEGIN:VCALENDAR",
 					"PRODID:-//Tutao GmbH//Tutanota 3.115.0//EN",
@@ -993,21 +655,28 @@ o.spec("CalendarImporter", function () {
 					"DTEND:20230704T153000Z",
 					"DTSTAMP:20230712T142825Z",
 					"SEQUENCE:1",
-					"SUMMARY:bkbkbkb",
+					"SUMMARY:s",
 					"RECURRENCE-ID:20230704T170000",
 					"END:VEVENT",
 					"END:VCALENDAR",
 				].join("\r\n"),
 				zone,
 			).contents[0]
-			o(parsed.event.uid).notEquals(null)
-			// @ts-ignore we want to test that the other fields are the same.
-			parsed.event.uid = null
-			testEventEquality(parsed, expected)
+
+			const icsCalendarEvent = expectedParsedCalendarData.contents[0].icsCalendarEvent
+			icsCalendarEvent.sequence = "1"
+			icsCalendarEvent.startTime = new Date("2023-07-04T15:00:00.000Z")
+			icsCalendarEvent.endTime = new Date("2023-07-04T15:30:00.000Z")
+
+			o(parsedEvent.icsCalendarEvent.uid).notEquals(null)
+			// assigning uid so we can test that the other fields are the same.
+			parsedEvent.icsCalendarEvent.uid = "test@tuta.com"
+			testParsedEventEquality(parsedEvent, expectedParsedCalendarData.contents[0])
 		})
-		o("all-day event with invalid DTEND", async function () {
-			testEventEquality(
-				parseCalendarStringData(
+
+		o.spec("With attendee", function () {
+			o("simple case", async function () {
+				const parsedEvent = parseCalendarStringData(
 					[
 						"BEGIN:VCALENDAR",
 						"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
@@ -1015,70 +684,40 @@ o.spec("CalendarImporter", function () {
 						"CALSCALE:GREGORIAN",
 						"METHOD:PUBLISH",
 						"BEGIN:VEVENT",
-						"SUMMARY:Labor Day / May Day",
-						"DTSTART;VALUE=DATE:20200501",
-						"DTEND;VALUE=DATE:20200501",
-						"LOCATION:Brazil",
-						"DESCRIPTION:Some description",
-						"UID:5e528f277e20e1582468903@calendarlabs.com",
-						"DTSTAMP:20200223T144143Z",
-						"STATUS:CONFIRMED",
-						"TRANSP:TRANSPARENT",
+						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+						`DTSTAMP:20190813T140100Z`,
+						`UID:test@tuta.com`,
 						"SEQUENCE:0",
+						"SUMMARY:s",
+						"ORGANIZER:mailto:organizer@tuta.com",
+						"ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:test@example.com",
 						"END:VEVENT",
 						"END:VCALENDAR",
 					].join("\r\n"),
 					zone,
-				).contents[0],
-				{
-					event: createCalendarEvent({
-						attendees: [],
-						alarmInfos: [],
-						invitedConfidentially: null,
-						sequence: "0",
-						organizer: null,
-						recurrenceId: null,
-						repeatRule: null,
-						summary: "Labor Day / May Day",
-						pendingInvitation: null,
-						sender: null,
-						startTime: getAllDayDateUTCFromZone(
-							DateTime.fromObject(
-								{
-									year: 2020,
-									month: 5,
-									day: 1,
-								},
-								{ zone },
-							).toJSDate(),
-							zone,
-						),
-						endTime: getAllDayDateUTCFromZone(
-							DateTime.fromObject(
-								{
-									year: 2020,
-									month: 5,
-									day: 2,
-								},
-								{ zone },
-							).toJSDate(),
-							zone,
-						),
-						uid: "5e528f277e20e1582468903@calendarlabs.com",
-						hashedUid: null,
-						description: "Some description",
-						location: "Brazil",
+				)
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
+					name: "",
+					address: "organizer@tuta.com",
+				})
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.attendees = [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({
+							name: "",
+							address: "test@example.com",
+						}),
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
-					alarms: [],
-				},
-			)
-		})
-		o("with relative non-standard alarm", async function () {
-			testEventEquality(
-				parseCalendarStringData(
+				]
+				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
+			})
+			o("uppercase mailto", async function () {
+				// GMX does this
+				const parsedEvent = parseCalendarStringData(
 					[
 						"BEGIN:VCALENDAR",
-						"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+						"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
 						"VERSION:2.0",
 						"CALSCALE:GREGORIAN",
 						"METHOD:PUBLISH",
@@ -1087,216 +726,299 @@ o.spec("CalendarImporter", function () {
 						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 						`DTSTAMP:20190813T140100Z`,
 						`UID:test@tuta.com`,
-						"SUMMARY:Word \\\\ \\; \\n",
-						"BEGIN:VALARM",
-						"ACTION:DISPLAY",
-						"TRIGGER:-P15D",
-						"END:VALARM",
+						"SEQUENCE:0",
+						"SUMMARY:s",
+						"ORGANIZER:MAILTO:organizer@tuta.com",
+						"ATTENDEE;PARTSTAT=NEEDS-ACTION:MAILTO:test@example.com",
 						"END:VEVENT",
 						"END:VCALENDAR",
 					].join("\r\n"),
 					zone,
-				),
-				{
-					method: "PUBLISH",
-					contents: [
+				)
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
+					name: "",
+					address: "organizer@tuta.com",
+				})
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.attendees = [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({
+							name: "",
+							address: "test@example.com",
+						}),
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+					}),
+				]
+				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
+			})
+			o("without PARTSTAT", async function () {
+				// Outlook 16 does this
+				// RFC says NEEDS-ACTION is default
+				// https://tools.ietf.org/html/rfc5545#section-3.2.12
+				const parsedEvent = parseCalendarStringData(
+					[
+						"BEGIN:VCALENDAR",
+						"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+						"VERSION:2.0",
+						"CALSCALE:GREGORIAN",
+						"METHOD:PUBLISH",
+						"BEGIN:VEVENT",
+						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+						`DTSTAMP:20190813T140100Z`,
+						`UID:test@tuta.com`,
+						"SEQUENCE:0",
+						"SUMMARY:s",
+						"ORGANIZER:MAILTO:organizer@tuta.com",
+						"ATTENDEE:mailto:test@example.com",
+						"END:VEVENT",
+						"END:VCALENDAR",
+					].join("\r\n"),
+					zone,
+				)
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
+					name: "",
+					address: "organizer@tuta.com",
+				})
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.attendees = [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({
+							name: "",
+							address: "test@example.com",
+						}),
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+					}),
+				]
+				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
+			})
+		})
+
+		o.spec("All day events", function () {
+			o.beforeEach(function () {
+				const icsCalendarEvent = expectedParsedCalendarData.contents[0].icsCalendarEvent
+				icsCalendarEvent.summary = "Labor Day / May Day"
+				icsCalendarEvent.startTime = getAllDayDateUTCFromZone(
+					DateTime.fromObject(
 						{
-							event: createCalendarEvent({
-								attendees: [],
-								description: "",
-								alarmInfos: [],
-								invitedConfidentially: null,
-								sequence: "0",
-								location: "",
-								organizer: null,
-								recurrenceId: null,
-								summary: "Word \\ ; \n",
-								pendingInvitation: null,
-								sender: null,
-								startTime: DateTime.fromObject(
-									{
-										year: 2019,
-										month: 8,
-										day: 13,
-										hour: 5,
-										minute: 6,
-									},
-									{ zone },
-								).toJSDate(),
-								endTime: DateTime.fromObject(
-									{
-										year: 2019,
-										month: 9,
-										day: 13,
-										hour: 5,
-										minute: 6,
-									},
-									{ zone },
-								).toJSDate(),
-								uid: "test@tuta.com",
-								hashedUid: null,
-								repeatRule: null,
-							}),
-							alarms: [
-								{
-									trigger: "15D",
-									alarmIdentifier: "",
+							year: 2020,
+							month: 5,
+							day: 1,
+						},
+						{ zone },
+					).toJSDate(),
+					zone,
+				)
+				icsCalendarEvent.endTime = getAllDayDateUTCFromZone(
+					DateTime.fromObject(
+						{
+							year: 2020,
+							month: 5,
+							day: 2,
+						},
+						{ zone },
+					).toJSDate(),
+					zone,
+				)
+				icsCalendarEvent.uid = "5e528f277e20e1582468903@calendarlabs.com"
+				icsCalendarEvent.description = "Some description"
+				icsCalendarEvent.location = "Brazil"
+			})
+			o("simple event", async function () {
+				testParsedEventEquality(
+					parseCalendarStringData(
+						[
+							"BEGIN:VCALENDAR",
+							"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+							"VERSION:2.0",
+							"CALSCALE:GREGORIAN",
+							"METHOD:PUBLISH",
+							"BEGIN:VEVENT",
+							"SUMMARY:Labor Day / May Day",
+							"DTSTART;VALUE=DATE:20200501",
+							"DTEND;VALUE=DATE:20200502",
+							"LOCATION:Brazil",
+							"DESCRIPTION:Some description",
+							"UID:5e528f277e20e1582468903@calendarlabs.com",
+							"DTSTAMP:20200223T144143Z",
+							"STATUS:CONFIRMED",
+							"TRANSP:TRANSPARENT",
+							"SEQUENCE:0",
+							"END:VEVENT",
+							"END:VCALENDAR",
+						].join("\r\n"),
+						zone,
+					).contents[0],
+					expectedParsedCalendarData.contents[0],
+				)
+			})
+			o("with invalid DTEND is assumed to lasts a day", async function () {
+				testParsedEventEquality(
+					parseCalendarStringData(
+						[
+							"BEGIN:VCALENDAR",
+							"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+							"VERSION:2.0",
+							"CALSCALE:GREGORIAN",
+							"METHOD:PUBLISH",
+							"BEGIN:VEVENT",
+							"SUMMARY:Labor Day / May Day",
+							"DTSTART;VALUE=DATE:20200501",
+							"DTEND;VALUE=DATE:20200501",
+							"LOCATION:Brazil",
+							"DESCRIPTION:Some description",
+							"UID:5e528f277e20e1582468903@calendarlabs.com",
+							"DTSTAMP:20200223T144143Z",
+							"STATUS:CONFIRMED",
+							"TRANSP:TRANSPARENT",
+							"SEQUENCE:0",
+							"END:VEVENT",
+							"END:VCALENDAR",
+						].join("\r\n"),
+						zone,
+					).contents[0],
+					expectedParsedCalendarData.contents[0],
+				)
+			})
+		})
+
+		o.spec("With alarms", function () {
+			o("with relative non-standard alarm", async function () {
+				expectedParsedCalendarData.contents[0].alarms = [
+					{
+						trigger: "15D",
+						alarmIdentifier: "",
+					},
+				]
+				testParsedCalendarDataEquality(
+					parseCalendarStringData(
+						[
+							"BEGIN:VCALENDAR",
+							"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+							"VERSION:2.0",
+							"CALSCALE:GREGORIAN",
+							"METHOD:PUBLISH",
+							"BEGIN:VEVENT",
+							`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+							`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+							`DTSTAMP:20190813T140100Z`,
+							`UID:test@tuta.com`,
+							"SUMMARY:s",
+							"BEGIN:VALARM",
+							"ACTION:DISPLAY",
+							"TRIGGER:-P15D",
+							"END:VALARM",
+							"END:VEVENT",
+							"END:VCALENDAR",
+						].join("\r\n"),
+						zone,
+					),
+					expectedParsedCalendarData,
+				)
+			})
+			o("with absolute alarm", async function () {
+				expectedParsedCalendarData.contents[0].alarms = [
+					{
+						trigger: "66M",
+						alarmIdentifier: "",
+					},
+				]
+				testParsedCalendarDataEquality(
+					parseCalendarStringData(
+						[
+							"BEGIN:VCALENDAR",
+							"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+							"VERSION:2.0",
+							"CALSCALE:GREGORIAN",
+							"METHOD:PUBLISH",
+							"BEGIN:VEVENT",
+							`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+							`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+							`DTSTAMP:20190813T140100Z`,
+							`UID:test@tuta.com`,
+							"SUMMARY:s",
+							"BEGIN:VALARM",
+							"ACTION:DISPLAY",
+							// 20190813T050600 Europe/Berlin is 20190813T030600 in UTC
+							// 1H and 6M before
+							"TRIGGER;VALUE=DATE-TIME:20190813T020000Z",
+							"END:VALARM",
+							"END:VEVENT",
+							"END:VCALENDAR",
+						].join("\r\n"),
+						zone,
+					),
+					expectedParsedCalendarData,
+				)
+			})
+			o("with alarm in the future", async function () {
+				testParsedCalendarDataEquality(
+					parseCalendarStringData(
+						[
+							"BEGIN:VCALENDAR",
+							"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+							"VERSION:2.0",
+							"CALSCALE:GREGORIAN",
+							"METHOD:PUBLISH",
+							"BEGIN:VEVENT",
+							`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+							`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+							`DTSTAMP:20190813T140100Z`,
+							`UID:test@tuta.com`,
+							"SUMMARY:Word \\\\ \\; \\n",
+							"BEGIN:VALARM",
+							"ACTION:DISPLAY",
+							"TRIGGER:P1D",
+							"END:VALARM",
+							"END:VEVENT",
+							"END:VCALENDAR",
+						].join("\r\n"),
+						zone,
+					),
+					{
+						method: "PUBLISH",
+						contents: [
+							{
+								icsCalendarEvent: {
+									recurrenceId: null,
+									description: "",
+									sequence: "0",
+									location: "",
+									organizer: null,
+									attendees: [],
+									summary: "Word \\ ; \n",
+									startTime: DateTime.fromObject(
+										{
+											year: 2019,
+											month: 8,
+											day: 13,
+											hour: 5,
+											minute: 6,
+										},
+										{ zone },
+									).toJSDate(),
+									endTime: DateTime.fromObject(
+										{
+											year: 2019,
+											month: 9,
+											day: 13,
+											hour: 5,
+											minute: 6,
+										},
+										{ zone },
+									).toJSDate(),
+									uid: "test@tuta.com",
+									repeatRule: null,
 								},
-							],
-						},
-					],
-				},
-			)
+								alarms: [],
+							},
+						],
+					},
+				)
+			})
 		})
-		o("with absolute alarm", async function () {
-			testEventEquality(
-				parseCalendarStringData(
-					[
-						"BEGIN:VCALENDAR",
-						"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
-						"VERSION:2.0",
-						"CALSCALE:GREGORIAN",
-						"METHOD:PUBLISH",
-						"BEGIN:VEVENT",
-						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-						`DTSTAMP:20190813T140100Z`,
-						`UID:test@tuta.com`,
-						"SUMMARY:Word \\\\ \\; \\n",
-						"BEGIN:VALARM",
-						"ACTION:DISPLAY",
-						// 20190813T050600 Europe/Berlin is 20190813T030600 in UTC
-						// 1H and 6M before
-						"TRIGGER;VALUE=DATE-TIME:20190813T020000Z",
-						"END:VALARM",
-						"END:VEVENT",
-						"END:VCALENDAR",
-					].join("\r\n"),
-					zone,
-				),
-				{
-					method: "PUBLISH",
-					contents: [
-						{
-							event: createCalendarEvent({
-								recurrenceId: null,
-								attendees: [],
-								organizer: null,
-								alarmInfos: [],
-								location: "",
-								sequence: "0",
-								invitedConfidentially: null,
-								description: "",
-								summary: "Word \\ ; \n",
-								pendingInvitation: null,
-								sender: null,
-								startTime: DateTime.fromObject(
-									{
-										year: 2019,
-										month: 8,
-										day: 13,
-										hour: 5,
-										minute: 6,
-									},
-									{ zone },
-								).toJSDate(),
-								endTime: DateTime.fromObject(
-									{
-										year: 2019,
-										month: 9,
-										day: 13,
-										hour: 5,
-										minute: 6,
-									},
-									{ zone },
-								).toJSDate(),
-								uid: "test@tuta.com",
-								hashedUid: null,
-								repeatRule: null,
-							}),
-							alarms: [
-								{
-									trigger: "66M",
-									alarmIdentifier: "",
-								},
-							],
-						},
-					],
-				},
-			)
-		})
-		o("with alarm in the future", async function () {
-			testEventEquality(
-				parseCalendarStringData(
-					[
-						"BEGIN:VCALENDAR",
-						"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
-						"VERSION:2.0",
-						"CALSCALE:GREGORIAN",
-						"METHOD:PUBLISH",
-						"BEGIN:VEVENT",
-						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-						`DTSTAMP:20190813T140100Z`,
-						`UID:test@tuta.com`,
-						"SUMMARY:Word \\\\ \\; \\n",
-						"BEGIN:VALARM",
-						"ACTION:DISPLAY",
-						"TRIGGER:P1D",
-						"END:VALARM",
-						"END:VEVENT",
-						"END:VCALENDAR",
-					].join("\r\n"),
-					zone,
-				),
-				{
-					method: "PUBLISH",
-					contents: [
-						{
-							event: createCalendarEvent({
-								recurrenceId: null,
-								description: "",
-								sequence: "0",
-								invitedConfidentially: null,
-								location: "",
-								alarmInfos: [],
-								organizer: null,
-								attendees: [],
-								summary: "Word \\ ; \n",
-								pendingInvitation: null,
-								sender: null,
-								startTime: DateTime.fromObject(
-									{
-										year: 2019,
-										month: 8,
-										day: 13,
-										hour: 5,
-										minute: 6,
-									},
-									{ zone },
-								).toJSDate(),
-								endTime: DateTime.fromObject(
-									{
-										year: 2019,
-										month: 9,
-										day: 13,
-										hour: 5,
-										minute: 6,
-									},
-									{ zone },
-								).toJSDate(),
-								uid: "test@tuta.com",
-								hashedUid: null,
-								repeatRule: null,
-							}),
-							alarms: [],
-						},
-					],
-				},
-			)
-		})
-		o("import and re-export descriptions exported from outlook", async function () {
-			const text = `BEGIN:VCALENDAR
+
+		o.spec("Interaction with export operations", function () {
+			o("import and re-export descriptions exported from outlook", async function () {
+				const text = `BEGIN:VCALENDAR
 VERSION:2.0
 CALSCALE:GREGORIAN
 METHOD:REPLY
@@ -1314,209 +1036,159 @@ ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN="
 END:VEVENT
 END:VCALENDAR`
 
-			const parsed = parseCalendarStringData(text, zone)
-			const serialized = [
-				"BEGIN:VCALENDAR",
-				`VERSION:2.0`,
-				`CALSCALE:GREGORIAN`,
-				`METHOD:REPLY`,
-				...serializeEvent(parsed.contents[0].event, [], new Date(), zone),
-				"END:VCALENDAR",
-			].join("\n")
-			const parsedAgain = parseCalendarStringData(serialized, zone)
-			o(parsedAgain.contents[0].event.description).equals(
-				"\n________________________________________________________________________________\nMicrosoft Teams meeting\nJoin on your computer, mobile app or room device\nUnited States, Minneapolis\nPhone Conference ID: 000 000 000",
-			)
-		})
-		o("roundtrip export -> import", async function () {
-			const alarmOne = createTestEntity(UserAlarmInfoTypeRef, {
-				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-					trigger: "1D",
-				}),
+				const parsed = parseCalendarStringData(text, zone)
+				const calendarEvent = makeCalendarEventFromIcsCalendarEvent(parsed.contents[0].icsCalendarEvent)
+				const serialized = [
+					"BEGIN:VCALENDAR",
+					`VERSION:2.0`,
+					`CALSCALE:GREGORIAN`,
+					`METHOD:REPLY`,
+					...serializeEvent(calendarEvent, [], new Date(), zone),
+					"END:VCALENDAR",
+				].join("\n")
+				const parsedAgain = parseCalendarStringData(serialized, zone)
+				o(parsedAgain.contents[0].icsCalendarEvent.description).equals(
+					"\n________________________________________________________________________________\nMicrosoft Teams meeting\nJoin on your computer, mobile app or room device\nUnited States, Minneapolis\nPhone Conference ID: 000 000 000",
+				)
 			})
-			const alarmTwo = createTestEntity(UserAlarmInfoTypeRef, {
-				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-					trigger: "30M",
-				}),
-			})
-			const events = [
-				{
-					event: createCalendarEvent({
-						attendees: [],
-						organizer: null,
-						repeatRule: null,
-						recurrenceId: null,
-						location: "",
-						alarmInfos: [],
-						invitedConfidentially: null,
-						_id: ["123", "456"],
-						summary: "Word \\ ; \n simple",
-						pendingInvitation: null,
-						sender: null,
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 1,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						description: "Descr \\ ; \n",
-						uid: "test@tuta.com",
-						hashedUid: null,
-						sequence: "1",
+			o("roundtrip export -> import", async function () {
+				const alarmOne = createTestEntity(UserAlarmInfoTypeRef, {
+					alarmInfo: createTestEntity(AlarmInfoTypeRef, {
+						trigger: "1D",
 					}),
-					alarms: [],
-				},
-				{
-					event: createCalendarEvent({
-						attendees: [],
-						organizer: null,
-						repeatRule: null,
-						recurrenceId: null,
-						location: "",
-						alarmInfos: [],
-						invitedConfidentially: null,
-						description: "",
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n alarms",
-						pendingInvitation: null,
-						sender: null,
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						sequence: "2",
-						uid: "test@tuta.com",
-						hashedUid: null,
+				})
+				const alarmTwo = createTestEntity(UserAlarmInfoTypeRef, {
+					alarmInfo: createTestEntity(AlarmInfoTypeRef, {
+						trigger: "30M",
 					}),
-					alarms: [alarmOne, alarmTwo],
-				},
-				{
-					event: createCalendarEvent({
-						attendees: [],
-						organizer: null,
-						recurrenceId: null,
-						location: "",
-						alarmInfos: [],
-						invitedConfidentially: null,
-						description: "",
-						sequence: "0",
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						pendingInvitation: null,
-						sender: null,
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						uid: "test@tuta.com",
-						hashedUid: null,
-						repeatRule: createRepeatRule({
-							endType: EndType.UntilDate,
-							interval: "3",
-							frequency: RepeatPeriod.MONTHLY,
-							endValue: String(
-								DateTime.fromObject(
-									{
-										year: 2019,
-										month: 9,
-										day: 20,
-									},
-									{ zone },
-								).toMillis(),
-							),
-							timeZone: zone,
-							excludedDates: [],
-							advancedRules: [],
+				})
+				const events: Array<{
+					event: CalendarEvent
+					alarms: Array<UserAlarmInfo>
+				}> = [
+					{
+						event: createCalendarEvent({
+							attendees: [],
+							organizer: null,
+							repeatRule: null,
+							recurrenceId: null,
+							location: "",
+							alarmInfos: [],
+							invitedConfidentially: null,
+							_id: ["123", "456"],
+							summary: "Word \\ ; \n simple",
+							pendingInvitation: null,
+							sender: null,
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 1,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							description: "Descr \\ ; \n",
+							uid: "test@tuta.com",
+							hashedUid: null,
+							sequence: "1",
 						}),
-					}),
-					alarms: [],
-				},
-				{
-					event: createCalendarEvent({
-						attendees: [],
-						organizer: null,
-						recurrenceId: null,
-						location: "",
-						alarmInfos: [],
-						invitedConfidentially: null,
-						sequence: "0",
-						description: "",
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						pendingInvitation: null,
-						sender: null,
-						startTime: getAllDayDateUTC(
-							DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-							}).toJSDate(),
-						),
-						endTime: getAllDayDateUTC(
-							DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 15,
-							}).toJSDate(),
-						),
-						uid: "b64lookingValue==",
-						hashedUid: null,
-						repeatRule: createRepeatRule({
-							endType: EndType.UntilDate,
-							interval: "3",
-							frequency: RepeatPeriod.MONTHLY,
-							// Beginning of 20th will be displayed to the user as 19th
-							endValue: String(
-								getAllDayDateUTC(
+						alarms: [],
+					},
+					{
+						event: createCalendarEvent({
+							attendees: [],
+							organizer: null,
+							repeatRule: null,
+							recurrenceId: null,
+							location: "",
+							alarmInfos: [],
+							invitedConfidentially: null,
+							description: "",
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n alarms",
+							pendingInvitation: null,
+							sender: null,
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							sequence: "2",
+							uid: "test@tuta.com",
+							hashedUid: null,
+						}),
+						alarms: [alarmOne, alarmTwo],
+					},
+					{
+						event: createCalendarEvent({
+							attendees: [],
+							organizer: null,
+							recurrenceId: null,
+							location: "",
+							alarmInfos: [],
+							invitedConfidentially: null,
+							description: "",
+							sequence: "0",
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n",
+							pendingInvitation: null,
+							sender: null,
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							uid: "test@tuta.com",
+							hashedUid: null,
+							repeatRule: createRepeatRule({
+								endType: EndType.UntilDate,
+								interval: "3",
+								frequency: RepeatPeriod.MONTHLY,
+								endValue: String(
 									DateTime.fromObject(
 										{
 											year: 2019,
@@ -1524,41 +1196,104 @@ END:VCALENDAR`
 											day: 20,
 										},
 										{ zone },
-									).toJSDate(),
-								).getTime(),
-							),
-							advancedRules: [],
-							timeZone: "",
-							excludedDates: [],
+									).toMillis(),
+								),
+								timeZone: zone,
+								excludedDates: [],
+								advancedRules: [],
+							}),
 						}),
-					}),
-					alarms: [],
-				},
-			]
-			const versionNumber = "3.57.6"
-			const serialized = serializeCalendar(versionNumber, events, now, zone)
-			const eventsWithoutIds = events.map(({ event, alarms }) => {
-				return {
-					event: Object.assign({}, event, {
-						_id: null,
-						uid: event.uid,
-						hashedUid: event.hashedUid,
-						_ownerGroup: null,
-					}),
-					alarms: alarms.map((a) => ({
-						trigger: a.alarmInfo.trigger,
-						alarmIdentifier: a.alarmInfo.alarmIdentifier,
-					})),
+						alarms: [],
+					},
+					{
+						event: createCalendarEvent({
+							attendees: [],
+							organizer: null,
+							recurrenceId: null,
+							location: "",
+							alarmInfos: [],
+							invitedConfidentially: null,
+							sequence: "0",
+							description: "",
+							_id: ["123", "456"],
+							_ownerGroup: "ownerId",
+							summary: "Word \\ ; \n",
+							pendingInvitation: null,
+							sender: null,
+							startTime: getAllDayDateUTC(
+								DateTime.fromObject({
+									year: 2019,
+									month: 8,
+									day: 13,
+								}).toJSDate(),
+							),
+							endTime: getAllDayDateUTC(
+								DateTime.fromObject({
+									year: 2019,
+									month: 8,
+									day: 15,
+								}).toJSDate(),
+							),
+							uid: "b64lookingValue==",
+							hashedUid: null,
+							repeatRule: createRepeatRule({
+								endType: EndType.UntilDate,
+								interval: "3",
+								frequency: RepeatPeriod.MONTHLY,
+								// Beginning of 20th will be displayed to the user as 19th
+								endValue: String(
+									getAllDayDateUTC(
+										DateTime.fromObject(
+											{
+												year: 2019,
+												month: 9,
+												day: 20,
+											},
+											{ zone },
+										).toJSDate(),
+									).getTime(),
+								),
+								advancedRules: [],
+								timeZone: "",
+								excludedDates: [],
+							}),
+						}),
+						alarms: [],
+					},
+				]
+				const versionNumber = "3.57.6"
+				const serializedEvents = serializeCalendar(versionNumber, events, now, zone)
+
+				const actualImportedEvents = parseCalendarStringData(serializedEvents, zone)
+				const expectedImportedEvents: Array<ParsedEvent> = events.map(({ event, alarms }) => {
+					return {
+						icsCalendarEvent: {
+							summary: event.summary,
+							description: event.description,
+							startTime: event.startTime,
+							endTime: event.endTime,
+							location: event.location,
+							uid: event.uid!,
+							sequence: event.sequence,
+							recurrenceId: event.recurrenceId,
+							repeatRule: event.repeatRule,
+							attendees: event.attendees,
+							organizer: event.organizer,
+						},
+						alarms: alarms.map((a) => ({
+							trigger: a.alarmInfo.trigger,
+							alarmIdentifier: a.alarmInfo.alarmIdentifier,
+						})),
+					}
+				})
+
+				o(actualImportedEvents.method).equals("PUBLISH")("wrong method")
+				for (const i in expectedImportedEvents) {
+					testParsedEventEquality(actualImportedEvents.contents[i], expectedImportedEvents[i], `event ${i}`)
 				}
 			})
-			const parsed = parseCalendarStringData(serialized, zone)
-			o(parsed.method).equals("PUBLISH")("wrong method")
-			for (const i in eventsWithoutIds) {
-				testEventEquality(parsed.contents[i], eventsWithoutIds[i], `failed for event ${i}`)
-			}
-		})
-		o("roundtrip import -> export", async function () {
-			const text = `BEGIN:VCALENDAR
+			o("roundtrip import -> export", async function () {
+				const text = `BEGIN:VCALENDAR
 PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN
 VERSION:2.0
 CALSCALE:GREGORIAN
@@ -1609,57 +1344,80 @@ SUMMARY:Word \\\\ \\; \\n
 RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919
 END:VEVENT
 END:VCALENDAR`
-				.split("\n")
-				.join("\r\n")
-			const zone = "Europe/Berlin"
-			const versionNumber = "3.57.6"
-			const parsed = parseCalendarStringData(text, zone)
-			const serialized = serializeCalendar(
-				versionNumber,
-				parsed.contents.map(({ event, alarms }) => {
-					return {
-						event: Object.assign({}, event, {
-							_id: ["123", "456"],
-						}),
-						alarms: alarms.map((alarmInfo) =>
-							createTestEntity(UserAlarmInfoTypeRef, {
-								alarmInfo: alarmInfo as AlarmInfo,
+					.split("\n")
+					.join("\r\n")
+				const zone = "Europe/Berlin"
+				const versionNumber = "3.57.6"
+				const parsed = parseCalendarStringData(text, zone)
+				const serialized = serializeCalendar(
+					versionNumber,
+					parsed.contents.map(({ icsCalendarEvent, alarms }) => {
+						const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
+						return {
+							event: Object.assign({}, calendarEvent, {
+								_id: ["123", "456"],
 							}),
-						),
-					}
-				}),
-				now,
-				zone,
-			)
-			o(serialized).equals(text)
+							alarms: alarms.map((alarmInfo) =>
+								createTestEntity(UserAlarmInfoTypeRef, {
+									alarmInfo: alarmInfo as AlarmInfo,
+								}),
+							),
+						}
+					}),
+					now,
+					zone,
+				)
+				o(serialized).equals(text)
+			})
 		})
 	})
+
 	o.spec("sortOutParsedEvents", function () {
 		o("repeated progenitors are skipped", function () {
-			const progenitor1 = createTestEntity(CalendarEventTypeRef, {
+			const progenitor1: IcsCalendarEvent = {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T13:00"),
 				endTime: getDateInZone("2023-01-02T13:05"),
-			}) as Require<"uid", CalendarEvent>
-			const progenitor2 = createTestEntity(CalendarEventTypeRef, {
+				summary: "",
+				description: "",
+				location: "",
+				sequence: "0",
+				recurrenceId: null,
+				repeatRule: null,
+				attendees: null,
+				organizer: null,
+			}
+			const progenitor2: IcsCalendarEvent = {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-01T13:00"),
 				endTime: getDateInZone("2023-01-01T13:05"),
-			}) as Require<"uid", CalendarEvent>
+				summary: "",
+				description: "",
+				location: "",
+				sequence: "0",
+				recurrenceId: null,
+				repeatRule: null,
+				attendees: null,
+				organizer: null,
+			}
+			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
-					{ event: progenitor1, alarms: [] },
-					{
-						event: progenitor2,
-						alarms: [],
-					},
+					{ icsCalendarEvent: progenitor1, alarms: [] },
+					{ icsCalendarEvent: progenitor2, alarms: [] },
 				],
 				[],
-				createTestEntity(CalendarGroupRootTypeRef),
+				calendarGroupRoot,
 				zone,
 			)
-			o(eventsForCreation[0].event).equals(progenitor1)
-			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).equals(progenitor2)
+
+			const expectedProgenitor1 = makeCalendarEventFromIcsCalendarEvent(progenitor1)
+			expectedProgenitor1._ownerGroup = calendarGroupRoot._id
+			expectedProgenitor1._id = eventsForCreation[0].event._id
+			o(eventsForCreation[0].event).deepEquals(expectedProgenitor1)
+
+			const expectedProgenitor2 = makeCalendarEventFromIcsCalendarEvent(progenitor2)
+			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).deepEquals(expectedProgenitor2)
 		})
 		o("imported altered instances are added as exclusions", function () {
 			const progenitor = createTestEntity(CalendarEventTypeRef, {
@@ -1676,8 +1434,8 @@ END:VCALENDAR`
 			}) as Require<"uid", CalendarEvent>
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
-					{ event: progenitor, alarms: [] },
-					{ event: altered, alarms: [] },
+					{ icsCalendarEvent: progenitor, alarms: [] },
+					{ icsCalendarEvent: altered, alarms: [] },
 				],
 				[],
 				createTestEntity(CalendarGroupRootTypeRef),
@@ -1688,12 +1446,19 @@ END:VCALENDAR`
 		})
 		o("sync calendar with altered instances are added as exclusions", function () {
 			const rrule = createTestEntity(RepeatRuleTypeRef)
-			const parsedProgenitor = createTestEntity(CalendarEventTypeRef, {
-				uid: "hello",
+			const parsedProgenitor: IcsCalendarEvent = {
+				summary: "s",
+				description: "",
 				startTime: getDateInZone("2023-01-02T13:00"),
 				endTime: getDateInZone("2023-01-02T13:05"),
+				location: "",
+				uid: "hello",
+				sequence: "0",
+				recurrenceId: null,
 				repeatRule: rrule,
-			}) as Require<"uid", CalendarEvent>
+				attendees: [],
+				organizer: null,
+			}
 
 			const existingProgenitor = createTestEntity(CalendarEventTypeRef, {
 				uid: "hello",
@@ -1701,21 +1466,27 @@ END:VCALENDAR`
 				endTime: getDateInZone("2023-01-02T13:05"),
 				repeatRule: {
 					...rrule,
-					excludedDates: [createDateWrapper({ date: getDateInZone("2023-01-02T13:00") })],
 				},
-			}) as Require<"uid", CalendarEvent>
+			})
 
-			const altered = createTestEntity(CalendarEventTypeRef, {
-				uid: "hello",
+			const altered: IcsCalendarEvent = {
+				summary: "s",
+				description: "",
 				startTime: getDateInZone("2023-01-02T14:00"),
 				endTime: getDateInZone("2023-01-02T14:05"),
+				location: "",
+				uid: "hello",
+				sequence: "0",
 				recurrenceId: getDateInZone("2023-01-02T13:00"),
-			}) as Require<"uid", CalendarEvent>
+				repeatRule: null,
+				attendees: [],
+				organizer: null,
+			}
 
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
-					{ event: parsedProgenitor, alarms: [] },
-					{ event: altered, alarms: [] },
+					{ icsCalendarEvent: parsedProgenitor, alarms: [] },
+					{ icsCalendarEvent: altered, alarms: [] },
 				],
 				[existingProgenitor],
 				createTestEntity(CalendarGroupRootTypeRef),
@@ -1724,7 +1495,8 @@ END:VCALENDAR`
 
 			o(rejectedEvents.size).equals(1)
 			o(eventsForCreation[0].event.recurrenceId?.getTime()).equals(altered.recurrenceId?.getTime())
-			o(parsedProgenitor.repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
+			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+			o(getFirstOrThrow(duplicates).repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
 		})
 	})
 

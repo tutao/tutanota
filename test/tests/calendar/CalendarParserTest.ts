@@ -273,7 +273,7 @@ o.spec("CalendarParser", function () {
 
 		const testParseIllegalCalendarEvents = ({ start, end, expect }) => {
 			const event = makeEvent({ start, end })
-			const { event: parsedEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			const { icsCalendarEvent: parsedEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
 			o(parsedEvent.endTime.getTime()).equals(expect)
 		}
 
