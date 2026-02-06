@@ -9,7 +9,7 @@ public class NotificationsHandler {
 	private let httpClient: HttpClient
 	private let dateProvider: DateProvider
 	private let taskQueue = AsyncQueue()
-	private let suspensionTime: UInt64
+	private var suspensionTime: UInt64
 
 	public init(alarmManager: AlarmManager, notificationStorage: NotificationStorage, httpClient: HttpClient, dateProvider: DateProvider) {
 		self.alarmManager = alarmManager
@@ -112,11 +112,11 @@ public class NotificationsHandler {
 			try await self.doFetchMissedNotifications()
 		case .serviceUnavailable, .tooManyRequests:
 			let suspensionTime = extractSuspensionTime(from: httpResponse)
-			printLog("ServiceUnavailable when downloading missed notification, waiting for \(suspensionTime)s")
+			printLog("ServiceUnavailable when downloading missed notification, waiting for \(suspensionTime.seconds)s")
 			self.suspensionTime = suspensionTime.nanos
 			try await Task.sleep(nanoseconds: suspensionTime.nanos)
 			self.suspensionTime = 0
-			printLog("Waited for \(suspensionTime)s, retrying to fetch missed notifications")
+			printLog("Waited for \(suspensionTime.seconds)s, retrying to fetch missed notifications")
 			try await self.doFetchMissedNotifications()
 		case .notFound: return
 		case .ok:
