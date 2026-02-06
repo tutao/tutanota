@@ -3,7 +3,7 @@ export default {
 		companyName: "Tutao GmbH",
 		addressStreet: "Deisterstr. 17a",
 		tutaFax: "Fax: +49 511202801-19",
-		tutaEmail: "sales@tutao.de",
+		tutaEmail: "invoice@tutao.de",
 		tutaWebsite: "https://tuta.com",
 	},
 	en: {

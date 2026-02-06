@@ -47,7 +47,7 @@ export default {
 	Seller: `
 		<cac:AccountingSupplierParty>
 			<cac:Party>
-				<cbc:EndpointID schemeID="EM">sales@tutao.de</cbc:EndpointID>
+				<cbc:EndpointID schemeID="EM">invoice@tutao.de</cbc:EndpointID>
 				<cac:PartyName>
 					<cbc:Name>Tutao GmbH</cbc:Name>
 				</cac:PartyName>
@@ -72,7 +72,7 @@ export default {
 				<cac:Contact>
 					<cbc:Name>Tutao GmbH</cbc:Name>
 					<cbc:Telephone>+49 511202801-0</cbc:Telephone>
-					<cbc:ElectronicMail>sales@tutao.de</cbc:ElectronicMail>
+					<cbc:ElectronicMail>invoice@tutao.de</cbc:ElectronicMail>
 				</cac:Contact>
 			</cac:Party>
 		</cac:AccountingSupplierParty>`,
