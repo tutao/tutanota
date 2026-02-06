@@ -1,7 +1,8 @@
 import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
-import { CalendarEvent, EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
-import { stringToCustomId } from "./EntityUtils"
+import { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
+import { stringToCustomId, StrippedEntity } from "./EntityUtils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
+import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
 
@@ -113,11 +114,7 @@ export function cleanMailAddress(address: string): string {
 /**
  * get the first attendee from the list of attendees/guests that corresponds to one of the given recipient addresses, if there is one
  */
-export function findAttendeeInAddresses<
-	T extends {
-		address: EncryptedMailAddress
-	},
->(attendees: ReadonlyArray<T>, addresses: ReadonlyArray<string>): T | null {
+export function findAttendeeInAddresses<T extends StrippedCalendarEventAttendee>(attendees: ReadonlyArray<T>, addresses: ReadonlyArray<string>): T | null {
 	// the filters are necessary because of #5147
 	// we may get passed addresses and attendees that could not be decrypted and don't have addresses.
 	const lowerCaseAddresses = addresses.filter(Boolean).map(cleanMailAddress)
@@ -253,9 +250,29 @@ export function formatJSDate(date: Date) {
 	return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
 }
 
-export function isSameExternalEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
-	const sameUid = eventA.uid === eventB.uid
-	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
+export function isSameExternalEvent(calendarEvent: CalendarEvent, icsCalendarEvent: IcsCalendarEvent) {
+	const sameUid = calendarEvent.uid === icsCalendarEvent.uid
+	const sameRecurrenceId = calendarEvent.recurrenceId?.getTime() === icsCalendarEvent.recurrenceId?.getTime()
 
 	return sameUid && sameRecurrenceId
+}
+export function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
+	return {
+		alarmInfos: [],
+		invitedConfidentially: null,
+		hashedUid: null,
+		uid: null,
+		recurrenceId: null,
+		endTime: new Date(),
+		summary: "",
+		startTime: new Date(),
+		location: "",
+		repeatRule: null,
+		description: "",
+		attendees: [],
+		organizer: null,
+		sequence: "",
+		pendingInvitation: null,
+		sender: null,
+	}
 }

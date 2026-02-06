@@ -1,9 +1,7 @@
-import { DAY_IN_MILLIS, filterInt, neverNull, Require } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, filterInt, neverNull } from "@tutao/tutanota-utils"
 import { DateTime, Duration, IANAZone } from "luxon"
 import {
-	CalendarEvent,
 	CalendarEventAttendee,
-	createCalendarEvent,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
@@ -31,12 +29,12 @@ import {
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
-import type { ParsedCalendarData } from "../../../common/calendar/gui/CalendarImporter.js"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
 import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../../common/api/common/TutanotaConstants"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils"
 
 function parseDateString(dateString: string): {
 	year: number
@@ -522,7 +520,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 	}
 }
 
-function getContents(eventObjects: ICalObject[], zone: string) {
+function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEvent> {
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
 		const tzId = getTzId(startProp)
@@ -602,35 +600,30 @@ function getContents(eventObjects: ICalObject[], zone: string) {
 			}
 		}
 
-		const event = createCalendarEvent({
+		const icsCalendarEvent: IcsCalendarEvent = {
+			summary,
 			description,
 			startTime,
 			endTime,
-			uid,
-			recurrenceId,
-			summary,
 			location,
-			repeatRule,
+			uid,
 			sequence,
+			recurrenceId,
+			repeatRule,
 			attendees,
 			organizer,
-			hashedUid: null,
-			invitedConfidentially: null,
-			alarmInfos: [],
-			pendingInvitation: null, // FIXME
-			sender: null,
-		}) as Require<"uid", CalendarEvent>
+		}
 
 		let alarms: AlarmInfoTemplate[] = []
 
 		try {
 			alarms = getAlarms(eventObj, startTime)
 		} catch (e) {
-			console.log("alarm is invalid for event: ", event.summary, event.startTime)
+			console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
 		}
 
 		return {
-			event,
+			icsCalendarEvent,
 			alarms,
 		}
 	})

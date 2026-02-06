@@ -3,7 +3,7 @@ import { LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 import { CalendarAttendeeStatus } from "../../../common/api/common/TutanotaConstants.js"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -11,6 +11,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { EventBannerImpl, EventBannerImplAttrs } from "../../gui/date/EventBannerImpl"
 import { EventBannerSkeleton } from "../../gui/EventBannerSkeleton"
+import { type IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent
@@ -54,7 +55,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 }
 
 /** show a progress dialog while sending a response to the event's organizer and update the ui. will always send a reply, even if the status did not change. */
-export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string): Promise<boolean> {
+export function sendResponse(
+	event: IcsCalendarEvent,
+	recipient: string,
+	status: CalendarAttendeeStatus,
+	previousMail: Mail,
+	comment?: string,
+): Promise<boolean> {
 	return showProgressDialog(
 		"pleaseWait_msg",
 		import("../../../calendar-app/calendar/view/CalendarInvites.js").then(async ({ getLatestEvent }) => {

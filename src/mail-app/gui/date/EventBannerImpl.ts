@@ -1,4 +1,4 @@
-import { CalendarEvent, CalendarEventAttendee, Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CalendarEvent, createCalendarEventAttendee, Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 import { DateTime } from "../../../../libs/luxon"
 import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
@@ -27,7 +27,6 @@ import { collidesWith, formatEventTimes } from "../../../calendar-app/calendar/g
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
@@ -36,14 +35,16 @@ import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../common/gui
 import { ExpanderPanel } from "../../../common/gui/base/Expander.js"
 import { formatDateTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
-import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
 import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
-	sendResponse: (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
+	sendResponse: (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
 	usesAmPmTimeFormat: boolean
 }
 
@@ -74,7 +75,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			return m(EventBannerSkeleton)
 		}
 
-		const replyCallback = async (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
+		const replyCallback = async (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
 			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
 				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, true)
@@ -85,9 +86,9 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		const eventsReplySection = iCalContents.events
-			.map((event: CalendarEvent): { event: CalendarEvent; replySection: Children } | None => {
+			.map((event: IcsCalendarEvent): { event: IcsCalendarEvent; replySection: Children } | None => {
 				const replySection = this.buildReplySection(agenda, event, mail, recipient, iCalContents.method, replyCallback)
-				return replySection == null ? null : { event, replySection }
+				return replySection == null ? null : { event: event, replySection }
 			})
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
@@ -103,11 +104,12 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}) as Children
 	}
 
-	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children, amPm: boolean) {
+	private buildEventBanner(icsCalendarEvent: IcsCalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children, amPm: boolean) {
+		const event = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 		const recipientIsOrganizer = recipient === event.organizer?.address
 
 		if (!agenda) {
-			console.warn(`Trying to render an EventBanner for event ${event._id} but it doesn't have an agenda. Something really wrong happened.`)
+			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
 		}
 		const hasConflict = Boolean(agenda?.conflictCount! > 0)
 		const events = filterNull([agenda?.before, agenda?.main, agenda?.after])
@@ -399,20 +401,29 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private buildReplySection(
 		agenda: Map<string, InviteAgenda>,
-		event: CalendarEvent,
+		icsCalendarEvent: IcsCalendarEvent,
 		mail: Mail,
 		recipient: string,
 		method: CalendarMethod,
 		sendResponse: EventBannerImplAttrs["sendResponse"],
 	): Children {
-		const shallowEvent = agenda.get(event.uid ?? "")?.existingEvent
-		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.event.attendees ?? event.attendees, [recipient])
+		const existingEventWrapper = agenda.get(icsCalendarEvent.uid)?.existingEvent
+		let ownAttendee = findAttendeeInAddresses(existingEventWrapper?.event.attendees ?? [], [recipient])
+
+		if (!existingEventWrapper || !ownAttendee) {
+			const icsAttendee = findAttendeeInAddresses(icsCalendarEvent.attendees ?? [], [recipient])
+			if (!icsAttendee) {
+				console.warn("Trying to build a reply section for a event we were not invited")
+				return null
+			}
+			ownAttendee = createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
+		}
 
 		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(BannerButton, {
 			borderColor: theme.outline,
 			color: theme.on_surface,
-			click: () => this.handleViewOnCalendarAction(agenda, event),
+			click: () => this.handleViewOnCalendarAction(existingEventWrapper?.event),
 			text: {
 				testId: "",
 				text: lang.getTranslation("viewOnCalendar_action").text,
@@ -424,16 +435,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			// separately.
 
 			const needsAction =
-				(!isRepliedTo(mail) && !shallowEvent) ||
+				(!isRepliedTo(mail) && !existingEventWrapper) ||
 				ownAttendee.status === CalendarAttendeeStatus.NEEDS_ACTION ||
-				(isRepliedTo(mail) && ownAttendee.status === CalendarAttendeeStatus.DECLINED)
+				ownAttendee.status === CalendarAttendeeStatus.ADDED
 			if (needsAction) {
 				children.push(
 					m("", [
 						m(ReplyButtons, {
 							ownAttendee,
 							setParticipation: async (status: CalendarAttendeeStatus) => {
-								sendResponse(shallowEvent?.event ?? event, recipient, status, mail)
+								sendResponse(icsCalendarEvent, recipient, status, mail)
 							},
 						}),
 						this.renderCommentInputBox(),
@@ -475,17 +486,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		} satisfies ExpandableTextAreaAttrs)
 	}
 
-	private handleViewOnCalendarAction(agenda: Map<string, InviteAgenda>, event: CalendarEvent) {
-		const currentEvent = agenda.get(event.uid ?? "")?.existingEvent
-		if (!currentEvent) {
-			throw new ProgrammingError("Missing corresponding event in calendar")
+	private handleViewOnCalendarAction(event: CalendarEvent | undefined) {
+		if (!event) {
+			throw new ProgrammingError("Tried to render 'View on Calendar' button, but we are missing the corresponding event")
 		}
-		const eventDate = formatJSDate(currentEvent.event.startTime)
-		const eventId = base64ToBase64Url(stringToBase64(currentEvent.event._id.join("/")))
+		const eventDate = formatJSDate(event.startTime)
+		const eventId = base64ToBase64Url(stringToBase64(event._id.join("/")))
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
 
-	private findShortestDuration(a: CalendarEvent, b: CalendarEvent): number {
+	private findShortestDuration(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): number {
 		const durationA = getDurationInMinutes(a)
 		const durationB = getDurationInMinutes(b)
 		return durationA < durationB ? durationA : durationB
@@ -570,9 +580,6 @@ export async function loadEventsAroundInvite(
 
 		const currentExistingEvent = allExistingEvents.find((e) => isSameExternalEvent(e.event, iCalEvent))
 
-		// Placeholder id
-		iCalEvent._id = [GENERATED_MIN_ID, GENERATED_MIN_ID]
-
 		updateAttendeeStatusIfNeeded(iCalEvent, recipient, currentExistingEvent?.event)
 
 		const [allDayAndLongEvents, normalEvents] = partition(allExistingEvents, (ev) => {
@@ -604,11 +611,15 @@ export async function loadEventsAroundInvite(
 				return closest
 			}, null)
 
+		// Placeholder id
+		const generatedCalendarEvent = makeCalendarEventFromIcsCalendarEvent(iCalEvent)
+		generatedCalendarEvent._id = [GENERATED_MIN_ID, GENERATED_MIN_ID]
+
 		let eventList: InviteAgenda = {
 			before: null,
 			after: null,
 			main: {
-				event: iCalEvent,
+				event: generatedCalendarEvent,
 				color: theme.success_container,
 				flags: {
 					isFeatured: true,
@@ -675,20 +686,20 @@ export async function loadEventsAroundInvite(
 	return eventToAgenda
 }
 
-function getDurationInMinutes(ev: CalendarEvent) {
+function getDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
 	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
 }
 
-function updateAttendeeStatusIfNeeded(inviteEvent: CalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
+function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
 	if (!existingEvent) {
 		return
 	}
 
-	const ownAttendee = findAttendeeInAddresses(inviteEvent.attendees, [ownAttendeeAddress])
+	const icsOwnAttendee = findAttendeeInAddresses(inviteEvent.attendees ?? [], [ownAttendeeAddress])
 	const existingOwnAttendee = findAttendeeInAddresses(existingEvent.attendees, [ownAttendeeAddress])
-	if (!ownAttendee || !existingOwnAttendee) {
+	if (!icsOwnAttendee || !existingOwnAttendee) {
 		return
 	}
 
-	ownAttendee.status = existingOwnAttendee.status
+	icsOwnAttendee.status = existingOwnAttendee.status
 }
