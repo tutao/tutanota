@@ -799,7 +799,7 @@ export default {
 		"importantLabel_label": "Important",
 		"importCalendar_label": "Importing calendar",
 		"importComplete_msg": "All selected emails were imported to your mailbox.",
-		"importComplete_title": "Import complete",
+		"importComplete_title": "Import successful",
 		"importContactRemoveDuplicatesConfirm_msg": "Found {count} duplicate contact(s) on your device while syncing. Do you want to delete them from your device? Please note that this cannot be undone.",
 		"importContactRemoveImportedContactsConfirm_msg": "Do you want to delete the imported contacts from your device? Please note that this cannot be undone.",
 		"importContacts_label": "Import contacts",
@@ -810,12 +810,14 @@ export default {
 		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
 		"importEvents_label": "Import events",
 		"importEventsError_msg": "{amount} of {total} events could not be imported.",
+		"importFailedConcurrentImport_msg": "Import failed, another import is already in progress.",
 		"importFromContactBook_label": "Import contacts from your device",
-		"importIncomplete_msg": "Import finished, but some mails failed to import.",
-		"importIncomplete_title": "Import incomplete",
+		"importIncomplete_msg": "Import finished, but some errors occurred.",
+		"importIncomplete_title": "Import unsuccessful",
 		"importInvalidDatesInEvent_msg": "{amount} of {total} events contain invalid dates and will not be imported.",
 		"importPre1970StartInEvent_msg": "{amount} of {total} events start or end before 1970 and will not be imported.",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
+		"importTargetFolderDeleted_msg": "Import canceled, the import folder was deleted.",
 		"importUsers_action": "Import users",
 		"importVCard_action": "Import vCard",
 		"importVCardError_msg": "Can not read vCard file.",
@@ -2029,6 +2031,7 @@ export default {
 		"tomorrow_label": "Tomorrow",
 		"tooBigAttachment_msg": "The following files could not be attached because the overall size exceeds 25 MB: ",
 		"tooBigInlineImages_msg": "Only files up to {size} KB are allowed.",
+		"tooManyAttachments_msg": "The mail could not be sent because the maximum number of attachments has been reached.",
 		"tooManyAttempts_msg": "Number of allowed attempts exceeded. Please try again later.",
 		"tooManyCustomDomains_msg": "You have too many custom domains.",
 		"tooManyGiftCards_msg": "You have reached the purchase limit of {amount} gift cards in the last {period}.",
@@ -2212,8 +2215,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"transferWaiting_msg": "Waiting…",
-		"cannotMoveFolderIntoItself_msg": "Cannot move a folder into itself"
+		"zoomOut_action": "Zoom Out"
 	}
 }

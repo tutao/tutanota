@@ -799,7 +799,7 @@ export default {
 		"importantLabel_label": "Wichtig",
 		"importCalendar_label": "Kalender wird importiert",
 		"importComplete_msg": "Alle ausgewählten E-Mails wurden in dein Postfach importiert.",
-		"importComplete_title": "Import beendet",
+		"importComplete_title": "Import erfolgreich",
 		"importContactRemoveDuplicatesConfirm_msg": "Bei der Synchronisierung wurde(n) {count} doppelte(r) Kontakt(e) auf deinem Gerät gefunden. Soll(en) diese(r) Kontakt(e) von deinem Gerät gelöscht werden? Bitte beachte, dass dies nicht rückgängig gemacht werden kann.",
 		"importContactRemoveImportedContactsConfirm_msg": "Möchtest du die importierten Kontakte von deinem Gerät löschen? Bitte beachte, dass dies nicht rückgängig gemacht werden kann.",
 		"importContacts_label": "Kontakte werden importiert",
@@ -810,12 +810,14 @@ export default {
 		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
 		"importEvents_label": "Termine werden importiert",
 		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
+		"importFailedConcurrentImport_msg": "Der Import ist fehlgeschlagen, ein anderer Import läuft bereits.",
 		"importFromContactBook_label": "Kontakte von deinem Gerät importieren",
-		"importIncomplete_msg": "Import beendet. Einige E-mails konnten leider jedoch nicht importiert werden.",
-		"importIncomplete_title": "Import unvollständig",
+		"importIncomplete_msg": "Import beendet. Es sind jedoch leider einige Fehler aufgetreten.",
+		"importIncomplete_title": "Import nicht erfolgreich",
 		"importInvalidDatesInEvent_msg": "{amount} von {total} Terminen enthalten ungültige Daten und werden nicht importiert.",
 		"importPre1970StartInEvent_msg": "{amount} von {total} Terminen liegen vor 1970 und werden nicht importiert.",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
+		"importTargetFolderDeleted_msg": "Der Import wurde abgebrochen, da der Importordner gelöscht wurde.",
 		"importUsers_action": "Benutzer*innen importieren",
 		"importVCard_action": "VCard importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
@@ -2029,6 +2031,7 @@ export default {
 		"tomorrow_label": "Morgen",
 		"tooBigAttachment_msg": "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
 		"tooBigInlineImages_msg": "Es sind nur Bilder bis zu einer Größe von {size} KB erlaubt.",
+		"tooManyAttachments_msg": "Die E-Mail konnte nicht gesendet werden, da die maximale Anzahl an Anhängen erreicht ist.",
 		"tooManyAttempts_msg": "Anzahl erlaubter Versuche überschritten. Bitte versuche es später erneut.",
 		"tooManyCustomDomains_msg": "Du hast zu viele eigene Domains.",
 		"tooManyGiftCards_msg": "Du hast das Limit von {amount} Gutscheinenkäufen innerhalb von {period} erreicht.",
@@ -2212,8 +2215,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"transferWaiting_msg": "Warte…",
-		"cannotMoveFolderIntoItself_msg": "Dieser Ordner kann nicht in sich selbst verschoben werden"
+		"zoomOut_action": "Herauszoomen"
 	}
 }
