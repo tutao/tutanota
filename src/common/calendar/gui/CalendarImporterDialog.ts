@@ -6,7 +6,7 @@ import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
-import { parseCalendarFile, ParsedEvent, showEventsImportDialog } from "./CalendarImporter.js"
+import { parseCalendarFile, showEventsImportDialog } from "./CalendarImporter.js"
 import { elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
@@ -17,8 +17,7 @@ import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
-
-import { EventImportRejectionReason, EventAlarmsTuple, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { EventAlarmsTuple, EventImportRejectionReason, ParsedEvent, sortOutParsedEvents } from "./ImportExportUtils.js"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 
 /**

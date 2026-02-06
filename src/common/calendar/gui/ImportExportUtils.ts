@@ -4,17 +4,21 @@ import {
 	CalendarEventAttendee,
 	CalendarGroupRoot,
 	CalendarRepeatRule,
+	createAdvancedRepeatRule,
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createCalendarRepeatRule,
+	createEncryptedMailAddress,
 	EncryptedMailAddress,
 } from "../../api/entities/tutanota/TypeRefs.js"
-import type { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
-import { ParsedCalendarData, ParsedEvent } from "./CalendarImporter.js"
 import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { createDateWrapper, DateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
-import { Stripped } from "../../api/common/utils/EntityUtils"
+import { getStrippedClone, Stripped, StrippedEntity } from "../../api/common/utils/EntityUtils"
 
 export enum EventImportRejectionReason {
 	Pre1970,
@@ -27,6 +31,45 @@ export type EventAlarmsTuple = {
 	event: CalendarEvent
 	alarms: ReadonlyArray<AlarmInfoTemplate>
 }
+
+/**
+ * This type is based on {@link CalendarEvent} and should have the basic values to create one using values
+ * from an ics file
+ */
+export type IcsCalendarEvent = {
+	summary: string
+	description: string
+	startTime: Date
+	endTime: Date
+	location: string
+	uid: string
+	sequence: NumberString
+	recurrenceId: null | Date
+	repeatRule: StrippedRepeatRule | null
+	attendees: Array<StrippedCalendarEventAttendee> | null
+	organizer: Stripped<EncryptedMailAddress> | null
+}
+export type ParsedEvent = {
+	icsCalendarEvent: IcsCalendarEvent
+	alarms: Array<AlarmInfoTemplate>
+}
+export type ParsedCalendarData = {
+	method: string
+	contents: Array<ParsedEvent>
+}
+
+export type StrippedCalendarEventAttendee = Stripped<
+	Omit<CalendarEventAttendee, "address"> & {
+		address: Stripped<EncryptedMailAddress>
+	}
+>
+
+export type StrippedRepeatRule = Stripped<
+	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
+	}
+>
 
 /** check if the event should be skipped because it's invalid or already imported. if not, add it to the map. */
 function shouldBeSkipped(event: CalendarEvent, instanceIdentifierToEventMap: Map<string, CalendarEvent>): EventImportRejectionReason | null {
@@ -59,6 +102,32 @@ function makeInstanceIdentifier(event: CalendarEvent): string {
 }
 
 export type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
+
+export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly<IcsCalendarEvent>): CalendarEvent {
+	const rrule = icsCalendarEvent.repeatRule
+	const repeatRule = rrule ? createCalendarRepeatRule(fromStrippedRepeatRule(rrule)) : null
+
+	const attendees = icsCalendarEvent.attendees
+		? icsCalendarEvent.attendees.map((attendee) => createCalendarEventAttendee(fromStrippedCalendarEventAttendee(attendee)))
+		: []
+
+	const organizer = icsCalendarEvent.organizer ? createEncryptedMailAddress(icsCalendarEvent.organizer) : null
+
+	const additionalValues = {
+		hashedUid: null,
+		invitedConfidentially: false,
+		sender: "",
+		pendingInvitation: false,
+		alarmInfos: [],
+	}
+	const calendarEvent: StrippedEntity<CalendarEvent> = Object.assign({}, icsCalendarEvent, additionalValues, {
+		repeatRule,
+		organizer,
+		attendees,
+	}) satisfies Stripped<CalendarEvent>
+
+	return createCalendarEvent(calendarEvent)
+}
 
 /** sort the parsed events into the ones we want to create and the ones we want to reject (stating a rejection reason)
  * and if necessary adds excluded dates to the parsed progenitor. This function will assign event id according to
@@ -93,57 +162,58 @@ export function sortOutParsedEvents(
 
 	const rejectedEvents: RejectedEvents = new Map()
 	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
-	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.event.uid)) {
+	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.icsCalendarEvent.uid)) {
 		let progenitor: { event: CalendarEvent; alarms: Array<AlarmInfoTemplate> } | null = null
 		let alteredInstances: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
 
-		for (const { event, alarms } of flatParsedEvents) {
+		for (const { icsCalendarEvent, alarms } of flatParsedEvents) {
 			if (flatParsedEvents.length > 1) console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry")
 
 			for (let alarmInfo of alarms) {
 				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 			}
 
-			if (progenitor?.event.repeatRule != null && event.recurrenceId != null) {
+			const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
+			if (progenitor?.event.repeatRule != null && calendarEvent.recurrenceId != null) {
 				insertIntoSortedArray(
-					createDateWrapper({ date: event.recurrenceId }),
+					createDateWrapper({ date: calendarEvent.recurrenceId }),
 					progenitor.event.repeatRule.excludedDates,
 					(left, right) => left.date.getTime() - right.date.getTime(),
 					() => true,
 				)
-				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, event))) {
-					alteredInstances.push({ event, alarms })
+				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, calendarEvent))) {
+					alteredInstances.push({ event: calendarEvent, alarms })
 				}
-			} else if (event.recurrenceId != null) {
+			} else if (calendarEvent.recurrenceId != null) {
 				treatProgenitorExcludedDates(
-					event,
+					calendarEvent,
 					getFromMap(rejectedEvents, EventImportRejectionReason.Duplicate, () => []),
 				)
 
-				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, event))) {
-					alteredInstances.push({ event, alarms })
+				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, calendarEvent))) {
+					alteredInstances.push({ event: calendarEvent, alarms })
 				}
 			}
 
-			const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)
+			const rejectionReason = shouldBeSkipped(calendarEvent, instanceIdentifierToEventMap)
 			if (rejectionReason != null) {
-				getFromMap(rejectedEvents, rejectionReason, () => []).push(event)
+				getFromMap(rejectedEvents, rejectionReason, () => []).push(calendarEvent)
 				continue
 			}
 
 			// hashedUid will be set later in calendarFacade to avoid importing the hash function here
-			const repeatRule = event.repeatRule
-			event._ownerGroup = calendarGroupRoot._id
+			const repeatRule = calendarEvent.repeatRule
+			calendarEvent._ownerGroup = calendarGroupRoot._id
 
 			if (repeatRule != null && repeatRule.timeZone === "") {
 				repeatRule.timeZone = getTimeZone()
 			}
 
-			assignEventId(event, zone, calendarGroupRoot)
-			if (event.recurrenceId == null) {
+			assignEventId(calendarEvent, zone, calendarGroupRoot)
+			if (calendarEvent.recurrenceId == null) {
 				// the progenitor must be null here since we would have
 				// rejected the second uid-progenitor event in shouldBeSkipped.
-				progenitor = { event, alarms }
+				progenitor = { event: calendarEvent, alarms }
 			}
 		}
 		if (progenitor != null) eventsForCreation.push(progenitor)
@@ -159,7 +229,7 @@ export function sortOutParsedEvents(
  */
 function treatProgenitorExcludedDates(alteredInstance: CalendarEvent, events: CalendarEvent[]) {
 	if (alteredInstance.recurrenceId == null) {
-		throw Error(`Tried to handle an excluded date without recurrence id, event ${alteredInstance._id}`)
+		throw Error(`Tried to handle an excluded date without recurrence id`)
 	}
 
 	const event = events.find((ev) => ev.uid === alteredInstance.uid && ev.repeatRule != null && ev.recurrenceId == null)
@@ -206,7 +276,7 @@ export function normalizeCalendarUrl(url: string): string {
 	return url.replace(/^webcal[s]?:\/\//, "https://")
 }
 
-export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
+export function shallowIsSameEvent(eventA: CalendarEvent | IcsCalendarEvent, eventB: CalendarEvent | IcsCalendarEvent) {
 	const sameUid = eventA.uid === eventB.uid
 	const sameSequence = eventA.sequence === eventB.sequence
 	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
@@ -215,12 +285,12 @@ export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent)
 }
 
 export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
-	const rruleA = createStrippedRepeatRule(a.repeatRule)
-	const rruleB = createStrippedRepeatRule(b.repeatRule)
-	const attendeesA = createStrippedAttendees(a.attendees)
-	const attendeesB = createStrippedAttendees(b.attendees)
-	const organizerA = createStrippedMailAddress(a.organizer)
-	const organizerB = createStrippedMailAddress(b.organizer)
+	const rruleA = a.repeatRule ? toStrippedRepeatRule(a.repeatRule) : null
+	const rruleB = b.repeatRule ? toStrippedRepeatRule(b.repeatRule) : null
+	const attendeesA = a.attendees.map(getStrippedClone)
+	const attendeesB = b.attendees.map(getStrippedClone)
+	const organizerA = a.organizer ? getStrippedClone(a.organizer) : null
+	const organizerB = b.organizer ? getStrippedClone(b.organizer) : null
 
 	return (
 		a.startTime.valueOf() === b.startTime.valueOf() &&
@@ -236,59 +306,32 @@ export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 	)
 }
 
-export type StrippedRepeatRule = Stripped<
-	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
-		excludedDates: Stripped<DateWrapper>[]
-		advancedRules: Stripped<AdvancedRepeatRule>[]
-	}
->
-
-export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
-	if (!repeatRule) {
-		return null
-	}
+export function toStrippedRepeatRule(repeatRule: CalendarRepeatRule): StrippedRepeatRule {
 	return {
 		frequency: repeatRule.frequency ?? "",
 		endType: repeatRule.endType ?? "",
 		endValue: repeatRule.endValue ?? "",
 		interval: repeatRule.interval ?? "",
 		timeZone: repeatRule.timeZone ?? "",
-		excludedDates: repeatRule.excludedDates
-			? repeatRule.excludedDates.map((ex) => ({
-					date: ex.date,
-				}))
-			: [],
-		advancedRules: repeatRule.advancedRules
-			? repeatRule.advancedRules.map((rule) => ({
-					ruleType: rule.ruleType,
-					interval: rule.interval,
-				}))
-			: [],
+		excludedDates: repeatRule.excludedDates.map(getStrippedClone),
+		advancedRules: repeatRule.advancedRules.map(getStrippedClone),
 	}
 }
-
-export type StrippedCalendarEventAttendee = Stripped<
-	Omit<CalendarEventAttendee, "address"> & {
-		address: Stripped<EncryptedMailAddress>
-	}
->
-
-export function createStrippedAttendees(attendees: CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
-	return attendees.map((attendee: CalendarEventAttendee) => {
-		return {
-			status: attendee.status,
-			address: createStrippedMailAddress(attendee.address)!,
-		}
-	})
-}
-
-export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
-	if (!mailAddress) {
-		return null
-	}
-
+export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<CalendarRepeatRule> {
 	return {
-		address: mailAddress.address,
-		name: mailAddress.name,
+		frequency: repeatRule.frequency ?? "",
+		endType: repeatRule.endType ?? "",
+		endValue: repeatRule.endValue ?? "",
+		interval: repeatRule.interval ?? "",
+		timeZone: repeatRule.timeZone ?? "",
+		excludedDates: repeatRule.excludedDates.map(createDateWrapper),
+		advancedRules: repeatRule.advancedRules.map(createAdvancedRepeatRule),
+	}
+}
+
+export function fromStrippedCalendarEventAttendee(strippedCalendarEventAttendee: StrippedCalendarEventAttendee): StrippedEntity<CalendarEventAttendee> {
+	return {
+		address: createEncryptedMailAddress(strippedCalendarEventAttendee.address),
+		status: strippedCalendarEventAttendee.status,
 	}
 }

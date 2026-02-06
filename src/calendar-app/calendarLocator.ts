@@ -101,7 +101,6 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import type { ParsedEvent } from "../common/calendar/gui/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
@@ -121,6 +120,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/work
 import { lang } from "../common/misc/LanguageViewModel.js"
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
+import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 
 assertMainOrNode()
 

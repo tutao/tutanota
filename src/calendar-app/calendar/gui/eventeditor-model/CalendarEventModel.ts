@@ -76,7 +76,7 @@ import {
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/tutanota-utils"
-import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import { cleanMailAddress, makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -559,27 +559,6 @@ export function assignEventIdentity(values: CalendarEventValues, identity: Requi
 async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {
 	const alarmInfos = await calendarModel.loadAlarms(alarms, user)
 	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))
-}
-
-function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
-	return {
-		alarmInfos: [],
-		invitedConfidentially: null,
-		hashedUid: null,
-		uid: null,
-		recurrenceId: null,
-		endTime: new Date(),
-		summary: "",
-		startTime: new Date(),
-		location: "",
-		repeatRule: null,
-		description: "",
-		attendees: [],
-		organizer: null,
-		sequence: "",
-		pendingInvitation: null,
-		sender: null,
-	}
 }
 
 function cleanupInitialValuesForEditing(initialValues: StrippedEntity<CalendarEvent>): CalendarEvent {
