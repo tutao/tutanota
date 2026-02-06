@@ -116,7 +116,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				help: "paste_action",
 				ctrlOrCmd: true,
 				exec: () => {
-					this.driveViewModel.paste()
+					this.onPaste()
 				},
 			},
 			{
@@ -161,6 +161,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				},
 			},
 		]
+	}
+
+	private async onPaste() {
+		await this.driveViewModel.paste()
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -258,7 +262,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										: null,
 								onCut: listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
 								onCopy: listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
-								onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
+								onPaste: this.driveViewModel.clipboard ? () => this.onPaste() : null,
 								onDropFiles: (files) => {
 									this.driveViewModel.uploadFiles(files)
 								},
@@ -325,7 +329,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									},
 								},
 								onMove: (items: FolderItemId[], into: FolderFolderItem) => {
-									this.driveViewModel.moveItems(items, into.folder._id)
+									this.driveViewModel.moveItems(items, into.folder)
 								},
 								sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
 								onSortColumn: (column) => this.driveViewModel.sort(column),

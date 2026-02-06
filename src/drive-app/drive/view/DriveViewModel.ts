@@ -25,6 +25,8 @@ import { ChunkedDownloadInfo, ChunkedUploadInfo, TransferId } from "../../../com
 import { FileController } from "../../../common/file/FileController"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
+import { UserError } from "../../../common/api/main/UserError"
+import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -291,12 +293,15 @@ export class DriveViewModel {
 		}
 	}
 
+	/**
+	 * @throws UserError
+	 */
 	async paste() {
 		if (this.currentFolder == null) return
 
 		if (this._clipboard?.action === ClipboardAction.Cut) {
 			const clipboardItems = this._clipboard.items
-			await this.moveItems(clipboardItems, this.currentFolder.folder._id)
+			await this.moveItems(clipboardItems, this.currentFolder.folder)
 			this._clipboard = null
 			this.updateUi()
 		} else if (this._clipboard?.action === ClipboardAction.Copy) {
@@ -324,8 +329,17 @@ export class DriveViewModel {
 		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
 	}
 
-	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple) {
-		await moveItems(this.entityClient, this.driveFacade, items, destinationId)
+	/**
+	 * @throws UserError
+	 */
+	async moveItems(items: readonly FolderItemId[], destination: DriveFolder) {
+		try {
+			await moveItems(this.entityClient, this.driveFacade, items, destination)
+		} catch (e) {
+			if (e instanceof MoveCycleError) {
+				throw new UserError("cannotMoveFolderIntoItself_msg")
+			}
+		}
 		this.selectNone()
 	}
 

@@ -108,7 +108,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 								label: "moveItemHere_action",
 								width: "flex",
 								onclick: () => {
-									moveItems(entityClient, driveFacade, [folderItemToId(itemToMove)], state.currentFolder._id)
+									moveItems(entityClient, driveFacade, [folderItemToId(itemToMove)], state.currentFolder)
 									moveDialog.close()
 								},
 							}),

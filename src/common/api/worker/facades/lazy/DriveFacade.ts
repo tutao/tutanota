@@ -36,6 +36,7 @@ import { getCleanedMimeType } from "../../../common/DataFile"
 import { TransferId } from "../../../common/drive/DriveTypes"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
 import { NotFoundError } from "../../../common/error/RestError"
+import { MoveCycleError } from "../../../common/error/MoveCycleError"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -287,11 +288,16 @@ export class DriveFacade {
 		await this.serviceExecutor.post(DriveCopyService, copyData)
 	}
 
-	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: IdTuple, renamedFiles: Map<Id, string>) {
-		for (const { left: filesChunk, right: unfilteredFoldersChunk } of splitListElementsIntoChunksByList(50, getListId, files, folders)) {
-			// prevent folder from being moved into itself
-			const foldersChunk = unfilteredFoldersChunk.filter((f) => !isSameId(f._id, destination))
+	/**
+	 * @throws MoveCycleError
+	 */
+	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder, renamedFiles: Map<Id, string>) {
+		const parents = new Set((await this.getFolderParents(destination)).map(getElementId))
+		if (folders.some((f) => parents.has(getElementId(f)) || isSameId(f._id, destination._id))) {
+			throw new MoveCycleError(`Cannot move folder into its child ${destination._id.join("/")}`)
+		}
 
+		for (const { left: filesChunk, right: foldersChunk } of splitListElementsIntoChunksByList(50, getListId, files, folders)) {
 			const items: DriveRenameData[] = [
 				...(await promiseMap(filesChunk, async (file) => {
 					let encNewName: Uint8Array | null
@@ -320,7 +326,7 @@ export class DriveFacade {
 
 			const data = createDriveFolderServicePutIn({
 				items,
-				destination,
+				destination: destination._id,
 			})
 			await this.serviceExecutor.put(DriveFolderService, data)
 		}

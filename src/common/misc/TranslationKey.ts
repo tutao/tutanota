@@ -2212,3 +2212,4 @@ export type TranslationKeyType =
 	| "movingItem_title"
 	| "emptyString_msg"
 	| "transferWaiting_msg"
+	| "cannotMoveFolderIntoItself_msg"

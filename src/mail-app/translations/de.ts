@@ -2213,6 +2213,7 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"transferWaiting_msg": "Warte…"
+		"transferWaiting_msg": "Warte…",
+		"cannotMoveFolderIntoItself_msg": "Dieser Ordner kann nicht in sich selbst verschoben werden"
 	}
 }
