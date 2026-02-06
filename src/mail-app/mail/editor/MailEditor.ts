@@ -1454,7 +1454,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
  */
 export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog | null> {
 	// We check approval status so as to get a dialog informing the user that they cannot send mails
-	// but we still want to open the mail editor because they should still be able to contact sales@tutao.de
+	// but we still want to open the mail editor because they should still be able to contact invoice@tutao.de
 	await checkApprovalStatus(locator.logins, false)
 	const { appendEmailSignature } = await import("../signature/Signature")
 	const signature = appendEmailSignature("", locator.logins.getUserController().props)

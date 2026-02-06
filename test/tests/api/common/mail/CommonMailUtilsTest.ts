@@ -75,7 +75,7 @@ o.spec("CommonMailUtils", () => {
 		o(isTutanotaTeamAddress("bed-free@tutanota.de")).deepEquals(false)
 		o(isTutanotaTeamAddress("admin@somesite.com")).deepEquals(false)
 		o(isTutanotaTeamAddress("no-reply@tutao.de")).deepEquals(true)
-		o(isTutanotaTeamAddress("sales@tutao.de")).deepEquals(true)
+		o(isTutanotaTeamAddress("invoice@tutao.de")).deepEquals(true)
 		o(isTutanotaTeamAddress("no-reply@tutanota.de")).deepEquals(true)
 	})
 
