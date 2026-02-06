@@ -198,7 +198,7 @@ export class CalendarNotificationSender {
 
 		if (sendMailModel.getSenderName()) {
 			guestName = sendMailModel.getSenderName()
-		} else if (attendee) {
+		} else if (attendee?.address.name) {
 			guestName = attendee.address.name
 		}
 
