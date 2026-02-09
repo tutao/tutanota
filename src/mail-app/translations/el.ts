@@ -1726,7 +1726,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Ανανέωση αυτής και μελλοντικές εκδηλώσεις",
 		"upgrade_action": "Αναβάθμιση",
 		"upgradeConfirm_msg": "Επιβεβαιώστε την παραγγελία σας!",
-		"upgradeNeeded_msg": "Δυστυχώς, δεν επιτρέπεται να στέλνετε ή να λαμβάνετε email (παρά μόνο προς το τμήμα πωλήσεων του Tuta, sales@tutao.de) διότι πρέπει πρώτα να ολοκληρώσετε την παραγγελία συνδρομής επί πληρωμή.",
+		"upgradeNeeded_msg": "Δυστυχώς, δεν επιτρέπεται να στέλνετε ή να λαμβάνετε email (παρά μόνο προς το τμήμα πωλήσεων του Tuta, invoice@tutao.de) διότι πρέπει πρώτα να ολοκληρώσετε την παραγγελία συνδρομής επί πληρωμή.",
 		"upgradePlan_msg": "Η συνδρομή σας θα αναβαθμιστεί σε {plan}.",
 		"upgradePremium_label": "Προνομιούχο",
 		"upgradeReminderCancel_action": "Αργότερα",

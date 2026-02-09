@@ -1452,7 +1452,7 @@ export default {
 		"updatePaymentDataBusy_msg": "결제 데이터를 확인하는 중입니다. 최대 1분 정도 소요될 수 있으니 잠시만 기다려주세요.",
 		"upgrade_action": "업그레이드\n",
 		"upgradeConfirm_msg": "주문을 승인해주세요!",
-		"upgradeNeeded_msg": "죄송합니다, 먼저 구독 결제를 완료해야 하기 때문에 현재 이메일을 보내거나 수신할 수 없습니다. (sales@tutao.de로 Tuta 영업팀에게 연락하는 경우는 제외)",
+		"upgradeNeeded_msg": "죄송합니다, 먼저 구독 결제를 완료해야 하기 때문에 현재 이메일을 보내거나 수신할 수 없습니다. (invoice@tutao.de로 Tuta 영업팀에게 연락하는 경우는 제외)",
 		"upgradePlan_msg": "구독이 {plan}(으)로 업그레이드됩니다.",
 		"upgradePremium_label": "프리미엄",
 		"upgradeReminderCancel_action": "나중에 하기",

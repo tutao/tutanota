@@ -1820,7 +1820,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Aggiorna questo evento e quelli futuri",
 		"upgrade_action": "Upgrade",
 		"upgradeConfirm_msg": "Conferma il tuo ordine!",
-		"upgradeNeeded_msg": "Spiacenti, al momento non ti è consentito inviare o ricevere email (ad eccezione del supporto vendite Tuta all'indirizzo sales@tutao.de) perché devi prima completare l'ordine di un abbonamento a pagamento. Puoi completare l'ordine entro 14 giorni dalla registrazione, altrimenti il tuo account verrà disattivato.",
+		"upgradeNeeded_msg": "Spiacenti, al momento non ti è consentito inviare o ricevere email (ad eccezione del supporto vendite Tuta all'indirizzo invoice@tutao.de) perché devi prima completare l'ordine di un abbonamento a pagamento. Puoi completare l'ordine entro 14 giorni dalla registrazione, altrimenti il tuo account verrà disattivato.",
 		"upgradePlan_msg": "Il tuo abbonamento verrà aggiornato a {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Più tardi",

@@ -2036,7 +2036,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Ennek és a jövő eseményeinek napra késszé tétele",
 		"upgrade_action": "Frissítés",
 		"upgradeConfirm_msg": "Erősítse meg megrendelését!",
-		"upgradeNeeded_msg": "Jelenleg csak a sales@tutao.de címen tud e-mailt váltani, mivel a regisztráció során nem végezte el a fizetős előfizetés foglalását. A foglalást a regisztrációt követő 14 napon belül fejezheti be, ellenkező esetben a fiókja deaktiválásra kerül.",
+		"upgradeNeeded_msg": "Jelenleg csak a invoice@tutao.de címen tud e-mailt váltani, mivel a regisztráció során nem végezte el a fizetős előfizetés foglalását. A foglalást a regisztrációt követő 14 napon belül fejezheti be, ellenkező esetben a fiókja deaktiválásra kerül.",
 		"upgradePlan_msg": "Az előfizetését frissíteni fogjuk {plan}.",
 		"upgradePremium_label": "Prémium",
 		"upgradeReminderCancel_action": "Később",

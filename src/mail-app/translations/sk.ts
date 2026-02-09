@@ -1410,7 +1410,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Overujú sa platobné údaje. Maj trpezlivosť, môže to zabrať až jednu minútu.",
 		"upgrade_action": "Upgradovať",
 		"upgradeConfirm_msg": "Potvrď svoju objednávku!",
-		"upgradeNeeded_msg": "Ľutujeme, momentálne nemáš povolenie odosielať alebo prijímať e-maily (netýka sa podpory predaja Tuta na adrese sales@tutao.de), pretože najskôr musíš dokončiť objednávku plateného predplatného.",
+		"upgradeNeeded_msg": "Ľutujeme, momentálne nemáš povolenie odosielať alebo prijímať e-maily (netýka sa podpory predaja Tuta na adrese invoice@tutao.de), pretože najskôr musíš dokončiť objednávku plateného predplatného.",
 		"upgradePlan_msg": "Tvoje predplatné sa upgraduje na {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Neskôr",

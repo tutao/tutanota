@@ -1709,7 +1709,7 @@ export default {
 		"updatePaymentDataBusy_msg": "支払データを確認しています。しばらくお待ちください。これには最大1分かかる場合があります。",
 		"upgrade_action": "アップグレード",
 		"upgradeConfirm_msg": "ご注文を確認してください。",
-		"upgradeNeeded_msg": "申し訳ありませんが、初めに有料プランの注文を完了する必要があるため、電子メールの送受信は許可されていません（sales@tutao.deのTutaセールスサポートを除く）。",
+		"upgradeNeeded_msg": "申し訳ありませんが、初めに有料プランの注文を完了する必要があるため、電子メールの送受信は許可されていません（invoice@tutao.deのTutaセールスサポートを除く）。",
 		"upgradePlan_msg": "あなたのプランは{plan}にアップグレードされます。",
 		"upgradePremium_label": "プレミアム",
 		"upgradeReminderCancel_action": "後で",

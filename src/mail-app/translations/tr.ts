@@ -2079,7 +2079,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Bu ve gelecekteki etkinlikleri güncelle",
 		"upgrade_action": "Yükseltin",
 		"upgradeConfirm_msg": "Siparişinizi onaylayın!",
-		"upgradeNeeded_msg": "Kayıt sırasında ücretli abonelik rezervasyonunu tamamlamadığınız için şu anda yalnızca sales@tutao.de adresiyle e-posta alışverişi yapabilirsiniz. Kayıt olduktan sonra 14 gün içinde rezervasyonu tamamlayabilirsiniz, aksi takdirde hesabınız devre dışı bırakılacaktır.",
+		"upgradeNeeded_msg": "Kayıt sırasında ücretli abonelik rezervasyonunu tamamlamadığınız için şu anda yalnızca invoice@tutao.de adresiyle e-posta alışverişi yapabilirsiniz. Kayıt olduktan sonra 14 gün içinde rezervasyonu tamamlayabilirsiniz, aksi takdirde hesabınız devre dışı bırakılacaktır.",
 		"upgradePlan_msg": "Aboneliğiniz {plan} planına yükseltilecektir.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Daha sonra",

@@ -1421,7 +1421,7 @@ export default {
 		"updatePaymentDataBusy_msg": "מאמת נתוני תשלום. אנא התאזרו בסבלנות, זה עשוי לקחת עד דקה.",
 		"upgrade_action": "שידרוג",
 		"upgradeConfirm_msg": "אשרו את ההזמנה!",
-		"upgradeNeeded_msg": "אנו מתנצלים, אינכם מורשים לשלוח או לקבל דוא\"ל כעת (חוץ מלתמיכת מכירות Tuta בכתובת sales@tutao.de), מכיוון שראשית עליכם להשלים הזמנת מנוי בתשלום.",
+		"upgradeNeeded_msg": "אנו מתנצלים, אינכם מורשים לשלוח או לקבל דוא\"ל כעת (חוץ מלתמיכת מכירות Tuta בכתובת invoice@tutao.de), מכיוון שראשית עליכם להשלים הזמנת מנוי בתשלום.",
 		"upgradePlan_msg": "התכנית שלך תשודרג ל{תכנית}.",
 		"upgradePremium_label": "פרמיום",
 		"upgradeReminderCancel_action": "מאוחר יותר",

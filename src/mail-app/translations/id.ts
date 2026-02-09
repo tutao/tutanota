@@ -1635,7 +1635,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Sedang verifikasi data pembayaran. Mohon kesabarannya, ini dapat berlangsung hingga satu menit.",
 		"upgrade_action": "Tingkatkan",
 		"upgradeConfirm_msg": "Konfirmasi pesanan Anda!",
-		"upgradeNeeded_msg": "Maaf, Anda tidak diperbolehkan mengirim atau menerima surel (kecuali kepada layanan sales Tuta di sales@tutao.de) karena Anda terlebih dahulu perlu selesai memesan langganan berbayar.",
+		"upgradeNeeded_msg": "Maaf, Anda tidak diperbolehkan mengirim atau menerima surel (kecuali kepada layanan sales Tuta di invoice@tutao.de) karena Anda terlebih dahulu perlu selesai memesan langganan berbayar.",
 		"upgradePlan_msg": "Langganan Anda akan ditingkatkan menjadi {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Nanti",

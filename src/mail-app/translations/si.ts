@@ -1845,7 +1845,7 @@ export default {
 		"updatePaymentDataBusy_msg": "ගෙවීමේ දත්ත තහවුරු කෙරෙමින්. රැඳෙන්න, මෙයට විනාඩියක් ගතවිය හැකිය.",
 		"upgrade_action": "උත්ශ්‍රේණි",
 		"upgradeConfirm_msg": "ඇණවුම තහවුරු කරන්න!",
-		"upgradeNeeded_msg": "කණගාටුයි, ඔබට වි-තැපැල් යැවීමට හෝ ලැබීමට ඉඩ නොදේ (ටුටානෝටා අලෙවි සහායට හැර sales@tutao.de) මන්ද, ඔබ ගෙවන දායකත්වය ඇණවුම් කිරීම අවසන් කළ යුතුය.",
+		"upgradeNeeded_msg": "කණගාටුයි, ඔබට වි-තැපැල් යැවීමට හෝ ලැබීමට ඉඩ නොදේ (ටුටානෝටා අලෙවි සහායට හැර invoice@tutao.de) මන්ද, ඔබ ගෙවන දායකත්වය ඇණවුම් කිරීම අවසන් කළ යුතුය.",
 		"upgradePlan_msg": "ඔබගේ සැලසුම {plan} වෙත උත්ශ්‍රේණි කෙරේ.",
 		"upgradePremium_label": "ආධික්‍යය",
 		"upgradeReminderCancel_action": "පසුව",

@@ -2026,7 +2026,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Actualizează acest eveniment și cele viitoare",
 		"upgrade_action": "Avansare",
 		"upgradeConfirm_msg": "Confirmă comanda!",
-		"upgradeNeeded_msg": "În prezent, poți face schimb de e-mailuri doar cu sales@tutao.de deoarece nu ai completat rezervarea unui abonament cu plată în timpul înscrierii. Poți completa rezervarea în termen de 14 zile de la înscriere, în caz contrar contul tău va fi dezactivat.",
+		"upgradeNeeded_msg": "În prezent, poți face schimb de e-mailuri doar cu invoice@tutao.de deoarece nu ai completat rezervarea unui abonament cu plată în timpul înscrierii. Poți completa rezervarea în termen de 14 zile de la înscriere, în caz contrar contul tău va fi dezactivat.",
 		"upgradePlan_msg": "Abonamentul tău va avansa la {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Mai târziu",

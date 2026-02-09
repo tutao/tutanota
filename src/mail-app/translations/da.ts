@@ -1303,7 +1303,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Kontrollerer betalingsoplysningerne... Det kan tage op til et minut. Hav venligst tålmodighed",
 		"upgrade_action": "Opgrader",
 		"upgradeConfirm_msg": "Bekræft din ordre!",
-		"upgradeNeeded_msg": "Beklager, du har ikke tilladelse til at sende eller modtage emails (bortset fra Tuta salgssupport på sales@tutao.de), da du først skal gennemføre ordren på et betalt abonnement.",
+		"upgradeNeeded_msg": "Beklager, du har ikke tilladelse til at sende eller modtage emails (bortset fra Tuta salgssupport på invoice@tutao.de), da du først skal gennemføre ordren på et betalt abonnement.",
 		"upgradePlan_msg": "Dit abonnement bliver opgraderet til {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Senere",

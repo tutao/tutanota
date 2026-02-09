@@ -2019,7 +2019,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Aktualizovat tuto i budoucí události",
 		"upgrade_action": "Upgrade",
 		"upgradeConfirm_msg": "Potvrďte svou objednávku!",
-		"upgradeNeeded_msg": "V současné době si můžete vyměňovat e-maily pouze s adresou sales@tutao.de, protože jste při registraci nedokončili rezervaci placeného předplatného. Rezervaci můžete dokončit do 14 dnů od registrace, jinak bude váš účet deaktivován.",
+		"upgradeNeeded_msg": "V současné době si můžete vyměňovat e-maily pouze s adresou invoice@tutao.de, protože jste při registraci nedokončili rezervaci placeného předplatného. Rezervaci můžete dokončit do 14 dnů od registrace, jinak bude váš účet deaktivován.",
 		"upgradePlan_msg": "Vaše předplatné bude změněno na {plan}.",
 		"upgradePremium_label": "Prémium",
 		"upgradeReminderCancel_action": "Později",

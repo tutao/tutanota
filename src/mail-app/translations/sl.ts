@@ -2080,7 +2080,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Posodobi ta in prihodnje dogodke",
 		"upgrade_action": "Nadgradi",
 		"upgradeConfirm_msg": "Potrdite naročilo!",
-		"upgradeNeeded_msg": "Trenutno lahko pošiljate e-sporočila le sales@tutao.de, ker med registracijo niste opravili rezervacije plačljive naročnine. Rezervacijo lahko opravite v 14 dneh po registraciji, sicer bo vaš račun deaktiviran.",
+		"upgradeNeeded_msg": "Trenutno lahko pošiljate e-sporočila le invoice@tutao.de, ker med registracijo niste opravili rezervacije plačljive naročnine. Rezervacijo lahko opravite v 14 dneh po registraciji, sicer bo vaš račun deaktiviran.",
 		"upgradePlan_msg": "Vaša naročnina bo nadgrajena na {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Kasneje",

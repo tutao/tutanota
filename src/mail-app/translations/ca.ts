@@ -2036,7 +2036,7 @@ export default {
 		"updateThisAndFutureEvents_action": "Actualitzar aquest i futurs events",
 		"upgrade_action": "Subscriure",
 		"upgradeConfirm_msg": "Confirmar la comanda!",
-		"upgradeNeeded_msg": "Actualment només podeu intercanviar correus electrònics amb sales@tutao.de perquè no heu completat la reserva d'una subscripció de pagament durant el registre. Pots completar la reserva en un termini de 14 dies després de registrar-te, en cas contrari, el teu compte es desactivarà.",
+		"upgradeNeeded_msg": "Actualment només podeu intercanviar correus electrònics amb invoice@tutao.de perquè no heu completat la reserva d'una subscripció de pagament durant el registre. Pots completar la reserva en un termini de 14 dies després de registrar-te, en cas contrari, el teu compte es desactivarà.",
 		"upgradePlan_msg": "El teu pla s'actualitzarà a {plan}.",
 		"upgradePremium_label": "Prèmium",
 		"upgradeReminderCancel_action": "Més tard",

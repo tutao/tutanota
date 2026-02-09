@@ -1830,7 +1830,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Potvrđivanje podataka o plaćanju. Molimo Vas budite strpljivi, ovo može potrajati do jedne minute.",
 		"upgrade_action": "Unaprijedi",
 		"upgradeConfirm_msg": "Potvrdite narudžbu!",
-		"upgradeNeeded_msg": "Nažalost, ne smijete slati ili primati e-poštu (osim na prodajnu podršku tvrtke Tuta na sales@tutao.de) jer prvo trebate završiti s narudžbom plaćene pretplate.",
+		"upgradeNeeded_msg": "Nažalost, ne smijete slati ili primati e-poštu (osim na prodajnu podršku tvrtke Tuta na invoice@tutao.de) jer prvo trebate završiti s narudžbom plaćene pretplate.",
 		"upgradePlan_msg": "Vaša će pretplata biti nadograđena na {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Kasnije",

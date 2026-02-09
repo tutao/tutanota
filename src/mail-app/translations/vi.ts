@@ -1476,7 +1476,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Đang xác minh dữ liệu thanh toán. Xin vui lòng kiên nhẫn, tác vụ này có thể kéo dài một phút.",
 		"upgrade_action": "Nâng cấp",
 		"upgradeConfirm_msg": "Xác nhận đơn hàng của bạn!",
-		"upgradeNeeded_msg": "Rất tiếc, hiện bạn không được phép gửi hay nhận thư (trừ gửi đến bộ phận hỗ trợ bán hàng của Tuta ở sales@tutao.de) vì bạn cần phải làm xong việc đặt mua một gói cước tính phí trước đã.",
+		"upgradeNeeded_msg": "Rất tiếc, hiện bạn không được phép gửi hay nhận thư (trừ gửi đến bộ phận hỗ trợ bán hàng của Tuta ở invoice@tutao.de) vì bạn cần phải làm xong việc đặt mua một gói cước tính phí trước đã.",
 		"upgradePlan_msg": "Gói cước của bạn sẽ được nâng cấp lên {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Để sau",
