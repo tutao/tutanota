@@ -156,6 +156,8 @@ export class PostLoginActions implements PostLoginAction {
 			await locator.mailboxModel.init()
 			const calendarModel = await locator.calendarModel()
 			await calendarModel.init()
+			const calendarEventUpdateHandler = await locator.calendarEventUpdateCoordinator()
+			await calendarEventUpdateHandler.init()
 			await this.remindActiveOutOfOfficeNotification()
 		}
 
