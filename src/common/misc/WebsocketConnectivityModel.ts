@@ -13,7 +13,7 @@ export interface WebsocketConnectivityListener {
 /** A web page thread view on websocket/event bus. */
 export class WebsocketConnectivityModel implements WebsocketConnectivityListener {
 	private readonly wsState = stream<WsConnectionState>(WsConnectionState.terminated)
-	private leaderStatus: boolean = false
+	private readonly leaderStatus = stream<boolean>(false)
 
 	constructor(private readonly eventBus: ExposedEventBus) {}
 
@@ -22,11 +22,15 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	}
 
 	async onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): Promise<void> {
-		this.leaderStatus = leaderStatus.leaderStatus
+		this.leaderStatus(leaderStatus.leaderStatus)
 	}
 
 	isLeader(): boolean {
-		return this.leaderStatus
+		return this.leaderStatus()
+	}
+
+	public getLeaderStatusStream(): stream<boolean> {
+		return this.leaderStatus.map(identity)
 	}
 
 	wsConnection(): stream<WsConnectionState> {
