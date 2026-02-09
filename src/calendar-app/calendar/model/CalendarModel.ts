@@ -44,7 +44,6 @@ import {
 	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
-	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
 	createDefaultAlarmInfo,
@@ -845,21 +844,6 @@ export class CalendarModel {
 	}
 
 	/**
-	 * Handles updates to event invitations
-	 * @private
-	 */
-	private async loadAndProcessCalendarEventInvitesUpdates(): Promise<void> {
-		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
-		const { calendarEventUpdates } = mailboxGroupRoot
-		if (calendarEventUpdates == null) return
-
-		const invites = await this.entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
-		for (const invite of invites) {
-			await this.handleCalendarEventUpdate(invite)
-		}
-	}
-
-	/**
 	 * Get calendar infos, creating a new calendar info if none exist
 	 * Not async because we want to return the result directly if it is available when called
 	 * otherwise we return a promise
@@ -903,7 +887,14 @@ export class CalendarModel {
 		}
 	}
 
-	private async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
+	/**
+	 * Handles ics files received via email entities by downloading the associated ics file attachment.
+	 * The function parses the content of the ics files and creates or updates  calendar event entities.
+	 *
+	 * @param update The calendar event data received via email.
+	 * @throws NoOwnerEncSessionKeyForCalendarEventError when the session key for the ics file cannot be resolved.
+	 */
+	public async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
 		try {
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
@@ -928,11 +919,8 @@ export class CalendarModel {
 				// so we should try to delete since the update itself is obsolete.
 				console.warn(TAG, "could not process calendar update: not found", e)
 			} else if (e instanceof NoOwnerEncSessionKeyForCalendarEventError) {
-				// we will get an update with the mail and sk soon, then we'll be able to finish this.
-				// we will re-enter this function and erase it then.
-				this.fileIdToSkippedCalendarEventUpdates.set(elementIdPart(update.file), update)
-				console.warn(TAG, `could not process calendar update: ${e.message}`, e)
-				return
+				// re-throw error with deleting the CalendarEventUpdate entity, so we can process it later when resolving session key is possible.
+				throw e
 			} else {
 				// unknown error that may lead to permanently stuck update if not cleared
 				// this includes CryptoErrors due to #5753 that we want to still monitor
@@ -1300,7 +1288,6 @@ export class CalendarModel {
 
 	async init(): Promise<void> {
 		await this.scheduleAlarmsLocally()
-		await this.loadAndProcessCalendarEventInvitesUpdates()
 	}
 
 	/**
@@ -1392,34 +1379,6 @@ export class CalendarModel {
 				if (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE) {
 					const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
 					deferredEvent.deferred.resolve(undefined)
-				}
-			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
-				try {
-					const invite = await this.entityClient.load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
-					await this.handleCalendarEventUpdate(invite)
-				} catch (e) {
-					if (e instanceof NotFoundError) {
-						console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
-					} else {
-						throw e
-					}
-				}
-			} else if (isUpdateForTypeRef(FileTypeRef, entityEventData)) {
-				// with a file update, the owner enc session key should be present now so we can try to process any skipped calendar event updates
-				// (see NoOwnerEncSessionKeyForCalendarEventError's comment)
-				const skippedCalendarEventUpdate = this.fileIdToSkippedCalendarEventUpdates.get(entityEventData.instanceId)
-				if (skippedCalendarEventUpdate) {
-					try {
-						await this.handleCalendarEventUpdate(skippedCalendarEventUpdate)
-					} catch (e) {
-						if (e instanceof NotFoundError) {
-							console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
-						} else {
-							throw e
-						}
-					} finally {
-						this.fileIdToSkippedCalendarEventUpdates.delete(entityEventData.instanceId)
-					}
 				}
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(entityEventData, eventOwnerGroupId)) {
 				const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
@@ -1522,11 +1481,6 @@ export class CalendarModel {
 		}
 	}
 
-	// VisibleForTesting
-	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
-		return this.fileIdToSkippedCalendarEventUpdates
-	}
-
 	getBirthdayEventTitle(contactName: string) {
 		return this.lang.get("birthdayEvent_title", {
 			"{name}": contactName,
@@ -1555,7 +1509,7 @@ async function didLongStateChange(newEvent: CalendarEvent, existingEvent: Calend
  *
  * This is a limitation that should be addressed in the future.
  */
-class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
+export class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
 	constructor(message: string) {
 		super("NoOwnerEncSessionKeyForCalendarEventError", message)
 	}

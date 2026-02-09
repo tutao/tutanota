@@ -79,6 +79,7 @@ import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerato
 import { LoginViewModel } from "../../login/LoginViewModel"
 import { DriveFacade } from "../worker/facades/lazy/DriveFacade.js"
 import { TransferProgressDispatcher } from "./TransferProgressDispatcher"
+import { CalendarEventUpdateCoordinator } from "../../../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -129,6 +130,7 @@ export interface CommonLocator {
 	mailboxModel: MailboxModel
 
 	calendarModel(): Promise<CalendarModel>
+	calendarEventUpdateCoordinator(): Promise<CalendarEventUpdateCoordinator>
 
 	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>
 
