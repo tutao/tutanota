@@ -137,7 +137,7 @@ export async function showUpgradeWizard({
 		isCalledBySatisfactionDialog,
 	}
 
-	let { pageClass: planPageClass, attrs: planPageAttrs } = initPlansPages(upgradeData)
+	let { pageClass: planPageClass, attrs: planPageAttrs } = { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(upgradeData) }
 	const wizardPages = [
 		wizardPageWrapper(planPageClass, planPageAttrs),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
@@ -237,7 +237,11 @@ export async function loadSignupWizard(
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 	const confirmSubscriptionAttrs = new UpgradeConfirmSubscriptionPageAttrs(signupData)
-	const plansPage = initPlansPages(signupData)
+	let referralConversion: ReferralType = "not_referred"
+	if (signupData.referralData && signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
+	else if (signupData.referralData && !signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
+	SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
+	const plansPage = { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(signupData) }
 	const loginViewModelFactory = await locator.loginViewModelFactory()
 	const wizardPages = [
 		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
@@ -276,15 +280,4 @@ export async function loadSignupWizard(
 	confirmSubscriptionAttrs.setEnabledFunction(() => signupData.targetPlanType !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
 	wizardBuilder.dialog.show()
-}
-
-function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<SubscriptionPage>
-	attrs: SubscriptionPageAttrs
-} {
-	let referralConversion: ReferralType = "not_referred"
-	if (signupData.referralData && signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
-	else if (signupData.referralData && !signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
-	SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
-	return { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(signupData) }
 }
