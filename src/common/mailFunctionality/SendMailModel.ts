@@ -495,7 +495,7 @@ export class SendMailModel {
 		draft: Mail,
 		draftDetails: MailDetails,
 		conversationEntry: ConversationEntry,
-		attachments: TutanotaFile[],
+		attachments: Attachment[],
 		inlineImages: InlineImages,
 	): Promise<SendMailModel> {
 		this.startInit()
