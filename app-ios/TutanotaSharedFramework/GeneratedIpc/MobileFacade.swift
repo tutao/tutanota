@@ -17,11 +17,11 @@ public protocol MobileFacade {
 	 */
 	func visibilityChange(
 		_ visibility: Bool
-	) async throws
+	) async throws -> Void
 	/**
 	 * iOS: called when keyboard opens/closes/resizes. Passes the height of the keyboard.
 	 */
 	func keyboardSizeChanged(
 		_ newSize: Int
-	) async throws
+	) async throws -> Void
 }

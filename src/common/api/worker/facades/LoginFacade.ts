@@ -104,6 +104,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { RolloutFacade } from "./RolloutFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
+import { ApplicationTypesFacade } from "./ApplicationTypesFacade"
 
 assertWorkerOrNode()
 
@@ -218,7 +219,7 @@ export class LoginFacade {
 		/**
 		 *  Only needed so that we can initialize the offline storage after login.
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
-		 *  Once the credentials handling has been changed to *always* save in desktop, then this should become obsolete
+		 *  Once the credential handling has been changed to *always* save in desktop, then this should become obsolete
 		 */
 		private readonly cacheInitializer: CacheStorageLateInitializer,
 		private readonly serviceExecutor: IServiceExecutor,
@@ -232,6 +233,7 @@ export class LoginFacade {
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly rolloutFacade: RolloutFacade,
+		private readonly applicationTypesFacade: ApplicationTypesFacade,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -653,11 +655,12 @@ export class LoginFacade {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
 		} catch (e) {
-			// If we initialized the cache, but then we couldn't authenticate we should de-initialize
+			// If we initialized the cache, but then we couldn't authenticate, we should de-initialize
 			// the cache again because we will initialize it for the next attempt.
-			// It might be also called in initSession but the error can be thrown even before that (e.g. if the db is empty for some reason) so we reset
+			// It might be also called in initSession but the error can be thrown even before that (e.g. if the db is empty for some reason), so we reset
 			// the session here as well, otherwise we might try to open the DB twice.
 			await this.resetSession()
+			await this.applicationTypesFacade.invalidateApplicationTypes()
 			throw e
 		}
 	}

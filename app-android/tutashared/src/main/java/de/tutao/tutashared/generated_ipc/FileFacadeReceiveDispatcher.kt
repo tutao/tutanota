@@ -160,6 +160,13 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"deleteFromAppDir" -> {
+				val path: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.deleteFromAppDir(
+					path,
+				)
+				return json.encodeToString(result)
+			}
 			"readDataFile" -> {
 				val filePath: String = json.decodeFromString(arg[0])
 				val result: DataFile? = this.facade.readDataFile(

@@ -173,6 +173,13 @@ class AndroidFileFacade(
 		return data
 	}
 
+	@Throws(IOException::class)
+	override suspend fun deleteFromAppDir(path: String) {
+		val file = File(activity.filesDir, path)
+		val fullPath = file.toUri().toString()
+		this.deleteFile(fullPath)
+	}
+
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
 	override suspend fun open(location: String, mimeType: String) {
 		val file = location.toUri().let { uri ->

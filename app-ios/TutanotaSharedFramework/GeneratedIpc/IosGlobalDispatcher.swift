@@ -43,7 +43,7 @@ public class IosGlobalDispatcher {
 		self.webAuthnFacade = WebAuthnFacadeReceiveDispatcher(facade: webAuthnFacade)
 	}
 	
-	public func dispatch(facadeName: String, methodName: String, args: [String]) async throws -> String {
+	public func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {
 		switch facadeName {
 			case "CommonSystemFacade":
 				return try await self.commonSystemFacade.dispatch(method: methodName, arg: args)

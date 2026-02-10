@@ -11,7 +11,7 @@ public protocol MobileSystemFacade {
 	 * Redirect the user to Phone's Settings
 	 */
 	func goToSettings(
-	) async throws
+	) async throws -> Void
 	/**
 	 * Open URI in the OS.
 	 */
@@ -36,23 +36,23 @@ public protocol MobileSystemFacade {
 	 */
 	func requestPermission(
 		_ permission: PermissionType
-	) async throws
+	) async throws -> Void
 	func getAppLockMethod(
 	) async throws -> AppLockMethod
 	func setAppLockMethod(
 		_ method: AppLockMethod
-	) async throws
+	) async throws -> Void
 	func enforceAppLock(
 		_ method: AppLockMethod
-	) async throws
+	) async throws -> Void
 	func getSupportedAppLockMethods(
 	) async throws -> [AppLockMethod]
 	func openMailApp(
 		_ query: String
-	) async throws
+	) async throws -> Void
 	func openCalendarApp(
 		_ query: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.
 	 */
@@ -62,18 +62,18 @@ public protocol MobileSystemFacade {
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	func requestInAppRating(
-	) async throws
+	) async throws -> Void
 	/**
 	 * Sends a refresh signal to the native side, updating widget last sync
 	 */
 	func requestWidgetRefresh(
-	) async throws
+	) async throws -> Void
 	/**
 	 * Sends the URL from the remote origin to be stored on the device
 	 */
 	func storeServerRemoteOrigin(
 		_ origin: String
-	) async throws
+	) async throws -> Void
 	func print(
-	) async throws
+	) async throws -> Void
 }

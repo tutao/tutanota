@@ -114,6 +114,12 @@ interface FileFacade {
 		path: String,
 	): DataWrapper
 	/**
+	 * Delete file from given path relative to app data folder
+	 */
+	suspend fun deleteFromAppDir(
+		path: String,
+	): Unit
+	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */
 	suspend fun readDataFile(

@@ -90,6 +90,10 @@ export class FileFacadeReceiveDispatcher {
 				const path: string = arg[0]
 				return this.facade.readFromAppDir(path)
 			}
+			case "deleteFromAppDir": {
+				const path: string = arg[0]
+				return this.facade.deleteFromAppDir(path)
+			}
 			case "readDataFile": {
 				const filePath: string = arg[0]
 				return this.facade.readDataFile(filePath)

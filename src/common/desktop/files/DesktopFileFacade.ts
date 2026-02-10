@@ -302,6 +302,22 @@ export class DesktopFileFacade implements FileFacade {
 		return this.fs.readFileSync(fullPath)
 	}
 
+	async deleteFromAppDir(fileName: string): Promise<void> {
+		const userDataDir = this.electron.app.getPath("userData")
+
+		const resolvedBase = this.path.resolve(userDataDir)
+		const resolvedTarget = this.path.resolve(userDataDir, fileName)
+		if (!resolvedTarget.startsWith(resolvedBase + this.path.sep)) {
+			return
+		}
+
+		try {
+			await this.fs.promises.unlink(resolvedTarget)
+		} catch (e) {
+			// ignore the error if the file does not exist
+		}
+	}
+
 	// this is used to read unencrypted data from arbitrary locations
 	async readDataFile(uriOrPath: FileUri): Promise<DataFile | null> {
 		try {

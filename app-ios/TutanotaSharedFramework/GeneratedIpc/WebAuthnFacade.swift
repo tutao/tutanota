@@ -23,7 +23,7 @@ public protocol WebAuthnFacade {
 	 * cancels the current sign/registration operation
 	 */
 	func abortCurrentOperation(
-	) async throws
+	) async throws -> Void
 	/**
 	 * return whether this platform supports webAuthn
 	 */

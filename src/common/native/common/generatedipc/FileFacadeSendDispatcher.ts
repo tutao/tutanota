@@ -61,6 +61,9 @@ export class FileFacadeSendDispatcher implements FileFacade {
 	async readFromAppDir(...args: Parameters<FileFacade["readFromAppDir"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "readFromAppDir", ...args])
 	}
+	async deleteFromAppDir(...args: Parameters<FileFacade["deleteFromAppDir"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "deleteFromAppDir", ...args])
+	}
 	async readDataFile(...args: Parameters<FileFacade["readDataFile"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "readDataFile", ...args])
 	}

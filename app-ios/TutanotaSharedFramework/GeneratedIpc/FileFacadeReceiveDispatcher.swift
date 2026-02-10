@@ -138,6 +138,12 @@ public class FileFacadeReceiveDispatcher {
 				path
 			)
 			return toJson(result)
+		case "deleteFromAppDir":
+			let path = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.deleteFromAppDir(
+				path
+			)
+			return "null"
 		case "readDataFile":
 			let filePath = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.readDataFile(

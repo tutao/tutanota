@@ -12,17 +12,20 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { maxBy } from "@tutao/tutanota-utils"
+import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 
 o.spec("OfflineStorageMigrator", function () {
 	let migrations: OfflineMigration[]
 	let migrator: OfflineStorageMigrator
 	let storage: OfflineStorage
 	let sqlCipherFacade: SqlCipherFacade
+	let applicationTypesFacadeMock: ApplicationTypesFacade
 
 	o.beforeEach(function () {
 		migrations = []
 		storage = instance(OfflineStorage)
-		migrator = new OfflineStorageMigrator(migrations)
+		applicationTypesFacadeMock = object()
+		migrator = new OfflineStorageMigrator(migrations, applicationTypesFacadeMock)
 		sqlCipherFacade = object()
 	})
 
@@ -36,7 +39,7 @@ o.spec("OfflineStorageMigrator", function () {
 
 		await migrator.migrate(storage, sqlCipherFacade)
 		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
-		verify(migration.migrate(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(migration.migrate(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
 	o.test("when the model version is written it is not overwritten", async function () {
@@ -58,7 +61,7 @@ o.spec("OfflineStorageMigrator", function () {
 
 		await migrator.migrate(storage, sqlCipherFacade)
 
-		verify(migration.migrate(storage, sqlCipherFacade))
+		verify(migration.migrate(storage, sqlCipherFacade, applicationTypesFacadeMock))
 		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
 	})
 
@@ -73,7 +76,7 @@ o.spec("OfflineStorageMigrator", function () {
 
 		await o.check(() => migrator.migrate(storage, sqlCipherFacade)).asyncThrows(ProgrammingError)
 
-		verify(migration.migrate(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(migration.migrate(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		verify(storage.setCurrentOfflineSchemaVersion(matchers.anything()), { times: 0 })
 	})
 

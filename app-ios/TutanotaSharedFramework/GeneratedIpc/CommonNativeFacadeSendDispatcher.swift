@@ -13,7 +13,7 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		_ addresses: [String],
 		_ subject: String,
 		_ mailToUrlString: String
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(filesUris))
@@ -23,14 +23,14 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		args.append(toJson(mailToUrlString))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("createMailEditor")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func openMailBox(
 		_ userId: String,
 		_ address: String,
 		_ requestedPath: String?
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(userId))
@@ -38,7 +38,7 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		args.append(toJson(requestedPath))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("openMailBox")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func openCalendar(
@@ -46,7 +46,7 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		_ action: CalendarOpenAction?,
 		_ dateIso: String?,
 		_ eventId: String?
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(userId))
@@ -55,47 +55,47 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		args.append(toJson(eventId))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("openCalendar")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func openContactEditor(
 		_ contactId: String
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(contactId))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("openContactEditor")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func showAlertDialog(
 		_ translationKey: String
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(translationKey))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("showAlertDialog")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func invalidateAlarms(
-	) async throws
+	) async throws -> Void
 		{
 		let args = [String]()
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("invalidateAlarms")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func updateTheme(
-	) async throws
+	) async throws -> Void
 		{
 		let args = [String]()
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("updateTheme")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func promptForNewPassword(
@@ -126,48 +126,48 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 	
 	 public func handleFileImport(
 		_ filesUris: [String]
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(filesUris))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("handleFileImport")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func openSettings(
 		_ path: String
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(path))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("openSettings")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func sendLogs(
 		_ logs: String
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(logs))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("sendLogs")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func downloadProgress(
 		_ fileId: String,
 		_ bytes: Int
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(fileId))
 		args.append(toJson(bytes))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("downloadProgress")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 }

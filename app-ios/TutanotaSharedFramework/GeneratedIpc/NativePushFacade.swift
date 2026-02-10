@@ -15,32 +15,32 @@ public protocol NativePushFacade {
 		_ sseOrigin: String,
 		_ pushIdentifierId: String,
 		_ pushIdentifierSessionKey: DataWrapper
-	) async throws
+	) async throws -> Void
 	func removeUser(
 		_ userId: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * Called at some point after login to initialize push notifications.
 	 */
 	func initPushNotifications(
-	) async throws
+	) async throws -> Void
 	func closePushNotifications(
 		_ addressesArray: [String]
-	) async throws
+	) async throws -> Void
 	func scheduleAlarms(
 		_ alarmNotificationsWireFormat: String,
 		_ newDeviceSessionKey: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage
 	 */
 	func invalidateAlarmsForUser(
 		_ userId: String
-	) async throws
+	) async throws -> Void
 	func setExtendedNotificationConfig(
 		_ userId: String,
 		_ mode: ExtendedNotificationMode
-	) async throws
+	) async throws -> Void
 	func getExtendedNotificationConfig(
 		_ userId: String
 	) async throws -> ExtendedNotificationMode
@@ -50,7 +50,7 @@ public protocol NativePushFacade {
 	func setReceiveCalendarNotificationConfig(
 		_ pushIdentifier: String,
 		_ value: Bool
-	) async throws
+	) async throws -> Void
 	func getReceiveCalendarNotificationConfig(
 		_ pushIdentifier: String
 	) async throws -> Bool

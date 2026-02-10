@@ -65,6 +65,7 @@ import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFu
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "../../../../../src/common/api/entities/storage/TypeRefs"
+import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
@@ -103,11 +104,12 @@ o.spec("OfflineStorageDb", function () {
 	let typeModelResolver: TypeModelResolver
 	let modelMapper: ModelMapper
 	let customCacheHandlerMap: CustomCacheHandlerMap
+	let applicationTypesFacadeMock: ApplicationTypesFacade
 
 	o.beforeEach(async function () {
 		// integrity checks do not work with in-memory databases
 		dbFacade = new DesktopSqlCipher(databasePath, false)
-
+		applicationTypesFacadeMock = object<ApplicationTypesFacade>()
 		dateProviderMock = object<DateProvider>()
 		migratorMock = instance(OfflineStorageMigrator)
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)

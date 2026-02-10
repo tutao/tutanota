@@ -16,7 +16,7 @@ public protocol CommonNativeFacade {
 		_ addresses: [String],
 		_ subject: String,
 		_ mailToUrlString: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * Opens the mailbox of an address, optionally to an email specified by requestedPath
 	 */
@@ -24,29 +24,29 @@ public protocol CommonNativeFacade {
 		_ userId: String,
 		_ address: String,
 		_ requestedPath: String?
-	) async throws
+	) async throws -> Void
 	func openCalendar(
 		_ userId: String,
 		_ action: CalendarOpenAction?,
 		_ dateIso: String?,
 		_ eventId: String?
-	) async throws
+	) async throws -> Void
 	func openContactEditor(
 		_ contactId: String
-	) async throws
+	) async throws -> Void
 	func showAlertDialog(
 		_ translationKey: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * All local alarms have been deleted, reschedule alarms for the current user.
 	 */
 	func invalidateAlarms(
-	) async throws
+	) async throws -> Void
 	/**
 	 * Called when the system theme preference has changed
 	 */
 	func updateTheme(
-	) async throws
+	) async throws -> Void
 	/**
 	 * prompt the user to enter a new password and a confirmation, taking an optional old password into account
 	 */
@@ -65,24 +65,24 @@ public protocol CommonNativeFacade {
 	 */
 	func handleFileImport(
 		_ filesUris: [String]
-	) async throws
+	) async throws -> Void
 	/**
 	 * Open a specified path inside settings
 	 */
 	func openSettings(
 		_ path: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * Open the Send Logs dialog
 	 */
 	func sendLogs(
 		_ logs: String
-	) async throws
+	) async throws -> Void
 	/**
 	 * Download has progressed
 	 */
 	func downloadProgress(
 		_ fileId: String,
 		_ bytes: Int
-	) async throws
+	) async throws -> Void
 }

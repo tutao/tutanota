@@ -189,6 +189,12 @@ class IosFileFacade: FileFacade {
 		return try self.readFile(filePath.path)
 	}
 
+	func deleteFromAppDir(_ path: String) async throws {
+		let supportDir = try FileUtils.getApplicationSupportFolder()
+		let filePath = supportDir.appendingPathComponent(path)
+		try await self.deleteFile(filePath.path)
+	}
+
 	private func clearDirectory(folderPath: String) async throws {
 		let fileManager = FileManager.default
 		let folderUrl = URL(fileURLWithPath: folderPath)

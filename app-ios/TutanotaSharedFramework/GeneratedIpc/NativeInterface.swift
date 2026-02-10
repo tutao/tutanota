@@ -8,3 +8,4 @@ public protocol NativeInterface {
 public func toJson<T>(_ thing: T) -> String where T : Encodable {
 	return String(data: try! JSONEncoder().encode(thing), encoding: .utf8)!
 }
+

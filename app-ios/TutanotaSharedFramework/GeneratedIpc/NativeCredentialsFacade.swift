@@ -16,26 +16,26 @@ public protocol NativeCredentialsFacade {
 	 */
 	func store(
 		_ credentials: UnencryptedCredentials
-	) async throws
+	) async throws -> Void
 	/**
 	 * Store already encrypted credentials
 	 */
 	func storeEncrypted(
 		_ credentials: PersistedCredentials
-	) async throws
+	) async throws -> Void
 	func loadByUserId(
 		_ id: String
 	) async throws -> UnencryptedCredentials?
 	func deleteByUserId(
 		_ id: String
-	) async throws
+	) async throws -> Void
 	func getCredentialEncryptionMode(
 	) async throws -> CredentialEncryptionMode?
 	func setCredentialEncryptionMode(
 		_ encryptionMode: CredentialEncryptionMode
-	) async throws
+	) async throws -> Void
 	func clear(
-	) async throws
+	) async throws -> Void
 	/**
 	 * Migrate existing credentials to native db
 	 */
@@ -43,5 +43,5 @@ public protocol NativeCredentialsFacade {
 		_ credentials: [PersistedCredentials],
 		_ encryptionMode: CredentialEncryptionMode,
 		_ credentialsKey: DataWrapper
-	) async throws
+	) async throws -> Void
 }

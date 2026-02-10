@@ -237,7 +237,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
-				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS),
+				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, locator.applicationTypesFacade),
 				new CalendarOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
@@ -474,6 +474,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cacheManagement,
 		typeModelResolver,
 		locator.rolloutFacade,
+		locator.applicationTypesFacade,
 	)
 
 	locator.userManagement = lazyMemoized(async () => {

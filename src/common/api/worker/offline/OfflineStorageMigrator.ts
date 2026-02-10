@@ -9,11 +9,13 @@ import { offline8 } from "./migrations/offline-v8"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { offline9 } from "./migrations/offline-v9"
 import { offline10 } from "./migrations/offline-v10"
+import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
+import { offline11 } from "./migrations/offline-v11"
 
 export interface OfflineMigration {
 	readonly version: number
 
-	migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade): Promise<void>
+	migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade, applicationTypesFacade: ApplicationTypesFacade): Promise<void>
 }
 
 /**
@@ -22,11 +24,11 @@ export interface OfflineMigration {
  * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
-export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [offline5, offline6, offline7, offline8, offline9, offline10]
+export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [offline5, offline6, offline7, offline8, offline9, offline10, offline11]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
 // and we create a new offline database, we still need to set the offline version to the current value.
-export const CURRENT_OFFLINE_VERSION = 10
+export const CURRENT_OFFLINE_VERSION = 11
 
 /**
  * Migrator for the offline storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an
@@ -42,7 +44,10 @@ export const CURRENT_OFFLINE_VERSION = 10
  *  Migrations might read and write to the database and they should use StandardMigrations when needed.
  */
 export class OfflineStorageMigrator {
-	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>) {}
+	constructor(
+		private readonly migrations: ReadonlyArray<OfflineMigration>,
+		private readonly applicationTypesFacade: ApplicationTypesFacade,
+	) {}
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		assertLastMigrationConsistentVersion(this.migrations)
@@ -76,7 +81,7 @@ export class OfflineStorageMigrator {
 		for (const { version, migrate } of this.migrations) {
 			if (currentOfflineVersion < version) {
 				console.log(`running offline db migration from ${currentOfflineVersion} to ${version}`)
-				await migrate(storage, sqlCipherFacade)
+				await migrate(storage, sqlCipherFacade, this.applicationTypesFacade)
 				await storage.setCurrentOfflineSchemaVersion(version)
 				currentOfflineVersion = version
 				console.log(`migration finished to ${currentOfflineVersion}`)

@@ -191,6 +191,7 @@ o.spec("LoginFacadeTest", function () {
 			async () => cacheManagmentFacadeMock,
 			typeModelResolver,
 			rolloutFacade,
+			object(),
 		)
 
 		eventBusClientMock = instance(EventBusClient)

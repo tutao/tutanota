@@ -19,24 +19,24 @@ public class MobileFacadeSendDispatcher : MobileFacade {
 	
 	 public func visibilityChange(
 		_ visibility: Bool
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(visibility))
 		let encodedFacadeName = toJson("MobileFacade")
 		let encodedMethodName = toJson("visibilityChange")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	 public func keyboardSizeChanged(
 		_ newSize: Int
-	) async throws
+	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(newSize))
 		let encodedFacadeName = toJson("MobileFacade")
 		let encodedMethodName = toJson("keyboardSizeChanged")
-		_ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 }

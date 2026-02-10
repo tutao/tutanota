@@ -84,6 +84,11 @@ export interface FileFacade {
 	readFromAppDir(path: string): Promise<Uint8Array>
 
 	/**
+	 * Delete file from given path relative to app data folder
+	 */
+	deleteFromAppDir(path: string): Promise<void>
+
+	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */
 	readDataFile(filePath: string): Promise<DataFile | null>
