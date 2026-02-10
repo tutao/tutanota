@@ -44,8 +44,8 @@ import {
 	Contact,
 	ContactTypeRef,
 	ConversationEntry,
+	ConversationEntryTypeRef,
 	createTranslationGetIn,
-	File as TutanotaFile,
 	Mail,
 	MailboxProperties,
 	MailDetails,
@@ -134,6 +134,7 @@ import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
+import { loadMailDetails } from "../view/MailViewerUtils"
 
 // Interval where we save drafts locally.
 //
@@ -1283,7 +1284,22 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						showUndoMailSnackbar(
 							model.undoModel,
 							async () => {
-								await model.mailFacade.undoSendMail(sentMail, sendJob)
+								if (model.draft) {
+									await model.mailFacade.undoSendMail(sentMail, sendJob)
+									const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
+									// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
+									const editorDialog = await newMailEditorFromDraft(
+										model.draft,
+										await loadMailDetails(model.mailFacade, model.draft),
+										conversationEntry,
+										model.getAttachments(),
+										model.loadedInlineImages,
+										true,
+										undefined,
+										model.mailboxDetails,
+									)
+									editorDialog?.show()
+								}
 							},
 							lang.getTranslation("emailSent_msg"),
 							UNDO_SEND_TIMEOUT,
@@ -1585,7 +1601,7 @@ export async function newMailEditorFromDraft(
 	mail: Mail,
 	mailDetails: MailDetails,
 	conversationEntry: ConversationEntry,
-	attachments: TutanotaFile[],
+	attachments: Attachment[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
 	localDraftData?: LocalAutosavedDraftData,
