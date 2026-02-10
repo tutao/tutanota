@@ -1,5 +1,5 @@
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
-import { BreadcrumbEntry, DriveFacade, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
@@ -25,12 +25,7 @@ import { DownloadProgressInfo, UploadProgressInfo, TransferId } from "../../../c
 import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
-
-export const enum DriveFolderType {
-	Regular = "0",
-	Root = "1",
-	Trash = "2",
-}
+import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -365,6 +360,9 @@ export class DriveViewModel {
 		}
 	}
 
+	/**
+	 * @throws UserError
+	 */
 	async copyItems(items: readonly FolderItemId[], destination: DriveFolder) {
 		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
 		const files = await loadMultipleFromLists(
@@ -380,8 +378,14 @@ export class DriveViewModel {
 
 		const renamedFiles = await deduplicateItemNames(await loadFolderContents(this.driveFacade, destination._id), files, folders)
 
-		const operationId = await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
-		this.runningOperations.set(operationId, { type: DriveOperationType.Copy, count: items.length })
+		try {
+			const operationId = await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
+			this.runningOperations.set(operationId, { type: DriveOperationType.Copy, count: items.length })
+		} catch (e) {
+			if (e instanceof MoveToTrashError) {
+				throw new UserError("cannotCopyToTrash_msg")
+			} else throw e
+		}
 	}
 
 	/**
@@ -399,6 +403,8 @@ export class DriveViewModel {
 		} catch (e) {
 			if (e instanceof MoveCycleError) {
 				throw new UserError("cannotMoveFolderIntoItself_msg")
+			} else if (e instanceof MoveToTrashError) {
+				throw new UserError("cannotMoveToTrash_msg")
 			} else {
 				this.operationUpdates({
 					type: DriveOperationType.Move,

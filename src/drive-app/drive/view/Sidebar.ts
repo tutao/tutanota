@@ -8,9 +8,9 @@ import { theme } from "../../../common/gui/theme"
 import { pureComponent } from "../../../common/gui/base/PureComponent"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { ClickHandler, DriveDropData } from "../../../common/gui/base/GuiUtils"
-import { DriveFolderType } from "./DriveViewModel"
 import { FolderItemId } from "./DriveUtils"
 import { parseDragItems } from "./DriveGuiUtils"
+import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 export interface RootFolderIds {
 	rootFolderId: IdTuple

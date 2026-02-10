@@ -2253,6 +2253,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"cannotMoveToTrash_msg": "Cannot move to the trash",
+		"cannotCopyToTrash_msg": "Cannot copy to the trash",
 		"folderContent_label": "Content",
 		"createNewFolderIn_label": "Create a new folder in {folderName}",
 		"driveNotEmpty_msg": "There are still files or folders left in your Drive. Please remove them first.",

@@ -2251,6 +2251,8 @@ export type TranslationKeyType =
 	| "buyGiftcardWhileCampaignActive_msg"
 	| "supportCloseLostRequest_msg"
 	| "emptyString_msg"
+	| "cannotMoveToTrash_msg"
+	| "cannotCopyToTrash_msg"
 	| "copyItemsSuccess_msg"
 	| "trashItemsSuccess_msg"
 	| "moveItemsSuccess_msg"
