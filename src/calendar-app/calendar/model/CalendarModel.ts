@@ -991,12 +991,6 @@ export class CalendarModel {
 	 * @VisibleForTesting
 	 */
 	async processParsedCalendarData(sender: string, parsedCalendarData: ParsedCalendarData): Promise<void> {
-		const senderContact = await this.contactModel.searchForContact(sender)
-		if (!senderContact) {
-			console.log(TAG, `CalendarEventUpdate sent from a untrusted sender, ignoring.`)
-			return
-		}
-
 		if (parsedCalendarData.contents.length === 0) {
 			console.log(TAG, `CalendarEventUpdate with no events, ignoring`)
 			return
@@ -1018,6 +1012,16 @@ export class CalendarModel {
 			parsedCalendarData.contents[0].icsCalendarEvent.uid,
 			CachingMode.Bypass,
 		)
+		const icsEventRecurrenceIdTimestamp = parsedCalendarData.contents[0].icsCalendarEvent.recurrenceId?.getTime()
+		const resolvedPersistedCalendarEvent = !icsEventRecurrenceIdTimestamp
+			? latestPersistedEventsIndexEntry?.progenitor
+			: latestPersistedEventsIndexEntry?.alteredInstances.find((e) => e.recurrenceId.getTime() === icsEventRecurrenceIdTimestamp)
+
+		const senderContact = await this.contactModel.searchForContact(sender)
+		if (!resolvedPersistedCalendarEvent && !senderContact) {
+			console.log(TAG, `CalendarEventUpdate sent from a untrusted sender, ignoring.`)
+			return
+		}
 
 		if (!latestPersistedEventsIndexEntry) {
 			return await this.handleNewCalendarEventInvitationFromIcs(sender, parsedCalendarData)
