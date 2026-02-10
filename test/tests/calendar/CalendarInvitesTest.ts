@@ -126,7 +126,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
 				const calendarEventCaptor = matchers.captor()
-				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything()), { times: 1 })
+				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
 				const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
 				const calendarEventAttendee = capturedCalendarEvent.attendees.find((attendee) => attendee.address.address === ATTENDEE_ADDRESS)
 				o(calendarEventAttendee?.status).equals(CalendarAttendeeStatus.DECLINED)
@@ -142,23 +142,10 @@ o.spec("CalendarInviteHandlerTest", function () {
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
 				const calendarEventCaptor = matchers.captor()
-				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything()), { times: 1 })
+				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
 				const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
 				const calendarEventAttendee = capturedCalendarEvent.attendees.find((attendee) => attendee.address.address === ATTENDEE_ADDRESS)
 				o(calendarEventAttendee?.status).equals(CalendarAttendeeStatus.ACCEPTED)
-			})
-
-			o.test("Reply yes or maybe to a confidential email sends out a confidential reply", async function () {
-				mail.confidential = true
-				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
-					ReplyResult.ReplySent,
-				)
-
-				const calendarEventCaptor = matchers.captor()
-				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything()), { times: 1 })
-				const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
-				o(capturedCalendarEvent.invitedConfidentially).equals(mail.confidential)
-				verify(sendMailModel.setConfidential(true), { times: 1 })
 			})
 		})
 
@@ -176,6 +163,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 				)
 				o.check(calendarModel.processUpdateToCalendarEventFromIcs.callCount).equals(1)
 				const capturedEvent: CalendarEvent = calendarModel.processUpdateToCalendarEventFromIcs.args[2]
+				o.check(capturedEvent.pendingInvitation).equals(false)
 				const guestAttendee = capturedEvent.attendees[1]
 				o.check(guestAttendee.status).equals(CalendarAttendeeStatus.ACCEPTED)
 				unmockAttribute(mockedMethod)
@@ -192,7 +180,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
 			})
 
-			o.test("respond no to event from eventPreview", async function () {
+			o.test("respond no to event from eventPreview should update persisted events", async function () {
 				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 
 				const processCalendarUpdate = spy()
@@ -206,6 +194,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 				o.check(calendarModel.processUpdateToCalendarEventFromIcs.callCount).equals(1)
 
 				const capturedEvent: CalendarEvent = calendarModel.processUpdateToCalendarEventFromIcs.args[2]
+				o.check(capturedEvent.pendingInvitation).equals(false)
 				const guestAttendee = capturedEvent.attendees[1]
 				o.check(guestAttendee.status).equals(CalendarAttendeeStatus.DECLINED)
 				unmockAttribute(mockedMethod)
@@ -238,6 +227,22 @@ o.spec("CalendarInviteHandlerTest", function () {
 				)
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			})
+		})
+
+		o.test("Reply to a confidential email sends out a confidential reply", async function () {
+			mail = createTestEntity(MailTypeRef)
+			mail.sender = createMailAddress({ address: SENDER_ADDRESS, name: "whatever", contact: null })
+			mail.confidential = true
+
+			o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
+				ReplyResult.ReplySent,
+			)
+
+			const calendarEventCaptor = matchers.captor()
+			verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
+			const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
+			o(capturedCalendarEvent.invitedConfidentially).equals(mail.confidential)
+			verify(sendMailModel.setConfidential(true), { times: 2 })
 		})
 	})
 })

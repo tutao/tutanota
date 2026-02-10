@@ -2,7 +2,7 @@ import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, assertNotNull, clone, filterInt, isEmpty } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clone, filterInt } from "@tutao/tutanota-utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
@@ -116,13 +116,12 @@ export class CalendarInviteHandler {
 		mailboxDetails: MailboxDetail | null,
 		comment?: string,
 	): Promise<ReplyResult> {
-		console.log("CALLING replyToEventInvitation")
-
 		if (event.organizer === null) {
 			throw new Error("Replying to an event without an organizer")
 		}
 		const eventClone = clone(event)
 		eventClone.invitedConfidentially = previousMail ? previousMail.confidential : eventClone.invitedConfidentially
+		eventClone.pendingInvitation = false
 
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 		foundAttendee.status = decision
@@ -167,7 +166,8 @@ export class CalendarInviteHandler {
 
 		if (eventClone.uid != null) {
 			const dbEvents = await this.calendarModel.getEventsByUid(eventClone.uid)
-			const isACompletelyNewEventInvitation = !dbEvents || (!dbEvents.progenitor && isEmpty(dbEvents.alteredInstances))
+			const isACompletelyNewEventInvitation =
+				!dbEvents || (!dbEvents.progenitor && !dbEvents.alteredInstances.some((ai) => ai.recurrenceId === event.recurrenceId))
 
 			if (isACompletelyNewEventInvitation) {
 				if (decision === CalendarAttendeeStatus.DECLINED) {
