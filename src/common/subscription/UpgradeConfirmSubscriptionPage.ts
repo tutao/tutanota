@@ -249,7 +249,6 @@ export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<Upgr
 	}
 
 	prevAction(showErrorDialog: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD)
 		return Promise.resolve(true)
 	}
 

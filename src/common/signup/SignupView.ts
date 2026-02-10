@@ -272,13 +272,21 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 								{
 									title: "Create Account",
 									content: SignupFormPage,
-									onNext: () =>
+									onNext: () => {
 										SignupFlowUsageTestController.completeStage(
 											SignupFlowStage.CREATE_ACCOUNT,
 											this.wizardViewModel.targetPlanType,
 											this.wizardViewModel.options.paymentInterval(),
-										),
-									onPrev: () => SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PLAN),
+										)
+										if (isIOSApp()) {
+											SignupFlowUsageTestController.completeStage(
+												SignupFlowStage.SELECT_PAYMENT_METHOD,
+												this.wizardViewModel.targetPlanType,
+												this.wizardViewModel.options.paymentInterval(),
+												this.wizardViewModel.paymentData.paymentMethod,
+											)
+										}
+									},
 								},
 								{
 									title: "Payment",
@@ -290,9 +298,6 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 											this.wizardViewModel.options.paymentInterval(),
 											this.wizardViewModel.paymentData.paymentMethod,
 										)
-									},
-									onPrev: () => {
-										SignupFlowUsageTestController.deletePing(SignupFlowStage.CREATE_ACCOUNT)
 									},
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && !isIOSApp(),
 								},
@@ -316,10 +321,6 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 										if (this.wizardViewModel.isCalledBySatisfactionDialog) {
 											completeUpgradeStage(this.wizardViewModel.currentPlan!, this.wizardViewModel.targetPlanType)
 										}
-									},
-									onPrev: (ctx) => {
-										SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD)
-										ctx.controller.setStepUnreachable(ctx.controller.currentStep)
 									},
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},

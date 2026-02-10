@@ -30,6 +30,7 @@ import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { AllIcons } from "../gui/base/Icon"
 import { layout_size, px } from "../gui/size"
 import { isIOSApp } from "../api/common/Env"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
@@ -164,6 +165,16 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 												data.options.paymentInterval(PaymentInterval.Yearly)
 											}
 											data.updatePrice()
+											SignupFlowUsageTestController.completeStage(
+												SignupFlowStage.SELECT_PLAN,
+												data.targetPlanType,
+												data.options.paymentInterval(),
+											)
+											SignupFlowUsageTestController.completeStage(
+												SignupFlowStage.CREATE_ACCOUNT,
+												data.targetPlanType,
+												data.options.paymentInterval(),
+											)
 										},
 									})
 								},

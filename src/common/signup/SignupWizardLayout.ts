@@ -20,6 +20,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
+import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
@@ -273,6 +274,19 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 											viewModel.inlinePlanSelectorOpen(false)
 											ctx.controller.setStepLabel(0, PlanTypeToName[viewModel.targetPlanType])
 											this.updateInfoItems(viewModel, controller.currentStep)
+											SignupFlowUsageTestController.completeStage(
+												SignupFlowStage.SELECT_PLAN,
+												viewModel.targetPlanType,
+												viewModel.options.paymentInterval(),
+											)
+
+											if (viewModel.newAccountData) {
+												SignupFlowUsageTestController.completeStage(
+													SignupFlowStage.CREATE_ACCOUNT,
+													viewModel.targetPlanType,
+													viewModel.options.paymentInterval(),
+												)
+											}
 										},
 									}),
 								),
