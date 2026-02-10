@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel } from "./DriveViewModel"
+import { DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference, getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
@@ -32,6 +32,7 @@ import { BottomNav } from "../../../mail-app/gui/BottomNav"
 import { MobileHeader } from "../../../common/gui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
 import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
+import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs

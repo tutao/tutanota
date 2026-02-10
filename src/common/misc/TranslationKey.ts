@@ -2216,3 +2216,5 @@ export type TranslationKeyType =
 	| "cannotMoveFolderIntoItself_msg"
 	| "transferWaiting_msg"
 	| "emptyString_msg"
+	| "cannotMoveToTrash_msg"
+	| "cannotCopyToTrash_msg"

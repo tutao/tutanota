@@ -37,6 +37,7 @@ import { TransferId } from "../../../common/drive/DriveTypes"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
 import { NotFoundError } from "../../../common/error/RestError"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
+import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -60,6 +61,12 @@ function isDriveFile(source: DriveFile | DriveFolder): source is DriveFile {
 export interface DriveRootFolders {
 	root: IdTuple
 	trash: IdTuple
+}
+
+export const enum DriveFolderType {
+	Regular = "0",
+	Root = "1",
+	Trash = "2",
 }
 
 /**
@@ -254,12 +261,18 @@ export class DriveFacade {
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
+	/**
+	 * @throws MoveToTrashError
+	 */
 	public async copyItems(
 		files: readonly DriveFile[],
 		folders: readonly DriveFolder[],
 		destination: DriveFolder,
 		renamedFiles: Map<Id, string>,
 	): Promise<void> {
+		if (destination.type === DriveFolderType.Trash) {
+			throw new MoveToTrashError("Cannot copy to trash")
+		}
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 
@@ -290,8 +303,12 @@ export class DriveFacade {
 
 	/**
 	 * @throws MoveCycleError
+	 * @throws MoveToTrashError
 	 */
 	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder, renamedFiles: Map<Id, string>) {
+		if (destination.type === DriveFolderType.Trash) {
+			throw new MoveToTrashError("Cannot move to the trash")
+		}
 		const parents = new Set((await this.getFolderParents(destination)).map(getElementId))
 		if (folders.some((f) => parents.has(getElementId(f)) || isSameId(f._id, destination._id))) {
 			throw new MoveCycleError(`Cannot move folder into its child ${destination._id.join("/")}`)

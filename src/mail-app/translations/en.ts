@@ -2217,6 +2217,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"cannotMoveToTrash_msg": "Cannot move to the trash",
+		"cannotCopyToTrash_msg": "Cannot copy to the trash"
 	}
 }
