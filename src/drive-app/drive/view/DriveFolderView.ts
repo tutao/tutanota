@@ -125,6 +125,9 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 					modal.displayUnique(dropdown, false)
 				},
+				onclick: (e: MouseEvent) => {
+					selectionEvents.onSelectNone()
+				},
 			},
 			this.draggedOver ? this.renderDropView() : null,
 			m(DriveFolderNav, {
