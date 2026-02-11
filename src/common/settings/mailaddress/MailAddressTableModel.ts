@@ -12,7 +12,13 @@ import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { getAvailableMatchingPlans } from "../../subscription/utils/SubscriptionUtils.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateFor,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../api/common/utils/EntityUpdateUtils.js"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 
 export enum AddressStatus {
@@ -163,16 +169,19 @@ export class MailAddressTableModel {
 		return this.userInfo.userGroupInfo.name
 	}
 
-	private entityEventsReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
-		for (const update of updates) {
-			if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				await this.loadNames()
-			} else if (isUpdateFor(this.userInfo.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
-				this.userInfo.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userInfo.userGroupInfo._id)
-				await this.loadAliasCount()
+	private entityEventsReceived: EntityEventsListener = {
+		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
+			for (const update of updates) {
+				if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+					await this.loadNames()
+				} else if (isUpdateFor(this.userInfo.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
+					this.userInfo.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userInfo.userGroupInfo._id)
+					await this.loadAliasCount()
+				}
 			}
-		}
-		this.redraw()
+			this.redraw()
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	private async loadNames() {

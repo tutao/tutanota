@@ -33,7 +33,7 @@ import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementF
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
@@ -124,13 +124,16 @@ export class PostLoginActions implements PostLoginAction {
 		// Create a promise we will use to track the completion of the below listener
 		const listenerDeferral = defer<void>()
 		// Add an event listener to run the check after any customer entity update
-		const listener = async (updates: ReadonlyArray<EntityUpdateData>) => {
-			// Get whether the entity update contains the customer
-			const customer = this.logins.getUserController().user.customer
-			const isCustomerUpdate: boolean = updates.some((update) => isUpdateForTypeRef(CustomerTypeRef, update) && update.instanceId === customer)
-			if (customer != null && isCustomerUpdate) {
-				listenerDeferral.resolve()
-			}
+		const listener: EntityEventsListener = {
+			onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
+				// Get whether the entity update contains the customer
+				const customer = this.logins.getUserController().user.customer
+				const isCustomerUpdate: boolean = updates.some((update) => isUpdateForTypeRef(CustomerTypeRef, update) && update.instanceId === customer)
+				if (customer != null && isCustomerUpdate) {
+					listenerDeferral.resolve()
+				}
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 		locator.eventController.addEntityListener(listener)
 

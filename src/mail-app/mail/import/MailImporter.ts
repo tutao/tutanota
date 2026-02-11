@@ -11,7 +11,7 @@ import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { EventController } from "../../../common/api/main/EventController"
 import { ImportErrorCategories, MailImportError } from "../../../common/api/common/error/MailImportError.js"
 import { showSnackBar, SnackBarButtonAttrs } from "../../../common/gui/base/SnackBar.js"
@@ -51,7 +51,10 @@ export class MailImporter {
 		private readonly nativeMailImportFacade: NativeMailImportFacade,
 		private readonly openSettingsHandler: OpenSettingsHandler,
 	) {
-		eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 	}
 
 	async getMailbox(): Promise<MailBox> {

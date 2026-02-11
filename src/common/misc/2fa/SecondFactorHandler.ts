@@ -6,7 +6,7 @@ import { OperationType, SessionState } from "../../api/common/TutanotaConstants"
 import { lang } from "../LanguageViewModel"
 import { neverNull } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../api/common/error/RestError"
-import type { EventController } from "../../api/main/EventController"
+import { EventController } from "../../api/main/EventController"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import type { EntityClient } from "../../api/common/EntityClient"
@@ -14,7 +14,7 @@ import { WebauthnClient } from "./webauthn/WebauthnClient"
 import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
 import type { LoginFacade } from "../../api/worker/facades/LoginFacade"
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 
@@ -44,7 +44,10 @@ export class SecondFactorHandler {
 		}
 
 		this.otherLoginListenerInitialized = true
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {

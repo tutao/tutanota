@@ -13,7 +13,7 @@ import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@t
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
-import { EntityEventsListener, EventController } from "../../../src/common/api/main/EventController.js"
+import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
 	AlarmInfo,
@@ -40,7 +40,7 @@ import { SessionKeyNotFoundError } from "../../../src/common/api/common/error/Se
 import { createTestEntity } from "../TestUtils.js"
 import { NoopProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
-import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
@@ -849,7 +849,7 @@ function makeEventController(): {
 		sendEvent: async (update) => {
 			for (let listener of listeners) {
 				// @ts-ignore
-				await listener([update])
+				await listener.onEntityUpdatesReceived([update])
 			}
 		},
 	}

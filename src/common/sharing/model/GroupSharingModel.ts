@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { EntityEventsListener, EventController } from "../../api/main/EventController"
+import { EventController } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
 import type { Group, GroupInfo, GroupMember, SentGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
@@ -21,8 +21,8 @@ import type { ShareFacade } from "../../api/worker/facades/lazy/ShareFacade.js"
 import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupManagementFacade.js"
 import { Recipient, RecipientType } from "../../api/common/recipients/Recipient"
 import { RecipientsModel } from "../../api/main/RecipientsModel"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { GroupSettingsModel, GroupNameData } from "./GroupSettingsModel"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../api/common/utils/EntityUpdateUtils.js"
+import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -66,7 +66,10 @@ export class GroupSharingModel {
 		this.eventController.addEntityListener(this.onEntityEvents)
 	}
 
-	private readonly onEntityEvents: EntityEventsListener = (events, id) => this.entityEventsReceived(events, id)
+	private readonly onEntityEvents: EntityEventsListener = {
+		onEntityUpdatesReceived: (events, id) => this.entityEventsReceived(events, id),
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
+	}
 
 	static async newAsync(
 		groupInfo: GroupInfo,

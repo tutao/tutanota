@@ -18,7 +18,7 @@ import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/tutanot
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { isSameId } from "../api/common/utils/EntityUtils.js"
@@ -51,7 +51,10 @@ export class MailboxModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 	})
 
 	init(): Promise<void> {

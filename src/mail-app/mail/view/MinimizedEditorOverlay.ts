@@ -12,8 +12,13 @@ import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { promiseMap } from "@tutao/tutanota-utils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
 
@@ -32,16 +37,19 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		const { minimizedEditor, viewModel, eventController } = vnode.attrs
 		this._eventController = eventController
 
-		this._listener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
-			return promiseMap(updates, (update) => {
-				if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
-					let draft = minimizedEditor.sendMailModel.getDraft()
+		this._listener = {
+			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
+				return promiseMap(updates, (update) => {
+					if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
+						let draft = minimizedEditor.sendMailModel.getDraft()
 
-					if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {
-						viewModel.removeMinimizedEditor(minimizedEditor)
+						if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {
+							viewModel.removeMinimizedEditor(minimizedEditor)
+						}
 					}
-				}
-			})
+				})
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		eventController.addEntityListener(this._listener)

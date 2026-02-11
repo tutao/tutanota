@@ -1,10 +1,9 @@
 import { OperationType } from "../TutanotaConstants.js"
 import { EntityUpdate, Patch } from "../../entities/sys/TypeRefs.js"
 import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
-import { AppName, getTypeString, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { AppName, getTypeString, isSameTypeRef, Nullable, TypeRef } from "@tutao/tutanota-utils"
 import { isSameId } from "./EntityUtils.js"
-import { ClientTypeModelResolver } from "../EntityFunctions"
-import { Nullable } from "@tutao/tutanota-utils"
+import { ProgressMonitorId } from "./ProgressMonitor"
 
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
@@ -70,4 +69,18 @@ export function getLogStringForPatches(patches: Array<Patch>) {
 		message += "Patch Operation: " + patch.patchOperation + " Patched Attribute: " + patch.attributePath + " ;"
 	}
 	return message
+}
+export enum OnEntityUpdateReceivedPriority {
+	LOW = 1,
+	NORMAL = 2,
+	HIGH = 3,
+}
+
+export type EntityEventsListener = {
+	onEntityUpdatesReceived: (
+		updates: ReadonlyArray<EntityUpdateData>,
+		eventOwnerGroupId: Id,
+		eventQueueProgressMonitorId: Nullable<ProgressMonitorId>,
+	) => Promise<unknown>
+	priority: OnEntityUpdateReceivedPriority
 }

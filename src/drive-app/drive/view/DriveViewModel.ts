@@ -9,7 +9,7 @@ import { DriveTransferState, DriveUploadStackModel } from "./DriveUploadStackMod
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ArchiveDataType, Const, OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
@@ -160,8 +160,11 @@ export class DriveViewModel {
 	}
 
 	readonly init = lazyMemoized(async () => {
-		this.eventController.addEntityListener(async (events) => {
-			await this.entityEventsReceived(events)
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: async (events) => {
+				await this.entityEventsReceived(events)
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 		this.roots = await this.driveFacade.loadRootFolders()
 

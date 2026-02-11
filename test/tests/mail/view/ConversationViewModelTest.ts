@@ -13,7 +13,7 @@ import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/Mail
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
-import { EntityEventsListener, EventController } from "../../../../src/common/api/main/EventController.js"
+import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
 import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
@@ -22,7 +22,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -251,7 +251,7 @@ o.spec("ConversationViewModel", function () {
 
 			const yetAnotherMail = addMail("yetAnotherMailId")
 
-			await eventCallback(
+			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
 						typeRef: ConversationEntryTypeRef,
@@ -291,7 +291,7 @@ o.spec("ConversationViewModel", function () {
 			})
 			entityRestClientMock.addListInstances(deletedmailConversationEntry)
 
-			await eventCallback(
+			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
 						typeRef: ConversationEntryTypeRef,
@@ -320,7 +320,7 @@ o.spec("ConversationViewModel", function () {
 
 			const yetAnotherMail = addMail("yetAnotherMailId")
 
-			await eventCallback(
+			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
 						typeRef: ConversationEntryTypeRef,
@@ -347,7 +347,7 @@ o.spec("ConversationViewModel", function () {
 
 			const yetAnotherMail = addMail("yetAnotherMailId")
 
-			await eventCallback(
+			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
 						typeRef: ConversationEntryTypeRef,
@@ -389,7 +389,7 @@ o.spec("ConversationViewModel", function () {
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
 			when(mailModel.getMailFolderForMail(newTrashDraftMail)).thenReturn(trash)
 
-			await eventCallback(
+			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
 						typeRef: ConversationEntryTypeRef,

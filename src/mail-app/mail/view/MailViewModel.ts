@@ -7,9 +7,9 @@ import {
 	Mail,
 	MailBox,
 	MailSet,
-	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
@@ -48,7 +48,7 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
-import { EntityUpdateData, isUpdateForTypeRef, PrefetchStatus } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority, PrefetchStatus } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
@@ -453,7 +453,10 @@ export class MailViewModel {
 	}
 
 	private readonly onceInit = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 	})
 
 	get listModel(): MailSetListModel | null {

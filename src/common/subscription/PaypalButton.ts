@@ -5,9 +5,8 @@ import { PayPalLogo } from "../gui/base/icons/Icons"
 import { AccountingInfoTypeRef } from "../api/entities/sys/TypeRefs"
 import { ClickHandler } from "../gui/base/GuiUtils"
 import { noOp, promiseMap } from "@tutao/tutanota-utils"
-import { isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils"
 import { locator } from "../api/main/CommonLocator"
-import { EntityEventsListener } from "../api/main/EventController"
 import stream from "mithril/stream"
 import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 
@@ -24,17 +23,20 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 	constructor({ attrs }: Vnode<PaypalButtonAttrs>) {
 		const { accountingInfo } = attrs.data
 		this._isPaypalLinked(accountingInfo?.paypalBillingAgreement != null)
-		this._entityEventListener = (updates) => {
-			return promiseMap(updates, (update) => {
-				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
-						attrs.data.accountingInfo = newAccountingInfo
-						this._isPaypalLinked(newAccountingInfo.paypalBillingAgreement != null)
-						if (this._isPaypalLinked()) attrs.oncomplete?.()
-						m.redraw()
-					})
-				}
-			}).then(noOp)
+		this._entityEventListener = {
+			onEntityUpdatesReceived: (updates) => {
+				return promiseMap(updates, (update) => {
+					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+						return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
+							attrs.data.accountingInfo = newAccountingInfo
+							this._isPaypalLinked(newAccountingInfo.paypalBillingAgreement != null)
+							if (this._isPaypalLinked()) attrs.oncomplete?.()
+							m.redraw()
+						})
+					}
+				}).then(noOp)
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 	}
 

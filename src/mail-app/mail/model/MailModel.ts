@@ -37,7 +37,7 @@ import {
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
@@ -100,7 +100,10 @@ export class MailModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates, _, eventQueueProgressMonitorId) => this.entityEventsReceived(updates, eventQueueProgressMonitorId))
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates, _, eventQueueProgressMonitorId) => this.entityEventsReceived(updates, eventQueueProgressMonitorId),
+			priority: OnEntityUpdateReceivedPriority.LOW,
+		})
 
 		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)
