@@ -91,7 +91,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	async onSyncDone(): Promise<void> {
 		this.syncTracker.markSyncAsDone()
 
-		if (this.userFacade.isLeader()) {
+		if (this.userFacade.isLeader() && !isAdminClient()) {
 			const userIdentityKeyCreationAction = {
 				execute: async () => {
 					const identityKeyCreator = await this.identityKeyCreator()
