@@ -305,9 +305,16 @@ export class EventBusClient {
 			case MessageType.EntityUpdate: {
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
-				const updates = await promiseMap(entityUpdateData.entityUpdates, async (event) => {
-					let instance = await this.getInstanceFromEntityEvent(event)
-					return entityUpdateToUpdateData(event, instance)
+
+				// We only process entity updates for apps and types the clients know about.
+				// We drop the other entity updates early on before constructing TypeRefs for them.
+				const entityUpdatesForClientApps = entityUpdateData.entityUpdates.filter(async (entityUpdate) => {
+					return await this.typeModelResolver.isKnownClientTypeReference(entityUpdate.application, parseInt(entityUpdate.typeId))
+				})
+
+				const updates = await promiseMap(entityUpdatesForClientApps, async (event) => {
+					let parsedInstance = await this.getParsedInstanceFromEntityEvent(event)
+					return entityUpdateToUpdateData(event, parsedInstance)
 				})
 
 				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, updates)
@@ -343,7 +350,7 @@ export class EventBusClient {
 		}
 	}
 
-	private async getInstanceFromEntityEvent(event: EntityUpdate): Promise<Nullable<ServerModelParsedInstance>> {
+	private async getParsedInstanceFromEntityEvent(event: EntityUpdate): Promise<Nullable<ServerModelParsedInstance>> {
 		const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId))
 		if (event.instance != null) {
 			try {

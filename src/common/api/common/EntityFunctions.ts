@@ -139,6 +139,13 @@ export class ClientModelInfo {
 		}
 	}
 
+	public async isKnownClientTypeReference(application: string, typeId: number): Promise<boolean> {
+		if (this.typeModels[application as AppName] == null) {
+			return false
+		}
+		return this.typeModels[application as AppName][typeId] != null
+	}
+
 	private resolveDependsOnVersion(dependency: AppName) {
 		return this.modelInfos[dependency].version
 	}
@@ -381,6 +388,10 @@ export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeMod
 
 	resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
 		return this.clientModelInfo.resolveClientTypeReference(typeRef)
+	}
+
+	isKnownClientTypeReference(application: string, typeId: number): Promise<boolean> {
+		return this.clientModelInfo.isKnownClientTypeReference(application, typeId)
 	}
 
 	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {

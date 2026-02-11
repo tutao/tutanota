@@ -142,8 +142,8 @@ export class CryptoFacade {
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
 	async resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>> {
-		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		if (!clientTypeModel.encrypted) {
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(instance._type)
+		if (!serverTypeModel.encrypted) {
 			return null
 		}
 
