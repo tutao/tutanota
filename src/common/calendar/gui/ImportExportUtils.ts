@@ -23,9 +23,9 @@ export enum EventImportRejectionReason {
 	Duplicate,
 }
 
-export type EventAlarmsTuple = {
+export type EventAlarmsInfoTemplateTuple = {
 	event: CalendarEvent
-	alarms: ReadonlyArray<AlarmInfoTemplate>
+	alarmInfoTemplates: ReadonlyArray<AlarmInfoTemplate>
 }
 
 /** check if the event should be skipped because it's invalid or already imported. if not, add it to the map. */
@@ -70,7 +70,7 @@ export function sortOutParsedEvents(
 	zone: string,
 ): {
 	rejectedEvents: RejectedEvents
-	eventsForCreation: Array<EventAlarmsTuple>
+	eventsForCreation: Array<EventAlarmsInfoTemplateTuple>
 } {
 	const instanceIdentifierToEventMap = new Map()
 
@@ -92,10 +92,10 @@ export function sortOutParsedEvents(
 	}
 
 	const rejectedEvents: RejectedEvents = new Map()
-	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
+	const eventsForCreation: Array<EventAlarmsInfoTemplateTuple> = []
 	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.event.uid)) {
-		let progenitor: { event: CalendarEvent; alarms: Array<AlarmInfoTemplate> } | null = null
-		let alteredInstances: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
+		let progenitor: EventAlarmsInfoTemplateTuple | null = null
+		let alteredInstances: Array<EventAlarmsInfoTemplateTuple> = []
 
 		for (const { event, alarms } of flatParsedEvents) {
 			if (flatParsedEvents.length > 1) console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry")
@@ -112,7 +112,7 @@ export function sortOutParsedEvents(
 					() => true,
 				)
 				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, event))) {
-					alteredInstances.push({ event, alarms })
+					alteredInstances.push({ event, alarmInfoTemplates: alarms })
 				}
 			} else if (event.recurrenceId != null) {
 				treatProgenitorExcludedDates(
@@ -121,7 +121,7 @@ export function sortOutParsedEvents(
 				)
 
 				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, event))) {
-					alteredInstances.push({ event, alarms })
+					alteredInstances.push({ event, alarmInfoTemplates: alarms })
 				}
 			}
 
@@ -143,7 +143,7 @@ export function sortOutParsedEvents(
 			if (event.recurrenceId == null) {
 				// the progenitor must be null here since we would have
 				// rejected the second uid-progenitor event in shouldBeSkipped.
-				progenitor = { event, alarms }
+				progenitor = { event, alarmInfoTemplates: alarms }
 			}
 		}
 		if (progenitor != null) eventsForCreation.push(progenitor)

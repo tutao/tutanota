@@ -56,7 +56,7 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				await this.notificationModel.send(newEvent, [], sendModels)
-				await this.calendarModel.createEvent(newEvent, newAlarms, this.zone, groupRoot)
+				await this.calendarModel.createCalendarEvent(newEvent, this.zone, groupRoot, newAlarms)
 			})(),
 		)
 	}
@@ -169,7 +169,7 @@ export class CalendarEventApplyStrategies {
 
 				// NEW
 				const { groupRoot } = calendar
-				await this.calendarModel.createEvent(newEvent, newAlarms, this.zone, groupRoot)
+				await this.calendarModel.createCalendarEvent(newEvent, this.zone, groupRoot, newAlarms)
 			})(),
 		)
 	}

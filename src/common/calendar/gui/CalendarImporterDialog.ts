@@ -17,8 +17,7 @@ import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
-
-import { EventImportRejectionReason, EventAlarmsTuple, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { EventAlarmsInfoTemplateTuple, EventImportRejectionReason, sortOutParsedEvents } from "./ImportExportUtils.js"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 
 /**
@@ -96,7 +95,7 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	}
 }
 
-async function importEvents(eventsForCreation: Array<EventAlarmsTuple>): Promise<void> {
+async function importEvents(eventsForCreation: Array<EventAlarmsInfoTemplateTuple>): Promise<void> {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(

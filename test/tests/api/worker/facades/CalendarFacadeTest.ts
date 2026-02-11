@@ -3,7 +3,7 @@ import type { CalendarEventAlteredInstance, EventWithUserAlarmInfos } from "../.
 import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { assertNotNull, base64ToUint8Array, clone, downcast, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import {
 	AlarmInfo,
 	AlarmInfoTypeRef,
@@ -34,9 +34,10 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { base64ToKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { base64ToKey } from "@tutao/tutanota-crypto"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import type { EventAlarmsInfoTemplateTuple } from "../../../../../src/common/calendar/gui/ImportExportUtils"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -192,18 +193,20 @@ o.spec("CalendarFacadeTest", function () {
 			const listId = "listID"
 			const event1 = makeEvent(listId, "eventId1")
 			const event2 = makeEvent(listId, "eventId2")
-			const eventsWrapper = [
+			const eventsWrapper: Array<EventAlarmsInfoTemplateTuple> = [
 				{
 					event: event1,
-					alarms: [makeAlarmInfo(event1)],
+					alarmInfoTemplates: [makeAlarmInfo(event1)],
 				},
 				{
 					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+					alarmInfoTemplates: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
+
 			// @ts-ignore
 			await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve())
+
 			// @ts-ignore
 			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
 			// @ts-ignore
@@ -225,14 +228,14 @@ o.spec("CalendarFacadeTest", function () {
 			const listId = "listID"
 			const event1 = makeEvent(listId, "eventId1")
 			const event2 = makeEvent(listId, "eventId2")
-			const eventsWrapper = [
+			const eventsWrapper: Array<EventAlarmsInfoTemplateTuple> = [
 				{
 					event: event1,
-					alarms: [makeAlarmInfo(event1)],
+					alarmInfoTemplates: [makeAlarmInfo(event1)],
 				},
 				{
 					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+					alarmInfoTemplates: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
 			// @ts-ignore
@@ -266,14 +269,14 @@ o.spec("CalendarFacadeTest", function () {
 
 			const event1 = makeEvent(listId1, "eventId1")
 			const event2 = makeEvent(listId2, "eventId2")
-			const eventsWrapper = [
+			const eventsWrapper: Array<EventAlarmsInfoTemplateTuple> = [
 				{
 					event: event1,
-					alarms: [makeAlarmInfo(event1)],
+					alarmInfoTemplates: [makeAlarmInfo(event1)],
 				},
 				{
 					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+					alarmInfoTemplates: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
 			// @ts-ignore
@@ -310,18 +313,20 @@ o.spec("CalendarFacadeTest", function () {
 
 			const event1 = makeEvent(listId1, "eventId1")
 			const event2 = makeEvent(listId2, "eventId2")
-			const eventsWrapper = [
+			const eventsWrapper: Array<EventAlarmsInfoTemplateTuple> = [
 				{
 					event: event1,
-					alarms: [makeAlarmInfo(event1)],
+					alarmInfoTemplates: [makeAlarmInfo(event1)],
 				},
 				{
 					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+					alarmInfoTemplates: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
+
 			// @ts-ignore
 			await assertThrows(ConnectionError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
+
 			// @ts-ignore
 			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
 			// @ts-ignore
