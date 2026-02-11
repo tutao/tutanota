@@ -14,20 +14,11 @@ export interface FileActions {
 	onCut: (f: FolderItem) => unknown
 	onCopy: (f: FolderItem) => unknown
 	onOpenItem: (f: FolderItem) => unknown
-	onDelete: (f: FolderItem) => unknown
+	onTrash: (f: FolderItem) => unknown
 	onRename: (f: FolderItem) => unknown
 	onRestore: (f: FolderItem) => unknown
+	onDelete: (f: FolderItem) => unknown
 	onStartMove: (f: FolderItem) => unknown
-}
-
-export const NoopFileActions: FileActions = {
-	onCut: (f: FolderItem) => {},
-	onCopy: (f: FolderItem) => {},
-	onOpenItem: (f: FolderItem) => {},
-	onDelete: (f: FolderItem) => {},
-	onRename: (f: FolderItem) => {},
-	onRestore: (f: FolderItem) => {},
-	onStartMove: (f: FolderItem) => {},
 }
 
 export interface DriveFolderContentEntryAttrs {
@@ -93,7 +84,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			onDragEnd,
 			onDropInto,
 			isCut,
-			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename, onStartMove },
+			fileActions: { onCopy, onCut, onTrash, onRestore, onOpenItem, onRename, onStartMove, onDelete },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
@@ -150,7 +141,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				oncontextmenu: (e: MouseEvent) => {
 					e.preventDefault()
 					e.stopPropagation()
-					const dropdown = new Dropdown(() => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete, onStartMove), 300)
+					const dropdown = new Dropdown(() => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete), 300)
 					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 					modal.displayUnique(dropdown, false)
 				},
@@ -194,7 +185,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 									icon: Icons.More,
 									title: "more_label",
 								},
-								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onDelete, onStartMove),
+								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete),
 							}),
 						),
 					]),
@@ -209,53 +200,68 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		onCopy: (f: FolderItem) => unknown,
 		onCut: (f: FolderItem) => unknown,
 		onRestore: (f: FolderItem) => unknown,
-		onDelete: (f: FolderItem) => unknown,
+		onTrash: (f: FolderItem) => unknown,
 		onStartMove: (f: FolderItem) => unknown,
+		onDelete: (f: FolderItem) => unknown,
 	): DropdownChildAttrs[] {
-		return [
-			{
-				label: "rename_action",
-				icon: Icons.Edit,
-				click: () => {
-					onRename(item)
-				},
-			},
-			{
-				label: "copy_action",
-				icon: Icons.Copy,
-				click: () => {
-					onCopy(item)
-				},
-			},
-			{
-				label: "cut_action",
-				icon: Icons.Cut,
-				click: () => {
-					onCut(item)
-				},
-			},
-			{
-				label: "move_action",
-				icon: Icons.Folder,
-				click: () => {
-					onStartMove(item)
-				},
-			},
-			(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
-				? {
-						label: "restoreFromTrash_action",
-						icon: Icons.Reply,
-						click: () => {
-							onRestore(item)
-						},
-					}
-				: {
-						label: "trash_action",
-						icon: Icons.Trash,
-						click: () => {
-							onDelete(item)
-						},
+		const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+		const actions: DropdownChildAttrs[] = []
+		if (!itemInTrash) {
+			actions.push(
+				{
+					label: "rename_action",
+					icon: Icons.Edit,
+					click: () => {
+						onRename(item)
 					},
-		]
+				},
+				{
+					label: "copy_action",
+					icon: Icons.Copy,
+					click: () => {
+						onCopy(item)
+					},
+				},
+				{
+					label: "cut_action",
+					icon: Icons.Cut,
+					click: () => {
+						onCut(item)
+					},
+				},
+				{
+					label: "move_action",
+					icon: Icons.Folder,
+					click: () => {
+						onStartMove(item)
+					},
+				},
+				{
+					label: "trash_action",
+					icon: Icons.Trash,
+					click: () => {
+						onTrash(item)
+					},
+				},
+			)
+		} else {
+			actions.push(
+				{
+					label: "restoreFromTrash_action",
+					icon: Icons.Reply,
+					click: () => {
+						onRestore(item)
+					},
+				},
+				{
+					label: "delete_action",
+					icon: Icons.DeleteForever,
+					click: () => {
+						onDelete(item)
+					},
+				},
+			)
+		}
+		return actions
 	}
 }
