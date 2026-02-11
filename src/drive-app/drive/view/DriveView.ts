@@ -317,11 +317,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									onCut: (item) => {
 										this.driveViewModel.cut([item])
 									},
-									onDelete: (item) => {
+									onTrash: (item) => {
 										this.driveViewModel.moveToTrash([item])
 									},
 									onRestore: (item) => {
 										this.driveViewModel.restoreFromTrash([item])
+									},
+									onDelete: async (item) => {
+										const ok = await Dialog.confirm(
+											lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": 1 }),
+											"confirmDeleteFilesPermanently_action",
+										)
+										if (ok) this.driveViewModel.deleteFromTrash([item])
 									},
 									onRename: (item) => this.onRename(item),
 									onStartMove: (item) => {
