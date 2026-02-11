@@ -13,8 +13,13 @@ import { GroupInfoTypeRef, GroupTypeRef } from "../../../common/api/entities/sys
 import { LazyLoaded, promiseMap, SortedArray } from "@tutao/tutanota-utils"
 import type { TemplateGroupInstance } from "./TemplateGroupModel.js"
 import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EventController } from "../../../common/api/main/EventController.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../common/api/common/utils/EntityUpdateUtils.js"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -55,8 +60,11 @@ export class TemplatePopupModel {
 		this._searchFilter = new TemplateSearchFilter()
 		this._groupInstances = []
 
-		this._entityEventReceived = (updates, eventOwnerGroupId) => {
-			return this._entityUpdate(updates, eventOwnerGroupId)
+		this._entityEventReceived = {
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
+				return this._entityUpdate(updates, eventOwnerGroupId)
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		this.initialized = new LazyLoaded(() => {

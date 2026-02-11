@@ -13,7 +13,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { arrayEquals, debounce, lazy, lazyMemoized, memoized } from "@tutao/tutanota-utils"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
+import { EventController } from "../../../common/api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
@@ -22,9 +22,14 @@ import { GroupInfo, ReceivedGroupInvitation } from "../../../common/api/entities
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../../../common/api/common/TutanotaConstants.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { GroupSettingsModel, GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
+import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
 
 export class ContactListViewModel {
 	private selectedContactList: Id | null = null
@@ -194,18 +199,21 @@ export class ContactListViewModel {
 		this.entityClient.setup(recipientsId, recipient)
 	}
 
-	private readonly entityEventsReceived: EntityEventsListener = async (updates: ReadonlyArray<EntityUpdateData>): Promise<void> => {
-		for (const update of updates) {
-			if (this.selectedContactList) {
-				if (isUpdateForTypeRef(ContactListEntryTypeRef, update) && isSameId(this.selectedContactList, update.instanceListId)) {
-					await this.listModel?.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
-				} else if (isUpdateForTypeRef(ContactTypeRef, update)) {
-					this.getContactsForSelectedContactListEntry()
+	private readonly entityEventsReceived: EntityEventsListener = {
+		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>): Promise<void> => {
+			for (const update of updates) {
+				if (this.selectedContactList) {
+					if (isUpdateForTypeRef(ContactListEntryTypeRef, update) && isSameId(this.selectedContactList, update.instanceListId)) {
+						await this.listModel?.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
+					} else if (isUpdateForTypeRef(ContactTypeRef, update)) {
+						this.getContactsForSelectedContactListEntry()
+					}
 				}
-			}
 
-			this.updateUi()
-		}
+				this.updateUi()
+			}
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	updateSelectedContactList(selected: Id): void {

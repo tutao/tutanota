@@ -9,7 +9,7 @@ import { OperationType } from "../../api/common/TutanotaConstants"
 import type { LoginController } from "../../api/main/LoginController"
 import { getLetId, isSameId } from "../../api/common/utils/EntityUtils"
 import { promiseMap } from "@tutao/tutanota-utils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../api/common/utils/EntityUpdateUtils.js"
 
 export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType> {
 	readonly invitations: Stream<Array<ReceivedGroupInvitation>>
@@ -35,22 +35,25 @@ export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupTyp
 		this.invitations.end(true)
 	}
 
-	private readonly entityEventsReceived = (updates: ReadonlyArray<EntityUpdateData>) => {
-		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
-				const updateId = [update.instanceListId, update.instanceId] as const
+	private readonly entityEventsReceived: EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>) => {
+			return promiseMap(updates, (update) => {
+				if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
+					const updateId = [update.instanceListId, update.instanceId] as const
 
-				if (update.operation === OperationType.CREATE) {
-					return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then((invitation) => {
-						if (this.hasMatchingGroupType(invitation)) {
-							this.invitations(this.invitations().concat(invitation))
-						}
-					})
-				} else if (update.operation === OperationType.DELETE) {
-					this.invitations(this.invitations().filter((invitation) => !isSameId(getLetId(invitation), updateId)))
+					if (update.operation === OperationType.CREATE) {
+						return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then((invitation) => {
+							if (this.hasMatchingGroupType(invitation)) {
+								this.invitations(this.invitations().concat(invitation))
+							}
+						})
+					} else if (update.operation === OperationType.DELETE) {
+						this.invitations(this.invitations().filter((invitation) => !isSameId(getLetId(invitation), updateId)))
+					}
 				}
-			}
-		})
+			})
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	private hasMatchingGroupType(invitation: ReceivedGroupInvitation): boolean {
