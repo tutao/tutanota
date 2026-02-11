@@ -205,6 +205,8 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		onDelete: (f: FolderItem) => unknown,
 	): DropdownChildAttrs[] {
 		const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+
+		// Caution: when adding actions, make sure they match the order in the action bar.
 		const actions: DropdownChildAttrs[] = []
 		if (!itemInTrash) {
 			actions.push(
