@@ -17,6 +17,7 @@ import { Nullable } from "@tutao/tutanota-utils"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
+		aggregatedtype: new Map(),
 		base: new Map(),
 		tutanota: new Map(),
 		gossip: new Map(),

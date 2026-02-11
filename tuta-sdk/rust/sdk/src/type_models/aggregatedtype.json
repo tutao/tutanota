@@ -1,0 +1,225 @@
+{
+	"17": {
+		"name": "Et1",
+		"app": "aggregatedtype",
+		"version": 1,
+		"since": 1,
+		"type": "ELEMENT_TYPE",
+		"id": 17,
+		"rootId": "DmFnZ3JlZ2F0ZWR0eXBlABE",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"values": {
+			"19": {
+				"final": true,
+				"name": "_id",
+				"id": 19,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"20": {
+				"final": true,
+				"name": "_permissions",
+				"id": 20,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"21": {
+				"final": false,
+				"name": "_format",
+				"id": 21,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"22": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 22,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"23": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 23,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"24": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 24,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"48": {
+				"final": false,
+				"name": "oneAggregated",
+				"id": 48,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 35,
+				"dependency": null
+			},
+			"49": {
+				"final": false,
+				"name": "anyAggregated",
+				"id": 49,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 35,
+				"dependency": null
+			}
+		}
+	},
+	"25": {
+		"name": "At1",
+		"app": "aggregatedtype",
+		"version": 1,
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 25,
+		"rootId": "DmFnZ3JlZ2F0ZWR0eXBlABk",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"26": {
+				"final": true,
+				"name": "_id",
+				"id": 26,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"35": {
+		"name": "At2",
+		"app": "aggregatedtype",
+		"version": 1,
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 35,
+		"rootId": "DmFnZ3JlZ2F0ZWR0eXBlACM",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"36": {
+				"final": true,
+				"name": "_id",
+				"id": 36,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"37": {
+				"final": false,
+				"name": "BytesValue",
+				"id": 37,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"38": {
+				"final": false,
+				"name": "StringValue",
+				"id": 38,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"39": {
+				"final": false,
+				"name": "LongValue",
+				"id": 39,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"40": {
+				"final": false,
+				"name": "DateValue",
+				"id": 40,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"41": {
+				"final": false,
+				"name": "BooleanValue",
+				"id": 41,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"42": {
+				"final": false,
+				"name": "oneResource",
+				"id": 42,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 17,
+				"dependency": null
+			},
+			"43": {
+				"final": false,
+				"name": "anyResource",
+				"id": 43,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "Any",
+				"refTypeId": 17,
+				"dependency": null
+			},
+			"44": {
+				"final": false,
+				"name": "oneAggregated",
+				"id": 44,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 25,
+				"dependency": null
+			},
+			"45": {
+				"final": false,
+				"name": "anyAggregated",
+				"id": 45,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 25,
+				"dependency": null
+			},
+			"46": {
+				"final": false,
+				"name": "oneList",
+				"id": 46,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 0,
+				"dependency": null
+			},
+			"47": {
+				"final": false,
+				"name": "anyList",
+				"id": 47,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	}
+}

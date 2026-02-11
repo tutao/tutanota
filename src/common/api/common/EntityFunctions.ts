@@ -9,6 +9,7 @@ import { typeModels as gossipTypeModels } from "../entities/gossip/TypeModels.js
 import { typeModels as storageTypeModels } from "../entities/storage/TypeModels.js"
 import { typeModels as usageTypeModels } from "../entities/usage/TypeModels.js"
 import { typeModels as driveTypeModels } from "../entities/drive/TypeModels"
+import { typeModels as aggregatedTypeModels } from "../entities/aggregatedtype/TypeModels"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import baseModelInfo from "../entities/base/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
@@ -18,6 +19,7 @@ import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
 import driveModelInfo from "../entities/drive/ModelInfo.js"
+import aggregateModelInfo from "../entities/aggregatedtype/ModelInfo.js"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
@@ -90,6 +92,7 @@ export class ClientModelInfo {
 	 * This means that we need to tell our bundler which ones do exist so that they are included.
 	 */
 	public typeModels: ClientModels = Object.freeze({
+		aggregatedtype: aggregatedTypeModels,
 		base: baseTypeModels,
 		sys: sysTypeModels,
 		tutanota: tutanotaTypeModels,
@@ -111,6 +114,7 @@ export class ClientModelInfo {
 		storage: storageModelInfo,
 		usage: usageModelInfo,
 		drive: driveModelInfo,
+		aggregatedtype: aggregateModelInfo,
 	} as const)
 
 	public applicationVersionSum(): ApplicationVersionSum {

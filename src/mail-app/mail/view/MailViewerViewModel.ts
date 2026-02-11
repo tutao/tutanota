@@ -84,9 +84,10 @@ import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUti
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
 import { UndoModel } from "../../UndoModel"
-import { isBrowser } from "../../../common/api/common/Env"
+import { isBrowser, isWebClient } from "../../../common/api/common/Env"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
+import { createEt1 } from "../../../common/api/entities/aggregatedtype/TypeRefs"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -666,6 +667,14 @@ export class MailViewerViewModel {
 		if (this.mail.unread !== unread) {
 			this.mail.unread = unread
 
+			if (isWebClient()) {
+				const et1Instance = createEt1({
+					_ownerGroup: assertNotNull(this.mail._ownerGroup),
+					oneAggregated: null,
+					anyAggregated: [],
+				})
+				await this.entityClient.setup(null, et1Instance)
+			}
 			await this.entityClient
 				.update(this.mail)
 				.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
