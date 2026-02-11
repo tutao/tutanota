@@ -133,6 +133,8 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					onDropInto(item, event)
 				},
 				onclick: (event: MouseEvent) => {
+					event.stopPropagation()
+
 					if (event.detail === 1) {
 						if (event.shiftKey) {
 							onRangeSelectionTowards(item)
