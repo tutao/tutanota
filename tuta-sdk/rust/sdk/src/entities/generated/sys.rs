@@ -234,6 +234,8 @@ pub struct Customer {
 	pub rejectedSenders: Option<RejectedSendersRef>,
 	#[serde(rename = "2061")]
 	pub referralCode: Option<GeneratedId>,
+	#[serde(rename = "2681")]
+	pub managedByPartner: Option<GeneratedId>,
 }
 
 impl Entity for Customer {
@@ -6226,6 +6228,38 @@ impl Entity for AbuseInfo {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2650),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PartnerManagedCustomer {
+	#[serde(rename = "2674")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2675")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2676")]
+	pub _format: i64,
+	#[serde(rename = "2677")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2678")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2679")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2680")]
+	pub customerInfo: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for PartnerManagedCustomer {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2672),
 		}
 	}
 }

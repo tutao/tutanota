@@ -142,6 +142,7 @@ export type Customer = {
 	orderProcessingAgreement: null | IdTuple;
 	rejectedSenders: null | RejectedSendersRef;
 	referralCode: null | Id;
+	managedByPartner: null | Id;
 }
 export const AuthenticatedDeviceTypeRef: TypeRef<AuthenticatedDevice> = new TypeRef("sys", 43)
 
@@ -4138,4 +4139,24 @@ export type AbuseInfo = {
 	_id: Id;
 	criterion: string;
 	value: string;
+}
+export const PartnerManagedCustomerTypeRef: TypeRef<PartnerManagedCustomer> = new TypeRef("sys", 2672)
+
+export function createPartnerManagedCustomer(values: StrippedEntity<PartnerManagedCustomer>): PartnerManagedCustomer {
+    return Object.assign(create(typeModels[PartnerManagedCustomerTypeRef.typeId], PartnerManagedCustomerTypeRef), values)
+}
+
+export type PartnerManagedCustomer = {
+	_type: TypeRef<PartnerManagedCustomer>;
+	_errors: Object;
+	_original?: PartnerManagedCustomer
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerKeyVersion: null | NumberString;
+
+	customerInfo: IdTuple;
 }
