@@ -859,22 +859,23 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		// if entityUpdate has been Prefetched or is NotAvailable, we do not need to do anything
 		if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
+			// if there is a custom handler we follow its decision
+			let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
+			// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
 			// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
 			if (update.instanceListId != null) {
-				// if there is a custom handler we follow its decision
-				let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
-				// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
 				shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
-
-				if (shouldUpdateDb) {
-					try {
-						return await this.loadAndStoreInstanceFromUpdate(update)
-					} catch (e) {
-						if (isExpectedErrorForSynchronization(e)) {
-							return null
-						} else {
-							throw e
-						}
+			} else {
+				shouldUpdateDb = shouldUpdateDb ?? true
+			}
+			if (shouldUpdateDb) {
+				try {
+					return await this.loadAndStoreInstanceFromUpdate(update)
+				} catch (e) {
+					if (isExpectedErrorForSynchronization(e)) {
+						return null
+					} else {
+						throw e
 					}
 				}
 			}
