@@ -251,7 +251,7 @@ export class MailImporter {
 		if (err.data.category === ImportErrorCategories.ImportFeatureDisabled) {
 			await Dialog.message("mailImportErrorServiceUnavailable_msg")
 		} else if (err.data.category === ImportErrorCategories.ConcurrentImport) {
-			showSnackBar({ message: "importAlreadyInProgress_msg", button: navigateToImportSettings })
+			showSnackBar({ message: "importFailedConcurrentImport_msg", button: navigateToImportSettings })
 		} else if (err.data.category === ImportErrorCategories.ImportTargetFolderDeleted) {
 			showSnackBar({ message: "importTargetFolderDeleted_msg", button: navigateToImportSettings })
 		} else {

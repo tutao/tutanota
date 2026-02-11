@@ -2,8 +2,8 @@ import m, { Children, Component, Vnode } from "mithril"
 import { ButtonColor } from "../base/Button.js"
 import { BootIcons } from "../base/icons/BootIcons"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
-import { isIOSApp } from "../../api/common/Env"
-import { LogoutUrl, SETTINGS_PREFIX } from "../../misc/RouteChange"
+import { isIOSApp, isWebClient } from "../../api/common/Env"
+import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { getSafeAreaInsetLeft } from "../HtmlUtils"
 import { Icons } from "../base/icons/Icons"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
@@ -18,6 +18,8 @@ import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import { styles } from "../styles.js"
 import { IconButton } from "../base/IconButton.js"
+import { locator } from "../../api/main/CommonLocator"
+import { FeatureType } from "../../api/common/TutanotaConstants"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -118,6 +120,14 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 						})(e, dom),
 					colors: ButtonColor.DrawerNav,
 				}),
+				isPartnerEnabled(locator.logins)
+					? m(IconButton, {
+							icon: Icons.Heart,
+							title: { testId: "partner_label", text: "Partner" },
+							click: () => m.route.set(PARTNER_PREFIX),
+							colors: ButtonColor.DrawerNav,
+						})
+					: null,
 				isInternalUser
 					? m(IconButton, {
 							icon: BootIcons.Settings,
@@ -135,4 +145,13 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 			],
 		)
 	}
+}
+
+export function isPartnerEnabled(loginController: LoginController): boolean {
+	return (
+		loginController.isInternalUserLoggedIn() &&
+		isWebClient() &&
+		loginController.isEnabled(FeatureType.SolutionPartner) &&
+		loginController.getUserController().isGlobalAdmin()
+	)
 }

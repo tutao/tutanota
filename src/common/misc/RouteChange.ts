@@ -55,5 +55,6 @@ export const CALENDAR_PREFIX = "/calendar"
 export const DRIVE_PREFIX = "/drive"
 export const SEARCH_PREFIX = "/search"
 export const SETTINGS_PREFIX = "/settings"
+export const PARTNER_PREFIX = "/partner"
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath

@@ -966,7 +966,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	private async updateShowAffiliateSettings() {
 		const customer = await this.logins.getUserController().loadCustomer()
-		this.showAffiliateSettings = isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner)
+		this.showAffiliateSettings =
+			isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner) && !this.logins.isEnabled(FeatureType.SolutionPartner)
 	}
 
 	private async doExportUsers() {
