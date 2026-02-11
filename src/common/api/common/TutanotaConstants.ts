@@ -705,6 +705,7 @@ export enum FeatureType {
 	QuickActions = "20",
 	ReceivesNoTutaNewsletters = "21",
 	DriveInternalBeta = "22", // Enables drive access for internal testing
+	SolutionPartner = "23",
 }
 
 export const FULL_INDEXED_TIMESTAMP: number = 0

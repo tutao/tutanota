@@ -44,6 +44,7 @@ import { CommonLocator } from "../common/api/main/CommonLocator"
 import type { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
 import type { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import type { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
+import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -671,6 +672,34 @@ import("./translations/en.js")
 						bottomNav,
 						lazySearchBar,
 						showMoveItemDialog: (item) => mailLocator.showMoveItemDialog(item),
+					}),
+				},
+				mailLocator.logins,
+			),
+			partner: makeViewResolver<
+				PartnerViewAttrs,
+				PartnerView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { PartnerView } = await import("../common/partner/PartnerView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: PartnerView,
+							cache: {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+							},
+						}
+					},
+					prepareAttrs: (cache) => ({
+						drawerAttrs: cache.drawerAttrsFactory(),
+						header: cache.header,
+						logins: mailLocator.logins,
 					}),
 				},
 				mailLocator.logins,
