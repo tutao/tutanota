@@ -315,6 +315,8 @@ pub enum AppName {
 	Test,
 	#[cfg(test)]
 	EntityClientTestApp,
+	#[serde(other)]
+	Unknown,
 }
 
 impl TryFrom<&str> for AppName {
@@ -351,6 +353,7 @@ impl Display for AppName {
 			AppName::Sys => write!(f, "sys"),
 			AppName::Tutanota => write!(f, "tutanota"),
 			AppName::Usage => write!(f, "usage"),
+			AppName::Unknown => write!(f, "unknown"),
 			#[cfg(test)]
 			AppName::Test => write!(f, "test"),
 			#[cfg(test)]

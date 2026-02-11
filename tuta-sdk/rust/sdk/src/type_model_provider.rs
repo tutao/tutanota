@@ -100,17 +100,17 @@ impl TypeModelProvider {
 
 	pub fn resolve_server_type_ref(&self, type_ref: &TypeRef) -> Option<Arc<TypeModel>> {
 		self.server_app_models
-				.read()
-				.expect("Server application model lock poisoned on read")
-				.as_ref()
-				.expect("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
-				.1
-				.as_ref()
-				.apps
-				.get(&type_ref.app)?
-				.types
-				.get(&type_ref.type_id)
-				.map(Arc::clone)
+            .read()
+            .expect("Server application model lock poisoned on read")
+            .as_ref()
+            .expect("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
+            .1
+            .as_ref()
+            .apps
+            .get(&type_ref.app)?
+            .types
+            .get(&type_ref.type_id)
+            .map(Arc::clone)
 	}
 
 	pub async fn initialize_server_model_from_file(&self) {
@@ -122,7 +122,7 @@ impl TypeModelProvider {
 			return;
 		};
 
-		let Ok(apps) =
+		let Ok(raw_apps) =
 			serde_json::from_slice::<HashMap<AppName, ApplicationModel>>(&raw_json_server_model)
 				.inspect_err(|e| {
 					log::error!(
@@ -132,6 +132,11 @@ impl TypeModelProvider {
 		else {
 			return;
 		};
+
+		let apps: HashMap<AppName, ApplicationModel> = raw_apps
+			.into_iter()
+			.filter(|(_, model)| model.name != AppName::Unknown)
+			.collect();
 
 		let mut writeable_server_models = self
 			.server_app_models
@@ -253,15 +258,19 @@ impl TypeModelProvider {
 					ApiCallError::internal_with_err(e, "Cannot deserialize ApplicationTypesGetOut")
 				})?;
 
-				let apps = serde_json::from_str::<HashMap<AppName, ApplicationModel>>(
-					&application_types_get_out.application_types_json,
-				)
-				.map_err(|e| {
-					ApiCallError::internal_with_err(
-						e,
-						"Can not parse ApplicationTypesService response to ApplicationModels",
-					)
-				})?;
+				let raw_apps: HashMap<AppName, ApplicationModel> =
+					serde_json::from_str(&application_types_get_out.application_types_json)
+						.map_err(|e| {
+							ApiCallError::internal_with_err(
+								e,
+								"Can not parse ApplicationTypesService response to ApplicationModels",
+							)
+						})?;
+
+				let apps: HashMap<AppName, ApplicationModel> = raw_apps
+					.into_iter()
+					.filter(|(_, model)| model.name != AppName::Unknown)
+					.collect();
 
 				self.write_server_model_to_file(
 					application_types_get_out
