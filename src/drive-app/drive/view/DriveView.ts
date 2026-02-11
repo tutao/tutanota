@@ -236,6 +236,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			{
 				view: () => {
 					const listState = this.driveViewModel.listState()
+					const isListingTrash = this.driveViewModel.currentFolder?.type === DriveFolderType.Trash
+
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
 						desktopToolbar: () => [],
@@ -243,11 +245,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							m(DriveFolderView, {
 								onUploadClick: () => this.onNewFile(),
 								onTrash:
-									this.driveViewModel.currentFolder?.type === DriveFolderType.Trash || listState.selectedItems.size === 0
+									isListingTrash || listState.selectedItems.size === 0
 										? null
 										: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems)),
 								onDelete:
-									this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
+									isListingTrash && listState.selectedItems.size > 0
 										? async () => {
 												const ok = await Dialog.confirm(
 													lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": listState.selectedItems.size }),
@@ -257,12 +259,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											}
 										: null,
 								onRestore:
-									this.driveViewModel.currentFolder?.type === DriveFolderType.Trash && listState.selectedItems.size > 0
+									isListingTrash && listState.selectedItems.size > 0
 										? () => this.driveViewModel.restoreFromTrash(Array.from(listState.selectedItems))
 										: null,
-								onCut: listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
-								onCopy: listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
-								onPaste: this.driveViewModel.clipboard ? () => this.onPaste() : null,
+								onCut:
+									!isListingTrash && listState.selectedItems.size > 0
+										? () => this.driveViewModel.cut(Array.from(listState.selectedItems))
+										: null,
+								onCopy:
+									!isListingTrash && listState.selectedItems.size > 0
+										? () => this.driveViewModel.copy(Array.from(listState.selectedItems))
+										: null,
+								onPaste: !isListingTrash && this.driveViewModel.clipboard ? () => this.onPaste() : null,
 								onDropFiles: (files) => {
 									this.driveViewModel.uploadFiles(files)
 								},
