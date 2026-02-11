@@ -38,6 +38,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			},
 			m(DriveBreadcrumbs, { currentFolder, parents, loadParents, onDropInto }),
 			m(".flex.items-center.column-gap-4", [
+				// Caution: when adding actions, make sure they match the order in the file context menu.
 				onPaste
 					? m(IconButton, {
 							title: "paste_action",
@@ -46,11 +47,11 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 						})
 					: null,
 				[onPaste].some(isNotNull) ? m(".nav-bar-spacer") : null,
-				onTrash
+				onRestore
 					? m(IconButton, {
-							title: "trash_action",
-							click: onTrash,
-							icon: Icons.Trash,
+							title: "restoreFromTrash_action",
+							click: onRestore,
+							icon: Icons.Reply,
 						})
 					: null,
 				onDelete
@@ -58,13 +59,6 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							title: "delete_action",
 							click: onDelete,
 							icon: Icons.DeleteForever,
-						})
-					: null,
-				onRestore
-					? m(IconButton, {
-							title: "restoreFromTrash_action",
-							click: onRestore,
-							icon: Icons.Reply,
 						})
 					: null,
 				onCopy
@@ -79,6 +73,13 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							title: "cut_action",
 							click: onCut,
 							icon: Icons.Cut,
+						})
+					: null,
+				onTrash
+					? m(IconButton, {
+							title: "trash_action",
+							click: onTrash,
+							icon: Icons.Trash,
 						})
 					: null,
 				[onTrash, onDelete, onRestore, onCopy, onCut].some(isNotNull) ? m(".nav-bar-spacer") : null,
