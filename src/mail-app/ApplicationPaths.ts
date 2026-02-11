@@ -67,6 +67,7 @@ export function applicationPaths({
 		"/calendar/:view/:date/:eventId": calendar,
 		"/drive": drive,
 		"/drive/:folderListId/:folderElementId": drive,
+		"/partner": partner,
 		"/partner/:folder": partner,
 		"/partner/:folder/:id": partner,
 		"/giftcard/": giftcard,
