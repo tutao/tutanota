@@ -1643,7 +1643,7 @@ export const StandardAlarmInterval = Object.freeze({
 } as const satisfies Record<string, AlarmInterval>)
 
 /**
- * Runtime representation of an alarm interval/alarm trigger.
+ * Runtime representation of a calendar event alarm trigger.
  * Unlike iCal we only support one unit and alarms in the past
  * (represented here as non-negative numbers).
  */

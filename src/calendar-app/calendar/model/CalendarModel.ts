@@ -109,7 +109,7 @@ import { ExternalCalendarFacade } from "../../../common/native/common/generatedi
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
-	EventAlarmsTuple,
+	EventAlarmsInfoTemplateTuple,
 	eventHasSameFields,
 	EventImportRejectionReason,
 	normalizeCalendarUrl,
@@ -291,10 +291,6 @@ export class CalendarModel {
 		return calendars.get(calendarId)
 	}
 
-	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
-		await this.doCreate(event, zone, groupRoot, alarmInfos)
-	}
-
 	/** Update existing event when time did not change */
 	async updateEvent(
 		newEvent: CalendarEvent,
@@ -318,7 +314,7 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
-			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+			await this.createCalendarEvent(newEvent, zone, groupRoot, newAlarms, existingEvent)
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
@@ -603,7 +599,7 @@ export class CalendarModel {
 		eventsToUpdate: CalendarEvent[],
 		existingEventList: Array<CalendarEvent>,
 		duplicatesCount: number,
-		eventsForCreation: Array<EventAlarmsTuple>,
+		eventsForCreation: Array<EventAlarmsInfoTemplateTuple>,
 		currentCalendarGroupRoot: CalendarGroupRoot,
 		wipeCalendar: boolean,
 	) {
@@ -716,12 +712,12 @@ export class CalendarModel {
 		return group
 	}
 
-	private async doCreate(
+	public async createCalendarEvent(
 		event: CalendarEvent,
 		zone: string,
 		groupRoot: CalendarGroupRoot,
 		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
-		existingEvent?: CalendarEvent,
+		existingEventToBeDeleted?: CalendarEvent,
 	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(event)
@@ -737,7 +733,7 @@ export class CalendarModel {
 		// Reset permissions because server will assign them
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
-		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
+		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEventToBeDeleted ?? null).then(this.requestWidgetRefresh)
 	}
 
 	private async createPendingEvent(
@@ -1145,7 +1141,7 @@ export class CalendarModel {
 			console.log(TAG, "tried to create new progenitor or got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
 			return
 		}
-		return await this.doCreate(updateEvent, "", calendarGroupRoot, alarms)
+		return await this.createCalendarEvent(updateEvent, "", calendarGroupRoot, alarms)
 	}
 
 	/** Someone replied whether they attend an event or not. this MUST be applied to all instances in our
