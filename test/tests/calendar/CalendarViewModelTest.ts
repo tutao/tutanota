@@ -14,7 +14,7 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js
 import { ReceivedGroupInvitationsModel } from "../../../src/common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { object, when } from "testdouble"
-import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
@@ -389,7 +389,7 @@ o.spec("CalendarViewModel", function () {
 	})
 	o.spec("entityEventsReceived", function () {
 		o("transient event is removed on update", async function () {
-			const entityListeners: any[] = []
+			const entityListeners: EntityEventsListener[] = []
 			const eventController: EventController = downcast({
 				addEntityListener(listener) {
 					entityListeners.push(listener)
@@ -430,7 +430,7 @@ o.spec("CalendarViewModel", function () {
 				assertNotNull(wrapperToDrag.event.uid),
 			)
 			entityClientMock.addListInstances(updatedEventFromServer.event)
-			await entityListeners[0]([entityUpdate], wrapperToDrag.event._ownerGroup)
+			await entityListeners[0].onEntityUpdatesReceived([entityUpdate], assertNotNull(wrapperToDrag.event._ownerGroup), null)
 			o(viewModel.temporaryEvents.some((eventWrapper) => eventWrapper.event.uid === wrapperToDrag.event.uid)).equals(false)("Transient event removed")
 		})
 	})

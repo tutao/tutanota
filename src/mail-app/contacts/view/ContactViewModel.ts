@@ -1,6 +1,6 @@
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
+import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
@@ -9,7 +9,7 @@ import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
-import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 
 /** ViewModel for the overall contact view. */
@@ -79,13 +79,16 @@ export class ContactViewModel {
 		}
 	}
 
-	private readonly entityListener: EntityEventsListener = async (updates) => {
-		for (const update of updates) {
-			const { instanceListId, instanceId, operation } = update
-			if (isUpdateForTypeRef(ContactTypeRef, update) && instanceListId === this.contactListId) {
-				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
+	private readonly entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: async (updates) => {
+			for (const update of updates) {
+				const { instanceListId, instanceId, operation } = update
+				if (isUpdateForTypeRef(ContactTypeRef, update) && instanceListId === this.contactListId) {
+					await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
+				}
 			}
-		}
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	async loadAndSelect(contactId: Id) {

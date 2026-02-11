@@ -92,7 +92,7 @@ import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import {
 	AlarmInterval,
 	assignEventId,
@@ -244,7 +244,10 @@ export class CalendarModel {
 		private readonly lang: LanguageViewModel,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
-		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+		eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 
 		syncTracker.addSyncDoneListener({
 			onSyncDone: async () => this.requestWidgetRefresh(),

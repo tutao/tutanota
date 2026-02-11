@@ -68,7 +68,12 @@ import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js
 import { SearchModel } from "../../search/model/SearchModel.js"
 import { ParsedIcalFileContent } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
@@ -189,24 +194,27 @@ export class MailViewerViewModel {
 		this.eventController.addEntityListener(this.entityListener)
 	}
 
-	private readonly entityListener = async (events: EntityUpdateData[]) => {
-		for (const update of events) {
-			if (isUpdateForTypeRef(MailTypeRef, update)) {
-				const { instanceListId, instanceId, operation } = update
-				if (operation === OperationType.UPDATE && isSameId(this.mail._id, [instanceListId, instanceId])) {
-					try {
-						const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
-						this.updateMail({ mail: updatedMail })
-					} catch (e) {
-						if (e instanceof NotFoundError) {
-							console.log(`could not find updated mail ${JSON.stringify([instanceListId, instanceId])}`)
-						} else {
-							throw e
+	private readonly entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: async (events: EntityUpdateData[]) => {
+			for (const update of events) {
+				if (isUpdateForTypeRef(MailTypeRef, update)) {
+					const { instanceListId, instanceId, operation } = update
+					if (operation === OperationType.UPDATE && isSameId(this.mail._id, [instanceListId, instanceId])) {
+						try {
+							const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
+							this.updateMail({ mail: updatedMail })
+						} catch (e) {
+							if (e instanceof NotFoundError) {
+								console.log(`could not find updated mail ${JSON.stringify([instanceListId, instanceId])}`)
+							} else {
+								throw e
+							}
 						}
 					}
 				}
 			}
-		}
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	private async determineRelevantRecipient() {

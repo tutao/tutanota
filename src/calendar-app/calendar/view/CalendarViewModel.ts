@@ -62,7 +62,7 @@ import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
@@ -272,7 +272,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.preloadMonthsAroundSelectedDate()
 		})
 
-		eventController.addEntityListener((updates) => this.entityEventReceived(updates))
+		eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates) => this.entityEventReceived(updates),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 
 		calendarInvitationsModel.init()
 
