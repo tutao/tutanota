@@ -16,7 +16,7 @@ import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
-import { FeatureType, GroupType, PlanType } from "../../common/api/common/TutanotaConstants"
+import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
@@ -55,7 +55,7 @@ import { BackgroundColumnLayout } from "../../common/gui/BackgroundColumnLayout.
 import { styles } from "../../common/gui/styles.js"
 import { MobileHeader } from "../../common/gui/MobileHeader.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { AboutDialog } from "../../common/settings/AboutDialog.js"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
@@ -545,8 +545,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		locator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener = (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
-		return this.entityEventsReceived(updates, eventOwnerGroupId)
+	private entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
+			return this.entityEventsReceived(updates, eventOwnerGroupId)
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {

@@ -1,4 +1,4 @@
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import {
 	Contact,
 	ContactTypeRef,
@@ -55,7 +55,10 @@ export class NativeContactsSyncManager {
 		private readonly contactModel: ContactModel,
 		private readonly deviceConfig: DeviceConfig,
 	) {
-		this.eventController.addEntityListener((updates) => this.nativeContactEntityEventsListener(updates))
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates) => this.nativeContactEntityEventsListener(updates),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 	}
 
 	private async nativeContactEntityEventsListener(events: ReadonlyArray<EntityUpdateData>) {

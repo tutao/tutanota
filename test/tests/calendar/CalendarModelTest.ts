@@ -3,18 +3,17 @@ import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
-	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
 	Contact,
 	ContactMailAddressTypeRef,
 	ContactTypeRef,
 	EncryptedMailAddressTypeRef,
-	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clone, getFirstOrThrow, hexToUint8Array, neverNull, Require, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, GroupType, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { DateTime } from "luxon"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
@@ -47,7 +46,7 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { FileController } from "../../../src/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { IProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
-import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
@@ -56,10 +55,7 @@ import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { elementIdPart, getElementId, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
-import { DateTime } from "luxon"
-import { createDataFile } from "../../../src/common/api/common/DataFile"
-import { SessionKeyNotFoundError } from "../../../src/common/api/common/error/SessionKeyNotFoundError"
+import { elementIdPart, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"

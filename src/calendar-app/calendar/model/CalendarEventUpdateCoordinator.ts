@@ -1,7 +1,7 @@
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./CalendarModel"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EventController } from "../../../common/api/main/EventController"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { CalendarEventUpdate, CalendarEventUpdateTypeRef, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
@@ -24,8 +24,11 @@ export class CalendarEventUpdateCoordinator {
 	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
 
 	// create reference to the listener so it can be deleted from the event controller when the client stops being leader.
-	private readonly entityEventListener: EntityEventsListener = (updates, eventOwnerGroupId) => {
-		return this.entityEventsReceived(updates, eventOwnerGroupId)
+	private readonly entityEventListener: EntityEventsListener = {
+		onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
+			return this.entityEventsReceived(updates, eventOwnerGroupId)
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 	constructor(
 		private readonly wsConnectivityModel: WebsocketConnectivityModel,

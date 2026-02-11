@@ -41,7 +41,7 @@ import {
 } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../api/common/utils/EntityUpdateUtils.js"
 import { generateLocalEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
@@ -88,7 +88,10 @@ export class CalendarEventsRepository {
 		private readonly contactModel: ContactModel,
 		private readonly logins: LoginController,
 	) {
-		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+		eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 		this.calendarMemberships = this.logins
 			.getUserController()
 			.getCalendarMemberships()

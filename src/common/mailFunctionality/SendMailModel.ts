@@ -55,7 +55,7 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EventController } from "../api/main/EventController.js"
 import { DateProvider } from "../api/common/DateProvider.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
 import { UserController } from "../api/main/UserController.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
@@ -213,10 +213,13 @@ export class SendMailModel {
 		this.eventController.addEntityListener(this.entityEventReceived)
 	}
 
-	private readonly entityEventReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
-		for (const update of updates) {
-			await this.handleEntityEvent(update)
-		}
+	private readonly entityEventReceived: EntityEventsListener = {
+		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
+			for (const update of updates) {
+				await this.handleEntityEvent(update)
+			}
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	/**
