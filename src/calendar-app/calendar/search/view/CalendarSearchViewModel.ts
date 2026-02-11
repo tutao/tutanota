@@ -1,6 +1,6 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
-import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
+import { EventController } from "../../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
@@ -27,7 +27,12 @@ import stream from "mithril/stream"
 import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../../common/api/common/utils/EntityUpdateUtils.js"
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel.js"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
@@ -146,10 +151,13 @@ export class CalendarSearchViewModel {
 		this.eventController.addEntityListener(this.entityEventsListener)
 	})
 
-	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
-		for (const update of updates) {
-			await this.entityEventReceived(update)
-		}
+	private readonly entityEventsListener: EntityEventsListener = {
+		onEntityUpdatesReceived: async (updates) => {
+			for (const update of updates) {
+				await this.entityEventReceived(update)
+			}
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {

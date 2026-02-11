@@ -1,7 +1,12 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import { assertMainOrNode, isApp, isIOSApp } from "../../../common/api/common/Env.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import { Header } from "../../../common/gui/Header.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -345,8 +350,11 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		calendarLocator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener = (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
-		return this.entityEventsReceived(updates, eventOwnerGroupId)
+	private entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
+			return this.entityEventsReceived(updates, eventOwnerGroupId)
+		},
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<CalendarSettingsViewAttrs>): Children {

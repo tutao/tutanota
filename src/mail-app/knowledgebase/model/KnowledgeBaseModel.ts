@@ -13,8 +13,13 @@ import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupM
 import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel.js"
 import type { UserController } from "../../../common/api/main/UserController.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EventController } from "../../../common/api/main/EventController.js"
 
 export const SELECT_NEXT_ENTRY = "next"
 
@@ -50,8 +55,11 @@ export class KnowledgeBaseModel {
 		this.selectedEntry = stream<KnowledgeBaseEntry | null>(null)
 		this._filterValue = ""
 
-		this._entityEventReceived = (updates) => {
-			return this._entityUpdate(updates)
+		this._entityEventReceived = {
+			onEntityUpdatesReceived: (updates) => {
+				return this._entityUpdate(updates)
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		this._eventController.addEntityListener(this._entityEventReceived)

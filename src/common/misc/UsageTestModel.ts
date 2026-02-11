@@ -27,7 +27,7 @@ import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "
 import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
 import { ClientTypeModelResolver } from "../api/common/EntityFunctions"
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -172,8 +172,11 @@ export class UsageTestModel implements PingAdapter {
 		private readonly usageTestController: () => UsageTestController,
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
-		eventController.addEntityListener((updates: ReadonlyArray<EntityUpdateData>) => {
-			return this.entityEventsReceived(updates)
+		eventController.addEntityListener({
+			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>) => {
+				return this.entityEventsReceived(updates)
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 	}
 
