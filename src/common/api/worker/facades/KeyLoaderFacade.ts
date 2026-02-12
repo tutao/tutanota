@@ -221,7 +221,10 @@ export class KeyLoaderFacade {
 		const startId = convertKeyVersionToCustomId(currentGroupKey.version)
 		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion
 
-		const formerKeys: GroupKey[] = await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
+		let formerKeys: GroupKey[] = await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
+		if (amountOfKeysIncludingTarget > formerKeys.length) {
+			formerKeys = await this.fixOutdatedCache(amountOfKeysIncludingTarget, formerKeys, currentGroupKey, formerKeysList, startId)
+		}
 
 		let lastVersion = currentGroupKey.version
 		let lastGroupKey = currentGroupKey.object
@@ -248,6 +251,30 @@ export class KeyLoaderFacade {
 		}
 
 		return { symmetricGroupKey: lastGroupKey, groupKeyInstance: lastGroupKeyInstance }
+	}
+
+	/**
+	 * Try reloading missing GroupKey instances in a cached range.
+	 *
+	 * This can be necessary due to a race condition when processing entity event updates after a key rotation,
+	 * when the cache is not yet up to date.
+	 */
+	private async fixOutdatedCache(
+		amountOfKeysIncludingTarget: number,
+		formerKeys: GroupKey[],
+		currentGroupKey: VersionedKey,
+		formerKeysList: string,
+		startId: string,
+	): Promise<GroupKey[]> {
+		const missingGroupKeyIds: Id[] = []
+		for (let i = 1; i <= amountOfKeysIncludingTarget; i++) {
+			const versionToCheck = convertKeyVersionToCustomId(checkKeyVersionConstraints(currentGroupKey.version - i))
+			if (!formerKeys.some((formerKey) => isSameId(getElementId(formerKey), versionToCheck))) {
+				missingGroupKeyIds.push(versionToCheck)
+			}
+		}
+		await this.entityClient.loadMultiple(GroupKeyTypeRef, formerKeysList, missingGroupKeyIds)
+		return await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
 	}
 
 	private decodeGroupKeyVersion(id: Id): KeyVersion {

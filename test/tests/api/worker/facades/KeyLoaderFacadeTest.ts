@@ -327,6 +327,25 @@ o.spec("KeyLoaderFacadeTest", function () {
 			)
 			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
 		})
+
+		o("reloading in case of outdated range cache works", async function () {
+			const groupKey: VersionedKey = { object: formerKeysDecrypted[1], version: 1 }
+			const requestedVersion: KeyVersion = 0
+			when(
+				entityClient.loadRange(
+					GroupKeyTypeRef,
+					group.formerGroupKeys.list,
+					stringToCustomId(groupKey.version.toString()),
+					groupKey.version - requestedVersion,
+					true,
+				),
+			).thenResolve([], [formerKeys[0]])
+
+			const result = await keyLoaderFacade.loadSymGroupKey(group._id, requestedVersion, groupKey)
+
+			o(result).deepEquals(formerKeysDecrypted[0])
+			verify(entityClient.loadMultiple(GroupKeyTypeRef, group.formerGroupKeys.list, [stringToCustomId(requestedVersion.toString())]))
+		})
 	})
 
 	o.spec("loadSymUserGroupKey", function () {
