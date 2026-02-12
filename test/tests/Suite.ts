@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 
+import "./misc/WebsocketConnectivityModelTest"
 import "./api/common/error/RestErrorTest.js"
 import "./api/common/error/TutanotaErrorTest.js"
 import "./api/common/mail/CommonMailUtilsTest.js"

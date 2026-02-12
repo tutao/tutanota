@@ -16,7 +16,6 @@ import {
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityDataTypeRef,
-	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
 import { AppName, binarySearch, delay, identity, lastThrow, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
@@ -48,6 +47,7 @@ import { newSyncMetrics } from "./utils/SyncMetrics"
 import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
 import { hasError } from "../common/utils/ErrorUtils"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel"
 
 assertWorkerOrNode()
 
@@ -92,11 +92,7 @@ export const enum ConnectMode {
 }
 
 export interface EventBusListener {
-	onWebsocketStateChanged(state: WsConnectionState): unknown
-
 	onCounterChanged(counter: WebsocketCounterData): unknown
-
-	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): unknown
 
 	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, eventQueueProgressMonitorId?: ProgressMonitorId): Promise<void>
 
@@ -152,6 +148,7 @@ export class EventBusClient {
 	private lastInitialEventBatch: Id | null = null
 
 	constructor(
+		private readonly connectivityListener: WebsocketConnectivityListener,
 		private readonly listener: EventBusListener,
 		private readonly cache: EntityRestCache,
 		private readonly userFacade: UserFacade,
@@ -199,7 +196,7 @@ export class EventBusClient {
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
 
-		this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
+		this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 
 		this.state = EventBusState.Automatic
 		this.connectTimer = null
@@ -250,10 +247,10 @@ export class EventBusClient {
 				break
 			case CloseEventBusOption.Pause:
 				this.state = EventBusState.Suspended
-				this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
+				this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 				break
 			case CloseEventBusOption.Reconnect:
-				this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
+				this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 				break
 		}
 
@@ -283,7 +280,7 @@ export class EventBusClient {
 
 		const p = this.initEntityEvents(connectMode)
 
-		this.listener.onWebsocketStateChanged(WsConnectionState.connected)
+		this.connectivityListener.updateWebSocketState(WsConnectionState.connected)
 
 		return p
 	}
@@ -334,7 +331,7 @@ export class EventBusClient {
 				}
 
 				this.userFacade.setLeaderStatus(data)
-				await this.listener.onLeaderStatusChanged(data)
+				await this.connectivityListener.onLeaderStatusMessageReceived(data)
 				break
 			}
 			default:
@@ -402,9 +399,9 @@ export class EventBusClient {
 		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this.state = EventBusState.Suspended
-			this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
+			this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 		} else if (this.state === EventBusState.Automatic && this.userFacade.isFullyLoggedIn()) {
-			this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
+			this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 
 			if (this.immediateReconnect) {
 				this.immediateReconnect = false
@@ -653,7 +650,7 @@ export class EventBusClient {
 
 		this.reset()
 
-		this.listener.onWebsocketStateChanged(WsConnectionState.terminated)
+		this.connectivityListener.updateWebSocketState(WsConnectionState.terminated)
 	}
 
 	/**
