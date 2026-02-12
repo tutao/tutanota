@@ -72,7 +72,6 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		teamGroupIds = ["team"]
 		when(groupManagementFacade.loadTeamGroupIds()).thenResolve(teamGroupIds)
 		eventBusEventCoordinator = new EventBusEventCoordinator(
-			object(),
 			lazyMailFacade,
 			userFacade,
 			entityClient,

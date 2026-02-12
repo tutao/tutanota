@@ -580,7 +580,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
-		mainInterface.wsConnectivityListener,
 		locator.mail,
 		locator.user,
 		locator.cachingEntityClient,
@@ -601,6 +600,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const eventInstancePrefetcher = new EventInstancePrefetcher(locator.cache)
 
 	locator.eventBusClient = new EventBusClient(
+		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
 		locator.cache as EntityRestCache,
 		locator.user,

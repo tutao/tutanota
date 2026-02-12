@@ -10,7 +10,6 @@ import { CalendarEventUpdate, CalendarEventUpdateTypeRef, FileTypeRef } from "..
 import { OperationType } from "../../../src/common/api/common/TutanotaConstants"
 import { elementIdPart, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel"
-import Stream from "mithril/stream"
 import { createTestEntity } from "../TestUtils"
 import { defer } from "@tutao/tutanota-utils"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
@@ -75,55 +74,46 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 	o("becoming leader client processes existing entity events and then attaches the CalendarEventUpdate listener", async function () {
 		const mockCalendarEventUpdateArray = [createTestEntity(CalendarEventUpdateTypeRef, {})]
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
-
-		const leaderStatusStreamMock = object<Stream<boolean>>()
-		when(wsConnectivityModelMock.getLeaderStatusStream()).thenReturn(leaderStatusStreamMock)
 		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
 
 		await calendarEventUpdateCoordinator.onLeaderStatusChanged(true)
-		verify(eventControllerMock.addEntityListener(matchers.anything()), { times: 1 })
 
+		verify(eventControllerMock.addEntityListener(matchers.anything()), { times: 1 })
 		verify(calendarModelMock.handleCalendarEventUpdate(mockCalendarEventUpdateArray[0]))
 	})
 
 	o("becoming follower client removes the CalendarEventUpdate listener", async function () {
 		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve([calendarEventUpdate])
+
 		await calendarEventUpdateCoordinator.onLeaderStatusChanged(false)
+
 		verify(eventControllerMock.removeEntityListener(matchers.anything()), { times: 1 })
 		verify(calendarModelMock.handleCalendarEventUpdate(matchers.anything()), { times: 0 })
 	})
 
 	o("init() as leader processes existing entity events before attaching the listener", async function () {
 		deferredWaitSync.resolve(undefined)
-
 		const mockCalendarEventUpdateArray = [createTestEntity(CalendarEventUpdateTypeRef, {})]
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
-
-		const leaderStatusStreamMock = object<Stream<boolean>>()
-		when(wsConnectivityModelMock.getLeaderStatusStream()).thenReturn(leaderStatusStreamMock)
 		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
 
 		await calendarEventUpdateCoordinator.init()
-		verify(eventControllerMock.addEntityListener(matchers.anything()))
-		verify(leaderStatusStreamMock.map(matchers.anything()))
 
+		verify(wsConnectivityModelMock.addLeaderStatusListener(matchers.anything()), { times: 1 })
+		verify(eventControllerMock.addEntityListener(matchers.anything()))
 		verify(calendarModelMock.handleCalendarEventUpdate(mockCalendarEventUpdateArray[0]))
 	})
 
 	o("init as non leader does not register event listeners, and does not process existing calendar event updates", async function () {
 		deferredWaitSync.resolve(undefined)
-
 		const mockCalendarEventUpdateArray = [createTestEntity(CalendarEventUpdateTypeRef, {})]
 		when(wsConnectivityModelMock.isLeader()).thenReturn(false)
-
-		const leaderStatusStreamMock = object<Stream<boolean>>()
-		when(wsConnectivityModelMock.getLeaderStatusStream()).thenReturn(leaderStatusStreamMock)
 		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
 
 		await calendarEventUpdateCoordinator.init()
-		verify(eventControllerMock.addEntityListener(matchers.anything()), { times: 0 })
-		verify(leaderStatusStreamMock.map(matchers.anything()))
 
+		verify(wsConnectivityModelMock.addLeaderStatusListener(matchers.anything()), { times: 1 })
+		verify(eventControllerMock.addEntityListener(matchers.anything()), { times: 0 })
 		verify(calendarModelMock.handleCalendarEventUpdate(mockCalendarEventUpdateArray[0]), { times: 0 })
 	})
 

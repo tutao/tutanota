@@ -1,15 +1,6 @@
 import { EventBusListener } from "./EventBusClient.js"
-import { WsConnectionState } from "../main/WorkerClient.js"
-import {
-	GroupKeyUpdateTypeRef,
-	UserGroupKeyDistributionTypeRef,
-	UserGroupRootTypeRef,
-	UserTypeRef,
-	WebsocketCounterData,
-	WebsocketLeaderStatus,
-} from "../entities/sys/TypeRefs.js"
+import { GroupKeyUpdateTypeRef, UserGroupKeyDistributionTypeRef, UserGroupRootTypeRef, UserTypeRef, WebsocketCounterData } from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
-import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { isAdminClient, isTest } from "../common/Env.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
@@ -31,7 +22,6 @@ import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
 	constructor(
-		private readonly connectivityListener: WebsocketConnectivityListener,
 		private readonly mailFacade: lazyAsync<MailFacade>,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
@@ -46,10 +36,6 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly identityKeyCreator: lazyAsync<IdentityKeyCreator>,
 		private readonly syncTracker: SyncTracker,
 	) {}
-
-	onWebsocketStateChanged(state: WsConnectionState) {
-		this.connectivityListener.updateWebSocketState(state)
-	}
 
 	async onEntityEventsReceived(
 		events: readonly EntityUpdateData[],
@@ -78,10 +64,6 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 	onError(tutanotaError: Error) {
 		this.sendError(tutanotaError)
-	}
-
-	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus) {
-		this.connectivityListener.onLeaderStatusChanged(leaderStatus)
 	}
 
 	onCounterChanged(counter: WebsocketCounterData) {
