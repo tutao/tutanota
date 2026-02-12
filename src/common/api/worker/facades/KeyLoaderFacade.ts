@@ -1,12 +1,11 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, Ed25519PrivateKey, EncryptedKeyPairs, isRsaOrRsaX25519KeyPair } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
-import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils"
+import { isKeyVersion, KeyVersion, lazyAsync, promiseMap, Versioned } from "@tutao/tutanota-utils"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
-import { lazyAsync, promiseMap } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -87,7 +86,7 @@ export class KeyLoaderFacade {
 		let group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
 		let currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 
-		if (requestedVersion > currentGroupKey.version) {
+		if (requestedVersion > currentGroupKey.version || requestedVersion > parseKeyVersion(group.groupKeyVersion)) {
 			group = (await (await this.cacheManagementFacade()).refreshKeyCache(keyPairGroupId)).group
 			currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 		}
