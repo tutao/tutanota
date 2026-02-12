@@ -124,7 +124,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				enabled: () => true,
 				help: "trash_action",
 				exec: () => {
-					this.driveViewModel.trashSelectedItems()
+					this.onDeleteDwim()
 				},
 			},
 			{
@@ -132,7 +132,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				enabled: () => true,
 				help: "trash_action",
 				exec: () => {
-					this.driveViewModel.trashSelectedItems()
+					this.onDeleteDwim()
 				},
 			},
 			{
@@ -251,11 +251,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								onDelete:
 									isListingTrash && listState.selectedItems.size > 0
 										? async () => {
-												const ok = await Dialog.confirm(
-													lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": listState.selectedItems.size }),
-													"confirmDeleteFilesPermanently_action",
-												)
-												if (ok) this.driveViewModel.deleteFromTrash(Array.from(listState.selectedItems))
+												this.deleteItems()
 											}
 										: null,
 								onRestore:
@@ -332,11 +328,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										this.driveViewModel.restoreFromTrash([item])
 									},
 									onDelete: async (item) => {
-										const ok = await Dialog.confirm(
-											lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": 1 }),
-											"confirmDeleteFilesPermanently_action",
-										)
-										if (ok) this.driveViewModel.deleteFromTrash([item])
+										this.deleteItems(item)
 									},
 									onRename: (item) => this.onRename(item),
 									onStartMove: (item) => {
@@ -414,5 +406,31 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			async (folderName) => this.driveViewModel.createNewFolder(folderName),
 			() => m.redraw(),
 		)
+	}
+
+	/**
+	 * Does-what-I-mean for deleting files; if the user is in the trash it will ask them to
+	 * delete the files forever. Otherwise it will just trash them. This is used for hotkeys such as DELETE.
+	 */
+	onDeleteDwim() {
+		if (this.driveViewModel.currentFolder?.type === DriveFolderType.Trash) {
+			this.deleteItems()
+		} else {
+			this.driveViewModel.trashSelectedItems()
+		}
+	}
+
+	/**
+	 * If passed an item, it will delete this specific item from trash.
+	 * If called without arguments, it will delete all currently selected items from trash.
+	 */
+	async deleteItems(item?: FolderItem) {
+		const items = item ? [item] : Array.from(this.driveViewModel.listState().selectedItems)
+
+		const ok = await Dialog.confirm(
+			lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": items.length }),
+			"confirmDeleteFilesPermanently_action",
+		)
+		if (ok) this.driveViewModel.deleteFromTrash(items)
 	}
 }
