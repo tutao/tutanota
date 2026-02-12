@@ -1,16 +1,12 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
 import { component_size } from "../gui/size.js"
-import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { contains, LazyLoaded, noOp } from "@tutao/tutanota-utils"
-import { FeatureType, GroupType } from "../api/common/TutanotaConstants.js"
+import { CustomerInfo, CustomerInfoTypeRef, PartnerManagedCustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { assertNotNull, noOp } from "@tutao/tutanota-utils"
+import { FeatureType } from "../api/common/TutanotaConstants.js"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
-
-import { compareGroupInfos } from "../api/common/utils/GroupUtils.js"
-import { elementIdPart } from "../api/common/utils/EntityUtils.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -29,6 +25,7 @@ import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
 import { ManagedCustomerViewer } from "./ManagedCustomerViewer"
+import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 
@@ -39,10 +36,10 @@ assertMainOrNode()
  */
 export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private listModel: ListElementListModel<GroupInfo>
-	private readonly renderConfig: RenderConfig<GroupInfo, ManagedCustomerRow> = {
+	private listModel: ListElementListModel<CustomerInfo>
+	private readonly renderConfig: RenderConfig<CustomerInfo, ManagedCustomerRow> = {
 		createElement: (dom) => {
-			const row = new ManagedCustomerRow((groupInfo) => this.isAdmin(groupInfo))
+			const row = new ManagedCustomerRow()
 			m.render(dom, row.render())
 			return row
 		},
@@ -51,8 +48,6 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 		multiselectionAllowed: MultiselectMode.Disabled,
 	}
 
-	private readonly listId: LazyLoaded<Id>
-	private adminManagedCustomerGroupInfoIds: Id[] = []
 	private listStateSubscription: Stream<unknown> | null = null
 	private listSelectionSubscription: Stream<unknown> | null = null
 
@@ -62,11 +57,6 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	) {
 		// doing it after "onSelectionChanged" is initialized
 		this.listModel = this.makeListModel()
-		this.listId = new LazyLoaded(async () => {
-			const customer = await locator.logins.getUserController().loadCustomer()
-			return customer.userGroups
-		})
-
 		this.listModel.loadInitial()
 
 		this.oncreate = this.oncreate.bind(this)
@@ -123,13 +113,13 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 						onLoadMore: () => this.listModel.loadMore(),
 						onRetryLoading: () => this.listModel.retryLoading(),
 						onStopLoading: () => this.listModel.stopLoading(),
-						onSingleSelection: (item: GroupInfo) => {
+						onSingleSelection: (item: CustomerInfo) => {
 							this.listModel.onSingleSelection(item)
 							this.focusDetailsViewer()
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-					} satisfies ListAttrs<GroupInfo, ManagedCustomerRow>),
+					} satisfies ListAttrs<CustomerInfo, ManagedCustomerRow>),
 		)
 	}
 
@@ -140,49 +130,58 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 		this.listSelectionSubscription?.end(true)
 	}
 
-	private async loadAdmins(): Promise<void> {
-		const adminGroupMembership = locator.logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin)
-		if (adminGroupMembership == null) {
-			return
-		}
-		const members = await locator.entityClient.loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
-		this.adminManagedCustomerGroupInfoIds = members.map((adminGroupMember) => elementIdPart(adminGroupMember.userGroupInfo))
-	}
+	private async addButtonClicked() {
+		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
-	private isAdmin(userGroupInfo: GroupInfo): boolean {
-		return contains(this.adminManagedCustomerGroupInfoIds, userGroupInfo._id[1])
-	}
-
-	private addButtonClicked() {
-		//AddManagedCustomerDialog.show()
+		const campaignUrl = `/signup?t-src=${customerInfo.promotionId}&type=business&interval=12`
+		window.open(campaignUrl)
 	}
 
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
+			const listId = locator.logins.getUserController().user.customer
+			if (isUpdateForTypeRef(PartnerManagedCustomerTypeRef, update) && listId === update.instanceListId) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			} else if (isUpdateFor(locator.logins.getUserController().user, update)) {
-				await this.loadAdmins()
 				this.listModel.reapplyFilter()
-			}
+			} //else if(isUpdateFor(CustomerInfoTypeRef, update)){
+
+			//}
 			m.redraw()
 		}
 	}
 
-	private makeListModel(): ListElementListModel<GroupInfo> {
-		const listModel = new ListElementListModel<GroupInfo>({
-			sortCompare: compareGroupInfos,
-			fetch: async (_lastFetchedEntity) => {
-				await this.loadAdmins()
-				const listId = await this.listId.getAsync()
-				const allManagedCustomerGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
+	private getCustomerInfoDisplayName(groupInfo: CustomerInfo): string {
+		if (groupInfo.company) {
+			return groupInfo.company
+		} else if (groupInfo.registrationMailAddress) {
+			return groupInfo.registrationMailAddress
+		} else {
+			return ""
+		}
+	}
 
-				return { items: allManagedCustomerGroupInfos, complete: true }
+	private compareCustomerInfos(a: CustomerInfo, b: CustomerInfo): number {
+		return this.getCustomerInfoDisplayName(a).localeCompare(this.getCustomerInfoDisplayName(b))
+	}
+
+	private makeListModel(): ListElementListModel<CustomerInfo> {
+		const listModel = new ListElementListModel<CustomerInfo>({
+			sortCompare: this.compareCustomerInfos,
+			fetch: async (_lastFetchedEntity) => {
+				const listId = assertNotNull(locator.logins.getUserController().user.customer)
+				const managedCustomers = await locator.entityClient.loadAll(PartnerManagedCustomerTypeRef, listId)
+				const customerInfoIds = managedCustomers.map((customer) => elementIdPart(customer.customerInfo))
+				const customerInfos = await locator.entityClient.loadMultiple(
+					CustomerInfoTypeRef,
+					listIdPart(managedCustomers[0].customerInfo),
+					customerInfoIds,
+				)
+				return { items: customerInfos, complete: true }
 			},
 			loadSingle: async (_listId: Id, elementId: Id) => {
-				const listId = await this.listId.getAsync()
 				try {
-					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
+					return await locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, [_listId, elementId])
 				} catch (e) {
 					if (e instanceof NotFoundError) {
 						// we return null if the GroupInfo does not exist
@@ -209,7 +208,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 				detailsViewer = null
 			} else {
 				const item = newSelection.values().next().value
-				detailsViewer = new ManagedCustomerViewer(item, this.isAdmin(item))
+				detailsViewer = new ManagedCustomerViewer(item)
 			}
 			this.updateDetailsViewer(detailsViewer)
 			m.redraw()
@@ -217,12 +216,12 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 		return listModel
 	}
 
-	private queryFilter(gi: GroupInfo) {
+	private queryFilter(gi: CustomerInfo) {
 		const lowercaseSearch = this.searchQuery.toLowerCase()
 		return (
-			gi.name.toLowerCase().includes(lowercaseSearch) ||
-			(!!gi.mailAddress && gi.mailAddress?.toLowerCase().includes(lowercaseSearch)) ||
-			gi.mailAddressAliases.some((mai) => mai.mailAddress.toLowerCase().includes(lowercaseSearch))
+			gi.company?.toLowerCase().includes(lowercaseSearch) ||
+			(!!gi.registrationMailAddress && gi.registrationMailAddress?.toLowerCase().includes(lowercaseSearch)) ||
+			gi.domainInfos.some((domain) => domain.domain.toLowerCase().includes(lowercaseSearch))
 		)
 	}
 
@@ -236,28 +235,27 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	}
 }
 
-export class ManagedCustomerRow implements VirtualRow<GroupInfo> {
+export class ManagedCustomerRow implements VirtualRow<CustomerInfo> {
 	top: number = 0
 	domElement: HTMLElement | null = null // set from List
-	entity: GroupInfo | null = null
+	entity: CustomerInfo | null = null
 	private nameDom!: HTMLElement
 	private addressDom!: HTMLElement
 	private adminIconDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
 	private selectionUpdater!: SelectableRowSelectedSetter
 
-	constructor(private readonly isAdmin: (groupInfo: GroupInfo) => boolean) {}
+	constructor() {}
 
-	update(groupInfo: GroupInfo, selected: boolean): void {
-		this.entity = groupInfo
+	update(customerInfo: CustomerInfo, selected: boolean): void {
+		this.entity = customerInfo
 
 		this.selectionUpdater(selected, false)
 
-		this.nameDom.textContent = groupInfo.name
-		this.addressDom.textContent = groupInfo.mailAddress ? groupInfo.mailAddress : ""
+		this.nameDom.textContent = customerInfo.company
+		this.addressDom.textContent = customerInfo.registrationMailAddress ? customerInfo.registrationMailAddress : ""
 
-		setVisibility(this.adminIconDom, this.isAdmin(groupInfo))
-		setVisibility(this.deletedIconDom, groupInfo.deleted != null)
+		setVisibility(this.deletedIconDom, customerInfo.deletionTime != null)
 	}
 
 	/**

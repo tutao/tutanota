@@ -142,7 +142,6 @@ export type Customer = {
 	orderProcessingAgreement: null | IdTuple;
 	rejectedSenders: null | RejectedSendersRef;
 	referralCode: null | Id;
-	managedByPartner: null | Id;
 }
 export const AuthenticatedDeviceTypeRef: TypeRef<AuthenticatedDevice> = new TypeRef("sys", 43)
 
@@ -437,6 +436,7 @@ export type CustomerInfo = {
 	perUserStorageCapacity: NumberString;
 	perUserAliasCount: NumberString;
 	plan: NumberString;
+	promotionId: null | string;
 
 	customer: Id;
 	accountingInfo: Id;
@@ -448,6 +448,8 @@ export type CustomerInfo = {
 	referredBy: null | Id;
 	customPlan: null | PlanConfiguration;
 	supportInfo: null | Id;
+	managedByPartner: null | Id;
+	partnerManagedCustomers: null | Id;
 }
 export const SentGroupInvitationTypeRef: TypeRef<SentGroupInvitation> = new TypeRef("sys", 195)
 

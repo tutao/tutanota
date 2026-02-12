@@ -38,26 +38,14 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 	private readonly customer = new LazyLoaded(() => this.loadCustomer())
 	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
 	private groupsTableAttrs: TableAttrs | null = null
-	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
 
-	constructor(
-		public userGroupInfo: GroupInfo,
-		private isAdmin: boolean,
-	) {
+	constructor(public userGroupInfo: GroupInfo) {
 		this.userGroupInfo = userGroupInfo
 
 		this.mailAddressTableExpanded = false
-
-		this.secondFactorsForm = new SecondFactorsEditForm(
-			this.user,
-			locator.domainConfigProvider(),
-			locator.loginFacade,
-			this.isAdmin,
-			!!this.userGroupInfo.deleted,
-		)
 
 		this.teamGroupInfos.getAsync().then(async (availableTeamGroupInfos) => {
 			if (availableTeamGroupInfos.length > 0) {
@@ -129,13 +117,7 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 					isReadOnly: true,
 				} as const),
 			]),
-			m("", [
-				this.renderName(),
-				m(TextField, passwordFieldAttrs),
-				locator.logins.getUserController().isGlobalAdmin() ? this.renderAdminStatusSelector() : null,
-				this.renderManagedCustomerStatusSelector(),
-			]),
-			m(this.secondFactorsForm),
+			m("", [this.renderName(), m(TextField, passwordFieldAttrs), this.renderManagedCustomerStatusSelector()]),
 			this.groupsTableAttrs ? m(".h4.mt-32.mb-8", lang.get("groups_label")) : null,
 			this.groupsTableAttrs ? m(Table, this.groupsTableAttrs) : null,
 			this.mailAddressTableModel
@@ -178,50 +160,6 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 		)
 	}
 
-	private renderAdminStatusSelector(): Children {
-		return m(DropDownSelector, {
-			label: "globalAdmin_label",
-			items: [
-				{
-					name: lang.get("no_label"),
-					value: false,
-				},
-				{
-					name: lang.get("yes_label"),
-					value: true,
-				},
-			],
-			selectedValue: this.isAdmin,
-			selectionChangedHandler: (value: boolean) => {
-				if (this.userGroupInfo.deleted) {
-					Dialog.message("userAccountDeactivated_msg")
-				} else if (this.isItMe()) {
-					Dialog.message("removeOwnAdminFlagInfo_msg")
-				} else {
-					showProgressDialog(
-						"pleaseWait_msg",
-						this.user
-							.getAsync()
-							.then((user) => locator.userManagementFacade.changeAdminFlag(user, value))
-							.catch(
-								ofClass(PreconditionFailedError, (e) => {
-									if (e.data && e.data === "usergroup.pending-key-rotation") {
-										//makeAdminPendingManagedCustomerGroupKeyRotationError_msg
-										Dialog.message("pleaseWait_msg")
-									} else if (e.data === "multiadmingroup.pending-key-rotation") {
-										// when a multi admin key rotation is scheduled we do not want to introduce new members into the admin group
-										Dialog.message("cannotAddAdminWhenMultiAdminKeyRotationScheduled_msg")
-									} else {
-										throw e
-									}
-								}),
-							),
-					)
-				}
-			},
-		})
-	}
-
 	private renderManagedCustomerStatusSelector(): Children {
 		return m(DropDownSelector, {
 			label: "state_label",
@@ -237,9 +175,7 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 			],
 			selectedValue: this.userGroupInfo.deleted == null,
 			selectionChangedHandler: (activate: boolean) => {
-				if (this.isAdmin) {
-					Dialog.message("deactivateOwnAccountInfo_msg")
-				} else if (activate) {
+				if (activate) {
 					this.restoreManagedCustomer()
 				} else {
 					this.deleteManagedCustomer()
@@ -255,8 +191,6 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 	private changePassword(): void {
 		if (this.isItMe()) {
 			showChangeOwnPasswordDialog()
-		} else if (this.isAdmin) {
-			Dialog.message("changeAdminPassword_msg")
 		} else {
 			this.user.getAsync().then((user) => {
 				console.log("showChangeManagedCustomerPasswordAsAdminDialog")
@@ -347,7 +281,6 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 
 	private async updateUsedStorageAndAdminFlag(): Promise<void> {
 		const user = await this.user.getAsync()
-		this.isAdmin = this.isAdminManagedCustomer(user)
 		try {
 			this.usedStorage = await locator.userManagementFacade.readUsedUserStorage(user)
 			m.redraw()
@@ -425,7 +358,6 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 				await this.updateUsedStorageAndAdminFlag()
 				await this.updateGroups()
 			}
-			await this.secondFactorsForm.entityEventReceived(update)
 		}
 		m.redraw()
 	}

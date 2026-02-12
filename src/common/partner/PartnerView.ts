@@ -63,7 +63,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		this.logins = vnode.attrs.logins
 		this._partnerFolders = [
 			new SettingsFolder(
-				() => "adminUserList_action",
+				() => "adminManagedCustomerList_action",
 				() => BootIcons.User,
 				"users",
 				() =>

@@ -750,15 +750,6 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2054,
 				"dependency": null
-			},
-			"2681": {
-				"final": false,
-				"name": "managedByPartner",
-				"id": 2681,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "ZeroOrOne",
-				"refTypeId": 31,
-				"dependency": null
 			}
 		}
 	},
@@ -2120,6 +2111,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2682": {
+				"final": true,
+				"name": "promotionId",
+				"id": 2682,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -2211,6 +2210,24 @@ export const typeModels = {
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2189,
+				"dependency": null
+			},
+			"2681": {
+				"final": true,
+				"name": "managedByPartner",
+				"id": 2681,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 31,
+				"dependency": null
+			},
+			"2683": {
+				"final": true,
+				"name": "partnerManagedCustomers",
+				"id": 2683,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2672,
 				"dependency": null
 			}
 		}

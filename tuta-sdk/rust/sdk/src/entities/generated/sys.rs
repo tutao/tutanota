@@ -234,8 +234,6 @@ pub struct Customer {
 	pub rejectedSenders: Option<RejectedSendersRef>,
 	#[serde(rename = "2061")]
 	pub referralCode: Option<GeneratedId>,
-	#[serde(rename = "2681")]
-	pub managedByPartner: Option<GeneratedId>,
 }
 
 impl Entity for Customer {
@@ -718,6 +716,8 @@ pub struct CustomerInfo {
 	pub perUserAliasCount: i64,
 	#[serde(rename = "2098")]
 	pub plan: i64,
+	#[serde(rename = "2682")]
+	pub promotionId: Option<String>,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
@@ -738,6 +738,10 @@ pub struct CustomerInfo {
 	pub customPlan: Option<PlanConfiguration>,
 	#[serde(rename = "2197")]
 	pub supportInfo: Option<GeneratedId>,
+	#[serde(rename = "2681")]
+	pub managedByPartner: Option<GeneratedId>,
+	#[serde(rename = "2683")]
+	pub partnerManagedCustomers: Option<GeneratedId>,
 }
 
 impl Entity for CustomerInfo {
