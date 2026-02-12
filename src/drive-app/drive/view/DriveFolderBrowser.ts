@@ -36,7 +36,7 @@ export class DriveFolderBrowser implements Component<DriveMiniFolderContentAttrs
 						return m(DriveFolderBrowserEntry, {
 							key: elementId,
 							item: item,
-							isInvalidTarget: disabledTargetIds.has(elementId),
+							isInvalidTarget: disabledTargetIds.has(elementId) || item.type === "file",
 							selected: false,
 							onSingleSelection: onItemClicked,
 						} satisfies DriveFolderBrowserEntryAttrs & { key: string })
