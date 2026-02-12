@@ -16,7 +16,7 @@ import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
-import { FeatureType, GroupType, PlanType } from "../../common/api/common/TutanotaConstants"
+import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
@@ -963,7 +963,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	private async updateShowAffiliateSettings() {
 		const customer = await this.logins.getUserController().loadCustomer()
-		this.showAffiliateSettings = isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner)
+		this.showAffiliateSettings =
+			isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner) && !this.logins.isEnabled(FeatureType.SolutionPartner)
 	}
 
 	private async doExportUsers() {

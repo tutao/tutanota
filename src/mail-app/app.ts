@@ -44,7 +44,7 @@ import { CommonLocator } from "../common/api/main/CommonLocator"
 import type { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
 import type { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import type { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
-import { PartnerView, PartnerViewAttrs } from "./partner/PartnerView"
+import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -686,7 +686,7 @@ import("./translations/en.js")
 			>(
 				{
 					prepareRoute: async () => {
-						const { PartnerView } = await import("./partner/PartnerView.js")
+						const { PartnerView } = await import("../common/partner/PartnerView.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: PartnerView,

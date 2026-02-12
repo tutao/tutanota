@@ -24,6 +24,7 @@ export class SettingsFolder<T> {
 	 * @param path Either a string which means URL like `/settings/mail` or an object which means URL like `/settings/templates/1`
 	 * @param viewerCreator A function to produce instances of {@link UpdatableSettingsViewer}.
 	 * @param data Additional data that the folder can carry
+	 * @param pathId used in case the settings must be under a different path
 	 */
 	constructor(
 		readonly name: () => MaybeTranslation,
@@ -31,12 +32,13 @@ export class SettingsFolder<T> {
 		path: string | SettingsFolderPath,
 		readonly viewerCreator: lazy<UpdatableSettingsViewer>,
 		readonly data: T,
+		readonly pathId = "settings",
 	) {
 		this.path = typeof path === "string" ? { folder: path, id: null } : path
 		this.url =
 			this.path.id == null
-				? `/settings/${encodeURIComponent(this.path.folder)}`
-				: `/settings/${encodeURIComponent(this.path.folder)}/${encodeURIComponent(this.path.id)}`
+				? `/${pathId}/${encodeURIComponent(this.path.folder)}`
+				: `/${pathId}/${encodeURIComponent(this.path.folder)}/${encodeURIComponent(this.path.id)}`
 
 		this._isVisibleHandler = () => true
 	}

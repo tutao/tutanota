@@ -2216,3 +2216,6 @@ export type TranslationKeyType =
 	| "cannotMoveFolderIntoItself_msg"
 	| "transferWaiting_msg"
 	| "emptyString_msg"
+	| "partnerSettings_label"
+	| "searchManagedCustomers_placeholder"
+	| "addManagedCustomers_action"

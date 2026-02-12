@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { ButtonColor } from "../base/Button.js"
 import { BootIcons } from "../base/icons/BootIcons"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
-import { isIOSApp, isWebClient } from "../../api/common/Env"
+import { isIOSApp } from "../../api/common/Env"
 import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { getSafeAreaInsetLeft } from "../HtmlUtils"
 import { Icons } from "../base/icons/Icons"
@@ -148,5 +148,9 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 }
 
 export function isPartnerEnabled(loginController: LoginController): boolean {
-	return isWebClient() && loginController.isInternalUserLoggedIn() && loginController.isEnabled(FeatureType.SolutionPartner)
+	return (
+		loginController.isInternalUserLoggedIn() &&
+		loginController.isEnabled(FeatureType.SolutionPartner) &&
+		loginController.getUserController().isGlobalAdmin()
+	)
 }
