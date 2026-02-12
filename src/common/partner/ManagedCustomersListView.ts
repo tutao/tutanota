@@ -20,7 +20,7 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
@@ -28,6 +28,20 @@ import { ManagedCustomerViewer } from "./ManagedCustomerViewer"
 import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
+
+function getCustomerInfoDisplayName(groupInfo: CustomerInfo): string {
+	if (groupInfo.company) {
+		return groupInfo.company
+	} else if (groupInfo.registrationMailAddress) {
+		return groupInfo.registrationMailAddress
+	} else {
+		return ""
+	}
+}
+
+function compareCustomerInfos(a: CustomerInfo, b: CustomerInfo): number {
+	return getCustomerInfoDisplayName(a).localeCompare(getCustomerInfoDisplayName(b))
+}
 
 /**
  * Displays a list with users that are available to manage by the current user.
@@ -139,39 +153,27 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			const listId = locator.logins.getUserController().user.customer
-			if (isUpdateForTypeRef(PartnerManagedCustomerTypeRef, update) && listId === update.instanceListId) {
-				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
-			} else if (isUpdateFor(locator.logins.getUserController().user, update)) {
-				this.listModel.reapplyFilter()
-			} //else if(isUpdateFor(CustomerInfoTypeRef, update)){
+			if (isUpdateForTypeRef(PartnerManagedCustomerTypeRef, update)) {
+				const partnerManagedCustomer = await locator.entityClient.load(PartnerManagedCustomerTypeRef, [update.instanceListId, update.instanceId])
+				const customerInfoId = partnerManagedCustomer.customerInfo
+				await this.listModel.entityEventReceived(listIdPart(customerInfoId), elementIdPart(customerInfoId), update.operation)
+			}
 
-			//}
 			m.redraw()
 		}
 	}
 
-	private getCustomerInfoDisplayName(groupInfo: CustomerInfo): string {
-		if (groupInfo.company) {
-			return groupInfo.company
-		} else if (groupInfo.registrationMailAddress) {
-			return groupInfo.registrationMailAddress
-		} else {
-			return ""
-		}
-	}
-
-	private compareCustomerInfos(a: CustomerInfo, b: CustomerInfo): number {
-		return this.getCustomerInfoDisplayName(a).localeCompare(this.getCustomerInfoDisplayName(b))
-	}
-
 	private makeListModel(): ListElementListModel<CustomerInfo> {
 		const listModel = new ListElementListModel<CustomerInfo>({
-			sortCompare: this.compareCustomerInfos,
+			sortCompare: compareCustomerInfos,
 			fetch: async (_lastFetchedEntity) => {
-				const listId = assertNotNull(locator.logins.getUserController().user.customer)
-				const managedCustomers = await locator.entityClient.loadAll(PartnerManagedCustomerTypeRef, listId)
+				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+				const managedCustomers = await locator.entityClient.loadAll(PartnerManagedCustomerTypeRef, assertNotNull(customerInfo.partnerManagedCustomers))
 				const customerInfoIds = managedCustomers.map((customer) => elementIdPart(customer.customerInfo))
+				if (managedCustomers.length < 1) {
+					return { items: [], complete: true }
+				}
+
 				const customerInfos = await locator.entityClient.loadMultiple(
 					CustomerInfoTypeRef,
 					listIdPart(managedCustomers[0].customerInfo),

@@ -6,10 +6,8 @@ import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
 import { lang } from "../misc/LanguageViewModel"
 import { AppHeaderAttrs, Header } from "../gui/Header.js"
-import { CustomerTypeRef, User } from "../api/entities/sys/TypeRefs.js"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
-import { GroupType } from "../api/common/TutanotaConstants"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/CommonLocator"
 import type { NavButtonAttrs } from "../gui/base/NavButton.js"
@@ -25,7 +23,7 @@ import { LoginController } from "../api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { BaseButton } from "../gui/base/buttons/BaseButton"
 import { showSupportDialog } from "../support/SupportDialog"
@@ -42,6 +40,16 @@ export interface PartnerViewAttrs extends TopLevelAttrs {
 	logins: LoginController
 }
 
+/**
+ * TODO
+ * * Customer management -> Customers
+ * * Add labels to POEditor
+ * * Adapt ManagedCustomerViewer to show some fields
+ * * Add Button to Login to /settings/ of a managed customer from ManagedCustomerViewer
+ * * Tests for Backend
+ * *
+ *
+ */
 export class PartnerView extends BaseTopLevelView implements TopLevelView<PartnerViewAttrs> {
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
@@ -313,28 +321,11 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		m.route.set(url + location.hash)
 	}
 
-	_isGlobalAdmin(user: User): boolean {
-		return user.memberships.some((m) => m.groupType === GroupType.Admin)
-	}
-
 	focusSettingsDetailsColumn() {
 		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	private async updateShowBusinessSettings() {
-		this.showBusinessSettings((await this.logins.getUserController().loadCustomer()).businessUse === true)
-	}
-
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		for (const update of updates) {
-			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-				await this.updateShowBusinessSettings()
-			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
-				const user = this.logins.getUserController().user
-				m.redraw()
-			}
-		}
-
 		await this._currentViewer?.entityEventsReceived(updates)
 
 		await this.detailsViewer?.entityEventsReceived(updates)
