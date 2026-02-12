@@ -53,7 +53,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 					},
 					[
 						m(
-							".h5.b.uppercase.text-ellipsis",
+							".h5.b.uppercase.text-ellipsis.no-shrink",
 							{ "data-testid": "dialog:movingItem_title" },
 							lang.getTranslation("movingItem_title", { "{itemName}": itemName }).text,
 						),
