@@ -33,6 +33,7 @@ import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunct
 import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
 import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
+import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -50,9 +51,11 @@ o.spec("EventBusClientTest", function () {
 	let entityClient: EntityClient
 	let cryptoFacadeMock: CryptoFacade
 	let eventInstancePrefetcher: EventInstancePrefetcher
+	let connectivityListenerMock: WebsocketConnectivityListener
 
 	function initEventBus() {
 		ebc = new EventBusClient(
+			connectivityListenerMock,
 			listenerMock,
 			cacheMock,
 			userMock,
@@ -129,6 +132,7 @@ o.spec("EventBusClientTest", function () {
 		entityClient = new EntityClient(restClient, typeModelResolver)
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		cryptoFacadeMock = object()
+		connectivityListenerMock = object()
 		initEventBus()
 	})
 
@@ -347,9 +351,9 @@ o.spec("EventBusClientTest", function () {
 			passedCb()
 
 			verify(firstSocket.close(), { ignoreExtraArgs: true, times: 1 })
-			verify(listenerMock.onWebsocketStateChanged(WsConnectionState.connecting))
+			verify(connectivityListenerMock.updateWebSocketState(WsConnectionState.connecting))
 			await secondSocket.onopen?.(new Event("open"))
-			verify(listenerMock.onWebsocketStateChanged(WsConnectionState.connected))
+			verify(connectivityListenerMock.updateWebSocketState(WsConnectionState.connected))
 		})
 	})
 

@@ -40,47 +40,30 @@ export class CalendarEventUpdateCoordinator {
 	 * Initialize the coordinator.  Designed to wait for the global sync process to complete before proceeding, to prevent concurrency issues.
 	 */
 	public async init() {
-		console.log(TAG, "init - isLeader", this.wsConnectivityModel.isLeader())
 		await this.syncTracker.waitSync() // await conclusion of global sync process
 
-		// initial setup for leader status (because subscription to leader stream doesn't immediately React upon subscribing)
-		if (this.wsConnectivityModel.isLeader()) {
-			await this.initAsLeader()
-		}
-
-		// subscribe to leader status stream to receive changes to the leader status change.
-		this.wsConnectivityModel.getLeaderStatusStream().map((newLeaderStatus) => {
-			// when we become leader client we want to process all existing calendar event updates that have not been processed yet.
-			console.log("LEADER STATUS STREAM REACTION:", newLeaderStatus)
-			this.onLeaderStatusChanged(newLeaderStatus)
+		// Subscribe to leaders status changes so we can process calendar event updates when the client becomes leader
+		this.wsConnectivityModel.addLeaderStatusListener((newLeaderStatus) => {
+			return this.onLeaderStatusChanged(newLeaderStatus)
 		})
-	}
 
+		// initialize the model depending on leader status state.
+		await this.onLeaderStatusChanged(this.wsConnectivityModel.isLeader())
+	}
 	public async onLeaderStatusChanged(isLeader: boolean) {
-		console.log(TAG, "onLeaderStatusChanged - isLeader", isLeader)
 		if (isLeader) {
-			await this.initAsLeader()
+			// Note that the order is important here. The initial loading of calendarEventUpdates must happen
+			// before registering event listener to prevent possible concurrency issues.
+			await this.loadAndProcessCalendarEventInvitesUpdates()
+			this.eventController.addEntityListener(this.entityEventListener)
 		} else {
 			this.eventController.removeEntityListener(this.entityEventListener)
 		}
 	}
 
-	/**
-	 * Contains steps to take whenever the current client becomes the leader client.
-	 * Note that order is important. Initial loading of calendarEventUpdates must happen
-	 * before registering event listener to prevent possible concurrency issues.
-	 * @private
-	 */
-	private async initAsLeader() {
-		await this.loadAndProcessCalendarEventInvitesUpdates()
-		this.eventController.addEntityListener(this.entityEventListener)
-	}
-
 	public async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) {
-		console.log("THIS value:", this)
 		for (const entityEventData of updates) {
 			if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
-				console.log("CalendarEventUpdateCoordinator listener called")
 				try {
 					const calendarEventUpdate = await this.entityClient.load(CalendarEventUpdateTypeRef, [
 						entityEventData.instanceListId,
@@ -89,7 +72,7 @@ export class CalendarEventUpdateCoordinator {
 					await this.handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate)
 				} catch (e) {
 					if (e instanceof NotFoundError) {
-						console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
+						console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId])
 					} else {
 						throw e
 					}
