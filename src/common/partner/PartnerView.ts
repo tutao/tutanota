@@ -1,53 +1,36 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, isIOSApp } from "../api/common/Env"
+import { assertMainOrNode } from "../api/common/Env"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
 import { lang } from "../misc/LanguageViewModel"
 import { AppHeaderAttrs, Header } from "../gui/Header.js"
-import { GlobalSettingsViewer } from "../../mail-app/settings/GlobalSettingsViewer"
-import { UserListView } from "../settings/UserListView.js"
-import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../api/entities/sys/TypeRefs.js"
-import { GroupListView } from "../../mail-app/settings/groups/GroupListView.js"
-import { WhitelabelSettingsViewer } from "../settings/whitelabel/WhitelabelSettingsViewer"
+import { CustomerTypeRef, User } from "../api/entities/sys/TypeRefs.js"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
-import { FeatureType, GroupType } from "../api/common/TutanotaConstants"
+import { GroupType } from "../api/common/TutanotaConstants"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/CommonLocator"
-import { SubscriptionViewer } from "../subscription/SubscriptionViewer"
-import { PaymentViewer } from "../subscription/PaymentViewer"
 import type { NavButtonAttrs } from "../gui/base/NavButton.js"
 import { NavButtonColor } from "../gui/base/NavButton.js"
 import { layout_size } from "../gui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
 import { SidebarSection } from "../gui/SidebarSection"
 import { SettingsFolderRow } from "../settings/SettingsFolderRow.js"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { exportUserCsv, loadUserExportData } from "../settings/UserDataExporter.js"
 import { BottomNav } from "../../mail-app/gui/BottomNav.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { ReferralSettingsViewer } from "../settings/ReferralSettingsViewer.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
-import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
-import { Dialog } from "../gui/base/Dialog.js"
-import { AboutDialog } from "../settings/AboutDialog.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { AffiliateSettingsViewer } from "../settings/AffiliateSettingsViewer.js"
-import { AffiliateKpisViewer } from "../settings/AffiliateKpisViewer.js"
 import { BaseButton } from "../gui/base/buttons/BaseButton"
 import { showSupportDialog } from "../support/SupportDialog"
 import { Icon, IconSize } from "../gui/base/Icon"
 import { getSupportUsageTestStage } from "../support/SupportUsageTestUtils.js"
-import { shouldHideBusinessPlans } from "../subscription/utils/SubscriptionUtils"
-import { ButtonType } from "../gui/base/Button"
-import { CancelledError } from "../api/common/error/CancelledError"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 
@@ -69,7 +52,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 	private _selectedFolder: SettingsFolder<unknown>
 	private _currentViewer: UpdatableSettingsViewer | null = null
 	private showBusinessSettings: stream<boolean> = stream(false)
-	private showAffiliateSettings: boolean = false
 	/**
 	 * The URL which we want to navigate to once everything is loaded.
 	 * Reset on selecting another settings folder.
@@ -85,12 +67,9 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 				() => BootIcons.User,
 				"users",
 				() =>
-					new UserListView(
+					new ManagedCustomerListView(
 						(viewer) => this.replaceDetailsViewer(viewer),
 						() => this.focusSettingsDetailsColumn(),
-						() => false,
-						() => {},
-						() => this.doExportUsers(),
 					),
 				undefined,
 				"partner",
@@ -194,144 +173,12 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		}
 	}
 
-	private async populateAdminFolders() {
-		await this.updateShowBusinessSettings()
-		await this.updateShowAffiliateSettings()
-		const currentPlanType = await this.logins.getUserController().getPlanType()
-
-		const adminFolders: SettingsFolder<unknown>[] = []
-
-		if (await this.logins.getUserController().canHaveUsers()) {
-			adminFolders.push(
-				new SettingsFolder(
-					() => "adminUserList_action",
-					() => BootIcons.User,
-					"users",
-					() =>
-						new ManagedCustomerListView(
-							(viewer) => this.replaceDetailsViewer(viewer),
-							() => this.focusSettingsDetailsColumn(),
-							() => false,
-							() => {},
-							() => this.doExportUsers(),
-						),
-					undefined,
-				),
-			)
-			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-				adminFolders.push(
-					new SettingsFolder(
-						() => "sharedMailboxes_label",
-						() => Icons.People,
-						"groups",
-						() =>
-							new GroupListView(
-								(viewer) => this.replaceDetailsViewer(viewer),
-								() => this.focusSettingsDetailsColumn(),
-							),
-						undefined,
-					),
-				)
-			}
-		}
-
-		if (this.logins.getUserController().isGlobalAdmin()) {
-			adminFolders.push(
-				new SettingsFolder(
-					() => "globalSettings_label",
-					() => BootIcons.Settings,
-					"global",
-					() => new GlobalSettingsViewer(),
-					undefined,
-				),
-			)
-
-			if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !shouldHideBusinessPlans()) {
-				adminFolders.push(
-					new SettingsFolder(
-						() => "whitelabel_label",
-						() => Icons.Wand,
-						"whitelabel",
-						() => new WhitelabelSettingsViewer(locator.entityClient, this.logins, locator.themeController, locator.whitelabelThemeGenerator),
-						undefined,
-					),
-				)
-			}
-		}
-
-		if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-			if (this.logins.getUserController().isGlobalAdmin()) {
-				adminFolders.push(
-					new SettingsFolder<void>(
-						() => "adminSubscription_action",
-						() => BootIcons.Premium,
-						"subscription",
-						() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
-						undefined,
-					),
-				)
-
-				adminFolders.push(
-					new SettingsFolder<void>(
-						() => "adminPayment_action",
-						() => Icons.CreditCard,
-						"invoice",
-						() => new PaymentViewer(),
-						undefined,
-					),
-				)
-
-				adminFolders.push(
-					new SettingsFolder(
-						() => "referralSettings_label",
-						() => BootIcons.Share,
-						"referral",
-						() => new ReferralSettingsViewer(),
-						undefined,
-					).setIsVisibleHandler(() => !this.showBusinessSettings()),
-				)
-
-				adminFolders.push(
-					new SettingsFolder(
-						() => "affiliateSettings_label",
-						() => BootIcons.Share,
-						"affiliate",
-						() =>
-							new AffiliateSettingsViewer(
-								() => this.viewSlider.focusedColumn === this._settingsDetailsColumn,
-								() => {
-									if (this.viewSlider.focusedColumn !== this._settingsDetailsColumn) {
-										this.replaceDetailsViewer(new AffiliateKpisViewer())
-										this.focusSettingsDetailsColumn()
-									} else {
-										this.replaceDetailsViewer(null)
-										this.viewSlider.focus(this._settingsColumn)
-									}
-								},
-							),
-						undefined,
-					).setIsVisibleHandler(() => this.showAffiliateSettings),
-				)
-			}
-		}
-		m.redraw()
-	}
-
 	private replaceDetailsViewer(viewer: UpdatableSettingsDetailsViewer | null): UpdatableSettingsDetailsViewer | null {
 		return (this.detailsViewer = viewer)
 	}
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
-		this.populateAdminFolders().then(() => {
-			// We have to wait for the mailSets to be initialized before setting the URL,
-			// otherwise we won't find the requested folder and will just pick the default folder
-			const routeWithoutHash = m.route.get().split("#", 2)[0]
-			const stillAtDefaultUrl = routeWithoutHash === this._partnerFolders[0].url
-			if (stillAtDefaultUrl && this.navTarget) {
-				this.onNewUrl({ folder: this.navTarget.folder }, this.navTarget.route)
-			}
-		})
 	}
 
 	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
@@ -485,10 +332,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				const user = this.logins.getUserController().user
 				m.redraw()
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
-				// When switching a plan we hide/show certain admin settings.
-				await this.populateAdminFolders()
-				m.redraw()
 			}
 		}
 
@@ -502,8 +345,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 	}
 
 	_bottomSection(): Children {
-		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-
 		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.gap-16", [
 			// Support button
 			m(BaseButton, {
@@ -530,102 +371,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 					void showSupportDialog(locator.logins)
 				},
 			}),
-			// About button
-			isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
 		])
-	}
-
-	_aboutThisSoftwareLink(): Children {
-		const label = lang.get("about_label")
-		const versionLabel = `Tuta v${env.versionNumber}`
-		return m(
-			"button.text-center.small.no-text-decoration",
-			{
-				style: {
-					backgroundColor: "transparent",
-				},
-				href: "#",
-				"aria-label": label,
-				"aria-description": versionLabel,
-				"aria-haspopup": "dialog",
-				onclick: () => {
-					this.viewSlider.focusNextColumn()
-					setTimeout(() => {
-						const dialog = Dialog.showActionDialog({
-							title: "about_label",
-							child: () =>
-								m(AboutDialog, {
-									onShowSetupWizard: () => {
-										dialog.close()
-										locator.showSetupWizard()
-									},
-								}),
-							allowOkWithReturn: true,
-							okAction: (dialog: Dialog) => dialog.close(),
-							allowCancel: false,
-						})
-					}, 200)
-				},
-			},
-			[
-				m("", versionLabel),
-				m(
-					".b",
-					{
-						style: {
-							color: theme.primary,
-						},
-					},
-					label,
-				),
-			],
-		)
-	}
-
-	private async updateShowAffiliateSettings() {
-		const customer = await this.logins.getUserController().loadCustomer()
-		this.showAffiliateSettings = isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner)
-	}
-
-	private async doExportUsers() {
-		try {
-			const progress = stream(0)
-			let progressText = lang.getTranslation("pleaseWait_msg")
-			const abortController = new AbortController()
-
-			const data = await showProgressDialog(
-				() => progressText,
-				loadUserExportData(
-					locator.entityClient,
-					this.logins,
-					locator.counterFacade,
-					(complete: number, total: number) => {
-						progressText = lang.getTranslation("userExportProgress_msg", {
-							"{current}": complete,
-							"{total}": total,
-						})
-						progress((complete / total) * 100)
-					},
-					abortController.signal,
-				),
-				progress,
-				{
-					middle: "exportUsers_action",
-					left: [
-						{
-							label: "cancel_action",
-							type: ButtonType.Primary,
-							click: () => abortController.abort(),
-						},
-					],
-				},
-			)
-			await exportUserCsv(data, locator.fileController)
-		} catch (e) {
-			if (e instanceof CancelledError) {
-				return
-			}
-			throw e
-		}
 	}
 }

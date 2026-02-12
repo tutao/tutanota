@@ -80,6 +80,7 @@ export default {
 		"adminSpamRuleInfo_msg": "Erläuterung zu den Spam-Regeln: ",
 		"adminSubscription_action": "Abonnement",
 		"adminUserList_action": "Benutzerverwaltung",
+		"adminManagedCustomerList_action": "Customer management",
 		"advanced_label": "Erweitert",
 		"affiliateSettings_label": "Affiliate-Programm",
 		"affiliateSettingsAccumulated_label": "Kumulierte Provision",

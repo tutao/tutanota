@@ -80,6 +80,7 @@ export default {
 		"adminSpamRuleInfo_msg": "Details for configuring spam rules: ",
 		"adminSubscription_action": "Plan",
 		"adminUserList_action": "User management",
+		"adminManagedCustomerList_action": "Customer management",
 		"advanced_label": "Advanced",
 		"affiliateSettings_label": "Affiliate program",
 		"affiliateSettingsAccumulated_label": "Accumulated commission",

@@ -59,9 +59,6 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	constructor(
 		private readonly updateDetailsViewer: (viewer: ManagedCustomerViewer | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
-		private readonly canImportManagedCustomers: () => boolean,
-		private readonly onImportManagedCustomers: () => unknown,
-		private readonly onExportManagedCustomers: () => unknown,
 	) {
 		// doing it after "onSelectionChanged" is initialized
 		this.listModel = this.makeListModel()

@@ -2219,3 +2219,4 @@ export type TranslationKeyType =
 	| "partnerSettings_label"
 	| "searchManagedCustomers_placeholder"
 	| "addManagedCustomers_action"
+	| "adminManagedCustomerList_action"
