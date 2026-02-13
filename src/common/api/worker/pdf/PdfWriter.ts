@@ -107,9 +107,9 @@ export class PdfWriter {
 	 */
 	makeTrailer(identifier: string): string {
 		let trailer = `trailer${NEW_LINE}<<${NEW_LINE}`
-		trailer += `/Size ${this.pdfObjectList.length + 1}`
-		trailer += `/Root ${this.pdfReferenceToString({ refId: "CATALOG" })}`
-		trailer += `/ID [<${identifier}> <${identifier}>]`
+		trailer += `/Size ${this.pdfObjectList.length + 1}${NEW_LINE}`
+		trailer += `/Root ${this.pdfReferenceToString({ refId: "CATALOG" })}${NEW_LINE}`
+		trailer += `/ID [<${identifier}> <${identifier}>]${NEW_LINE}`
 		trailer += `${NEW_LINE}>>${NEW_LINE}startxref${NEW_LINE}${this.byteLengthPosition}${NEW_LINE}%%EOF`
 		return trailer
 	}
@@ -165,11 +165,11 @@ export class PdfWriter {
 	}
 
 	pdfDictionaryToString(objectReferenceDict: Map<string, PdfDictValue>): string {
-		let referenceString = "<<" + " "
+		let referenceString = `<<${NEW_LINE}`
 		for (const [key, value] of objectReferenceDict) {
-			referenceString += `/${key} ${this.resolveDictValue(value)} `
+			referenceString += `/${key} ${this.resolveDictValue(value)}${NEW_LINE}`
 		}
-		referenceString += ">>"
+		referenceString += `>>${NEW_LINE}`
 		return referenceString
 	}
 
