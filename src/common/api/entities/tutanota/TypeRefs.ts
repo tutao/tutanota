@@ -247,7 +247,7 @@ export type Mail = {
 	processingState: NumberString;
 	processNeeded: boolean;
 	sendAt: null | Date;
-	serverClassifier: NumberString;
+	serverClassificationData: null | string;
 
 	sender: MailAddress;
 	attachments: IdTuple[];

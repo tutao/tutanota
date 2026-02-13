@@ -1051,10 +1051,10 @@ export const typeModels = {
 			},
 			"1812": {
 				"final": true,
-				"name": "serverClassifier",
+				"name": "serverClassificationData",
 				"id": 1812,
-				"type": "Number",
-				"cardinality": "One",
+				"type": "String",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
