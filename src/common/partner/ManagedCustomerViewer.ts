@@ -8,6 +8,7 @@ import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
 import { PlanType } from "../api/common/TutanotaConstants"
 import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
+import { Button, ButtonType } from "../gui/base/Button"
 
 assertMainOrNode()
 
@@ -44,15 +45,14 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 					value: this.getDisplayValueForPlan(this.customerInfo),
 					isReadOnly: true,
 				}),
+				m(Button, {
+					label: "openLoginNewWindow_action",
+					type: ButtonType.Primary,
+					click: () => window.open("/login?noAutoLogin=true"),
+				}),
 			]),
 		])
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
-		for (const update of updates) {
-			const { instanceListId, instanceId, operation } = update
-			//we might need the same as for the list
-		}
-		m.redraw()
-	}
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {}
 }

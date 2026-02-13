@@ -1,5 +1,4 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import stream from "mithril/stream"
 import { assertMainOrNode } from "../api/common/Env"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
@@ -42,39 +41,42 @@ export interface PartnerViewAttrs extends TopLevelAttrs {
 
 /**
  * TODO
- * * Customer management -> Customers
+ * * Customer management -> Customers -- DONE
  * * Add labels to POEditor
  * * Adapt ManagedCustomerViewer to show some fields --- DONE
- * * Add Button to Login to /settings/ of a managed customer from ManagedCustomerViewer
+ * * Add Button to Login to /settings/ of a managed customer from ManagedCustomerViewer -- DONE
  * * Tests for Backend
  * *
+ *  ---------------
  * * for the customer view, we do not get CustomerInfo entity updates as it's in another account
  * * It requires a re-login to see updated information, should we do something about it?
+ *
+ * * What to do in case a partnership ends? From either customer not wanting to be with Partner anymore (but keep mail)
+ * * or the partner not wanting the customer anymore.
  */
 export class PartnerView extends BaseTopLevelView implements TopLevelView<PartnerViewAttrs> {
+	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
+		m.route.set("/partner")
+	}
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn
 	private readonly _settingsDetailsColumn: ViewColumn
 	private readonly _partnerFolders: SettingsFolder<unknown>[]
-	private readonly logins: LoginController
 	private _selectedFolder: SettingsFolder<unknown>
 	private _currentViewer: UpdatableSettingsViewer | null = null
-	private showBusinessSettings: stream<boolean> = stream(false)
 	/**
 	 * The URL which we want to navigate to once everything is loaded.
 	 * Reset on selecting another settings folder.
 	 */
-	private navTarget: { folder: string; route: string } | null
 	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
 	constructor(vnode: Vnode<SettingsViewAttrs>) {
 		super()
-		this.logins = vnode.attrs.logins
 		this._partnerFolders = [
 			new SettingsFolder(
 				() => "adminManagedCustomerList_action",
 				() => BootIcons.User,
-				"users",
+				"customers",
 				() =>
 					new ManagedCustomerListView(
 						(viewer) => this.replaceDetailsViewer(viewer),
@@ -176,10 +178,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 			},
 		)
 		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn])
-		this.navTarget = {
-			folder: m.route.param("folder"),
-			route: m.route.get(),
-		}
 	}
 
 	private replaceDetailsViewer(viewer: UpdatableSettingsDetailsViewer | null): UpdatableSettingsDetailsViewer | null {
@@ -194,8 +192,8 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		locator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener = (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
-		return this.entityEventsReceived(updates, eventOwnerGroupId)
+	private entityListener = (updates: EntityUpdateData[]) => {
+		return this.entityEventsReceived(updates)
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -217,9 +215,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 			href: folder.url,
 			colors: NavButtonColor.Nav,
 			click: () => {
-				// clear nav target if we navigate away before admin
-				// mailSets are loaded
-				this.navTarget = null
 				this.viewSlider.focus(this._settingsColumn)
 			},
 			persistentBackground: true,
@@ -250,83 +245,11 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		return this._currentViewer
 	}
 
-	/**
-	 * Notifies the current view about changes of the url within its scope.
-	 */
-	onNewUrl(args: Record<string, any>, requestedPath: string) {
-		if (!args.folder) {
-			this._setUrl(this._partnerFolders[0].url)
-		} else if (args.folder || !m.route.get().startsWith("/partner")) {
-			// ensure that current viewer will be reinitialized
-			const folder = this._allSettingsFolders().find((folder) => folder.matches(args.folder, args.id))
-
-			if (!folder) {
-				this._setUrl(this._partnerFolders[0].url)
-			} else if (this._selectedFolder.isSameFolder(folder)) {
-				// folder path has not changed
-				this._selectedFolder = folder // instance of SettingsFolder might have been changed in membership update, so replace this instance
-
-				m.redraw()
-				this.scrollSectionIntoView(requestedPath)
-			} else {
-				// folder path has changed
-				// to avoid misleading information, set the url to the folder's url, so the browser url
-				// is changed to correctly represents the displayed content
-				this._setUrl(folder.url)
-				this._selectedFolder = folder
-				this._currentViewer = null
-				this.detailsViewer = null
-
-				// make sure the currentViewer is available
-				this._getCurrentViewer()
-
-				m.redraw()
-				this.scrollSectionIntoView(requestedPath)
-			}
-		}
-	}
-
-	/** If the URL specifies `#section=mysection` try to find the mentioned view and highlight it*/
-	private scrollSectionIntoView(requestedPath: string) {
-		const hashParams = requestedPath.split("#", 2)[1]
-		const section = hashParams ? m.parseQueryString(hashParams).section : null
-		if (typeof section === "string") {
-			// we don't know when the render will happen so we just delay it slightly
-			setTimeout(() => {
-				console.log(`scrolling ${section} into view`)
-				const sectionElement = document.getElementById(section)
-				if (sectionElement) {
-					sectionElement?.scrollIntoView({ behavior: "smooth", block: "start" })
-					// do a quick flash of the target element
-					sectionElement.animate(
-						[
-							{ background: "orange", easing: "ease-in-out " },
-							{ background: "initial", easing: "ease-out" },
-							{ background: "orange", easing: "ease-out" },
-							{ background: "initial", easing: "ease-out" },
-						],
-						900,
-					)
-				} else {
-					console.warn(`Could not find view for section "${section}"`)
-				}
-			}, 250)
-		}
-	}
-
-	_allSettingsFolders(): ReadonlyArray<SettingsFolder<unknown>> {
-		return [...this._partnerFolders]
-	}
-
-	_setUrl(url: string) {
-		m.route.set(url + location.hash)
-	}
-
 	focusSettingsDetailsColumn() {
 		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		await this._currentViewer?.entityEventsReceived(updates)
 
 		await this.detailsViewer?.entityEventsReceived(updates)

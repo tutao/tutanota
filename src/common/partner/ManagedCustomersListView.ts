@@ -243,7 +243,6 @@ export class ManagedCustomerRow implements VirtualRow<CustomerInfo> {
 	entity: CustomerInfo | null = null
 	private nameDom!: HTMLElement
 	private addressDom!: HTMLElement
-	private adminIconDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
 	private selectionUpdater!: SelectableRowSelectedSetter
 
@@ -280,14 +279,6 @@ export class ManagedCustomerRow implements VirtualRow<CustomerInfo> {
 						oncreate: (vnode) => (this.addressDom = vnode.dom as HTMLElement),
 					}),
 					m(".icons.flex", [
-						m(Icon, {
-							icon: BootIcons.Settings,
-							oncreate: (vnode) => (this.adminIconDom = vnode.dom as HTMLElement),
-							class: "svg-list-accent-fg",
-							style: {
-								display: "none",
-							},
-						}),
 						m(Icon, {
 							icon: Icons.Trash,
 							oncreate: (vnode) => (this.deletedIconDom = vnode.dom as HTMLElement),

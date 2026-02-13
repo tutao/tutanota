@@ -1279,6 +1279,7 @@ export default {
 		"openKnowledgebase_action": "Open the knowledge base window",
 		"openMailApp_msg": "This action will open Tuta Mail App, do you want to continue?",
 		"openNewWindow_action": "New Window",
+		"openLoginNewWindow_action": "Open login in new window",
 		"openSource_label": "Open source",
 		"openTemplatePopup_msg": "Open templates pop-up",
 		"operationStillActive_msg": "This operation can not be executed at the moment because another operation is still running. Please try again later.",

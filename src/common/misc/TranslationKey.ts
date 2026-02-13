@@ -2221,3 +2221,4 @@ export type TranslationKeyType =
 	| "searchManagedCustomers_placeholder"
 	| "addManagedCustomers_action"
 	| "adminManagedCustomerList_action"
+	| "openLoginNewWindow_action"
