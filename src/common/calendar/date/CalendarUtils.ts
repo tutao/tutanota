@@ -185,7 +185,7 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 		.toJSDate()
 }
 
-/** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
+/** takes a date which **MUST** have the day in UTC where the event happens and produces a date that encodes the same day but in local time zone. All times must be 0. */
 export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 	return DateTime.fromJSDate(utcDate, { zone: "utc" })
 		.setZone(zone, { keepLocalTime: true })
@@ -873,14 +873,9 @@ export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: s
 /** @param date encodes some calendar date in {@param zone} (like the 1st of May 2023)
  * @returns {Date} encodes the same calendar date in UTC */
 export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, { zone })
-		.setZone("utc", { keepLocalTime: true })
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
+	return DateTime.fromJSDate(date, { zone }) // Apply this zone to the date provided - changing time and date if necessary
+		.setZone("utc", { keepLocalTime: true }) // Change the zone to UTC but keep the Day.Month.Year and Time
+		.startOf("day")
 		.toJSDate()
 }
 
@@ -1456,6 +1451,7 @@ export function findNextAlarmOccurrence(
 				: new Date(Number(repeatRule.endValue))
 			: null
 
+	let counter = 0
 	while (repeatRule.endType !== EndType.Count || occurrenceNumber < Number(repeatRule.endValue)) {
 		const maxDate = incrementByRepeatPeriod(
 			calcEventStart,
@@ -1463,6 +1459,8 @@ export function findNextAlarmOccurrence(
 			Number(repeatRule.interval) * (occurrenceNumber + 1),
 			isAllDayEvent ? localTimeZone : timeZone,
 		)
+
+		console.log(">>> Generator for maxDate: ", maxDate.toISOString())
 
 		if (endDate && maxDate.getTime() >= endDate.getTime()) {
 			return null
@@ -1483,6 +1481,7 @@ export function findNextAlarmOccurrence(
 				const alarmTime = calculateAlarmTime(startTime, alarmTrigger, localTimeZone)
 
 				if (alarmTime >= now) {
+					console.log("num of calcs:", counter)
 					return {
 						alarmTime,
 						occurrenceNumber: occurrenceNumber,
@@ -1490,6 +1489,7 @@ export function findNextAlarmOccurrence(
 					}
 				}
 			}
+			counter++
 			occurrenceNumber++
 		}
 	}
