@@ -67,7 +67,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			unread: true,
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
-			serverClassifier: "10",
+			serverClassificationData: "0,10",
 		})
 
 		folderSystem = object<FolderSystem>()
@@ -85,9 +85,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 
 			userController.user = createTestEntity(UserTypeRef)
 
-			when(spamClassifier.createModelInputAndUploadVector(anything(), anything(), anything(), anything())).thenResolve({
+			when(spamClassifier.createModelInputAndUploadVector(anything(), anything())).thenResolve({
 				modelInput: [],
-				vectorNewFormatToUpload: compressedUnencryptedTestVector,
+				uploadableVector: compressedUnencryptedTestVector,
 			})
 			spamHandler = new SpamClassificationHandler(spamClassifier)
 		})
@@ -101,8 +101,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: spamFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -120,8 +120,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: inboxFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -139,8 +139,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: spamFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -158,8 +158,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: inboxFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -177,8 +177,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: inboxFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -202,8 +202,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: inboxFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -224,8 +224,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: inboxFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -245,8 +245,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: spamFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 
@@ -257,7 +257,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 
 		o("mail is not predicted if classified by trusted serverClassifier", async function () {
 			mail.sets = [spamFolder._id]
-			mail.serverClassifier = "10"
+			mail.serverClassificationData = "0,10"
 			SERVER_CLASSIFIERS_TO_TRUST.add(10)
 
 			const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
@@ -266,8 +266,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 				mailId: mail._id,
 				targetMoveFolder: spamFolder._id,
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-				vector: compressedUnencryptedTestVector,
-				vectorNewFormat: compressedUnencryptedTestVector,
+				vectorLegacy: compressedUnencryptedTestVector,
+				vectorWithServerClassifiers: compressedUnencryptedTestVector,
 				ownerEncMailSessionKeys: [],
 			}
 

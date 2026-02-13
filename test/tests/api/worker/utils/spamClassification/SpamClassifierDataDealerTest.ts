@@ -50,7 +50,8 @@ function createSpamTrainingDatumByConfidenceAndDecision(
 		_ownerGroup: "group",
 		confidence,
 		spamDecision,
-		vector: new Uint8Array(),
+		vectorLegacy: new Uint8Array(),
+		vectorWithServerClassifiers: new Uint8Array(),
 	})
 }
 
@@ -107,10 +108,10 @@ o.spec("SpamClassifierDataDealer", () => {
 			modifiedClientSpamTrainingDataIndex: "modifiedClientSpamTrainingDataIndex",
 		})
 		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail" })
-		when(mailFacadeMock.createModelInputAndUploadVector(anything(), anything(), anything(), anything())).thenResolve({
+		when(mailFacadeMock.createModelInputAndUploadableVectors(anything(), anything(), anything())).thenResolve({
 			modelInput: new Array(1),
-			vectorNewFormatToUpload: new Uint8Array(1),
-			vectorToUpload: new Uint8Array(1),
+			uploadableVectorLegacy: new Uint8Array(1),
+			uploadableVector: new Uint8Array(1),
 		})
 		spamClassificationDataDealer = new SpamClassifierDataDealer(
 			entityClientMock,

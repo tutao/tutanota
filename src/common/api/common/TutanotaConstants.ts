@@ -14,8 +14,6 @@ import {
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { MailModel } from "../../../mail-app/mail/model/MailModel"
-import { FolderInfo } from "../../../mail-app/mail/model/MailUtils"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
@@ -1550,3 +1548,9 @@ export enum ProcessingState {
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
 
 export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"
+/**
+ * We pick a max word frequency of 2^5 so that we can compress it together
+ * with the index (which is 2^11 =2048) into two bytes
+ */
+export const MAX_WORD_FREQUENCY = 31
+export const DEFAULT_VECTOR_MAX_LENGTH = 2048
