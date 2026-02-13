@@ -164,7 +164,6 @@ export class PdfDocument {
 		this.pdfWriter.createObject(
 			new Map<string, PdfDictValue>([
 				["Type", "/Pages"],
-				["Parent", { refId: "CATALOG" }],
 				["Kids", this.pageList],
 				["Count", `${this.pageCount}`],
 			]),
