@@ -58,9 +58,9 @@ export class PdfObject {
 				throw new Error(
 					`Unresolved reference in object: ${this.objectNumber}. Unresolved reference found as value of: "${key}". Cannot encode an object that has unresolved references, aborting...`,
 				)
-			head += `/${key} ${val}`
+			head += `/${key} ${val}${NEW_LINE}`
 		}
-		head += `${NEW_LINE}>>${NEW_LINE}`
+		head += `>>${NEW_LINE}`
 		return head
 	}
 

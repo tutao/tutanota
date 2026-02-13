@@ -24,7 +24,7 @@ export class PdfStreamObject extends PdfObject {
 	public parseObjectHead(): string {
 		let head = `${this.objectNumber} ${GENERATION_NUMBER} obj${NEW_LINE}<<${NEW_LINE}`
 		for (const [key, val] of this.objectDictionary) {
-			head += `/${key} ${val}`
+			head += `/${key} ${val}${NEW_LINE}`
 		}
 		head += `${NEW_LINE}>>${NEW_LINE}stream${NEW_LINE}`
 		return head

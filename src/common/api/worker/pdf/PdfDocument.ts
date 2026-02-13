@@ -148,8 +148,6 @@ export class PdfDocument {
 		} else {
 			ops.push("f")
 		}
-		// ops.push(`0 g`)
-		// ops.push(`0 G`)
 		this.graphicsStream += ops.join(" ") + " "
 		return this
 	}
