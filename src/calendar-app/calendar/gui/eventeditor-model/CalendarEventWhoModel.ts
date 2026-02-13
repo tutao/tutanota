@@ -440,12 +440,12 @@ export class CalendarEventWhoModel {
 
 		address.address = cleanMailAddress(address.address)
 
-		const ownAttendee = findRecipientWithAddress(this.ownMailAddresses, address.address)
-		if (this._ownAttendee == null || ownAttendee) {
+		const ownAttendeeFromOwnMailAddresess = findRecipientWithAddress(this.ownMailAddresses, address.address)
+		if (this._ownAttendee == null || ownAttendeeFromOwnMailAddresess) {
 			// we're adding someone that's not us while we're not an attendee,
 			// so we add ourselves as an attendee and as organizer.
-			this.addOwnAttendee(ownAttendee ?? this.ownMailAddresses[0])
-			if (ownAttendee) {
+			this.addOwnAttendee(ownAttendeeFromOwnMailAddresess ?? this.ownMailAddresses[0])
+			if (ownAttendeeFromOwnMailAddresess) {
 				// We don`t want to add the organizer in the guest list yet, this is handled by assembleAttendees
 				return
 			}

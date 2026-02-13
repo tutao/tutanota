@@ -14,9 +14,8 @@ import {
 } from "../../../src/calendar-app/calendar/export/CalendarParser.js"
 import { ParserError, StringIterator } from "../../../src/common/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
-import { createDateWrapper, DateWrapperTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { createDateWrapper } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
-import { createTestEntity } from "../TestUtils.js"
 import { AlarmIntervalUnit } from "../../../src/common/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarParser", function () {
@@ -273,8 +272,8 @@ o.spec("CalendarParser", function () {
 
 		const testParseIllegalCalendarEvents = ({ start, end, expect }) => {
 			const event = makeEvent({ start, end })
-			const { icsCalendarEvent: parsedEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
-			o(parsedEvent.endTime.getTime()).equals(expect)
+			const { icsCalendarEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			o(icsCalendarEvent.endTime.getTime()).equals(expect)
 		}
 
 		o("allday equal", function () {
