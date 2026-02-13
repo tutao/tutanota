@@ -2,7 +2,7 @@ import m, { Children, Component } from "mithril"
 import { ColumnType, ViewColumn } from "../base/ViewColumn.js"
 import type { windowSizeListener } from "../../misc/WindowFacade.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
-import { size } from "../size.js"
+import { px, size } from "../size.js"
 import { alpha, AlphaEnum, animations, transform, TransformEnum } from "../animation/Animations.js"
 import { ease } from "../animation/Easing.js"
 import { theme } from "../theme.js"
@@ -198,8 +198,22 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		// as a Background column instead of, as by default, as a Foreground column,
 		// we update the columnType on every redraw (orientation change, resize, etc.)
 		// to allow the styles.mobileDesktopLayout() to work properly on all screens.
-		let isRenderFirstColumnAsBackgroundColumn = styles.isMobileDesktopLayout() || !this.enableDrawer
-		this.viewColumns[0].columnType = isRenderFirstColumnAsBackgroundColumn ? ColumnType.Background : ColumnType.Foreground
+		const isRenderFirstColumnAsBackgroundColumn = styles.isMobileDesktopLayout() || !this.enableDrawer
+
+		const firstColumn = this.viewColumns[0]
+		const oldColumnType = firstColumn.columnType
+		firstColumn.columnType = isRenderFirstColumnAsBackgroundColumn ? ColumnType.Background : ColumnType.Foreground
+
+		// iOS might change the window size to a width of the device (even if the device is vertical) after the app is
+		// moved to the background, and this breaks the first column if it was open
+		if (oldColumnType !== firstColumn.columnType && oldColumnType === ColumnType.Background && firstColumn.isVisible) {
+			firstColumn.isVisible = false
+			if (firstColumn.domColumn != null) {
+				firstColumn.domColumn.style.visibility = "hidden"
+				firstColumn.domColumn.style.transform = `translateX(${px(-firstColumn.width)})`
+			}
+			this.focus(this.viewColumns[1])
+		}
 
 		this.focusedColumn = this.focusedColumn || this.mainColumn
 		let visibleColumns: ViewColumn[] = [this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this.mainColumn]
