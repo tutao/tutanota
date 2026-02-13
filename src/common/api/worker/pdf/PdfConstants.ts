@@ -119,7 +119,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["FontName", "/SourceSans3-Regular"],
 			["FontFile2", { refId: "FONT_REGULAR_FILE" }],
 			["Subtype", "/TrueType"],
-			["Flags", "64"],
+			["Flags", "32"],
 		]),
 	}),
 	Object.freeze({
@@ -144,7 +144,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["FontName", "/SourceSans3-Bold"],
 			["FontFile2", { refId: "FONT_BOLD_FILE" }],
 			["Subtype", "/TrueType"],
-			["Flags", "64"],
+			["Flags", "32"],
 		]),
 	}),
 
@@ -170,7 +170,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["FontName", "/NotoSansMono-Bold"],
 			["FontFile2", { refId: "FONT_MONO_BOLD_FILE" }],
 			["Subtype", "/TrueType"],
-			["Flags", "64"],
+			["Flags", "33"],
 		]),
 	}),
 	// Invisible font for the purpose of writing full UTF8, selectable ghost text.
@@ -194,7 +194,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["Subtype", "/CIDFontType2"],
 			["CIDToGIDMap", "/Identity"],
 			["FontDescriptor", { refId: "FONT_INVISIBLE_CID_DESCRIPTOR" }],
-			["CIDSystemInfo", "<< /Registry (Adobe) /Ordering (Identity) /Supplement 0>>"],
+			["CIDSystemInfo", "<< /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>"],
 			["DW", "1000"],
 		]),
 	}),
@@ -204,7 +204,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["Type", "/FontDescriptor"],
 			["FontName", "/Helvetica"],
 			["Subtype", "/TrueType"],
-			["Flags", "64"],
+			["Flags", "32"],
 		]),
 	}),
 ])
