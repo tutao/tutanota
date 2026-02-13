@@ -12,7 +12,6 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
 import { LockedError } from "../../../common/api/common/error/RestError"
 import { InstanceSessionKey } from "../../../common/api/entities/sys/TypeRefs"
-import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 assertMainOrNode()
 
@@ -115,18 +114,13 @@ export class ProcessInboxHandler {
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
 		if (finalProcessInboxDatum === null) {
-			const { vectorNewFormatToUpload, vectorToUpload } = await this.mailFacade.createModelInputAndUploadVector(
-				CURRENT_SPACE_FOR_SERVER_RESULT,
-				mail,
-				mailDetails,
-				sourceFolder,
-			)
+			const { uploadableVector, uploadableVectorLegacy } = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails, sourceFolder)
 			finalProcessInboxDatum = {
 				mailId: mail._id,
 				targetMoveFolder: moveToFolder._id,
 				classifierType: null,
-				vector: vectorToUpload,
-				vectorNewFormat: vectorNewFormatToUpload,
+				vector: uploadableVectorLegacy,
+				vectorNewFormat: uploadableVector,
 				ownerEncMailSessionKeys: [],
 			}
 		}

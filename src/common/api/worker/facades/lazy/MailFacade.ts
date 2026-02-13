@@ -1331,12 +1331,11 @@ export class MailFacade {
 		)
 	}
 
-	async createModelInputAndUploadVector(spaceForServerResult: number, mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
-		const datum = createSpamMailDatum(mail, mailDetails, sourceFolder)
-		const vectorizedMail = await this.spamMailProcessor.makeVectorizedMail(datum)
-		const modelInput = await this.spamMailProcessor.makeModelInputFromMailDatum(spaceForServerResult, datum, vectorizedMail)
-		const { vectorNewFormatToUpload, vectorToUpload } = this.spamMailProcessor.makeUploadVectorsFromMailDatum(datum, vectorizedMail)
-		return { modelInput, vectorNewFormatToUpload, vectorToUpload }
+	async createModelInputAndUploadableVectors(mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+		const datum = createSpamMailDatum(mail, mailDetails)
+		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
+		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
+		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */
