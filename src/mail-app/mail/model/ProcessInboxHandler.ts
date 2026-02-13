@@ -106,7 +106,7 @@ export class ProcessInboxHandler {
 
 			// apply regular inbox rules only if the mail is classified as ham by the spam classifier
 			if (moveToFolder.folderType === MailSetKind.INBOX) {
-				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
+				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, moveToFolder)
 				if (result) {
 					const { targetFolder, processInboxDatum } = result
 					finalProcessInboxDatum = processInboxDatum
