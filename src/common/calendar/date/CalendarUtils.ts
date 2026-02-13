@@ -185,12 +185,34 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 		.toJSDate()
 }
 
-/** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
+/**
+ * Converts an "all-day" UTC date into an equivalent all-day date
+ * in the specified IANA time zone.
+ *
+ * **Important:**
+ * - `utcDate` MUST represent midnight (00:00:00.000) in UTC.
+ * - The calendar day encoded in UTC is treated as a *floating date*,
+ *   not as a specific instant in time.
+ *
+ * **What this function does:**
+ * - Reinterprets the UTC calendar date as if it occurred in `zone`
+ *   (preserving the actual day it occurs, not the instant).
+ * - Returns a Date set to 00:00:00.000 in the target time zone.
+ *
+ * This is useful for all-day events stored as UTC dates
+ * where the day itself (not the exact timestamp) is the source of truth.
+ *
+ * @example
+ * Input:  2026-02-16T00:00:00.000Z
+ * Zone:   "Europe/Berlin"
+ * Output: Date representing 2026-02-16T00:00:00 in Europe/Berlin
+ *
+ * @note
+ * This function intentionally uses `keepLocalTime: true`
+ * to preserve the calendar date instead of converting the instant.
+ */
 export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
-	return DateTime.fromJSDate(utcDate, { zone: "utc" })
-		.setZone(zone, { keepLocalTime: true })
-		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-		.toJSDate()
+	return DateTime.fromJSDate(utcDate, { zone: "utc" }).setZone(zone, { keepLocalTime: true }).startOf("day").toJSDate()
 }
 
 /**
@@ -718,43 +740,29 @@ function finishByRules(dates: DateTime[], validMonths: MonthNumbers[], progenito
 	return cleanDates.sort((a, b) => a.toMillis() - b.toMillis())
 }
 
+/**
+ * Increments a date by a repeat period in a specific IANA time zone.
+ *
+ * The date is interpreted in `ianaTimeZone`, and days/weeks/months/years
+ * are added as calendar units (not milliseconds).
+ *
+ * @notes
+ * - This function intentionally performs calendar math, not instant math.
+ * - For all-day events, ensure the input date is already normalized (e.g. midnight in the intended time zone).
+ */
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, interval: number, ianaTimeZone: string): Date {
 	switch (repeatPeriod) {
 		case RepeatPeriod.DAILY:
-			return DateTime.fromJSDate(date, {
-				zone: ianaTimeZone,
-			})
-				.plus({
-					days: interval,
-				})
-				.toJSDate()
+			return DateTime.fromJSDate(date, { zone: ianaTimeZone }).plus({ days: interval }).toJSDate()
 
 		case RepeatPeriod.WEEKLY:
-			return DateTime.fromJSDate(date, {
-				zone: ianaTimeZone,
-			})
-				.plus({
-					weeks: interval,
-				})
-				.toJSDate()
+			return DateTime.fromJSDate(date, { zone: ianaTimeZone }).plus({ weeks: interval }).toJSDate()
 
 		case RepeatPeriod.MONTHLY:
-			return DateTime.fromJSDate(date, {
-				zone: ianaTimeZone,
-			})
-				.plus({
-					months: interval,
-				})
-				.toJSDate()
+			return DateTime.fromJSDate(date, { zone: ianaTimeZone }).plus({ months: interval }).toJSDate()
 
 		case RepeatPeriod.ANNUALLY:
-			return DateTime.fromJSDate(date, {
-				zone: ianaTimeZone,
-			})
-				.plus({
-					years: interval,
-				})
-				.toJSDate()
+			return DateTime.fromJSDate(date, { zone: ianaTimeZone }).plus({ years: interval }).toJSDate()
 
 		default:
 			throw new Error("Unknown repeat period")
@@ -873,14 +881,9 @@ export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: s
 /** @param date encodes some calendar date in {@param zone} (like the 1st of May 2023)
  * @returns {Date} encodes the same calendar date in UTC */
 export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, { zone })
-		.setZone("utc", { keepLocalTime: true })
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
+	return DateTime.fromJSDate(date, { zone }) // Apply this zone to the date provided - changing time and date if necessary
+		.setZone("utc", { keepLocalTime: true }) // Change the zone to UTC but keep the Day.Month.Year and Time
+		.startOf("day")
 		.toJSDate()
 }
 
@@ -1456,6 +1459,7 @@ export function findNextAlarmOccurrence(
 				: new Date(Number(repeatRule.endValue))
 			: null
 
+	let counter = 0
 	while (repeatRule.endType !== EndType.Count || occurrenceNumber < Number(repeatRule.endValue)) {
 		const maxDate = incrementByRepeatPeriod(
 			calcEventStart,
@@ -1463,6 +1467,8 @@ export function findNextAlarmOccurrence(
 			Number(repeatRule.interval) * (occurrenceNumber + 1),
 			isAllDayEvent ? localTimeZone : timeZone,
 		)
+
+		console.log(">>> Generator for maxDate: ", maxDate.toISOString())
 
 		if (endDate && maxDate.getTime() >= endDate.getTime()) {
 			return null
@@ -1483,6 +1489,8 @@ export function findNextAlarmOccurrence(
 				const alarmTime = calculateAlarmTime(startTime, alarmTrigger, localTimeZone)
 
 				if (alarmTime >= now) {
+					console.log("num of calcs:", counter)
+					console.log("found:", alarmTime)
 					return {
 						alarmTime,
 						occurrenceNumber: occurrenceNumber,
@@ -1490,6 +1498,7 @@ export function findNextAlarmOccurrence(
 					}
 				}
 			}
+			counter++
 			occurrenceNumber++
 		}
 	}
