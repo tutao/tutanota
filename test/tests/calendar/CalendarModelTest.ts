@@ -808,7 +808,7 @@ o.spec("CalendarModel", function () {
 				],
 			})
 			verify(calendarFacadeMock.getEventsByUid(anything(), anything()), { times: 1 })
-			verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything()), { times: 0 })
+			verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
 			verify(calendarModel.handleExistingCalendarEventInvitationFromIcs(anything(), anything(), anything(), anything(), anything()), { times: 0 })
 		})
 

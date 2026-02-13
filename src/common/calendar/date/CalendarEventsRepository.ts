@@ -13,7 +13,6 @@ import {
 	getEventEnd,
 	getEventStart,
 	getMonthRange,
-	getTimeZone,
 	isBirthdayCalendar,
 	isBirthdayEvent,
 	isLongEvent,
@@ -196,8 +195,7 @@ export class CalendarEventsRepository {
 
 		const eventListId = getListId(eventWrapper.event)
 		const shouldGoIntoLongEventsList =
-			isSameId(calendarInfo.groupRoot.longEvents, eventListId) ||
-			isLongEvent(eventWrapper.event, eventWrapper.event.repeatRule?.timeZone ?? getTimeZone())
+			isSameId(calendarInfo.groupRoot.longEvents, eventListId) || isLongEvent(eventWrapper.event, eventWrapper.event.repeatRule?.timeZone ?? this.zone)
 		if (shouldGoIntoLongEventsList) {
 			this.removeExistingEvent(eventWrapper.event)
 

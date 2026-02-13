@@ -122,7 +122,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
 				)
-				verify(calendarModel.handleNewCalendarEventInvitationFromIcs(matchers.anything(), matchers.anything()), { times: 0 })
+				verify(calendarModel.handleNewCalendarEventInvitationFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
 				const calendarEventCaptor = matchers.captor()
@@ -137,7 +137,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 					ReplyResult.ReplySent,
 				)
 
-				verify(calendarModel.handleNewCalendarEventInvitationFromIcs(matchers.anything(), matchers.anything()), { times: 1 })
+				verify(calendarModel.handleNewCalendarEventInvitationFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
 
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 

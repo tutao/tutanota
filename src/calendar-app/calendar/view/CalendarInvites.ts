@@ -2,7 +2,7 @@ import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, assertNotNull, clone, filterInt } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clone, filterInt, Require } from "@tutao/tutanota-utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
@@ -18,8 +18,8 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { CalendarEventProgenitor } from "../../../common/api/worker/facades/lazy/CalendarFacade"
 import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { CalendarEventUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -49,7 +49,7 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 	}
 }
 
-export async function getEventsFromFile(file: TutanotaFile, invitedConfidentially: boolean): Promise<ParsedIcalFileContent> {
+export async function getEventsFromFile(file: TutanotaFile): Promise<ParsedIcalFileContent> {
 	const dataFile = await locator.fileController.getAsDataFile(file)
 	return getParsedEvent(dataFile)
 }
@@ -164,46 +164,10 @@ export class CalendarInviteHandler {
 			return ReplyResult.ReplySent
 		}
 
-		if (eventClone.uid != null) {
-			const dbEvents = await this.calendarModel.getEventsByUid(eventClone.uid)
-			const isACompletelyNewEventInvitation =
-				!dbEvents || (!dbEvents.progenitor && !dbEvents.alteredInstances.some((ai) => ai.recurrenceId === event.recurrenceId))
-
-			if (isACompletelyNewEventInvitation) {
-				if (decision === CalendarAttendeeStatus.DECLINED) {
-					return ReplyResult.ReplySent
-				}
-
-				if (!eventClone.uid.trim()) {
-					console.warn("Event missing UID, response email sent but we are unable to create a event for it.")
-					return ReplyResult.ReplySent
-				}
-
-				console.log("Replying to an invitation without a persisted event counterpart, creating new event...")
-				await this.calendarModel.handleNewCalendarEventInvitationFromIcs(sender, {
-					method: CalendarMethod.REQUEST,
-					contents: [{ icsCalendarEvent: eventClone as CalendarEventProgenitor, alarms: [] }],
-				})
-				return ReplyResult.ReplySent
-			}
-
-			const resolvedEvent = eventClone.repeatRule !== null ? dbEvents?.progenitor : eventClone
-			if (!resolvedEvent) {
-				throw new Error("Could not resolve event series progenitor when processing an update.")
-			}
-			resolvedEvent.pendingInvitation = eventClone.pendingInvitation
-			resolvedEvent.attendees = eventClone.attendees
-			console.log("CALLING processCalendarEventMessage in CalendarInviteHandler")
-
-			const updateEventTime = event.recurrenceId?.getTime()
-			const targetDbEvent =
-				updateEventTime == null ? dbEvents?.progenitor : dbEvents?.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
-			if (!dbEvents || !targetDbEvent) {
-				throw new Error("Replying to an invitation without a persisted event counterpart")
-			}
-
-			await this.calendarModel.processUpdateToCalendarEventFromIcs(dbEvents, targetDbEvent, resolvedEvent)
+		if (eventClone.uid) {
+			return await this.handleCalendarEventAfterUserReply(eventClone as Require<"uid", CalendarEvent>, event.recurrenceId, decision, sender)
 		}
+
 		return ReplyResult.ReplySent
 	}
 
@@ -245,5 +209,72 @@ export class CalendarInviteHandler {
 		// able to reply anyway (unless they fix it).
 		model.setConfidential(previousMail.confidential)
 		return model
+	}
+
+	private async handleCalendarEventAfterUserReply(
+		eventUserIsReplyingTo: Require<"uid", CalendarEvent>,
+		originalEventOccurrence: Date | null,
+		usersDecision: CalendarAttendeeStatus,
+		sender: string,
+	): Promise<ReplyResult.ReplySent> {
+		const dbEvents = await this.calendarModel.getEventsByUid(eventUserIsReplyingTo.uid)
+
+		if (this.shouldTreatAsNewInvitation(dbEvents, originalEventOccurrence)) {
+			if (usersDecision === CalendarAttendeeStatus.DECLINED) {
+				return ReplyResult.ReplySent
+			}
+
+			await this.createEventFromIcsFile(sender, eventUserIsReplyingTo, dbEvents)
+		} else {
+			await this.handleInvitationForExistingEntries(eventUserIsReplyingTo, dbEvents, originalEventOccurrence, sender)
+		}
+
+		return ReplyResult.ReplySent
+	}
+	private async handleInvitationForExistingEntries(
+		eventUserIsReplyingTo: Require<"uid", CalendarEvent>,
+		dbEvents: CalendarEventUidIndexEntry | null,
+		originalEventOccurrence: Date | null,
+		sender: string,
+	) {
+		const resolvedEvent = eventUserIsReplyingTo.repeatRule !== null ? dbEvents?.progenitor : eventUserIsReplyingTo
+		if (!resolvedEvent) {
+			throw new Error("Could not resolve event series progenitor when processing an update to it.")
+		}
+		resolvedEvent.pendingInvitation = eventUserIsReplyingTo.pendingInvitation
+		resolvedEvent.attendees = eventUserIsReplyingTo.attendees
+
+		const originalRecurrenceIdTimestamp = originalEventOccurrence?.getTime()
+		const targetDbEvent =
+			originalRecurrenceIdTimestamp == null
+				? dbEvents?.progenitor
+				: dbEvents?.alteredInstances.find((e) => e.recurrenceId.getTime() === originalRecurrenceIdTimestamp)
+
+		if (dbEvents && targetDbEvent) {
+			await this.calendarModel.processUpdateToCalendarEventFromIcs(dbEvents, targetDbEvent, resolvedEvent)
+		} else {
+			await this.createEventFromIcsFile(sender, eventUserIsReplyingTo, dbEvents)
+		}
+	}
+
+	private async createEventFromIcsFile(sender: string, eventUserIsReplyingTo: IcsCalendarEvent, dbEvents: CalendarEventUidIndexEntry | null) {
+		await this.calendarModel.handleNewCalendarEventInvitationFromIcs(
+			sender,
+			{
+				method: CalendarMethod.REQUEST,
+				contents: [{ icsCalendarEvent: eventUserIsReplyingTo, alarms: [] }],
+			},
+			dbEvents,
+		)
+	}
+
+	private shouldTreatAsNewInvitation(dbEvents: CalendarEventUidIndexEntry | null, originalEventOccurrence: Date | null): boolean {
+		if (!dbEvents) return true
+
+		const occurrenceTimeStamp = originalEventOccurrence?.getTime()
+		const hasMatchingAlteredInstance =
+			originalEventOccurrence != null && dbEvents.alteredInstances.some((ai) => ai.recurrenceId.getTime() === occurrenceTimeStamp)
+
+		return !dbEvents.progenitor && !hasMatchingAlteredInstance
 	}
 }

@@ -52,7 +52,6 @@ o.spec("CalendarEventModel", function () {
 	})
 
 	o.spec("integration tests", function () {
-		// TODO: We decided to change this test case to match the new patching behavior.  will do on monday
 		o("doing no edit operation on an existing event updates it as expected, no updates.", async function () {
 			// this test case is insane and only serves as a warning example to not do such things.
 			const event = createTestEntity(CalendarEventTypeRef, {

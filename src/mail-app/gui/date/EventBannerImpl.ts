@@ -88,7 +88,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const eventsReplySection = iCalContents.events
 			.map((event: IcsCalendarEvent): { event: IcsCalendarEvent; replySection: Children } | None => {
 				const replySection = this.buildReplySection(agenda, event, mail, recipient, iCalContents.method, replyCallback)
-				return replySection == null ? null : { event: event, replySection }
+				return replySection == null ? null : { event, replySection }
 			})
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
@@ -413,7 +413,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		if (!existingEventWrapper || !ownAttendee) {
 			const icsAttendee = findAttendeeInAddresses(icsCalendarEvent.attendees ?? [], [recipient])
 			if (!icsAttendee) {
-				console.warn("Trying to build a reply section for a event we were not invited")
+				console.warn("Trying to build a reply section for an event we were not invited")
 				return null
 			}
 			ownAttendee = createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
