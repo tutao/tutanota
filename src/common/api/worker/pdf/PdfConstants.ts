@@ -48,9 +48,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["Pages", { refId: "PAGES" }],
 			["PageLayout", "/SinglePage"],
 			["Metadata", { refId: "METADATA" }],
-			["MarkInfo", "<< /Marked true >>"],
 			["OutputIntents", [{ refId: "OUTPUT_INTENT" }]],
-			["StructTreeRoot", { refId: "STRUCT_TREE_ROOT" }],
 		]),
 	}),
 	Object.freeze({
@@ -62,14 +60,6 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 			["OutputConditionIdentifier", "(sRGB)"],
 			["Info", "(sRGB)"],
 			["DestOutputProfile", { refId: "DEST_OUTPUT_PROFILE" }],
-		]),
-	}),
-	Object.freeze({
-		// Object specifying the structure of the PDF for accessibility. Required for PDF/A
-		refId: "STRUCT_TREE_ROOT",
-		dictionary: new Map<string, PdfDictValue>([
-			["Type", "/StructTreeRoot"],
-			["K", "[ null ]"],
 		]),
 	}),
 	Object.freeze({
@@ -221,7 +211,7 @@ export const PDF_METADATA = `<?xpacket begin="?" id="W5M0MpCehiHzreSzNTczkc9d"?>
 					 xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/" rdf:about="">
 		<xmp:CreateDate>{slotCreateDate}</xmp:CreateDate>
 		<xmp:ModifyDate>{slotModifyDate}</xmp:ModifyDate>
-		<pdfaid:conformance>A</pdfaid:conformance>
+		<pdfaid:conformance>B</pdfaid:conformance>
 		<pdfaid:part>1</pdfaid:part>
 		<pdf:Producer>Tuta PDF Generator</pdf:Producer>
 	</rdf:Description>
