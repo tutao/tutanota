@@ -109,7 +109,7 @@ export class PdfWriter {
 		let trailer = `trailer${NEW_LINE}<<${NEW_LINE}`
 		trailer += `/Size ${this.pdfObjectList.length + 1}`
 		trailer += `/Root ${this.pdfReferenceToString({ refId: "CATALOG" })}`
-		trailer += `/ID [(${identifier})(${identifier})]`
+		trailer += `/ID [<${identifier}> <${identifier}>]`
 		trailer += `${NEW_LINE}>>${NEW_LINE}startxref${NEW_LINE}${this.byteLengthPosition}${NEW_LINE}%%EOF`
 		return trailer
 	}
@@ -327,7 +327,8 @@ export class PdfWriter {
 			encodedObjects.push(encodedObject)
 		}
 		encodedObjects.push(this.textEncoder.encode(this.makeXRefTable())) // Make xref table which requires all object's calculated byte-positions
-		encodedObjects.push(this.textEncoder.encode(this.makeTrailer(Date.now().toString()))) // Make trailer
+		const identifier = "FACEBEEF" + Date.now().toString() + Date.now().toString()
+		encodedObjects.push(this.textEncoder.encode(this.makeTrailer(identifier))) // Make trailer
 
 		return concat(...encodedObjects)
 	}
