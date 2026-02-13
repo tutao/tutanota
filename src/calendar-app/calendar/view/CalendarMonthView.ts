@@ -72,7 +72,7 @@ type SimplePosRect = {
 /** height of the day number indicator at the top of the day square */
 const dayHeight = () => (styles.isDesktopLayout() ? 32 : 24)
 
-const spaceBetweenEvents = styles.isDesktopLayout() ? 2 : 1
+const SPACE_BETWEEN_EVENTS = styles.isDesktopLayout() ? 2 : 1
 
 const EVENT_BUBBLE_VERTICAL_OFFSET = 5
 
@@ -398,7 +398,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 		const weekHeight = this.getHeightForWeek()
 
-		const eventHeight = CALENDAR_EVENT_HEIGHT + spaceBetweenEvents // height + gap
+		const eventHeight = CALENDAR_EVENT_HEIGHT + SPACE_BETWEEN_EVENTS // height + gap
 
 		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
 		const numberOfEventsPerDayToRender = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
@@ -541,7 +541,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		calendarDayHeight: number,
 		columnIndex: number,
 	): SimplePosRect {
-		const top = (CALENDAR_EVENT_HEIGHT + spaceBetweenEvents) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
+		const top = (CALENDAR_EVENT_HEIGHT + SPACE_BETWEEN_EVENTS) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
 		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
 		const calendarEventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile

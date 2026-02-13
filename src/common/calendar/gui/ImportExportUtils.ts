@@ -295,7 +295,7 @@ export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 	return (
 		a.startTime.valueOf() === b.startTime.valueOf() &&
 		a.endTime.valueOf() === b.endTime.valueOf() &&
-		deepEqual({ ...attendeesA }, { ...attendeesB }) &&
+		deepEqual(attendeesA, attendeesB) &&
 		a.summary === b.summary &&
 		a.sequence === b.sequence &&
 		a.location === b.location &&
