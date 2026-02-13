@@ -294,7 +294,13 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("commonjs-dynamic-modules")
 	) {
 		return "polyfill-helpers"
-	} else if (isIn("src/common/settings") || isIn("src/common/subscription") || isIn("src/common/ratings") || isIn("src/common/termination")) {
+	} else if (
+		isIn("src/common/settings") ||
+		isIn("src/common/subscription") ||
+		isIn("src/common/ratings") ||
+		isIn("src/common/termination") ||
+		isIn("src/common/partner")
+	) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"

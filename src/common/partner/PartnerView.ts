@@ -3,9 +3,7 @@ import { assertMainOrNode } from "../api/common/Env"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
-import { lang } from "../misc/LanguageViewModel"
 import { AppHeaderAttrs, Header } from "../gui/Header.js"
-import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/CommonLocator"
@@ -24,10 +22,6 @@ import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { BaseButton } from "../gui/base/buttons/BaseButton"
-import { showSupportDialog } from "../support/SupportDialog"
-import { Icon, IconSize } from "../gui/base/Icon"
-import { getSupportUsageTestStage } from "../support/SupportUsageTestUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 
@@ -103,7 +97,6 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 								},
 								[this._renderSidebarSectionChildren(this._partnerFolders)],
 							),
-							this._bottomSection(),
 						]),
 						ariaLabel: "settings_label",
 					})
@@ -257,35 +250,5 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 
 	getViewSlider(): ViewSlider | null {
 		return this.viewSlider
-	}
-
-	_bottomSection(): Children {
-		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.gap-16", [
-			// Support button
-			m(BaseButton, {
-				class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
-				style: {
-					marginInline: "auto",
-					border: `1px solid ${theme.on_surface_variant}`,
-					color: theme.on_surface,
-				},
-				label: "supportMenu_label",
-				text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
-				icon: m(Icon, {
-					icon: Icons.SpeechBubbleFill,
-					size: IconSize.PX24,
-					class: "center-h",
-					container: "div",
-					style: { fill: theme.on_surface_variant },
-				}),
-				onclick: () => {
-					const triggerStage = getSupportUsageTestStage(0)
-					triggerStage.setMetric({ name: "Trigger", value: "Settings" })
-					void triggerStage.complete()
-
-					void showSupportDialog(locator.logins)
-				},
-			}),
-		])
 	}
 }
