@@ -39,7 +39,7 @@ export interface PartnerViewAttrs extends TopLevelAttrs {
  * * Add labels to POEditor
  * * Adapt ManagedCustomerViewer to show some fields --- DONE
  * * Add Button to Login to /settings/ of a managed customer from ManagedCustomerViewer -- DONE
- * * Tests for Backend
+ * * Tests for Backend -- probably done.
  * *
  *  ---------------
  * * for the customer view, we do not get CustomerInfo entity updates as it's in another account
@@ -47,6 +47,18 @@ export interface PartnerViewAttrs extends TopLevelAttrs {
  *
  * * What to do in case a partnership ends? From either customer not wanting to be with Partner anymore (but keep mail)
  * * or the partner not wanting the customer anymore.
+ *
+ * * Right now, if a partner has multiple e-mails, every other
+ * * admin e-mail can see the partner tab. Do we want more granular permissions?
+ *
+ * * If someone is a customer of the partner, was signed up through the
+ * url like https://app.local.tuta.com:9000/signup?t-src=big-promotion&type=business&interval=12
+ * then proceeds to create a private account for them, they will also end up
+ * assigned under the partner list visually through entity events, despite that their URL parameters not longer
+ * contain the t-src ... the assignment isn't done to the created entity though.
+ *
+ *
+ *
  */
 export class PartnerView extends BaseTopLevelView implements TopLevelView<PartnerViewAttrs> {
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
