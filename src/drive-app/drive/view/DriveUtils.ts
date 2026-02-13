@@ -78,6 +78,7 @@ export function pickNewFileName(originalName: string, takenFileNames: ReadonlySe
 
 /**
  * @throws MoveCycleError
+ * @throws MoveToTrashError
  */
 export async function moveItems(entityClient: EntityClient, driveFacade: DriveFacade, items: readonly FolderItemId[], destinationFolder: DriveFolder) {
 	const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
