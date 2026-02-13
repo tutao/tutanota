@@ -5,8 +5,8 @@ import { concat, hexToUint8Array } from "@tutao/tutanota-utils"
 import { Deflater } from "./Deflater.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
-// Binary header specifying the PDF version (2.0 = "322e30") and the fact that binary data is present in the file
-const PDF_HEADER = hexToUint8Array("255044462d322e300a25e2e3cfd30a")
+// Binary header specifying the PDF version (1.4 = "312e34") and the fact that binary data is present in the file
+const PDF_HEADER = hexToUint8Array("255044462d312e340a25e2e3cfd30a")
 // Special PDF object with number 0. Only appears in xref table
 const ZERO_OBJECT_ENTRY = "0000000000 65535 f"
 
