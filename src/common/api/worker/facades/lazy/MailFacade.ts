@@ -1248,7 +1248,7 @@ export class MailFacade {
 	): Promise<ProcessInboxDatum[]> {
 		const processInboxData: ProcessInboxDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedProcessInboxData) {
-			const { targetMoveFolder, classifierType, mailId, vector, vectorNewFormat } = unencryptedProcessInboxDatum
+			const { targetMoveFolder, classifierType, mailId, vectorLegacy, vectorWithServerClassifiers } = unencryptedProcessInboxDatum
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
@@ -1256,8 +1256,8 @@ export class MailFacade {
 				createProcessInboxDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					encVector: aesEncrypt(sk, vector),
-					encVectorNewFormat: aesEncrypt(sk, vectorNewFormat),
+					encVectorLegacy: aesEncrypt(sk, vectorLegacy),
+					encVectorWithServerClassifiers: aesEncrypt(sk, vectorWithServerClassifiers),
 					classifierType,
 					mailId,
 					targetMoveFolder,
@@ -1298,8 +1298,8 @@ export class MailFacade {
 				createPopulateClientSpamTrainingDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					encVector: aesEncrypt(sk, vector),
-					encVectorNewFormat: aesEncrypt(sk, vectorNewFormat),
+					encVectorLegacy: aesEncrypt(sk, vector),
+					encVectorWithServerClassifiers: aesEncrypt(sk, vectorNewFormat),
 					isSpam,
 					mailId,
 					confidence,
@@ -1331,12 +1331,11 @@ export class MailFacade {
 		)
 	}
 
-	async createModelInputAndUploadVector(spaceForServerResult: number, mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
-		const datum = createSpamMailDatum(mail, mailDetails, sourceFolder)
-		const vectorizedMail = await this.spamMailProcessor.makeVectorizedMail(datum)
-		const modelInput = await this.spamMailProcessor.makeModelInputFromMailDatum(spaceForServerResult, datum, vectorizedMail)
-		const { vectorNewFormatToUpload, vectorToUpload } = this.spamMailProcessor.makeUploadVectorsFromMailDatum(datum, vectorizedMail)
-		return { modelInput, vectorNewFormatToUpload, vectorToUpload }
+	async createModelInputAndUploadableVectors(mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+		const datum = createSpamMailDatum(mail, mailDetails)
+		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
+		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
+		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */

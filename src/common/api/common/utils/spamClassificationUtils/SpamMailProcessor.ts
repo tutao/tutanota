@@ -20,9 +20,9 @@ import {
 } from "./PreprocessPatterns"
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
 import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/tutanota-utils"
-import { ClientSpamTrainingDatum, Mail, MailAddress, MailDetails, MailSet } from "../../../entities/tutanota/TypeRefs"
+import { ClientSpamTrainingDatum, Mail, MailAddress, MailDetails } from "../../../entities/tutanota/TypeRefs"
 import { getMailBodyText } from "../../CommonMailUtils"
-import { MailAuthenticationStatus, MailSetKind } from "../../TutanotaConstants"
+import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus } from "../../TutanotaConstants"
 
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean
@@ -61,8 +61,7 @@ export type SpamMailDatum = {
 	ccRecipients: string
 	bccRecipients: string
 	authStatus: string
-	serverClassifier: number
-	serverIsSpam: boolean
+	serverClassificationData: string | null
 }
 
 export type PreprocessedMailContent = string
@@ -81,6 +80,7 @@ export class SpamMailProcessor {
 	constructor(
 		private readonly preprocessConfiguration: PreprocessConfiguration = DEFAULT_PREPROCESS_CONFIGURATION,
 		private readonly sparseVectorCompressor: SparseVectorCompressor = new SparseVectorCompressor(),
+		public readonly byteForServerClassificationData: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 		private readonly vectorizer: lazyAsync<HashingVectorizer> = lazyMemoized(async () => {
 			const { HashingVectorizer } = await import("../../../../../mail-app/workerUtils/spamClassification/HashingVectorizer")
 			return new HashingVectorizer(this.sparseVectorCompressor.dimension)
@@ -162,27 +162,33 @@ export class SpamMailProcessor {
 		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${authStatus}`
 	}
 
-	public async getModelInputFromTrainingDatum(spaceForServerResult: number, datum: ClientSpamTrainingDatum): Promise<number[]> {
-		// actual number of classifier is :
-		// spaceNeeded for serverSpamResult - space for isSpam (1)
-		// since +1 is applied already while uploading, we do not need to handle UNKNOWN case any special way
-		if (datum.vectorNewFormat != null) {
-			const numberOfServerClassifierDuringModelTraining = spaceForServerResult - 1
+	private extractCompressedVectorParts(vector: Uint8Array): { compressedVectorizedMail: Uint8Array; compressedServerClassificationData: Uint8Array } {
+		const [lengthBytes, rest] = splitUint8Array(vector, 2)
+		const length = this.sparseVectorCompressor.decodeCompressedVectorLength(lengthBytes)
+		const [compressedVectorizedMail, compressedServerClassificationData] = splitUint8Array(rest, length)
+		return {
+			compressedVectorizedMail,
+			compressedServerClassificationData,
+		}
+	}
 
-			const [compressedMailVector, [serverIsSpam, unboundedServerClassifier]] = splitUint8Array(datum.vectorNewFormat, -2)
-			const decompressedMailVector = this.sparseVectorCompressor.decompress(compressedMailVector)
-
-			return decompressedMailVector
-				.concat(serverIsSpam ? 1 : 0)
-				.concat(this.oneHotEncode(numberOfServerClassifierDuringModelTraining, unboundedServerClassifier))
+	/**
+	 * Takes a ClientSpamTrainingDatum and prepares model input from it as a number array.
+	 * The model input is a concatenation of the vectorized mail and the server classification data
+	 */
+	public async processClientSpamTrainingDatum(
+		datum: ClientSpamTrainingDatum,
+		clientVectorSize: number = DEFAULT_VECTOR_MAX_LENGTH,
+		serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA,
+	): Promise<number[]> {
+		if (datum.vectorWithServerClassifiers) {
+			const parts = this.extractCompressedVectorParts(datum.vectorWithServerClassifiers)
+			const vectorizedMail = this.sparseVectorCompressor.decompress(parts.compressedVectorizedMail, clientVectorSize)
+			const serverClassificationData = this.sparseVectorCompressor.decompress(parts.compressedServerClassificationData, serverVectorSize)
+			return vectorizedMail.concat(serverClassificationData)
 		} else {
-			const numberOfServerClassifierDuringModelTraining = spaceForServerResult - 1
-			const decompressedMailVector = this.sparseVectorCompressor.decompress(datum.vector)
-			const oneHotEncodedVector = Array(numberOfServerClassifierDuringModelTraining).fill(0)
-			oneHotEncodedVector[0] = 1 // index 0 is reserved for UNKNOWN and we do not know what classifier the old mail was classified by it makes sense to use
-			return decompressedMailVector
-				.concat(0) // serverIsSpam we assume false for old mails
-				.concat(oneHotEncodedVector)
+			const vectorizedMail = this.sparseVectorCompressor.decompress(datum.vectorLegacy, clientVectorSize)
+			return vectorizedMail.concat(new Array<number>(serverVectorSize).fill(0))
 		}
 	}
 
@@ -193,49 +199,68 @@ export class SpamMailProcessor {
 		return await vectorizer.vectorize(tokenizedMail)
 	}
 
-	public async makeModelInputFromMailDatum(spaceForServerResult: number, datum: SpamMailDatum, vectorizedMail: number[]): Promise<number[]> {
-		// since we reserve `0` for classifier that does not fit into current dimension yet ( UNKNOWN ),
-		// always shift actual classifier number
-		const unboundedServerClassifier = datum.serverClassifier + 1
-		// actual number of classifier is :
-		// spaceNeeded for serverSpamResult - space for isSpam (1)
-		const nmbrOfServerClassifierDuringModelTraining = spaceForServerResult - 1
-		const modelInput = vectorizedMail
-			.concat(datum.serverIsSpam ? 1 : 0)
-			.concat(this.oneHotEncode(nmbrOfServerClassifierDuringModelTraining, unboundedServerClassifier))
-
-		return modelInput
+	/**
+	 * Takes a SpamMailDatum and gives Model Input vector
+	 * @param datum
+	 * @param serverVectorSize
+	 */
+	public async processSpamMailDatum(datum: SpamMailDatum, serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA): Promise<number[]> {
+		const vectorizedMail = await this.makeVectorizedMail(datum)
+		if (datum.serverClassificationData) {
+			return vectorizedMail.concat(this.oneHotEncodeServerClassifiers(datum.serverClassificationData, serverVectorSize))
+		} else {
+			return vectorizedMail.concat(new Array<number>(serverVectorSize).fill(0))
+		}
 	}
 
-	public makeUploadVectorsFromMailDatum(datum: SpamMailDatum, vectorizedMail: number[]): { vectorToUpload: Uint8Array; vectorNewFormatToUpload: Uint8Array } {
-		// since we reserve `0` for classifier that does not fit into current dimension yet ( UNKNOWN ),
-		// always shift actual classifier number
-		const unboundedServerClassifier = datum.serverClassifier + 1
+	public async makeUploadableVectors(
+		datum: SpamMailDatum,
+		serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA,
+	): Promise<{
+		uploadableVectorLegacy: Uint8Array
+		uploadableVector: Uint8Array
+	}> {
+		const vectorizedMail = await this.makeVectorizedMail(datum)
+		const uploadableVectorLegacy = this.sparseVectorCompressor.compress(vectorizedMail)
+		const compressedVectorSize = uploadableVectorLegacy.length
+		// this will be a zero array if we pass an empty string to one-hot encode
+		const oneHotEncodedServerData = this.oneHotEncodeServerClassifiers(datum.serverClassificationData ?? "", serverVectorSize)
+		const compressedServerClassificationData = this.sparseVectorCompressor.compress(oneHotEncodedServerData)
 
-		const vectorToUpload = this.sparseVectorCompressor.compress(vectorizedMail)
-		const serverResult = [datum.serverIsSpam ? 1 : 0, unboundedServerClassifier]
-		const vectorNewFormatToUpload = new Uint8Array(vectorToUpload.length + serverResult.length)
-		vectorNewFormatToUpload.set(vectorToUpload, 0)
-		vectorNewFormatToUpload.set(serverResult, vectorToUpload.length)
-
-		return { vectorToUpload, vectorNewFormatToUpload }
+		const uploadableVector = new Uint8Array([
+			...this.sparseVectorCompressor.encodeCompressedVectorLength(compressedVectorSize),
+			...uploadableVectorLegacy,
+			...compressedServerClassificationData,
+		])
+		return { uploadableVectorLegacy, uploadableVector }
 	}
 
-	private oneHotEncode(maxRange: number, numberToEncode: number): number[] {
-		const clampedIndex = numberToEncode > maxRange ? 0 : numberToEncode
-		const result = new Array<number>(maxRange).fill(0)
-		result[clampedIndex] = 1
+	public oneHotEncodeServerClassifiers(serverClassificationData: string, serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA): number[] {
+		let result = new Array<number>(serverVectorSize).fill(0)
+		const classifierTuples = serverClassificationData.split(":")
+		for (const tuple of classifierTuples) {
+			const [isSpam, classifier] = tuple.split(",").map((x) => parseInt(x))
+			result[2 * classifier] = isSpam
+			result[2 * classifier + 1] = 1
+		}
 		return result
+	}
+
+	public getModelInputSize() {
+		return this.vectorizer().then((vectorizer) => vectorizer.dimension + this.byteForServerClassificationData)
+	}
+
+	public getVectorDimension() {
+		return this.vectorizer().then((vectorizer) => vectorizer.dimension)
 	}
 }
 
-export function createSpamMailDatum(mail: Mail, mailDetails: MailDetails, currentFolder: MailSet) {
+export function createSpamMailDatum(mail: Mail, mailDetails: MailDetails) {
 	const spamMailDatum: SpamMailDatum = {
 		subject: mail.subject,
 		body: getMailBodyText(mailDetails.body),
 		ownerGroup: assertNotNull(mail._ownerGroup),
-		serverIsSpam: currentFolder.folderType === MailSetKind.SPAM,
-		serverClassifier: Number(mail.serverClassifier),
+		serverClassificationData: mail.serverClassificationData,
 		...extractSpamHeaderFeatures(mail, mailDetails),
 	}
 	return spamMailDatum
@@ -247,6 +272,10 @@ export function extractSpamHeaderFeatures(mail: Mail, mailDetails: MailDetails) 
 	const authStatus = convertAuthStatusToSpamCategorizationToken(mail.authStatus)
 
 	return { sender, toRecipients, ccRecipients, bccRecipients, authStatus }
+}
+
+export function extractServerClassifiers(serverClassificationData: string): number[] {
+	return serverClassificationData.split(":").map((tuple) => parseInt(tuple.split(",")[1]))
 }
 
 function extractRecipients({ recipients }: MailDetails) {
@@ -283,14 +312,9 @@ export function getSpamConfidence(mail: Mail): string {
 	return mail.clientSpamClassifierResult?.confidence ?? DEFAULT_IS_SPAM_CONFIDENCE
 }
 
+export const BYTES_COMPRESSED_MAIL_VECTOR_LENGTH = 2
+
 /**
- * We pick a max word frequency of 2^5 so that we can compress it together
- * with the index (which is 2^11 =2048) into two bytes
+ * Number of reserved bytes required to store server spam result
  */
-export const MAX_WORD_FREQUENCY = 31
-export const DEFAULT_VECTOR_MAX_LENGTH = 2048
-/**
- * Number of bytes required to store server spam result while passing as modelInput.
- * Currently, it is: number of server classifier + 1 ( for unknown ) + 1 ( for isSpam flag )
- */
-export const CURRENT_SPACE_FOR_SERVER_RESULT = 30
+export const BYTES_FOR_SERVER_CLASSIFICATION_DATA = 256

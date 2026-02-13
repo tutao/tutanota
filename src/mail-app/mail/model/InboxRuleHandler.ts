@@ -14,8 +14,6 @@ import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 
-import { CURRENT_SPACE_FOR_SERVER_RESULT } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-
 assertMainOrNode()
 
 export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
@@ -113,8 +111,7 @@ export class InboxRuleHandler {
 
 			if (targetFolder) {
 				const currentFolder = assertNotNull(folders.getFolderByMail(mail))
-				const { vectorNewFormatToUpload, vectorToUpload } = await this.mailFacade.createModelInputAndUploadVector(
-					CURRENT_SPACE_FOR_SERVER_RESULT,
+				const { uploadableVectorLegacy, uploadableVector } = await this.mailFacade.createModelInputAndUploadableVectors(
 					mail,
 					mailDetails,
 					currentFolder,
@@ -123,8 +120,8 @@ export class InboxRuleHandler {
 					mailId: mail._id,
 					targetMoveFolder: targetFolder._id,
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
-					vector: vectorToUpload,
-					vectorNewFormat: vectorNewFormatToUpload,
+					vectorLegacy: uploadableVectorLegacy,
+					vectorWithServerClassifiers: uploadableVector,
 					ownerEncMailSessionKeys: [],
 				}
 				return { targetFolder, processInboxDatum }
