@@ -7,6 +7,7 @@ import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.j
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
 import { px } from "../../../common/gui/size"
+import { normalizeColorHex } from "../../../common/gui/base/GuiUtils"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper
@@ -33,7 +34,7 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 	view({ attrs }: Vnode<LegacyContinuingCalendarEventBubbleAttrs>): Children {
 		const eventTitle = getDisplayEventTitle(attrs.eventWrapper.event.summary)
 
-		const normalizedBackgroundColor = attrs.backgroundColor.includes("#") ? attrs.backgroundColor : `#${attrs.backgroundColor}`
+		const normalizedBackgroundColor = normalizeColorHex(attrs.backgroundColor)
 
 		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.startsBefore

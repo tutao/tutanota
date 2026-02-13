@@ -19,7 +19,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
-import { colorForBg, getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
+import { colorForBg, getPosAndBoundsFromMouseEvent, normalizeColorHex } from "../../../common/gui/base/GuiUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import {
@@ -489,6 +489,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		isDisabled: boolean,
 	): Children {
 		const isTemporary = attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, eventWrapper.event))
+
+		const normalizedColor = normalizeColorHex(eventWrapper.color)
+
 		return m(
 			".abs.overflow-hidden",
 			{
@@ -513,9 +516,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				eventWrapper: eventWrapper,
 				startsBefore: isBefore(eventStart, firstDayOfWeek),
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				backgroundColor: eventWrapper.flags.isGhost ? theme.surface_container_high : eventWrapper.color,
-				color: eventWrapper.flags.isGhost ? theme.on_surface_variant : colorForBg("#" + eventWrapper.color),
-				border: eventWrapper.flags.isGhost ? `1px dashed ${theme.outline}` : `1px solid #${eventWrapper.color}`,
+				backgroundColor: eventWrapper.flags.isGhost ? theme.surface_container_high : normalizedColor,
+				color: eventWrapper.flags.isGhost ? theme.on_surface_variant : colorForBg(normalizedColor),
+				border: eventWrapper.flags.isGhost ? `1px dashed ${theme.outline}` : `1px solid ${normalizedColor}`,
 				height: styles.isDesktopLayout() ? CALENDAR_EVENT_HEIGHT : 19, // Honestly we are not sure why, but for mobile the inner component has a decimal sized border, around 0.6 and ends up rounding the size to 19px
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,

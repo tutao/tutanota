@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../../gui/size"
 import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
-import { colorForBg } from "../../gui/base/GuiUtils"
+import { colorForBg, normalizeColorHex } from "../../gui/base/GuiUtils"
 import { theme } from "../../gui/theme"
 import { EventGridData, RowBounds } from "./CalendarTimeGrid"
 import {
@@ -105,10 +105,10 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 						style: resolvedStyles,
 					},
 					eventWrapper.flags.isFeatured
-						? this.renderFeaturedTexts(eventTitle, eventWrapper.flags)
+						? this.renderFeaturedTexts(eventTitle, resolvedStyles.color || normalizeColorHex(eventWrapper.color), !!eventWrapper.flags.isConflict)
 						: this.renderNonFeaturedTexts(
 								eventTitle,
-								eventWrapper.color,
+								resolvedStyles.color || colorForBg(normalizeColorHex(eventWrapper.color)),
 								gridInfo.row,
 								isAllDayEvent(eventWrapper.event) || isLongNormalEvent ? "" : eventTime,
 								eventWrapper.flags,
@@ -120,24 +120,24 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 	}
 
 	private resolveStyles({ eventWrapper, height, horizontalOverflowInfo, verticalOverflowInfo }: CalendarEventBubbleAttrs): Partial<CSSStyleDeclaration> {
-		const normalizedEventWrapperColor = eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`
+		const normalizedEventWrapperColor = normalizeColorHex(eventWrapper.color)
 		const defaultStyle = {
 			height: height ? px(height) : undefined,
 			color: colorForBg(normalizedEventWrapperColor),
 			backgroundColor: normalizedEventWrapperColor,
 			borderTop: verticalOverflowInfo.start ? "none" : undefined,
 			borderBottom: verticalOverflowInfo.end ? "none" : undefined,
-			"border-top-left-radius": verticalOverflowInfo.start || horizontalOverflowInfo.start ? "0" : undefined,
-			"border-top-right-radius": verticalOverflowInfo.start || horizontalOverflowInfo.end ? "0" : undefined,
-			"border-bottom-left-radius": verticalOverflowInfo.end || horizontalOverflowInfo.start ? "0" : undefined,
-			"border-bottom-right-radius": verticalOverflowInfo.end || horizontalOverflowInfo.end ? "0" : undefined,
+			borderTopLeftRadius: verticalOverflowInfo.start || horizontalOverflowInfo.start ? "0" : undefined,
+			borderTopRightRadius: verticalOverflowInfo.start || horizontalOverflowInfo.end ? "0" : undefined,
+			borderBottomLeftRadius: verticalOverflowInfo.end || horizontalOverflowInfo.start ? "0" : undefined,
+			borderBottomRightRadius: verticalOverflowInfo.end || horizontalOverflowInfo.end ? "0" : undefined,
 			paddingTop: "2px",
 			paddingBottom: "2px",
 		}
 
 		const featuredEventStyle = {
 			border: `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`,
-			color: undefined,
+			color: eventWrapper.flags.isConflict ? theme.on_warning_container : theme.on_success_container,
 		}
 
 		const ghostStyle = {
@@ -155,14 +155,14 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		}
 	}
 
-	private renderFeaturedTexts(title: string, flags: EventWrapperFlags) {
+	private renderFeaturedTexts(title: string, color: string, isConflict: boolean) {
 		return m(".flex.items-start", [
 			m(Icon, {
-				icon: flags.isConflict ? Icons.AlertCircle : Icons.Checkmark,
+				icon: isConflict ? Icons.AlertCircle : Icons.Checkmark,
 				container: "div",
 				class: "mr-xxs",
 				style: {
-					fill: flags.isConflict ? theme.on_warning_container : theme.on_success_container,
+					fill: color,
 				},
 			}),
 			m(
@@ -170,7 +170,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				{
 					style: {
 						"-webkit-line-clamp": 2,
-						color: flags.isConflict ? theme.on_warning_container : theme.on_success_container,
+						color,
 					},
 				},
 				title,
@@ -186,12 +186,11 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 	 * styling to distinguish them from events unrelated to the event invite.
 	 * @private
 	 */
-	private renderNonFeaturedTexts(title: string, color: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
+	private renderNonFeaturedTexts(title: string, iconFillColor: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
 		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
 		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
 
-		const iconFillColor = colorForBg(`#${color}`)
 		const hasEventTime = eventTime !== ""
 
 		const flagIcons = Object.entries(flags)
