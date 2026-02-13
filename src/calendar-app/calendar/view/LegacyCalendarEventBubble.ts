@@ -44,6 +44,8 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 		const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
 		const enablePointerEvents = attrs.enablePointerEvents
 
+		const normalizedBackgroundColor = attrs.backgroundColor.includes("#") ? attrs.backgroundColor : `#${attrs.backgroundColor}`
+
 		return m(
 			".calendar-event.small.overflow-hidden.flex.cursor-pointer" +
 				(doFadeIn ? ".fade-in" : "") +
@@ -76,7 +78,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					? m(Icon, {
 							icon: Icons.Notifications,
 							style: {
-								fill: colorForBg("#" + attrs.backgroundColor),
+								fill: colorForBg(normalizedBackgroundColor),
 								"padding-top": "2px",
 								"padding-right": "2px",
 							},
@@ -87,7 +89,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					? m(Icon, {
 							icon: Icons.Edit,
 							style: {
-								fill: colorForBg("#" + attrs.backgroundColor),
+								fill: colorForBg(normalizedBackgroundColor),
 								"padding-top": "2px",
 								"padding-right": "2px",
 							},
@@ -98,7 +100,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					? m(Icon, {
 							icon: Icons.Gift,
 							style: {
-								fill: colorForBg("#" + attrs.backgroundColor),
+								fill: colorForBg(normalizedBackgroundColor),
 								"padding-top": "2px",
 								"padding-right": "2px",
 							},
