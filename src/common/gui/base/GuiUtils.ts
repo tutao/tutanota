@@ -15,7 +15,7 @@ import { IconButtonAttrs } from "./IconButton.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { isColorLight } from "./Color.js"
+import { isColorLight, isValidCSSHexColor } from "./Color.js"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "./DropDownSelectorNew"
 import { theme } from "../theme"
 import { size } from "../size"
@@ -298,6 +298,27 @@ export function getContactTitle(contact: Contact) {
  */
 export function colorForBg(bgColor: string): string {
 	return isColorLight(bgColor) ? "black" : "white"
+}
+
+/**
+ * Adds a # to the beginning of a string if there is none.  Returns the string unmodified if it already has a #.
+ *
+ * For use in situations when we are processing color hexes from multiple sources that may or may not
+ * already have a # at the beginning.
+ *
+ * Use this liberally because failure to do so can, in some situations, cause serious bugs.
+ *
+ * @param colorHex
+ */
+export function normalizeColorHex(colorHex: string) {
+	const normalized = colorHex.includes("#") ? colorHex : `#${colorHex}`
+
+	if (isValidCSSHexColor(normalized)) {
+		return normalized
+	}
+
+	console.warn("Trying to normalize a non-hex-color, this could be unintended...")
+	return colorHex
 }
 
 /**
