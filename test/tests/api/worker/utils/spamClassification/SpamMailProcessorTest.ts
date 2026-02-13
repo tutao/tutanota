@@ -1,5 +1,7 @@
 import o from "@tutao/otest"
 import {
+	BYTES_COMPRESSED_MAIL_VECTOR_LENGTH,
+	BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 	DEFAULT_VECTOR_MAX_LENGTH,
 	SpamMailDatum,
 	SpamMailProcessor,
@@ -7,7 +9,7 @@ import {
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { assertNotNull, splitArrayAt } from "@tutao/tutanota-utils"
+import { splitArrayAt, splitUint8Array } from "@tutao/tutanota-utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
 
 o.spec("SpamMailProcessor Tests", () => {
@@ -21,9 +23,8 @@ o.spec("SpamMailProcessor Tests", () => {
 
 		datum = {
 			subject: "subject",
-			serverClassifier: 8,
+			serverClassificationData: "1,8",
 			sender: "sender@email.com",
-			serverIsSpam: true,
 			authStatus: "0",
 			ccRecipients: "cc-recipients",
 			bccRecipients: "bcc-recipients",
@@ -37,90 +38,71 @@ o.spec("SpamMailProcessor Tests", () => {
 	})
 
 	o("model input - still works with old ClientSpamTrainingDatum", async () => {
-		const spaceForServerResult = 20
-		const { vectorToUpload } = await createModelInputAndUploadVector(spaceForServerResult, datum)
+		datum.serverClassificationData = null
+		const { uploadableVectorLegacy } = await createModelInputAndUploadableVectors(datum)
 		// clientSpamTrainingDatum uploaded by old clients has vectorNewFormat set to null
 		const clientSpamTrainingDatum: ClientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
-			vector: vectorToUpload,
+			vector: uploadableVectorLegacy,
 			vectorNewFormat: null,
 		})
-		const recoveredModelInput = await spamMailProcessor.getModelInputFromTrainingDatum(spaceForServerResult, clientSpamTrainingDatum)
 
-		const uploadedVectorDecompressed = sparseVectorCompressor.decompress(vectorToUpload)
-		const oneHotEncodedVector = Array(spaceForServerResult - 1).fill(0)
-		oneHotEncodedVector[0] = 1
-		const modelInputFromUploadedVector = uploadedVectorDecompressed
-			.concat(0) // serverIsSpam we assume false
-			.concat(oneHotEncodedVector)
+		const modelInputFromUploadedLegacyVector = await spamMailProcessor.processClientSpamTrainingDatum(clientSpamTrainingDatum)
+		const legacyVectorDecompressed = sparseVectorCompressor.decompress(uploadableVectorLegacy, DEFAULT_VECTOR_MAX_LENGTH)
+		const modelInputFromLegacyVector = legacyVectorDecompressed.concat(new Array<number>(BYTES_FOR_SERVER_CLASSIFICATION_DATA).fill(0))
 
-		o(recoveredModelInput).deepEquals(modelInputFromUploadedVector)
+		o(modelInputFromUploadedLegacyVector).deepEquals(modelInputFromLegacyVector)
 	})
 
 	o("model input - sanitization checks", async () => {
-		const spaceForServerResult = 20
-		const { modelInput, vectorToUpload, vectorNewFormatToUpload } = await createModelInputAndUploadVector(spaceForServerResult, datum)
+		datum.serverClassificationData = "1,4:0,6" // 4th classifier: spam, 6th classifier: not spam
+		// 00.00.00.11.00.01-0000000
+		const { modelInput: expectedModelInput, uploadableVectorLegacy, uploadableVector } = await createModelInputAndUploadableVectors(datum)
 		const clientSpamTrainingDatum: ClientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
-			vector: vectorToUpload,
-			vectorNewFormat: vectorNewFormatToUpload,
+			vector: uploadableVectorLegacy,
+			vectorNewFormat: uploadableVector,
 		})
-		const recoveredModelInput = await spamMailProcessor.getModelInputFromTrainingDatum(spaceForServerResult, clientSpamTrainingDatum)
+		const modelInputFromDownloadedData = await spamMailProcessor.processClientSpamTrainingDatum(clientSpamTrainingDatum)
 
-		const uploadedVector = Array.from(assertNotNull(clientSpamTrainingDatum.vectorNewFormat).values())
-		const serverSideClassifierFromDatum = uploadedVector.pop()!
-		const serverDecisionFromDatum = uploadedVector.pop()!
-		const vectorizedMailFromDatum = sparseVectorCompressor.decompress(Uint8Array.from(uploadedVector))
-
-		const [vectorizedMailFromModelInput, [serverDecisionFromModelInput, ...oneHotEncodedServerClassifier]] = splitArrayAt(
-			modelInput,
-			modelInput.length - spaceForServerResult,
+		const expectedOneHotEncodedServerClassificationData = spamMailProcessor.oneHotEncodeServerClassifiers(datum.serverClassificationData!)
+		const [lengthBytes, rest] = splitUint8Array(clientSpamTrainingDatum.vectorNewFormat!, BYTES_COMPRESSED_MAIL_VECTOR_LENGTH)
+		const length = sparseVectorCompressor.decodeCompressedVectorLength(lengthBytes)
+		const [compressedVector, compressedServerClassificationData] = splitUint8Array(rest, length)
+		const vectorizedMailFromDatum = sparseVectorCompressor.decompress(compressedVector, DEFAULT_VECTOR_MAX_LENGTH)
+		const serverClassificationDataFromUploadedVector = sparseVectorCompressor.decompress(
+			compressedServerClassificationData,
+			BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 		)
-		const serverClassifierFromInput = oneHotEncodedServerClassifier.findIndex((v) => v === 1)
 
-		o(serverSideClassifierFromDatum).equals(datum.serverClassifier + 1) // we shift all classifier by +1 to reserve `0` for UNKNOWN
-		o(serverClassifierFromInput).equals(datum.serverClassifier + 1)
-		o(serverDecisionFromDatum).equals(Number(datum.serverIsSpam))
-		o(serverDecisionFromModelInput).equals(Number(datum.serverIsSpam))
+		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = splitArrayAt(expectedModelInput, DEFAULT_VECTOR_MAX_LENGTH)
+
+		const classifiers = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 1)
+		const decisions = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 0)
+
+		const classifiersUsed = findIndexes(classifiers, (v) => v === 1)
+		const serverDecisions = classifiersUsed.map((classifierIndex) => decisions[classifierIndex])
+
+		o(modelInputFromDownloadedData).deepEquals(expectedModelInput)
 		o(vectorizedMailFromDatum).deepEquals(vectorizedMailFromModelInput)
-		o(modelInput).deepEquals(recoveredModelInput)
+		o(serverClassificationDataFromUploadedVector).deepEquals(expectedOneHotEncodedServerClassificationData)
+		o(serverClassificationDataFromModelInput).deepEquals(expectedOneHotEncodedServerClassificationData)
+		o([4, 6]).deepEquals(classifiersUsed)
+		o([1, 0]).deepEquals(serverDecisions)
 	})
 
-	o("model input is recovered from clientSpamTrainingDatum - increased model dimension", async () => {
-		const spaceForServerResultWhileUploading = 20
-		const spaceForServerResultWhileUpdating = 30
-		datum.serverClassifier = 22
+	async function createModelInputAndUploadableVectors(datum: SpamMailDatum) {
+		const modelInput = await spamMailProcessor.processSpamMailDatum(datum)
+		const { uploadableVectorLegacy, uploadableVector } = await spamMailProcessor.makeUploadableVectors(datum)
 
-		const {
-			modelInput: initialModelInput,
-			vectorToUpload,
-			vectorNewFormatToUpload,
-		} = await createModelInputAndUploadVector(spaceForServerResultWhileUploading, datum)
-		const clientSpamTrainingDatum: ClientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
-			vector: vectorToUpload,
-			vectorNewFormat: vectorNewFormatToUpload,
-		})
-		const recoveredModelInput = await spamMailProcessor.getModelInputFromTrainingDatum(spaceForServerResultWhileUpdating, clientSpamTrainingDatum)
-
-		const [vectorizedMailInitial, [serverIsSpamInitial, ...oneHotServerClassifierInitial]] = splitArrayAt(initialModelInput, DEFAULT_VECTOR_MAX_LENGTH)
-		const [vectorizedMailRecover, [serverIsSpamUpdate, ...oneHotServerClassifierUpdated]] = splitArrayAt(recoveredModelInput, DEFAULT_VECTOR_MAX_LENGTH)
-		const serverClassifierInitial = oneHotServerClassifierInitial.findIndex((v) => v === 1)
-		const serverClassifierUpdated = oneHotServerClassifierUpdated.findIndex((v) => v === 1)
-
-		o(initialModelInput.length).equals(DEFAULT_VECTOR_MAX_LENGTH + spaceForServerResultWhileUploading)
-		o(recoveredModelInput.length).equals(DEFAULT_VECTOR_MAX_LENGTH + spaceForServerResultWhileUpdating)
-		o(vectorizedMailInitial).deepEquals(vectorizedMailRecover)
-		o(serverIsSpamInitial).equals(serverIsSpamUpdate)
-		o(serverIsSpamUpdate).equals(datum.serverIsSpam ? 1 : 0)
-		o(oneHotServerClassifierInitial.length).equals(19)
-		o(oneHotServerClassifierUpdated.length).equals(29)
-		o(serverClassifierInitial).equals(0)
-		o(serverClassifierUpdated).equals(23)
-	})
-
-	async function createModelInputAndUploadVector(spaceForServerResult: number, datum: SpamMailDatum) {
-		const vectorizedMail = await spamMailProcessor.makeVectorizedMail(datum)
-		const modelInput = await spamMailProcessor.makeModelInputFromMailDatum(spaceForServerResult, datum, vectorizedMail)
-		const { vectorToUpload, vectorNewFormatToUpload } = spamMailProcessor.makeUploadVectorsFromMailDatum(datum, vectorizedMail)
-
-		return { modelInput, vectorToUpload, vectorNewFormatToUpload }
+		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 })
+
+function findIndexes<T>(array: T[], checker: (_: T) => boolean): number[] {
+	const indexes: number[] = []
+	for (let i = 0; i < array.length; i++) {
+		if (checker(array[i])) {
+			indexes.push(i)
+		}
+	}
+	return indexes
+}

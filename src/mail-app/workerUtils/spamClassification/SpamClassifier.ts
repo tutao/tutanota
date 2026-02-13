@@ -17,25 +17,19 @@ import type { ModelFitArgs } from "@tensorflow/tfjs-layers"
 import type { Tensor } from "@tensorflow/tfjs-core"
 import {
 	createSpamMailDatum,
-	CURRENT_SPACE_FOR_SERVER_RESULT,
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamMailProcessor,
 } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export type SpamClassificationModelMetaData = {
 	hamCount: number
 	spamCount: number
 	lastTrainedFromScratchTime: number
 	lastTrainingDataIndexId: Id
-	/**
-	 * total number of bytes required to represent serverSide classification result
-	 * 1 ( isSpam flag ) + n ( number of Classifier ) + 1 ( reserved UNKNOWN classifier )
-	 */
-	spaceForServerResult: number
 }
 
 export type SpamClassificationModel = {
@@ -140,7 +134,6 @@ export class SpamClassifier {
 			spamCount,
 			lastTrainedFromScratchTime: Date.now(),
 			lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
-			spaceForServerResult: CURRENT_SPACE_FOR_SERVER_RESULT,
 		}
 
 		const trainingInput = await promiseMap(
@@ -149,7 +142,7 @@ export class SpamClassifier {
 				/**
 				 * TODO: we should also use confidence in initialTraining
 				 *
-				 * // initialTraining: m1: confience(4) <- initial training here
+				 * // initialTraining: m1: confidence(4) <- initial training here
 				 * // new email: m2: confidence(1) <- updated model here ( user received a mail but have  not moved yet)
 				 * //
 				 * // another email: m3: <- currently classifying
@@ -158,7 +151,12 @@ export class SpamClassifier {
 				 * in this case, m1 should have more influence while classifying on m3.
 				 * Currently since we dont use confidence, m1 & m2 will have equal influence
 				 */
-				const vector = await this.spamMailProcessor.getModelInputFromTrainingDatum(metaData.spaceForServerResult, d)
+				const vector = await this.spamMailProcessor.processClientSpamTrainingDatum(
+					d,
+					await this.spamMailProcessor.getVectorDimension(),
+					this.spamMailProcessor.byteForServerClassificationData,
+				)
+
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
 				return { vector, label }
 			},
@@ -169,10 +167,10 @@ export class SpamClassifier {
 		const vectors = trainingInput.map((input) => input.vector)
 		const labels = trainingInput.map((input) => input.label)
 
-		const xs = tensor2d(vectors, [trainingInput.length, this.getInputSize(metaData)], undefined)
+		const xs = tensor2d(vectors, [trainingInput.length, await this.spamMailProcessor.getModelInputSize()], undefined)
 		const ys = tensor1d(labels, undefined)
 
-		const layersModel = this.buildModel(this.getInputSize(metaData))
+		const layersModel = this.buildModel(await this.spamMailProcessor.getModelInputSize())
 
 		const trainingStart = performance.now()
 		await layersModel.fit(xs, ys, {
@@ -252,7 +250,11 @@ export class SpamClassifier {
 		const trainingInput = await promiseMap(
 			trainingDataset.trainingData,
 			async (d) => {
-				const vector = await this.spamMailProcessor.getModelInputFromTrainingDatum(classifierToUpdate.metaData.spaceForServerResult, d)
+				const vector = await this.spamMailProcessor.processClientSpamTrainingDatum(
+					d,
+					await this.spamMailProcessor.getVectorDimension(),
+					this.spamMailProcessor.byteForServerClassificationData,
+				)
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
 				const isSpamConfidence = Number(d.confidence)
 				return { vector, label, isSpamConfidence }
@@ -279,7 +281,8 @@ export class SpamClassifier {
 				const vectors = trainingInput.map((input) => input.vector)
 				const labels = trainingInput.map((input) => input.label)
 
-				const xs = tensor2d(vectors, [vectors.length, this.getInputSize(classifierToUpdate.metaData)], "int32")
+				const inputSize = await this.spamMailProcessor.getModelInputSize()
+				const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
 				const ys = tensor1d(labels, "int32")
 
 				// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
@@ -311,7 +314,6 @@ export class SpamClassifier {
 			classifierToUpdate.metaData = {
 				hamCount: classifierToUpdate.metaData.hamCount + trainingDataset.hamCount,
 				spamCount: classifierToUpdate.metaData.spamCount + trainingDataset.spamCount,
-				spaceForServerResult: classifierToUpdate.metaData.spaceForServerResult,
 				// lastTrainedFromScratchTime update only happens on full training
 				lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
 				lastTrainedFromScratchTime: classifierToUpdate.metaData.lastTrainedFromScratchTime,
@@ -335,7 +337,7 @@ export class SpamClassifier {
 		}
 
 		const vectors = [vector]
-		const inputSize = this.getInputSize(classifier.metaData)
+		const inputSize = await this.spamMailProcessor.getModelInputSize()
 		const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
 
 		const predictionTensor = classifier.layersModel.predict(xs) as Tensor
@@ -349,10 +351,6 @@ export class SpamClassifier {
 		predictionTensor.dispose()
 
 		return prediction > classifier.threshold
-	}
-
-	private getInputSize(classifierMetadata: SpamClassificationModelMetaData) {
-		return this.sparseVectorCompressor.dimension + classifierMetadata.spaceForServerResult
 	}
 
 	// visibleForTesting
@@ -393,14 +391,12 @@ export class SpamClassifier {
 		return model
 	}
 
-	public async createModelInputAndUploadVector(ownerGroup: Id, mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
-		const datum = createSpamMailDatum(mail, mailDetails, sourceFolder)
-		const vectorizedMail = await this.spamMailProcessor.makeVectorizedMail(datum)
-		const { vectorNewFormatToUpload, vectorToUpload } = this.spamMailProcessor.makeUploadVectorsFromMailDatum(datum, vectorizedMail)
-		const spaceForServerResult = this.classifierByMailGroup.get(ownerGroup)?.metaData.spaceForServerResult ?? CURRENT_SPACE_FOR_SERVER_RESULT
-		const modelInput = await this.spamMailProcessor.makeModelInputFromMailDatum(spaceForServerResult, datum, vectorizedMail)
+	public async createModelInputAndUploadVector(mail: Mail, mailDetails: MailDetails) {
+		const datum = createSpamMailDatum(mail, mailDetails)
+		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
+		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
 
-		return { modelInput, vectorNewFormatToUpload, vectorToUpload }
+		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 
 	// visibleForTesting

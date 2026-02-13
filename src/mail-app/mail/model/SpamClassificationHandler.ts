@@ -6,6 +6,7 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
+import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 assertMainOrNode()
 
@@ -29,13 +30,11 @@ export class SpamClassificationHandler {
 		folderSystem: FolderSystem,
 	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
-		const { modelInput, vectorToUpload, vectorNewFormatToUpload } = await this.spamClassifier.createModelInputAndUploadVector(
-			ownerGroup,
-			mail,
-			mailDetails,
-			sourceFolder,
-		)
-		const useClientSpamClassifier = !SERVER_CLASSIFIERS_TO_TRUST.has(Number(mail.serverClassifier))
+		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
+		// FIXME: Deal with no serverClassificationData
+		const serverClassifiers = mail.serverClassificationData ? extractServerClassifiers(mail.serverClassificationData) : []
+		// FIXME which classifier to trust if results are conflicting? trust in order?
+		const useClientSpamClassifier = !serverClassifiers.some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
 
 		let targetFolder = sourceFolder
 		if (useClientSpamClassifier && modelInput) {
@@ -46,15 +45,15 @@ export class SpamClassificationHandler {
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 			}
 		} else if (!useClientSpamClassifier) {
-			console.log(`skipped spam classification for new mail because of server classifier ${mail.serverClassifier} for ownerGroup ${ownerGroup}`)
+			console.log(`skipped spam classification for new mail because of trusted server classifiers ${serverClassifiers} for ownerGroup ${ownerGroup}`)
 		}
 
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
 			targetMoveFolder: targetFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vector: vectorToUpload,
-			vectorNewFormat: vectorNewFormatToUpload,
+			vector: uploadableVectorLegacy,
+			vectorNewFormat: uploadableVector,
 			ownerEncMailSessionKeys: [],
 		}
 		return { targetFolder, processInboxDatum: processInboxDatum }

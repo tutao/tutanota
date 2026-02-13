@@ -632,10 +632,10 @@ o.spec("ProcessInboxHandlerTest", function () {
 		when(logins.isEnabled(FeatureType.SpamClientClassification)).thenReturn(false)
 
 		mail.sets = [inboxFolder._id]
-		when(mailFacade.createModelInputAndUploadVector(anything(), mail, mailDetails, inboxFolder)).thenResolve({
+		when(mailFacade.createModelInputAndUploadableVectors(mail, mailDetails, inboxFolder)).thenResolve({
 			modelInput: [],
-			vectorNewFormatToUpload: new Uint8Array(),
-			vectorToUpload: new Uint8Array(),
+			uploadableVectorLegacy: new Uint8Array(),
+			uploadableVector: new Uint8Array(),
 		})
 		processInboxHandler = new ProcessInboxHandler(
 			logins,

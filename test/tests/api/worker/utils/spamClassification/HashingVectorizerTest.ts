@@ -13,6 +13,7 @@ o.spec("HashingVectorizer", () => {
 	]
 
 	const tokenizedDocuments = rawDocuments.map(spamClassifierTokenizer)
+	const vectorizationSpace = 100
 
 	o("vectorize creates same vector for same tokens", async () => {
 		const vectorizer = new HashingVectorizer()
