@@ -161,7 +161,9 @@ export class ApplicationTypesFacade {
 	}
 
 	async invalidateApplicationTypes() {
-		await this.fileFacade.deleteFromAppDir(this.APPLICATION_TYPES_PATH)
-		await this.fileFacade.deleteFromAppDir(this.APPLICATION_TYPES_PATH_SDK)
+		if (isDesktop() || isApp()) {
+			await this.fileFacade.deleteFromAppDir(this.APPLICATION_TYPES_PATH)
+			await this.fileFacade.deleteFromAppDir(this.APPLICATION_TYPES_PATH_SDK)
+		}
 	}
 }
