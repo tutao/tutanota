@@ -116,6 +116,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 		refId: "FONT_REGULAR_DESCRIPTOR",
 		dictionary: new Map<string, PdfDictValue>([
 			["Type", "/FontDescriptor"],
+			["FontBBox", "[ 0 0 0 0 ]"],
 			["FontName", "/SourceSans3-Regular"],
 			["FontFile2", { refId: "FONT_REGULAR_FILE" }],
 			["Subtype", "/TrueType"],
@@ -141,6 +142,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 		refId: "FONT_BOLD_DESCRIPTOR",
 		dictionary: new Map<string, PdfDictValue>([
 			["Type", "/FontDescriptor"],
+			["FontBBox", "[ 0 0 0 0 ]"],
 			["FontName", "/SourceSans3-Bold"],
 			["FontFile2", { refId: "FONT_BOLD_FILE" }],
 			["Subtype", "/TrueType"],
@@ -167,6 +169,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 		refId: "FONT_MONO_BOLD_DESCRIPTOR",
 		dictionary: new Map<string, PdfDictValue>([
 			["Type", "/FontDescriptor"],
+			["FontBBox", "[ 0 0 0 0 ]"],
 			["FontName", "/NotoSansMono-Bold"],
 			["FontFile2", { refId: "FONT_MONO_BOLD_FILE" }],
 			["Subtype", "/TrueType"],
@@ -202,6 +205,7 @@ export const PDF_DEFAULT_OBJECTS = Object.freeze([
 		refId: "FONT_INVISIBLE_CID_DESCRIPTOR",
 		dictionary: new Map<string, PdfDictValue>([
 			["Type", "/FontDescriptor"],
+			["FontBBox", "[ 0 0 0 0 ]"],
 			["FontName", "/Helvetica"],
 			["Subtype", "/TrueType"],
 			["Flags", "32"],
