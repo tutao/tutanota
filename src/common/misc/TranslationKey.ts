@@ -327,6 +327,7 @@ export type TranslationKeyType =
 	| "supportBackLostRequest_msg"
 	| "sunday_label"
 	| "subscription_label"
+	| "adminManagedCustomer_label"
 	| "subscriptionSettings_label"
 	| "subscriptionChange_msg"
 	| "subscriptionChangePeriod_msg"

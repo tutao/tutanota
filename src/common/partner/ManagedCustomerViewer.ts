@@ -1,402 +1,58 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { Dialog } from "../gui/base/Dialog.js"
-import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter.js"
+import { formatDateWithMonth } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import { Customer, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, User, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { BookingItemFeatureType, GroupType, OperationType } from "../api/common/TutanotaConstants.js"
-import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError.js"
-import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
-import { getGroupTypeDisplayName } from "../settings/groups/GroupDetailsView.js"
-import { Icons } from "../gui/base/icons/Icons.js"
-import { SecondFactorsEditForm } from "../settings/login/secondfactor/SecondFactorsEditForm.js"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-
-import { HtmlEditor as Editor, HtmlEditorMode } from "../gui/editor/HtmlEditor.js"
-import { checkAndImportUserData, CSV_USER_FORMAT } from "../settings/ImportUsersViewer.js"
-import { MailAddressTable } from "../settings/mailaddress/MailAddressTable.js"
-import { compareGroupInfos, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { isSameId } from "../api/common/utils/EntityUtils.js"
-import { showBuyDialog } from "../subscription/BuyDialog.js"
+import { CustomerInfo } from "../api/entities/sys/TypeRefs.js"
 import { TextField } from "../gui/base/TextField.js"
-import { locator } from "../api/main/CommonLocator.js"
-import { DropDownSelector } from "../gui/base/DropDownSelector.js"
-import { showChangeOwnPasswordDialog } from "../settings/login/ChangePasswordDialogs.js"
-import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { MailAddressTableModel } from "../settings/mailaddress/MailAddressTableModel.js"
-import { progressIcon } from "../gui/base/Icon.js"
-import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
+import { PlanType } from "../api/common/TutanotaConstants"
+import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
 
 assertMainOrNode()
 
 export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
-	private readonly user: LazyLoaded<User> = new LazyLoaded(() => this.loadManagedCustomer())
-	private readonly customer = new LazyLoaded(() => this.loadCustomer())
-	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
-	private groupsTableAttrs: TableAttrs | null = null
-	private usedStorage: number | null = null
-	private mailAddressTableModel: MailAddressTableModel | null = null
-	private mailAddressTableExpanded: boolean
+	constructor(public customerInfo: CustomerInfo) {
+		this.customerInfo = customerInfo
+	}
 
-	constructor(public userGroupInfo: GroupInfo) {
-		this.userGroupInfo = userGroupInfo
-
-		this.mailAddressTableExpanded = false
-
-		this.teamGroupInfos.getAsync().then(async (availableTeamGroupInfos) => {
-			if (availableTeamGroupInfos.length > 0) {
-				this.groupsTableAttrs = {
-					columnHeading: ["name_label", "groupType_label"],
-					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
-					showActionButtonColumn: true,
-					addButtonAttrs: {
-						title: "addGroup_label",
-						icon: Icons.Add,
-						click: () => this.showAddManagedCustomerToGroupDialog(),
-					},
-					lines: [],
-				}
-
-				await this.updateGroups()
-			}
-		})
-
-		this.user.getAsync().then(async (user) => {
-			const mailMembership = await asyncFind(user.memberships, async (ship) => {
-				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(GroupTypeRef, ship.group)).user === user._id
-			})
-			if (mailMembership == null) {
-				console.error("ManagedCustomer doesn't have a mailbox?", user._id)
-				return
-			}
-			this.mailAddressTableModel = this.isItMe()
-				? await locator.mailAddressTableModelForOwnMailbox()
-				: await locator.mailAddressTableModelForAdmin(mailMembership.group, user._id, {
-						user,
-						userGroupInfo: this.userGroupInfo,
-					})
-			m.redraw()
-		})
-
-		this.updateUsedStorageAndAdminFlag()
+	private getDisplayValueForPlan({ plan }: CustomerInfo) {
+		return getDisplayNameOfPlanType(plan as PlanType)
 	}
 
 	renderView(): Children {
-		const changePasswordButtonAttrs: IconButtonAttrs = {
-			title: "changePassword_label",
-			click: () => this.changePassword(),
-			icon: Icons.Edit,
-			size: ButtonSize.Compact,
-		} as const
-		const passwordFieldAttrs = {
-			label: "password_label",
-			value: "***",
-			injectionsRight: () => [m(IconButton, changePasswordButtonAttrs)],
-			isReadOnly: true,
-		} as const
 		return m("#user-viewer.fill-absolute.scroll.plr-24.pb-floating", [
-			m(".h4.mt-32", lang.get("userSettings_label")),
+			m(".h4.mt-32", lang.get("adminManagedCustomer_label")),
 			m("", [
 				m(TextField, {
 					label: "mailAddress_label",
-					value: this.userGroupInfo.mailAddress ?? "",
+					value: this.customerInfo.registrationMailAddress ?? "",
 					isReadOnly: true,
 				}),
 				m(TextField, {
 					label: "created_label",
-					value: formatDateWithMonth(this.userGroupInfo.created),
+					value: formatDateWithMonth(this.customerInfo.creationTime),
 					isReadOnly: true,
 				}),
 				m(TextField, {
-					label: "storageCapacityUsed_label",
-					value: this.usedStorage ? formatStorageSize(this.usedStorage) : lang.get("loading_msg"),
+					label: "company_label",
+					value: this.customerInfo.company ?? "",
 					isReadOnly: true,
-				} as const),
-			]),
-			m("", [this.renderName(), m(TextField, passwordFieldAttrs), this.renderManagedCustomerStatusSelector()]),
-			this.groupsTableAttrs ? m(".h4.mt-32.mb-8", lang.get("groups_label")) : null,
-			this.groupsTableAttrs ? m(Table, this.groupsTableAttrs) : null,
-			this.mailAddressTableModel
-				? m(MailAddressTable, {
-						model: this.mailAddressTableModel,
-						expanded: this.mailAddressTableExpanded,
-						onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
-					})
-				: progressIcon(),
-		])
-	}
-
-	private renderName(): Children {
-		const name = this.userGroupInfo.name
-		return m(TextField, {
-			label: "name_label",
-			value: name,
-			isReadOnly: true,
-			injectionsRight: () =>
-				m(IconButton, {
-					title: "edit_action",
-					click: () => this.onChangeName(name),
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
 				}),
-		})
-	}
-
-	private onChangeName(name: string) {
-		Dialog.showProcessTextInputDialog(
-			{
-				title: "edit_action",
-				label: "name_label",
-				defaultValue: name,
-			},
-			(newName) => {
-				this.userGroupInfo.name = newName
-				return locator.entityClient.update(this.userGroupInfo)
-			},
-		)
-	}
-
-	private renderManagedCustomerStatusSelector(): Children {
-		return m(DropDownSelector, {
-			label: "state_label",
-			items: [
-				{
-					name: lang.get("activated_label"),
-					value: true,
-				},
-				{
-					name: lang.get("deactivated_label"),
-					value: false,
-				},
-			],
-			selectedValue: this.userGroupInfo.deleted == null,
-			selectionChangedHandler: (activate: boolean) => {
-				if (activate) {
-					this.restoreManagedCustomer()
-				} else {
-					this.deleteManagedCustomer()
-				}
-			},
-		})
-	}
-
-	private isItMe(): boolean {
-		return isSameId(locator.logins.getUserController().userGroupInfo._id, this.userGroupInfo._id)
-	}
-
-	private changePassword(): void {
-		if (this.isItMe()) {
-			showChangeOwnPasswordDialog()
-		} else {
-			this.user.getAsync().then((user) => {
-				console.log("showChangeManagedCustomerPasswordAsAdminDialog")
-			})
-		}
-	}
-
-	private async updateGroups() {
-		if (this.groupsTableAttrs) {
-			const user = await this.user.getAsync()
-			const customer = await this.customer.getAsync()
-			this.groupsTableAttrs.lines = await promiseMap(
-				this.getTeamMemberships(user, customer),
-				async (m) => {
-					const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, m.groupInfo)
-					return {
-						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeDisplayName(neverNull(m.groupType))],
-						actionButtonAttrs: {
-							title: "remove_action",
-							click: () => {
-								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group)).catch(
-									ofClass(NotAuthorizedError, (e) => {
-										Dialog.message("pleaseWait_msg")
-										//removeManagedCustomerFromGroupNotAdministratedManagedCustomerError_msg
-									}),
-								)
-							},
-							icon: Icons.Cancel,
-						} as const,
-					}
-				},
-				{
-					concurrency: 5,
-				},
-			)
-		}
-	}
-
-	private async showAddManagedCustomerToGroupDialog(): Promise<void> {
-		const user = await this.user.getAsync()
-		if (this.userGroupInfo.deleted) {
-			Dialog.message("userAccountDeactivated_msg")
-		} else {
-			const globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
-
-			const availableGroupInfos = this.teamGroupInfos
-				.getLoaded()
-				.filter(
-					(g) =>
-						// global admins may add all groups
-						globalAdmin &&
-						// can't add deleted groups
-						!g.deleted &&
-						// can't add if the user is already in the group
-						!user.memberships.some((m) => isSameId(m.groupInfo, g._id)),
-				)
-				.sort(compareGroupInfos)
-
-			if (availableGroupInfos.length > 0) {
-				const dropdownItems = availableGroupInfos.map((g) => ({
-					name: getGroupInfoDisplayName(g),
-					value: g,
-				}))
-
-				let selectedGroupInfo = getFirstOrThrow(availableGroupInfos)
-				Dialog.showActionDialog({
-					title: "pleaseWait_msg",
-					//addManagedCustomerToGroup_label
-					child: {
-						view: () =>
-							m(DropDownSelector, {
-								label: "group_label",
-								items: dropdownItems,
-								selectedValue: selectedGroupInfo,
-								selectionChangedHandler: (selection: GroupInfo) => (selectedGroupInfo = selection),
-								dropdownWidth: 250,
-							}),
-					},
-					allowOkWithReturn: true,
-					okAction: (dialog: Dialog) => {
-						showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.addUserToGroup(user, selectedGroupInfo.group))
-						dialog.close()
-					},
-				})
-			}
-		}
-	}
-
-	private async updateUsedStorageAndAdminFlag(): Promise<void> {
-		const user = await this.user.getAsync()
-		try {
-			this.usedStorage = await locator.userManagementFacade.readUsedUserStorage(user)
-			m.redraw()
-		} catch (e) {
-			// may happen if the user gets the admin flag removed, so ignore it
-			if (!(e instanceof BadRequestError)) {
-				throw e
-			}
-		}
-	}
-
-	private getTeamMemberships(user: User, customer: Customer): GroupMembership[] {
-		return user.memberships.filter((m) => m.groupInfo[0] === customer.teamGroups)
-	}
-
-	private isAdminManagedCustomer(user: User): boolean {
-		return user.memberships.some((m) => m.groupType === GroupType.Admin)
-	}
-
-	private async deleteManagedCustomer() {
-		const planType = await locator.logins.getUserController().getPlanType()
-		const newPlan = await locator.logins.getUserController().isNewPaidPlan()
-
-		const confirmed = await showBuyDialog({
-			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
-			bookingText: "pleaseWait_msg",
-			//cancelManagedCustomerAccounts_label
-			count: -1,
-			freeAmount: 0,
-			reactivate: false,
-		})
-		if (confirmed) {
-			return locator.userManagementFacade
-				.deleteUser(await this.user.getAsync(), false)
-				.catch(ofClass(PreconditionFailedError, () => Dialog.message("stillReferencedFromContactForm_msg")))
-		}
-	}
-
-	private async restoreManagedCustomer() {
-		const planType = await locator.logins.getUserController().getPlanType()
-		const newPlan = await locator.logins.getUserController().isNewPaidPlan()
-		const confirmed = await showBuyDialog({
-			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
-			bookingText: "pleaseWait_msg",
-			//bookingItemManagedCustomersIncluding_label
-			count: 1,
-			freeAmount: 0,
-			reactivate: true,
-		})
-		if (confirmed) {
-			await locator.userManagementFacade
-				.deleteUser(await this.user.getAsync(), true)
-				.catch(ofClass(PreconditionFailedError, () => Dialog.message("emailAddressInUse_msg")))
-		}
+				m(TextField, {
+					label: "subscription_label",
+					value: this.getDisplayValueForPlan(this.customerInfo),
+					isReadOnly: true,
+				}),
+			]),
+		])
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			const { instanceListId, instanceId, operation } = update
-			if (
-				isUpdateForTypeRef(GroupInfoTypeRef, update) &&
-				operation === OperationType.UPDATE &&
-				isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])
-			) {
-				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
-				await this.updateUsedStorageAndAdminFlag()
-				m.redraw()
-			} else if (
-				isUpdateForTypeRef(UserTypeRef, update) &&
-				operation === OperationType.UPDATE &&
-				this.user.isLoaded() &&
-				isSameId(this.user.getLoaded()._id, instanceId)
-			) {
-				this.user.reset()
-				await this.updateUsedStorageAndAdminFlag()
-				await this.updateGroups()
-			}
+			//we might need the same as for the list
 		}
 		m.redraw()
 	}
-
-	private loadManagedCustomer(): Promise<User> {
-		return locator.entityClient.load(GroupTypeRef, this.userGroupInfo.group).then((userGroup) => {
-			return locator.entityClient.load(UserTypeRef, neverNull(userGroup.user))
-		})
-	}
-
-	private loadCustomer(): Promise<Customer> {
-		return locator.logins.getUserController().loadCustomer()
-	}
-
-	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
-		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups))
-	}
-}
-
-/**
- * Show editor for adding the csv values of the users.
- */
-export function showManagedCustomerImportDialog(customDomains: string[]) {
-	let editor = new Editor("enterAsCSV_msg").showBorders().setMode(HtmlEditorMode.HTML).setValue(CSV_USER_FORMAT).setMinHeight(200)
-	let form = {
-		view: () => {
-			return [m(editor)]
-		},
-	}
-	Dialog.showActionDialog({
-		title: "pleaseWait_msg",
-		//
-		// //importManagedCustomers_actionit_msg
-		child: form,
-		okAction: (csvDialog) => {
-			let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)
-			if (closeCsvDialog) {
-				csvDialog.close()
-			}
-		},
-	})
 }

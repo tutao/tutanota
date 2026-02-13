@@ -81,6 +81,7 @@ export default {
 		"adminSubscription_action": "Abonnement",
 		"adminUserList_action": "Benutzerverwaltung",
 		"adminManagedCustomerList_action": "Customer management",
+		"adminManagedCustomer_label": "Customer",
 		"advanced_label": "Erweitert",
 		"affiliateSettings_label": "Affiliate-Programm",
 		"affiliateSettingsAccumulated_label": "Kumulierte Provision",

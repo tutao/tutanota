@@ -44,11 +44,12 @@ export interface PartnerViewAttrs extends TopLevelAttrs {
  * TODO
  * * Customer management -> Customers
  * * Add labels to POEditor
- * * Adapt ManagedCustomerViewer to show some fields
+ * * Adapt ManagedCustomerViewer to show some fields --- DONE
  * * Add Button to Login to /settings/ of a managed customer from ManagedCustomerViewer
  * * Tests for Backend
  * *
- *
+ * * for the customer view, we do not get CustomerInfo entity updates as it's in another account
+ * * It requires a re-login to see updated information, should we do something about it?
  */
 export class PartnerView extends BaseTopLevelView implements TopLevelView<PartnerViewAttrs> {
 	viewSlider: ViewSlider
