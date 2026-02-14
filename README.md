@@ -35,3 +35,4 @@ See [BUILDING.md](doc/BUILDING.md).
 
 See [HACKING.md](doc/HACKING.md).
 
+# tutanota-arm64

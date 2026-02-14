@@ -1,0 +1,389 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@5.0
+
+executors:
+  ubuntu:
+    docker:
+      - image: buildpack-deps:jammy
+  mac_arm64:
+    environment:
+      EMSDK_NOTTY: "1"
+      # Without this, any `brew install` command will result in self-update of
+      # brew itself which takes more than 4 minutes.
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+    macos:
+      # Corresponds to macOS 13.2.1
+      # See https://circleci.com/docs/guides/execution-managed/using-macos/#supported-xcode-versions
+      xcode: "14.3.1"
+    resource_class: m4pro.medium
+  linux_arm64:
+    machine:
+      image: ubuntu-2004:2023.07.1
+    resource_class: arm.medium
+
+commands:
+  setup-macos:
+    steps:
+      - checkout
+      - run:
+          name: Install CMake
+          command: brew install cmake
+  test-macos:
+    steps:
+      - run:
+          name: test.sh
+          command: test/test.sh
+      - run:
+          name: test.py
+          command: |
+            source emsdk_env.sh
+            test/test.py
+  setup-docker:
+    steps:
+      - run:
+          name: install docker
+          command: |
+            apt-get update -q 
+            apt-get install -q -y ca-certificates curl gnupg lsb-release
+            mkdir -p /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+            apt-get update -q
+            apt-get install -q -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  test-bazel-linux:
+    steps:
+      - checkout
+      - run:
+          name: install bazelisk
+          command: |
+            wget https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64
+            chmod +x bazelisk-linux-amd64
+            mv bazelisk-linux-amd64 /usr/local/bin/bazel
+      - run: test/test_bazel.sh
+  test-bazel-mac:
+    steps:
+      - checkout
+      - run:
+          name: install bazelisk
+          command: |
+            brew install bazelisk
+      - run: test/test_bazel_mac.sh
+  test-bazel-windows:
+    steps:
+      - checkout
+      - run:
+          name: Download Bazelisk
+          shell: powershell.exe
+          command: |
+            $ProgressPreference = "SilentlyContinue"
+            Invoke-WebRequest -Uri https://github.com/bazelbuild/bazelisk/releases/download/v1.10.1/bazelisk-windows-amd64.exe -OutFile ( New-Item -Path "temp\bazel\bazel.exe" -Force )
+      - run:
+          name: Run Tests
+          shell: powershell.exe
+          command: |
+            $env:Path += ";C:\Python27amd64;$pwd\temp\bazel"
+            .\test\test_bazel.ps1
+
+jobs:
+  lint:
+    executor: ubuntu
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-lint-deps-{{ arch }}-{{ checksum "requirements-dev.txt" }}
+      - run:
+          name: install python deps
+          command: |
+            # Check if packages are already installed from cache
+            if python3 -m flake8 --version >/dev/null 2>&1 && \
+               python3 -m ruff --version >/dev/null 2>&1; then
+              echo "Packages already installed from cache, skipping pip install"
+            else
+              echo "Installing packages"
+              apt-get update -q
+              apt-get install -q -y python3-pip
+              python3 -m pip install --upgrade pip
+              python3 -m pip install -r requirements-dev.txt
+            fi
+      - save_cache:
+          key: v1-lint-deps-{{ arch }}-{{ checksum "requirements-dev.txt" }}
+          paths:
+            - ~/.cache/pip
+      - run:
+          name: python lint
+          command: |
+            python3 -m flake8 --show-source --statistics --extend-exclude=./scripts
+            python3 -m ruff check
+  test-linux:
+    executor: ubuntu
+    environment:
+      EMSDK_NOTTY: "1"
+      # This is needed because the old gcc-7 that is installed on debian/bionic
+      # generates warnings about unused variables when doing C++17
+      # destructuring:
+      # https://github.com/WebAssembly/binaryen/issues/4353
+      CXXFLAGS: "-Wno-unused-variable"
+      # I don't know why circleci VMs pretent to have 36 cores but its a lie.
+      EMSDK_NUM_CORES: "4"
+    steps:
+      - checkout
+      - run:
+          name: Install debian packages
+          command: apt-get update -q && apt-get install -q -y cmake build-essential openjdk-8-jre-headless ksh zsh
+      - run: test/test_node_path.sh
+      - run: test/test.sh
+      - run: test/test_source_env.sh
+      - run:
+          name: test.py
+          command: |
+            source emsdk_env.sh
+            test/test.py
+  test-linux-arm64:
+    executor: linux_arm64
+    steps:
+      - checkout
+      - run:
+          name: Install debian packages
+          command: sudo apt-get update -q && sudo apt-get install -q cmake build-essential openjdk-8-jre-headless
+      - run: test/test.sh
+  test-mac-arm64:
+    executor: mac_arm64
+    steps:
+      - setup-macos
+      - test-macos
+  test-windows:
+    executor:
+      name: win/server-2019
+      shell: bash.exe
+    environment:
+      PYTHONUNBUFFERED: "1"
+      EMSDK_NOTTY: "1"
+    working_directory: ~/project with spaces
+    steps:
+      - checkout
+      - run: pwd
+      - run: where python
+      - run: pip install pip-system-certs
+      - run:
+          name: Install packages
+          command: choco install -y cmake.portable ninja pkgconfiglite
+
+      - run:
+          name: Install latest
+          shell: cmd.exe
+          command: test\test.bat
+
+      - run:
+          name: test.py
+          command: |
+            source emsdk_env.sh
+            python test/test.py
+
+      - run:
+          name: flagless (process/shell) test
+          shell: powershell.exe
+          command: |
+            test/test_activation.ps1
+
+      - run:
+          name: --permanent test
+          shell: powershell.exe
+          command: |
+            $env:PERMANENT_FLAG="--permanent"
+            test/test_activation.ps1
+
+      - run:
+          name: --system test
+          shell: powershell.exe
+          command: |
+            $env:SYSTEM_FLAG="--system"
+            test/test_activation.ps1
+
+      - run:
+          name: Process/Shell PATH preservation test
+          shell: powershell.exe
+          command: |
+            test/test_path_preservation.ps1
+
+      - run:
+          name: User PATH preservation test
+          shell: powershell.exe
+          command: |
+            $env:PERMANENT_FLAG="--permanent"
+            test/test_path_preservation.ps1
+
+      - run:
+          name: System PATH preservation test
+          shell: powershell.exe
+          command: |
+            $env:SYSTEM_FLAG="--system"
+            test/test_path_preservation.ps1
+
+  build-docker-image-x64:
+    executor: ubuntu
+    steps:
+      - checkout
+      - setup-docker
+      - setup_remote_docker
+      # Build the `latest` version of EMSDK as docker image
+      - run:
+          name: build
+          command: make -C ./docker version=latest build
+      - run:
+          name: test
+          command: make -C ./docker version=latest test
+
+  publish-docker-image-x64:
+    executor: ubuntu
+    steps:
+      - checkout
+      - setup-docker
+      - setup_remote_docker
+      - run:
+          name: build
+          command: make -C ./docker version=${CIRCLE_TAG} build
+      - run:
+          name: test
+          command: make -C ./docker version=${CIRCLE_TAG} test
+      - run:
+          name: push image
+          command: |
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+            make -C ./docker version=${CIRCLE_TAG} tag=${CIRCLE_TAG}-x64 push
+
+  publish-docker-image-arm64:
+    executor: linux_arm64
+    steps:
+      - checkout
+      - run:
+          name: build
+          command: make -C ./docker version=${CIRCLE_TAG} build
+      - run:
+          name: test
+          command: make -C ./docker version=${CIRCLE_TAG} test
+      - run:
+          name: push image
+          command: |
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+            make -C ./docker version=${CIRCLE_TAG} tag=${CIRCLE_TAG}-arm64 push
+
+  publish-docker-image-multiplatform:
+    executor: linux_arm64
+    steps:
+      - checkout
+      - run:
+          name: push image
+          command: |
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+            make -C ./docker version=${CIRCLE_TAG} tag=${CIRCLE_TAG} push-multiplatform
+            make -C ./docker version=${CIRCLE_TAG} tag="latest" push-multiplatform
+
+  test-bazel-linux:
+    parameters:
+      bazel_version:
+        type: string
+        default: "latest"
+    executor: ubuntu
+    environment:
+      USE_BAZEL_VERSION: << parameters.bazel_version >>
+    steps:
+      - test-bazel-linux
+
+  test-bazel-mac-arm64:
+    parameters:
+      bazel_version:
+        type: string
+        default: "latest"
+    executor: mac_arm64
+    environment:
+      USE_BAZEL_VERSION: << parameters.bazel_version >>
+    steps:
+      - test-bazel-mac
+
+  test-bazel-windows:
+    parameters:
+      bazel_version:
+        type: string
+        default: "latest"
+    executor:
+      name: win/server-2019
+      shell: powershell.exe -ExecutionPolicy Bypass
+    environment:
+      PYTHONUNBUFFERED: "1"
+      EMSDK_NOTTY: "1"
+      USE_BAZEL_VERSION: << parameters.bazel_version >>
+    steps:
+      - test-bazel-windows
+
+workflows:
+  lint:
+    jobs:
+      - lint
+  test-linux:
+    jobs:
+      - test-linux
+  test-linux-arm64:
+    jobs:
+      - test-linux-arm64
+  test-mac-arm64:
+    jobs:
+      - test-mac-arm64
+  test-windows:
+    jobs:
+      - test-windows
+  docker:
+    jobs:
+      - build-docker-image-x64
+      - publish-docker-image-x64:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+      - publish-docker-image-arm64:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+      - publish-docker-image-multiplatform:
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - publish-docker-image-x64
+            - publish-docker-image-arm64
+
+  test-bazel-linux:
+    jobs:
+      - test-bazel-linux:
+          matrix:
+            parameters:
+              bazel_version: 
+                - "7.x"
+                - "8.x"
+                - "9.x"
+  test-bazel-mac-arm64:
+    jobs:
+      - test-bazel-mac-arm64:
+          matrix:
+            parameters:
+              bazel_version: 
+                - "7.x"
+                - "8.x"
+              # https://github.com/emscripten-core/emsdk/issues/1642
+              # - "9.x"
+  test-bazel-windows:
+    jobs:
+      - test-bazel-windows:
+          matrix:
+            parameters:
+              # For some reason version resolution with "x.x" does not work on Windows,
+              # so we have to specify full versions.
+              bazel_version: 
+                - "7.7.1"
+                - "8.5.1"
+                - "9.0.0"
