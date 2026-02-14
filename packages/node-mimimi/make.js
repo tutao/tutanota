@@ -22,10 +22,27 @@ function getTargets(platform) {
 			usePowerShell()
 			return ["x86_64-pc-windows-msvc"]
 		case "linux":
-			return ["x86_64-unknown-linux-gnu"]
+			return ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
 		case "darwin":
 			return ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 		case "native":
+			// Determine the actual hardware architecture for native builds
+			const arch = process.arch
+			if (process.platform === "linux") {
+				if (arch === "arm64") {
+					return ["aarch64-unknown-linux-gnu"]
+				} else {
+					return ["x86_64-unknown-linux-gnu"] // Default to x86_64 for other architectures on Linux
+				}
+			} else if (process.platform === "darwin") {
+				if (arch === "arm64") {
+					return ["aarch64-apple-darwin"]
+				} else {
+					return ["x86_64-apple-darwin"] // Default to x86_64 for other architectures on macOS
+				}
+			} else if (process.platform === "win32") {
+				return ["x86_64-pc-windows-msvc"] // Windows typically uses x86_64
+			}
 			return getTargets(process.platform)
 		default:
 			throw new Error(`unknown platform ${platform}`)
