@@ -115,7 +115,8 @@ export class ClientDetector {
 			typeof Reflect !== "undefined" &&
 			typeof Promise.prototype.finally !== "undefined" &&
 			typeof String.prototype.replaceAll === "function" &&
-			typeof BigInt !== "undefined"
+			typeof BigInt !== "undefined" &&
+			typeof structuredClone === "function"
 		)
 	}
 
