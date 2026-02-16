@@ -188,6 +188,7 @@ export class SpamMailProcessor {
 			return vectorizedMail.concat(serverClassificationData)
 		} else {
 			// FIXME: if we are here, then the downloaded ClientSpamTrainingDatum does not have the new vector. Do we need to upload/update the ClientSpamTraininDatum?
+			// FIXME: answer: no, as we we won't have spamClassificationData on old mails and it's possible the mail is not even there anymore, how would you update?
 			const vectorizedMail = this.sparseVectorCompressor.decompress(datum.vector, clientVectorSize)
 			return vectorizedMail.concat(new Array<number>(serverVectorSize).fill(0))
 		}
@@ -245,6 +246,7 @@ export class SpamMailProcessor {
 			result[2 * classifier + 1] = 1
 		}
 		// FIXME: dude!
+		// FIXME throw a meaningful error if the serverClassificationData is malformed
 		if (result.length !== serverVectorSize) throw new Error("yooo!")
 		return result
 	}

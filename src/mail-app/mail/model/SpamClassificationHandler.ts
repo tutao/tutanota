@@ -32,8 +32,10 @@ export class SpamClassificationHandler {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
 		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
 		// FIXME: Deal with no serverClassificationData
+		// FIXME what's there to deal with? If it's not there we just pad with 0's
 		const serverClassifiers = mail.serverClassificationData ? extractServerClassifiers(mail.serverClassificationData) : []
 		// FIXME which classifier to trust if results are conflicting? trust in order?
+		// FIXME we can think about it again when we start sending more info with serverClassificationData
 		const useClientSpamClassifier = !serverClassifiers.some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
 
 		let targetFolder = sourceFolder
