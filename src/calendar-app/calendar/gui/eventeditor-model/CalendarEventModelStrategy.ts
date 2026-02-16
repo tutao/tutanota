@@ -123,7 +123,7 @@ export class CalendarEventApplyStrategies {
 						newEvent.startTime = occurrence.startTime
 						if (isAllDayEvent(occurrence)) {
 							newEvent.endTime = occurrence.endTime
-						} else if (oldDurationAsMinutes != newDuration.minutes) {
+						} else if (oldDurationAsMinutes !== newDuration.minutes) {
 							newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
 						}
 
