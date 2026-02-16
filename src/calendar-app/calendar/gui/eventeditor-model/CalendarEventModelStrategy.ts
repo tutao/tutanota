@@ -20,7 +20,7 @@ import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { DateTime } from "luxon"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { StrippedEntity } from "../../../../common/api/common/utils/EntityUtils"
-import { isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
+import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */
@@ -84,12 +84,11 @@ export class CalendarEventApplyStrategies {
 			(async () => {
 				const recurrenceIds: Array<Date> = await this.lazyRecurrenceIds(uid)
 
-				const oldInstances = (await this.calendarModel.getEventsByUid(uid))?.alteredInstances
-
 				await this.notificationModel.send(newEvent, recurrenceIds, sendModels, existingEvent, editModelsForProgenitor.comment.content)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
+				const oldDurationAsMinutes = DateTime.fromJSDate(existingEvent.endTime).diff(DateTime.fromJSDate(existingEvent.startTime), "minutes").minutes
 				const newDuration = editModelsForProgenitor.whenModel.duration
 				const index = await this.calendarModel.getEventsByUid(uid)
 				if (index == null) return
@@ -122,17 +121,16 @@ export class CalendarEventApplyStrategies {
 
 						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
 						newEvent.startTime = occurrence.startTime
-						newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
+						if (isAllDayEvent(occurrence)) {
+							newEvent.endTime = occurrence.endTime
+						} else if (oldDurationAsMinutes != newDuration.minutes) {
+							newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
+						}
+
 						// altered instances never have a repeat rule
 						newEvent.repeatRule = null
 
-						const oldInstance = oldInstances?.find((instance) => {
-							return (
-								instance.startTime.getTime() === newEvent.startTime.getTime() &&
-								instance.recurrenceId.getTime() === newEvent.recurrenceId?.getTime()
-							)
-						})
-						this.notificationModel.send(newEvent, [], sendModels, oldInstance, editModelsForProgenitor.comment.content)
+						await this.notificationModel.send(newEvent, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
 						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}
