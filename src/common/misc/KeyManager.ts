@@ -224,7 +224,6 @@ class KeyManager {
 			const keysToShortcuts = this.keyToModalShortcut.size > 1 ? this.keyToModalShortcut : this.keyToShortcut
 			const keyPress = keyboardEventToKeyPress(e)
 			const shortcut = keyPress.key ? keysToShortcuts.get(createKeyIdentifier(keyPress.key.toLowerCase(), keyPress)) : null
-			console.log(keyPress, shortcut, e, createKeyIdentifier(keyPress.key.toLowerCase(), keyPress))
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 				if (shortcut.exec(keyPress) !== true) {
 					e.preventDefault()
