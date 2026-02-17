@@ -33,11 +33,14 @@ import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
-import type { AllIcons } from "../../../common/gui/base/Icon.js"
+import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 
 import { getContactTitle } from "../../../common/gui/base/GuiUtils.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { DataFile } from "../../../common/api/common/DataFile"
+import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
+import { showFileChooser } from "../../../common/file/FileController"
 
 assertMainOrNode()
 
@@ -55,6 +58,7 @@ export interface ContactViewerAttrs {
  */
 export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private readonly contactAppellation = memoized(getContactTitle)
+	private contactImage: DataFile | null = null
 
 	private readonly contactPhoneticName = memoized((contact: Contact): string | null => {
 		const firstName = contact.phoneticFirst ?? ""
@@ -83,7 +87,37 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			m("", [
 				m(
 					".flex-space-between.flex-wrap.mt-12",
-					m(".left.flex-grow-shrink-150", [
+					m(
+						"",
+						{
+							onclick: async () => {
+								const files = await showFileChooser(false, ["jpg"])
+								if (!files || files.length !== 1) {
+									console.log("Error with contact image")
+								} else {
+									this.contactImage = files[0]
+								}
+
+								m.redraw()
+							},
+						},
+
+						[
+							this.contactImage
+								? m(".border-sm.icon-64", {
+										style: {
+											//FIXME: how to get this to work?
+											backgroundImage: this.contactImage?.name,
+											float: "left",
+										},
+									})
+								: m(Icon, {
+										icon: BootIcons.Contacts,
+										size: IconSize.PX64,
+									}),
+						],
+					),
+					m(".left.flex-grow-shrink-150.plr-4", [
 						m(".h2.selectable.text-break", [
 							this.renderContactName(contact, attrs.highlightedStrings),
 							NBSP, // alignment in case nothing is present here
@@ -98,6 +132,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 				),
 				m("hr.hr.mt-16.mb-16"),
 			]),
+
 			this.renderCustomDatesAndRelationships(contact),
 			this.renderMailAddressesAndPhones(contact, onWriteMail),
 			this.renderAddressesAndSocialIds(contact),
@@ -113,6 +148,8 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			return this.contactAppellation(contact)
 		}
 	}
+
+	private renderImage() {}
 
 	private renderExtendedActions(contact: Contact, attrs: ContactViewerAttrs) {
 		return m.fragment({}, [this.renderEditButton(contact, attrs), this.renderDeleteButton(contact, attrs)])
