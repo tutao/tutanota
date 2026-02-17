@@ -2227,6 +2227,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"autoDeleteTemplateGroupsConfirmation_msg": "Es sind noch Vorlagenlisten aktiv, die automatisch gelöscht werden, wenn Sie das Abonnement wechseln. Dazu können gemeinsam genutzte Vorlagenlisten oder Vorlagenlisten gehören, die Ihren Benutzern zugeordnet sind. Wollen Sie diese jetzt löschen?"
 	}
 }

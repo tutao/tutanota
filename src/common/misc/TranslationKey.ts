@@ -2226,3 +2226,4 @@ export type TranslationKeyType =
 	| "searchManagedCustomers_placeholder"
 	| "partnerSettings_label"
 	| "emptyString_msg"
+	| "autoDeleteTemplateGroupsConfirmation_msg"
