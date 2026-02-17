@@ -1,6 +1,5 @@
 import type { BrowserWindow, ContextMenuParams, HandlerDetails, NativeImage, Result } from "electron"
 import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
-import url from "node:url"
 import type { lazy } from "@tutao/tutanota-utils"
 import { capitalizeFirstLetter, newPromise, noOp, typedEntries, typedKeys } from "@tutao/tutanota-utils"
 import { Keys } from "../api/common/TutanotaConstants"
@@ -132,7 +131,7 @@ export class ApplicationWindow {
 						{
 							key: Keys.RIGHT,
 							alt: true,
-							exec: () => this._browserWindow.webContents.goForward(),
+							exec: () => this._browserWindow.webContents.navigationHistory.goForward(),
 							help: "pageForward_label",
 						},
 						{
@@ -554,10 +553,10 @@ export class ApplicationWindow {
 	}
 
 	private tryGoBack(): void {
-		const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
+		const parsedUrl = new URL(this._browserWindow.webContents.getURL())
 
 		if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
-			this._browserWindow.webContents.goBack()
+			this._browserWindow.webContents.navigationHistory.goBack()
 		} else {
 			log.debug(TAG, "Ignore back events on login page")
 		}

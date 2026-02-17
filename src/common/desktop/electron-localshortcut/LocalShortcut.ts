@@ -196,7 +196,7 @@ const _onBeforeInput =
 
 		const event = _normalizeEvent(input)
 
-		debug(`before-input-event: ${String(input)} is translated to: ${String(event)}`)
+		debug(`before-input-event: ${JSON.stringify(input)} is translated to: ${JSON.stringify(event)}`)
 		for (const { eventStamp, callback } of shortcutsOfWindow) {
 			if (equals(eventStamp, event)) {
 				debug(`eventStamp: ${String(eventStamp)} match`)

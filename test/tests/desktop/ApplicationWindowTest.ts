@@ -147,8 +147,6 @@ o.spec("ApplicationWindow Test", function () {
 							closeDevTools: function () {
 								this.devToolsOpened = false
 							},
-							goBack: function () {},
-							goForward: function () {},
 							setZoomFactor: function (n: number) {
 								this.zoomFactor = n
 							},
@@ -189,6 +187,10 @@ o.spec("ApplicationWindow Test", function () {
 
 							setWindowOpenHandler(handler) {
 								this.windowOpenHandler = handler
+							},
+							navigationHistory: {
+								goBack: function () {},
+								goForward: function () {},
 							},
 						})
 					},
@@ -499,11 +501,11 @@ o.spec("ApplicationWindow Test", function () {
 		})
 		testShortcut(["Alt+Left"], ({ electronMock }) => {
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-			o(bwInstance.webContents.goBack.callCount).equals(1)
+			o(bwInstance.webContents.navigationHistory.goBack.callCount).equals(1)
 		})
 		testShortcut(["Alt+Right"], ({ electronMock }) => {
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-			o(bwInstance.webContents.goForward.callCount).equals(1)
+			o(bwInstance.webContents.navigationHistory.goForward.callCount).equals(1)
 		})
 	})
 

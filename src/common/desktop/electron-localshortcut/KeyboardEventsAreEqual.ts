@@ -15,7 +15,7 @@ export default function areEqual(ev1: any, ev2: any): boolean {
 		return true
 	}
 
-	const keyIsAsciiChar = isAsciiChar(ev2.key)
+	const keyIsAsciiChar = String(ev2.key).length === 1 && isAsciiChar(ev2.key)
 
 	for (const prop of ["altKey", "ctrlKey", "shiftKey", "metaKey"]) {
 		const [value1, value2] = [ev1[prop], ev2[prop]]
