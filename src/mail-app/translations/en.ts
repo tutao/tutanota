@@ -2227,6 +2227,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"autoDeleteTemplateGroupsConfirmation_msg": "There are still template lists active which will be deleted automatically when you downgrade. This may include shared template lists or template lists belonging to your users. Do you want to delete them now?"
 	}
 }
