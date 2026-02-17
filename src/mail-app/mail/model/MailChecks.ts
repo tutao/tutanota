@@ -10,8 +10,22 @@ export function isSubfolderOfType(system: FolderSystem, folder: MailSet, type: S
 	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
 }
 
+/**
+ * A mail is considered a draft as long as its mail details haven't yet been stored as a blob.
+ *
+ * Draft mails that are queued to be sent have a state of SENDING _before_ mail details is stored as a blob, so it's
+ * possible for a mail to have `state === SENDING` and `mailDetailsDraft != null`.
+ * Mail details is only stored as a blob once the send can no longer be undone.
+ */
 export function isDraft(mail: Mail): boolean {
-	return mail.state === MailState.DRAFT
+	return mail.mailDetailsDraft != null
+}
+
+/**
+ * Returns true for draft mails that are queued to be sent
+ */
+export function isDraftSending(mail: Mail): boolean {
+	return isDraft(mail) && mail.state === MailState.SENDING
 }
 
 export function isMailScheduled(mail: Mail): boolean {
@@ -19,18 +33,29 @@ export function isMailScheduled(mail: Mail): boolean {
 }
 
 /**
- * Draft mails that are scheduled to be sent are not editable
+ * Draft mails that are scheduled or queued to be sent are not editable
  */
 export function isEditableDraft(mail: Mail): boolean {
-	return isDraft(mail) && !isMailScheduled(mail)
+	return isDraft(mail) && !isDraftSending(mail) && !isMailScheduled(mail)
 }
 
 /**
- * Scheduled mails cannot be moved
+ * Mails that are scheduled or queued to be sent cannot be moved
  */
 export function isMailMovable(mail: Mail, mailModel: MailModel): boolean {
+	if (isDraftSending(mail)) {
+		return false
+	}
+
 	const folder = mailModel.getMailFolderForMail(mail)
 	return folder != null && !isFolderReadOnly(folder)
+}
+
+/**
+ * Delete mail service ignores mails in the sending state
+ */
+export function isMailDeletable(mail: Mail): boolean {
+	return mail.state !== MailState.SENDING
 }
 
 export async function isMailInSpamOrTrash(mail: Mail, mailModel: MailModel): Promise<boolean> {

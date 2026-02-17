@@ -1,11 +1,4 @@
-import {
-	FULL_INDEXED_TIMESTAMP,
-	ImportStatus,
-	isFolder,
-	MailState,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-} from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, ImportStatus, isFolder, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants"
 import {
 	File as TutanotaFile,
 	ImportedMailTypeRef,
@@ -17,9 +10,9 @@ import {
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
@@ -636,7 +629,7 @@ export class MailIndexer {
 			return
 		}
 
-		if (updatedMail.state === MailState.DRAFT) {
+		if (isDraft(updatedMail)) {
 			const newMailData = await this.downloadNewMailData(mailId)
 			if (newMailData) {
 				await this.backend.onMailUpdated(newMailData)

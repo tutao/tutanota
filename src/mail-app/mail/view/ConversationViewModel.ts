@@ -17,14 +17,14 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
-import { ConversationType, MailSetKind, MailState, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { ConversationType, MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/misc/DeviceConfig.js"
 
 import { MailModel } from "../model/MailModel.js"
 
-import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
+import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
@@ -183,7 +183,7 @@ export class ConversationViewModel {
 
 			if (mail) {
 				// We do not show trashed drafts
-				if (mail.state === MailState.DRAFT && (await this.isInTrash(mail))) {
+				if (isDraft(mail) && (await this.isInTrash(mail))) {
 					conversation.splice(oldItemIndex, 1)
 				} else {
 					conversation[oldItemIndex] = {
@@ -275,7 +275,7 @@ export class ConversationViewModel {
 			for (const mail of loaded) {
 				// If the mail is a draft and is the primary mail, we will show it no matter what
 				// otherwise, if a draft is in trash we will not show it
-				if (isSameId(mail._id, this.primaryMail._id) || mail.state !== MailState.DRAFT || !(await this.isInTrash(mail))) {
+				if (isSameId(mail._id, this.primaryMail._id) || !isDraft(mail) || !(await this.isInTrash(mail))) {
 					allMails.set(getElementId(mail), mail)
 				}
 			}

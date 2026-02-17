@@ -14,6 +14,7 @@ import {
 	EncryptionAuthStatus,
 	ExternalImageRule,
 	FeatureType,
+	isPermanentDeleteAllowedMailSetKind,
 	MailAuthenticationStatus,
 	MailMethod,
 	MailPhishingStatus,
@@ -79,7 +80,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
-import { isDraft, isEditableDraft, isMailMovable, isMailScheduled } from "../model/MailChecks"
+import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -342,7 +343,7 @@ export class MailViewerViewModel {
 
 	isDeletableMail() {
 		const folderType = this.getFolderInfo()?.folderType
-		return folderType === MailSetKind.TRASH || folderType === MailSetKind.SPAM
+		return folderType != null && isPermanentDeleteAllowedMailSetKind(folderType) && isMailDeletable(this.mail)
 	}
 
 	isReceivedMail() {

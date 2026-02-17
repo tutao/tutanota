@@ -14,8 +14,6 @@ import {
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { MailModel } from "../../../mail-app/mail/model/MailModel"
-import { FolderInfo } from "../../../mail-app/mail/model/MailUtils"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
@@ -57,6 +55,10 @@ export function isFolder(folder: MailSet): boolean {
  */
 export function isFolderReadOnly(mailSet: MailSet) {
 	return READ_ONLY_SYSTEM_FOLDERS.includes(mailSet.folderType as MailSetKind)
+}
+
+export function isPermanentDeleteAllowedForFolder(mailSet: MailSet) {
+	return isPermanentDeleteAllowedMailSetKind(mailSet.folderType as MailSetKind)
 }
 
 export function isNestableMailSet(mailSet: MailSet): boolean {
@@ -112,6 +114,25 @@ export function isEditableMailSet(mailSet: MailSet): boolean {
 		case MailSetKind.TRASH:
 		case MailSetKind.ARCHIVE:
 		case MailSetKind.SPAM:
+		case MailSetKind.ALL:
+		case MailSetKind.IMPORTED:
+		case MailSetKind.SCHEDULED:
+		default:
+			return false
+	}
+}
+
+export function isPermanentDeleteAllowedMailSetKind(mailsetKind: MailSetKind) {
+	switch (mailsetKind) {
+		case MailSetKind.TRASH:
+		case MailSetKind.SPAM:
+			return true
+		case MailSetKind.CUSTOM:
+		case MailSetKind.LABEL:
+		case MailSetKind.INBOX:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SENT:
+		case MailSetKind.ARCHIVE:
 		case MailSetKind.ALL:
 		case MailSetKind.IMPORTED:
 		case MailSetKind.SCHEDULED:
@@ -523,6 +544,7 @@ export const enum ConversationType {
 }
 
 export const enum MailState {
+	/** BEWARE: mails queued to be sent have a state of SENDING _before_ mail details is stored as a blob */
 	DRAFT = "0",
 	SENT = "1",
 	RECEIVED = "2",
