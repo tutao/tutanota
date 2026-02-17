@@ -30,9 +30,9 @@ o.spec("PdfObject", function () {
 	)
 
 	o("PDF object head is properly generated", function () {
-		o(emptyObject.parseObjectHead()).equals("3 0 obj\n<<\n\n>>\n")
-		o(someObject.parseObjectHead()).equals("92 0 obj\n<<\n/Key1 Val1/Key2 [ meow ]\n>>\n")
-		o(streamObject.parseObjectHead()).equals("45 0 obj\n<<\n/Kiwi Valorant/Banana Apple/Filter /DCTDecode/Length 3\n>>\nstream\n")
+		o(emptyObject.parseObjectHead()).equals("3 0 obj\n<<\n>>\n")
+		o(someObject.parseObjectHead()).equals("92 0 obj\n<<\n/Key1 Val1\n/Key2 [ meow ]\n>>\n")
+		o(streamObject.parseObjectHead()).equals("45 0 obj\n<<\n/Kiwi Valorant\n/Banana Apple\n/Filter /DCTDecode\n/Length 3\n\n>>\nstream\n")
 		o(() => forbiddenObject.parseObjectHead()).throws(Error)
 	})
 
@@ -46,7 +46,7 @@ o.spec("PdfObject", function () {
 		const streamO1 = new PdfStreamObject(69, new Map<string, PdfDictValue>([]), new Uint8Array([1, 2, 3, 4, 5]), PdfStreamEncoding.FLATE)
 		const streamO2 = new PdfStreamObject(420, new Map<string, PdfDictValue>([]), new Uint8Array([1, 2, 3]), PdfStreamEncoding.NONE)
 
-		o(streamO1.parseObjectHead()).equals("69 0 obj\n<<\n/Filter /FlateDecode/Length 5\n>>\nstream\n")
-		o(streamO2.parseObjectHead()).equals("420 0 obj\n<<\n/Length 3\n>>\nstream\n")
+		o(streamO1.parseObjectHead()).equals("69 0 obj\n<<\n/Filter /FlateDecode\n/Length 5\n\n>>\nstream\n")
+		o(streamO2.parseObjectHead()).equals("420 0 obj\n<<\n/Length 3\n\n>>\nstream\n")
 	})
 })
