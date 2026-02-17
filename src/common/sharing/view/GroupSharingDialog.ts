@@ -282,6 +282,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 							({ showMultiRecipientsKeyVerificationRecoveryDialog }) => showMultiRecipientsKeyVerificationRecoveryDialog(failedRecipients),
 						)
 					} else if (e instanceof PreconditionFailedError) {
+						// fixme: this might be a keys.absent error.
 						if (locator.logins.getUserController().isGlobalAdmin()) {
 							const { getAvailablePlansWithSharing } = await import("../../subscription/utils/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()
