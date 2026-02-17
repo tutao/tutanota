@@ -2250,7 +2250,5 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"buyGiftcardWhileCampaignActive_msg": "Gutscheine sind nicht mit Rabattaktionen kombinierbar.",
-		"contactDeletionMoveToSpam_msg": "Du hast eine E-Mail von einem deiner Kontakte in den Spamordner verschoben.\nMails von Kontakte werden nie als Spam eingestuft.\nMöchtest du den/die ausgewählten Kontakt(e) löschen?",
-		"contactDeletionMoveToSpam_title": "Kontakt(e) löschen?",
 	}
 }
