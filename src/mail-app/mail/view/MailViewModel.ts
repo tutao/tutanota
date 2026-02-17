@@ -35,6 +35,7 @@ import { isExpectedErrorForSynchronization, isOfflineError } from "../../../comm
 import {
 	getMailSetKind,
 	ImportStatus,
+	isPermanentDeleteAllowedForFolder,
 	MailSetKind,
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
@@ -54,7 +55,7 @@ import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
-import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
+import { isMailDeletable, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
 import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
@@ -404,17 +405,27 @@ export class MailViewModel {
 	}
 
 	/**
-	 * Permanent delete is only allowed when the mail is in the current folder, and the current folder is Trash/Spam.
+	 * Permanent delete is only allowed when the mail is deletable, in the current folder, and the current folder is Trash/Spam.
 	 */
 	isPermanentDeleteAllowed(): boolean {
-		const primaryMailFolder = this.conversationViewModel != null ? this.mailModel.getMailFolderForMail(this.conversationViewModel.primaryMail) : null
 		const currentFolder = this.getFolder()
-
-		if (primaryMailFolder != null && currentFolder != null && !isSameId(currentFolder._id, primaryMailFolder._id)) {
+		if (currentFolder == null) {
 			return false
-		} else {
-			return currentFolder != null && (currentFolder.folderType === MailSetKind.TRASH || currentFolder.folderType === MailSetKind.SPAM)
 		}
+
+		const primaryMail = this.conversationViewModel?.primaryMail ?? null
+		if (primaryMail != null) {
+			if (!isMailDeletable(primaryMail)) {
+				return false
+			}
+
+			const primaryMailFolder = this.mailModel.getMailFolderForMail(primaryMail)
+			if (primaryMailFolder != null && !isSameId(currentFolder._id, primaryMailFolder._id)) {
+				return false
+			}
+		}
+
+		return isPermanentDeleteAllowedForFolder(currentFolder)
 	}
 
 	isExportingMailsAllowed(): boolean {
