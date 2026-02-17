@@ -405,6 +405,15 @@ export class SpamClassifier {
 		if (spamClassificationModel) {
 			const modelTopology = JSON.parse(spamClassificationModel.modelTopology)
 			const weightSpecs = JSON.parse(spamClassificationModel.weightSpecs)
+			const oldVectorDimensionSize: number = weightSpecs[0].shape[0]
+			const newVectorDimensionSize = await this.spamMailProcessor.getModelInputSize()
+			if (newVectorDimensionSize !== oldVectorDimensionSize) {
+				console.log(
+					`removing spam classification model for mailbox ${ownerGroup} as it is incompatible with the current model input size. Old dimension size: ${oldVectorDimensionSize}, new dimension size: ${newVectorDimensionSize}`,
+				)
+				await this.spamClassifierStorageFacade.deleteSpamClassificationModel(ownerGroup)
+				return null
+			}
 			const weightData = spamClassificationModel.weightData.buffer.slice(
 				spamClassificationModel.weightData.byteOffset,
 				spamClassificationModel.weightData.byteOffset + spamClassificationModel.weightData.byteLength,
