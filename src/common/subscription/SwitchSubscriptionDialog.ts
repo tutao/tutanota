@@ -2,13 +2,25 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, SurveyData } from "../api/entities/sys/TypeRefs.js"
+import {
+	AccountingInfo,
+	Booking,
+	createSurveyData,
+	createSwitchAccountTypePostIn,
+	Customer,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupTypeRef,
+	SurveyData,
+	UserTypeRef,
+} from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
 	AvailablePlanType,
 	BookingFailureReason,
 	Const,
 	getPaymentMethodType,
+	GroupType,
 	InvoiceData,
 	Keys,
 	LegacyPlans,
@@ -26,7 +38,7 @@ import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
-import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
+import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
@@ -55,6 +67,9 @@ import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { px } from "../gui/size"
+import { TemplateGroupService } from "../api/entities/tutanota/Services"
+import { createUserAreaGroupDeleteData } from "../api/entities/tutanota/TypeRefs"
+import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -314,11 +329,54 @@ function createPlanButton(
 	})
 }
 
-function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Promise<void> {
+/** deletes all template group on the customer account (after confirmation) */
+async function runTemplateCleanupFlow(customer: Customer) {
+	if (!(await Dialog.confirm("autoDeleteTemplateGroupsConfirmation_msg", "delete_action"))) {
+		return false
+	}
+
+	try {
+		const groupInfos: Array<GroupInfo> = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
+		const userGroupIds = groupInfos.map((groupInfo) => groupInfo.group)
+		const userGroups = await locator.entityClient.loadMultiple(GroupTypeRef, null, userGroupIds)
+		const userIds: Array<string> = userGroups.map((g) => g.user).filter((userId) => userId !== null)
+		if (userIds.length < userGroups.length) {
+			console.error("customer.userGroups contains groups without user? customer: ", customer)
+		}
+		const users = await locator.entityClient.loadMultiple(UserTypeRef, null, userIds)
+		const deletedTemplateGroups = new Set<string>()
+		for (const user of users) {
+			const templateMemberships = getUserGroupMemberships(user, GroupType.Template)
+			for (const { group } of templateMemberships) {
+				if (deletedTemplateGroups.has(group)) {
+					continue
+				}
+				await locator.serviceExecutor.delete(TemplateGroupService, createUserAreaGroupDeleteData({ group }))
+				deletedTemplateGroups.add(group)
+			}
+		}
+	} catch (e) {
+		console.error("failed to delete all template groups of customer:", e)
+		return false
+	}
+	return true
+}
+
+/**
+ * in cases where we can automatically handle the precondition, we run a sub-flow (with user confirmation) to fix
+ * the issue.
+ *
+ * @param customer the customer the error refers to
+ * @param e the precondition error we received from the server
+ * @returns boolean true if we should re-try the switch, false if the customer cancelled the sub-flow or we can't handle
+ * the issue automatically
+ */
+export async function handleSwitchAccountPreconditionFailed(customer: Customer, e: PreconditionFailedError): Promise<boolean> {
 	const reason = e.data
 
 	if (reason == null) {
-		return Dialog.message("unknownError_msg")
+		await Dialog.message("unknownError_msg")
+		return false
 	} else {
 		let detailMsg: string
 
@@ -356,8 +414,7 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 
 			case UnsubscribeFailureReason.HAS_TEMPLATE_GROUP:
 			case BookingFailureReason.HAS_TEMPLATE_GROUP:
-				detailMsg = lang.get("deleteTemplateGroups_msg")
-				break
+				return await runTemplateCleanupFlow(customer)
 
 			case UnsubscribeFailureReason.WHITELABEL_DOMAIN_ACTIVE:
 			case BookingFailureReason.WHITELABEL_DOMAIN_ACTIVE:
@@ -369,20 +426,26 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 				break
 
 			case UnsubscribeFailureReason.NOT_ENOUGH_CREDIT:
-				return Dialog.message("insufficientBalanceError_msg")
+				detailMsg = lang.getTranslationText("insufficientBalanceError_msg")
+				break
 
 			case UnsubscribeFailureReason.INVOICE_NOT_PAID:
-				return Dialog.message("invoiceNotPaidSwitch_msg")
+				detailMsg = lang.getTranslationText("invoiceNotPaidSwitch_msg")
+				break
 
 			case UnsubscribeFailureReason.ACTIVE_APPSTORE_SUBSCRIPTION:
 				if (isIOSApp()) {
-					return locator.mobilePaymentsFacade.showSubscriptionConfigView()
+					await locator.mobilePaymentsFacade.showSubscriptionConfigView()
+					return false
 				} else {
-					return showManageThroughAppStoreDialog()
+					// we have an app store subscription, but the down/upgrade is attempted on another platform
+					await showManageThroughAppStoreDialog()
+					return false
 				}
 
 			case UnsubscribeFailureReason.LABEL_LIMIT_EXCEEDED:
-				return Dialog.message("labelLimitExceeded_msg")
+				detailMsg = lang.getTranslationText("labelLimitExceeded_msg")
+				break
 
 			case UnsubscribeFailureReason.HAS_SCHEDULED_MAILS:
 				detailMsg = lang.getTranslationText("removeScheduledMails_msg")
@@ -391,22 +454,21 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 			default:
 				throw e
 		}
-
-		return Dialog.message(
+		await Dialog.message(
 			lang.getTranslation("accountSwitchNotPossible_msg", {
 				"{detailMsg}": detailMsg,
 			}),
 		)
+		return false
 	}
 }
-
 /**
  * @param customer
- * @param currentPlanInfo
+ * @param currentPlanType
  * @param surveyData
  * @returns the new plan type after the attempt.
  */
-async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: CurrentPlanInfo, surveyData: SurveyData | null): Promise<PlanType> {
+export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType, surveyData: SurveyData | null): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -422,15 +484,16 @@ async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: Cu
 		return PlanType.Free
 	} catch (e) {
 		if (e instanceof PreconditionFailedError) {
-			await handleSwitchAccountPreconditionFailed(e)
+			const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
+			if (shouldRetry) {
+				return tryDowngradePremiumToFree(customer, currentPlanType, surveyData)
+			}
 		} else if (e instanceof InvalidDataError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
-		} else if (e instanceof BadRequestError) {
-			await Dialog.message("deactivatePremiumWithCustomDomainError_msg")
 		} else {
 			throw e
 		}
-		return currentPlanInfo.planType
+		return currentPlanType
 	}
 }
 
@@ -456,15 +519,15 @@ async function cancelSubscription(
 	}
 
 	try {
-		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo, surveyData))
+		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo.planType, surveyData))
 	} finally {
 		dialog.close()
 	}
 }
 
-async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, currentPlanInfo: CurrentPlanInfo): Promise<PlanType> {
+async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, currentPlanInfo: CurrentPlanInfo): Promise<void> {
 	if (targetSubscription === currentPlanInfo.planType) {
-		return currentPlanInfo.planType
+		return
 	}
 
 	const userController = locator.logins.getUserController()
@@ -478,7 +541,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		}
 		const updatedInvoiceData = await showSwitchToBusinessInvoiceDataDialog(customer, invoiceData, accountingInfo)
 		if (!updatedInvoiceData) {
-			return currentPlanInfo.planType
+			return
 		}
 	}
 
@@ -497,12 +560,15 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		try {
 			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, postIn))
 			completeUpgradeStage(currentPlanInfo.planType, targetSubscription) // this is just a usage test
-			return targetSubscription
+			return
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {
-				await handleSwitchAccountPreconditionFailed(e)
-
-				return currentPlanInfo.planType
+				const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
+				if (shouldRetry) {
+					return switchSubscription(targetSubscription, dialog, currentPlanInfo)
+				} else {
+					return
+				}
 			}
 			throw e
 		}
