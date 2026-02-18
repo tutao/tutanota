@@ -217,7 +217,7 @@ export class CalendarInviteHandler {
 		usersDecision: CalendarAttendeeStatus,
 		sender: string,
 	): Promise<ReplyResult.ReplySent> {
-		const dbEvents = await this.calendarModel.getEventsByUid(eventUserIsReplyingTo.uid)
+		const dbEvents = await this.calendarModel.getEventsByUid(eventUserIsReplyingTo.uid, true)
 
 		if (this.shouldTreatAsNewInvitation(dbEvents, originalEventOccurrence)) {
 			if (usersDecision === CalendarAttendeeStatus.DECLINED) {

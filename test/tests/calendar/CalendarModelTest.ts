@@ -3,18 +3,16 @@ import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
-	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
 	Contact,
 	ContactMailAddressTypeRef,
 	ContactTypeRef,
 	EncryptedMailAddressTypeRef,
-	FileTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clone, getFirstOrThrow, hexToUint8Array, neverNull, Require, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, GroupType, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import {
@@ -47,7 +45,7 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { FileController } from "../../../src/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { IProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
-import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
@@ -56,10 +54,8 @@ import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { elementIdPart, getElementId, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
+import { elementIdPart, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
-import { createDataFile } from "../../../src/common/api/common/DataFile"
-import { SessionKeyNotFoundError } from "../../../src/common/api/common/error/SessionKeyNotFoundError"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"
@@ -292,14 +288,14 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("reply is ignored if sender is not a guest or organizer", async function () {
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 
-			await calendarModel.processParsedCalendarData(UNKNOWN_SENDER, baseParsedCalendarData)
+			await calendarModel.processParsedCalendarDataFromIcs(UNKNOWN_SENDER, baseParsedCalendarData)
 			verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
 		})
 
 		o("reply from guest doesnt change any field from organizer's event besides its own status", async function () {
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 			baseExistingProgenitor.pendingInvitation = false
 
 			baseParsedEventReply.icsCalendarEvent.summary = "Summary modified by the guest"
@@ -315,7 +311,7 @@ o.spec("CalendarModel", function () {
 			const guest = baseExistingProgenitor.attendees.find((attendee) => attendee.address.address === GUEST)!
 			guest.status = baseParsedEventReply.icsCalendarEvent.attendees![0].status
 
-			await calendarModel.processParsedCalendarData(GUEST, baseParsedCalendarData)
+			await calendarModel.processParsedCalendarDataFromIcs(GUEST, baseParsedCalendarData)
 
 			const eventCaptor = matchers.captor()
 			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), anything(), anything()))
@@ -348,7 +344,7 @@ o.spec("CalendarModel", function () {
 				// Arrange
 
 				// Act
-				await calendarModel.processParsedCalendarData(ORGANIZER, baseInvitation)
+				await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseInvitation)
 
 				// ASSERT
 				// checks that update route was not taken
@@ -371,7 +367,7 @@ o.spec("CalendarModel", function () {
 				})
 
 				// Act
-				await calendarModel.processParsedCalendarData(ORGANIZER, baseInvitation)
+				await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseInvitation)
 
 				// ASSERT
 				// capture created event
@@ -391,7 +387,7 @@ o.spec("CalendarModel", function () {
 				baseInvitation.contents[0].icsCalendarEvent.recurrenceId = recurrenceId
 
 				// Act
-				await calendarModel.processParsedCalendarData(ORGANIZER, baseInvitation)
+				await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseInvitation)
 
 				// ASSERT
 				// capture created event
@@ -410,10 +406,10 @@ o.spec("CalendarModel", function () {
 				eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 				eventByUid.alteredInstances = []
 
-				when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
+				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(eventByUid)
 
 				// Act
-				await calendarModel.processParsedCalendarData(ORGANIZER, baseInvitation)
+				await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseInvitation)
 
 				const eventCaptor = matchers.captor()
 				const oldEventCaptor = matchers.captor()
@@ -438,7 +434,7 @@ o.spec("CalendarModel", function () {
 					})
 					baseExistingProgenitor.pendingInvitation = false
 
-					when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingProgenitor.uid), CachingMode.Bypass)).thenResolve(
+					when(calendarFacadeMock.getEventsByUid(neverNull(baseExistingProgenitor.uid), CachingMode.Bypass, anything())).thenResolve(
 						baseCalendarEventUidIndexEntry,
 					)
 
@@ -461,7 +457,7 @@ o.spec("CalendarModel", function () {
 					alteredInstanceInvitation.contents.push({ icsCalendarEvent: alteredInstanceEvent, alarms: [] })
 
 					// Act
-					await calendarModel.processParsedCalendarData(ORGANIZER, alteredInstanceInvitation)
+					await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, alteredInstanceInvitation)
 
 					// Assert
 					const alteredInstanceCaptor = matchers.captor()
@@ -488,7 +484,7 @@ o.spec("CalendarModel", function () {
 				baseExistingProgenitor.pendingInvitation = false
 				eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 				eventByUid.alteredInstances = []
-				when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
+				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(eventByUid)
 
 				const sentEvent = createTestEntity(CalendarEventTypeRef, {
 					summary: "v2",
@@ -500,7 +496,7 @@ o.spec("CalendarModel", function () {
 					startTime: baseExistingProgenitor.startTime,
 				})
 
-				await calendarModel.processParsedCalendarData(ORGANIZER, {
+				await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, {
 					method: CalendarMethod.REQUEST,
 					contents: [
 						{
@@ -573,7 +569,7 @@ o.spec("CalendarModel", function () {
 			const eventByUid: CalendarEventUidIndexEntry = object()
 			eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 
-			when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(eventByUid)
+			when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(eventByUid)
 
 			const expectedNewEvent = clone(baseExistingProgenitor)
 			expectedNewEvent.startTime = icsEvent.startTime
@@ -582,7 +578,7 @@ o.spec("CalendarModel", function () {
 
 			when(entityClientMock.load<CalendarEvent>(CalendarEventTypeRef, anything())).thenResolve(expectedNewEvent)
 			// Act
-			await calendarModel.processParsedCalendarData(ORGANIZER, {
+			await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
@@ -634,9 +630,9 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("progenitor is deleted from guest's calendar when cancelled by organizer", async function () {
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 
-			await calendarModel.processParsedCalendarData(ORGANIZER, baseParsedCalendarDataCancel)
+			await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseParsedCalendarDataCancel)
 
 			const deletedEventCaptor = matchers.captor()
 			verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
@@ -651,9 +647,9 @@ o.spec("CalendarModel", function () {
 				address: ORGANIZER,
 			})
 			baseCalendarEventUidIndexEntry.alteredInstances.push(baseParsedEvent.icsCalendarEvent as CalendarEventAlteredInstance)
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 
-			await calendarModel.processParsedCalendarData(ORGANIZER, baseParsedCalendarDataCancel)
+			await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseParsedCalendarDataCancel)
 
 			const deletedEventCaptor = matchers.captor()
 			verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
@@ -677,9 +673,9 @@ o.spec("CalendarModel", function () {
 					excludedDates: [createDateWrapper({ date: baseParsedEvent.icsCalendarEvent.recurrenceId })],
 				})
 
-				when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+				when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 
-				await calendarModel.processParsedCalendarData(ORGANIZER, baseParsedCalendarDataCancel)
+				await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, baseParsedCalendarDataCancel)
 
 				const deletedEventCaptor = matchers.captor()
 				verify(entityClientMock.erase(deletedEventCaptor.capture()), { times: 1 })
@@ -693,12 +689,12 @@ o.spec("CalendarModel", function () {
 		)
 
 		o("event cannot be cancelled by someone other than organizer", async function () {
-			when(calendarFacadeMock.getEventsByUid(uid, anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 
-			await calendarModel.processParsedCalendarData(UNKNOWN_SENDER, baseParsedCalendarDataCancel)
+			await calendarModel.processParsedCalendarDataFromIcs(UNKNOWN_SENDER, baseParsedCalendarDataCancel)
 			verify(entityClientMock.erase(anything()), { times: 0 })
 
-			await calendarModel.processParsedCalendarData(GUEST, baseParsedCalendarDataCancel)
+			await calendarModel.processParsedCalendarDataFromIcs(GUEST, baseParsedCalendarDataCancel)
 			verify(entityClientMock.erase(anything()), { times: 0 })
 		})
 	})
@@ -732,9 +728,9 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("If user has never replied or interacted with this calendarEvent, the CalendarEventUpdates should be ignored", async function () {
-			when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(null)
+			when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(null)
 
-			await calendarModel.processParsedCalendarData(UNKNOWN_SENDER, {
+			await calendarModel.processParsedCalendarDataFromIcs(UNKNOWN_SENDER, {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
@@ -743,17 +739,17 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			verify(calendarFacadeMock.getEventsByUid(anything(), anything()), { times: 1 })
+			verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
 			verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
 			verify(calendarModel.handleExistingCalendarEventInvitationFromIcs(anything(), anything(), anything(), anything(), anything()), { times: 0 })
 		})
 
 		o("Updates to previously replied/interacted calendarEvents should still be applied", async function () {
 			baseExistingProgenitor.attendees[1].status = CalendarAttendeeStatus.ACCEPTED // User already accepted previous reply
-			when(calendarFacadeMock.getEventsByUid(anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
+			when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 			when(contactModelMock.searchForContact(ORGANIZER)).thenResolve(null)
 
-			await calendarModel.processParsedCalendarData(ORGANIZER, {
+			await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{

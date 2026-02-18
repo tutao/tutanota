@@ -25,7 +25,6 @@ import { GroupInfoTypeRef, GroupTypeRef, User } from "../../../src/common/api/en
 import { calendars, makeUserController } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
-import { mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
@@ -90,7 +89,10 @@ o.spec("CalendarInviteHandlerTest", function () {
 		when(maiboxModel.getMailboxProperties(matchers.anything())).thenResolve(mailboxProperties)
 
 		calendarModel = instance(CalendarModel)
-		when(calendarModel.getEventsByUid(matchers.anything())).thenResolve({ progenitor: event as CalendarEventProgenitor, alteredInstances: [] })
+		when(calendarModel.getEventsByUid(matchers.anything(), matchers.anything())).thenResolve({
+			progenitor: event as CalendarEventProgenitor,
+			alteredInstances: [],
+		})
 
 		logins = instance(LoginController)
 		when(logins.getUserController()).thenReturn(userController)
@@ -115,7 +117,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 				mail = createTestEntity(MailTypeRef)
 				mail.sender = createMailAddress({ address: SENDER_ADDRESS, name: "whatever", contact: null })
 				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
-				when(calendarModel.getEventsByUid(matchers.anything())).thenResolve(null)
+				when(calendarModel.getEventsByUid(matchers.anything(), matchers.anything())).thenResolve(null)
 			})
 
 			o.test("Reply no should only sent the response email", async function () {
@@ -155,18 +157,16 @@ o.spec("CalendarInviteHandlerTest", function () {
 				mail.sender = createMailAddress({ address: SENDER_ADDRESS, name: "whatever", contact: null })
 				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 
-				const processCalendarUpdate = spy()
-				const mockedMethod = mockAttribute(calendarModel, calendarModel.processUpdateToCalendarEventFromIcs, processCalendarUpdate)
-
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
 				)
-				o.check(calendarModel.processUpdateToCalendarEventFromIcs.callCount).equals(1)
-				const capturedEvent: CalendarEvent = calendarModel.processUpdateToCalendarEventFromIcs.args[2]
+
+				const eventCaptor = matchers.captor()
+				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), eventCaptor.capture()), { times: 1 })
+				const capturedEvent = eventCaptor.value
 				o.check(capturedEvent.pendingInvitation).equals(false)
 				const guestAttendee = capturedEvent.attendees[1]
 				o.check(guestAttendee.status).equals(CalendarAttendeeStatus.ACCEPTED)
-				unmockAttribute(mockedMethod)
 			})
 
 			o.test("respond no to event from eventBanner should update persisted events", async function () {
@@ -183,21 +183,17 @@ o.spec("CalendarInviteHandlerTest", function () {
 			o.test("respond no to event from eventPreview should update persisted events", async function () {
 				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 
-				const processCalendarUpdate = spy()
-				const mockedMethod = mockAttribute(calendarModel, calendarModel.processUpdateToCalendarEventFromIcs, processCalendarUpdate)
-
 				// previousMail is null because eventPreview is part of calendar app and will not receive a Mail object
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, null, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
 				)
 
-				o.check(calendarModel.processUpdateToCalendarEventFromIcs.callCount).equals(1)
-
-				const capturedEvent: CalendarEvent = calendarModel.processUpdateToCalendarEventFromIcs.args[2]
+				const eventCaptor = matchers.captor()
+				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), eventCaptor.capture()), { times: 1 })
+				const capturedEvent: CalendarEvent = eventCaptor.value
 				o.check(capturedEvent.pendingInvitation).equals(false)
 				const guestAttendee = capturedEvent.attendees[1]
 				o.check(guestAttendee.status).equals(CalendarAttendeeStatus.DECLINED)
-				unmockAttribute(mockedMethod)
 			})
 
 			o.test("respond yes to event on read only shared calendar", async function () {
