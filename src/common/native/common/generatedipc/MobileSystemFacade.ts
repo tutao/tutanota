@@ -49,6 +49,11 @@ export interface MobileSystemFacade {
 	getInstallationDate(): Promise<string>
 
 	/**
+	 * Returns the Apple AdServices attribution token if available.
+	 */
+	getAppleAdsAttributionToken(): Promise<string | null>
+
+	/**
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	requestInAppRating(): Promise<void>
