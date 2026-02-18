@@ -21,6 +21,7 @@ export interface DriveFolderSelectionEvents {
 	onSelectPrevious: (item: FolderItem) => unknown
 	onSelectNext: (item: FolderItem) => unknown
 	onSelectAll: () => unknown
+	onSelectNone: () => unknown
 	onRangeSelectionTowards: (item: FolderItem) => unknown
 }
 
@@ -240,6 +241,9 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					"grid-column-end": "8",
 					display: "grid",
 					"grid-template-columns": "subgrid",
+				},
+				onclick: (e: MouseEvent) => {
+					e.stopPropagation()
 				},
 			},
 			[
