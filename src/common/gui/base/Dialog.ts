@@ -228,12 +228,13 @@ export class Dialog implements ModalComponent {
 	 * This behavior can be overwritten by calling this function.
 	 * If it has already been called, then calls it instantly
 	 */
-	setFocusOnLoadFunction(callback: Dialog["focusOnLoadFunction"]): void {
+	setFocusOnLoadFunction(callback: Dialog["focusOnLoadFunction"]): this {
 		this.focusOnLoadFunction = callback
 
 		if (this.wasFocusOnLoadCalled) {
 			this.focusOnLoadFunction(assertNotNull(this.domDialog))
 		}
+		return this
 	}
 
 	private getDialogWrapperClasses(dialogType: DialogType): string {
