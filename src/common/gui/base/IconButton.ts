@@ -6,6 +6,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { ButtonColor, getColors } from "./Button.js"
 import { ButtonSize } from "./ButtonSize.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
+import { TabIndex } from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -18,6 +19,7 @@ export interface IconButtonAttrs {
 	onkeydown?: (event: KeyboardEvent) => unknown
 	hidden?: boolean
 	disabled?: boolean
+	tabindex?: TabIndex
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -41,6 +43,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 			style: {
 				visibility: attrs.hidden ? "hidden" : "visible",
 			},
+			tabindex: attrs.tabindex,
 		} satisfies BaseButtonAttrs)
 	}
 
