@@ -119,6 +119,8 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		return String(creationTimeInMilliseconds)
 	}
 
+	func getAppleAdsAttributionToken() async throws -> String? { nil }
+
 	func requestInAppRating() async throws {
 		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
 		await SKStoreReviewController.requestReview(in: windowScene)
