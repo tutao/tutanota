@@ -59,6 +59,11 @@ public protocol MobileSystemFacade {
 	func getInstallationDate(
 	) async throws -> String
 	/**
+	 * Returns the Apple AdServices attribution token if available.
+	 */
+	func getAppleAdsAttributionToken(
+	) async throws -> String?
+	/**
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	func requestInAppRating(

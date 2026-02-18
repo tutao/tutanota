@@ -76,6 +76,10 @@ public class MobileSystemFacadeReceiveDispatcher {
 			let result = try await self.facade.getInstallationDate(
 			)
 			return toJson(result)
+		case "getAppleAdsAttributionToken":
+			let result = try await self.facade.getAppleAdsAttributionToken(
+			)
+			return toJson(result)
 		case "requestInAppRating":
 			try await self.facade.requestInAppRating(
 			)

@@ -810,6 +810,12 @@ import("./translations/en.js")
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
 		if (isApp() || isDesktop()) {
 			await mailLocator.native.init()
+			if (isIOSApp()) {
+				mailLocator.systemFacade
+					.getAppleAdsAttributionToken()
+					.then((token) => console.log("Apple AdServices attribution token:", token))
+					.catch((e) => console.log("Failed to load Apple AdServices attribution token:", e))
+			}
 		}
 		if (isDesktop()) {
 			const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
