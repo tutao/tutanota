@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { _NoLifecycle, Children, CommonAttributes, Component, Vnode, VnodeDOM } from "mithril"
 import { ClipboardAction, DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
@@ -11,6 +11,8 @@ import { theme } from "../../../common/gui/theme"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { FolderItem, folderItemEntity, FolderItemId } from "./DriveUtils"
+import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { Keys } from "../../../common/api/common/TutanotaConstants"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -71,6 +73,14 @@ function serializeDragItems(items: readonly FolderItemId[]): string {
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private dragImageEl: Element | null = null
+	private selectAllDom: HTMLElement | null = null
+	/**
+	 *  Keep track of whether we are actually focused in the table contents or outside of it.
+	 *  When we are in the content tab key is overridden and focus tracks active element.
+	 */
+	private focusedInContent: boolean = false
+	/** Whether the focus should track more button or the whole row (default) */
+	private focusedOnMoreActions: boolean = false
 
 	view({
 		attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto },
@@ -81,6 +91,33 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				style: {
 					display: "grid",
 					"grid-template-columns": "calc(25px + 24px) 50px auto 100px 100px 300px calc(44px + 12px)",
+				},
+				onkeydown: (event: KeyboardEvent) => {
+					if (this.focusedInContent && isKeyPressed(event.key, Keys.TAB) && event.shiftKey) {
+						// if the focus is in the table content and the user presses Shift+Tab we drop focus on the
+						// content and focus the checkbox in the table header.
+						this.focusedInContent = false
+						this.selectAllDom?.focus()
+						// The table is often the last element on the page. Default behavior might focus browser
+						// control outside of the page and we wouldn't be able to control the focus after that.
+						// We prevent the browser from doing that.
+						event.preventDefault()
+					} else if (this.focusedInContent && isKeyPressed(event.key, Keys.TAB)) {
+						// If the focus is in the table content Tab will drop the focus on the content.
+						// In this case the browser will take care of selecting another element.
+						this.focusedInContent = false
+					} else if (!this.focusedInContent && isKeyPressed(event.key, Keys.TAB) && !event.shiftKey) {
+						// If the focus is in the table header Tab will move the focus into content
+						this.focusedInContent = true
+						// Do not drop the focus to the browser
+						event.preventDefault()
+					} else if (this.focusedInContent && isKeyPressed(event.key, Keys.RIGHT)) {
+						// Left and Right switch between focusing on the whole row and on the more button
+						this.focusedOnMoreActions = true
+					} else if (this.focusedOnMoreActions && isKeyPressed(event.key, Keys.LEFT)) {
+						// Left and Right switch between focusing on the whole row and on the more button
+						this.focusedOnMoreActions = false
+					}
 				},
 			},
 			[
@@ -98,7 +135,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							"grid-template-columns": "subgrid",
 						},
 					},
-					listState.items.map((item) =>
+					listState.items.map((item, index) =>
 						m(DriveFolderContentEntry, {
 							key: getElementId(folderItemEntity(item)),
 							item: item,
@@ -114,6 +151,18 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 								clipboard.action === ClipboardAction.Cut &&
 								clipboard.items.some((clipboardItem) => isSameId(clipboardItem.id, folderItemEntity(item)._id)),
 							fileActions,
+							onDomUpdated: (dom, moreActionsDom) => {
+								// While we are focused on the content we forcefully focus on the element for the active
+								// index on every redraw. We do it every time in case the list structure changes.
+								// It is not possible to tab through the table rows, users must use up-down keys.
+								if (this.focusedInContent && (index === listState.activeIndex || (listState.activeIndex == null && index === 0))) {
+									if (!this.focusedOnMoreActions) {
+										dom.focus()
+									} else {
+										moreActionsDom.focus()
+									}
+								}
+							},
 							onDragStart: (item, event) => {
 								const itemsToDrag = listState.selectedItems.has(item) ? Array.from(listState.selectedItems) : [item]
 
@@ -138,7 +187,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 								}
 							},
 							onDropInto,
-						} satisfies DriveFolderContentEntryAttrs & { key: string }),
+						} satisfies DriveFolderContentEntryAttrs & CommonAttributes<DriveFolderContentEntryAttrs, DriveFolderContentEntry>),
 					),
 				),
 			],
@@ -252,6 +301,9 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						title: lang.getTranslationText("selectAllLoaded_action"),
 						checked: selection.type === "multiselect" && selection.selectedAll,
 						onchange: onSelectAll,
+						oncreate: ({ dom }) => {
+							this.selectAllDom = dom as HTMLElement
+						},
 					}),
 				),
 				selection.type === "multiselect"

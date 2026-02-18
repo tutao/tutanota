@@ -1,14 +1,15 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { _NoLifecycle, Children, CommonAttributes, Component, Vnode, VnodeDOM } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { filterInt } from "@tutao/tutanota-utils"
-import { IconButton } from "../../../common/gui/base/IconButton"
+import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
+import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton"
 import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"
 import { modal } from "../../../common/gui/base/Modal"
 import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
+import { TabIndex } from "../../../common/api/common/TutanotaConstants"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -35,6 +36,7 @@ export interface DriveFolderContentEntryAttrs {
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 	onDragEnd: () => unknown
 	isCut: boolean
+	onDomUpdated?: (dom: HTMLElement, moreActionsDom: HTMLElement) => unknown
 }
 
 const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
@@ -69,6 +71,11 @@ const mimeTypeAsText = (mimeType: string) => {
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	private isDraggedOver: boolean = false
+	private moreButtonDom: HTMLElement | null = null
+
+	onupdate(vnode: VnodeDOM<DriveFolderContentEntryAttrs, _NoLifecycle<this & {}>>) {
+		vnode.attrs.onDomUpdated?.(vnode.dom as HTMLElement, assertNotNull(this.moreButtonDom))
+	}
 
 	view({
 		attrs: {
@@ -94,6 +101,8 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			"div.flex.row.folder-row.cursor-pointer",
 			{
 				role: "row",
+				// we manually keep track of the focus in the table contents
+				tabindex: TabIndex.Programmatic,
 				draggable: true,
 				style: {
 					"border-radius": "10px",
@@ -149,8 +158,10 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			[
 				m(
 					"div",
+					{ role: "gridcell" },
 					m("input.checkbox", {
 						type: "checkbox",
+						tabindex: TabIndex.Programmatic,
 						checked,
 						onchange: () => onSingleExclusiveSelection(item),
 						onclick: (e: MouseEvent) => {
@@ -160,6 +171,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 				m(
 					"div",
+					{ role: "gridcell" },
 					m(Icon, {
 						icon: item.type === "folder" ? Icons.Folder : iconPerMimeType(item.file.mimeType),
 						size: IconSize.PX24,
@@ -171,23 +183,32 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						},
 					}),
 				),
-				m("div.text-ellipsis", { "data-testid": "drivecontententry:name" }, m("span", item.type === "file" ? item.file.name : item.folder.name)),
-				m("div", thisFileMimeType),
-				m("div", item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-				m("div", updatedDate.toLocaleString()),
+				m(
+					"div.text-ellipsis",
+					{ "data-testid": "drivecontententry:name", role: "gridcell" },
+					m("span", item.type === "file" ? item.file.name : item.folder.name),
+				),
+				m("div", { role: "gridcell" }, thisFileMimeType),
+				m("div", { role: "gridcell" }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+				m("div", { role: "gridcell" }, updatedDate.toLocaleString()),
 				m(
 					"div",
+					{ role: "gridcell" },
 					m("div", [
-						m(
-							IconButton,
-							attachDropdown({
+						m(IconButton, {
+							...attachDropdown({
 								mainButtonAttrs: {
 									icon: Icons.More,
 									title: "more_label",
+									// is focused programmatically
+									tabindex: TabIndex.Programmatic,
 								},
 								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete),
 							}),
-						),
+							oncreate: (vnode: VnodeDOM<IconButtonAttrs, _NoLifecycle<IconButton>>) => {
+								this.moreButtonDom = vnode.dom as HTMLElement
+							},
+						} satisfies IconButtonAttrs & CommonAttributes<IconButtonAttrs, _NoLifecycle<IconButton & {}>>),
 					]),
 				),
 			],
