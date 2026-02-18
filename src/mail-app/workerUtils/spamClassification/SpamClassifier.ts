@@ -158,39 +158,50 @@ export class SpamClassifier {
 				)
 
 				const label = d.spamDecision === SpamDecision.BLACKLIST ? 1 : 0
-				return { vector, label }
+				const confidence = Number(d.confidence)
+				return { vector, label, confidence }
 			},
 			{
 				concurrency: 5,
 			},
 		)
-		const vectors = trainingInput.map((input) => input.vector)
-		const labels = trainingInput.map((input) => input.label)
-
-		const xs = tensor2d(vectors, [trainingInput.length, await this.spamMailProcessor.getModelInputSize()], undefined)
-		const ys = tensor1d(labels, undefined)
-
-		const layersModel = this.buildModel(await this.spamMailProcessor.getModelInputSize())
-
+		const trainingInputByConfidence = groupByAndMap(
+			trainingInput,
+			({ confidence }) => confidence,
+			({ vector, label }) => {
+				return { vector, label }
+			},
+		)
 		const trainingStart = performance.now()
-		await layersModel.fit(xs, ys, {
-			epochs: 16,
-			batchSize: 32,
-			shuffle: !this.deterministic,
-			// callbacks: {
-			// 	onEpochEnd: async (epoch, logs) => {
-			// 		if (logs) {
-			// 			console.log(`Epoch ${epoch + 1} - Loss: ${logs.loss.toFixed(4)}`)
-			// 		}
-			// 	},
-			// },
-			yieldEvery: 15,
-		})
+		const layersModel: LayersModel = this.buildModel(await this.spamMailProcessor.getModelInputSize())
+		for (const [confidence, trainingInput] of trainingInputByConfidence) {
+			console.log(`initial training: fitting model with confidence ${confidence}`)
+			console.log(`size of trainingInput for confidence ${confidence}: ${trainingInput.length}`)
+			const vectors = trainingInput.map((input) => input.vector)
+			const labels = trainingInput.map((input) => input.label)
+			const xs = tensor2d(vectors, [trainingInput.length, await this.spamMailProcessor.getModelInputSize()], undefined)
+			const ys = tensor1d(labels, undefined)
+			for (let i = 0; i < confidence; i++) {
+				console.log(`initial training: fitting model with confidence ${confidence} - round ${i + 1}`)
+				await layersModel.fit(xs, ys, {
+					epochs: 16,
+					batchSize: 32,
+					shuffle: !this.deterministic,
+					// callbacks: {
+					// 	onEpochEnd: async (epoch, logs) => {
+					// 		if (logs) {
+					// 			console.log(`Epoch ${epoch + 1} - Loss: ${logs.loss.toFixed(4)}`)
+					// 		}
+					// 	},
+					// },
+					yieldEvery: 15,
+				})
+			}
+			// when using the webgl backend, we need to manually dispose @tensorflow tensors
+			xs.dispose()
+			ys.dispose()
+		}
 		const trainingTime = performance.now() - trainingStart
-
-		// when using the webgl backend, we need to manually dispose @tensorflow tensors
-		xs.dispose()
-		ys.dispose()
 
 		const threshold = this.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount)
 
@@ -301,6 +312,7 @@ export class SpamClassifier {
 					// },
 					yieldEvery: 15,
 				}
+				// fixme we do confidence + 1 fits here, is this intended?
 				for (let i = 0; i <= isSpamConfidence; i++) {
 					await layersModelToUpdate.fit(xs, ys, modelFitArgs)
 				}
