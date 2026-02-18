@@ -23,6 +23,7 @@ export interface BaseButtonAttrs {
 	role?: AriaRole
 	iconWrapperSelector?: string
 	isPrintable?: boolean
+	tabindex?: TabIndex
 }
 
 export class BaseButton implements ClassComponent<BaseButtonAttrs> {
@@ -52,6 +53,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 				style: attrs.style,
 				role: attrs.role,
 				"data-testid": `btn:${lang.getTestId(attrs.label)}`,
+				tabindex: attrs.tabindex,
 			},
 			[attrs.icon ? this.renderIcon(attrs.icon, attrs.iconWrapperSelector) : null, attrs.text ?? null, children],
 		)
