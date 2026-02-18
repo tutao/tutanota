@@ -227,12 +227,13 @@ export class Dialog implements ModalComponent {
 	 * By default the focus is set on the first text field after this dialog is fully visible. This behavior can be overwritten by calling this function.
 	 * If it has already been called, then calls it instantly
 	 */
-	setFocusOnLoadFunction(callback: Dialog["focusOnLoadFunction"]): void {
+	setFocusOnLoadFunction(callback: Dialog["focusOnLoadFunction"]): this {
 		this.focusOnLoadFunction = callback
 
 		if (this.wasFocusOnLoadCalled) {
 			this.focusOnLoadFunction(assertNotNull(this.domDialog))
 		}
+		return this
 	}
 
 	private getDialogWrapperClasses(dialogType: DialogType): string {

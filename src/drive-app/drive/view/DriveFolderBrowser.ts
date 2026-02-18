@@ -1,14 +1,16 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { DriveFolderBrowserEntry, DriveFolderBrowserEntryAttrs } from "./DriveFolderBrowserEntry"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton"
 import { theme } from "../../../common/gui/theme"
 import { LoginTextField } from "../../../common/gui/base/LoginTextField"
 import { FolderItem, folderItemEntity } from "./DriveUtils"
-import { isEmpty } from "@tutao/tutanota-utils"
+import { isEmpty, lastIndex } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { Keys } from "../../../common/api/common/TutanotaConstants"
 
-export interface DriveMiniFolderContentAttrs {
+export interface DriveFolderBrowserAttrs {
 	items: readonly FolderItem[]
 	disabledTargetIds: ReadonlySet<Id>
 	onItemClicked: (f: FolderItem) => unknown
@@ -16,32 +18,58 @@ export interface DriveMiniFolderContentAttrs {
 	newFolder: DriveFolderBrowserNewFolderEntryAttrs | null
 }
 
-export class DriveFolderBrowser implements Component<DriveMiniFolderContentAttrs> {
-	view({ attrs: { items, disabledTargetIds, onItemClicked, style, newFolder } }: Vnode<DriveMiniFolderContentAttrs>): Children {
+export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
+	// index of the active child for keyboard navigation
+	private activeIndex: number = 0
+	private dom: HTMLElement | null = null
+
+	view({ attrs: { items, disabledTargetIds, onItemClicked, style, newFolder } }: Vnode<DriveFolderBrowserAttrs>): Children {
 		return m(
 			".flex.col.gap-4.scroll",
 			{
 				style,
-				role: "list",
+				role: "grid",
+				onkeydown: (e: KeyboardEvent) => {
+					if (isKeyPressed(e.key, Keys.J, Keys.DOWN)) {
+						this.activeIndex = Math.min(this.activeIndex + 1, lastIndex(items))
+						this.focusActiveChild(newFolder)
+					} else if (isKeyPressed(e.key, Keys.K, Keys.UP)) {
+						this.activeIndex = Math.max(0, this.activeIndex - 1)
+						this.focusActiveChild(newFolder)
+					}
+				},
+				oncreate: ({ dom }) => {
+					this.dom = dom as HTMLElement
+					// Focus the first child the first time this folder is displayed. Do it in raf to run after
+					// dialog focus shenanigans.
+					requestAnimationFrame(() => this.focusActiveChild(newFolder))
+				},
 			},
-			newFolder == null ? null : m(DriveFolderBrowserNewFolderEntry, newFolder),
-			isEmpty(items)
-				? m(
-						".text-center.h2.pt-32.pb-32.font-weight-500.translucent",
-						{ "data-testid": lang.getTestId("folderIsEmpty_msg") },
-						lang.getTranslationText("folderIsEmpty_msg"),
-					)
-				: items.map((item) => {
-						const elementId = getElementId(folderItemEntity(item))
-						return m(DriveFolderBrowserEntry, {
-							key: elementId,
-							item: item,
-							isInvalidTarget: disabledTargetIds.has(elementId) || item.type === "file",
-							selected: false,
-							onSingleSelection: onItemClicked,
-						} satisfies DriveFolderBrowserEntryAttrs & { key: string })
-					}),
+			[
+				newFolder == null ? null : m(DriveFolderBrowserNewFolderEntry, newFolder),
+				isEmpty(items)
+					? m(
+							".text-center.h2.pt-32.pb-32.font-weight-500.translucent",
+							{ "data-testid": lang.getTestId("folderIsEmpty_msg") },
+							lang.getTranslationText("folderIsEmpty_msg"),
+						)
+					: items.map((item, index) => {
+							const elementId = getElementId(folderItemEntity(item))
+							return m(DriveFolderBrowserEntry, {
+								key: elementId,
+								item: item,
+								isInvalidTarget: disabledTargetIds.has(elementId) || item.type === "file",
+								selected: index === this.activeIndex,
+								onSingleSelection: onItemClicked,
+							} satisfies DriveFolderBrowserEntryAttrs & { key: string })
+						}),
+			],
 		)
+	}
+	private focusActiveChild(newFolder: DriveFolderBrowserNewFolderEntryAttrs | null) {
+		const indexOffset = newFolder == null ? 0 : 1
+		const child = this.dom?.children[this.activeIndex + indexOffset] as HTMLElement | undefined
+		child?.focus()
 	}
 }
 

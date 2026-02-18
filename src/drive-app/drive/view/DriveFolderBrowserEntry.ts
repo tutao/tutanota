@@ -3,8 +3,9 @@ import { theme } from "../../../common/gui/theme"
 import { Icon, IconAttrs, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { FolderItem } from "./DriveUtils"
-import { TabIndex } from "../../../common/api/common/TutanotaConstants"
+import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { isKeyPressed } from "../../../common/misc/KeyManager"
 
 export interface DriveFolderBrowserEntryAttrs {
 	item: FolderItem
@@ -20,17 +21,21 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 		return m(
 			".flex.row.folder-row.plr-12.pt-16.pb-16.gap-12",
 			{
-				tabindex: TabIndex.Default,
-				role: "listitem",
-				"aria-disabled": true,
+				tabindex: selected ? TabIndex.Default : TabIndex.Programmatic,
+				role: "row",
 				"aria-description": typeLabel,
 				class: isInvalidTarget ? undefined : "cursor-pointer",
 				style: {
-					background: selected ? theme.state_bg_hover : theme.surface,
+					background: theme.surface,
 					"border-radius": "10px",
 				},
 				onclick: (event: MouseEvent) => {
 					onSingleSelection(item)
+				},
+				onkeydown: (event: KeyboardEvent) => {
+					if (isKeyPressed(event.key, Keys.RETURN, Keys.SPACE)) {
+						onSingleSelection(item)
+					}
 				},
 			},
 			[
@@ -42,7 +47,7 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 						fill: theme.on_surface,
 					},
 				} satisfies IconAttrs),
-				m(".flex-grow.text-ellipsis", { class: isInvalidTarget ? "translucent" : undefined }, name),
+				m(".flex-grow.text-ellipsis", { class: isInvalidTarget ? "translucent" : undefined, role: "gridcell" }, name),
 			],
 		)
 	}

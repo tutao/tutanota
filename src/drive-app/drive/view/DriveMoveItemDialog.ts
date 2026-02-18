@@ -1,12 +1,12 @@
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
-import m, { Children, Component } from "mithril"
+import m, { Children, Component, VnodeDOM } from "mithril"
 import { theme } from "../../../common/gui/theme"
 import { DriveBreadcrumbs, DriveBreadcrumbsAttrs } from "./DriveBreadcrumbs"
 import { LoginButton, TertiaryButton, TertiaryButtonAttrs } from "../../../common/gui/base/buttons/LoginButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
-import { DriveFolderBrowser } from "./DriveFolderBrowser"
+import { DriveFolderBrowser, DriveFolderBrowserAttrs } from "./DriveFolderBrowser"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -40,6 +40,8 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 		return { currentFolder, parents, items, newFolderName: null }
 	}
 
+	let folderBrowserDom: HTMLElement | null = null
+
 	const moveDialog = new Dialog(
 		DialogType.EditLarger,
 		class DriveMoveDialog implements Component {
@@ -70,25 +72,31 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 								},
 							} satisfies DriveBreadcrumbsAttrs),
 						),
-						m(DriveFolderBrowser, {
-							items: currentFolderItems,
-							disabledTargetIds,
-							newFolder:
-								newFolderName != null
-									? {
-											newFolderName: newFolderName,
-											onNewFolderNameInput: (name) => {
-												state.newFolderName = name
-											},
-											onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder),
-										}
-									: null,
-							onItemClicked: (item: FolderItem) => {
-								if (item.type === "folder" && !isSameId(item.folder._id, folderItemEntity(itemToMove)._id)) {
-									this.onOpenFolder(item.folder)
-								}
-							},
-						}),
+						[
+							m(DriveFolderBrowser, {
+								key: getElementId(currentFolder),
+								items: currentFolderItems,
+								disabledTargetIds,
+								newFolder:
+									newFolderName != null
+										? {
+												newFolderName: newFolderName,
+												onNewFolderNameInput: (name) => {
+													state.newFolderName = name
+												},
+												onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder),
+											}
+										: null,
+								onItemClicked: (item: FolderItem) => {
+									if (item.type === "folder" && !isSameId(item.folder._id, folderItemEntity(itemToMove)._id)) {
+										this.onOpenFolder(item.folder)
+									}
+								},
+								oncreate: ({ dom }: VnodeDOM<DriveFolderBrowserAttrs>) => {
+									folderBrowserDom = dom as HTMLElement
+								},
+							}),
+						],
 						m(".flex-grow"),
 						m(
 							".flex.row.gap-8",
@@ -130,5 +138,15 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 				m.redraw()
 			}
 		},
-	).show()
+	)
+		.setFocusOnLoadFunction(() => {
+			// right now assumes that the children been already loaded and rendered. Probably need to change this
+			// when we show the dialog while loading the contents
+
+			// keeping this one in addition to the focus in DriveFolderBrowser to make sure that we focus when it's
+			// possible
+			const firstListItem = folderBrowserDom?.querySelector("[role=row]") as HTMLElement | null
+			firstListItem?.focus()
+		})
+		.show()
 }
