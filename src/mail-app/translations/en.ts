@@ -816,7 +816,7 @@ export default {
 		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
 		"importEvents_label": "Import events",
 		"importEventsError_msg": "{amount} of {total} events could not be imported.",
-		"importFailedConcurrentImport_msg": "Import failed, another import is already in progress.",
+		"importFailedConcurrentImport_msg": "You already have one ongoing import for this mailbox. Please wait until the current import is finished before starting a new one.",
 		"importFromContactBook_label": "Import contacts from your device",
 		"importIncomplete_msg": "Import finished, but some errors occurred.",
 		"importIncomplete_title": "Import unsuccessful",
@@ -2221,6 +2221,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"mailboxToImport_label": "Mailbox to Import",
 	}
 }
