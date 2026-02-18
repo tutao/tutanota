@@ -92,6 +92,11 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"getAppleAdsAttributionToken" -> {
+				val result: String? = this.facade.getAppleAdsAttributionToken(
+				)
+				return json.encodeToString(result)
+			}
 			"requestInAppRating" -> {
 				val result: Unit = this.facade.requestInAppRating(
 				)
