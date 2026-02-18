@@ -1151,14 +1151,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			".main-view",
 			{
 				style: {
-					"margin-bottom": isAndroidApp() ? "var(--safe-area-inset-bottom)" : undefined,
+					"margin-bottom": isAndroidApp() && client.isCalendarApp() ? "var(--safe-area-inset-bottom)" : undefined,
 				},
 			},
-			// {
-			// 	style: {
-			// 		bottom: isAndroidApp() ? "var(--safe-area-inset-bottom)" : undefined,
-			// 	},
-			// },
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,

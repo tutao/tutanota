@@ -120,6 +120,7 @@ export class Dialog implements ModalComponent {
 						paddingTop: "var(--safe-area-inset-top)",
 						paddingLeft: "var(--safe-area-inset-left)",
 						paddingRight: "var(--safe-area-inset-right)",
+						// paddingBottom: "var(--safe-area-inset-bottom)",
 					},
 				},
 				/** controls vertical alignment
