@@ -2221,6 +2221,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"mailboxToImport_label": "Mailbox zum Importieren",
+		"importAlreadyInProgress_msg": "Für diese Mailbox läuft bereits ein Importvorgang. Bitte warten Sie, bis der aktuelle Import abgeschlossen ist, bevor Sie einen neuen startest.",
 	}
 }

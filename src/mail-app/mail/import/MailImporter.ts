@@ -7,7 +7,7 @@ import { DomainConfigProvider } from "../../../common/api/common/DomainConfigPro
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { elementIdPart, GENERATED_MIN_ID, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
-import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -30,16 +30,31 @@ export const enum ImportProgressAction {
 
 const DEFAULT_TOTAL_WORK: number = 10000
 type ActiveImport = {
+	mailboxId: Id
 	remoteStateId: IdTuple
 	uiStatus: UiImportStatus
 	progressMonitor: EstimatingProgressMonitor
 }
 
 export class MailImporter {
-	private finalisedImportStates: Map<Id, ImportMailState> = new Map()
+	private mailboxToFinalisedImportStates: Map<Id, Map<Id, ImportMailState>> = new Map()
+	public mailboxToFolders: Map<Id, FolderSystem> = new Map()
+
 	private activeImport: ActiveImport | null = null
-	public foldersForMailbox: FolderSystem | undefined
-	public selectedTargetFolder: MailSet | null = null
+	public mailboxDetails: MailboxDetail[] = []
+	public selectedMailBoxDetail: MailboxDetail | null = null
+	private _selectedTargetFolder: MailSet | null = null
+
+	public get selectedTargetFolder(): MailSet | null {
+		return this._selectedTargetFolder
+	}
+
+	public set selectedTargetFolder(newTargetFolder: MailSet | null) {
+		this._selectedTargetFolder = newTargetFolder
+		if (newTargetFolder?._ownerGroup !== this.selectedMailBoxDetail?.mailbox._ownerGroup) {
+			this.selectedMailBoxDetail = this.mailboxDetails.find((mailboxDetail) => mailboxDetail.mailbox._ownerGroup === newTargetFolder?._ownerGroup) ?? null
+		}
+	}
 
 	constructor(
 		private readonly domainConfigProvider: DomainConfigProvider,
@@ -54,26 +69,38 @@ export class MailImporter {
 		eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	}
 
-	async getMailbox(): Promise<MailBox> {
-		return assertNotNull(first(await this.mailboxModel.getMailboxDetails())).mailbox
-	}
-
 	async initImportMailStates(): Promise<void> {
-		await this.checkForResumableImport()
+		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
 
-		const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, (await this.getMailbox()).mailImportStates)
-		for (const importMailState of importMailStatesCollection) {
-			if (this.isFinalisedImport(importMailState)) {
-				this.updateFinalisedImport(elementIdPart(importMailState._id), importMailState)
+		for (const mailboxDetail of this.mailboxDetails) {
+			const mailbox = mailboxDetail.mailbox
+			this.mailboxToFolders.set(mailbox._id, this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup)))
+
+			if (!this.activeImport) {
+				await this.checkForResumableImport(mailbox)
+			}
+
+			const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailbox.mailImportStates)
+			for (const importMailState of importMailStatesCollection) {
+				if (this.isFinalisedImport(importMailState)) {
+					this.updateFinalisedImport(mailbox._id, elementIdPart(importMailState._id), importMailState)
+				}
 			}
 		}
+
+		if (!this.activeImport) {
+			this.selectedMailBoxDetail = first(this.mailboxDetails)
+			const selectedMailboxId = this.selectedMailBoxDetail?.mailbox._id
+			if (selectedMailboxId) {
+				this.selectedTargetFolder = this.mailboxToFolders.get(selectedMailboxId)?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
+			}
+		}
+
 		m.redraw()
 	}
 
-	private async checkForResumableImport(): Promise<void> {
+	private async checkForResumableImport(mailbox: MailBox): Promise<void> {
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
-		const mailbox = await this.getMailbox()
-		this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
 
 		let activeImportId: IdTuple | null = null
 		if (this.activeImport === null) {
@@ -81,7 +108,6 @@ export class MailImporter {
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.ARCHIVE)
 
 			try {
 				activeImportId = await importFacade.getResumableImport(mailbox._id, mailOwnerGroupId, unencryptedCredentials, apiUrl)
@@ -104,7 +130,6 @@ export class MailImporter {
 				case ImportStatus.Finished:
 					activeImportId = null
 					this.activeImport = null
-					this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.ARCHIVE)
 					break
 
 				case ImportStatus.Paused:
@@ -118,6 +143,7 @@ export class MailImporter {
 					}
 
 					this.activeImport = {
+						mailboxId: mailbox._id,
 						remoteStateId: activeImportId,
 						uiStatus: UiImportStatus.Paused,
 						progressMonitor,
@@ -142,11 +168,11 @@ export class MailImporter {
 
 		const wasUpdatedForThisImport = this.activeImport !== null && isSameId(this.activeImport.remoteStateId, serverState._id)
 		if (wasUpdatedForThisImport) {
+			const activeImport = assertNotNull(this.activeImport)
 			if (isFinalisedImport(remoteStatus)) {
 				this.resetStatus()
-				this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
+				this.updateFinalisedImport(activeImport.mailboxId, elementIdPart(serverState._id), serverState)
 			} else {
-				const activeImport = assertNotNull(this.activeImport)
 				activeImport.uiStatus = importStatusToUiImportStatus(remoteStatus)
 				const newTotalWork = parseInt(serverState.totalMails)
 				const newDoneWork = parseInt(serverState.successfulMails) + parseInt(serverState.failedMails)
@@ -159,7 +185,10 @@ export class MailImporter {
 				}
 			}
 		} else {
-			this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
+			const mailboxDetail = this.mailboxDetails.find((detail) => detail.mailGroup._id === serverState._ownerGroup)
+			if (mailboxDetail) {
+				this.updateFinalisedImport(mailboxDetail.mailbox._id, elementIdPart(serverState._id), serverState)
+			}
 		}
 
 		m.redraw()
@@ -211,7 +240,7 @@ export class MailImporter {
 		} else if (err.data.category === ImportErrorCategories.ConcurrentImport) {
 			console.log("Tried to start concurrent import")
 			showSnackBar({
-				message: "pleaseWait_msg",
+				message: "importAlreadyInProgress_msg",
 				button: {
 					label: "ok_action",
 					click: () => {},
@@ -236,7 +265,7 @@ export class MailImporter {
 		if (!this.shouldRenderStartButton()) throw new ProgrammingError("can't change state to starting")
 
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-		const mailbox = await this.getMailbox()
+		const mailbox = assertNotNull(this.selectedMailBoxDetail).mailbox
 		const mailboxId = mailbox._id
 		const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 		const userId = this.loginController.getUserController().userId
@@ -247,6 +276,7 @@ export class MailImporter {
 		this.resetStatus()
 		let progressMonitor = this.createEstimatingProgressMonitor()
 		this.activeImport = {
+			mailboxId,
 			remoteStateId: [GENERATED_MIN_ID, GENERATED_MIN_ID],
 			uiStatus: UiImportStatus.Starting,
 			progressMonitor,
@@ -286,7 +316,7 @@ export class MailImporter {
 		activeImport.progressMonitor.pauseEstimation()
 		m.redraw()
 
-		const mailboxId = (await this.getMailbox())._id
+		const mailboxId = activeImport.mailboxId
 		const nativeImportFacade = assertNotNull(this.nativeMailImportFacade)
 		await nativeImportFacade.setProgressAction(mailboxId, ImportProgressAction.Pause)
 	}
@@ -300,7 +330,7 @@ export class MailImporter {
 		activeImport.progressMonitor.continueEstimation()
 		m.redraw()
 
-		const mailboxId = (await this.getMailbox())._id
+		const mailboxId = activeImport.mailboxId
 		const nativeImportFacade = assertNotNull(this.nativeMailImportFacade)
 		await nativeImportFacade.setProgressAction(mailboxId, ImportProgressAction.Continue)
 	}
@@ -314,7 +344,7 @@ export class MailImporter {
 		activeImport.progressMonitor.pauseEstimation()
 		m.redraw()
 
-		const mailboxId = (await this.getMailbox())._id
+		const mailboxId = activeImport.mailboxId
 		const nativeImportFacade = assertNotNull(this.nativeMailImportFacade)
 		await nativeImportFacade.setProgressAction(mailboxId, ImportProgressAction.Stop)
 	}
@@ -409,12 +439,21 @@ export class MailImporter {
 		return Math.ceil(progressMonitor.percentage())
 	}
 
-	getFinalisedImports(): Array<ImportMailState> {
-		return Array.from(this.finalisedImportStates.values())
+	getFinalisedImports(mailboxId: Id): Array<ImportMailState> {
+		const finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
+		if (finalisedImportStates) {
+			return Array.from(finalisedImportStates.values())
+		}
+		return []
 	}
 
-	updateFinalisedImport(importMailStateElementId: Id, importMailState: ImportMailState) {
-		this.finalisedImportStates.set(importMailStateElementId, importMailState)
+	updateFinalisedImport(mailboxId: Id, importMailStateElementId: Id, importMailState: ImportMailState) {
+		let finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
+		if (!finalisedImportStates) {
+			this.mailboxToFinalisedImportStates.set(mailboxId, new Map())
+			finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
+		}
+		assertNotNull(finalisedImportStates).set(importMailStateElementId, importMailState)
 	}
 
 	private resetStatus() {
@@ -424,6 +463,11 @@ export class MailImporter {
 
 	getUiStatus() {
 		return this.activeImport?.uiStatus ?? null
+	}
+
+	onNewMailboxSelected(newMailboxDetail: MailboxDetail) {
+		this.selectedMailBoxDetail = newMailboxDetail
+		this.selectedTargetFolder = this.mailboxToFolders.get(newMailboxDetail.mailbox._id)?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
 	}
 }
 
