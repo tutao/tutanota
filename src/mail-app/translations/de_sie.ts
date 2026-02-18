@@ -2221,6 +2221,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"cannotMoveToTrash_msg" : "Objekte können nicht in den Papierkorb verschoben werden",
+		"cannotCopyToTrash_msg": "Objekte können nicht in den Papierkorb kopiert werden"
 	}
 }

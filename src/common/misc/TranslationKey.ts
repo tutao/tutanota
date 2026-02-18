@@ -2220,3 +2220,5 @@ export type TranslationKeyType =
 	| "dataOutOfSync_msg"
 	| "importContactDuplicates_msg"
 	| "emptyString_msg"
+	| "cannotMoveToTrash_msg"
+	| "cannotCopyToTrash_msg"
