@@ -214,6 +214,10 @@ class AndroidMobileSystemFacade(
 		return SystemUtils.getInstallationDate(activity.packageManager, activity.packageName)
 	}
 
+	override suspend fun getAppleAdsAttributionToken(): String? {
+		return null
+	}
+
 	override suspend fun requestInAppRating() {
 		throw NotImplementedError("requestInAppRating")
 	}
