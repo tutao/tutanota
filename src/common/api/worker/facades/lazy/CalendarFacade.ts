@@ -43,6 +43,7 @@ import {
 	CalendarGroupRootTypeRef,
 	CalendarRepeatRule,
 	createCalendarDeleteIn,
+	UserSettingsGroupRootTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
@@ -67,6 +68,7 @@ import {
 	CalendarTimeRange,
 	generateCalendarInstancesInRange,
 	hasAlarmsForTheUser,
+	hasSourceUrl,
 	isBirthdayCalendar,
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
@@ -479,13 +481,30 @@ export class CalendarFacade {
 	 *
 	 * @returns {CalendarEventUidIndexEntry}
 	 */
-	async getEventsByUid(uid: string, cacheMode: CachingMode = CachingMode.Cached): Promise<CalendarEventUidIndexEntry | null> {
-		const { memberships } = this.userFacade.getLoggedInUser()
+	async getEventsByUid(
+		uid: string,
+		cacheMode: CachingMode = CachingMode.Cached,
+		fetchOnlyPrivateCalendars: boolean = false,
+	): Promise<CalendarEventUidIndexEntry | null> {
+		const { memberships, userGroup } = this.userFacade.getLoggedInUser()
 		const entityClient = this.getEntityClient(cacheMode)
-		for (const membership of memberships) {
-			if (membership.groupType !== GroupType.Calendar) continue
+
+		let filteredCalendarMemberships = memberships.filter((membership) => membership.groupType === GroupType.Calendar)
+
+		if (fetchOnlyPrivateCalendars) {
+			const userSettingsGroupRoot = await entityClient.load(UserSettingsGroupRootTypeRef, userGroup.group)
+
+			filteredCalendarMemberships = filteredCalendarMemberships.filter((membership) => {
+				const userOwnThisGroup = membership.capability === null
+				const groupSettings = userSettingsGroupRoot.groupSettings.find((groupSettings) => isSameId(groupSettings.group, membership.group))
+				const groupIsAPrivateCalendar = !groupSettings || !hasSourceUrl(groupSettings)
+				return userOwnThisGroup && groupIsAPrivateCalendar
+			})
+		}
+
+		for (const membership of filteredCalendarMemberships) {
 			try {
-				const groupRoot = await this.cachingEntityClient.load(CalendarGroupRootTypeRef, membership.group)
+				const groupRoot = await entityClient.load(CalendarGroupRootTypeRef, membership.group)
 				if (groupRoot.index == null) {
 					continue
 				}

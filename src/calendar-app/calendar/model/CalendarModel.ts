@@ -899,7 +899,7 @@ export class CalendarModel {
 		try {
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
 			if (parsedCalendarData != null) {
-				await this.processParsedCalendarData(update.sender, parsedCalendarData)
+				await this.processParsedCalendarDataFromIcs(update.sender, parsedCalendarData)
 			}
 		} catch (e) {
 			if (e instanceof NotAuthorizedError) {
@@ -949,7 +949,7 @@ export class CalendarModel {
 
 	/** whether the operation could be performed or not */
 	async deleteEventsByUid(uid: string): Promise<void> {
-		const entry = await this.calendarFacade.getEventsByUid(uid, CachingMode.Cached)
+		const entry = await this.calendarFacade.getEventsByUid(uid, CachingMode.Cached, false)
 		if (entry == null) {
 			console.log("could not find an uid index entry to delete event")
 			return
@@ -968,7 +968,7 @@ export class CalendarModel {
 	 *
 	 * @VisibleForTesting
 	 */
-	async processParsedCalendarData(sender: string, parsedCalendarData: ParsedCalendarData): Promise<void> {
+	async processParsedCalendarDataFromIcs(sender: string, parsedCalendarData: ParsedCalendarData): Promise<void> {
 		if (parsedCalendarData.contents.length === 0) {
 			console.log(TAG, `CalendarEventUpdate with no events, ignoring`)
 			return
@@ -989,7 +989,9 @@ export class CalendarModel {
 		const latestPersistedEventsIndexEntry = await this.calendarFacade.getEventsByUid(
 			parsedCalendarData.contents[0].icsCalendarEvent.uid,
 			CachingMode.Bypass,
+			true,
 		)
+
 		const icsEventRecurrenceIdTimestamp = parsedCalendarData.contents[0].icsCalendarEvent.recurrenceId?.getTime()
 		const resolvedPersistedCalendarEvent = !icsEventRecurrenceIdTimestamp
 			? latestPersistedEventsIndexEntry?.progenitor
@@ -1339,8 +1341,8 @@ export class CalendarModel {
 		this.deviceConfig.removeLastSync(calendar.group._id)
 	}
 
-	async getEventsByUid(uid: string): Promise<CalendarEventUidIndexEntry | null> {
-		return this.calendarFacade.getEventsByUid(uid)
+	async getEventsByUid(uid: string, fetchOnlyPrivateCalendars: boolean = false): Promise<CalendarEventUidIndexEntry | null> {
+		return this.calendarFacade.getEventsByUid(uid, CachingMode.Cached, fetchOnlyPrivateCalendars)
 	}
 
 	// Visible for testing
