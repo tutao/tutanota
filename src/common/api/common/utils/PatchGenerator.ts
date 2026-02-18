@@ -215,11 +215,22 @@ export async function computePatches(
 					}),
 				)
 			}
-			if (addedItems.length > 0) {
+			// make sure to filter out the addedItems that are already present in the original aggregated entities to prevent BadRequestExceptions
+			const addedItemsNotInCommonItems = addedItems.filter((addedItem) => {
+				const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+				let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()
+				if (env.networkDebugging) {
+					// keys are in the format attributeId:attributeName when networkDebugging is enabled
+					aggregateIdAttributeIdStr += ":" + "_id"
+				}
+				const aggregateId = addedItem[aggregateIdAttributeIdStr] as Id
+				return !commonAggregateIds.includes(aggregateId)
+			})
+			if (addedItemsNotInCommonItems.length > 0) {
 				patches.push(
 					createPatch({
 						attributePath: attributeIdStr,
-						value: JSON.stringify(addedItems),
+						value: JSON.stringify(addedItemsNotInCommonItems),
 						patchOperation: PatchOperationType.ADD_ITEM,
 					}),
 				)
