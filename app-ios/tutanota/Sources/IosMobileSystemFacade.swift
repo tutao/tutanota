@@ -1,4 +1,5 @@
 import AVFoundation
+import AdServices
 import Contacts
 import Foundation
 import StoreKit
@@ -109,6 +110,20 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		let creationTimeInMilliseconds = Int(creationDate.timeIntervalSince1970 * 1000)
 		return String(creationTimeInMilliseconds)
 	}
+
+	func getAppleAdsAttributionToken() async throws -> String? {
+		if #available(iOS 14.3, *) {
+			do {
+				return try AAAttribution.attributionToken()
+			} catch {
+				TUTSLog("Failed to request AdServices attribution token: \(error)")
+				return nil
+			}
+		}
+
+		return nil
+	}
+
 	func requestInAppRating() async throws {
 		// TODO: Replace `SKStoreReviewController.requestReview()` with StoreKit's/SwiftUI's `requestReview()`
 		// as `SKStoreReviewController.requestReview()` will be removed in iOS 19 (release roughly September 2025)

@@ -43,6 +43,9 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async getInstallationDate(...args: Parameters<MobileSystemFacade["getInstallationDate"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "getInstallationDate", ...args])
 	}
+	async getAppleAdsAttributionToken(...args: Parameters<MobileSystemFacade["getAppleAdsAttributionToken"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "getAppleAdsAttributionToken", ...args])
+	}
 	async requestInAppRating(...args: Parameters<MobileSystemFacade["requestInAppRating"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestInAppRating", ...args])
 	}

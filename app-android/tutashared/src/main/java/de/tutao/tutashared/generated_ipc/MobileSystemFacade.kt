@@ -62,6 +62,11 @@ interface MobileSystemFacade {
 	suspend fun getInstallationDate(
 	): String
 	/**
+	 * Returns the Apple AdServices attribution token if available.
+	 */
+	suspend fun getAppleAdsAttributionToken(
+	): String?
+	/**
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	suspend fun requestInAppRating(
