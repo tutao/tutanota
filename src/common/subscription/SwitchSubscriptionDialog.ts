@@ -464,11 +464,11 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 }
 /**
  * @param customer
- * @param currentPlanInfo
+ * @param currentPlanType
  * @param surveyData
  * @returns the new plan type after the attempt.
  */
-export async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: CurrentPlanInfo, surveyData: SurveyData | null): Promise<PlanType> {
+export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType, surveyData: SurveyData | null): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -486,14 +486,14 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanI
 		if (e instanceof PreconditionFailedError) {
 			const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 			if (shouldRetry) {
-				return tryDowngradePremiumToFree(customer, currentPlanInfo, surveyData)
+				return tryDowngradePremiumToFree(customer, currentPlanType, surveyData)
 			}
 		} else if (e instanceof InvalidDataError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
 		} else {
 			throw e
 		}
-		return currentPlanInfo.planType
+		return currentPlanType
 	}
 }
 
@@ -519,7 +519,7 @@ async function cancelSubscription(
 	}
 
 	try {
-		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo, surveyData))
+		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo.planType, surveyData))
 	} finally {
 		dialog.close()
 	}
