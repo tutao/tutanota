@@ -61,7 +61,7 @@ export {
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export { KeyLength, EntropySource, HkdfKeyDerivationDomains } from "./misc/Constants.js"
+export { KeyLength, EntropySource, HkdfKeyDerivationDomains, MacTag } from "./misc/Constants.js"
 export {
 	AbstractEncryptedKeyPair,
 	EncryptedKeyPairs,
@@ -115,7 +115,7 @@ export { TotpVerifier } from "./misc/TotpVerifier.js"
 export { TotpSecret } from "./misc/TotpVerifier.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
-export { hmacSha256, verifyHmacSha256, MacTag } from "./encryption/Hmac.js"
+export { hmacSha256, verifyHmacSha256 } from "./encryption/Hmac.js"
 export {
 	aes256RandomKey,
 	keyToUint8Array,
@@ -134,3 +134,4 @@ export {
 	FIXED_IV,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
+export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
