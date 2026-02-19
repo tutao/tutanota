@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveTransferState } from "./DriveUploadStackModel"
+import { DriveTransferState } from "./DriveTransferController"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
@@ -49,7 +49,7 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [m(".font-weight-500.text-ellipsis", filename), this.renderStatusText(type, state)]),
 					]),
 
-					state === "active"
+					state === "active" || state === "waiting"
 						? m(IconButton, {
 								click: () => onCancel(),
 								icon: Icons.Cancel,

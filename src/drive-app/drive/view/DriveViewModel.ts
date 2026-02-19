@@ -5,7 +5,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { assertNotNull, debounceStart, filterInt, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
-import { DriveTransferState, DriveUploadStackModel } from "./DriveUploadStackModel"
+import { DriveTransferState, DriveTransferController } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
@@ -93,12 +93,6 @@ export interface DriveClipboard {
 	action: ClipboardAction
 }
 
-interface PendingUpload {
-	file: File
-	fileId: TransferId
-	fileName: string
-}
-
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	return new ListModel({
 		async fetch(): Promise<ListFetchResult<Item>> {
@@ -152,8 +146,7 @@ export class DriveViewModel {
 		private readonly eventController: EventController,
 		private readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
-		private readonly fileController: FileController,
-		private readonly driveUploadStackModel: DriveUploadStackModel,
+		private readonly transferController: DriveTransferController,
 		public readonly updateUi: () => unknown,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
@@ -166,12 +159,12 @@ export class DriveViewModel {
 		this.roots = await this.driveFacade.loadRootFolders()
 
 		this.uploadProgressListener.addUploadListener((info: ChunkedUploadInfo) => {
-			this.driveUploadStackModel.onChunkUploaded(info.fileId, info.uploadedBytes)
+			this.transferController.onChunkUploaded(info.fileId, info.uploadedBytes)
 			this.updateUi()
 		})
 
 		this.uploadProgressListener.addDownloadListener((info: ChunkedDownloadInfo) => {
-			this.driveUploadStackModel.onChunkDownloaded(info.fileId, info.downloadedBytes)
+			this.transferController.onChunkDownloaded(info.fileId, info.downloadedBytes)
 			this.updateUi()
 		})
 
@@ -425,36 +418,10 @@ export class DriveViewModel {
 		const folderItems = this.listModel.getUnfilteredAsArray()
 		const takenFileNames: Set<string> = new Set(folderItems.map((item) => folderItemEntity(item).name))
 
-		const pendingUploads: PendingUpload[] = []
-
-		// Pending uploads are prepared and added to the upload stack model in this loop
-		// seperated from the core upload loop, as we already want to show them in the
-		// transfer box even before uploading has started.
 		for (const file of files) {
-			const fileId = await this.driveFacade.generateUploadId()
-
 			const newName = pickNewFileName(file.name, takenFileNames)
 			takenFileNames.add(newName)
-
-			this.driveUploadStackModel.addUpload(fileId, newName, file.size)
-			pendingUploads.push({ file, fileId, fileName: newName })
-		}
-
-		for (const { file, fileId, fileName } of pendingUploads) {
-			this.driveUploadStackModel.startUpload(fileId)
-			try {
-				await this.driveFacade.uploadFile(file, fileId, fileName, targetFolderId).catch(
-					ofClass(CancelledError, (e) => {
-						console.log("Upload canceled", fileId)
-					}),
-				)
-				this.driveUploadStackModel.finishUpload(fileId)
-			} catch (e) {
-				this.driveUploadStackModel.transferFailed(fileId)
-				if (!isOfflineError(e)) {
-					throw e
-				}
-			}
+			await this.transferController.upload(file, newName, targetFolderId)
 		}
 	}
 
@@ -477,21 +444,7 @@ export class DriveViewModel {
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
-		const transferId = getElementId(file) as TransferId
-		this.driveUploadStackModel.addDownload(transferId, file.name, filterInt(file.size))
-		try {
-			await this.fileController.open(file, ArchiveDataType.DriveFile).catch(
-				ofClass(CancelledError, (e) => {
-					console.log("Upload canceled", transferId)
-				}),
-			)
-			this.driveUploadStackModel.finishDownload(transferId)
-		} catch (e) {
-			this.driveUploadStackModel.transferFailed(transferId)
-			if (!isOfflineError(e)) {
-				throw e
-			}
-		}
+		this.transferController.download(file)
 	}
 
 	getCurrentColumnSortOrder() {
@@ -576,12 +529,12 @@ export class DriveViewModel {
 		return this.driveFacade.getFolderParents(firstLoadedParent)
 	}
 
-	transfers(): [TransferId, DriveTransferState][] {
-		return Array.from(this.driveUploadStackModel.state)
+	transfers(): DriveTransferState[] {
+		return Array.from(this.transferController.state)
 	}
 
 	cancelTransfer(transferId: TransferId) {
-		this.driveUploadStackModel.cancelTransfer(transferId)
+		this.transferController.cancelTransfer(transferId)
 	}
 
 	/**

@@ -160,7 +160,7 @@ import type { QuickActionsModel } from "../common/misc/quickactions/QuickActions
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
-import { DriveUploadStackModel } from "../drive-app/drive/view/DriveUploadStackModel"
+import { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
@@ -1324,10 +1324,10 @@ class MailLocator implements CommonLocator {
 	readonly driveViewModel = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
-		const { DriveUploadStackModel } = await import("../drive-app/drive/view/DriveUploadStackModel.js")
+		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
 
 		const redraw = await this.redraw()
-		const driveUploadStackModel = new DriveUploadStackModel(this.driveFacade, this.blobFacade, redraw)
+		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController, await this.scheduler())
 
 		const model = new DriveViewModel(
 			this.entityClient,
@@ -1337,7 +1337,6 @@ class MailLocator implements CommonLocator {
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,
-			this.fileController,
 			driveUploadStackModel,
 			redraw,
 		)
