@@ -185,7 +185,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	mentionedInlineImages: Array<string>
-	inlineImageElements: Array<HTMLElement>
 	templateModel: TemplatePopupModel | null
 	knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null = null
 	sendMailModel: SendMailModel
@@ -205,7 +204,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
 		this.attrs = a
-		this.inlineImageElements = []
 		this.mentionedInlineImages = []
 		const model = a.model
 		this.sendMailModel = model
@@ -248,14 +246,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 				this.blockedExternalContent = sanitized.blockedExternalContent
 
-				this.mentionedInlineImages = sanitized.inlineImageCids
+				this.mentionedInlineImages.push(...sanitized.inlineImageCids)
 				return sanitized.fragment
 			},
 			null,
 		)
 
 		const onEditorChanged = () => {
-			cleanupInlineAttachments(this.editor.getDOM(), this.inlineImageElements, model.getAttachments())
+			cleanupInlineAttachments(this.editor.getDOM(), this.mentionedInlineImages, model.getAttachments())
 			model.markAsChangedIfNecessary(true)
 			m.redraw()
 		}
@@ -549,7 +547,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			oninput: (val) => model.setSubject(val),
 		}
 
-		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, this.inlineImageElements)
+		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, this.mentionedInlineImages, () => {
+			return this.editor.getDOM()
+		})
 
 		let editCustomNotificationMailAttrs: IconButtonAttrs | null = null
 
@@ -875,7 +875,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private processInlineImages() {
-		this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), this.sendMailModel.loadedInlineImages, (cid, event, dom) => {
+		this.mentionedInlineImages = replaceCidsWithInlineImages(this.editor.getDOM(), this.sendMailModel.loadedInlineImages, (cid, event, dom) => {
 			const downloadClickHandler = createDropdown({
 				lazyButtons: () => [
 					{
@@ -948,12 +948,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		for (const file of files) {
 			const img = createInlineImage(file as DataFile)
 			model.loadedInlineImages.set(img.cid, img)
-			this.inlineImageElements.push(
-				this.editor.insertImage(img.objectUrl, {
-					cid: img.cid,
-					style: "max-width: 100%",
-				}),
-			)
+			this.mentionedInlineImages.push(img.cid)
+			this.editor.insertImage(img.objectUrl, {
+				cid: img.cid,
+				style: "max-width: 100%",
+			})
 		}
 		m.redraw()
 	}
