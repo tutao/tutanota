@@ -155,7 +155,7 @@ export class CalendarEventWhenModel {
 		const startTime = this._startTime!
 		const delta = ((v.hour - startTime.hour) * 60 + (v.minute - startTime.minute)) * 60000
 		if (delta === 0) return
-		this.rescheduleEvent({ millisecond: delta })
+		this.shiftEvent({ millisecond: delta })
 		this.uiUpdateCallback()
 	}
 
@@ -211,30 +211,30 @@ export class CalendarEventWhenModel {
 	}
 
 	/**
-	 * set the date portion of the events start time (value's time component is ignored)
+	 * moves the event to the provided date (time component is ignored)
 	 * will also update the end date and move it the same amount of days as the start date was moved.
 	 *
 	 * setting a date before 1970 will result in the date being set to CURRENT_YEAR
 	 * */
-	set startDate(value: Date) {
-		if (value.getTime() === this._startDate.getTime()) {
+	rescheduleEventToDate(date: Date) {
+		if (date.getTime() === this._startDate.getTime()) {
 			return
 		}
 
 		// The custom ID for events is derived from the unix timestamp, and sorting
 		// the negative ids is a challenge we decided not to
 		// tackle because it is a rare case and only getting rarer.
-		if (value.getTime() < TIMESTAMP_ZERO_YEAR) {
+		if (date.getTime() < TIMESTAMP_ZERO_YEAR) {
 			const thisYear = new Date().getFullYear()
-			value.setFullYear(thisYear)
+			date.setFullYear(thisYear)
 		}
-		const valueDateTime = DateTime.fromJSDate(value, { zone: this.zone })
+		const valueDateTime = DateTime.fromJSDate(date, { zone: this.zone })
 		// asking for the rest in milliseconds causes luxon to give us an integer number of
 		// days in the duration which is what we want.
 		const diff = valueDateTime.diff(DateTime.fromJSDate(this._startDate, this), ["day", "millisecond"])
 		if (diff.as("millisecond") === 0) return
 		// we only want to add days, not milliseconds.
-		this.rescheduleEvent({ days: diff.days })
+		this.shiftEvent({ days: diff.days })
 		this.uiUpdateCallback()
 	}
 
@@ -548,13 +548,13 @@ export class CalendarEventWhenModel {
 
 	/**
 	 * change start and end time and dates of the event by a fixed amount.
-	 * @param diff an object containing a duration in luxons year/quarter/... format
+	 * @param duration an object containing a duration in luxons year/quarter/... format
 	 */
-	rescheduleEvent(diff: DurationLikeObject): void {
+	shiftEvent(duration: DurationLikeObject): void {
 		const oldStartTime = this.startTime.toDateTime(this.startDate, this.zone)
 		const oldEndTime = this.endTime.toDateTime(this.endDate, this.zone)
-		const newStartDate = oldStartTime.plus(diff)
-		const newEndDate = oldEndTime.plus(diff)
+		const newStartDate = oldStartTime.plus(duration)
+		const newEndDate = oldEndTime.plus(duration)
 
 		this._startDate = getStartOfDayWithZone(newStartDate.toJSDate(), this.zone)
 		this._endDate = getStartOfDayWithZone(newEndDate.toJSDate(), this.zone)
@@ -640,6 +640,10 @@ export class CalendarEventWhenModel {
 			throw new Error("Missing endValue for RepeatRule of type UntilDate")
 		}
 		return repeatRule
+	}
+
+	public removeRepeatRule() {
+		this.repeatRule = null
 	}
 }
 

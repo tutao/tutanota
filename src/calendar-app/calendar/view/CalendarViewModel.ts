@@ -518,7 +518,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		calendarEventModel.editModels.summary.content = lang.get("copyOf_title", {
 			"{title}": calendarEventModel.editModels.summary.content,
 		})
-		calendarEventModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
+		calendarEventModel.editModels.whenModel.shiftEvent({ millisecond: timeToMoveBy })
 		calendarEventModel.editModels.whenModel.deleteExcludedDates()
 		calendarEventModel.editModels.whoModel.resetGuestsStatus()
 
@@ -646,7 +646,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		// Passing only the milliseconds doesn't handle daylight saving times
 		// but by passing the object with days, hours and minutes forces luxon to handle it for us
 		const days = millisToDays(diff)
-		editModel.editModels.whenModel.rescheduleEvent({ days })
+		editModel.editModels.whenModel.shiftEvent({ days })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
 			const response = await askIfShouldSendCalendarUpdatesToAttendees()
@@ -685,7 +685,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		newEventModel.editModels.whenModel.deleteExcludedDates()
 		newEventModel.editModels.whoModel.resetGuestsStatus()
-		newEventModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
+		newEventModel.editModels.whenModel.shiftEvent({ millisecond: diff })
 		if (newEventModel.editModels.whenModel.repeatEndType === EndType.Count) {
 			const generationRange: CalendarTimeRange = {
 				start: progenitor.startTime.getTime(),

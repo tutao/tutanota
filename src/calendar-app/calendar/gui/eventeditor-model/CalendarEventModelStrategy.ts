@@ -17,10 +17,10 @@ import {
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { DateTime } from "luxon"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { StrippedEntity } from "../../../../common/api/common/utils/EntityUtils"
 import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
+import { Time } from "../../../../common/calendar/date/Time"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */
@@ -88,7 +88,6 @@ export class CalendarEventApplyStrategies {
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
-				const oldDurationAsMinutes = DateTime.fromJSDate(existingEvent.endTime).diff(DateTime.fromJSDate(existingEvent.startTime), "minutes").minutes
 				const newDuration = editModelsForProgenitor.whenModel.duration
 				const index = await this.calendarModel.getEventsByUid(uid)
 				if (index == null) return
@@ -113,22 +112,20 @@ export class CalendarEventApplyStrategies {
 						await this.notificationModel.send(occurrence, [], sendModels, undefined, editModelsForProgenitor.comment.content)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
+						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
+						editModelsForProgenitor.whenModel.rescheduleEventToDate(occurrence.startTime)
+						editModelsForProgenitor.whenModel.startTime = Time.fromDate(occurrence.startTime)
+						editModelsForProgenitor.whenModel.isAllDay = isAllDayEvent(occurrence)
+						editModelsForProgenitor.whenModel.duration = newDuration
+
+						// altered instances never have a repeat rule
+						editModelsForProgenitor.whenModel.removeRepeatRule()
+
 						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
 							occurrence,
 							editModelsForProgenitor,
 							CalendarOperation.EditThis,
 						)
-
-						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
-						newEvent.startTime = occurrence.startTime
-						if (isAllDayEvent(occurrence)) {
-							newEvent.endTime = occurrence.endTime
-						} else if (oldDurationAsMinutes !== newDuration.minutes) {
-							newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
-						}
-
-						// altered instances never have a repeat rule
-						newEvent.repeatRule = null
 
 						await this.notificationModel.send(newEvent, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
 						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)

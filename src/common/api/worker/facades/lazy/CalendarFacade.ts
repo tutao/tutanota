@@ -338,9 +338,7 @@ export class CalendarFacade {
 		if (newEvent.uid == null) throw new Error("no uid set on the event")
 		newEvent.hashedUid = hashUid(newEvent.uid)
 
-		console.log("Erasing event in replaceCalendarEvent", oldEvent)
 		await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
-		console.log("saving new event in replaceCalendarEvent:", newEvent)
 		return await this.saveCalendarEvents(
 			[
 				{

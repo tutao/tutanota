@@ -250,7 +250,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				startOfTheWeekOffset: this.startOfTheWeekOffset,
 				disabled: !attrs.model.isFullyWritable(),
 				dateSelectionChanged: (date: Date) => {
-					whenModel.startDate = date
+					whenModel.rescheduleEventToDate(date)
 					if (whenModel.repeatPeriod === RepeatPeriod.MONTHLY) whenModel.resetMonthlyByDayRules(date)
 				},
 			} satisfies EventTimeEditorAttrs),
