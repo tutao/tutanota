@@ -1,6 +1,6 @@
 // Run the specified node script, intercept its imports and dump then into imports-trace.json.
 // run as:
-// npm tun trace-imports -- <script path> [script parameters]
+// npm run trace-imports -- <script path> [script parameters]
 // Example: npm run trace-imports -- node_modules/.bin/eslint . --cache --cache-location cache/eslint
 
 import module from "node:module"
