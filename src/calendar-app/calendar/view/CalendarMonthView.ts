@@ -329,10 +329,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						height: px(SELECTED_DATE_INDICATOR_THICKNESS),
 					},
 				}),
-				this.renderDayHeader(day, attrs.onDateSelected), // According to ISO 8601, weeks always start on Monday. Week numbering systems for
-				// weeks that do not start on Monday are not strictly defined, so we only display
-				// a week number if the user's client is configured to start weeks on Monday
-				weekDayNumber === 0 && attrs.startOfTheWeek === WeekStart.MONDAY
+				this.renderDayHeader(day, attrs.onDateSelected),
+				weekDayNumber === 0
 					? m(
 							".calendar-month-week-number.abs.z3",
 							{
