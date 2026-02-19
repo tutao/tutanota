@@ -77,7 +77,7 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 
 export function createAttachmentBubbleAttrs(
 	model: SendMailModel,
-	inlineImageElementIds: Array<string>,
+	inlineImageElementIds: Array<{ cid: string; url: string }>,
 	getDomElement: () => HTMLElement,
 ): Array<AttachmentBubbleAttrs> {
 	return model.getAttachments().map((attachment) => ({
@@ -89,7 +89,7 @@ export function createAttachmentBubbleAttrs(
 
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {
-				const imageElement = inlineImageElementIds.find((e) => e === attachment.cid)
+				const imageElement = inlineImageElementIds.find((e) => e.cid === attachment.cid)
 
 				if (imageElement) {
 					const images = getDomElement().getElementsByTagName("img")
@@ -132,9 +132,9 @@ export async function _openAndDownloadAttachment(attachment: Attachment) {
 	}
 }
 
-export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<string>, arg2: Array<Attachment>) => void = debounce(
+export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<{ cid: string; url: string }>, arg2: Array<Attachment>) => void = debounce(
 	50,
-	(domElement: HTMLElement, inlineImageElementIds: Array<string>, attachments: Array<Attachment>) => {
+	(domElement: HTMLElement, inlineImageElementIds: Array<{ cid: string; url: string }>, attachments: Array<Attachment>) => {
 		// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
 		// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
 		// and check each descendant and if it's an image with CID or not.
@@ -146,19 +146,22 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<string>, 
 		// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
 		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 		// means removal + insertion.
-		const elementsToRemove: string[] = []
+		const elementsToRemove: { cid: string; url: string }[] = []
 		if (domElement) {
 			const images = domElement.getElementsByTagName("img")
-			let imageCids = []
+			let imageCids: string[] = []
 			for (let i = 0; i < images.length; i++) {
-				imageCids.push(images[i].getAttribute("cid"))
+				const cid = images[i].getAttribute("cid")
+				if (cid) {
+					imageCids.push()
+				}
 			}
 			for (const image of inlineImageElementIds) {
-				if (!imageCids.includes(image)) {
+				if (!imageCids.includes(image.cid)) {
 					elementsToRemove.push(image)
+					URL.revokeObjectURL(image.url)
 
-					const attachmentIndex = attachments.findIndex((a) => a.cid === image)
-
+					const attachmentIndex = attachments.findIndex((a) => a.cid === image.cid)
 					if (attachmentIndex !== -1) {
 						attachments.splice(attachmentIndex, 1)
 						m.redraw()

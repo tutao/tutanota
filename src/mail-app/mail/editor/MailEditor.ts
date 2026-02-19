@@ -184,7 +184,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		bcc: stream(""),
 	}
 
-	mentionedInlineImages: Array<string>
+	mentionedInlineImages: Array<{ cid: string; url: string }>
 	templateModel: TemplatePopupModel | null
 	knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null = null
 	sendMailModel: SendMailModel
@@ -246,7 +246,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 				this.blockedExternalContent = sanitized.blockedExternalContent
 
-				this.mentionedInlineImages.push(...sanitized.inlineImageCids)
 				return sanitized.fragment
 			},
 			null,
@@ -948,7 +947,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		for (const file of files) {
 			const img = createInlineImage(file as DataFile)
 			model.loadedInlineImages.set(img.cid, img)
-			this.mentionedInlineImages.push(img.cid)
+			this.mentionedInlineImages.push({ cid: img.cid, url: img.objectUrl })
 			this.editor.insertImage(img.objectUrl, {
 				cid: img.cid,
 				style: "max-width: 100%",
