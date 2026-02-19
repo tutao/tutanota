@@ -30,7 +30,6 @@ import {
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
-	LibOQSExports,
 	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -39,6 +38,7 @@ import {
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
+	uint8ArrayToBitArray,
 	uint8ArrayToKey,
 	verifyHmacSha256,
 	x25519Decapsulate,
@@ -66,6 +66,7 @@ import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "../../../../../packages/tutanota-crypto/lib/hashes/Blake3"
 
 const originalRandom = random.generateRandomData
 
@@ -406,6 +407,34 @@ o.spec("CompatibilityTest", function () {
 
 			o(await publicKeySignatureFacade.verifyPublicKeySignature(versionedPublicEncryptionKey, alicePublicKey, reproducedSignature)).equals(true)
 		}
+	})
+
+	o.spec("blake3", function () {
+		o("hash", function () {
+			for (const td of testData.blake3Tests) {
+				const data = hexToUint8Array(td.dataHex)
+				const digest = hexToUint8Array(td.digestHex)
+				o(blake3Hash(data)).deepEquals(digest)
+			}
+		})
+
+		o("mac", function () {
+			for (const td of testData.blake3Tests) {
+				const key = uint8ArrayToKey(hexToUint8Array(td.keyHex))
+				const data = hexToUint8Array(td.dataHex)
+				const tag = hexToUint8Array(td.tagHex) as MacTag
+				o(blake3Mac(key, data)).deepEquals(tag)
+				blake3MacVerify(key, data, tag)
+			}
+		})
+
+		o("kdf", function () {
+			for (const td of testData.blake3Tests) {
+				const inputKeyMaterialHex = hexToUint8Array(td.keyHex)
+				const context = hexToUint8Array(td.contextHex)
+				o(uint8ArrayToHex(blake3Kdf(inputKeyMaterialHex, context, td.lengthInBytes))).equals(td.kdfOutputHex)
+			}
+		})
 	})
 
 	/**
