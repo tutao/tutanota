@@ -22,7 +22,7 @@ export default {
 		"accountSwitchSharedCalendar_msg": "Per favore, rimuovi tutti i calendari condivisi con te.",
 		"accountSwitchTooManyActiveUsers_msg": "Per favore disattiva tutti gli utenti aggiuntivi prima di cambiare la sottoscrizione.",
 		"accountWasStillCreated_msg": "Il tuo account è già stato creato come account gratuito. Puoi comunque annullare il pagamento ora, fare il login al tuo account e procedere con l'upgrade in un secondo momento.",
-		"accountWillBeDeactivatedIn6Month_label": "Il tuo account verrà eliminato se non effettui il login per 6 mesi.",
+		"accountWillBeDeactivatedIn6Month_label": "Il tuo account gratuito verrà eliminato se non effettui il login per 6 mesi.",
 		"action_label": "Azione",
 		"activate_action": "Attiva",
 		"activated_label": "Attivato",
