@@ -5,6 +5,7 @@ import { styles } from "./common/gui/styles"
 import { assertMainOrNodeBoot, isApp } from "./common/api/common/Env"
 import { Keys } from "./common/api/common/TutanotaConstants.js"
 import { isKeyPressed } from "./common/misc/KeyManager.js"
+import { client } from "./common/misc/ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -47,7 +48,7 @@ export class RootView implements ClassComponent {
 
 	view(vnode: Vnode): Children {
 		return m(
-			"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
+			"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : "") + (client.isCalendarApp() ? ".calendar" : ""),
 			{
 				oncreate: (vnode) => {
 					this.dom = vnode.dom as HTMLElement

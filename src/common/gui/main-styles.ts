@@ -10,8 +10,6 @@ import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { hexToRGBAString } from "./base/Color"
-import { Type } from "cborg"
-import undefined = Type.undefined
 
 assertMainOrNode()
 
@@ -145,7 +143,7 @@ styles.registerStyle("main", () => {
 			"--safe-area-inset-top": isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
 			"--safe-area-inset-right": isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
 			"--safe-area-inset-left": isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
-			"--safe-area-inset-bottom-calendar": isAndroidApp() && client.isCalendarApp() ? "var(--safe-area-inset-bottom)" : "inherit",
+			"--safe-area-inset-bottom-opt": isAndroidApp() ? "var(--safe-area-inset-bottom)" : "0px",
 		},
 		"html, body": {
 			height: "100%",
@@ -1637,8 +1635,8 @@ styles.registerStyle("main", () => {
 		".pb-safe-inset": {
 			"padding-bottom": "var(--safe-area-inset-bottom)",
 		},
-		".mb-safe-inset-opt": {
-			"margin-bottom": "var(--safe-area-inset-bottom-calendar)",
+		"#root.calendar .mb-safe-inset-opt": {
+			"margin-bottom": "var(--safe-area-inset-bottom-opt)",
 		},
 		// header
 		".header-nav": {

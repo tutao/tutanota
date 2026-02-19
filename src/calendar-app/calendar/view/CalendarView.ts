@@ -56,7 +56,7 @@ import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarD
 import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { isAndroidApp, isApp, isDesktop } from "../../../common/api/common/Env"
+import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { component_size, layout_size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
