@@ -819,7 +819,7 @@ export default {
 		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
 		"importEvents_label": "Termine werden importiert",
 		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
-		"importFailedConcurrentImport_msg": "Der Import ist fehlgeschlagen, ein anderer Import läuft bereits.",
+		"importFailedConcurrentImport_msg": "Für diese Mailbox läuft bereits ein Importvorgang. Bitte warten Sie, bis der aktuelle Import abgeschlossen ist, bevor Sie einen neuen startest.",
 		"importFromContactBook_label": "Kontakte von Ihrem Gerät importieren",
 		"importIncomplete_msg": "Import beendet. Es sind jedoch leider einige Fehler aufgetreten.",
 		"importIncomplete_title": "Import nicht erfolgreich",

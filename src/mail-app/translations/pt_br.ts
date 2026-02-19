@@ -819,7 +819,7 @@ export default {
 		"importEventExistingUid_msg": "{amount} de eventos {total}  já existe e não foi substituída. Serão mantidos os eventos restantes.",
 		"importEvents_label": "Importar eventos",
 		"importEventsError_msg": "{amount} de {total} eventos não foram importados.",
-		"importFailedConcurrentImport_msg": "Importação falhou, outra importação está em andamento",
+		"importFailedConcurrentImport_msg": "Você já possui uma importação em progresso. Por gentileza espere até a importação atual terminar antes de começar uma nova.",
 		"importFromContactBook_label": "Importe contatos do seu dispositivo",
 		"importIncomplete_msg": "A importação foi concluída, mas alguns e-mails não foram importados.",
 		"importIncomplete_title": "Importação incompleta",
