@@ -20,6 +20,7 @@ import {
 	MailTypeRef,
 	NotificationMailTypeRef,
 	RecipientsTypeRef,
+	SendDraftReturnTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
@@ -137,6 +138,7 @@ o.spec("SendMailModel", () => {
 		when(mailFacade.updateDraft(anything())).thenDo(() => createTestEntity(MailTypeRef))
 		when(mailFacade.getRecipientKeyData(anything())).thenResolve(null)
 		when(mailFacade.getAttachmentIds(anything())).thenResolve([])
+		when(mailFacade.sendDraft(anything(), anything(), anything(), anything(), anything())).thenResolve(createTestEntity(SendDraftReturnTypeRef))
 
 		const tutanotaProperties = createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: DEFAULT_SENDER_FOR_TESTING,
@@ -642,7 +644,7 @@ o.spec("SendMailModel", () => {
 			const method = MailMethod.NONE
 			const getConfirmation = func<() => Promise<boolean>>()
 			const r = await model.send(method, getConfirmation)
-			o.check(r).equals(false)
+			o.check(r.success).equals(false)
 			verify(getConfirmation(), { times: 0 })
 			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything(), false), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
@@ -681,7 +683,7 @@ o.spec("SendMailModel", () => {
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 			when(getConfirmation(anything())).thenResolve(false)
 			const r = await model.send(method, getConfirmation)
-			o.check(r).equals(false)
+			o.check(r.success).equals(false)
 			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything(), false), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
@@ -701,7 +703,7 @@ o.spec("SendMailModel", () => {
 			when(getConfirmation(anything())).thenResolve(true)
 
 			const r = await model.send(method, getConfirmation)
-			o.check(r).equals(true)
+			o.check(r.success).equals(true)
 
 			verify(mailFacade.sendDraft(anything(), anything(), anything(), anything(), false), { times: 1 })
 			verify(mailFacade.createDraft(anything()), { times: 1 })
@@ -734,7 +736,7 @@ o.spec("SendMailModel", () => {
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 
 			const r = await model.send(method, getConfirmation)
-			o.check(r).equals(true)
+			o.check(r.success).equals(true)
 
 			verify(getConfirmation(anything), { times: 0 })
 
@@ -940,7 +942,7 @@ o.spec("SendMailModel", () => {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de", false)
 			const hasBeenSent = await model.send(MailMethod.NONE, getConfirmation)
-			o.check(hasBeenSent).equals(false)("nothing was sent")
+			o.check(hasBeenSent.success).equals(false)("nothing was sent")
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o.test("too many to recipients confirm", async () => {
@@ -963,7 +965,7 @@ o.spec("SendMailModel", () => {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 
-			o.check(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			o.check((await model.send(MailMethod.NONE, getConfirmation)).success).equals(true)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o.test("too many cc recipients dont confirm", async () => {
@@ -985,7 +987,7 @@ o.spec("SendMailModel", () => {
 			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
-			o.check(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			o.check((await model.send(MailMethod.NONE, getConfirmation)).success).equals(false)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o.test("too many cc recipients confirm", async () => {
@@ -1007,7 +1009,7 @@ o.spec("SendMailModel", () => {
 			when(getConfirmation("manyRecipients_msg")).thenResolve(true)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
-			o.check(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			o.check((await model.send(MailMethod.NONE, getConfirmation)).success).equals(true)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o.spec("mail draft update", () => {
