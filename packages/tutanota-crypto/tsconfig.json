@@ -7,7 +7,8 @@
 		"lib/internal/bCrypt.js",
 		"lib/internal/crypto-jsbn-2012-08-09_1.js",
 		"lib/internal/sjcl.js",
-		"lib/internal/noble-curves-1.3.0.js"
+		"lib/internal/noble-curves-1.3.0.js",
+		"lib/internal/noble-hashes-2.0.1.js"
 	],
 	"compilerOptions": {
 		"outDir": "dist",
