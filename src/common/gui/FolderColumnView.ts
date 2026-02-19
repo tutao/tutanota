@@ -6,6 +6,7 @@ import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { ClickHandler } from "./base/GuiUtils.js"
 import { MainCreateButton } from "./MainCreateButton.js"
 import { isAndroidApp } from "../api/common/Env"
+import { client } from "../misc/ClientDetector"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
@@ -21,7 +22,7 @@ export class FolderColumnView implements Component<Attrs> {
 			".flex.height-100p.nav-bg",
 			{
 				style: {
-					"padding-bottom": isAndroidApp() ? "var(--safe-area-inset-bottom)" : "",
+					"padding-bottom": isAndroidApp() && client.isMailApp() ? "var(--safe-area-inset-bottom)" : "",
 				},
 			},
 			[
