@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveTransferState } from "./DriveUploadStackModel"
+import { DriveTransferState } from "./DriveTransferController"
 import { DriveTransferBox, DriveTransferBoxAttrs } from "./DriveTransferBox"
 import { px, size } from "../../../common/gui/size"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
 export interface DriveTransferStackAttrs {
-	transfers: readonly [TransferId, DriveTransferState][]
+	transfers: readonly DriveTransferState[]
 	cancelTransfer: (transferId: TransferId) => unknown
 }
 
@@ -22,11 +22,11 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 					gap: px(size.spacing_12),
 				},
 			},
-			transfers.map(([fileId, uploadState]) => {
+			transfers.map((transferState) => {
 				return m(DriveTransferBox, {
-					key: fileId,
-					transferState: uploadState,
-					onCancel: () => cancelTransfer(fileId),
+					key: transferState.id,
+					transferState,
+					onCancel: () => cancelTransfer(transferState.id),
 				} satisfies DriveTransferBoxAttrs & { key: string })
 			}),
 		)
