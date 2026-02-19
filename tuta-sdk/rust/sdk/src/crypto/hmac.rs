@@ -1,14 +1,11 @@
 use crate::crypto::key::GenericAesKey;
+use crypto_primitives::blake3::MacError;
 use curve25519_dalek::digest::core_api::CoreWrapper;
 use hmac::{HmacCore, Mac};
 use sha2::Sha256;
 
 /// Size of HMAC authentication added to the ciphertext
 pub const HMAC_SHA256_SIZE: usize = 32;
-
-#[derive(thiserror::Error, Debug)]
-#[error("HmacError")]
-pub struct HmacError;
 
 #[must_use]
 pub fn hmac_sha256(key: &GenericAesKey, data: &[u8]) -> [u8; HMAC_SHA256_SIZE] {
@@ -26,10 +23,10 @@ pub fn verify_hmac_sha256(
 	key: &GenericAesKey,
 	data: &[u8],
 	tag: [u8; HMAC_SHA256_SIZE],
-) -> Result<(), HmacError> {
+) -> Result<(), MacError> {
 	hmac_sha256_internal(key, data)
 		.verify_slice(&tag)
-		.map_err(|_| HmacError)
+		.map_err(|_| MacError)
 }
 
 #[cfg(test)]
