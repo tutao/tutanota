@@ -897,7 +897,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						},
 						icon: Icons.XCross,
 					})
-				} else if (viewModel.isDraftMail()) {
+				} else if (viewModel.isEditableDraft()) {
 					actionButtons.push({
 						label: "edit_action",
 						click: () => editDraft(viewModel),

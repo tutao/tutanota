@@ -711,7 +711,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 											trashMails(mailViewerModel.mailboxModel, mailViewerModel.mailModel, this.undoModel, [mailViewerModel.mail])
 										}
 									: null,
-								delete: mailViewerModel.isDeletableMail()
+								delete: mailViewerModel.isDeletingMailAllowed()
 									? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
 									: null,
 								move: mailViewerModel.isMovableMail()
@@ -1343,7 +1343,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
 		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 			const selected = this.searchViewModel.getSelectedMails()
-			const deletable = this.searchViewModel.areMailsDeletable()
+			const deletable = this.searchViewModel.isPermanentDeleteAllowed()
 
 			if (deletable && isNotEmpty(selected)) {
 				return {

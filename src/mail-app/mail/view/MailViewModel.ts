@@ -7,9 +7,9 @@ import {
 	Mail,
 	MailBox,
 	MailSet,
-	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
@@ -18,7 +18,14 @@ import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { getMailSetKind, ImportStatus, MailSetKind, OperationType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import {
+	getMailSetKind,
+	ImportStatus,
+	isPermanentDeleteAllowedForFolder,
+	MailSetKind,
+	OperationType,
+	SystemFolderType,
+} from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -33,7 +40,7 @@ import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
-import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
+import { isMailDeletable, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
 import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
@@ -378,17 +385,27 @@ export class MailViewModel {
 	}
 
 	/**
-	 * Permanent delete is only allowed when the mail is in the current folder, and the current folder is Trash/Spam.
+	 * Permanent delete is only allowed when the mail is deletable, in the current folder, and the current folder is Trash/Spam.
 	 */
 	isPermanentDeleteAllowed(): boolean {
-		const primaryMailFolder = this.conversationViewModel != null ? this.mailModel.getMailFolderForMail(this.conversationViewModel.primaryMail) : null
 		const currentFolder = this.getFolder()
-
-		if (primaryMailFolder != null && currentFolder != null && !isSameId(currentFolder._id, primaryMailFolder._id)) {
+		if (currentFolder == null) {
 			return false
-		} else {
-			return currentFolder != null && (currentFolder.folderType === MailSetKind.TRASH || currentFolder.folderType === MailSetKind.SPAM)
 		}
+
+		const primaryMail = this.conversationViewModel?.primaryMail ?? null
+		if (primaryMail != null) {
+			if (!isMailDeletable(primaryMail)) {
+				return false
+			}
+
+			const primaryMailFolder = this.mailModel.getMailFolderForMail(primaryMail)
+			if (primaryMailFolder != null && !isSameId(currentFolder._id, primaryMailFolder._id)) {
+				return false
+			}
+		}
+
+		return isPermanentDeleteAllowedForFolder(currentFolder)
 	}
 
 	isExportingMailsAllowed(): boolean {

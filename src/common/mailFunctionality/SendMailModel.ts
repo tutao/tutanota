@@ -12,7 +12,6 @@ import {
 	MailDetails,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
-	SendDraftReturn,
 } from "../api/entities/tutanota/TypeRefs.js"
 import {
 	ApprovalStatus,
@@ -1027,8 +1026,8 @@ export class SendMailModel {
 				}
 			}
 
-			// Don't safe unnecessarily.
-			if (this.hasMailChanged() || this.draft == null) {
+			// Don't save unnecessarily.
+			if (this.hasMailChanged() || this.draft == null || (await this.needNewDraft(this.draft))) {
 				await this.saveDraft(true, mailMethod)
 			}
 

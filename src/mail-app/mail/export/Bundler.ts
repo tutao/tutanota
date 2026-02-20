@@ -1,7 +1,6 @@
 import type { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
-import { MailState } from "../../../common/api/common/TutanotaConstants"
 import { getLetId } from "../../../common/api/common/utils/EntityUtils"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
@@ -12,6 +11,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { loadMailDetails } from "../view/MailViewerUtils.js"
 import { MailBundle } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { DataFile } from "../../../common/api/common/DataFile.js"
+import { isDraft } from "../model/MailChecks.js"
 
 export function makeMailBundle(sanitizer: HtmlSanitizer, mail: Mail, mailDetails: MailDetails, attachments: Array<DataFile>): MailBundle {
 	const recipientMapper = ({ address, name }: MailAddressAndName) => ({ address, name })
@@ -30,7 +30,7 @@ export function makeMailBundle(sanitizer: HtmlSanitizer, mail: Mail, mailDetails
 		cc: mailDetails.recipients.ccRecipients.map(recipientMapper),
 		bcc: mailDetails.recipients.bccRecipients.map(recipientMapper),
 		replyTo: mailDetails.replyTos.map(recipientMapper),
-		isDraft: mail.state === MailState.DRAFT,
+		isDraft: isDraft(mail),
 		isRead: !mail.unread,
 		sentOn: mailDetails.sentDate.getTime(),
 		receivedOn: mail.receivedDate.getTime(),
