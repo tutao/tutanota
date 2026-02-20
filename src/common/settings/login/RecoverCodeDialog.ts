@@ -20,6 +20,8 @@ import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestD
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
+import { RecoverCodeDisplay } from "../../subscription/RecoverCodeDisplay"
+import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -38,20 +40,20 @@ export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user
 		allowOkWithReturn: true,
 		okAction: (dialog: Dialog) => {
 			dialog.close()
-			showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create", false)
+			showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create")
 		},
 		okActionTextId: isRecoverCodeAvailable ? "show_action" : "setUp_action",
 	})
 }
 
-export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
+export function showRecoverCodeDialogAfterPasswordVerification(action: Action) {
 	const recoverCodeFacade = locator.recoverCodeFacade
 	const dialog = showRequestPasswordDialog({
 		action: (pw) => {
 			return (action === "get" ? recoverCodeFacade.getRecoverCodeHex(pw) : recoverCodeFacade.createRecoveryCode(pw))
 				.then((recoverCode) => {
 					dialog.close()
-					showRecoverCodeDialog(recoverCode, showMessage)
+					showRecoverCodeDialog(recoverCode)
 					return ""
 				})
 				.catch(ofClass(NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
@@ -64,17 +66,19 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 	})
 }
 
-export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
+export function showRecoverCodeDialog(recoverCode: Hex): Promise<void> {
 	return newPromise((resolve) => {
 		Dialog.showActionDialog({
 			title: "recoveryCode_label",
 			child: {
-				view: () => {
-					return m(RecoverCodeField, {
-						showMessage,
+				view: () => [
+					m(".pt-16.pb-16", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link: InfoLink.RecoverCode, isSmall: true })])]),
+					m(RecoverCodeDisplay, {
+						column: true,
 						recoverCode,
-					})
-				},
+						mailAddress: getDefaultSenderFromUser(locator.logins.getUserController()),
+					}),
+				],
 			},
 			allowCancel: false,
 			allowOkWithReturn: true,
