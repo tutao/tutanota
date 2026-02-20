@@ -341,7 +341,7 @@ export class MailViewerViewModel {
 		return isMailMovable(this.mail, this.mailModel)
 	}
 
-	isDeletableMail() {
+	isDeletingMailAllowed() {
 		const folderType = this.getFolderInfo()?.folderType
 		return folderType != null && isPermanentDeleteAllowedMailSetKind(folderType) && isMailDeletable(this.mail)
 	}

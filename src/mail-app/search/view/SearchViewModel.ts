@@ -822,7 +822,7 @@ export class SearchViewModel {
 		},
 	)
 
-	readonly areMailsDeletable: () => boolean = memoizedWithHiddenArgument(
+	readonly isPermanentDeleteAllowed: () => boolean = memoizedWithHiddenArgument(
 		() => this.getSelectedMails(),
 		(selectedMails) => {
 			return selectedMails.every((mail) => {
