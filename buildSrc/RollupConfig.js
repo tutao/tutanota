@@ -22,6 +22,7 @@ export const dependencyMap = {
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+	"@noble/hashes/blake3.js": path.normalize("./libs/blake3.mjs"),
 }
 
 /**

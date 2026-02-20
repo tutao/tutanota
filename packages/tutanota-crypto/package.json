@@ -26,7 +26,8 @@
 	],
 	"dependencies": {
 		"@tutao/tutanota-error": "328.260219.1",
-		"@tutao/tutanota-utils": "328.260219.1"
+		"@tutao/tutanota-utils": "328.260219.1",
+		"@noble/hashes": "2.0.1"
 	},
 	"devDependencies": {
 		"typescript": "5.8.3",
