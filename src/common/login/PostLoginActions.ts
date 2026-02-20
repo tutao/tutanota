@@ -2,7 +2,7 @@ import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
-import { assertNotNull, defer, delay, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
@@ -26,14 +26,13 @@ import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { DateProvider } from "../api/common/DateProvider.js"
-import { createCustomerProperties, CustomerTypeRef, SecondFactorTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { createCustomerProperties, SecondFactorTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
@@ -120,35 +119,14 @@ export class PostLoginActions implements PostLoginAction {
 	}
 
 	// Runs the user approval check after the user has been updated or after a timeout
-	private checkApprovalAfterSync(): Promise<void> {
-		// Create a promise we will use to track the completion of the below listener
-		const listenerDeferral = defer<void>()
-		// Add an event listener to run the check after any customer entity update
-		const listener: EntityEventsListener = {
-			onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
-				// Get whether the entity update contains the customer
-				const customer = this.logins.getUserController().user.customer
-				const isCustomerUpdate: boolean = updates.some((update) => isUpdateForTypeRef(CustomerTypeRef, update) && update.instanceId === customer)
-				if (customer != null && isCustomerUpdate) {
-					listenerDeferral.resolve()
-				}
-			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
-		}
-		locator.eventController.addEntityListener(listener)
-
-		// Timeout if the entity update does not arrive or takes too long to arrive
-		const timeoutPromise = delay(2000)
-
-		// Remove the listener and start the approval check depending on whether a customer update or the timeout resolves first.
-		return Promise.race([listenerDeferral.promise, timeoutPromise]).then(() => {
-			locator.eventController.removeEntityListener(listener)
-			checkApprovalStatus(this.logins, true)
-		})
+	private async checkApprovalAfterSync(): Promise<void> {
+		await this.syncTracker.waitSync()
+		await checkApprovalStatus(this.logins, true)
 	}
 
 	private async fullLoginAsyncActions() {
-		this.checkApprovalAfterSync() // Not awaiting so this is run in parallel
+		//noinspection ES6MissingAwait Not awaiting so this is run in parallel
+		this.checkApprovalAfterSync()
 		await this.showUpgradeReminderIfNeeded()
 		await this.checkStorageLimit()
 
