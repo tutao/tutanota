@@ -2228,3 +2228,5 @@ export type TranslationKeyType =
 	| "autoDeleteTemplateGroupsConfirmation_msg"
 	| "mailboxToImport_label"
 	| "emptyString_msg"
+	| "oneConversationSelected_msg"
+	| "nbrOfConversationsSelected_msg"
