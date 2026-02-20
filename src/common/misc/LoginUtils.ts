@@ -36,6 +36,7 @@ import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { Customer } from "../api/entities/sys/TypeRefs"
 import { deviceConfig } from "./DeviceConfig"
+import { CacheMode } from "../api/worker/rest/EntityRestClient"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
@@ -50,65 +51,66 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000
  * @param defaultStatus This status is used if the actual status on the customer is "0"
  * @returns True if the user may still send emails, false otherwise.
  */
-export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPaidForAdmin: boolean, defaultStatus?: ApprovalStatus): Promise<boolean> {
+export async function checkApprovalStatus(logins: LoginController, includeInvoiceNotPaidForAdmin: boolean, defaultStatus?: ApprovalStatus): Promise<boolean> {
 	if (!logins.getUserController().isInternalUser()) {
 		// external users are not authorized to load the customer
-		return Promise.resolve(true)
+		return true
 	}
 
-	return logins
+	const customer = await logins
 		.getUserController()
-		.loadCustomer()
-		.then((customer) => {
-			const approvalStatus = getCustomerApprovalStatus(customer)
-			const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null ? defaultStatus : approvalStatus
-			if (
-				status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED ||
-				status === ApprovalStatus.DELAYED ||
-				status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
-			) {
-				return showApprovalNeededMessageDialog().then(() => false)
-			} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
-				if (getAccountAgeInMs(customer) > ONE_DAY_MS) {
-					return Dialog.message("requestApproval_msg").then(() => true)
-				} else {
-					return showApprovalNeededMessageDialog().then(() => false)
-				}
-			} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
-				if (logins.getUserController().isGlobalAdmin()) {
-					if (includeInvoiceNotPaidForAdmin) {
-						return Dialog.message("invoiceNotPaid_msg")
-							.then(() => {
-								// TODO: navigate to payment site in settings
-								//m.route.set("/settings")
-								//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-							})
-							.then(() => true)
-					} else {
-						return true
-					}
-				} else {
-					const errorMessage = lang.makeTranslation("invoiceNotPaidUser_msg", lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg"))
+		// the server doesn't push an update for the approval status change, so we have to make sure we're loading the
+		// instance from the network instead of relying on the entity updates to be applied to our cached version
+		.loadCustomer(CacheMode.WriteOnly)
 
-					return Dialog.message(errorMessage).then(() => false)
-				}
-			} else if (status === ApprovalStatus.SPAM_SENDER) {
-				Dialog.message("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
-
-				return false
-			} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
-				const message = lang.get("upgradeNeeded_msg")
-				return Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), message).then((confirmed) => {
-					if (confirmed) {
-						import("../subscription/UpgradeSubscriptionWizard").then((m) => m.showUpgradeWizard({ logins }))
-					}
-
-					return false
-				})
+	const approvalStatus = getCustomerApprovalStatus(customer)
+	const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null ? defaultStatus : approvalStatus
+	if (
+		status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED ||
+		status === ApprovalStatus.DELAYED ||
+		status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
+	) {
+		await showApprovalNeededMessageDialog()
+		return false
+	} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
+		if (getAccountAgeInMs(customer) > ONE_DAY_MS) {
+			await Dialog.message("requestApproval_msg")
+			return true
+		} else {
+			await showApprovalNeededMessageDialog()
+			return false
+		}
+	} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
+		if (logins.getUserController().isGlobalAdmin()) {
+			if (includeInvoiceNotPaidForAdmin) {
+				await Dialog.message("invoiceNotPaid_msg")
+				// TODO: navigate to payment site in settings
+				//m.route.set("/settings")
+				//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+				return true
 			} else {
 				return true
 			}
-		})
+		} else {
+			const errorMessage = lang.makeTranslation("invoiceNotPaidUser_msg", lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg"))
+			await Dialog.message(errorMessage)
+			return false
+		}
+	} else if (status === ApprovalStatus.SPAM_SENDER) {
+		// do not logout to avoid that we try to reload with mail editor open
+		await Dialog.message("loginAbuseDetected_msg")
+		return false
+	} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
+		const message = lang.get("upgradeNeeded_msg")
+		const confirmed = await Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), message)
+		if (confirmed) {
+			// fire-and-forget since the wizard only resolves after the upgrade is done.
+			import("../subscription/UpgradeSubscriptionWizard").then((module) => module.showUpgradeWizard({ logins }))
+		}
+		return false
+	} else {
+		return true
+	}
 }
 
 export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): MaybeTranslation {
