@@ -52,12 +52,29 @@ o.spec("ImportExportUtilsTest", function () {
 			eventA._id = ["listId", "elementId"]
 			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
+		o.test("calendar events A are B same if _original do not match", function () {
+			const originalA = structuredClone(eventA)
+			originalA.uid = "differentUid"
+			const originalB = structuredClone(eventB)
+			eventA._original = originalA
+			eventB._original = originalB
+			o.check(eventHasSameFields(eventA, eventB)).equals(true)
+		})
+		o.test("calendar events A are B same if _errors do not match", function () {
+			eventA._errors = { someErrorKey: "someError" }
+			eventB._errors = { someErrorKey: "someError" }
+			o.check(eventHasSameFields(eventA, eventB)).equals(true)
+		})
 		o.test("calendar events A are B same if aggregatedIds do not match", function () {
 			eventA.organizer!._id = "newId"
 			eventB.attendees.map((attendee) => {
 				attendee._id = "newId"
 			})
 			o.check(eventHasSameFields(eventA, eventB)).equals(true)
+		})
+		o.test("calendar events A are B NOT same if attendees sorting is different", function () {
+			eventB.attendees = eventB.attendees.reverse()
+			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 		o.test("calendar events A and B are NOT same if non technical field organizer name changes", function () {
 			eventA.organizer!.name = "newName"
