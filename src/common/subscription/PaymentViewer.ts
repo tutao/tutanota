@@ -86,7 +86,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		return m(
-			"#invoicing-settings.fill-absolute.scroll.plr-24",
+			"#invoicing-settings.fill-absolute.scroll.plr-24.mb-safe-inset-opt",
 			{
 				role: "group",
 			},

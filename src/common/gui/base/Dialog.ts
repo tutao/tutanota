@@ -27,6 +27,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
+import { getSafeAreaInsetBottom } from "../HtmlUtils"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -120,7 +121,6 @@ export class Dialog implements ModalComponent {
 						paddingTop: "var(--safe-area-inset-top)",
 						paddingLeft: "var(--safe-area-inset-left)",
 						paddingRight: "var(--safe-area-inset-right)",
-						paddingBottom: "var(--safe-area-inset-bottom)",
 					},
 				},
 				/** controls vertical alignment
@@ -128,14 +128,14 @@ export class Dialog implements ModalComponent {
 				 * here because otherwise the content of the dialog may make this wrapper grow bigger outside
 				 * the window on some browsers, e.g. upgrade reminder on Firefox mobile */
 				m(
-					".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (isEditLarge ? ".flex-grow" : ".transition-margin"),
+					".flex.justify-center.align-self-stretch.rel.overflow-hidden.pb-safe-inset" + (isEditLarge ? ".flex-grow" : ".transition-margin"),
 					{
 						// controls horizontal alignment
 						style: {
 							marginTop: marginPx,
 							marginLeft: sidesMargin,
 							marginRight: sidesMargin,
-							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight) : isEditLarge ? 0 : marginPx,
+							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight - getSafeAreaInsetBottom()) : isEditLarge ? 0 : marginPx,
 						},
 					},
 					[
