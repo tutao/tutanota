@@ -3,7 +3,7 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, clone, identity, incrementDate, isNotEmpty } from "@tutao/tutanota-utils"
@@ -17,10 +17,13 @@ import {
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { StrippedEntity } from "../../../../common/api/common/utils/EntityUtils"
 import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../../common/calendar/date/Time"
+import { CalendarInviteHandler } from "../../view/CalendarInvites"
+import { RecipientList } from "../../../../common/api/common/recipients/Recipient"
+import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils"
+import { CalendarAttendeeStatus, getAsEnumValue } from "../../../../common/api/common/TutanotaConstants"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */
@@ -46,6 +49,7 @@ export class CalendarEventApplyStrategies {
 		private readonly lazyRecurrenceIds: (uid?: string | null) => Promise<Array<Date>>,
 		private readonly showProgress: ShowProgressCallback = identity,
 		private readonly zone: string,
+		private readonly calendarInviteHandler: CalendarInviteHandler,
 	) {}
 
 	/**
@@ -74,17 +78,18 @@ export class CalendarEventApplyStrategies {
 		assertNotNull(existingEvent?._ownerGroup, "no ownerGroup to update existing event")
 		assertNotNull(existingEvent?._permissions, "no permissions to update existing event")
 
-		const { newEvent, calendar, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
-			existingEvent,
-			editModelsForProgenitor,
-			CalendarOperation.EditAll,
-		)
+		const {
+			newEvent,
+			calendar,
+			newAlarms,
+			sendModels: progenitorSendModels,
+		} = assembleEditResultAndAssignFromExisting(existingEvent, editModelsForProgenitor, CalendarOperation.EditAll)
 		const { groupRoot } = calendar
 		await this.showProgress(
 			(async () => {
 				const recurrenceIds: Array<Date> = await this.lazyRecurrenceIds(uid)
 
-				await this.notificationModel.send(newEvent, recurrenceIds, sendModels, existingEvent, editModelsForProgenitor.comment.content)
+				await this.notificationModel.send(newEvent, recurrenceIds, progenitorSendModels, existingEvent, editModelsForProgenitor.comment.content)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
@@ -95,23 +100,33 @@ export class CalendarEventApplyStrategies {
 				// note: if we ever allow editing guests separately, we need to update this to not use the
 				// note: progenitor edit models since the guest list might be different from the instance
 				// note: we're looking at.
+
 				for (const occurrence of index.alteredInstances) {
 					if (invalidateAlteredInstances) {
 						editModelsForProgenitor.whoModel.shouldSendUpdates = true
-						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
-						// in cases where guests were removed and the start time/repeat rule changed, we might
-						// have both a cancel model (containing the removed recipients) and an update model (the rest)
-						// we're copying all of them to cancel if the altered instances were invalidated, since the
-						// update (and invite for that matter) is irrelevant for those instances.
-						for (const recipient of sendModels.cancelModel?.allRecipients() ?? []) {
-							sendModels.updateModel?.addRecipient(RecipientField.BCC, recipient)
-						}
-						sendModels.cancelModel = sendModels.updateModel
-						sendModels.updateModel = null
-						sendModels.inviteModel = null
-						await this.notificationModel.send(occurrence, [], sendModels, undefined, editModelsForProgenitor.comment.content)
+						// const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
+
+						const recipients: RecipientList = occurrence.attendees.map((attendee) => {
+							return { address: attendee.address.address, name: attendee.address.name }
+						})
+
+						const cancelModel = await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients)
+
+						await this.notificationModel.send(
+							occurrence,
+							[],
+							{ cancelModel, updateModel: null, inviteModel: null, responseModel: null },
+							undefined,
+							editModelsForProgenitor.comment.content,
+						)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
+						/**
+						 * The code bellow is awful, and we are not proud of it.
+						 * Right now this works and that is why we are keeping it.
+						 * WE WILL HOWEVER COME BACK AND IMPROVE IT
+						 */
+
 						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
 						editModelsForProgenitor.whenModel.rescheduleEventToDate(occurrence.startTime)
 						editModelsForProgenitor.whenModel.startTime = Time.fromDate(occurrence.startTime)
@@ -121,14 +136,62 @@ export class CalendarEventApplyStrategies {
 						// altered instances never have a repeat rule
 						editModelsForProgenitor.whenModel.removeRepeatRule()
 
-						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
-							occurrence,
-							editModelsForProgenitor,
-							CalendarOperation.EditThis,
+						// Invite
+						// Whoever is new to the progenitor and was not in the AI
+						const newGuestsAtEventSeries = progenitorSendModels.inviteModel?.allRecipients() ?? []
+						const newGuestsAtAlteredInstance = newGuestsAtEventSeries.filter(
+							(guest) => !occurrence.attendees.some((attendee) => attendee.address.address === guest.address),
 						)
+						for (const newGuest of newGuestsAtAlteredInstance) {
+							editModelsForProgenitor.whoModel.addAttendee(createEncryptedMailAddress({ address: newGuest.address, name: newGuest.name }))
+						}
 
-						await this.notificationModel.send(newEvent, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
-						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
+						// Cancel
+						// Whoever got removed from the progenitor and is in the altered instance
+						const removedGuestsAtEventSeries = progenitorSendModels.cancelModel?.allRecipients() ?? []
+						const guestsToRemoveFromTheAlteredInstance = removedGuestsAtEventSeries.filter((guest) =>
+							occurrence.attendees.find((attendee) => attendee.address.address === guest.address),
+						)
+						for (const guest of guestsToRemoveFromTheAlteredInstance) {
+							editModelsForProgenitor.whoModel.removeAttendee(guest.address)
+						}
+
+						// Update
+						// Whoever was already in the altered instance and didn't suffer any changes
+						const originalAlteredInstanceGuests = occurrence.attendees
+						const guestToSendAnUpdateAtAlteredInstance = originalAlteredInstanceGuests.filter((guest) => {
+							const notAdded = !newGuestsAtAlteredInstance.some((newGuest) => newGuest.address === guest.address.address)
+							const notRemoved = !guestsToRemoveFromTheAlteredInstance.some((reomovedGuest) => reomovedGuest.address === guest.address.address)
+							return notAdded && notRemoved
+						})
+						for (const guest of guestToSendAnUpdateAtAlteredInstance) {
+							editModelsForProgenitor.whoModel.addAttendee(
+								guest.address,
+								getAsEnumValue(CalendarAttendeeStatus, guest.status) ?? CalendarAttendeeStatus.ADDED,
+							)
+						}
+
+						const {
+							newEvent: upToDateAlteredInstance,
+							newAlarms,
+							sendModels,
+						} = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
+
+						const recipients: RecipientList = guestToSendAnUpdateAtAlteredInstance.map((attendee) => {
+							sendModels.inviteModel?.removeRecipientByAddress(
+								attendee.address.address,
+								[RecipientField.TO, RecipientField.CC, RecipientField.BCC],
+								false,
+							)
+							return { address: attendee.address.address, name: attendee.address.name }
+						})
+
+						sendModels.inviteModel = sendModels.inviteModel?.allRecipients().length ? sendModels.inviteModel : null
+						sendModels.cancelModel = sendModels.cancelModel?.allRecipients().length ? sendModels.cancelModel : null
+						sendModels.updateModel = recipients.length ? await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients) : null
+
+						await this.notificationModel.send(upToDateAlteredInstance, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
+						await this.calendarModel.updateEvent(upToDateAlteredInstance, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}
 			})(),

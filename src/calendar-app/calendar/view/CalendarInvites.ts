@@ -8,7 +8,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { DataFile } from "../../../common/api/common/DataFile.js"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Recipient } from "../../../common/api/common/recipients/Recipient.js"
+import { Recipient, RecipientList } from "../../../common/api/common/recipients/Recipient.js"
 import { EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationModel } from "../gui/eventeditor-model/CalendarNotificationModel.js"
 import { getEventType } from "../gui/CalendarGuiUtils.js"
@@ -169,6 +169,20 @@ export class CalendarInviteHandler {
 		}
 
 		return ReplyResult.ReplySent
+	}
+
+	async getSendMailModelWithoutOwnRecipient(recipients: RecipientList) {
+		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const model = await this.sendMailModelFactory(mailboxDetails, mailboxProperties)
+
+		const filteredRecipients = recipients.filter((recipient) => {
+			return !mailboxProperties.mailAddressProperties.some((mailAddressProperty) => {
+				return mailAddressProperty.mailAddress === recipient.address
+			})
+		})
+
+		return await model.initWithTemplate(filteredRecipients, "", "")
 	}
 
 	private async getResponseModelForMail(

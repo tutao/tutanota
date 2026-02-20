@@ -501,6 +501,7 @@ class MailLocator implements CommonLocator {
 			calendarNotificationSender,
 			this.entityClient,
 			responseTo,
+			await this.calendarInviteHandler(),
 			getTimeZone(),
 			showProgress,
 		)
