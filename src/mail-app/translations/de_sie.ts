@@ -2231,5 +2231,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"reportNotSpam_action": "Kein Spam",
+		"oneConversationSelected_msg": "1 Conversation selected",
+		"nbrOfConversationsSelected_msg": "{1} Conversations selected",
 	}
 }

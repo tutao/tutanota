@@ -2229,3 +2229,5 @@ export type TranslationKeyType =
 	| "mailboxToImport_label"
 	| "emptyString_msg"
 	| "reportNotSpam_action"
+	| "oneConversationSelected_msg"
+	| "nbrOfConversationsSelected_msg"
