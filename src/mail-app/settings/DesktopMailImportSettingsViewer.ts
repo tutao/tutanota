@@ -81,7 +81,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const mailboxesDetails = this.mailImporter().mailboxDetails
 		if (mailboxesDetails && mailboxesDetails.length > 1) {
 			return m(DropDownSelector, {
-				label: "importFailedConcurrentImport_msg",
+				label: "mailboxToImport_label",
 				items: mailboxesDetails.map((mailboxDetail) => {
 					return { name: getMailboxName(mailLocator.logins, mailboxDetail), value: mailboxDetail }
 				}),
