@@ -7,25 +7,15 @@ import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
 import { px } from "../gui/size"
 import { theme } from "../gui/theme"
-import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
-import { LoginButton, SecondaryButton, SecondaryButtonAttrs } from "../gui/base/buttons/LoginButton"
-import { Icons } from "../gui/base/icons/Icons"
-import { copyToClipboard } from "../misc/ClipboardUtils"
-import { showSnackBar } from "../gui/base/SnackBar"
+import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { Checkbox } from "../gui/base/Checkbox"
 import { styles } from "../gui/styles"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { RecoverCodeDisplay } from "./RecoverCodeDisplay"
 
 export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private acceptedWarning: boolean = false
-
-	private saveRecoveryCodeAsPdf(recoveryCode: string, email: string) {
-		showProgressDialog(
-			"pleaseWait_msg",
-			locator.customerFacade.generatePdfRecoveryDocument(recoveryCode, email).then((pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice)),
-		)
-	}
 
 	oncreate({ attrs }: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
 		attrs.ctx.lockAllPreviousSteps()
@@ -50,61 +40,11 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 
 			m(".flex.gap-16", [
 				m(".flex.col.flex-grow.gap-32", [
-					m(".flex.col.gap-8", [
-						m(
-							`.flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24${styles.isMobileLayout() ? ".col" : ""}`,
-							{
-								style: {
-									"background-color": theme.surface_container_high,
-								},
-							},
-							[
-								m(
-									`.plr-24.pt-16.pb-16.border-radius-8.b${styles.isMobileLayout() ? ".full-width" : ".flex-grow"}`,
-									{
-										style: {
-											"background-color": theme.surface_container_highest,
-											color: theme.on_surface_variant,
-											"font-size": px(20),
-										},
-									},
-
-									m(MonospaceTextDisplay, {
-										text: newAccountData!.recoverCode,
-										chunksPerLine: 4,
-										chunkSize: 4,
-										border: false,
-									}),
-								),
-								m(".flex.col.items-start.full-width.gap-16.flex-grow", [
-									m(SecondaryButton, {
-										label: "recoveryCode_label",
-										icon: Icons.Clipboard,
-										text: lang.getTranslationText("copyRecoveryCode_action"),
-										onclick: () => {
-											copyToClipboard(newAccountData!.recoverCode)
-											void showSnackBar({
-												message: "copied_msg",
-												showingTime: 3000,
-												leadingIcon: Icons.Clipboard,
-											})
-										},
-										class: "flex-grow",
-									}),
-
-									m(SecondaryButton, {
-										label: "recoveryCode_label",
-										icon: Icons.Download,
-										text: lang.getTranslationText("downloadRecoveryCode_action"),
-										onclick: () => {
-											this.saveRecoveryCodeAsPdf(newAccountData!.recoverCode, newAccountData!.mailAddress)
-										},
-										class: "flex-grow",
-									} satisfies SecondaryButtonAttrs),
-								]),
-							],
-						),
-					]),
+					m(RecoverCodeDisplay, {
+						column: styles.isMobileLayout(),
+						recoverCode: newAccountData!.recoverCode,
+						mailAddress: newAccountData!.mailAddress,
+					}),
 					m(".flex.full-width.justify-start", [
 						m(Checkbox, {
 							label: () => lang.get("recovery_kit_page_checkbox_msg"),
@@ -129,7 +69,6 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 			]),
 		])
 	}
-
 	private async close(data: SignupViewModel) {
 		let promise = Promise.resolve()
 
