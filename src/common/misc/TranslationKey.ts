@@ -2244,3 +2244,5 @@ export type TranslationKeyType =
 	| "emailSent_msg"
 	| "undoSendMail_msg"
 	| "emptyString_msg"
+	| "oneConversationSelected_msg"
+	| "nbrOfConversationsSelected_msg"
