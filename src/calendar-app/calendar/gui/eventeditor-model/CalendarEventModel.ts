@@ -101,6 +101,7 @@ import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
+import { CalendarInviteHandler } from "../../view/CalendarInvites"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -178,6 +179,7 @@ export async function makeCalendarEventModel(
 	notificationSender: CalendarNotificationSender,
 	entityClient: EntityClient,
 	responseTo: Mail | null,
+	calendarInviteHandler: CalendarInviteHandler,
 	zone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
@@ -234,7 +236,16 @@ export async function makeCalendarEventModel(
 	const recurrenceIds = async (uid?: string) =>
 		uid == null ? [] : ((await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? [])
 	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
-	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, makeEditModels, recurrenceIds, showProgress, zone)
+	const applyStrategies = new CalendarEventApplyStrategies(
+		calendarModel,
+		logins,
+		notificationModel,
+		makeEditModels,
+		recurrenceIds,
+		showProgress,
+		zone,
+		calendarInviteHandler,
+	)
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
 	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
