@@ -1012,7 +1012,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					}
 				}
 			},
-			onRecipientRemoved: (address) => this.sendMailModel.removeRecipientByAddress(address, field),
+			onRecipientRemoved: (address) => this.sendMailModel.removeRecipientByAddress(address, [field]),
 			getRecipientClickedDropdownAttrs: (address) => {
 				const recipient = this.sendMailModel.getRecipient(field, address)!
 				return this.getRecipientClickedContextButtons(recipient, field)

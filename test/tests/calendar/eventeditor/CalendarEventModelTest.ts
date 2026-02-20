@@ -39,6 +39,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
+import { CalendarInviteHandler } from "../../../../src/calendar-app/calendar/view/CalendarInvites"
 
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
@@ -131,6 +132,7 @@ o.spec("CalendarEventModel", function () {
 			}
 			const mailboxProperties: MailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {})
 			const sendModelFac: () => SendMailModel = func<() => SendMailModel>()
+			const mockCalendarInviteHandler: CalendarInviteHandler = object()
 
 			const model = await makeCalendarEventModel(
 				CalendarOperation.EditAll,
@@ -144,6 +146,7 @@ o.spec("CalendarEventModel", function () {
 				distributor,
 				entityClient,
 				null,
+				mockCalendarInviteHandler,
 				"Europe/Berlin",
 				identity,
 				noOp,

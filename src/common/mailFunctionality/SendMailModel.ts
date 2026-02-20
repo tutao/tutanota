@@ -747,10 +747,12 @@ export class SendMailModel {
 		return findRecipientWithAddress(this.getRecipientList(type), address)
 	}
 
-	removeRecipientByAddress(address: string, type: RecipientField, notify: boolean = true) {
-		const recipient = findRecipientWithAddress(this.getRecipientList(type), address)
-		if (recipient) {
-			this.removeRecipient(recipient, type, notify)
+	removeRecipientByAddress(address: string, recipientFields: RecipientField[], notify: boolean = true) {
+		for (const recipientField of recipientFields) {
+			const recipient = findRecipientWithAddress(this.getRecipientList(recipientField), address)
+			if (recipient) {
+				this.removeRecipient(recipient, recipientField, notify)
+			}
 		}
 	}
 

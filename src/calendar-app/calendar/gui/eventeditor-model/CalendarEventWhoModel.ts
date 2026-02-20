@@ -45,8 +45,8 @@ type AttendanceModelResult = {
  * tracks external passwords, attendance status, list of attendees, recipients to invite,
  * update, cancel and the calendar the event is in.
  */
+/** we need to resolve recipients to know if we need to show an external password field. */
 export class CalendarEventWhoModel {
-	/** we need to resolve recipients to know if we need to show an external password field. */
 	private readonly resolvedRecipients: Map<string, Recipient> = new Map()
 	private pendingRecipients: number = 0
 	private _recipientsSettled: DeferredObject<void> = defer()
@@ -432,8 +432,9 @@ export class CalendarEventWhoModel {
 	 * add a mail address to the list of invitees.
 	 *
 	 * @param address the EncryptedMailAddress to send the invite to
+	 * @param guestStatus
 	 */
-	public addAttendee(address: EncryptedMailAddress) {
+	public addAttendee(address: EncryptedMailAddress, guestStatus: CalendarAttendeeStatus = CalendarAttendeeStatus.ADDED) {
 		if (!this.canModifyGuests) {
 			throw new UserError(lang.makeTranslation("cannotAddAttendees_msg", "Cannot add attendees"))
 		}
@@ -463,7 +464,7 @@ export class CalendarEventWhoModel {
 				address.address,
 				createCalendarEventAttendee({
 					address,
-					status: CalendarAttendeeStatus.ADDED,
+					status: guestStatus,
 				}),
 			)
 		}
