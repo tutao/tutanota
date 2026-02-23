@@ -1,5 +1,5 @@
 import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { MailAuthenticationStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -7,6 +7,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 
 assertMainOrNode()
 
@@ -21,7 +22,10 @@ export const SERVER_CLASSIFIERS_TO_TRUST = Object.freeze(
 )
 
 export class SpamClassificationHandler {
-	public constructor(private readonly spamClassifier: SpamClassifier) {}
+	public constructor(
+		private readonly spamClassifier: SpamClassifier,
+		private readonly contactModel: ContactModel,
+	) {}
 
 	public async predictSpamForNewMail(
 		mail: Mail,
@@ -32,7 +36,9 @@ export class SpamClassificationHandler {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
 		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
 		const serverClassifiers = mail.serverClassificationData ? extractServerClassifiers(mail.serverClassificationData) : []
-		const useClientSpamClassifier = !serverClassifiers.some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
+		const isMailFromAContact = await this.isMailFromContacts(mail, mailDetails)
+		const isMailClassifiedByTrustedServerClassifier = serverClassifiers.some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
+		const useClientSpamClassifier = !isMailClassifiedByTrustedServerClassifier && !isMailFromAContact
 
 		let targetFolder = sourceFolder
 		if (useClientSpamClassifier && modelInput) {
@@ -43,7 +49,11 @@ export class SpamClassificationHandler {
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 			}
 		} else if (!useClientSpamClassifier) {
-			console.log(`skipped spam classification for new mail because of trusted server classifiers ${serverClassifiers} for ownerGroup ${ownerGroup}`)
+			if (isMailFromAContact) {
+				console.log(`skipped spam classification for mail from contacts ${mail.sender.address}`)
+			} else if (isMailClassifiedByTrustedServerClassifier) {
+				console.log(`skipped spam classification for new mail because of trusted server classifiers ${serverClassifiers} for ownerGroup ${ownerGroup}`)
+			}
 		}
 
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -55,5 +65,12 @@ export class SpamClassificationHandler {
 			ownerEncMailSessionKeys: [],
 		}
 		return { targetFolder, processInboxDatum: processInboxDatum }
+	}
+
+	private async isMailFromContacts(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+		return (
+			((await this.contactModel.searchForContact(mail.sender.address)) != null && mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) ??
+			false
+		)
 	}
 }

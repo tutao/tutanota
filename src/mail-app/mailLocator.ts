@@ -312,7 +312,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly spamClassificationHandler = lazyMemoized(() => {
-		return new SpamClassificationHandler(this.spamClassifier)
+		return new SpamClassificationHandler(this.spamClassifier, this.contactModel)
 	})
 
 	readonly processInboxHandler = lazyMemoized(() => {
