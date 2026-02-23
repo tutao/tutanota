@@ -16,15 +16,7 @@ import {
 	RecipientsTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import {
-	EncryptionAuthStatus,
-	MailAuthenticationStatus,
-	MailPhishingStatus,
-	MailSetKind,
-	MailState,
-	ProcessingState,
-	SpamDecision,
-} from "../../../src/common/api/common/TutanotaConstants"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { assert, assertNotNull } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils"
