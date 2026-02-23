@@ -89,8 +89,6 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 		this.updateRatePerSecond(amount)
 		this.workCompleted += amount
 		this.updater(this.percentage())
-
-		console.log("workCompleted: ", this.workCompleted, "totalWork: ", this.totalWork)
 	}
 
 	public totalWorkDone(totalAmount: number) {
