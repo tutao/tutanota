@@ -59,8 +59,8 @@ export class SpamClassifierDataDealer {
 	private getMaxMailsCapForDevice() {
 		const MAX_MAILS_CAP_DESKTOP = 8000
 		const MAX_MAILS_CAP_DESKTOP_APPLE = 4000
-		const MAX_MAILS_CAP_APPLE = 1000
-		const MAX_MAILS_CAP = 2000
+		const MAX_MAILS_CAP_APPLE = 500
+		const MAX_MAILS_CAP = 1000
 
 		if (isAppleDevice()) {
 			if (isDesktop()) {
