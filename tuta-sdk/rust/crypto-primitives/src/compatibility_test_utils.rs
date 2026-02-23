@@ -210,6 +210,24 @@ pub struct AeadTest {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Blake3Test {
+	#[serde(with = "const_hex")]
+	pub key_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub context_hex: Vec<u8>,
+	pub length_in_bytes: usize,
+	#[serde(with = "const_hex")]
+	pub kdf_output_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub data_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub tag_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub digest_hex: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompatibilityTestData {
 	pub aes128_tests: Vec<AesTest>,
 	pub aes128_mac_tests: Vec<Aes128MacTest>,
@@ -224,6 +242,7 @@ pub struct CompatibilityTestData {
 	pub pqcrypt_encryption_tests: Vec<PQCryptEncryptionTest>,
 	pub compression_tests: Vec<CompressionTestData>,
 	pub aead_tests: Vec<AeadTest>,
+	pub blake3_tests: Vec<Blake3Test>,
 }
 
 struct Base64;
