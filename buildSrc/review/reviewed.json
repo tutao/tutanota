@@ -5623,5 +5623,55 @@
 		"who": "hrb, ivk",
 		"when": "2025-07-18",
 		"hash": "0bded6bcd55a369fe64b1e69e02ed9e4550f584b1373ff6085f360e24880b3a9"
+	},
+	"node_modules/app-builder-bin/index.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "5c3a00e2192c7f1edb7cdc4ff7a972c1b3f27042bda18aedfb8dcf528881de53"
+	},
+	"node_modules/builder-util-runtime/out/CancellationToken.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "054512fdee2fe810ef46d5ce7fdc2c39d3582ee8c3d463a4ee6c954bca8ec7d5"
+	},
+	"node_modules/builder-util-runtime/out/error.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "820464dee13ae1ca3c40d6a0f35bd49cabb154af63f872e9ed3488a0b95cca49"
+	},
+	"node_modules/builder-util-runtime/out/ProgressCallbackTransform.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "35503895f7e7dd4329b94dd69eb48674ac55d9d6646d0ea42eada5378d433d32"
+	},
+	"node_modules/builder-util-runtime/out/httpExecutor.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "071f87a9a3917d6cab9ff3bcd227cd672b657db523dcaebc5029bb948b7d65bf"
+	},
+	"node_modules/builder-util-runtime/out/MemoLazy.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "f92e496315210399d4f58381b25ab4ca17f42991b4a50a0353c7e0acd92836a3"
+	},
+	"node_modules/builder-util-runtime/out/publishOptions.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "48e9aa4f6e2eab4b7f2e412f26784950c4701b036a72ae451c6cef3d1eb22435"
+	},
+	"node_modules/builder-util-runtime/out/retry.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "f89a0e871d04334725d54112c101475b423ea93ae4db2878b6cc2404791b5b40"
+	},
+	"node_modules/builder-util-runtime/out/rfc2253Parser.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "a8a6966c3bc3e6cc0df40128aa591747859257563f46f56b83d76148f8e170c4"
+	},
+	"node_modules/builder-util-runtime/out/uuid.js": {
+		"who": "ivk",
+		"when": "2026-02-23",
+		"hash": "5a58134245d8e5ae587e995195d3ca33d9f9e273fc077d700e675f4c4005c029"
 	}
 }

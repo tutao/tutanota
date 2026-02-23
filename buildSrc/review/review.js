@@ -200,7 +200,7 @@ async function calculateFileHashes(entry, deps) {
 			const hash = await hashFileAt(dep)
 			hashes.set(dep, hash)
 		} catch (e) {
-			console.log("could not hash", dep)
+			console.log("could not hash", dep, e)
 		}
 	}
 	return hashes
