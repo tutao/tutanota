@@ -42,7 +42,7 @@ function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
 }
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000
+const TWO_DAYS_MS = 48 * 60 * 60 * 1000
 
 /**
  * Shows warnings if the invoices are not paid or the registration is not approved yet.
@@ -73,7 +73,7 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 		await showApprovalNeededMessageDialog()
 		return false
 	} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
-		if (getAccountAgeInMs(customer) > ONE_DAY_MS) {
+		if (getAccountAgeInMs(customer) > TWO_DAYS_MS) {
 			await Dialog.message("requestApproval_msg")
 			return true
 		} else {
