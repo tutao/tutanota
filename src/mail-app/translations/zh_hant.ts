@@ -819,7 +819,7 @@ export default {
 		"importEventExistingUid_msg": "{total}個活動中有{amount}個已存在，因此不會覆寫。將繼續處理其餘的活動…",
 		"importEvents_label": "匯入活動",
 		"importEventsError_msg": "{total}個活動中有{amount}個無法匯入。",
-		"importFailedConcurrentImport_msg": "匯入失敗，另有匯入進行中。",
+		"importFailedConcurrentImport_msg": "就此郵箱您已有匯入進行中。請先等待目前的匯入完成，才開始新的匯入。",
 		"importFromContactBook_label": "從您的裝置匯入聯絡人",
 		"importIncomplete_msg": "匯入完成，但發生一些錯誤。",
 		"importIncomplete_title": "匯入不成功",
