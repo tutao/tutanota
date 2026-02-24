@@ -13,33 +13,12 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import {
-	$Promisable,
-	assertNotNull,
-	count,
-	debounce,
-	groupBy,
-	isEmpty,
-	lazyMemoized,
-	mapWith,
-	mapWithout,
-	memoized,
-	ofClass,
-	promiseMap,
-	splitInChunks,
-} from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import {
-	getMailSetKind,
-	ImportStatus,
-	MailSetKind,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
-	OperationType,
-	SystemFolderType,
-} from "../../../common/api/common/TutanotaConstants.js"
+import { getMailSetKind, ImportStatus, MailSetKind, OperationType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -65,7 +44,6 @@ import { mailLocator } from "../../mailLocator"
 import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
-import { constraints } from "@tensorflow/tfjs-layers"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -698,6 +676,7 @@ export class MailViewModel {
 				mailIds: resolvedMails,
 				moveMode: this.getMoveMode(currentFolder),
 				undoModel,
+				contactModel: mailLocator.contactModel,
 			})
 			movedMailIds.push(...resolvedMails)
 		}
