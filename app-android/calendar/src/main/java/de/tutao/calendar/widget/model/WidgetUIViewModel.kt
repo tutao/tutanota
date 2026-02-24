@@ -18,6 +18,7 @@ import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
+import de.tutao.tutasdk.InternalException
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -113,7 +114,9 @@ class WidgetUIViewModel(
 		val calendarToEventsListMap =
 			if ((lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null) {
 				try {
+					Log.i(TAG, "trying load credentials $credentials")
 					val loggedInSdk = this.sdk.login(credentials.toSdkCredentials())
+					Log.i(TAG, "trying initial load events from calendars: $calendars")
 
 					repository.loadEvents(
 						context,
@@ -124,13 +127,19 @@ class WidgetUIViewModel(
 						loggedInSdk,
 						cryptoFacade
 					)
-				} catch (e: Exception) {
+				} catch (e: LoginException) {
 					// Fallback to cached events. We don't set an error here because we still able to display "something"
 					// to the user.
-					Log.w(
+					Log.e(
 						TAG,
-						"Missing credentials for user ${settings.userId} during widget setup. ${e.stackTraceToString()}"
+						"Missing credentials for user ${settings.userId} during widget setup}", e
 					)
+					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
+				} catch (e: InternalException) {
+					Log.e(TAG, "InternalException occurred:", e)
+					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
+				} catch (e: Exception) {
+					Log.e(TAG, "Unknown exception occurred", e)
 					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 				}
 			} else {

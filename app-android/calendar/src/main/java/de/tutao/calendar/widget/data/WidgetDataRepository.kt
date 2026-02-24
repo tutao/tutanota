@@ -16,7 +16,6 @@ import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
