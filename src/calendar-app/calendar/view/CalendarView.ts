@@ -1131,7 +1131,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
 		return m(
-			".main-view",
+			".main-view" + (isAndroidApp() && styles.isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
