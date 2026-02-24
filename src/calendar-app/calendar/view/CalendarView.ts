@@ -10,10 +10,12 @@ import { elementIdPart, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/ty
 import {
 	DEFAULT_CALENDAR_COLOR,
 	GroupType,
+	isAndroidApp,
 	isApp,
 	isDesktop,
 	Keys,
 	NewPaidPlans,
+	ProgrammingError,
 	ShareCapability,
 	TimeFormat,
 	UpgradePromptType,
@@ -48,7 +50,6 @@ import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../.
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
-import { ProgrammingError } from "@tutao/app-env"
 import { calendarNavConfiguration, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent, ScrollByListener } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
@@ -1128,7 +1129,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
 		return m(
-			".main-view",
+			".main-view" + (isAndroidApp() && styles.isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
