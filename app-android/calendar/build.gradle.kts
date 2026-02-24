@@ -18,7 +18,7 @@ android {
 		compileSdk = 36
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
-		targetSdk = 35
+		targetSdk = 36
 		versionCode = 245
 		versionName = "335.260310.0"
 
