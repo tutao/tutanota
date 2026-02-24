@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -121,6 +122,10 @@ const val BIRTHDAY_CALENDAR_BASE_ID = "clientOnly_birthdays"
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+
+	companion object {
+		private val TAG = "WidgetConfigActivity"
+	}
 
 	@OptIn(ExperimentalMaterial3Api::class)
 	val rippleConfiguration =
@@ -251,6 +256,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 								val storeJob = viewModel.storeSettings(this, appWidgetId)
 								storeJob.invokeOnCompletion {
 									lifecycleScope.launch {
+										Log.i(TAG, "Asking for widget reload after user change its settings")
 										val manager = GlanceAppWidgetManager(activityContext)
 										val widget = Agenda()
 										val glanceIds = manager.getGlanceIds(widget.javaClass)
