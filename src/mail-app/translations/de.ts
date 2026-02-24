@@ -2230,5 +2230,6 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"mailboxToImport_label": "Mailbox zum Importieren",
+		"noGroupsLeft_msg": "User is already assigned to all existing shared mailboxes. Would you like to create a new shared mailbox?"
 	}
 }

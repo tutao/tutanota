@@ -31,6 +31,7 @@ import { progressIcon } from "../gui/base/Icon.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
+import * as AddGroupDialog from "./groups/AddGroupDialog"
 
 assertMainOrNode()
 
@@ -43,12 +44,14 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private usedStorage: number | null = null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
+	private isPurchasingNewSharedMailbox: boolean
 
 	constructor(
 		public userGroupInfo: GroupInfo,
 		private isAdmin: boolean,
 	) {
 		this.userGroupInfo = userGroupInfo
+		this.isPurchasingNewSharedMailbox = false
 
 		this.mailAddressTableExpanded = false
 
@@ -313,7 +316,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						!user.memberships.some((m) => isSameId(m.groupInfo, g._id)),
 				)
 				.sort(compareGroupInfos)
-
 			if (availableGroupInfos.length > 0) {
 				const dropdownItems = availableGroupInfos.map((g) => ({
 					name: getGroupInfoDisplayName(g),
@@ -338,6 +340,10 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.addUserToGroup(user, selectedGroupInfo.group))
 						dialog.close()
 					},
+				})
+			} else {
+				showAddGroupDialog(() => {
+					this.isPurchasingNewSharedMailbox = true
 				})
 			}
 		}
@@ -411,6 +417,14 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
 				await this.updateUsedStorageAndAdminFlag()
 				m.redraw()
+			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.CREATE && this.isPurchasingNewSharedMailbox) {
+				// When getting a create event, if user has just bought a new shared mailbox, add it to the selected user
+				const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId])
+				await this.teamGroupInfos.reload()
+				this.isPurchasingNewSharedMailbox = false
+				const user = await this.user.getAsync()
+				showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.addUserToGroup(user, groupInfo.group))
+				m.redraw()
 			} else if (
 				isUpdateForTypeRef(UserTypeRef, update) &&
 				operation === OperationType.UPDATE &&
@@ -461,4 +475,18 @@ export function showUserImportDialog(customDomains: string[]) {
 			}
 		},
 	})
+}
+
+export async function showAddGroupDialog(userConfirmedAddingGroup: () => void) {
+	const isAddGroupChosen = await Dialog.choice("noGroupsLeft_msg", [
+		{ text: "close_alt", value: false },
+		{
+			text: "addGroup_label",
+			value: true,
+		},
+	])
+	if (isAddGroupChosen) {
+		AddGroupDialog.show()
+		userConfirmedAddingGroup()
+	}
 }

@@ -7,21 +7,21 @@ import {
 	GroupMemberTypeRef,
 	GroupTypeRef,
 	UserTypeRef,
-} from "../../../common/api/entities/sys/TypeRefs.js"
+} from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/tutanota-utils"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { GENERATED_MIN_ID, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
-import { BookingItemFeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { stringValidator } from "../../../common/gui/base/Dialog.js"
-import { locator } from "../../../common/api/main/CommonLocator.js"
-import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
-import { compareGroupInfos, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils.js"
-import { MailboxPropertiesTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { UserError } from "../../../common/api/main/UserError.js"
-import { BookingParams } from "../../../common/subscription/BuyDialog.js"
-import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { GENERATED_MIN_ID, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { BookingItemFeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants.js"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { stringValidator } from "../../gui/base/Dialog.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { compareGroupInfos, getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils.js"
+import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { UserError } from "../../api/main/UserError.js"
+import { BookingParams } from "../../subscription/BuyDialog.js"
+import { toFeatureType } from "../../subscription/utils/SubscriptionUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 
 export class GroupDetailsModel {
 	groupInfo: GroupInfo

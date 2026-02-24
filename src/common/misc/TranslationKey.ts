@@ -2229,3 +2229,4 @@ export type TranslationKeyType =
 	| "autoDeleteTemplateGroupsConfirmation_msg"
 	| "mailboxToImport_label"
 	| "importFailedTargetFolderDeleted_msg"
+	| "noGroupsLeft_msg"
