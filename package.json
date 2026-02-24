@@ -101,7 +101,7 @@
 		"node-gyp": "11.2.0",
 		"octokit": "5.0.3",
 		"prettier": "3.5.3",
-		"rolldown": "1.0.0-beta.16",
+		"rolldown": "1.0.0-rc.5",
 		"rollup": "4.44.2",
 		"rollup-plugin-visualizer": "6.0.3",
 		"testdouble": "3.20.2",

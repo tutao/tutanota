@@ -2231,5 +2231,11 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"reportNotSpam_action": "Not spam",
+		"oneStep_label": "One last step to privacy",
+		"approvalWaitNoticeFastTrack_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 48 hours for automatic approval or send us a message to speed things up.",
+		"waitApprovalButton_action": "Wait for automatic approval",
+		"fastTrackButtonApproval_action": "Email us to fast-track",
+		"whyThisHappens_msg": "[Learn why this happens →]",
+		"approvalMail_msg": "Approval Mail for",
 	}
 }
