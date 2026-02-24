@@ -210,6 +210,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 												targetFolderType: targetFolderType,
 												moveMode: this.mailViewModel.getMoveMode(folder),
 												undoModel: this.undoModel,
+												contactModel: mailLocator.contactModel,
 											})
 										},
 									}),
@@ -403,6 +404,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								targetFolderType: MailSetKind.INBOX,
 								moveMode: this.mailViewModel.getMoveMode(folder),
 								undoModel: this.undoModel,
+								contactModel: mailLocator.contactModel,
 							})
 						}),
 					)
@@ -487,6 +489,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										dom.getBoundingClientRect(),
 										[mailViewerModel.mail],
 										MoveMode.Mails,
+										mailLocator.contactModel,
 									)
 								}
 							: null,
@@ -987,6 +990,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailIds: resolvedMails,
 			moveMode: MoveMode.Mails, // when conversation grouping is enabled, move all conversation mails to trash.
 			undoModel: this.undoModel,
+			contactModel: mailLocator.contactModel,
 		})
 
 		this.mailViewModel.clearStickyMail()
@@ -1011,6 +1015,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			targetFolderType,
 			moveMode: this.mailViewModel.getMoveMode(folder),
 			undoModel: this.undoModel,
+			contactModel: mailLocator.contactModel,
 		})
 	}
 
@@ -1047,6 +1052,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			currentFolder,
 			resolvedMails,
 			moveMode,
+			mailLocator.contactModel,
 			optsWithClear,
 		)
 	}
@@ -1302,7 +1308,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const mailsToMove = this.getDroppedMails(dropData)
-
 		if (!isEmpty(mailsToMove)) {
 			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToMove)
 			this.mailViewModel.clearStickyMail()
@@ -1313,6 +1318,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				mailIds: actionableMails,
 				moveMode: this.mailViewModel.getMoveMode(currentFolder),
 				undoModel: this.undoModel,
+				contactModel: mailLocator.contactModel,
 			})
 		}
 	}

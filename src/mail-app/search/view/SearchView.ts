@@ -727,6 +727,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 												dom.getBoundingClientRect(),
 												[mailViewerModel.mail],
 												MoveMode.Mails,
+												mailLocator.contactModel,
 											)
 										}
 									: null,
@@ -871,7 +872,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
 		const selection = this.searchViewModel.getSelectedMails()
 		return selection.some((mail) => isMailMovable(mail, mailLocator.mailModel))
-			? (origin, opts) => showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, origin, selection, MoveMode.Mails, opts)
+			? (origin, opts) =>
+					showMoveMailsDropdown(
+						mailLocator.mailboxModel,
+						mailLocator.mailModel,
+						this.undoModel,
+						origin,
+						selection,
+						MoveMode.Mails,
+						mailLocator.contactModel,
+						undefined,
+					)
 			: null
 	}
 
@@ -1326,13 +1337,16 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, getDetachedDropdownBounds(), selectedMails, MoveMode.Mails, {
-				onSelected: () => {
-					if (selectedMails.length > 1) {
-						this.searchViewModel.listModel.selectNone()
-					}
-				},
-			})
+			showMoveMailsDropdown(
+				mailLocator.mailboxModel,
+				mailLocator.mailModel,
+				this.undoModel,
+				getDetachedDropdownBounds(),
+				selectedMails,
+				MoveMode.Mails,
+				mailLocator.contactModel,
+				undefined,
+			)
 		}
 	}
 

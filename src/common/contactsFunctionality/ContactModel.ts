@@ -73,6 +73,14 @@ export class ContactModel {
 		return this.contactListId.getAsync()
 	}
 
+	async loadAllContacts(): Promise<Array<Contact>> {
+		const listId = await this.getContactListId()
+		if (listId == null) {
+			return []
+		}
+		return this.entityClient.loadAll(ContactTypeRef, listId)
+	}
+
 	/**
 	 * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.
 	 */

@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { File as TutanotaFile, Mail, MailSet, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Contact, File as TutanotaFile, Mail, MailSet, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { BadRequestError, LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
@@ -52,6 +52,8 @@ import stream from "mithril/stream"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
+import { showContactImportDialog } from "../../contacts/ContactImporter"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -91,6 +93,7 @@ interface MoveMailsParams {
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolder: MailSet
 	moveMode: MoveMode
+	contactModel: ContactModel
 }
 
 enum MoveMailSnackbarResult {
@@ -169,12 +172,46 @@ async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => 
 	})
 }
 
+// user adds someone to contacts
+// then receives mail (skips the spam)
+// user moves to spam
+// ???? Prompt user to delete contacts |
+// user receives mail and runs classifier
+
+async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, mailModel: MailModel, mailIds: ReadonlyArray<IdTuple>) {
+	//type confirmationData = { _id: IdTuple; name: string }
+	const contacts = await contactModel.loadAllContacts()
+	const addressToContactMap = contacts.reduce((contactMap, contact) => {
+		//const contactConfirmationData: confirmationData = { _id: contact._id, name: getContactDisplayName(contact) }
+		for (const mailAddress of contact.mailAddresses) {
+			contactMap.set(mailAddress.address, contact)
+		}
+
+		return contactMap
+	}, new Map<string, Contact>())
+	const mails = await mailModel.loadAllMails(mailIds)
+	const mailsWithContacts = mails
+		.filter((m) => addressToContactMap.has(m.sender.address))
+		.map((mail) => ({ mail, contact: assertNotNull(addressToContactMap.get(mail.sender.address)) }))
+	showContactImportDialog(
+		mailsWithContacts.map((mc) => mc.contact),
+		(dialog: Dialog, selectedContacts: Contact[]) => {
+			console.log("selected... ", selectedContacts)
+		},
+		"importVCard_action",
+	)
+}
+
 /**
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, mailboxModel, undoModel }: MoveMailsParams): Promise<boolean> {
+export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, mailboxModel, undoModel, contactModel }: MoveMailsParams): Promise<boolean> {
 	try {
+		if (targetFolder.folderType === MailSetKind.SPAM) {
+			await warnUsersIfMovingContactMailToSpam(contactModel, mailModel, mailIds)
+		}
+
 		const movedMails = await mailModel.moveMails(mailIds, targetFolder, moveMode)
 		if (isEmpty(movedMails)) {
 			return false
@@ -277,6 +314,7 @@ export async function moveMailsToSystemFolder({
 	currentFolder,
 	moveMode,
 	undoModel,
+	contactModel,
 }: {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
@@ -285,6 +323,7 @@ export async function moveMailsToSystemFolder({
 	currentFolder: MailSet
 	moveMode: MoveMode
 	undoModel: UndoModel
+	contactModel: ContactModel
 }): Promise<boolean> {
 	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
 	const targetFolder = folderSystem?.getSystemFolderByType(targetFolderType)
@@ -296,6 +335,7 @@ export async function moveMailsToSystemFolder({
 		targetFolder,
 		moveMode,
 		undoModel,
+		contactModel,
 	})
 }
 
@@ -517,6 +557,7 @@ export async function showMoveMailsFromFolderDropdown(
 	currentFolder: MailSet,
 	mails: LazyMailIdResolver,
 	moveMode: MoveMode,
+	contactModel: ContactModel,
 	opts?: ShowMoveMailsDropdownOpts,
 ): Promise<void> {
 	const folders = await getMoveTargetFolderSystemsForMailsInFolder(mailModel, currentFolder)
@@ -534,6 +575,7 @@ export async function showMoveMailsFromFolderDropdown(
 					targetFolder: f.folder,
 					moveMode,
 					undoModel,
+					contactModel,
 				})
 			},
 		},
@@ -548,6 +590,7 @@ export async function showMoveMailsDropdown(
 	origin: PosRect,
 	mails: readonly Mail[],
 	moveMode: MoveMode,
+	contactModel: ContactModel,
 	opts?: ShowMoveMailsDropdownOpts,
 ): Promise<void> {
 	const firstMail = first(mails)
@@ -573,6 +616,7 @@ export async function showMoveMailsDropdown(
 					targetFolder: f.folder,
 					moveMode,
 					undoModel,
+					contactModel,
 				})
 			},
 		}

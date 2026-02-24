@@ -620,6 +620,7 @@ export class MailViewerViewModel {
 					targetFolder: spamFolder,
 					moveMode: MoveMode.Mails,
 					undoModel: this.undoModel,
+					contactModel: mailLocator.contactModel,
 				})
 			}
 		} catch (e) {
@@ -647,6 +648,7 @@ export class MailViewerViewModel {
 				targetFolderType: MailSetKind.INBOX,
 				moveMode: MoveMode.Mails,
 				undoModel: this.undoModel,
+				contactModel: mailLocator.contactModel,
 			})
 		}
 	}
@@ -678,6 +680,7 @@ export class MailViewerViewModel {
 			mailIds: [mail._id],
 			moveMode: MoveMode.Mails,
 			undoModel: this.undoModel,
+			contactModel: mailLocator.contactModel,
 		})
 
 		return true
