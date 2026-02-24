@@ -45,8 +45,8 @@ import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarD
 import { styles } from "../../../common/gui/styles"
 import { CalendarTimeBasedView, CalendarTimeBasedViewAttrs } from "./CalendarTimeBasedView"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { component_size, layout_size, px, size } from "../../../common/gui/size"
+import { isAndroidApp, isApp, isDesktop } from "../../../common/api/common/Env"
+import { component_size, layout_size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
@@ -1129,7 +1129,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
 		return m(
-			".main-view",
+			".main-view" + (isAndroidApp() && styles.isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,

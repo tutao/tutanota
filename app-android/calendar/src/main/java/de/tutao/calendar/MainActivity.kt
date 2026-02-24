@@ -37,7 +37,11 @@ import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
+import androidx.core.view.WindowInsetsCompat.Type.displayCutout
+import androidx.core.view.WindowInsetsCompat.Type.ime
+import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -65,6 +69,7 @@ import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toDp
 import de.tutao.tutashared.toPx
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -225,6 +230,34 @@ class MainActivity : FragmentActivity() {
 
 		webView.clearCache(true)
 
+		ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
+			// Retrieve insets as raw pixels
+			val safeDrawingInsets = windowInsets.getInsets(
+				//we are handling keyboard separately below
+				systemBars() or displayCutout()
+			)
+			val imeHeight = windowInsets.getInsets(ime()).bottom
+			lifecycleScope.launch {
+				mobileFacade.keyboardSizeChanged(imeHeight.toDp())
+			}
+
+			// Convert raw pixels to density independent pixels
+			val top = safeDrawingInsets.top.toDp()
+			val right = safeDrawingInsets.right.toDp()
+			val bottom = safeDrawingInsets.bottom.toDp()
+			val left = safeDrawingInsets.left.toDp()
+
+			val safeAreaJs = """
+      		document.documentElement.style.setProperty('--safe-area-inset-left', '${left}px');
+        	document.documentElement.style.setProperty('--safe-area-inset-right', '${right}px');
+        	document.documentElement.style.setProperty('--safe-area-inset-top', '${top}px');
+        	document.documentElement.style.setProperty('--safe-area-inset-bottom', '${bottom}px');
+        """.trimIndent()
+			webView.evaluateJavascript(safeAreaJs, null)
+
+			windowInsets
+		}
+
 		// Reject cookies by external content
 		CookieManager.getInstance().setAcceptCookie(false)
 		CookieManager.getInstance().removeAllCookies(null)
@@ -244,6 +277,12 @@ class MainActivity : FragmentActivity() {
 						.show()
 				}
 				return true
+			}
+
+			override fun onPageFinished(view: WebView, url: String) {
+				super.onPageFinished(webView, url)
+				// dispatch insets because insets aren't applied when the webpage first loads.
+				webView.requestApplyInsets()
 			}
 
 			override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
