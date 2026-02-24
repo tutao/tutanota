@@ -7,6 +7,7 @@ import { Keys } from "../api/common/TutanotaConstants.js"
 import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
 import { theme } from "../gui/theme"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
+import { CancelledError } from "../api/common/error/CancelledError"
 
 function renderMoreInfoLink(link: InfoLink) {
 	return [
@@ -29,9 +30,13 @@ export async function showApprovalNeededMessageDialog(): Promise<void> {
 	const fastTrackAction = async () => {
 		const { newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor")
 		try {
-			const editor = await newMailtoUrlMailEditor("approval@tutanota.com", false)
+			const editor = await newMailtoUrlMailEditor("mailto:approval@tutanota.com", false)
 			editor?.show()
+			dialog.close()
 		} catch (e) {
+			if (e instanceof CancelledError) {
+				// ignore
+			}
 			throw e
 		}
 	}
