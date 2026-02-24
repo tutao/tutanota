@@ -1,7 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { modal } from "./common/gui/base/Modal"
 import { overlay } from "./common/gui/base/Overlay"
-import { styles } from "./common/gui/styles"
 import { assertMainOrNodeBoot, isApp } from "./common/api/common/Env"
 import { Keys } from "./common/api/common/TutanotaConstants.js"
 import { isKeyPressed } from "./common/misc/KeyManager.js"
@@ -47,7 +46,7 @@ export class RootView implements ClassComponent {
 
 	view(vnode: Vnode): Children {
 		return m(
-			"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
+			"#root",
 			{
 				oncreate: (vnode) => {
 					this.dom = vnode.dom as HTMLElement
