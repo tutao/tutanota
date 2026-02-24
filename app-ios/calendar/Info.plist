@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>328.260224.0</string>
+	<string>331.260224.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -33,7 +33,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>328.260224.0</string>
+	<string>331.260224.0</string>
 	<key>INIntentsSupported</key>
 	<array>
 		<string>WidgetActionIntent</string>
