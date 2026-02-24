@@ -16,7 +16,7 @@ export class WindowFacade {
 	windowCloseConfirmation: boolean
 	private _windowCloseListeners: Set<(e: Event) => unknown>
 	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
-	// following two properties are for the iOS
+	// following two properties are for mobile
 	private _keyboardSize: number = 0
 	private _keyboardSizeListeners: KeyboardSizeListener[] = []
 	private _ignoreNextPopstate: boolean = false
@@ -274,6 +274,10 @@ export class WindowFacade {
 				}
 			})
 		}
+	}
+
+	keyboardSize(): number {
+		return this._keyboardSize
 	}
 
 	onKeyboardSizeChanged(size: number) {
