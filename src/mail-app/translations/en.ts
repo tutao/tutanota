@@ -150,6 +150,7 @@ export default {
 		"attending_label": "Attending",
 		"auditLog_title": "Audit log",
 		"auditLogInfo_msg": "The audit log contains important administrative actions.",
+		"autoDeleteTemplateGroupsConfirmation_msg": "There are still template lists active which will be deleted automatically when you downgrade. This may include shared template lists, or template lists belonging to your users. Do you want to delete them now?",
 		"automatedMessage_msg": "<br/><br/>This is an automated message.",
 		"automatic_label": "Automatic",
 		"autoUpdate_label": "Automatic Updates",

@@ -150,6 +150,7 @@ export default {
 		"attending_label": "En attente",
 		"auditLog_title": "Journal d'audit",
 		"auditLogInfo_msg": "Le journal d'audit contient des actions administratives importantes.",
+		"autoDeleteTemplateGroupsConfirmation_msg": "Il reste des listes de modèles actives qui seront supprimées automatiquement lors du passage à une offre inférieure. Cela peut inclure des listes de modèles partagées ou des listes appartenant à vos utilisateurs. Souhaitez-vous les supprimer maintenant ?",
 		"automatedMessage_msg": "<br/><br/>Ceci est un message automatique.",
 		"automatic_label": "Automatique",
 		"autoUpdate_label": "Mises à jour automatiques",

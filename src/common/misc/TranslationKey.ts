@@ -2225,4 +2225,5 @@ export type TranslationKeyType =
 	| "openLoginNewWindow_action"
 	| "searchManagedCustomers_placeholder"
 	| "partnerSettings_label"
+	| "autoDeleteTemplateGroupsConfirmation_msg"
 	| "emptyString_msg"

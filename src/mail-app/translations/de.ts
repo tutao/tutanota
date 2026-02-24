@@ -150,6 +150,7 @@ export default {
 		"attending_label": "Teilnehmen",
 		"auditLog_title": "Audit-Log",
 		"auditLogInfo_msg": "Das Audit-Log enthält Einträge von wichtigen Aktionen eines Administrators.",
+		"autoDeleteTemplateGroupsConfirmation_msg": "Es sind noch Vorlagenlisten aktiv, die automatisch gelöscht werden, wenn du das Abonnement wechselst. Dies kann auch gemeinsam genutzte Vorlagenlisten betreffen oder Vorlagenlisten, die deinen Benutzern zugeordnet sind. Willst du diese jetzt löschen?",
 		"automatedMessage_msg": "<br/><br/>Dies ist eine automatisierte Nachricht.",
 		"automatic_label": "Automatisch",
 		"autoUpdate_label": "Automatische Updates",

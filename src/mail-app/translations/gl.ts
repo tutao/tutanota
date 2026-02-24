@@ -150,6 +150,7 @@ export default {
 		"attending_label": "Participar",
 		"auditLog_title": "Rexistro de auditoría",
 		"auditLogInfo_msg": "O rexistro de auditoría contén accións importantes de administración.",
+		"autoDeleteTemplateGroupsConfirmation_msg": "Hai listas modelo activas que serán borradas ao baixar de plan. Isto inclúe algunha lista modelo compartida, ou listas modelo que pertencen ás túas usuarias. Queres eliminalas agora?",
 		"automatedMessage_msg": "<br/><br/>Esta é unha mensaxe automatica.",
 		"automatic_label": "Automático",
 		"autoUpdate_label": "Actualizacións Automáticas",

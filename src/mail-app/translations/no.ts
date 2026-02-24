@@ -249,6 +249,7 @@ export default {
 		"cannotEditFullEvent_msg": "Du kan bare endre deler av hendelsen siden den ikke er laget i din kalender.",
 		"cannotEditNotOrganizer_msg": "Du kan ikke redigere denne hendelsen ettersom du ikke er arrangøren.",
 		"cannotEditSingleInstance_msg": "Du kan bare redigere deler av denne hendelsen fordi den er en del av en hendelsesserie.",
+		"cannotMoveFolderIntoItself_msg": "Kan ikke flyttes mappen i seg selv",
 		"canNotOpenFileOnDevice_msg": "Denne filen kan ikke åpnes på denne enheten.",
 		"captchaChecking_msg": "Passer på at du ikke er en robot...",
 		"captchaDisplay_label": "Captcha",
