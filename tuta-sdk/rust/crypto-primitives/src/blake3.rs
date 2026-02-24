@@ -1,5 +1,4 @@
-use blake3::Hash;
-use std::io::Read;
+use blake3::{Hash, Hasher};
 use std::str::from_utf8_unchecked;
 
 const DEFAULT_OUTPUT_SIZE_BYTES: usize = 32;
@@ -11,7 +10,7 @@ pub struct MacError;
 
 /// Generates a BLAKE3 hash of `data`
 pub fn blake3_hash(data: &[&[u8]]) -> [u8; DEFAULT_OUTPUT_SIZE_BYTES] {
-	let mut hasher = blake3::Hasher::new();
+	let mut hasher = Hasher::new();
 	for d in data {
 		hasher.update(d);
 	}
@@ -24,7 +23,7 @@ pub fn blake3_mac(key: &[u8; 32], data: &[&[u8]]) -> [u8; DEFAULT_OUTPUT_SIZE_BY
 }
 
 fn blake3_impl(key: &[u8; 32], data: &[&[u8]]) -> Hash {
-	let mut mac = blake3::Hasher::new_keyed(key);
+	let mut mac = Hasher::new_keyed(key);
 	for d in data {
 		mac.update(d);
 	}
@@ -44,14 +43,18 @@ pub fn verify_blake3_mac(
 }
 
 /// Derive the provided number of key bytes from the IKM and the context using Blake3 in KDF mode.
-pub unsafe fn blake3_kdf(
-	input_key_material: &[&[u8]],
-	context: &[u8],
-	length_bytes: usize,
-) -> Vec<u8> {
-	// TODO unsafe?!
-	let context_str = from_utf8_unchecked(context);
-	let mut hasher = blake3::Hasher::new_derive_key(context_str);
+pub fn blake3_kdf(input_key_material: &[&[u8]], context: &[u8], length_bytes: usize) -> Vec<u8> {
+	let mut hasher: Hasher;
+	// SAFETY: The Hasher interface expects a &str and does not allow for arbitrary bytes as
+	// context, even though the BLAKE3 spec allows them. Since we use arbitrary bytes for context,
+	// we put them in a potentially invalid UTF-8 &str. This is safe to do because the first thing
+	// the implementation does is getting the &str as_bytes, i.e., the bytes are never treated as a
+	// string.
+	unsafe {
+		let context_str = from_utf8_unchecked(context);
+		hasher = Hasher::new_derive_key(context_str);
+	}
+
 	for ikm in input_key_material {
 		hasher.update(ikm);
 	}
@@ -121,9 +124,9 @@ mod tests {
 			// use every possible byte because of the unsafe utf8 str hack :-)
 			context[i] = i as u8;
 		}
-		let derived_bytes1 = unsafe { blake3_kdf(key, context.as_slice(), 64) };
+		let derived_bytes1 = blake3_kdf(key, context.as_slice(), 64);
 		assert_eq!(derived_bytes1.len(), 64);
-		let derived_bytes2 = unsafe { blake3_kdf(key, context.as_slice(), 64) };
+		let derived_bytes2 = blake3_kdf(key, context.as_slice(), 64);
 		assert_eq!(derived_bytes1, derived_bytes2);
 	}
 
@@ -131,9 +134,9 @@ mod tests {
 	pub fn kdf_output_depends_on_context() {
 		let key: &[&[u8]] = &[&random::<[u8; 32]>()];
 		let context = "my test context".as_bytes();
-		let derived_bytes1 = unsafe { blake3_kdf(key, context, 32) };
+		let derived_bytes1 = blake3_kdf(key, context, 32);
 		let another_context = "my NEW test context".as_bytes();
-		let derived_bytes2 = unsafe { blake3_kdf(key, another_context, 32) };
+		let derived_bytes2 = blake3_kdf(key, another_context, 32);
 		assert_ne!(derived_bytes1, derived_bytes2)
 	}
 
@@ -141,9 +144,9 @@ mod tests {
 	pub fn kdf_depends_on_key() {
 		let key: &[&[u8]] = &[&random::<[u8; 32]>()];
 		let context = "my test context".as_bytes();
-		let derived_bytes1 = unsafe { blake3_kdf(key, context, 32) };
+		let derived_bytes1 = blake3_kdf(key, context, 32);
 		let another_key: &[&[u8]] = &[&random::<[u8; 32]>()];
-		let derived_bytes2 = unsafe { blake3_kdf(another_key, context, 32) };
+		let derived_bytes2 = blake3_kdf(another_key, context, 32);
 		assert_ne!(derived_bytes1, derived_bytes2);
 	}
 
@@ -165,20 +168,18 @@ mod tests {
 			let expected_result = td.tag_hex.as_slice();
 			let computed_tag = blake3_mac(key, &[data]);
 			assert_eq!(computed_tag, expected_result);
-			verify_blake3_mac(key, &[data], computed_tag);
+			verify_blake3_mac(key, &[data], computed_tag).expect("should be verified successfully");
 		}
 	}
 
 	#[test]
 	fn compatibility_test_kdf() {
-		unsafe {
-			for td in get_compatibility_test_data().blake3_tests {
-				let key: &[&[u8]] = &[td.key_hex.as_slice()];
-				let context = td.context_hex.as_slice();
-				let expected_result = td.kdf_output_hex.as_slice();
-				let derived_bytes = blake3_kdf(key, context, td.length_in_bytes);
-				assert_eq!(derived_bytes, expected_result);
-			}
+		for td in get_compatibility_test_data().blake3_tests {
+			let key: &[&[u8]] = &[td.key_hex.as_slice()];
+			let context = td.context_hex.as_slice();
+			let expected_result = td.kdf_output_hex.as_slice();
+			let derived_bytes = blake3_kdf(key, context, td.length_in_bytes);
+			assert_eq!(derived_bytes, expected_result);
 		}
 	}
 }
