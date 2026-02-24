@@ -2230,5 +2230,10 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"one_step": "One last step to privacy",
+		"approvalWaitNotice_nice_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 24 hours for automatic approval or send us a message to speed things up.",
+		"waitApprovalButton_action": "Wait for automatic approval",
+		"fastTrackButtonApproval_action": "Email us to Fast-Track",
+		"whyThisHappens_msg": "[Why this happens →]"
 	}
 }
