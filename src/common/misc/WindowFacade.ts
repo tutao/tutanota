@@ -1,11 +1,10 @@
 import m, { Params } from "mithril"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
 import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -17,7 +16,7 @@ export class WindowFacade {
 	windowCloseConfirmation: boolean
 	private _windowCloseListeners: Set<(e: Event) => unknown>
 	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
-	// following two properties are for the iOS
+	// following two properties are for mobile
 	private _keyboardSize: number = 0
 	private _keyboardSizeListeners: KeyboardSizeListener[] = []
 	private _ignoreNextPopstate: boolean = false
@@ -275,6 +274,10 @@ export class WindowFacade {
 				}
 			})
 		}
+	}
+
+	keyboardSize(): number {
+		return this._keyboardSize
 	}
 
 	onKeyboardSizeChanged(size: number) {

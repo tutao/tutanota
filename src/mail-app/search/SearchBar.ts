@@ -2,15 +2,13 @@ import m, { Component, Vnode } from "mithril"
 import { layout_size, px, size } from "../../common/gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { PositionRect } from "../../common/gui/base/Overlay"
-import { displayOverlay } from "../../common/gui/base/Overlay"
+import { displayOverlay, overlayBottomMargin, PositionRect } from "../../common/gui/base/Overlay"
 import { assertIsEntity, getElementId, ListElementEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { Shortcut } from "../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { FULL_INDEXED_TIMESTAMP, Keys } from "@tutao/app-env"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys, ProgrammingError } from "@tutao/app-env"
 import { styles } from "../../common/gui/styles"
 import { client } from "../../common/misc/ClientDetector"
 import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/utils"
@@ -28,8 +26,7 @@ import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayE
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
 import { mailLocator } from "../mailLocator.js"
 import { compareMails } from "../mail/model/MailUtils"
-import { ProgrammingError } from "@tutao/app-env"
-import { isApp } from "@tutao/app-env"
+import { windowFacade } from "../../common/misc/WindowFacade"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -271,7 +268,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		let overlayRect: PositionRect
 
 		const domRect = this.domWrapper.getBoundingClientRect()
-
+		// Adjust position when the keyboard is open. Keyboard is not included in safe area insets.
+		// We need to subtract overlay margin because by default it included bottom nav and safe area which we don't
+		// need if the keyboard is open.
+		const overlayMargin = overlayBottomMargin() ?? 0
+		const bottom = windowFacade.keyboardSize() === 0 ? px(size.spacing_16) : px(windowFacade.keyboardSize() - overlayMargin + size.spacing_16)
 		if (styles.isDesktopLayout()) {
 			overlayRect = {
 				top: px(domRect.bottom + 5),
@@ -281,14 +282,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 		} else if (window.innerWidth < 500) {
 			overlayRect = {
-				bottom: px(size.spacing_16),
+				bottom,
 				left: px(16),
 				right: px(16),
 				zIndex: LayerType.LowPriorityOverlay,
 			}
 		} else {
 			overlayRect = {
-				bottom: px(size.spacing_16),
+				bottom,
 				left: px(domRect.left),
 				right: px(window.innerWidth - domRect.right),
 				zIndex: LayerType.LowPriorityOverlay,

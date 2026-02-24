@@ -13,6 +13,7 @@ import {
 	OperationType,
 	PaymentMethodType,
 	PlanType,
+	ProgrammingError,
 	UpgradePromptType,
 } from "@tutao/app-env"
 import { elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getEtId, getPaymentMethodType, sysServices, sysTypeRefs } from "@tutao/typerefs"
@@ -67,7 +68,6 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { client } from "../misc/ClientDetector.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 
 assertMainOrNode()
@@ -117,7 +117,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
-			return m("#subscription-settings.fill-absolute.scroll.plr-24", [
+			return m("#subscription-settings.fill-absolute.scroll.plr-24.pb-48", [
 				m(".h4.mt-32", lang.get("currentlyBooked_label")),
 				m(LegacyTextField, {
 					label: "subscription_label",
