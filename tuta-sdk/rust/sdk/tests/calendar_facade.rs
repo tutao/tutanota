@@ -94,7 +94,8 @@ async fn load_calendar_events() {
 			DateTime::from_millis(start_date * 1000),
 			DateTime::from_millis(end_date * 1000),
 		)
-		.await;
+		.await
+		.unwrap();
 
 	assert_eq!(events.short_events.len(), 1);
 	assert_eq!(
@@ -129,7 +130,8 @@ async fn load_birthday_events() {
 			DateTime::from_millis(start_date * 1000),
 			DateTime::from_millis(end_date * 1000),
 		)
-		.await;
+		.await
+		.unwrap();
 
 	assert_eq!(events.short_events.len(), 0);
 	assert_eq!(events.long_events.len(), 0);
