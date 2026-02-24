@@ -150,6 +150,7 @@ export default {
 		"attending_label": "Participando",
 		"auditLog_title": "Auditoria",
 		"auditLogInfo_msg": "O histórico de auditoria contém ações administrativas importantes.",
+		"autoDeleteTemplateGroupsConfirmation_msg": "Ainda há listas de modelos que serão deletadas automaticamente quando você fizer downgrade. Isso pode incluir lista de modelos compartilhados ou pertencentes aos seus usuários. Você deseja deletá-las agora?",
 		"automatedMessage_msg": "<br/><br/>Esta é uma mensagem automática.",
 		"automatic_label": "Automático",
 		"autoUpdate_label": "Atualizações automáticas",
