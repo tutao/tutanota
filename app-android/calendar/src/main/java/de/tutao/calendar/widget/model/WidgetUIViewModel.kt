@@ -61,6 +61,7 @@ class WidgetUIViewModel(
 	}
 
 	suspend fun loadUIState(context: Context, now: LocalDateTime): WidgetUIData? {
+		Log.i(TAG, "Init loadUIState")
 		val allDayEvents: HashMap<Long, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<Long, List<UIEvent>> = HashMap()
 
@@ -78,7 +79,13 @@ class WidgetUIViewModel(
 
 		try {
 			settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
+			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
+			settings.calendars.entries.forEach { (calendarId, calendar) ->
+				Log.d(TAG, "$calendarId - ${calendar.name}")
+			}
 			lastSync = repository.loadLastSync(context, widgetId)
+			Log.i(TAG, "Widget last sync at $lastSync")
+
 			sdk?.let { sdk -> loadCalendars(context, sdk, settings) }
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
@@ -124,13 +131,16 @@ class WidgetUIViewModel(
 						loggedInSdk,
 						cryptoFacade
 					)
-				} catch (e: Exception) {
+				} catch (e: LoginException) {
 					// Fallback to cached events. We don't set an error here because we still able to display "something"
 					// to the user.
-					Log.w(
+					Log.e(
 						TAG,
-						"Missing credentials for user ${settings.userId} during widget setup. ${e.stackTraceToString()}"
+						"Missing credentials for user ${settings.userId} when trying to load widget content}", e
 					)
+					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
+				} catch (e: Exception) {
+					Log.e(TAG, "Unknown exception occurred", e)
 					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 				}
 			} else {
@@ -142,6 +152,8 @@ class WidgetUIViewModel(
 		allDayEvents[startOfToday] = listOf()
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
+			Log.d(TAG, "Creating UIEvents from calendar $calendarId")
+
 			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
 				val zoneId = ZoneId.systemDefault()
 				val startAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
@@ -190,6 +202,14 @@ class WidgetUIViewModel(
 				}
 			}
 
+			Log.d(TAG, "EventsList after processing short and long events for calendar $calendarId:")
+			normalEvents.entries.forEach { (day, events) ->
+				Log.d(
+					TAG,
+					"Day: $day has ${events.size} normal events and ${allDayEvents[day]?.size ?: 0} All-day events"
+				)
+			}
+
 			eventList.birthdayEvents.map {
 				val zoneId = ZoneId.systemDefault()
 				val startAsInstant = Instant.ofEpochMilli(it.eventDao.startTime.toLong())
@@ -226,6 +246,7 @@ class WidgetUIViewModel(
 			}
 		}
 
+		Log.d(TAG, "Sorting events by start time")
 		normalEvents.forEach() { (startOfDay, events) ->
 			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
 				when {
@@ -238,6 +259,7 @@ class WidgetUIViewModel(
 			normalEvents[startOfDay] = sorted
 		}
 
+		Log.d(TAG, "Assigning sorted events to uiState")
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)
 
 		return uiState.value
@@ -245,12 +267,14 @@ class WidgetUIViewModel(
 
 	private suspend fun loadCalendars(context: Context, sdk: Sdk, settings: SettingsDao) {
 		try {
+			Log.i(TAG, "Fetching new calendar data from server")
 			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
+			Log.i(TAG, "Successfully fetched ${loadedCalendars.size} calendars")
 			for (key in loadedCalendars.keys) {
 				settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
 			}
 			repository.storeSettings(context, widgetId, settings)
-			Log.d(TAG, "Calendars loaded successfully!")
+			Log.i(TAG, "Cached calendar data updated successfully!")
 		} catch (e: LoginException.ApiCall) {
 			// Failed to login into SDK, probably because of connection issues
 			Log.e(TAG, "Calendar colors could not be loaded due credential issues. Falling back to cached values.", e)
