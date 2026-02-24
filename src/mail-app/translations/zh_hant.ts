@@ -150,6 +150,7 @@ export default {
 		"attending_label": "會出席",
 		"auditLog_title": "審計日誌",
 		"auditLogInfo_msg": "審計日誌包含重要的管理員操作。",
+		"autoDeleteTemplateGroupsConfirmation_msg": "當您降級時，仍然使用中的範本清單將自動予以刪除。這可能包括共用的範本清單，或者屬於您的用戶的範本清單。您想現在刪除它們嗎？",
 		"automatedMessage_msg": "<br/><br/>這是自動化訊息。",
 		"automatic_label": "自動",
 		"autoUpdate_label": "自動更新",
