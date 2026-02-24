@@ -164,6 +164,7 @@ import { DriveTransferController } from "../drive-app/drive/view/DriveTransferCo
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
+import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
 
 assertMainOrNode()
 
@@ -1345,9 +1346,9 @@ class MailLocator implements CommonLocator {
 		return model
 	})
 
-	async showMoveItemDialog(item: FolderItem) {
+	async showMoveItemDialog(item: FolderItem, moveItems: MoveItems) {
 		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
-		showMoveDialog(this.entityClient, this.driveFacade, item)
+		showMoveDialog(this.entityClient, this.driveFacade, item, moveItems)
 	}
 }
 

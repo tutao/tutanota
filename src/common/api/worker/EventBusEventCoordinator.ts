@@ -1,5 +1,12 @@
 import { EventBusListener } from "./EventBusClient.js"
-import { GroupKeyUpdateTypeRef, UserGroupKeyDistributionTypeRef, UserGroupRootTypeRef, UserTypeRef, WebsocketCounterData } from "../entities/sys/TypeRefs.js"
+import {
+	GroupKeyUpdateTypeRef,
+	OperationStatusUpdate,
+	UserGroupKeyDistributionTypeRef,
+	UserGroupRootTypeRef,
+	UserTypeRef,
+	WebsocketCounterData,
+} from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { isAdminClient, isTest } from "../common/Env.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
@@ -123,6 +130,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
 			await this.rolloutFacade.processRollout(RolloutType.OtherGroupKeyRotation)
 		}
+	}
+
+	onOperationStatusUpdate(update: OperationStatusUpdate) {
+		this.eventController.onOperationStatusUpdate(update)
 	}
 
 	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {

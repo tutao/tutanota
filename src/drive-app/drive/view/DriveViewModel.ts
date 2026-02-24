@@ -3,27 +3,25 @@ import { BreadcrumbEntry, DriveFacade, DriveRootFolders } from "../../../common/
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
-import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { assertNotNull, debounceStart, filterInt, lazyMemoized, memoizedWithHiddenArgument, ofClass, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
-import { DriveTransferState, DriveTransferController } from "./DriveTransferController"
+import { handleRestError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
+import { assertNotNull, debounceStart, filterInt, lazyMemoized, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { ArchiveDataType, Const, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { Const, OperationStatus, OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
+import stream from "mithril/stream"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
-import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { ChunkedDownloadInfo, ChunkedUploadInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { FileController } from "../../../common/file/FileController"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
@@ -111,12 +109,32 @@ function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	})
 }
 
+export enum DriveOperationType {
+	Copy,
+	Delete,
+	Move,
+	Trash,
+	Restore,
+}
+
 export interface DriveStorage {
 	usedBytes: number
 	totalBytes: number
 }
 
 type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
+
+interface RunningOperation {
+	type: DriveOperationType
+	count: number
+}
+
+interface OperationUpdate {
+	type: DriveOperationType
+	count: number
+	status: OperationStatus
+	error: Error | null
+}
 
 export class DriveViewModel {
 	public readonly userMailAddress: string
@@ -137,6 +155,9 @@ export class DriveViewModel {
 	private listModel: ListModel<FolderItem, Id> = emptyListModel()
 	private listStateSubscription: Stream<unknown> | null = null
 	private storage: DriveStorage | null = null
+	private readonly runningOperations: Map<Id, RunningOperation> = new Map()
+
+	public readonly operationUpdates: Stream<OperationUpdate> = stream()
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -166,6 +187,28 @@ export class DriveViewModel {
 		this.uploadProgressListener.addDownloadListener((info: ChunkedDownloadInfo) => {
 			this.transferController.onChunkDownloaded(info.fileId, info.downloadedBytes)
 			this.updateUi()
+		})
+
+		this.eventController.addOperationStatusUpdateListener(async (update) => {
+			const op = this.runningOperations.get(update.operationId)
+			if (op != null) {
+				let error: Error | null
+				if (update.status === OperationStatus.FAILURE) {
+					error = handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
+				} else {
+					error = null
+				}
+
+				this.operationUpdates({
+					type: op.type,
+					count: op.count,
+					status: update.status as OperationStatus,
+					error,
+				})
+				if (update.status === OperationStatus.SUCCESS || update.status === OperationStatus.FAILURE) {
+					this.runningOperations.delete(update.operationId)
+				}
+			}
 		})
 
 		this.refreshStorage()
@@ -319,7 +362,8 @@ export class DriveViewModel {
 
 		const renamedFiles = await deduplicateItemNames(await loadFolderContents(this.driveFacade, destination._id), files, folders)
 
-		await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
+		const operationId = await this.driveFacade.copyItems(files, folders, destination, renamedFiles)
+		this.runningOperations.set(operationId, { type: DriveOperationType.Copy, count: items.length })
 	}
 
 	/**
@@ -328,9 +372,22 @@ export class DriveViewModel {
 	async moveItems(items: readonly FolderItemId[], destination: DriveFolder) {
 		try {
 			await moveItems(this.entityClient, this.driveFacade, items, destination)
+			this.operationUpdates({
+				type: DriveOperationType.Move,
+				count: items.length,
+				status: OperationStatus.SUCCESS,
+				error: null,
+			})
 		} catch (e) {
 			if (e instanceof MoveCycleError) {
 				throw new UserError("cannotMoveFolderIntoItself_msg")
+			} else {
+				this.operationUpdates({
+					type: DriveOperationType.Move,
+					count: items.length,
+					status: OperationStatus.FAILURE,
+					error: e,
+				})
 			}
 		}
 		this.selectNone()
@@ -346,18 +403,49 @@ export class DriveViewModel {
 
 	async moveToTrash(items: readonly FolderItem[]) {
 		const { fileIds, folderIds } = this.itemsIntoIds(items)
-		await this.driveFacade.moveToTrash(fileIds, folderIds)
+		try {
+			await this.driveFacade.moveToTrash(fileIds, folderIds)
+			this.operationUpdates({
+				type: DriveOperationType.Trash,
+				count: items.length,
+				status: OperationStatus.SUCCESS,
+				error: null,
+			})
+		} catch (e) {
+			this.operationUpdates({
+				type: DriveOperationType.Trash,
+				count: items.length,
+				status: OperationStatus.FAILURE,
+				error: e,
+			})
+		}
 		this.selectNone()
 	}
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
 		const { fileIds, folderIds } = this.itemsIntoIds(items)
-		await this.driveFacade.restoreFromTrash(fileIds, folderIds)
+		try {
+			await this.driveFacade.restoreFromTrash(fileIds, folderIds)
+			this.operationUpdates({
+				type: DriveOperationType.Restore,
+				count: items.length,
+				status: OperationStatus.SUCCESS,
+				error: null,
+			})
+		} catch (e) {
+			this.operationUpdates({
+				type: DriveOperationType.Restore,
+				count: items.length,
+				status: OperationStatus.FAILURE,
+				error: e,
+			})
+		}
 		this.selectNone()
 	}
 
 	async deleteFromTrash(items: readonly FolderItem[]) {
-		await this.driveFacade.deleteFromTrash(items.map(folderItemEntity))
+		const operationId = await this.driveFacade.deleteFromTrash(items.map(folderItemEntity))
+		this.runningOperations.set(operationId, { type: DriveOperationType.Delete, count: items.length })
 		this.selectNone()
 	}
 

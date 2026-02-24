@@ -2220,3 +2220,8 @@ export type TranslationKeyType =
 	| "dataOutOfSync_msg"
 	| "importContactDuplicates_msg"
 	| "emptyString_msg"
+	| "copyItemsSuccess_msg"
+	| "trashItemsSuccess_msg"
+	| "moveItemsSuccess_msg"
+	| "restoreItemsSuccess_msg"
+	| "deleteItemsSuccess_msg"

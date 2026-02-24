@@ -1,4 +1,5 @@
 import { DriveCopyServicePostInTypeRef } from "./TypeRefs.js"
+import { DriveCopyServicePostOutTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePostInTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePostOutTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePutInTypeRef } from "./TypeRefs.js"
@@ -7,13 +8,14 @@ import { DriveItemPostInTypeRef } from "./TypeRefs.js"
 import { DriveItemPostOutTypeRef } from "./TypeRefs.js"
 import { DriveItemPutInTypeRef } from "./TypeRefs.js"
 import { DriveItemDeleteInTypeRef } from "./TypeRefs.js"
+import { DriveItemServiceDeleteOutTypeRef } from "./TypeRefs.js"
 import { DrivePostInTypeRef } from "./TypeRefs.js"
 
 export const DriveCopyService = Object.freeze({
 	app: "drive",
 	name: "DriveCopyService",
 	get: null,
-	post: { data: DriveCopyServicePostInTypeRef, return: null },
+	post: { data: DriveCopyServicePostInTypeRef, return: DriveCopyServicePostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -33,7 +35,7 @@ export const DriveItemService = Object.freeze({
 	get: null,
 	post: { data: DriveItemPostInTypeRef, return: DriveItemPostOutTypeRef },
 	put: { data: DriveItemPutInTypeRef, return: null },
-	delete: { data: DriveItemDeleteInTypeRef, return: null },
+	delete: { data: DriveItemDeleteInTypeRef, return: DriveItemServiceDeleteOutTypeRef },
 } as const)
 
 export const DriveService = Object.freeze({

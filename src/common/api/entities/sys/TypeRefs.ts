@@ -4139,3 +4139,21 @@ export type AbuseInfo = {
 	criterion: string;
 	value: string;
 }
+export const OperationStatusUpdateTypeRef: TypeRef<OperationStatusUpdate> = new TypeRef("sys", 2672)
+
+export function createOperationStatusUpdate(values: StrippedEntity<OperationStatusUpdate>): OperationStatusUpdate {
+    return Object.assign(create(typeModels[OperationStatusUpdateTypeRef.typeId], OperationStatusUpdateTypeRef), values)
+}
+
+export type OperationStatusUpdate = {
+	_type: TypeRef<OperationStatusUpdate>;
+	_original?: OperationStatusUpdate
+
+	_format: NumberString;
+	applicationVersionSum: NumberString;
+	applicationTypesHash: string;
+	operationId: Id;
+	status: NumberString;
+	statusCode: null | NumberString;
+	reason: null | string;
+}

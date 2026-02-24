@@ -2221,6 +2221,11 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"copyItemsSuccess_msg":"Copied {count} item(s)",
+		"trashItemsSuccess_msg":"Moved {count} item(s) to Trash",
+		"moveItemsSuccess_msg":"Moved {count} item(s)",
+		"restoreItemsSuccess_msg":"Restored {count} items(s)",
+		"deleteItemsSuccess_msg" :"Deleted {count} item(s)"
 	}
 }

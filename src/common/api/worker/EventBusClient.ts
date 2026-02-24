@@ -13,6 +13,8 @@ import {
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
+	OperationStatusUpdate,
+	OperationStatusUpdateTypeRef,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityDataTypeRef,
@@ -84,6 +86,7 @@ const enum MessageType {
 	UnreadCounterUpdate = "unreadCounterUpdate",
 	PhishingMarkers = "phishingMarkers",
 	LeaderStatus = "leaderStatus",
+	OperationStatusUpdate = "operationStatusUpdate",
 }
 
 export const enum ConnectMode {
@@ -104,6 +107,8 @@ export interface EventBusListener {
 	onError(tutanotaError: Error): void
 
 	onSyncDone(): unknown
+
+	onOperationStatusUpdate(update: OperationStatusUpdate): unknown
 }
 
 export class EventBusClient {
@@ -332,6 +337,11 @@ export class EventBusClient {
 
 				this.userFacade.setLeaderStatus(data)
 				await this.connectivityListener.onLeaderStatusMessageReceived(data)
+				break
+			}
+			case MessageType.OperationStatusUpdate: {
+				const data = await this.decodeEntityEventValue(OperationStatusUpdateTypeRef, JSON.parse(value))
+				this.listener.onOperationStatusUpdate(data)
 				break
 			}
 			default:

@@ -120,14 +120,15 @@ export class DriveFacade {
 		}
 	}
 
-	public async deleteFromTrash(items: readonly (DriveFile | DriveFolder)[]) {
+	public async deleteFromTrash(items: readonly (DriveFile | DriveFolder)[]): Promise<Id> {
 		const [files, folders] = partition(items, isDriveFile)
 
 		const deleteData = createDriveItemDeleteIn({
 			files: files.map((f) => f._id),
 			folders: folders.map((f) => f._id),
 		})
-		await this.serviceExecutor.delete(DriveItemService, deleteData)
+		const result = await this.serviceExecutor.delete(DriveItemService, deleteData)
+		return result.operationId
 	}
 
 	public async loadRootFolders(): Promise<DriveRootFolders> {
@@ -254,12 +255,7 @@ export class DriveFacade {
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
-	public async copyItems(
-		files: readonly DriveFile[],
-		folders: readonly DriveFolder[],
-		destination: DriveFolder,
-		renamedFiles: Map<Id, string>,
-	): Promise<void> {
+	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder, renamedFiles: Map<Id, string>): Promise<Id> {
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 
@@ -285,7 +281,8 @@ export class DriveFacade {
 			items: [...fileItems, ...folderItems],
 			destination: destination._id,
 		})
-		await this.serviceExecutor.post(DriveCopyService, copyData)
+		const result = await this.serviceExecutor.post(DriveCopyService, copyData)
+		return result.operationId
 	}
 
 	/**

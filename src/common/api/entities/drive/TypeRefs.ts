@@ -314,3 +314,29 @@ export type DriveCopyServicePostIn = {
 	items: DriveRenameData[];
 	destination: IdTuple;
 }
+export const DriveCopyServicePostOutTypeRef: TypeRef<DriveCopyServicePostOut> = new TypeRef("drive", 115)
+
+export function createDriveCopyServicePostOut(values: StrippedEntity<DriveCopyServicePostOut>): DriveCopyServicePostOut {
+    return Object.assign(create(typeModels[DriveCopyServicePostOutTypeRef.typeId], DriveCopyServicePostOutTypeRef), values)
+}
+
+export type DriveCopyServicePostOut = {
+	_type: TypeRef<DriveCopyServicePostOut>;
+	_original?: DriveCopyServicePostOut
+
+	_format: NumberString;
+	operationId: Id;
+}
+export const DriveItemServiceDeleteOutTypeRef: TypeRef<DriveItemServiceDeleteOut> = new TypeRef("drive", 118)
+
+export function createDriveItemServiceDeleteOut(values: StrippedEntity<DriveItemServiceDeleteOut>): DriveItemServiceDeleteOut {
+    return Object.assign(create(typeModels[DriveItemServiceDeleteOutTypeRef.typeId], DriveItemServiceDeleteOutTypeRef), values)
+}
+
+export type DriveItemServiceDeleteOut = {
+	_type: TypeRef<DriveItemServiceDeleteOut>;
+	_original?: DriveItemServiceDeleteOut
+
+	_format: NumberString;
+	operationId: Id;
+}

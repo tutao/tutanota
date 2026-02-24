@@ -1550,3 +1550,9 @@ export enum ProcessingState {
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
 
 export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"
+
+export const enum OperationStatus {
+	SUCCESS = "0",
+	PROGRESS = "1",
+	FAILURE = "2",
+}

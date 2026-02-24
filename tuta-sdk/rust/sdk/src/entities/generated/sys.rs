@@ -6229,3 +6229,31 @@ impl Entity for AbuseInfo {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct OperationStatusUpdate {
+	#[serde(rename = "2673")]
+	pub _format: i64,
+	#[serde(rename = "2674")]
+	pub applicationVersionSum: i64,
+	#[serde(rename = "2675")]
+	pub applicationTypesHash: String,
+	#[serde(rename = "2676")]
+	pub operationId: GeneratedId,
+	#[serde(rename = "2677")]
+	pub status: i64,
+	#[serde(rename = "2678")]
+	pub statusCode: Option<i64>,
+	#[serde(rename = "2679")]
+	pub reason: Option<String>,
+}
+
+impl Entity for OperationStatusUpdate {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2672),
+		}
+	}
+}
