@@ -2248,3 +2248,5 @@ export type TranslationKeyType =
 	| "contactDeletionMoveToSpam_title"
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
 	| "emptyString_msg"
+	| "one_step"
+	| "approvalWaitNotice_nice_msg"
