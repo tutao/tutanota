@@ -65,6 +65,7 @@ import { mailLocator } from "../../mailLocator"
 import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
+import { constraints } from "@tensorflow/tfjs-layers"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -682,14 +683,14 @@ export class MailViewModel {
 			targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
 		}
 
-		const movedMailIds = []
+		let movedMailIds: IdTuple[] = []
 		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
 			let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
 			if (isSameId(currentFolder._id, targetFolder._id)) {
 				continue
 			}
 
-			const resolvedMails = await this.getResolvedMails(mails)
+			const resolvedMails: readonly IdTuple[] = await this.getResolvedMails(mails)
 			await moveMails({
 				targetFolder,
 				mailboxModel: locator.mailboxModel,
@@ -698,7 +699,7 @@ export class MailViewModel {
 				moveMode: this.getMoveMode(currentFolder),
 				undoModel,
 			})
-			movedMailIds.push(resolvedMails)
+			movedMailIds.push(...resolvedMails)
 		}
 
 		return movedMailIds.flat()
