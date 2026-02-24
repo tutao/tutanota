@@ -4,7 +4,7 @@ import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchVie
 import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "@tutao/utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
@@ -30,7 +30,7 @@ import {
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { FeatureType, Keys, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType, isAndroidApp, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../../common/gui/base/ListUtils.js"
@@ -39,7 +39,6 @@ import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialo
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
-import { assertMainOrNode } from "@tutao/app-env"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
@@ -54,9 +53,7 @@ import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditD
 import { FilterChip } from "../../../../common/gui/base/FilterChip"
 import { formatDate } from "../../../../common/misc/Formatter"
 import { createDropdown } from "../../../../common/gui/base/Dropdown"
-import { ProgrammingError } from "@tutao/app-env"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
-import { isSameId } from "@tutao/typerefs"
 import { CalendarInfo } from "../../model/CalendarModel"
 
 assertMainOrNode()
@@ -457,7 +454,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
-			"#search.main-view",
+			"#search.main-view" + (isAndroidApp() ? ".bottom-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					searchBar: () =>
