@@ -1,5 +1,5 @@
 import { Cat, log, timer } from "../misc/Log"
-import { layout_size, size } from "./size"
+import { layout_size } from "./size"
 import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
@@ -94,6 +94,14 @@ class Styles {
 
 	isUsingBottomNavigation(): boolean {
 		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
+	}
+
+	isAppUsingBottomNav(): boolean {
+		return client.isMailApp()
+	}
+
+	isAppNotUsingBottomNav(): boolean {
+		return client.isCalendarApp()
 	}
 
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => Record<string, Partial<CSSStyleDeclaration> | object>) {

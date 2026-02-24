@@ -158,7 +158,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 					})
 				}),
 			),
-			m(".flex-column.flex-center.center-h.width-min-content", [
+			m(".flex-column.flex-center.center-h.width-min-content.pb-safe-inset", [
 				m(GiftCardMessageEditorField, {
 					message: model.message,
 					onMessageChanged: (message) => (model.message = message),

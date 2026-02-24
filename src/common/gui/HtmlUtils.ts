@@ -1,19 +1,19 @@
-import { assertNotNull, downcast } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 
 export function applySafeAreaInsetMarginLR(element: HTMLElement) {
-	element.style.marginRight = "env(safe-area-inset-right)"
-	element.style.marginLeft = "env(safe-area-inset-left)"
+	element.style.marginRight = "var(--safe-area-inset-right)"
+	element.style.marginLeft = "var(--safe-area-inset-left)"
 }
 
 export function getSafeAreaInsetLeft(): string {
-	return window.orientation === 90 ? "env(safe-area-inset-left)" : ""
+	return window.orientation === 90 ? "var(--safe-area-inset-left)" : ""
 }
 
 export function getSafeAreaInsetRight(): string {
-	return window.orientation === -90 ? "env(safe-area-inset-right)" : ""
+	return window.orientation === -90 ? "var(--safe-area-inset-right)" : ""
 }
 
 /**
