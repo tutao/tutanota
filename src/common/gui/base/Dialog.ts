@@ -23,7 +23,7 @@ import { styles } from "../styles"
 import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, MaybeLazy, newPromise, noOp, Thunk } from "@tutao/tutanota-utils"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode, isAndroidApp } from "../../api/common/Env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
@@ -113,16 +113,23 @@ export class Dialog implements ModalComponent {
 		]
 
 		this.view = (): Children => {
-			const marginPx = px(size.spacing_12)
 			const isEditLarge = dialogType === DialogType.EditLarge
-			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
+			const isKeyboardOpen = Dialog.keyboardHeight > 0
+			const margin = size.spacing_12
+			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
+			const bottomMarginForType = isEditLarge ? 0 : margin
+			// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
+			const marginBottom = isAndroidApp()
+				? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
+				: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
+
 			return m(
 				this.getDialogWrapperClasses(dialogType),
 				{
 					style: {
-						paddingTop: "env(safe-area-inset-top)",
-						paddingLeft: "env(safe-area-inset-left)",
-						paddingRight: "env(safe-area-inset-right)",
+						paddingTop: "var(--safe-area-inset-top)",
+						paddingLeft: "var(--safe-area-inset-left)",
+						paddingRight: "var(--safe-area-inset-right)",
 					},
 				},
 				/** controls vertical alignment
@@ -134,10 +141,10 @@ export class Dialog implements ModalComponent {
 					{
 						// controls horizontal alignment
 						style: {
-							marginTop: marginPx,
+							marginTop: px(margin),
 							marginLeft: sidesMargin,
 							marginRight: sidesMargin,
-							"margin-bottom": Dialog.keyboardHeight > 0 ? px(Dialog.keyboardHeight) : isEditLarge ? 0 : marginPx,
+							marginBottom,
 						},
 					},
 					[
