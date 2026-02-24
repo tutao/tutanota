@@ -18,7 +18,10 @@ import java.time.LocalDateTime
 fun EventList(userId: String?, normalEvents: List<UIEvent>, currentDay: LocalDateTime) {
 
 	// we need to chunk events because columns inside scrollable elements doesn't support more than five children
-	val eventGroups = normalEvents.chunked(5)
+	// lazy lists also doesn't support more than 10 elements
+	val chunked = normalEvents.chunked(5)
+	val eventGroups = chunked.subList(0, if (chunked.size > 10) 10 else chunked.size)
+
 	val firstEventOfTheDay = normalEvents.first()
 
 	eventGroups.forEachIndexed { index, events ->
