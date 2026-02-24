@@ -2227,3 +2227,8 @@ export type TranslationKeyType =
 	| "partnerSettings_label"
 	| "emptyString_msg"
 	| "autoDeleteTemplateGroupsConfirmation_msg"
+	| "one_step"
+	| "approvalWaitNotice_nice_msg"
+	| "fastTrackButtonApproval_action"
+	| "waitApprovalButton_action"
+	| "whyThisHappens_msg"

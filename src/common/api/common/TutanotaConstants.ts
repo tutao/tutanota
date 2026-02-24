@@ -14,8 +14,6 @@ import {
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { MailModel } from "../../../mail-app/mail/model/MailModel"
-import { FolderInfo } from "../../../mail-app/mail/model/MailUtils"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
