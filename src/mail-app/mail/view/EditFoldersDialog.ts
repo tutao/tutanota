@@ -7,7 +7,7 @@ import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, o
 import { getElevatedBackground, theme } from "../../../common/gui/theme.js"
 import { INPUT } from "../../../common/gui/base/Dialog.js"
 import { ease } from "../../../common/gui/animation/Easing.js"
-import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
+import { component_size, layout_size, px } from "../../../common/gui/size.js"
 import { styles } from "../../../common/gui/styles.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 
@@ -60,7 +60,7 @@ export class EditFoldersDialog implements ModalComponent {
 			this.close()
 		}
 		this.usedBottomNavBefore = styles.isUsingBottomNavigation()
-		const marginTop = this.usedBottomNavBefore ? "env(safe-area-inset-top)" : px(component_size.navbar_height)
+		const marginTop = this.usedBottomNavBefore ? "var(--safe-area-inset-top)" : px(component_size.navbar_height)
 		return m(
 			".flex.col",
 			{

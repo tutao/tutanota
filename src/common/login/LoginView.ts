@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector.js"
-import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
+import { assertMainOrNode, isAndroidApp, isApp, isDesktop } from "../api/common/Env"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
@@ -22,6 +22,7 @@ import { styles } from "../gui/styles.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../gui/base/SnackBar.js"
+import { px } from "../gui/size"
 
 assertMainOrNode()
 
@@ -64,7 +65,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	// in order to focus it
 	private loginForm: DeferredObject<LoginForm>
 	private selectedRedirect: string
-	private bottomMargin = 0
+	private keyboardHeight = 0
 
 	constructor({ attrs }: Vnode<LoginViewAttrs>) {
 		super()
@@ -77,8 +78,8 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		this.initPromise = this.viewModel.init().then(m.redraw)
 	}
 
-	keyboardListener = (keyboardSize: number) => {
-		this.bottomMargin = keyboardSize
+	keyboardListener = (newSize: number) => {
+		this.keyboardHeight = newSize
 		m.redraw()
 	}
 
@@ -89,7 +90,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
 				style: {
-					marginBottom: this.bottomMargin + "px",
+					marginBottom: isAndroidApp() ? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)` : px(this.keyboardHeight),
 				},
 			},
 			[
