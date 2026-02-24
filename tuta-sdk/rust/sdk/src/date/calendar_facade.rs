@@ -756,14 +756,12 @@ impl CalendarFacade {
 		calendar_id: &GeneratedId,
 		start: DateTime,
 		end: DateTime,
-	) -> CalendarEventsList {
+	) -> Result<CalendarEventsList, ApiCallError> {
 		if calendar_id.0.contains(BIRTHDAY_CALENDAR_BASE_ID) {
-			return self.fetch_birthday_events(start, end).await.unwrap();
+			return self.fetch_birthday_events(start, end).await;
 		}
 
-		self.fetch_events_in_range(calendar_id, start, end)
-			.await
-			.unwrap()
+		self.fetch_events_in_range(calendar_id, start, end).await
 	}
 }
 
