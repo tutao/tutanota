@@ -39,7 +39,7 @@ import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialo
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
-import { assertMainOrNode } from "../../../../common/api/common/Env.js"
+import { assertMainOrNode, isAndroidApp } from "../../../../common/api/common/Env.js"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
@@ -456,7 +456,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
-			"#search.main-view",
+			"#search.main-view" + (isAndroidApp() ? ".bottom-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					searchBar: () =>
