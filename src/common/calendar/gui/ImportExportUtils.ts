@@ -18,7 +18,7 @@ import { generateEventElementId } from "../../api/common/utils/CommonCalendarUti
 import { createDateWrapper, DateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
-import { getStrippedClone, Stripped, StrippedEntity } from "../../api/common/utils/EntityUtils"
+import { Stripped, StrippedEntity } from "../../api/common/utils/EntityUtils"
 
 export enum EventImportRejectionReason {
 	Pre1970,
@@ -285,17 +285,17 @@ export function shallowIsSameEvent(eventA: CalendarEvent | IcsCalendarEvent, eve
 }
 
 export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
-	const rruleA = a.repeatRule ? toStrippedRepeatRule(a.repeatRule) : null
-	const rruleB = b.repeatRule ? toStrippedRepeatRule(b.repeatRule) : null
-	const attendeesA = a.attendees.map(getStrippedClone)
-	const attendeesB = b.attendees.map(getStrippedClone)
-	const organizerA = a.organizer ? getStrippedClone(a.organizer) : null
-	const organizerB = b.organizer ? getStrippedClone(b.organizer) : null
+	const rruleA = createStrippedRepeatRule(a.repeatRule)
+	const rruleB = createStrippedRepeatRule(b.repeatRule)
+	const attendeesA = createStrippedAttendees(a.attendees)
+	const attendeesB = createStrippedAttendees(b.attendees)
+	const organizerA = createStrippedMailAddress(a.organizer)
+	const organizerB = createStrippedMailAddress(b.organizer)
 
 	return (
 		a.startTime.valueOf() === b.startTime.valueOf() &&
 		a.endTime.valueOf() === b.endTime.valueOf() &&
-		deepEqual(attendeesA, attendeesB) &&
+		deepEqual({ ...attendeesA }, { ...attendeesB }) &&
 		a.summary === b.summary &&
 		a.sequence === b.sequence &&
 		a.location === b.location &&
@@ -306,17 +306,50 @@ export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 	)
 }
 
-export function toStrippedRepeatRule(repeatRule: CalendarRepeatRule): StrippedRepeatRule {
+export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
+	if (!repeatRule) {
+		return null
+	}
 	return {
 		frequency: repeatRule.frequency ?? "",
 		endType: repeatRule.endType ?? "",
 		endValue: repeatRule.endValue ?? "",
 		interval: repeatRule.interval ?? "",
 		timeZone: repeatRule.timeZone ?? "",
-		excludedDates: repeatRule.excludedDates.map(getStrippedClone),
-		advancedRules: repeatRule.advancedRules.map(getStrippedClone),
+		excludedDates: repeatRule.excludedDates
+			? repeatRule.excludedDates.map((ex) => ({
+					date: ex.date,
+				}))
+			: [],
+		advancedRules: repeatRule.advancedRules
+			? repeatRule.advancedRules.map((rule) => ({
+					ruleType: rule.ruleType,
+					interval: rule.interval,
+				}))
+			: [],
 	}
 }
+
+export function createStrippedAttendees(attendees: CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
+	return attendees.map((attendee: CalendarEventAttendee) => {
+		return {
+			status: attendee.status,
+			address: createStrippedMailAddress(attendee.address)!,
+		}
+	})
+}
+
+export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
+	if (!mailAddress) {
+		return null
+	}
+
+	return {
+		address: mailAddress.address,
+		name: mailAddress.name,
+	}
+}
+
 export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<CalendarRepeatRule> {
 	return {
 		frequency: repeatRule.frequency ?? "",

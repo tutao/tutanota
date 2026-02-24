@@ -1,13 +1,17 @@
 import o from "@tutao/otest"
 import {
+	AdvancedRepeatRuleTypeRef,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	CalendarRepeatRuleTypeRef,
 	EncryptedMailAddressTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../TestUtils"
 import { CalendarAttendeeStatus } from "../../../../src/common/api/common/TutanotaConstants"
 import { eventHasSameFields } from "../../../../src/common/calendar/gui/ImportExportUtils"
+import { clone } from "@tutao/tutanota-utils"
+import { CalendarAdvancedRepeatRuleTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("calendar events have same fields", function () {
@@ -72,6 +76,17 @@ o.spec("ImportExportUtilsTest", function () {
 			})
 			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
+
+		o.test("calendar events are the same even if aggregated _type for nested aggregates do not match", function () {
+			eventA.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef)
+			eventA.repeatRule.advancedRules = [createTestEntity(AdvancedRepeatRuleTypeRef)]
+
+			eventB.repeatRule = clone(eventA.repeatRule) // from tutanota
+			eventB.repeatRule._type = RepeatRuleTypeRef // from sys
+			eventB.repeatRule.advancedRules[0]._type = CalendarAdvancedRepeatRuleTypeRef // from sys
+			o.check(eventHasSameFields(eventA, eventB)).equals(true)
+		})
+
 		o.test("calendar events A are B NOT same if attendees sorting is different", function () {
 			eventB.attendees = eventB.attendees.reverse()
 			o.check(eventHasSameFields(eventA, eventB)).equals(false)
