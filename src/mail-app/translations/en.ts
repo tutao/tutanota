@@ -1084,6 +1084,7 @@ export default {
 		"mailBodyTooLarge_msg": "Your email couldn't be sent to the server, because the body text exceeds the maximum size limit of 1MB.",
 		"mailbox_label": "Mailbox",
 		"mailboxToExport_label": "Mailbox to Export",
+		"mailboxToImport_label": "Mailbox to Import",
 		"mailExport_label": "E-Mail export",
 		"mailExportHistory_label": "Export history",
 		"mailExportInfoText_label": "You can export EML files.",
@@ -2228,7 +2229,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"mailboxToImport_label": "Mailbox to Import",
+		"zoomOut_action": "Zoom Out"
 	}
 }

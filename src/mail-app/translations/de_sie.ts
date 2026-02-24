@@ -1084,6 +1084,7 @@ export default {
 		"mailBodyTooLarge_msg": "Die E-Mail konnte leider nicht gesendet werden, da die Nachricht die maximale Größe von 1 MB übersteigt.",
 		"mailbox_label": "Postfach",
 		"mailboxToExport_label": "Mailbox zum Exportieren",
+		"mailboxToImport_label": "Mailbox zum Importieren",
 		"mailExport_label": "E-Mail-Export",
 		"mailExportHistory_label": "Export-Verlauf",
 		"mailExportInfoText_label": "Sie können EML-Dateien exportieren.",
@@ -2228,7 +2229,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"mailboxToImport_label": "Mailbox zum Importieren",
+		"zoomOut_action": "Herauszoomen"
 	}
 }
