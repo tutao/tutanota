@@ -2249,3 +2249,5 @@ export type TranslationKeyType =
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
 	| "approvalMailBody_msg"
 	| "emptyString_msg"
+	| "one_step"
+	| "approvalWaitNotice_nice_msg"

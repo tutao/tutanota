@@ -2251,5 +2251,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
+		"one_step": "One last step to privacy",
+		"approvalWaitNotice_nice_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 24 hours for automatic approval or send us a message to speed things up.",
 	}
 }
