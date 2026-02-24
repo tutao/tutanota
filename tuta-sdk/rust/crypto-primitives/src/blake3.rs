@@ -131,6 +131,18 @@ mod tests {
 	}
 
 	#[test]
+	pub fn kdf_does_not_panic_with_invalid_utf8() {
+		let key: &[&[u8]] = &[&random::<[u8; 32]>()];
+
+		// continuation byte at start of character
+		blake3_kdf(key, [0x80].as_slice(), 32);
+		// overlong null
+		blake3_kdf(key, [0xC0, 0x80].as_slice(), 32);
+		// truncated part of U+10348
+		blake3_kdf(key, [0xF0, 0x90, 0x8D].as_slice(), 32);
+	}
+
+	#[test]
 	pub fn kdf_output_depends_on_context() {
 		let key: &[&[u8]] = &[&random::<[u8; 32]>()];
 		let context = "my test context".as_bytes();
