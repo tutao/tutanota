@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, isApp, isIOSApp } from "../../../common/api/common/Env.js"
+import { assertMainOrNode, isAndroidApp, isApp, isIOSApp } from "../../../common/api/common/Env.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import { Header } from "../../../common/gui/Header.js"
@@ -37,7 +37,6 @@ import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
 import { SettingsNavButton, SettingsNavButtonAttrs } from "../../gui/SettingsNavButton.js"
-import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { showSupportDialog } from "../../../common/support/SupportDialog.js"
@@ -157,7 +156,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						classes: this.isTabletView() ? "pr-16 pl-8" : "",
+						classes: (this.isTabletView() ? "pr-16 pl-8 " : "") + (isAndroidApp() ? "bottom-safe-inset overflow-y-hidden" : ""),
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-8.border-radius-top-right-8",
 							{
@@ -199,45 +198,36 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 	private bottomSection() {
 		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
 
-		return m(
-			".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16",
-			{
+		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16.pb-safe-inset", [
+			// Support button
+			m(BaseButton, {
+				class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
 				style: {
-					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.spacing_16),
+					marginInline: "auto",
+					border: `1px solid ${theme.outline}`,
+					color: theme.on_surface_variant,
 				},
-			},
-			[
-				// Support button
-				m(BaseButton, {
-					class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
-					style: {
-						marginInline: "auto",
-						border: `1px solid ${theme.outline}`,
-						color: theme.on_surface_variant,
-					},
-					label: "supportMenu_label",
-					text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
-					icon: m(Icon, {
-						icon: Icons.SpeechBubbleFill,
-						size: IconSize.PX24,
-						class: "center-h",
-						container: "div",
-						style: { fill: theme.on_surface_variant },
-					}),
-					onclick: () => {
-						const triggerStage = getSupportUsageTestStage(0)
-						triggerStage.setMetric({ name: "Trigger", value: "Settings" })
-						void triggerStage.complete()
-
-						void showSupportDialog(locator.logins)
-					},
+				label: "supportMenu_label",
+				text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
+				icon: m(Icon, {
+					icon: Icons.SpeechBubbleFill,
+					size: IconSize.PX24,
+					class: "center-h",
+					container: "div",
+					style: { fill: theme.on_surface_variant },
 				}),
-				// About button
-				isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
-			],
-		)
+				onclick: () => {
+					const triggerStage = getSupportUsageTestStage(0)
+					triggerStage.setMetric({ name: "Trigger", value: "Settings" })
+					void triggerStage.complete()
+
+					void showSupportDialog(locator.logins)
+				},
+			}),
+			// About button
+			isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
+		])
 	}
 
 	private renderLoggedInNavigationLinks() {
