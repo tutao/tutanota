@@ -2231,5 +2231,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"reportNotSpam_action": "Kein Spam",
+		"contactDeletionMoveToSpam_msg": "Sie haben eine E-Mail von einem Ihrer Kontakte in den Spamordner verschoben.\nMails von Kontakte werden nie als Spam eingestuft.\nMöchten Sie den/die ausgewählten Kontakt(e) löschen?",
+		"contactDeletionMoveToSpam_title": "Kontakt(e) löschen?",
 	}
 }

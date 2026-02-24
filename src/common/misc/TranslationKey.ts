@@ -2229,3 +2229,5 @@ export type TranslationKeyType =
 	| "mailboxToImport_label"
 	| "emptyString_msg"
 	| "reportNotSpam_action"
+	| "contactDeletionMoveToSpam_msg"
+	| "contactDeletionMoveToSpam_title"
