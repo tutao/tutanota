@@ -148,6 +148,28 @@ mod tests {
 	}
 
 	#[test]
+	fn compatibility_test_hash() {
+		for td in get_compatibility_test_data().blake3_tests {
+			let data = td.data_hex.as_slice();
+			let expected_result = td.digest_hex.as_slice();
+			let digest = blake3_hash(&[data]);
+			assert_eq!(digest, expected_result);
+		}
+	}
+
+	#[test]
+	fn compatibility_test_mac() {
+		for td in get_compatibility_test_data().blake3_tests {
+			let key: &[u8; 32] = td.key_hex.as_slice().try_into().unwrap();
+			let data = td.data_hex.as_slice();
+			let expected_result = td.tag_hex.as_slice();
+			let computed_tag = blake3_mac(key, &[data]);
+			assert_eq!(computed_tag, expected_result);
+			verify_blake3_mac(key, &[data], computed_tag);
+		}
+	}
+
+	#[test]
 	fn compatibility_test_kdf() {
 		unsafe {
 			for td in get_compatibility_test_data().blake3_tests {
