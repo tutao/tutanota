@@ -1580,3 +1580,9 @@ export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"
 export const MAX_WORD_FREQUENCY = 31
 export const DEFAULT_VECTOR_MAX_LENGTH = 2048
 export const UNDO_SEND_TIMEOUT_SECONDS = 10
+
+export const enum OperationStatus {
+	SUCCESS = "0",
+	PROGRESS = "1",
+	FAILURE = "2",
+}

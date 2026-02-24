@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel } from "./DriveViewModel"
+import { DriveFolderType, DriveOperationType, DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference, getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
@@ -19,30 +19,33 @@ import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { Keys } from "../../../common/api/common/TutanotaConstants"
+import { Keys, OperationStatus } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
 import { driveFolderName, newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { styles } from "../../../common/gui/styles"
 import { BottomNav } from "../../../mail-app/gui/BottomNav"
 import { MobileHeader } from "../../../common/gui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
 import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
+import { showSnackBar } from "../../../common/gui/base/SnackBar"
+import Stream from "mithril/stream"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
+import { MoveItems } from "./DriveMoveItemDialog"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	driveViewModel: DriveViewModel
-	showMoveItemDialog: (item: FolderItem) => unknown
+	showMoveItemDialog: (item: FolderItem, moveItems: MoveItems) => unknown
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
 }
-
-export type SelectableFolderItem = FolderItem & { selected: boolean }
 
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
 	private readonly viewSlider: ViewSlider
@@ -71,13 +74,49 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	private driveViewModel: DriveViewModel
 	private shortcuts: Shortcut[]
+	private operationUpdatesSubscription: Stream<unknown> | null = null
 
 	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
+		this.operationUpdatesSubscription = this.driveViewModel.operationUpdates.map(({ type, count, status, error }) => {
+			switch (status) {
+				case OperationStatus.SUCCESS: {
+					let message: TranslationKey
+					switch (type) {
+						case DriveOperationType.Copy:
+							message = "copyItemsSuccess_msg"
+							break
+						case DriveOperationType.Delete:
+							message = "deleteItemsSuccess_msg"
+							break
+						case DriveOperationType.Move:
+							message = "moveItemsSuccess_msg"
+							break
+						case DriveOperationType.Trash:
+							message = "trashItemsSuccess_msg"
+							break
+						case DriveOperationType.Restore:
+							message = "restoreItemsSuccess_msg"
+					}
+					showSnackBar({
+						message: lang.getTranslation(message, {
+							"{count}": String(count),
+						}),
+					})
+					break
+				}
+				case OperationStatus.FAILURE: {
+					handleUncaughtError(assertNotNull(error))
+					break
+				}
+			}
+		})
 	}
 
 	onremove() {
 		keyManager.unregisterShortcuts(this.shortcuts)
+		this.operationUpdatesSubscription?.end(true)
+		this.operationUpdatesSubscription = null
 	}
 
 	constructor(vnode: Vnode<DriveViewAttrs>) {
@@ -332,7 +371,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									},
 									onRename: (item) => this.onRename(item),
 									onStartMove: (item) => {
-										showMoveItemDialog(item)
+										showMoveItemDialog(item, (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder))
 									},
 								},
 								onMove: (items: FolderItemId[], into: FolderFolderItem) => {

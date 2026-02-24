@@ -3271,6 +3271,7 @@ export type PlanConfiguration = {
 	contactList: boolean;
 	maxLabels: NumberString;
 	scheduledMails: boolean;
+	drive: boolean;
 }
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", 2115)
 
@@ -4161,4 +4162,22 @@ export type PartnerManagedCustomer = {
 	_ownerKeyVersion: null | NumberString;
 
 	customerInfo: IdTuple;
+}
+export const OperationStatusUpdateTypeRef: TypeRef<OperationStatusUpdate> = new TypeRef("sys", 2684)
+
+export function createOperationStatusUpdate(values: StrippedEntity<OperationStatusUpdate>): OperationStatusUpdate {
+    return Object.assign(create(typeModels[OperationStatusUpdateTypeRef.typeId], OperationStatusUpdateTypeRef), values)
+}
+
+export type OperationStatusUpdate = {
+	_type: TypeRef<OperationStatusUpdate>;
+	_original?: OperationStatusUpdate
+
+	_format: NumberString;
+	applicationVersionSum: NumberString;
+	applicationTypesHash: string;
+	operationId: Id;
+	status: NumberString;
+	statusCode: null | NumberString;
+	reason: null | string;
 }

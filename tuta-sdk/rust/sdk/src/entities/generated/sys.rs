@@ -4941,6 +4941,8 @@ pub struct PlanConfiguration {
 	pub maxLabels: i64,
 	#[serde(rename = "2662")]
 	pub scheduledMails: bool,
+	#[serde(rename = "2692")]
+	pub drive: bool,
 }
 
 impl Entity for PlanConfiguration {
@@ -6264,6 +6266,34 @@ impl Entity for PartnerManagedCustomer {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2672),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct OperationStatusUpdate {
+	#[serde(rename = "2685")]
+	pub _format: i64,
+	#[serde(rename = "2686")]
+	pub applicationVersionSum: i64,
+	#[serde(rename = "2687")]
+	pub applicationTypesHash: String,
+	#[serde(rename = "2688")]
+	pub operationId: GeneratedId,
+	#[serde(rename = "2689")]
+	pub status: i64,
+	#[serde(rename = "2690")]
+	pub statusCode: Option<i64>,
+	#[serde(rename = "2691")]
+	pub reason: Option<String>,
+}
+
+impl Entity for OperationStatusUpdate {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2684),
 		}
 	}
 }

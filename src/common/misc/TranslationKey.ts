@@ -2246,3 +2246,8 @@ export type TranslationKeyType =
 	| "contactDeletionMoveToSpam_title"
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
 	| "emptyString_msg"
+	| "copyItemsSuccess_msg"
+	| "trashItemsSuccess_msg"
+	| "moveItemsSuccess_msg"
+	| "restoreItemsSuccess_msg"
+	| "deleteItemsSuccess_msg"

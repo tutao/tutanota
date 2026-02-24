@@ -458,3 +458,39 @@ impl Entity for DriveCopyServicePostIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveCopyServicePostOut {
+	#[serde(rename = "116")]
+	pub _format: i64,
+	#[serde(rename = "117")]
+	pub operationId: GeneratedId,
+}
+
+impl Entity for DriveCopyServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(115),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveItemServiceDeleteOut {
+	#[serde(rename = "119")]
+	pub _format: i64,
+	#[serde(rename = "120")]
+	pub operationId: GeneratedId,
+}
+
+impl Entity for DriveItemServiceDeleteOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(118),
+		}
+	}
+}
