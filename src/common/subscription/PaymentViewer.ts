@@ -1,5 +1,16 @@
 import m, { Children } from "mithril"
-import { AccountType, assertMainOrNode, AvailablePlans, isIOSApp, NewPaidPlans, PaymentMethodType, PostingType, UpgradePromptType } from "@tutao/app-env"
+import {
+	AccountType,
+	assertMainOrNode,
+	AvailablePlans,
+	countryList,
+	isIOSApp,
+	NewPaidPlans,
+	PaymentMethodType,
+	PostingType,
+	ProgrammingError,
+	UpgradePromptType,
+} from "@tutao/app-env"
 import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
@@ -21,7 +32,6 @@ import { ButtonType } from "../gui/base/Button.js"
 import { formatDate } from "../misc/Formatter"
 import * as restError from "@tutao/rest-client/error"
 import { Dialog, DialogType } from "../gui/base/Dialog"
-import { countryList } from "@tutao/app-env"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
@@ -39,7 +49,6 @@ import { client } from "../misc/ClientDetector.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
 import { createDropdown } from "../gui/base/Dropdown.js"
 
@@ -72,7 +81,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		return m(
-			"#invoicing-settings.fill-absolute.scroll.plr-24",
+			"#invoicing-settings.fill-absolute.scroll.plr-24.pb-48",
 			{
 				role: "group",
 			},

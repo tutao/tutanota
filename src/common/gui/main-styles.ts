@@ -3,14 +3,13 @@ import { component_size, font_size, layout_size, px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, isAndroidApp, isApp, isDesktop, Mode } from "@tutao/app-env"
 import { getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
 import { goEuropeanBlue } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { hexToRGBAString } from "./base/Color"
-import { isApp, isDesktop, Mode } from "@tutao/app-env"
 
 assertMainOrNode()
 
@@ -142,10 +141,11 @@ styles.registerStyle("main", () => {
 		},
 		":root": {
 			// We need it because we can't get env() value from JS directly
-			"--safe-area-inset-bottom": "env(safe-area-inset-bottom)",
-			"--safe-area-inset-top": "env(safe-area-inset-top)",
-			"--safe-area-inset-right": "env(safe-area-inset-right)",
-			"--safe-area-inset-left": "env(safe-area-inset-left)",
+			// environment-variables return 0px on Android, that's why we are using var for Android
+			"--safe-area-inset-bottom": isAndroidApp() ? "var(--safe-area-inset-bottom)" : "env(safe-area-inset-bottom)",
+			"--safe-area-inset-top": isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
+			"--safe-area-inset-right": isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
+			"--safe-area-inset-left": isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
 		},
 		"html, body": {
 			height: "100%",
@@ -1693,18 +1693,24 @@ styles.registerStyle("main", () => {
 			"overflow-x": "hidden",
 		},
 		".mlr-safe-inset": {
-			"margin-right": "env(safe-area-inset-right)",
-			"margin-left": "env(safe-area-inset-left)",
+			"margin-right": "var(--safe-area-inset-right)",
+			"margin-left": "var(--safe-area-inset-left)",
 		},
 		".plr-safe-inset": {
-			"padding-right": "env(safe-area-inset-right)",
-			"padding-left": "env(safe-area-inset-left)",
+			"padding-right": "var(--safe-area-inset-right)",
+			"padding-left": "var(--safe-area-inset-left)",
 		},
 		".mt-safe-inset": {
-			"margin-top": "env(safe-area-inset-top)",
+			"margin-top": "var(--safe-area-inset-top)",
 		},
 		".pb-safe-inset": {
-			"padding-bottom": "env(safe-area-inset-bottom)",
+			"padding-bottom": "var(--safe-area-inset-bottom)",
+		},
+		".mb-safe-inset": {
+			"margin-bottom": "var(--safe-area-inset-bottom)",
+		},
+		".bottom-safe-inset": {
+			bottom: "var(--safe-area-inset-bottom)",
 		},
 		// header
 		".header-nav": {
@@ -1719,9 +1725,9 @@ styles.registerStyle("main", () => {
             */
 			"box-sizing": "border-box",
 			"border-top": `1px solid ${theme.outline_variant}`,
-			height: `calc(${component_size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
+			height: `calc(${component_size.bottom_nav_bar}px + var(--safe-area-inset-bottom))`,
 			background: theme.surface,
-			"padding-bottom": "env(safe-area-inset-bottom)",
+			"padding-bottom": "var(--safe-area-inset-bottom)",
 			"z-index": 2,
 		},
 		".notification-overlay-content": {
@@ -1827,7 +1833,7 @@ styles.registerStyle("main", () => {
 		// mail folder view column
 		" .folder-column": {
 			height: "100%",
-			"padding-top": "env(safe-area-inset-top)",
+			"padding-top": "var(--safe-area-inset-top)",
 		},
 		".list-border-right": {
 			"border-right": `1px solid ${theme.outline_variant}`,
