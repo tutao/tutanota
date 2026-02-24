@@ -1901,14 +1901,6 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
-			},
-			"2690": {
-				"final": true,
-				"name": "lastUsedOffer",
-				"id": 2690,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
 			}
 		},
 		"associations": {
@@ -2126,14 +2118,6 @@ export const typeModels = {
 				"id": 2682,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"2691": {
-				"final": false,
-				"name": "confirmedHuman",
-				"id": 2691,
-				"type": "Boolean",
-				"cardinality": "One",
 				"encrypted": false
 			}
 		},
@@ -8494,17 +8478,7 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {
-			"2689": {
-				"final": false,
-				"name": "adAttribution",
-				"id": 2689,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refTypeId": 2684,
-				"dependency": null
-			}
-		}
+		"associations": {}
 	},
 	"1483": {
 		"name": "WebsocketEntityData",
@@ -11900,6 +11874,14 @@ export const typeModels = {
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2692": {
+				"final": false,
+				"name": "drive",
+				"id": 2692,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {}
@@ -14814,11 +14796,11 @@ export const typeModels = {
 		}
 	},
 	"2684": {
-		"name": "AdAttribution",
+		"name": "OperationStatusUpdate",
 		"app": "sys",
 		"version": 145,
 		"since": 145,
-		"type": "AGGREGATED_TYPE",
+		"type": "DATA_TRANSFER_TYPE",
 		"id": 2684,
 		"rootId": "A3N5cwAKfA",
 		"versioned": false,
@@ -14826,27 +14808,59 @@ export const typeModels = {
 		"isPublic": true,
 		"values": {
 			"2685": {
-				"final": true,
-				"name": "_id",
+				"final": false,
+				"name": "_format",
 				"id": 2685,
-				"type": "CustomId",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2686": {
-				"final": true,
-				"name": "attributionId",
+				"final": false,
+				"name": "applicationVersionSum",
 				"id": 2686,
-				"type": "String",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2687": {
-				"final": true,
-				"name": "attributionType",
+				"final": false,
+				"name": "applicationTypesHash",
 				"id": 2687,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2688": {
+				"final": false,
+				"name": "operationId",
+				"id": 2688,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2689": {
+				"final": false,
+				"name": "status",
+				"id": 2689,
 				"type": "Number",
 				"cardinality": "One",
+				"encrypted": false
+			},
+			"2690": {
+				"final": false,
+				"name": "statusCode",
+				"id": 2690,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2691": {
+				"final": false,
+				"name": "reason",
+				"id": 2691,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},

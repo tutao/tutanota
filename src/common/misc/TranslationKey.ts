@@ -2251,3 +2251,8 @@ export type TranslationKeyType =
 	| "buyGiftcardWhileCampaignActive_msg"
 	| "supportCloseLostRequest_msg"
 	| "emptyString_msg"
+	| "copyItemsSuccess_msg"
+	| "trashItemsSuccess_msg"
+	| "moveItemsSuccess_msg"
+	| "restoreItemsSuccess_msg"
+	| "deleteItemsSuccess_msg"

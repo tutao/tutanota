@@ -400,7 +400,6 @@ export type AccountingInfo = {
 	paypalBillingAgreement: null | string;
 	_modified: Date;
 	_ownerKeyVersion: null | NumberString;
-	lastUsedOffer: null | string;
 
 	invoiceInfo: null | Id;
 	appStoreSubscription: null | IdTuple;
@@ -438,7 +437,6 @@ export type CustomerInfo = {
 	perUserAliasCount: NumberString;
 	plan: NumberString;
 	promotionId: null | string;
-	confirmedHuman: boolean;
 
 	customer: Id;
 	accountingInfo: Id;
@@ -2238,8 +2236,6 @@ export type RegistrationCaptchaServiceGetData = {
 	timelockChallengeSolution: null | string;
 	language: string;
 	isAutomatedBrowser: boolean;
-
-	adAttribution: null | AdAttribution;
 }
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", 1483)
 
@@ -3275,6 +3271,7 @@ export type PlanConfiguration = {
 	contactList: boolean;
 	maxLabels: NumberString;
 	scheduledMails: boolean;
+	drive: boolean;
 }
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", 2115)
 
@@ -4166,17 +4163,21 @@ export type PartnerManagedCustomer = {
 
 	customerInfo: IdTuple;
 }
-export const AdAttributionTypeRef: TypeRef<AdAttribution> = new TypeRef("sys", 2684)
+export const OperationStatusUpdateTypeRef: TypeRef<OperationStatusUpdate> = new TypeRef("sys", 2684)
 
-export function createAdAttribution(values: StrippedEntity<AdAttribution>): AdAttribution {
-    return Object.assign(create(typeModels[AdAttributionTypeRef.typeId], AdAttributionTypeRef), values)
+export function createOperationStatusUpdate(values: StrippedEntity<OperationStatusUpdate>): OperationStatusUpdate {
+    return Object.assign(create(typeModels[OperationStatusUpdateTypeRef.typeId], OperationStatusUpdateTypeRef), values)
 }
 
-export type AdAttribution = {
-	_type: TypeRef<AdAttribution>;
-	_original?: AdAttribution
+export type OperationStatusUpdate = {
+	_type: TypeRef<OperationStatusUpdate>;
+	_original?: OperationStatusUpdate
 
-	_id: Id;
-	attributionId: string;
-	attributionType: NumberString;
+	_format: NumberString;
+	applicationVersionSum: NumberString;
+	applicationTypesHash: string;
+	operationId: Id;
+	status: NumberString;
+	statusCode: null | NumberString;
+	reason: null | string;
 }

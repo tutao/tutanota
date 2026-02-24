@@ -10,7 +10,7 @@ import { DriveFolderBrowser, DriveFolderBrowserAttrs } from "./DriveFolderBrowse
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { FolderItem, folderItemEntity, folderItemToId, moveItems, toFolderItems } from "./DriveUtils"
+import { FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItems } from "./DriveUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 interface State {
@@ -20,11 +20,13 @@ interface State {
 	newFolderName: string | null
 }
 
+export type MoveItems = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
+
 /**
  * Shows a dialog for interactively choosing a destination to move an item to.
  * It also enables the user to create a new destination folder.
  */
-export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemToMove: FolderItem) {
+export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemToMove: FolderItem, moveItems: MoveItems) {
 	const parentFolderId = itemToMove.type === "file" ? itemToMove.file.folder : assertNotNull(itemToMove.folder.parent)
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
@@ -116,7 +118,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 								label: "moveItemHere_action",
 								width: "flex",
 								onclick: () => {
-									moveItems(entityClient, driveFacade, [folderItemToId(itemToMove)], state.currentFolder)
+									moveItems([folderItemToId(itemToMove)], state.currentFolder)
 									moveDialog.close()
 								},
 							}),
