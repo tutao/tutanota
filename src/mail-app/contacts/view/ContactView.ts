@@ -934,6 +934,7 @@ export function deleteContacts(contactList: Contact[], onConfirm: () => void = n
 	return Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 		if (confirmed) {
 			onConfirm()
+			//Any reason why we do not do eraseMultiple?
 			for (const contact of contactList) {
 				locator.entityClient.erase(contact).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
 			}

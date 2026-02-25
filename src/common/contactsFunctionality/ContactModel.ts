@@ -9,7 +9,7 @@ import {
 	ContactTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
@@ -18,7 +18,7 @@ import { EventController } from "../api/main/EventController.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { DbError } from "../api/common/error/DbError.js"
-import { elementIdPart, getEtId, sortCompareById } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, getEtId, listIdPart, sortCompareById } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
@@ -155,6 +155,13 @@ export class ContactModel {
 
 	async getContactGroupId(): Promise<Id> {
 		return getFirstOrThrow(this.loginController.getUserController().getContactGroupMemberships()).group
+	}
+
+	async eraseContacts(contacts: Contact[]) {
+		if (contacts.length > 0) {
+			const listId = listIdPart(assertNotNull(first(contacts))._id)
+			await this.entityClient.eraseMultiple(listId, contacts)
+		}
 	}
 
 	private async loadContactLists() {

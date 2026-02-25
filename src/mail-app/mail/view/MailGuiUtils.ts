@@ -53,7 +53,6 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
-import { showContactImportDialog } from "../../contacts/ContactImporter"
 import { showContactSelectionDialog } from "../../contacts/ContactSelectionDialog"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
@@ -223,10 +222,11 @@ async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, ma
 		.map((mail) => ({ mail, contact: assertNotNull(addressToContactMap.get(mail.sender.address)) }))
 	showContactSelectionDialog(
 		mailsWithContacts.map((mc) => mc.contact),
-		(dialog: Dialog, selectedContacts: Contact[]) => {
-			console.log("selected... ", selectedContacts)
+		async (dialog: Dialog, selectedContacts: Contact[]) => {
+			showProgressDialog("pleaseWait_msg", contactModel.eraseContacts(selectedContacts))
+			dialog.close()
 		},
-		"importVCard_action",
+		"deleteContacts_action",
 	)
 }
 

@@ -12,7 +12,7 @@ import { SelectAllCheckbox } from "../../common/gui/SelectAllCheckbox.js"
 /**
  * Show a dialog with a preview of a given list of contacts
  * @param contacts The contact list to be previewed
- * @param okAction The action to be executed when the user press the import button with at least one contact selected
+ * @param okAction The action to be executed when the user press the confirm button with at least one contact selected
  */
 export function showContactSelectionDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: MaybeTranslation) {
 	const viewModel: ContactSelectionDialogViewModel = new ContactSelectionDialogViewModel()
@@ -30,7 +30,7 @@ export function showContactSelectionDialog(contacts: Contact[], okAction: (dialo
 		},
 	}
 
-	const dialog = new Dialog(DialogType.EditSmall, {
+	const dialog = new Dialog(DialogType.EditMedium, {
 		view: () => [
 			/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 			m(DialogHeaderBar, {
@@ -61,6 +61,13 @@ export function showContactSelectionDialog(contacts: Contact[], okAction: (dialo
 			} satisfies DialogHeaderBarAttrs),
 			/** variable-size child container that may be scrollable. */
 			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
+				m(
+					"#dialog-message.dialog-max-height.text-break.text-prewrap.selectable.scroll.pt-16",
+					m(
+						".dialog-contentButtonsBottom.text-break.selectable",
+						"You have moved an e-mail from a contact to the spam folder.\nMails sent by contacts are never classified as spam.\nWould you like to delete the contact?",
+					),
+				),
 				m(
 					".list-bg.border-radius.mt-8.ml-8.mr-8",
 					m(SelectAllCheckbox, {
