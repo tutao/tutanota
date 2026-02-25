@@ -6078,5 +6078,305 @@
 		"who": "ivk",
 		"when": "2026-02-25",
 		"hash": "c4bce3ea8cff4c0f4db72ddfddd070932032994497468c49cf0644d7264dc6c2"
+	},
+	"node_modules/builder-util/out/arch.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "2a736be1d9e9c090267f66d797544ff7a5dfde02d10adaf202bbfc7e3c81af32"
+	},
+	"node_modules/builder-util/out/promise.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "98ba7941747cd9d9c3f03115e4b81eb74de862af6ef5827d054f845f2d73d18f"
+	},
+	"node_modules/builder-util/out/asyncTaskManager.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "54838a4ca563946c9b477b614f8d677bc3e0db6eab019bf80e404a80d6eaa34c"
+	},
+	"node_modules/builder-util/out/util.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "a3b7a5a6946e744dbe6292b9625c67b9e8d7d875509e635017b5f0e7a6e22d6f"
+	},
+	"node_modules/builder-util/out/mapper.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "e1081e866ff25617baf78d03042facca361bad0fa5cdf5216800995d77aac487"
+	},
+	"node_modules/builder-util/out/DebugLogger.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "2e83ca88c723fe593363932b1deb89c6b5d257f0b55b312388d90d6af94b2e55"
+	},
+	"node_modules/agent-base/dist/helpers.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "6043c5c1bb76491992f6c56f65895e2e9167ae10122fef4d58d6638ebac4ba05"
+	},
+	"node_modules/agent-base/dist/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "5608043c77d87b74665a8097bc19879dc71b71a5c830805a17880b7676312ab8"
+	},
+	"node_modules/http-proxy-agent/dist/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "fd33b43da34da60d4914780e13fae5d52a7faaa996d687eea5335128de148627"
+	},
+	"node_modules/https-proxy-agent/dist/parse-proxy-response.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "36a30ebcd66060fa8e3aba8295854757afbd60f2643d8992814727f249c5eba0"
+	},
+	"node_modules/https-proxy-agent/dist/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "30165586fac3becbc9dbf2b7b5bdaa802a77ac34af9926208f6e94a3bd87ef31"
+	},
+	"node_modules/builder-util/out/nodeHttpExecutor.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "ad750fdc8d0ba66c6f65227149eb9d6e6cbb43fa6418f2195937a1e69308c1b1"
+	},
+	"node_modules/stat-mode/dist/src/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "3e231252aa860bb453943c0cae8affb4ae357fa509df6f8aaa287343dba286e1"
+	},
+	"node_modules/tiny-async-pool/node_modules/semver/semver.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "433d72cfd2383f94c8266e3af185841e60ae88d7345d79f87073f473119425d8"
+	},
+	"node_modules/tiny-async-pool/lib/es7.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "0da41681a3629cda1e6fa2179519ca6e9f8e9eea5299a4689badb1b5010eaaf0"
+	},
+	"node_modules/tiny-async-pool/dist/node.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "d2a48ef5f89acad24d796b88ec966bf8f85657454c186023f76ddefddf589107"
+	},
+	"node_modules/builder-util/out/fs.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "69c433388691bb4dde009f5d50f9650aeaa600ce4d8340c971ac3de98d6afa51"
+	},
+	"node_modules/builder-util/out/deepAssign.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "b781949c26d4edcc5900149ff47ec59b662b9d15e62ba82a9d916ea7dc581744"
+	},
+	"node_modules/lazy-val/out/main.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "358fa8cba70c9140edafa85c0b7b25c7261939480186167e6b3440905f5b47da"
+	},
+	"node_modules/truncate-utf8-bytes/lib/truncate.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "2593c60c726ba7d77baa57149b25c8a44c238e68b3642c0beb56207d4bba144a"
+	},
+	"node_modules/truncate-utf8-bytes/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "2b73a25f485d18cdfb4c02d4776d8f16e137891ddfba5eebc9191a4f23030ff7"
+	},
+	"node_modules/sanitize-filename/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "1b2c5bd4ef99c5ace6a11ddf249dc6ac75f5531acd7319aa8d275eaf2b58e154"
+	},
+	"node_modules/builder-util/out/filename.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "02d6befa1169c1e122a77814676e1c7489dcb655e6fd238ed72cead6ef57f93a"
+	},
+	"node_modules/app-builder-lib/out/util/macroExpander.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "fe93d4e1d186e244b09fe8ace03b6adbb313eec71803d49ba69c1c150723bd63"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/internal/re.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "6a47e73c279fa8c4011f670471f50830a39922b43797b2884e6cc03f65b64d6c"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/internal/identifiers.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "b4916b09dc7869ae0eb05e71c855c942a3a7365f7e6e89185d59a9e45a2451d7"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/classes/semver.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "d5ba57e5c93f031b1d234fca4bb746746fcd1fe51be7e5ee895601e2c12e2083"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/functions/diff.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "7a11fd39b987cdf06c65e928cb1aca49bec583feb86fb5c8fe47a6fd61d7de31"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/classes/range.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "cf8f8eb6934663ae2a9d04838d4d71555427a2abd3c8748ee5219507969a6b46"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/ranges/subset.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "87387952fbe154f5874d5f09dd2173e782e894a76fa8370ce23f4120e2ae7eae"
+	},
+	"node_modules/app-builder-lib/node_modules/semver/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "646e0b707f56dca7cb90cebc6fe687278bcc1a16fdcc83756dbe23083ff15e06"
+	},
+	"node_modules/app-builder-lib/out/appInfo.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "d10fa4b8196933d6dd7480d107941671790062f87c81e9a7179463034779fc09"
+	},
+	"node_modules/chromium-pickle-js/lib/pickle.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "8a7a51704359efa90204d3b30752dd05c2e5a11794f5988505b17536472b1049"
+	},
+	"node_modules/chromium-pickle-js/lib/exports.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "9dde55f314247e34290539b4c51ed096b130fc5b8ef17162092915c7b8f9748d"
+	},
+	"node_modules/app-builder-lib/out/asar/asar.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "81e17e4cb42da15e01a6b5c32bd5ecce18c8e762ff277ec860bead32f379f0b3"
+	},
+	"node_modules/app-builder-lib/out/core.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "a733c6296d6a80ce9a59a01b39e0bf4e611f609723b09f37d8c6bb1fffe7aec1"
+	},
+	"node_modules/app-builder-lib/out/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "c2247910e791c634f668924bf665e5d567298d2eba4e046976c6530848d90c91"
+	},
+	"node_modules/app-builder-lib/out/util/pathManager.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "1f16986bcceef7ea8d2e4c63a7a948a9f23a18be4be04bed9724894d888e1c45"
+	},
+	"node_modules/app-builder-lib/helpers/dynamic-import.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "308ac3703a9f9c653afa3d0f997a1db20e2822fe8df92a386533cb50114e7162"
+	},
+	"node_modules/app-builder-lib/out/util/resolve.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "7cc0439f87ccc611ec78667e81bc60c31cb36a65d15a0bf8b8eaa464e100142e"
+	},
+	"node_modules/app-builder-lib/out/asar/asarFileChecker.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "ac27704068dfe837467628266b1d86fadf02b76b888ffe2c770afd53fca4ccf5"
+	},
+	"node_modules/isbinaryfile/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "d7c4bcd1bbe5935294ec14a4f194a865a3f99b83247146e3849b31759482cddb"
+	},
+	"node_modules/app-builder-lib/out/asar/unpackDetector.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "3b70a82e24d83967e4a90db8d02cd71b30ce62d289496a4ec7caf0ce62a8861e"
+	},
+	"node_modules/app-builder-lib/node_modules/balanced-match/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "180549ef6f34f31e245f3060395dc453a602849558fd6657d11c28509b33347c"
+	},
+	"node_modules/app-builder-lib/node_modules/brace-expansion/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "a8d46045e1c127d5d364bb21b10a0451d3a82a8efb7b8a49075ffcf4045f5ece"
+	},
+	"node_modules/app-builder-lib/node_modules/minimatch/dist/commonjs/brace-expressions.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "12054a62fa32362027b8103896d28d65adad412efb2a41f01af2e2e7400bbf9a"
+	},
+	"node_modules/app-builder-lib/node_modules/minimatch/dist/commonjs/unescape.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "345da547133872e9ffa9e5784c39869bd5aa45c6b11ff5ef78ad0baeee51e46a"
+	},
+	"node_modules/app-builder-lib/node_modules/minimatch/dist/commonjs/ast.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "bf26f2edb105b68ea65c118344ed1437b1be0556c294510cd1f40e7062da77e3"
+	},
+	"node_modules/app-builder-lib/node_modules/minimatch/dist/commonjs/escape.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "54b57f8f50c8e834f35a30c1848ac3f79acf8dd85894505f046afaf3965e63a0"
+	},
+	"node_modules/app-builder-lib/node_modules/minimatch/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "4a29b5c55848f289328f0fa166b24efff53e49bcec7123d43d8e1712ed25a8a3"
+	},
+	"node_modules/app-builder-lib/out/util/filter.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "5efd510c03bcc309fb4e0d72987e0772138a256728b80040f1fbfdda85997761"
+	},
+	"node_modules/app-builder-lib/out/fileMatcher.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "a0ffdc17e175426ffef200d866549d8ac8ece9bc1117bea4671cd5a3f23ee985"
+	},
+	"node_modules/app-builder-lib/out/fileTransformer.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "2be90c067b245a9dcea353b7dc97a67a5fcb0764f0694da985c5d055d10be2fc"
+	},
+	"node_modules/app-builder-lib/out/util/AppFileWalker.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "5cb6cd95a74b31a8fd16b993e6caa83a7abe9b0f7dbdf5b5c631f87571cf23f9"
+	},
+	"node_modules/app-builder-lib/out/util/NodeModuleCopyHelper.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "daaf8c32bb31c73e58c55de6097af93ceb970a1439c37b5ccc28551b0593aed2"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/hoist.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "41b466e2245944f9492a9f938a2c5a90f5b8fae80c0aa09044c9a2d54862fd6e"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/moduleManager.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "52b3d41953431af39989c2fd287f7bb90db51b3121074145e2b05bc23ebcb75e"
+	},
+	"node_modules/app-builder-lib/node_modules/isexe/dist/commonjs/index.min.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "687afcc30a71a2eee772d72fcdf6d05ebdf9f8d270568f487fb82945c6775880"
+	},
+	"node_modules/app-builder-lib/node_modules/which/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "d9d32d45a01826692a1a0c70d40c6182aa0405713166ecd4a3bd3df68d3b90bf"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/packageManager.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "ff348915c27c3625f856a2d81b33374361fe5f3871aa5c9a26cfd6ee424b93d2"
 	}
 }
