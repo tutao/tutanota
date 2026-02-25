@@ -194,6 +194,7 @@ import "./misc/quickactions/QuickActionsModelTest.js"
 import "./calendar/CalendarTimeGridTest"
 import "./calendar/AllDaySectionTest"
 import "./mail/view/LabelsPopupViewModelTest.js"
+import "./settings/NotificationSettingsViewerModelTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
