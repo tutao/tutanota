@@ -255,24 +255,33 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 	}
 
 	private func copyToLocalFolder(srcUrl: URL, filename: String) throws -> URL {
-		let targetFolder: String
-		targetFolder = try FileUtils.getDecryptedFolder()
-		let targetUrl = URL(fileURLWithPath: targetFolder).appendingPathComponent(filename)
 		let fileManager = FileManager.default
-		// NSFileManager copyItemAtUrl returns an error if the file alredy exists. so delete it first.
+		let decryptedFolder: String = try FileUtils.getDecryptedFolder()
+
+		// to avoid duplicates but preserve filenames, we can put everything in a subdirectory based on timestamp
+		let targetFolder = URL(fileURLWithPath: decryptedFolder).appendingPathComponent(generateFileName(prefixString: "upload", withExtension: nil))
+		if !fileManager.fileExists(atPath: targetFolder.path) { try fileManager.createDirectory(at: targetFolder, withIntermediateDirectories: false) }
+
+		let targetUrl = targetFolder.appendingPathComponent(filename)
+
+		// NSFileManager copyItemAtUrl returns an error if the file already exists. so delete it first.
 		if fileManager.fileExists(atPath: targetUrl.path) { try? fileManager.removeItem(atPath: targetUrl.path) }
 
 		try fileManager.copyItem(at: srcUrl, to: targetUrl)
 		return targetUrl
 	}
 
-	func generateFileName(prefixString: String, withExtension extensionString: String) -> String {
+	func generateFileName(prefixString: String, withExtension extensionString: String?) -> String {
 		let time = Date()
 		let df = DateFormatter()
 		df.dateFormat = "hhmmss"
 		let timeString = df.string(from: time)
-		let fileName = String(format: "%@_%@.%@", prefixString, timeString, extensionString)
-		return fileName
+
+		if let extensionString {
+			return String(format: "%@_%@.%@", prefixString, timeString, extensionString)
+		} else {
+			return String(format: "%@_%@", prefixString, timeString)
+		}
 	}
 
 	func sendResult(filePath: String?) {
