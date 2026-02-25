@@ -22,6 +22,7 @@ export const enum ButtonColor {
 	Fab = "fab",
 	Dialog = "dialog",
 	Primary = "primary",
+	MailTextEditor = "mailtexteditor",
 }
 
 export function getColors(buttonColors: ButtonColor | null | undefined): {
@@ -62,6 +63,11 @@ export function getColors(buttonColors: ButtonColor | null | undefined): {
 			return {
 				button: theme.primary,
 				border: theme.primary,
+			}
+		case ButtonColor.MailTextEditor:
+			return {
+				button: theme.outline,
+				border: theme.outline,
 			}
 		case ButtonColor.Content:
 		default:
