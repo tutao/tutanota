@@ -25,7 +25,7 @@ try {
 	console.log(`Could not read reviewed data from ${reviewedPath}`)
 }
 
-/** @type {Map<string, string>} */
+/** @type {Set<string>} */
 const reviewedHashes = new Set(Object.values(reviewedData).map(({ hash }) => hash))
 
 let reviewers = Object.values(reviewedData).at(-1)?.who
@@ -171,7 +171,7 @@ function countsAsReviewed(dep) {
 
 function reviewedByHash(dep) {
 	const fileHash = fileHashes.get(dep)
-	reviewedHashes.has(fileHash)
+	return reviewedHashes.has(fileHash)
 }
 
 function calculateStats(currentDep, itsDeps) {

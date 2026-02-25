@@ -6068,5 +6068,15 @@
 		"who": "ivk",
 		"when": "2026-02-24",
 		"hash": "be3b735b3ed1c8cf763d21df2d7e3149c8ff4468d140a54be71332acc5c7c847"
+	},
+	"node_modules/async-exit-hook/index.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "78e91cdddafd1c616fa859c33de05199e291051826fe420b45e72b8a196fb9ad"
+	},
+	"node_modules/temp-file/out/main.js": {
+		"who": "ivk",
+		"when": "2026-02-25",
+		"hash": "c4bce3ea8cff4c0f4db72ddfddd070932032994497468c49cf0644d7264dc6c2"
 	}
 }
