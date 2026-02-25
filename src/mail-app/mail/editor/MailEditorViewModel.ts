@@ -75,7 +75,11 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 		)
 }
 
-export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<AttachmentBubbleAttrs> {
+export function createAttachmentBubbleAttrs(
+	model: SendMailModel,
+	inlineImageElementIds: Array<{ cid: string; url: string }>,
+	getDomElement: () => HTMLElement,
+): Array<AttachmentBubbleAttrs> {
 	return model.getAttachments().map((attachment) => ({
 		attachment,
 		open: () => _openAndDownloadAttachment(attachment),
@@ -85,11 +89,17 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageEle
 
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {
-				const imageElement = inlineImageElements.find((e) => e.getAttribute("cid") === attachment.cid)
+				const imageElement = inlineImageElementIds.find((e) => e.cid === attachment.cid)
 
 				if (imageElement) {
-					imageElement.remove()
-					remove(inlineImageElements, imageElement)
+					const images = getDomElement().getElementsByTagName("img")
+					for (let i = 0; i < images.length; i++) {
+						if (images[i].getAttribute("cid") === attachment.cid) {
+							images[i].remove()
+							break
+						}
+					}
+					remove(inlineImageElementIds, imageElement)
 				}
 			}
 
@@ -122,9 +132,9 @@ export async function _openAndDownloadAttachment(attachment: Attachment) {
 	}
 }
 
-export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLElement>, arg2: Array<Attachment>) => void = debounce(
+export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<{ cid: string; url: string }>, arg2: Array<Attachment>) => void = debounce(
 	50,
-	(domElement: HTMLElement, inlineImageElements: Array<HTMLElement>, attachments: Array<Attachment>) => {
+	(domElement: HTMLElement, inlineImageElementIds: Array<{ cid: string; url: string }>, attachments: Array<Attachment>) => {
 		// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
 		// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
 		// and check each descendant and if it's an image with CID or not.
@@ -136,20 +146,31 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLEleme
 		// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
 		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 		// means removal + insertion.
-		const elementsToRemove: HTMLElement[] = []
-		for (const inlineImage of inlineImageElements) {
-			if (domElement && !domElement.contains(inlineImage)) {
-				const cid = inlineImage.getAttribute("cid")
-				const attachmentIndex = attachments.findIndex((a) => a.cid === cid)
+		const elementsToRemove: { cid: string; url: string }[] = []
+		if (domElement) {
+			const images = domElement.getElementsByTagName("img")
+			let imageCids: string[] = []
+			for (let i = 0; i < images.length; i++) {
+				const cid = images[i].getAttribute("cid")
+				if (cid) {
+					imageCids.push()
+				}
+			}
+			for (const image of inlineImageElementIds) {
+				if (!imageCids.includes(image.cid)) {
+					elementsToRemove.push(image)
+					URL.revokeObjectURL(image.url)
 
-				if (attachmentIndex !== -1) {
-					attachments.splice(attachmentIndex, 1)
-					elementsToRemove.push(inlineImage)
-					m.redraw()
+					const attachmentIndex = attachments.findIndex((a) => a.cid === image.cid)
+					if (attachmentIndex !== -1) {
+						attachments.splice(attachmentIndex, 1)
+						m.redraw()
+					}
 				}
 			}
 		}
-		findAllAndRemove(inlineImageElements, (imageElement) => elementsToRemove.includes(imageElement))
+
+		findAllAndRemove(inlineImageElementIds, (imageElement) => elementsToRemove.includes(imageElement))
 	},
 )
 
