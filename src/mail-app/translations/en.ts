@@ -2228,11 +2228,12 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"one_step": "One last step to privacy",
+		"oneStep_label": "One last step to privacy",
 		"autoDeleteTemplateGroupsConfirmation_msg": "There are still template lists active which will be deleted automatically when you downgrade. This may include shared template lists or template lists belonging to your users. Do you want to delete them now?",
-		"approvalWaitNotice_nice_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 24 hours for automatic approval or send us a message to speed things up.",
+		"approvalWaitNoticeFastTrack_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 48 hours for automatic approval or send us a message to speed things up.",
 		"waitApprovalButton_action": "Wait for automatic approval",
-		"fastTrackButtonApproval_action": "Email us to Fast-Track",
-		"whyThisHappens_msg": "[Why this happens →]"
+		"fastTrackButtonApproval_action": "Email us to fast-track",
+		"whyThisHappens_msg": "[Learn why this happens →]",
+		"approvalMail_msg": "Approval Mail for"
 	}
 }
