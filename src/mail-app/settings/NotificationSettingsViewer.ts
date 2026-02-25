@@ -10,33 +10,30 @@ import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { isApp, isBrowser, isDesktop } from "../../common/api/common/Env.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../common/settings/NotificationTargetsList.js"
-import { AppType } from "../../common/misc/ClientConstants.js"
-import { NotFoundError } from "../../common/api/common/error/RestError.js"
 import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
+import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { NotFoundError } from "../../common/api/common/error/RestError"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
-	private currentIdentifier: string | null = null
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
 	private readonly expanded: Stream<boolean>
 	private readonly user: User
-	private identifiers: PushIdentifier[]
 	private hasNotificationPermission: boolean = true
 	private receiveCalendarNotifications: boolean = true
+	private readonly model: NotificationSettingsViewerModel
 
 	constructor() {
 		this.expanded = stream<boolean>(false)
-		this.identifiers = []
 		this.user = locator.logins.getUserController().user
-
-		this.loadPushIdentifiers()
+		this.model = new NotificationSettingsViewerModel(locator.pushService, this.user, locator.entityClient)
 
 		if (isApp() || isDesktop()) {
 			const promises: Promise<any>[] = [locator.pushService.getExtendedNotificationMode()]
@@ -57,13 +54,15 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 				m.redraw()
 			})
 		}
+
+		this.reloadPushIdentifiers()
 	}
 
 	private togglePushIdentifier(identifier: PushIdentifier) {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
-		if (!isBrowser() && identifier.identifier === this.currentIdentifier) {
+		if (!isBrowser() && identifier.identifier === this.model.getCurrentIdentifier()) {
 			if (identifier.disabled) {
 				locator.pushService.invalidateAlarmsForUser(this.user._id)
 			} else {
@@ -83,23 +82,21 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 			}),
 		])
 
-		const rows = this.identifiers
-			.map((identifier) => {
-				const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
+		const rows = this.model.getLoadedPushIdentifiers().map((identifier) => {
+			const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.model.getCurrentIdentifier()
 
-				return m(IdentifierRow, {
-					name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
-					disabled: identifier.disabled,
-					identifier: identifier.identifier,
-					current: isCurrentDevice,
-					removeClicked: () => {
-						locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
-					},
-					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
-					disableClicked: () => this.togglePushIdentifier(identifier),
-				})
+			return m(IdentifierRow, {
+				name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
+				disabled: identifier.disabled,
+				identifier: identifier.identifier,
+				current: isCurrentDevice,
+				removeClicked: () => {
+					locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
+				},
+				formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
+				disableClicked: () => this.togglePushIdentifier(identifier),
 			})
-			.sort((l, r) => +r.attrs.current - +l.attrs.current)
+		})
 
 		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m(".flex.col", [
@@ -169,33 +166,14 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async loadPushIdentifiers() {
-		this.currentIdentifier = this.getCurrentIdentifier()
-		const list = this.user.pushIdentifierList
-
-		if (list) {
-			this.identifiers = (await locator.entityClient.loadAll(PushIdentifierTypeRef, list.list)).filter(
-				(identifier) => identifier.app === AppType.Mail || identifier.app === AppType.Integrated,
-			) // Filter out calendar targets
-
-			m.redraw()
-		}
-	}
-
-	private getCurrentIdentifier(): string | null {
-		if (isApp() || isDesktop()) {
-			const identifier = mailLocator.pushService.getLoadedPushIdentifier()?.identifier
-			return identifier ? identifier : null
-		}
-
-		return null
-	}
-
 	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {
-		for (let update of updates) {
-			if (isUpdateForTypeRef(PushIdentifierTypeRef, update)) {
-				await this.loadPushIdentifiers()
-			}
+		if (updates.some((update) => isUpdateForTypeRef(PushIdentifierTypeRef, update))) {
+			await this.reloadPushIdentifiers()
 		}
+	}
+
+	private async reloadPushIdentifiers() {
+		await this.model.reload()
+		m.redraw()
 	}
 }
