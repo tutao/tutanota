@@ -18,6 +18,7 @@ export interface IconButtonAttrs {
 	onkeydown?: (event: KeyboardEvent) => unknown
 	hidden?: boolean
 	disabled?: boolean
+	forceLightModeColor?: string
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -30,7 +31,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 				class: "center-h",
 				size: attrs.size === ButtonSize.Large ? IconSize.PX32 : IconSize.PX24,
 				style: {
-					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
+					fill: attrs.forceLightModeColor ?? getColors(attrs.colors ?? ButtonColor.Content).button,
 					visibility: attrs.hidden ? "hidden" : "visible",
 				},
 			}),
