@@ -285,6 +285,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									onSelectAll: () => {
 										this.driveViewModel.selectAll()
 									},
+									onSelectNone: () => {
+										this.driveViewModel.selectNone()
+									},
 									onSelectNext: () => {},
 									onSelectPrevious: () => {},
 									onSingleSelection: (item) => {
