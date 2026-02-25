@@ -54,6 +54,7 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { showContactImportDialog } from "../../contacts/ContactImporter"
+import { showContactSelectionDialog } from "../../contacts/ContactSelectionDialog"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -178,8 +179,35 @@ async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => 
 // ???? Prompt user to delete contacts |
 // user receives mail and runs classifier
 
+async function warnUserSingleContactMoveMailToSpam(contactModel: ContactModel, mailModel: MailModel, mailId: IdTuple) {
+	const mail = assertNotNull(await mailModel.loadMail(mailId))
+	const contact = contactModel.searchForContact(mail.sender.address)
+	const choice = await Dialog.choice(lang.makeTranslation("press_release_confirmation", `Really send the press release out to ${[].length} recipients?`), [
+		{
+			text: "cancel_action",
+			value: "cancel",
+		},
+		{
+			text: lang.makeTranslation("noOp_action", "Just test"),
+			value: "test",
+		},
+		{
+			text: "yes_label",
+			value: "send",
+		},
+	])
+	if (choice) {
+		console.log("Delete Contact")
+		//contactModel.delete(contact)
+	}
+}
+
 async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, mailModel: MailModel, mailIds: ReadonlyArray<IdTuple>) {
 	//type confirmationData = { _id: IdTuple; name: string }
+	if (mailIds.length === 1) {
+		console.log("Maybe we should show a different screen for single move?")
+		//await warnUserSingleContactMoveMailToSpam(contactModel, mailModel, mailIds[0])
+	}
 	const contacts = await contactModel.loadAllContacts()
 	const addressToContactMap = contacts.reduce((contactMap, contact) => {
 		//const contactConfirmationData: confirmationData = { _id: contact._id, name: getContactDisplayName(contact) }
@@ -193,7 +221,7 @@ async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, ma
 	const mailsWithContacts = mails
 		.filter((m) => addressToContactMap.has(m.sender.address))
 		.map((mail) => ({ mail, contact: assertNotNull(addressToContactMap.get(mail.sender.address)) }))
-	showContactImportDialog(
+	showContactSelectionDialog(
 		mailsWithContacts.map((mc) => mc.contact),
 		(dialog: Dialog, selectedContacts: Contact[]) => {
 			console.log("selected... ", selectedContacts)
