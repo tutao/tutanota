@@ -135,7 +135,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 	private async showSwitchDialog(): Promise<void> {
 		const userController = locator.logins.getUserController()
 		const customerInfo = await userController.loadCustomerInfo()
-		const customer = await userController.loadCustomer()
+		const customer = await userController.reloadCustomer()
 		const accountingInfo = await userController.loadAccountingInfo()
 		const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 		const lastBooking = last(bookings)

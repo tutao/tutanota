@@ -2236,6 +2236,6 @@ export default {
 		"waitApprovalButton_action": "Wait for automatic approval",
 		"fastTrackButtonApproval_action": "Email us to fast-track",
 		"whyThisHappens_msg": "[Learn why this happens →]",
-		"approvalMail_msg": "Approval Mail for",
+		"approvalMail_msg": "Approval Mail for {mailAddress}",
 	}
 }

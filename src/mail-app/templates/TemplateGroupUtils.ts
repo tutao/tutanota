@@ -12,7 +12,7 @@ import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils
  */
 export async function createInitialTemplateListIfAllowed(): Promise<TemplateGroupRoot | null> {
 	const userController = locator.logins.getUserController()
-	const customer = await userController.loadCustomer()
+	const customer = await userController.reloadCustomer()
 	const { getAvailablePlansWithTemplates } = await import("../../common/subscription/utils/SubscriptionUtils.js")
 	let allowed = (await userController.getPlanConfig()).templates || isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
 	if (!allowed) {

@@ -1,6 +1,6 @@
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { InfoLink, lang } from "./LanguageViewModel.js"
-import { defer } from "@tutao/tutanota-utils"
+import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import m from "mithril"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
@@ -32,11 +32,11 @@ export async function showApprovalNeededMessageDialog(): Promise<void> {
 	// Opens a new MailEditor Window with prefilled mailto and subject
 	// mailto=approval@tutao.de, subject=Approval Mail for example@tutanota.de
 	const fastTrackAction = async () => {
-		const mailAddress = locator.logins.getUserController().userGroupInfo.mailAddress
+		const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
 		const { newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor")
 		try {
 			const editor = await newMailtoUrlMailEditor(
-				"mailto:approval@tutao.de?subject=" + lang.getTranslationText("approvalMail_msg") + " " + mailAddress,
+				"mailto:approval@tutao.de?subject=" + lang.getTranslation("approvalMail_msg", { "{mailAddress}": mailAddress }),
 				false,
 			)
 			editor?.show()

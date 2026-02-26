@@ -2235,7 +2235,7 @@ export default {
 		"waitApprovalButton_action": "Auf automatische Freigabe warten",
 		"fastTrackButtonApproval_action": "Schreibe uns eine Email",
 		"whyThisHappens_msg": "[Erfahre warum das passiert →]",
-		"approvalMail_msg": "Freigabe-Mail für",
+		"approvalMail_msg": "Freigabe-Mail für {mailAddress}",
 		"oneStep_label": "Ein letzter Schritt zur Privatsphäre"
 	}
 }

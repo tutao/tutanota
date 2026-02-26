@@ -16,7 +16,7 @@ o.spec("CalendarNotificationModel", function () {
 		userController = object()
 		customer = object()
 		logins = object()
-		when(userController.loadCustomer()).thenResolve(customer)
+		when(userController.reloadCustomer()).thenResolve(customer)
 		when(logins.getUserController()).thenReturn(userController)
 	})
 

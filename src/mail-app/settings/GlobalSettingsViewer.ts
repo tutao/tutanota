@@ -390,7 +390,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		available: Array<GroupData>
 		selected: GroupData | null
 	}> {
-		const customer = await locator.logins.getUserController().loadCustomer()
+		const customer = await locator.logins.getUserController().reloadCustomer()
 		const teamMailGroups = await loadEnabledTeamMailGroups(customer)
 		const userMailGroups = await loadEnabledUserMailGroups(customer)
 		const allMailGroups = teamMailGroups.concat(userMailGroups)

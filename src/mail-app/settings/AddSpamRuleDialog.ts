@@ -96,7 +96,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 
 async function loadData(): Promise<LoadedData> {
 	const customerServerProperties = await locator.customerFacade.loadCustomerServerProperties()
-	const customer = await locator.logins.getUserController().loadCustomer()
+	const customer = await locator.logins.getUserController().reloadCustomer()
 	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
 	const customDomains = customerInfo.domainInfos.map((d) => d.domain)

@@ -284,7 +284,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 	private updateAuditLog(): Promise<void> {
 		return locator.logins
 			.getUserController()
-			.loadCustomer()
+			.reloadCustomer()
 			.then((customer) => {
 				this.customer = customer
 

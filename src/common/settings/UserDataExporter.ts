@@ -52,7 +52,7 @@ export async function loadUserExportData(
 	onProgress?: (complete: number, total: number) => unknown,
 	abortSignal?: AbortSignal,
 ): Promise<UserExportData[]> {
-	const customer = await logins.getUserController().loadCustomer()
+	const customer = await logins.getUserController().reloadCustomer()
 	const groupsAdministeredByUser = await entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customer._id)
 

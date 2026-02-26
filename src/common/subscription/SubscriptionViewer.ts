@@ -533,7 +533,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private async updateBookings(): Promise<void> {
 		const userController = locator.logins.getUserController()
 
-		const customer = await userController.loadCustomer()
+		const customer = await userController.reloadCustomer()
 		let customerInfo: CustomerInfo
 		try {
 			customerInfo = await userController.loadCustomerInfo()

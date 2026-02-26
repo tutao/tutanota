@@ -433,7 +433,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private loadCustomer(): Promise<Customer> {
-		return locator.logins.getUserController().loadCustomer()
+		return locator.logins.getUserController().reloadCustomer()
 	}
 
 	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {

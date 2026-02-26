@@ -159,7 +159,7 @@ export async function hasPlanWithInvites(loginController: LoginController): Prom
 		return false
 	}
 
-	const customer = await loginController.getUserController().loadCustomer()
+	const customer = await loginController.getUserController().reloadCustomer()
 
 	return (await userController.getPlanConfig()).eventInvites
 }

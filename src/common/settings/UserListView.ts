@@ -68,7 +68,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		// doing it after "onSelectionChanged" is initialized
 		this.listModel = this.makeListModel()
 		this.listId = new LazyLoaded(async () => {
-			const customer = await locator.logins.getUserController().loadCustomer()
+			const customer = await locator.logins.getUserController().reloadCustomer()
 			return customer.userGroups
 		})
 

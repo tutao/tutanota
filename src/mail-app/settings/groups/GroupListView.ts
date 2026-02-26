@@ -57,7 +57,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		this.listId = new LazyLoaded(() => {
 			return locator.logins
 				.getUserController()
-				.loadCustomer()
+				.reloadCustomer()
 				.then((customer) => {
 					return customer.teamGroups
 				})

@@ -30,7 +30,7 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 			customerProperties.lastUpgradeReminder != null &&
 			date.getTime() - customerProperties.lastUpgradeReminder.getTime() > Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS
 		return isOldEnoughForInitialReminder || wasRemindedLongAgo
-	} else if (!(await userController.loadCustomer()).businessUse) {
+	} else if (!(await userController.reloadCustomer()).businessUse) {
 		// i'm a private legacy paid account. show once.
 		// we don't have to check account age - all legacy accounts are old enough by now.
 		return customerProperties.lastUpgradeReminder == null || customerProperties.lastUpgradeReminder.getTime() < reminderCutoffDate.getTime()

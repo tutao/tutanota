@@ -1383,7 +1383,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 
 	const createKnowledgebaseButtonAttrs = async (editor: Editor) => {
 		if (locator.logins.isInternalUserLoggedIn()) {
-			const customer = await locator.logins.getUserController().loadCustomer()
+			const customer = await locator.logins.getUserController().reloadCustomer()
 			// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
 			if (
 				styles.isDesktopLayout() &&

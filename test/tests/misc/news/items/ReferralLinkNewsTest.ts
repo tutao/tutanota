@@ -46,7 +46,7 @@ o.spec("ReferralLinkNews", function () {
 		replace(userController, "user", user)
 		replace(user, "customer", timestampToGeneratedId(0))
 		replace(customer, "referralCode", "referralCodeId")
-		when(userController.loadCustomer()).thenResolve(customer)
+		when(userController.reloadCustomer()).thenResolve(customer)
 
 		referralLinkNews = new ReferralLinkNews(newsModel, dateProvider, userController)
 	})

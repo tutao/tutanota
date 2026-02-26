@@ -27,7 +27,7 @@ export class ReferralLinkNews implements NewsListItem {
 
 	async isShown(): Promise<boolean> {
 		// Do not show this for business customers yet (not allowed to create referral links)
-		if ((await this.userController.loadCustomer()).businessUse === true) {
+		if ((await this.userController.reloadCustomer()).businessUse === true) {
 			return false
 		}
 

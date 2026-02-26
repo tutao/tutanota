@@ -27,7 +27,7 @@ import { insertInlineImageB64ClickHandler } from "../mailFunctionality/SharedMai
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
-	userController.loadCustomer().then((customer) => {
+	userController.reloadCustomer().then((customer) => {
 		if (customer.properties) {
 			const customerProperties = new LazyLoaded(() => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 			return customerProperties
@@ -290,6 +290,6 @@ function getDefaultNotificationMail(): string {
 function loadCustomerInfo(): Promise<CustomerInfo | null> {
 	return locator.logins
 		.getUserController()
-		.loadCustomer()
+		.reloadCustomer()
 		.then((customer) => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))
 }

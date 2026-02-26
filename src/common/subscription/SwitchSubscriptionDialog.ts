@@ -531,7 +531,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 	}
 
 	const userController = locator.logins.getUserController()
-	const customer = await userController.loadCustomer()
+	const customer = await userController.reloadCustomer()
 	if (!customer.businessUse && NewBusinessPlans.includes(downcast(targetSubscription))) {
 		const accountingInfo = await userController.loadAccountingInfo()
 		const invoiceData: InvoiceData = {

@@ -466,7 +466,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	}
 
 	private async updateShowBusinessSettings() {
-		this.showBusinessSettings((await this.logins.getUserController().loadCustomer()).businessUse)
+		this.showBusinessSettings((await this.logins.getUserController().reloadCustomer()).businessUse)
 	}
 
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {

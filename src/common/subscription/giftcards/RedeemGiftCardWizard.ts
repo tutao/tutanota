@@ -164,7 +164,7 @@ class RedeemGiftCardModel {
 		}
 
 		await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
-		const customer = await this.logins.getUserController().loadCustomer()
+		const customer = await this.logins.getUserController().reloadCustomer()
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 

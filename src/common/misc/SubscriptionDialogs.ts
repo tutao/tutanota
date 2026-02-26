@@ -134,7 +134,7 @@ async function showSwitchPlanDialog(userController: UserController, acceptedPlan
 	const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")
 	return showSwitchDialog({
-		customer: await userController.loadCustomer(),
+		customer: await userController.reloadCustomer(),
 		accountingInfo: await userController.loadAccountingInfo(),
 		lastBooking: assertNotNull(bookings[0]),
 		acceptedPlans,

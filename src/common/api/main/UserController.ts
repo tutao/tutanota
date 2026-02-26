@@ -63,6 +63,7 @@ export class UserController {
 		public readonly loginUsername: string,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly customer: Customer,
 	) {
 		this.planConfig = null
 	}
@@ -111,17 +112,21 @@ export class UserController {
 		return isInternalUser(this.user)
 	}
 
-	loadCustomer(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<Customer> {
+	reloadCustomer(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<Customer> {
 		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { cacheMode })
 	}
 
+	getCustomer(): Customer {
+		return this.customer
+	}
+
 	async loadCustomerInfo(): Promise<CustomerInfo> {
-		const customer = await this.loadCustomer()
+		const customer = await this.reloadCustomer()
 		return await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 	}
 
 	async loadCustomerProperties(): Promise<CustomerProperties> {
-		const customer = await this.loadCustomer()
+		const customer = await this.reloadCustomer()
 		return await this.entityClient.load(CustomerPropertiesTypeRef, assertNotNull(customer.properties))
 	}
 
@@ -157,7 +162,7 @@ export class UserController {
 	 * Checks if the current plan allows adding users and groups.
 	 */
 	async canHaveUsers(): Promise<boolean> {
-		const customer = await this.loadCustomer()
+		const customer = await this.reloadCustomer()
 		const planType = await this.getPlanType()
 		const planConfig = await this.getPlanConfig()
 
@@ -381,7 +386,7 @@ export async function initUserController({
 	loginUsername,
 }: UserControllerInitData): Promise<UserController> {
 	const entityClient = locator.entityClient
-	const [props, userSettingsGroupRoot] = await Promise.all([
+	const [props, userSettingsGroupRoot, customer] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
 		entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group).catch(
 			ofClass(NotFoundError, () =>
@@ -400,6 +405,7 @@ export async function initUserController({
 					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
 			),
 		),
+		entityClient.load(CustomerTypeRef, assertNotNull(user.customer)),
 	])
 	return new UserController(
 		user,
@@ -412,5 +418,6 @@ export async function initUserController({
 		loginUsername,
 		entityClient,
 		locator.serviceExecutor,
+		customer,
 	)
 }

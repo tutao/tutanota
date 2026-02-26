@@ -61,7 +61,7 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 		.getUserController()
 		// the server doesn't push an update for the approval status change, so we have to make sure we're loading the
 		// instance from the network instead of relying on the entity updates to be applied to our cached version
-		.loadCustomer(CacheMode.WriteOnly)
+		.reloadCustomer(CacheMode.WriteOnly)
 
 	const approvalStatus = getCustomerApprovalStatus(customer)
 	const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null ? defaultStatus : approvalStatus

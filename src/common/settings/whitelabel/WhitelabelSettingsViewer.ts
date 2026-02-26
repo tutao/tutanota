@@ -74,7 +74,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this.view = this.view.bind(this)
 		this._entityClient = entityClient
 		this._logins = logins
-		this._customer = new LazyLoaded(() => locator.logins.getUserController().loadCustomer())
+		this._customer = new LazyLoaded(() => locator.logins.getUserController().reloadCustomer())
 		this._customerInfo = new LazyLoaded(() => locator.logins.getUserController().loadCustomerInfo())
 		this._planConfig = new LazyLoaded(() => locator.logins.getUserController().getPlanConfig())
 		this._customerProperties = new LazyLoaded(() =>

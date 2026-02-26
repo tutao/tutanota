@@ -760,7 +760,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	private async updateShowBusinessSettings() {
-		this.showBusinessSettings((await this.logins.getUserController().loadCustomer()).businessUse === true)
+		this.showBusinessSettings((await this.logins.getUserController().reloadCustomer()).businessUse === true)
 	}
 
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
@@ -934,7 +934,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	async _makeKnowledgeBaseFolders(): Promise<Array<SettingsFolder<void>>> {
 		const userController = this.logins.getUserController()
-		const customer = await userController.loadCustomer()
+		const customer = await userController.reloadCustomer()
 
 		if (isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
 			const templateMemberships = (this.logins.getUserController() && this.logins.getUserController().getTemplateMemberships()) || []
@@ -965,7 +965,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	private async updateShowAffiliateSettings() {
-		const customer = await this.logins.getUserController().loadCustomer()
+		const customer = await this.logins.getUserController().reloadCustomer()
 		this.showAffiliateSettings =
 			isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner) && !this.logins.isEnabled(FeatureType.SolutionPartner)
 	}

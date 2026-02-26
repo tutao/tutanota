@@ -95,7 +95,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
  * Get the referral link for the logged-in user
  */
 export async function getReferralLink(userController: UserController, isCalledBySatisfactionDialog: boolean = false): Promise<string> {
-	const customer = await userController.loadCustomer()
+	const customer = await userController.reloadCustomer()
 	const referralCode = customer.referralCode ? customer.referralCode : await requestNewReferralCode()
 	const referralBaseUrl = locator.domainConfigProvider().getCurrentDomainConfig().referralBaseUrl
 	const referralUrl = new URL(referralBaseUrl)

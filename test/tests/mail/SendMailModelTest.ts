@@ -160,7 +160,7 @@ o.spec("SendMailModel", () => {
 		userController = object<UserController>()
 		replace(userController, "user", user)
 		replace(userController, "props", tutanotaProperties)
-		when(userController.loadCustomer()).thenResolve(createTestEntity(CustomerTypeRef))
+		when(userController.reloadCustomer()).thenResolve(createTestEntity(CustomerTypeRef))
 
 		const loginController = object<LoginController>()
 		when(loginController.isInternalUserLoggedIn()).thenReturn(true)

@@ -456,7 +456,7 @@ export async function createAccount(data: UpgradeSubscriptionData | SignupViewMo
 
 	if (!data.customer || !data.accountingInfo) {
 		const userController = locator.logins.getUserController()
-		data.customer = await userController.loadCustomer()
+		data.customer = await userController.reloadCustomer()
 		const customerInfo = await userController.loadCustomerInfo()
 		data.accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 	}

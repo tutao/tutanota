@@ -31,7 +31,7 @@ o.spec("user data export", function () {
 
 		loginsMock = object()
 		when(loginsMock.getUserController()).thenReturn({
-			loadCustomer: () =>
+			reloadCustomer: () =>
 				Promise.resolve(
 					createTestEntity(CustomerTypeRef, {
 						userGroups: userGroupsId,

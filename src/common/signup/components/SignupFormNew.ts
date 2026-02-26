@@ -144,7 +144,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		this.dom = vnode.dom as HTMLElement
 		try {
 			const userController = locator.logins.getUserController()
-			this.readonly = (await userController.loadCustomer()) !== null
+			this.readonly = (await userController.reloadCustomer()) !== null
 		} catch (e) {
 			this.readonly = false
 		}

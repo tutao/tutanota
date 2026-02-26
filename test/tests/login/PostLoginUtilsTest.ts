@@ -30,7 +30,7 @@ o.spec("PostLoginUtils", () => {
 
 			when(userController.loadCustomerInfo()).thenResolve(customerInfo)
 			when(userController.loadCustomerProperties()).thenResolve(customerProperties)
-			when(userController.loadCustomer()).thenResolve(customer)
+			when(userController.reloadCustomer()).thenResolve(customer)
 		})
 
 		o("should show for free accounts for the first time if they are old enough", async () => {

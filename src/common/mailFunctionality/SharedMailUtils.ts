@@ -168,7 +168,7 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 
 	return loginController
 		.getUserController()
-		.loadCustomer()
+		.reloadCustomer()
 		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 		.then((customerProperties) => {
 			return sortedLanguages.filter((sL) => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
