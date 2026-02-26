@@ -37,6 +37,7 @@ import Stream from "mithril/stream"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { MoveItems } from "./DriveMoveItemDialog"
+import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -197,6 +198,20 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					)
 					dropdown.setOrigin(getDetachedDropdownBounds())
 					modal.displayUnique(dropdown, false)
+				},
+			},
+			{
+				key: Keys.V,
+				enabled: () => true,
+				help: "move_action",
+				exec: () => {
+					const selectedItems = this.driveViewModel.listState().selectedItems
+					if (selectedItems.size === 1) {
+						const [selectedItem] = [...selectedItems]
+						vnode.attrs.showMoveItemDialog(selectedItem, (items: readonly FolderItemId[], destination: DriveFolder) =>
+							this.driveViewModel.moveItems(items, destination),
+						)
+					}
 				},
 			},
 		]
