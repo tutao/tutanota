@@ -1,8 +1,9 @@
-import { AesKey, FIXED_IV, generateIV, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { AesKey, FIXED_IV, generateIV, IV_BYTE_LENGTH, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
 import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
 import { assert } from "@tutao/tutanota-utils"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
+import { random } from "../../random/Randomizer"
 
 /**
  * This facade contains all methods for encryption/ decryption for symmetric encryption incl. AES-128 and AES-256 in CBC mode or AEAD.
@@ -13,7 +14,14 @@ import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
  * In case of AEAD, there is additional associated data. Needed both for encryption and decryption, but it is not part of the created ciphertext.
  */
 export class SymmetricCipherFacade {
-	constructor(private readonly aesCbcFacade: AesCbcFacade) {}
+	/** whether we can use SubtleCrypto for big chunks of data (we use JS impl for most encryption) */
+	private readonly subtleCryptoAvailable: boolean
+	constructor(private readonly aesCbcFacade: AesCbcFacade) {
+		this.subtleCryptoAvailable = crypto.subtle != null
+		if (!this.subtleCryptoAvailable) {
+			console.log("SubtleCrypto is not available, falling back to JS AES impl of decryption")
+		}
+	}
 
 	/**
 	 * Encrypts a byte array with AES in CBC mode.
@@ -66,6 +74,14 @@ export class SymmetricCipherFacade {
 	 */
 	public decryptBytes(key: AesKey, bytes: Uint8Array): Uint8Array {
 		return this.decrypt(key, bytes, true)
+	}
+
+	public async asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {
+		if (this.subtleCryptoAvailable) {
+			return this.decryptAsync(key, bytes)
+		} else {
+			return this.decrypt(key, bytes, true)
+		}
 	}
 
 	/**
@@ -174,6 +190,29 @@ export class SymmetricCipherFacade {
 				throw new Error("not yet enabled")
 			}
 		}
+	}
+
+	private decryptAsync(
+		key: AesKey,
+		cipherText: Uint8Array,
+		hasPrependedIv: boolean = true,
+		skipAuthenticationEnforcement: boolean = false,
+	): Promise<Uint8Array> {
+		const cipherVersion = getSymmetricCipherVersion(cipherText)
+		switch (cipherVersion) {
+			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				return this.aesCbcFacade.decryptAsync(key, cipherText, hasPrependedIv, cipherVersion, skipAuthenticationEnforcement)
+			}
+			case SymmetricCipherVersion.Aead: {
+				// use this as soon as we define what to use as associated data
+				throw new Error("not yet enabled")
+			}
+		}
+	}
+
+	private generateIV(): Uint8Array {
+		return random.generateRandomData(IV_BYTE_LENGTH)
 	}
 }
 export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE)

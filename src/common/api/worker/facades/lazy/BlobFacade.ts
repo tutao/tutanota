@@ -9,7 +9,6 @@ import {
 	getFirstOrThrow,
 	groupBy,
 	isEmpty,
-	mapMap,
 	neverNull,
 	noOp,
 	promiseMap,
@@ -23,7 +22,7 @@ import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { isSuspensionResponse, SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
-import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
@@ -554,10 +553,11 @@ export class BlobFacade {
 				mapWithEncryptedBlobs.set(k, v)
 			}
 		}
-		return mapMap(mapWithEncryptedBlobs, (blob) => {
+		const processedBlobEntries = await promiseMap(Array.from(mapWithEncryptedBlobs.entries()), async ([blobId, blob]) => {
 			abortSignal?.throwIfAborted()
-			return aesDecrypt(sessionKey, blob)
+			return [blobId, await asyncDecryptBytes(sessionKey, blob)] as const
 		})
+		return new Map(processedBlobEntries)
 	}
 
 	/**

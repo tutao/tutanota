@@ -5,6 +5,7 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	AsymmetricKeyPair,
+	asyncDecryptBytes,
 	bitArrayToUint8Array,
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
@@ -25,6 +26,7 @@ import {
 	hexToRsaPublicKey,
 	hkdf,
 	hmacSha256,
+	hmacSha256Async,
 	IV_BYTE_LENGTH,
 	KeyLength,
 	KeyPairType,
@@ -41,6 +43,7 @@ import {
 	rsaEncrypt,
 	uint8ArrayToKey,
 	verifyHmacSha256,
+	verifyHmacSha256Async,
 	x25519Decapsulate,
 	x25519Encapsulate,
 } from "@tutao/tutanota-crypto"
@@ -135,6 +138,31 @@ o.spec("CompatibilityTest", function () {
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
+		}
+	})
+
+	o.test("aes 256 async", async function () {
+		for (const td of testData.aes256Tests) {
+			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
+
+			let decryptedBytes = uint8ArrayToBase64(await asyncDecryptBytes(key, base64ToUint8Array(td.cipherTextBase64)))
+			o.check(decryptedBytes).equals(td.plainTextBase64)
+		}
+	})
+	o.test("aes 128 async", async function () {
+		for (const td of testData.aes128Tests) {
+			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
+
+			let decryptedBytes = uint8ArrayToBase64(await asyncDecryptBytes(key, base64ToUint8Array(td.cipherTextBase64)))
+			o.check(decryptedBytes).equals(td.plainTextBase64)
+		}
+	})
+	o.test("aes 128 async mac", async function () {
+		for (const td of testData.aes128MacTests) {
+			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
+
+			let decryptedBytes = uint8ArrayToBase64(await asyncDecryptBytes(key, base64ToUint8Array(td.cipherTextBase64)))
+			o.check(decryptedBytes).equals(td.plainTextBase64)
 		}
 	})
 
@@ -299,6 +327,16 @@ o.spec("CompatibilityTest", function () {
 			const hmacSha256Tag = hexToUint8Array(td.hmacSha256TagHex) as MacTag
 			o(hmacSha256(key, data)).deepEquals(hmacSha256Tag)
 			verifyHmacSha256(key, data, hmacSha256Tag)
+		}
+	})
+
+	o.test("async-hmac-sha256", async function () {
+		for (const td of testData.hmacSha256Tests) {
+			const key = uint8ArrayToKey(hexToUint8Array(td.keyHex))
+			const data = hexToUint8Array(td.dataHex)
+			const hmacSha256Tag = hexToUint8Array(td.hmacSha256TagHex) as MacTag
+			o.check(await hmacSha256Async(key, data)).deepEquals(hmacSha256Tag)
+			await verifyHmacSha256Async(key, data, hmacSha256Tag)
 		}
 	})
 
