@@ -34,6 +34,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		const isLoggedIn = logins.isUserLoggedIn()
 		const userController = logins.getUserController()
 
+		const customer = logins.getCustomer()
 		return m(
 			"drawer-menu.flex.col.items-center.pt-16.pb-16.noprint",
 			{
@@ -66,7 +67,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								: null,
 						])
 					: null,
-				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount()
+				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !customer?.businessUse
 					? m(IconButton, {
 							icon: Icons.Gift,
 							title: "buyGiftCard_label",

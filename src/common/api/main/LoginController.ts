@@ -16,6 +16,7 @@ import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
 import { InvalidModelError } from "../common/error/InvalidModelError"
+import { Customer } from "../entities/sys/TypeRefs"
 
 assertMainOrNodeBoot()
 
@@ -43,6 +44,7 @@ export class LoginController {
 	private postLoginActions: Array<lazy<Promise<PostLoginAction>>> = []
 	private fullyLoggedIn: boolean = false
 	private atLeastPartiallyLoggedIn: boolean = false
+	private customer: Customer | null = null
 
 	constructor(
 		private readonly loginFacade: LoginFacade,
@@ -106,6 +108,8 @@ export class LoginController {
 	async onPartialLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
+
+		this.customer = await this.userController.loadCustomer(CacheMode.ReadOnly)
 
 		if (!isAdminClient()) {
 			await this.loadCustomizations()
@@ -221,6 +225,10 @@ export class LoginController {
 
 	waitForPartialLogin(): Promise<void> {
 		return this.partialLogin.promise
+	}
+
+	getCustomer(): Customer | null {
+		return this.customer
 	}
 
 	async waitForFullLogin(): Promise<void> {
