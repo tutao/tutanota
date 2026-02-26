@@ -73,6 +73,8 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
+
+		Log.d(TAG, "provideGlance called")
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
 		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
@@ -81,12 +83,17 @@ class Agenda : GlanceAppWidget() {
 		val lastSyncPreferencesKey = stringPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
 
 		provideContent {
+
+			Log.d(TAG, "provideContent called")
+
 			val data by widgetUIViewModel.uiState.collectAsState()
 			val error by widgetUIViewModel.error.collectAsState()
 
 			val preferences = currentState<Preferences>()
 
-			LaunchedEffect(preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]) {
+			LaunchedEffect(
+				preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
+			) {
 				widgetUIViewModel.loadUIState(context, LocalDateTime.now())
 			}
 
@@ -127,7 +134,14 @@ class Agenda : GlanceAppWidget() {
 		}
 
 		val widgetUIViewModel =
-			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, crypto, sdk, Calendar.getInstance())
+			WidgetUIViewModel(
+				context.widgetDataRepository,
+				appWidgetId,
+				nativeCredentialsFacade,
+				crypto,
+				sdk,
+				Calendar.getInstance()
+			)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		return Pair(widgetUIViewModel, userId)

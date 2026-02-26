@@ -1,11 +1,13 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_EVENTS_CACHE
 import de.tutao.calendar.widget.widgetCacheDataStore
+import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.BirthdayEvent
 import de.tutao.tutasdk.CalendarEvent
 import de.tutao.tutasdk.GeneratedId
@@ -23,6 +25,8 @@ import java.util.TimeZone
 
 class WidgetDataRepository() : WidgetRepository() {
 	companion object {
+		private const val TAG = "WidgetDataRepository"
+
 		@Volatile
 		private var instance: WidgetDataRepository? = null
 
@@ -57,13 +61,21 @@ class WidgetDataRepository() : WidgetRepository() {
 		cryptoFacade: AndroidNativeCryptoFacade,
 		credentials: UnencryptedCredentials
 	) {
+		Log.i(TAG, "Storing new eventsMap with ${eventsMap.size} calendars")
 		val key = credentials.databaseKey ?: return
 
 		val encryptedEventListMap: MutableMap<GeneratedId, String> = mutableMapOf()
 		for ((calendar, eventList) in eventsMap) {
+			Log.i(
+				TAG,
+				"Storing ${eventList.shortEvents.size} short events and ${eventList.longEvents.size} long events for calendar ${calendar}"
+			)
+
 			val jsonEncodedEventList = json.encodeToString(eventList)
 
 			val encryptedData = cryptoFacade.aesEncryptData(key.data, jsonEncodedEventList.toByteArray())
+			Log.d(TAG, "Encrypted calendar size: ${encryptedData.size} bytes")
+
 			val base64String = encryptedData.toBase64()
 			encryptedEventListMap[calendar] = base64String
 		}
@@ -92,19 +104,26 @@ class WidgetDataRepository() : WidgetRepository() {
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
 		val preferences = context.widgetCacheDataStore.data.first()
+		Log.i(TAG, "Reading dataStore. Looking for key $preferencesKey")
 		val encodedEventsJson = preferences[preferencesKey] ?: return mapOf()
 
 		val encodedEvents = json.decodeFromString<Map<GeneratedId, String>>(encodedEventsJson)
 		val eventsMap: MutableMap<GeneratedId, CalendarEventListDao> = mutableMapOf()
 
+		Log.i(TAG, "Decrypting events from cache. Found ${encodedEvents.size} cached calendars")
 		for ((calendar, encryptedEvents) in encodedEvents) {
 			val decodedEvents = encryptedEvents.base64ToBytes()
 			val decryptedEvents = cryptoFacade.aesDecryptData(key.data, decodedEvents)
 			val eventsJson = String(decryptedEvents)
 
 			eventsMap[calendar] = json.decodeFromString(eventsJson)
+			Log.i(
+				TAG,
+				"Calendar $calendar decrypted.\nProcessed ${eventsMap[calendar]?.shortEvents?.size} short events.\nProcessed ${eventsMap[calendar]?.longEvents?.size} long events"
+			)
 		}
 
+		Log.i(TAG, "Finished loading from dataStore cache")
 		return eventsMap
 	}
 
@@ -133,14 +152,27 @@ class WidgetDataRepository() : WidgetRepository() {
 		val end = (systemCalendar.timeInMillis).toULong()
 
 		calendars.forEach { calendarId ->
-			val events = calendarFacade.getCalendarEvents(calendarId, start, end)
-			calendarEventListMap = calendarEventListMap.plus(
-				calendarId to CalendarEventListDao(
-					events.shortEvents.toDao(),
-					events.longEvents.toDao(),
-					events.birthdayEvents.asDao()
+			try {
+				val events = calendarFacade.getCalendarEvents(calendarId, start, end)
+				Log.i(
+					TAG,
+					"Calendar $calendarId loaded. Found ${events.shortEvents.size} short events. Found ${events.longEvents.size} long events"
 				)
-			)
+				calendarEventListMap = calendarEventListMap.plus(
+					calendarId to CalendarEventListDao(
+						events.shortEvents.toDao(),
+						events.longEvents.toDao(),
+						events.birthdayEvents.asDao()
+					)
+				)
+			} catch (e: ApiCallException.InternalSdkException) {
+				if (e.message.contains("Missing membership")) {
+					Log.e(TAG, "InternalSdkException occurred", e)
+					Log.w(TAG, "Missing membership for $calendarId. Calendar will be removed from local cache.")
+				} else {
+					throw e
+				}
+			}
 		}
 
 		storeCache(context, widgetId, calendarEventListMap, cryptoFacade, credentials)
@@ -155,6 +187,7 @@ class WidgetDataRepository() : WidgetRepository() {
 		credentials: UnencryptedCredentials,
 		cryptoFacade: AndroidNativeCryptoFacade
 	): Map<GeneratedId, CalendarEventListDao> {
+		Log.i(TAG, "Init loadEvents from cache...")
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
 		val cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> =
 			loadCache(context, widgetId, calendars, cryptoFacade, credentials).toMutableMap()
