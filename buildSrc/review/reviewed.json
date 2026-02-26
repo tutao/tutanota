@@ -6378,5 +6378,15 @@
 		"who": "ivk",
 		"when": "2026-02-25",
 		"hash": "ff348915c27c3625f856a2d81b33374361fe5f3871aa5c9a26cfd6ee424b93d2"
+	},
+	"node_modules/y18n/build/index.cjs": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "6270f7d3129bc8891340b0f8405e252b7f8073bc5c912aa70377a5f292f21568"
+	},
+	"node_modules/yargs-parser/build/index.cjs": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "90524bb194d98914fb13d777c768ce737da46f8e35ce185a6ce82e933402dce4"
 	}
 }
