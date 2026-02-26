@@ -116,6 +116,63 @@ export class AesCbcFacade {
 		}
 	}
 
+	async decryptAsync(
+		key: AesKey,
+		cipherText: Uint8Array,
+		ivIsPrepended: boolean,
+		cipherVersion: SymmetricCipherVersion,
+		skipAuthenticationEnforcement: boolean = false,
+	): Promise<Uint8Array> {
+		const subtle = crypto.subtle
+
+		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		let cipherTextWithoutMacAndVersionByte: Uint8Array
+		switch (cipherVersion) {
+			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+				cipherTextWithoutMacAndVersionByte = cipherText
+				break
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				const authenticationKey = assertNotNull(subKeys.authenticationKey)
+				cipherTextWithoutMacAndVersionByte = cipherText.subarray(
+					SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
+					cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES,
+				)
+				const providedMacBytes = cipherText.subarray(cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, cipherText.length)
+				const subtleAuthenticationKey = await subtle.importKey(
+					"raw",
+					bitArrayToUint8Array(authenticationKey),
+					{ name: "HMAC", hash: "SHA-256" },
+					false,
+					["verify"],
+				)
+				const verified = await subtle.verify("HMAC", subtleAuthenticationKey, providedMacBytes, cipherTextWithoutMacAndVersionByte)
+				if (!verified) {
+					throw new CryptoError("invalid HMAC")
+				}
+				// verifyHmacSha256(authenticationKey, cipherTextWithoutMacAndVersionByte, providedMacBytes as MacTag)
+				break
+			}
+			default:
+				throw new Error("unexpected cipher version " + cipherVersion)
+		}
+		let iv: Uint8Array
+		let aesCbcCiphertext: Uint8Array
+		if (ivIsPrepended) {
+			iv = cipherTextWithoutMacAndVersionByte.subarray(0, IV_BYTE_LENGTH)
+			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte.subarray(IV_BYTE_LENGTH, cipherTextWithoutMacAndVersionByte.length)
+		} else {
+			iv = FIXED_IV
+			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte
+		}
+		try {
+			const encryptionKey = await subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
+			return new Uint8Array(await subtle.decrypt({ name: "AES-C	BC", iv }, encryptionKey, aesCbcCiphertext))
+		} catch (e) {
+			throw new CryptoError("aes decryption failed", e as Error)
+		}
+	}
+
 	private tryToEnforceAuthentication(key: AesKey, cipherVersion: SymmetricCipherVersion, skipAuthenticationEnforcement: boolean) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryptions which are only possible for 128-bit keys

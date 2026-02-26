@@ -2,6 +2,7 @@ import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { CryptoError } from "../misc/CryptoError.js"
 import { Aes256Key, AesKey, IV_BYTE_LENGTH } from "./symmetric/SymmetricCipherUtils.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
+import { getSymmetricCipherVersion } from "./symmetric/SymmetricCipherVersion"
 
 /**
  * Encrypts bytes with AES128 or AES256 in CBC mode.
@@ -49,6 +50,10 @@ export function aes256EncryptSearchIndexEntryWithIV(key: Aes256Key, bytes: Uint8
  */
 export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array {
 	return SYMMETRIC_CIPHER_FACADE.decryptBytes(key, encryptedBytes)
+}
+
+export function asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {
+	return SYMMETRIC_CIPHER_FACADE.asyncDecryptBytes(key, bytes)
 }
 
 /**

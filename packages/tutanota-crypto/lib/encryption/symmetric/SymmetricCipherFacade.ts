@@ -69,6 +69,11 @@ export class SymmetricCipherFacade {
 		return this.decrypt(key, bytes, true)
 	}
 
+	public asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {
+		const cipherVersion = getSymmetricCipherVersion(bytes)
+		return this.aesCbcFacade.decryptAsync(key, bytes, true, cipherVersion)
+	}
+
 	/**
 	 * Decrypts byte array without enforcing authentication.
 	 *

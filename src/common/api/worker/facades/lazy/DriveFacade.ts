@@ -255,6 +255,8 @@ export class DriveFacade {
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
+	test() {}
+
 	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder, renamedFiles: Map<Id, string>): Promise<Id> {
 		const fileItems = await promiseMap(files, async (file) => {
 			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
