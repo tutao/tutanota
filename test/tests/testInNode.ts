@@ -51,17 +51,6 @@ globalThis.performance = {
 	mark: noOp,
 	measure: noOp,
 }
-// modern node *does* have it set globally but it sometimes doesn't work
-const crypto = await import("node:crypto")
-Object.defineProperty(globalThis, "crypto", {
-	value: {
-		getRandomValues: function (bytes) {
-			let randomBytes = crypto.randomBytes(bytes.length)
-			bytes.set(randomBytes)
-			return bytes
-		},
-	},
-})
 
 globalThis.XMLHttpRequest = (await import("xhr2")).default
 process.on("unhandledRejection", function (e) {
