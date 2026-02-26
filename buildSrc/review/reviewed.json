@@ -6388,5 +6388,70 @@
 		"who": "ivk",
 		"when": "2026-02-26",
 		"hash": "90524bb194d98914fb13d777c768ce737da46f8e35ce185a6ce82e933402dce4"
+	},
+	"node_modules/ansi-regex/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "c92312790eb1f246b7c4c1fe9c1247b15441bbca3c6cb64d167beefc45302753"
+	},
+	"node_modules/strip-ansi/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "bf37cd692bf030c2ec270945bc26aa8b19ad379fa5916f12304758f709ab0978"
+	},
+	"node_modules/is-fullwidth-code-point/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "7db24c9c5d58273ba32eee1bec3dfebd393fdeddd0b5879ef01dc595476e6979"
+	},
+	"node_modules/emoji-regex/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "c56978800e47f095cfbfe96712b5e78d150d1f62e32bb4943675213fce481ef0"
+	},
+	"node_modules/string-width/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "ed69ea4f757130e46dc48a0cc31beb6257e61a31c70936d82b8a3f02ffd64df5"
+	},
+	"node_modules/cliui/node_modules/wrap-ansi/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "a958f56f7d15e97092bcb7cad7acc180245f212bc5ef12c6565d4679dc7fd383"
+	},
+	"node_modules/cliui/build/index.cjs": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "823ef43f80d26a74e9335564a66a212e0367bfc17a54a6949bc2af7065b4a331"
+	},
+	"node_modules/escalade/sync/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "bf89be2b8bb2eb86c19ce0a3598e19fe91ad689a64710607e6cbb3e15c076d4f"
+	},
+	"node_modules/get-caller-file/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "583aba43e0ae0ccfb6c3a790019486990ac9241337dc38005f0189586e18295a"
+	},
+	"node_modules/require-directory/index.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "65eaf8b7b519d6ae7be7ea20382d91a117d9c689897897ce4c2ee798e128a2d3"
+	},
+	"node_modules/yargs/build/index.cjs": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "794228d69604a79871b8c5e52edd01fd0525a2d23f38ec8f164ed34b9c47edf3"
+	},
+	"node_modules/yargs/index.cjs": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "473da31d026034993f1a1a7a930513872c500c037306a20f1b98cb03d9d38fd1"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/nodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-02-26",
+		"hash": "3cbce2482a028f9e3e74e9b552c422a519ed519b22b7a3ad88f04c37e776ae9e"
 	}
 }
