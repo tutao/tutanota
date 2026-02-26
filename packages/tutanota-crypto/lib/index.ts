@@ -2,6 +2,7 @@ export {
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
 	aesDecrypt,
+	asyncDecryptBytes,
 	aes256EncryptSearchIndexEntry,
 	aesDecryptUnauthenticated,
 	aes256EncryptSearchIndexEntryWithIV,

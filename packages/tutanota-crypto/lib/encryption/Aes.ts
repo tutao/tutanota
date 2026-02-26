@@ -51,6 +51,10 @@ export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array 
 	return SYMMETRIC_CIPHER_FACADE.decryptBytes(key, encryptedBytes)
 }
 
+export function asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {
+	return SYMMETRIC_CIPHER_FACADE.asyncDecryptBytes(key, bytes)
+}
+
 /**
  * Decrypts the given words with AES-128/256 in CBC mode. Does not enforce a mac.
  * We always must enforce macs. This only exists for backward compatibility in some exceptional cases like search index entry encryption.
