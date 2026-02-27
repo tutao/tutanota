@@ -21,7 +21,7 @@ import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -138,13 +138,13 @@ class WidgetUIViewModel(
 						TAG,
 						"Missing credentials for user ${settings.userId} when trying to load widget content}", e
 					)
-					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
+					repository.loadEventsFromCache(context, widgetId, calendars, credentials, cryptoFacade)
 				} catch (e: Exception) {
 					Log.e(TAG, "Unknown exception occurred", e)
-					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
+					repository.loadEventsFromCache(context, widgetId, calendars, credentials, cryptoFacade)
 				}
 			} else {
-				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
+				repository.loadEventsFromCache(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
 		val startOfToday = midnightInDate(ZoneId.systemDefault(), now)
@@ -325,7 +325,7 @@ fun openCalendarAgenda(
 	context: Context,
 	userId: String? = "",
 	date: LocalDateTime = LocalDateTime.now(),
-	eventId: IdTuple? = null
+	eventId: IdTupleCustom? = null
 ): Action {
 	val openCalendarAgenda = Intent(context, MainActivity::class.java)
 	openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
