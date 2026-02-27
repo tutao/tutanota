@@ -23,6 +23,7 @@ import {
 	Keys,
 	MailAuthenticationStatus,
 	MailMethod,
+	UNDO_SEND_TIMEOUT_SECONDS,
 } from "../../../common/api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
@@ -146,7 +147,7 @@ const AUTOSAVE_LOCAL_TIMEOUT: number = secondsToMillis(5)
 const AUTOSAVE_REMOTE_TIMEOUT: number = minutesToMillis(5)
 
 // Maximum allowed time before the undo button hides.
-const UNDO_SEND_TIMEOUT: number = secondsToMillis(10)
+const UNDO_SEND_TIMEOUT: number = secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
 
 export type MailEditorAttrs = {
 	model: SendMailModel

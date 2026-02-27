@@ -2236,5 +2236,6 @@ export default {
 		"undoSend_label": "Undo send",
 		"emailScheduled_msg": "Email scheduled",
 		"emailSent_msg": "Email sent",
+		"undoSendMail_msg": "Please note that you can undo an email within {time} seconds of sending it."
 	}
 }
