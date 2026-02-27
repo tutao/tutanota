@@ -27,7 +27,7 @@ import androidx.glance.visibility
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.parseColor
 import java.time.Instant
@@ -106,7 +106,7 @@ fun EventRowTodayPreview() {
 		LocalDateTime.now(),
 		UIEvent(
 			"previewCalendar",
-			IdTuple("", ""),
+			IdTupleCustom("", ""),
 			"2196f3",
 			"Hello Widget",
 			"08:00",
@@ -130,7 +130,7 @@ fun EventRowTomorrowPreview() {
 		LocalDateTime.ofInstant(startOfTomorrow, ZoneId.systemDefault()),
 		UIEvent(
 			"previewCalendar",
-			IdTuple("", ""),
+			IdTupleCustom("", ""),
 			"2196f3",
 			"Hello Widget",
 			"08:00",

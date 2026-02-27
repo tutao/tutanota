@@ -12,6 +12,7 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
+import de.tutao.tutasdk.IdTupleCustom as IdTupleCustomSDK
 
 @Serializable
 enum class OperationType {
@@ -25,17 +26,24 @@ enum class OperationType {
 	DELETE;
 }
 
-@Serializable(with = IdTuple.IdTupleSerializer::class)
-class IdTuple(
+@Serializable(with = IdTupleCustom.IdTupleSerializer::class)
+class IdTupleCustom(
 	val listId: String,
 	val elementId: String
 ) {
+	// The name is to avoid confusion between `tutasdk.IdTupleCustom` and `tutanota.IdTupleCustom`
+	fun toSdkIdTupleCustom(): IdTupleCustomSDK {
+		return IdTupleCustomSDK(
+			this.listId,
+			this.elementId
+		)
+	}
 
 	@OptIn(ExperimentalSerializationApi::class)
-	companion object IdTupleSerializer : KSerializer<IdTuple> {
+	companion object IdTupleSerializer : KSerializer<IdTupleCustom> {
 		override val descriptor: SerialDescriptor = listSerialDescriptor<String>()
 
-		override fun serialize(encoder: Encoder, value: IdTuple) {
+		override fun serialize(encoder: Encoder, value: IdTupleCustom) {
 			val listEncoder = encoder.beginCollection(
 				ListSerializer(String.serializer()).descriptor,
 				2
@@ -45,7 +53,7 @@ class IdTuple(
 			listEncoder.endStructure(descriptor)
 		}
 
-		override fun deserialize(decoder: Decoder): IdTuple {
+		override fun deserialize(decoder: Decoder): IdTupleCustom {
 			return decoder.decodeStructure(
 				ListSerializer(String.serializer()).descriptor
 			) {
@@ -59,7 +67,7 @@ class IdTuple(
 						else -> error("Unknown index $index")
 					}
 				}
-				IdTuple(listId, elementId)
+				IdTupleCustom(listId, elementId)
 			}
 
 		}

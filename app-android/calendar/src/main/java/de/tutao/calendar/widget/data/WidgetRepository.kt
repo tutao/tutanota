@@ -21,12 +21,15 @@ import de.tutao.tutashared.ipc.PersistedCredentials
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.push.toSdkCredentials
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Date
 
 abstract class WidgetRepository() {
 	protected val json = Json { ignoreUnknownKeys = true }
+
+	companion object {
+		private const val TAG = "WidgetRepository"
+	}
 
 	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
 		throw NotImplementedError()
@@ -77,7 +80,7 @@ abstract class WidgetRepository() {
 		throw NotImplementedError()
 	}
 
-	open suspend fun loadEvents(
+	open suspend fun loadEventsFromCache(
 		context: Context,
 		widgetId: Int,
 		calendars: List<GeneratedId>,
