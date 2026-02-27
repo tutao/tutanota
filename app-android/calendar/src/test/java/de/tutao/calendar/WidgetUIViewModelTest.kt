@@ -8,11 +8,10 @@ import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.model.WidgetUIViewModel
-import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -36,10 +35,10 @@ class WidgetUIViewModelTest {
 	@Mock
 	private lateinit var mockContext: Context
 
-	private val eventOne = CalendarEventDao(IdTuple("list", "1"), 1758326400000UL, 1758330000000UL, "Event One")
-	private val eventTwo = CalendarEventDao(IdTuple("list", "2"), 1758333600000UL, 1758337200000UL, "Event Two")
-	private val eventThree = CalendarEventDao(IdTuple("list", "3"), 1758330000000UL, 1758333600000UL, "Event Three")
-	private val eventFour = CalendarEventDao(IdTuple("list", "4"), 1758319200000UL, 1758322800000UL, "Event Four")
+	private val eventOne = CalendarEventDao(IdTupleCustom("list", "1"), 1758326400000UL, 1758330000000UL, "Event One")
+	private val eventTwo = CalendarEventDao(IdTupleCustom("list", "2"), 1758333600000UL, 1758337200000UL, "Event Two")
+	private val eventThree = CalendarEventDao(IdTupleCustom("list", "3"), 1758330000000UL, 1758333600000UL, "Event Three")
+	private val eventFour = CalendarEventDao(IdTupleCustom("list", "4"), 1758319200000UL, 1758322800000UL, "Event Four")
 	private val sdk: Sdk = mock<Sdk> { onBlocking { login(any()) } doReturn mock() }
 	private val credentialsFacade: NativeCredentialsFacade = mock<NativeCredentialsFacade> {
 		onBlocking { loadByUserId(any()) } doReturn UnencryptedCredentials(
@@ -62,7 +61,7 @@ class WidgetUIViewModelTest {
 						"cal1" to CalendarEventListDao(listOf(eventOne, eventTwo), listOf(), listOf()),
 						"cal2" to CalendarEventListDao(listOf(eventThree, eventFour), listOf(), listOf()),
 					)
-			onBlocking { loadEvents(any(), any(), any(), any(), any()) } doReturn mapOf()
+			onBlocking { loadEventsFromCache(any(), any(), any(), any(), any()) } doReturn mapOf()
 		}
 	}
 
@@ -84,7 +83,7 @@ class WidgetUIViewModelTest {
 			LocalDateTime.ofInstant(Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin"))
 		)
 
-		verify(repository, times(1)).loadEvents(any(), any(), any(), any(), any())
+		verify(repository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
 		verify(repository, times(0)).loadEvents(any(), any(), any(), any(), any(), any(), any())
 	}
 
@@ -107,7 +106,7 @@ class WidgetUIViewModelTest {
 			LocalDateTime.ofInstant(Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin"))
 		)
 
-		verify(repository, times(1)).loadEvents(any(), any(), any(), any(), any())
+		verify(repository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
 	}
 
 	@Test
@@ -131,7 +130,7 @@ class WidgetUIViewModelTest {
 		assert(events != null)
 		assert(events?.normalEvents?.size == 1)
 
-		verify(repository, times(0)).loadEvents(any(), any(), any(), any(), any())
+		verify(repository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
 		verify(repository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
 
 		val key = events?.normalEvents?.keys?.first()
@@ -163,7 +162,7 @@ class WidgetUIViewModelTest {
 		assert(events?.normalEvents?.size == 1)
 
 		verify(repository, times(1)).loadCalendars(any(), any(),any())
-		verify(repository, times(0)).loadEvents(any(), any(), any(), any(), any())
+		verify(repository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
 		verify(repository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
 
 		val key = events?.normalEvents?.keys?.first()
