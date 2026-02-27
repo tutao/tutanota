@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../../common/api/common/TutanotaConstants"
+import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
 import {
 	createEmailSenderListElement,
 	Customer,
@@ -121,7 +121,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				click: async () => {
 					const customerInfo = await this.customerInfo.getAsync()
 					if (locator.logins.getUserController().isFreeAccount()) {
-						showNotAvailableForFreeDialog()
+						showNotAvailableForFreeDialog(UpgradePromptType.CUSTOM_DOMAINS)
 					} else {
 						const mailAddressTableModel = await locator.mailAddressTableModelForOwnMailbox()
 						await showAddDomainWizard("", customerInfo, mailAddressTableModel)

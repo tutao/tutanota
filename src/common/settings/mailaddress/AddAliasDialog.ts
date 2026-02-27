@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTA_MAIL_ADDRESS_DOMAINS, UpgradePromptType } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -21,7 +21,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 			if (!(isNewPaidPlan && hasCustomDomains)) {
 				model.handleTooManyAliases().catch(
 					ofClass(UpgradeRequiredError, async (e) => {
-						const upgraded = await showPlanUpgradeRequiredDialog(e.plans, e.message)
+						const upgraded = await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_ALIASES_NEEDED, e.plans, e.message)
 						if (upgraded) {
 							await model.loadAliasCount()
 						}
@@ -78,7 +78,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 										lang.makeTranslation("confirm_msg", `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`),
 									).then(async (confirmed) => {
 										if (confirmed) {
-											const upgraded = await showPlanUpgradeRequiredDialog(NewPaidPlans)
+											const upgraded = await showPlanUpgradeRequiredDialog(UpgradePromptType.ADD_ALIAS_WITH_NEW_DOMAIN, NewPaidPlans)
 											if (upgraded) {
 												await model.loadAliasCount()
 											}
@@ -124,7 +124,7 @@ async function addAlias(model: MailAddressTableModel, alias: string, senderName:
 
 			return Dialog.message(lang.makeTranslation("confirm_msg", errorMsg))
 		} else if (error instanceof UpgradeRequiredError) {
-			const upgraded = await showPlanUpgradeRequiredDialog(error.plans, error.message)
+			const upgraded = await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_ALIASES_NEEDED, error.plans, error.message)
 			if (upgraded) {
 				await model.loadAliasCount()
 			}

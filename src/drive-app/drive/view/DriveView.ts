@@ -19,7 +19,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { HighestTierPlans, Keys, OperationStatus } from "../../../common/api/common/TutanotaConstants"
+import { HighestTierPlans, Keys, OperationStatus, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
@@ -235,7 +235,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		await this.driveViewModel.init()
 		if (!(await this.driveViewModel.currentPlanSupportsDrive())) {
 			// wait for the upgrade dialog
-			await showUpgradeWizardOrSwitchSubscriptionDialog(this.driveViewModel.loginController.getUserController(), HighestTierPlans)
+			await showUpgradeWizardOrSwitchSubscriptionDialog(
+				UpgradePromptType.DRIVE,
+				this.driveViewModel.loginController.getUserController(),
+				HighestTierPlans,
+			)
 			// it could be that we are doing the check too soon but generally it should work
 			if (!(await this.driveViewModel.currentPlanSupportsDrive())) {
 				// if the upgrade didn't happen still bounce back to mail

@@ -5,9 +5,9 @@ import type { MailBox, MailSet } from "../../../common/api/entities/tutanota/Typ
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { MailViewModel } from "./MailViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
+import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 
@@ -28,7 +28,7 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 		} catch (error) {
 			if (error instanceof PreconditionFailedError) {
 				if (error.data === LIMIT_EXCEEDED_ERROR) {
-					showNotAvailableForFreeDialog()
+					showNotAvailableForFreeDialog(UpgradePromptType.MORE_LABELS_NEEDED)
 				} else {
 					Dialog.message("unknownError_msg")
 				}

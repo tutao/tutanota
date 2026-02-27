@@ -4,7 +4,7 @@ import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog
 import { client } from "../../misc/ClientDetector.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { LegacyPrivatePlans, NewPaidPlans, PlanType } from "../../api/common/TutanotaConstants.js"
+import { LegacyPrivatePlans, NewPaidPlans, PlanType, UpgradePromptType } from "../../api/common/TutanotaConstants.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { progressIcon } from "../../gui/base/Icon.js"
@@ -71,7 +71,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 					if (LegacyPrivatePlans.includes(neverNull(this.currentPlan))) {
 						void this.showSwitchDialog()
 					} else {
-						void showUpgradeDialog(true)
+						void showUpgradeDialog(UpgradePromptType.SUPPORT_TUTA, true)
 					}
 				},
 			}

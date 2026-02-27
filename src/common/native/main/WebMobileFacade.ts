@@ -6,7 +6,7 @@ import { modal } from "../../gui/base/Modal"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { last } from "@tutao/tutanota-utils"
-import { CloseEventBusOption, SECOND_MS } from "../../api/common/TutanotaConstants.js"
+import { CloseEventBusOption, SECOND_MS, UpgradePromptType } from "../../api/common/TutanotaConstants.js"
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
@@ -112,7 +112,7 @@ export class WebMobileFacade implements MobileFacade {
 		if (action === "upgrade") {
 			void locator.logins
 				.waitForFullLogin()
-				.then(() => showUpgradeDialog())
+				.then(() => showUpgradeDialog(UpgradePromptType.APPLE_IN_APP_EVENT))
 				.catch((error) => {
 					if (!(error instanceof CancelledError)) {
 						console.warn("Failed to open upgrade dialog from Apple in-app event", error)

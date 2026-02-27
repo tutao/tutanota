@@ -58,7 +58,15 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		})
 		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
 			.then(() => {
-				// Order confirmation (click on Buy), send selected payment method as an enum
+				const stage = data.upgradeUsageTest?.getStage(1)
+
+				if (stage) {
+					stage.setMetric({
+						name: "upgradeResult",
+						value: "Upgraded",
+					})
+					stage.complete()
+				}
 
 				return this.close(data, this.dom)
 			})

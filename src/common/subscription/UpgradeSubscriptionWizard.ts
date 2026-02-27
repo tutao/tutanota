@@ -11,6 +11,8 @@ import {
 	PaymentData,
 	PlanType,
 	SubscriptionType,
+	UpgradePromptType,
+	UpgradePromptTypeByName,
 } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
 import stream from "mithril/stream"
@@ -37,6 +39,7 @@ import { ReferralType, SignupFlowUsageTestController } from "./usagetest/Upgrade
 import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
 import { windowFacade } from "../misc/WindowFacade"
+import type { UsageTest } from "@tutao/tutanota-usagetests"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -81,20 +84,36 @@ export type UpgradeSubscriptionData = {
 	powChallengeSolutionPromise?: Promise<PowSolution>
 	emailInputStore?: string
 	passwordInputStore?: string
+	upgradeUsageTest: UsageTest | null
 }
 
 export async function showUpgradeWizard({
+	upgradePromptType,
 	logins,
 	isCalledBySatisfactionDialog = false,
 	acceptedPlans = NewPaidPlans,
 	msg,
 }: {
+	upgradePromptType: UpgradePromptType | null
 	logins: LoginController
 	isCalledBySatisfactionDialog?: boolean
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
 }): Promise<void> {
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
+
+	let upgradeUsageTest: UsageTest | null = null
+	if (logins.getUserController().isFreeAccount() && upgradePromptType != null) {
+		upgradeUsageTest = locator.usageTestController.getTest("upgrade.paywall.upgradePaywallType")
+
+		const stage = upgradeUsageTest.getStage(0)
+		stage.setMetric({
+			name: "upgradePromptType",
+			value: UpgradePromptTypeByName[upgradePromptType],
+		})
+		await stage.complete()
+	}
+
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().reloadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -135,6 +154,7 @@ export async function showUpgradeWizard({
 		msg: msg ?? null,
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 		isCalledBySatisfactionDialog,
+		upgradeUsageTest,
 	}
 
 	let { pageClass: planPageClass, attrs: planPageAttrs } = { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(upgradeData) }
@@ -152,6 +172,18 @@ export async function showUpgradeWizard({
 		data: upgradeData,
 		pages: wizardPages,
 		closeAction: async () => {
+			if (upgradeUsageTest != null) {
+				const stage = upgradeUsageTest.getStage(1)
+
+				if (!stage.isMetricSet("upgradeResult")) {
+					stage.setMetric({
+						name: "upgradeResult",
+						value: "Dismissed",
+					})
+					stage.complete()
+				}
+			}
+
 			deferred.resolve()
 		},
 		dialogType: DialogType.EditLarge,
@@ -233,6 +265,7 @@ export async function loadSignupWizard(
 		msg: message,
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 		isCalledBySatisfactionDialog: false,
+		upgradeUsageTest: null,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
