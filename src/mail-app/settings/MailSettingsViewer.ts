@@ -15,6 +15,7 @@ import {
 	OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
 	OperationType,
 	ReportMovedMailsType,
+	UNDO_SEND_TIMEOUT_SECONDS,
 } from "../../common/api/common/TutanotaConstants"
 import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
@@ -557,8 +558,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				deviceConfig.setIsUndoSendEnabled(arg)
 			},
 			dropdownWidth: 350,
-			//FIXME: Help label needed
-			helpLabel: () => "help label if needed",
+			helpLabel: () =>
+				lang.getTranslation("undoSendMail_msg", {
+					"{time}": UNDO_SEND_TIMEOUT_SECONDS,
+				}).text,
 		}
 	}
 
