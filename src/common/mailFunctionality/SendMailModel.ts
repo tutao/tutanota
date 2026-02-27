@@ -12,7 +12,6 @@ import {
 	MailDetails,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
-	SendDraftReturn,
 } from "../api/entities/tutanota/TypeRefs.js"
 import {
 	ApprovalStatus,
@@ -1027,8 +1026,10 @@ export class SendMailModel {
 				}
 			}
 
-			// Don't safe unnecessarily.
-			if (this.hasMailChanged() || this.draft == null) {
+			// The draft might have been moved, sent, or scheduled from another client
+			// So load up-to-date mail when checking if a new draft is needed
+			if (this.hasMailChanged() || this.draft == null || (await this.needNewDraft(await this.entity.load(MailTypeRef, this.draft._id)))) {
+				// Don't save unnecessarily.
 				await this.saveDraft(true, mailMethod)
 			}
 
@@ -1190,7 +1191,8 @@ export class SendMailModel {
 			this._draftSavedRecently = true
 			this.waitUntilSync = false
 
-			//load the updated mail to check if the draft is already scheduled in another client
+			// the draft might have been moved, sent, or scheduled from another client.
+			// Load up-to-date mail when checking if a new draft is needed
 			const upToDateDraft = this.draft && (await this.entity.load(MailTypeRef, this.draft._id))
 			this.draft =
 				upToDateDraft == null || (await this.needNewDraft(upToDateDraft))

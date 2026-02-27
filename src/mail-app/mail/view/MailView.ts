@@ -476,7 +476,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									await this.moveMailsToTrash(assertNotNull(mailViewerModel.mail._ownerGroup), [mailViewerModel.mail._id])
 								}
 							: null,
-						delete: mailViewerModel.isDeletableMail()
+						delete: mailViewerModel.isDeletingMailAllowed()
 							? () => {
 									promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
 									this.mailViewModel.clearStickyMail()

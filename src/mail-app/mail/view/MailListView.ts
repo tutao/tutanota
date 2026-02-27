@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../common/misc/LanguageViewModel"
 
-import { Keys, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
+import { Keys, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { component_size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
@@ -30,7 +30,7 @@ import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
-import { isMailMovable, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
+import { isDraft, isMailMovable, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
@@ -439,7 +439,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				//Check if the user is in the trash/spam folder or if it's in Inbox or Archive
 				//to determinate the target folder
 				const targetMailFolderType = this.showingSpamOrTrash
-					? listElement.state === MailState.DRAFT
+					? isDraft(listElement)
 						? MailSetKind.DRAFT
 						: MailSetKind.INBOX
 					: this.showingArchive
