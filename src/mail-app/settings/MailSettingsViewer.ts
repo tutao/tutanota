@@ -15,6 +15,7 @@ import {
 	InboxRuleType,
 	OperationType,
 	ReportMovedMailsType,
+	UpgradePromptType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "../../common/api/common/TutanotaConstants"
