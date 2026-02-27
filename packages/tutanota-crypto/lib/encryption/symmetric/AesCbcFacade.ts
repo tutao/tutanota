@@ -11,9 +11,10 @@ import {
 import { CryptoError } from "../../misc/CryptoError.js"
 import { assertNotNull, concat } from "@tutao/tutanota-utils"
 import sjcl from "../../internal/sjcl.js"
-import { hmacSha256, MacTag, verifyHmacSha256 } from "../Hmac.js"
+import { hmacSha256, verifyHmacSha256 } from "../Hmac.js"
 import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
+import { MacTag } from "../../misc/Constants"
 
 /**
  * This facade provides the implementation for both encryption and decryption of AES in CBC mode. Supports 128 and 256-bit keys.

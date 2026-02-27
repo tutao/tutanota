@@ -14,3 +14,5 @@ export type HkdfKeyDerivationDomains =
 	| "newUserGroupKeyAuthKeyForRotationAsNonAdminUser"
 	| "versionedUserGroupKeyDistributionKey"
 	| "publicIdentityKey"
+
+export type MacTag = Uint8Array & { __brand: "macTag" }

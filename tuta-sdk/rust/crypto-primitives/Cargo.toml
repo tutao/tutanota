@@ -31,12 +31,14 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core", "zeroize"] }
 zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
 thiserror = "2.0"
+blake3 = { version = "=1.8.2", features = ["default", "zeroize"] }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.7", optional = true }
+rand = "0.8.5"
 
 [dev-dependencies]
 # Allow enabling features for testing see: https://github.com/kartva/cargo-optional-features-for-testing-and-examples?tab=readme-ov-file
