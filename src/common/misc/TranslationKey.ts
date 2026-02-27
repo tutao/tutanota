@@ -2228,3 +2228,4 @@ export type TranslationKeyType =
 	| "autoDeleteTemplateGroupsConfirmation_msg"
 	| "mailboxToImport_label"
 	| "emptyString_msg"
+	| "reportNotSpam_action"

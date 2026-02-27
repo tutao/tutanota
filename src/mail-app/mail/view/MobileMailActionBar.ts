@@ -22,7 +22,7 @@ export interface MobileMailActionBarAttrs {
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
 	unscheduleMailAction: (() => void) | null
-	moveOutOfSpamAction: (() => void) | null
+	reportNotSpamAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -31,7 +31,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	view(vnode: Vnode<MobileMailActionBarAttrs>): Children {
 		const { attrs } = vnode
 
-		const isShowMoveOutOfSpamButton = this.moveOutOfSpamButton(attrs) != null
+		const isReportNotSpamButton = this.reportNotSpamButton(attrs) != null
 		return m(
 			".bottom-nav.bottom-action-bar.flex.items-center.plr-24.justify-between",
 			{
@@ -40,8 +40,8 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				},
 			},
 			[
-				this.moveOutOfSpamButton(attrs) ?? this.unscheduleButton(attrs) ?? this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
-				isShowMoveOutOfSpamButton ? this.placeholder() : (this.forwardButton(attrs) ?? this.placeholder()),
+				this.reportNotSpamButton(attrs) ?? this.unscheduleButton(attrs) ?? this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
+				isReportNotSpamButton ? this.placeholder() : (this.forwardButton(attrs) ?? this.placeholder()),
 				this.deleteButton(attrs) ?? this.trashButton(attrs) ?? this.placeholder(),
 				this.moveButton(attrs) ?? this.placeholder(),
 				this.moreButton(attrs),
@@ -57,12 +57,12 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private moveOutOfSpamButton({ moveOutOfSpamAction }: MobileMailActionBarAttrs) {
+	private reportNotSpamButton({ reportNotSpamAction }: MobileMailActionBarAttrs) {
 		return (
-			moveOutOfSpamAction &&
+			reportNotSpamAction &&
 			m(IconButton, {
-				title: "moveOutOfSpam_action",
-				click: moveOutOfSpamAction,
+				title: "reportNotSpam_action",
+				click: reportNotSpamAction,
 				icon: Icons.NotBug,
 			})
 		)
@@ -93,7 +93,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		setUnreadStateAction,
 		isUnread,
 		mailViewerMoreActions,
-		moveOutOfSpamAction,
+		reportNotSpamAction,
 	}: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",

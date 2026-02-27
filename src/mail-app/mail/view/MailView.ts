@@ -320,13 +320,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailViewerMoreActions: getMailViewerMoreActions({
 				viewModel: viewModel.primaryViewModel(),
 				print: this.getPrintAction(),
-				reportSpam: null,
-				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
 				reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(viewModel.primaryViewModel()),
-				moveOutOfSpam: null,
+				reportSpam: null,
+				reportNotSpam: null,
+				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
 			}),
-			reportSpamAction: this.getSingleMailSpamAction(viewModel.primaryViewModel()),
-			moveOutOfSpamAction: this.getSingleMailMoveOutOfSpamAction(viewModel.primaryViewModel()),
+			reportSpamAction: this.getSingleMailReportSpamAction(viewModel.primaryViewModel()),
+			reportNotSpamAction: this.getSingleMailReportNotSpamAction(viewModel.primaryViewModel()),
 		})
 	}
 
@@ -343,12 +343,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
 		this.mailViewModel.clearStickyMail()
 		viewModel
-			.reportMail(reportType)
+			.reportSpamForMail(reportType)
 			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			.finally(m.redraw)
 	}
 
-	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
+	private getSingleMailReportSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
 		return viewModel.canReportSpam() ? () => this.reportSingleMail(viewModel, MailReportType.SPAM) : null
 	}
 
@@ -356,8 +356,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return viewModel.canReportPhishing() ? () => showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING)) : null
 	}
 
-	private getSingleMailMoveOutOfSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canMoveOutOfSpam() ? () => viewModel.moveOutOfSpamForMail() : null
+	private getSingleMailReportNotSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
+		return viewModel.canReportNotSpam() ? () => viewModel.reportNotSpamForMail() : null
 	}
 
 	private getSingleMailReapplyInboxRulesAction(viewModel: MailViewerViewModel): (() => void) | null {
@@ -379,7 +379,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private getMoveOutOfSpamAction(): (() => void) | null {
+	private getReportMailsAsNotSpamAction(): (() => void) | null {
 		const isExternalUser = !locator.logins.isInternalUserLoggedIn()
 		const folder = this.mailViewModel.getFolder()
 		const isSpamFolder = folder?.folderType === MailSetKind.SPAM
@@ -411,7 +411,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					if (e instanceof CancelledError) {
 						return
 					}
-					console.log("moveOutOfSpam error", e.message)
+					console.log("reportNotSpam error", e.message)
 				}
 			}
 		} else {
@@ -496,10 +496,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					return getMailViewerMoreActions({
 						viewModel: mailViewerModel,
 						print: this.getPrintAction(),
-						reportSpam: this.getSingleMailSpamAction(mailViewerModel),
-						reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
 						reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(mailViewerModel),
-						moveOutOfSpam: this.getSingleMailMoveOutOfSpamAction(mailViewerModel),
+						reportSpam: this.getSingleMailReportSpamAction(mailViewerModel),
+						reportNotSpam: this.getSingleMailReportNotSpamAction(mailViewerModel),
+						reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
 					})
 				},
 			}),
@@ -526,7 +526,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				reapplyInboxRulesAction: this.getReapplyInboxRulesAction(),
 			},
 			reportSpamAction: this.getReportMailsAsSpamAction(),
-			moveOutOfSpamAction: this.getMoveOutOfSpamAction(),
+			reportNotSpamAction: this.getReportMailsAsNotSpamAction(),
 		})
 	}
 
@@ -613,12 +613,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								mailViewerMoreActions: getMailViewerMoreActions({
 									viewModel: this.conversationViewModel.primaryViewModel(),
 									print: this.getPrintAction(),
-									reportSpam: this.getSingleMailSpamAction(this.conversationViewModel.primaryViewModel()),
-									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
 									reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(this.conversationViewModel.primaryViewModel()),
-									moveOutOfSpam: null,
+									reportSpam: this.getSingleMailReportSpamAction(this.conversationViewModel.primaryViewModel()),
+									reportNotSpam: null,
+									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
 								}),
-								moveOutOfSpamAction: this.getSingleMailMoveOutOfSpamAction(this.conversationViewModel.primaryViewModel()),
+								reportNotSpamAction: this.getSingleMailReportNotSpamAction(this.conversationViewModel.primaryViewModel()),
 							})
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 							? m(MobileMailMultiselectionActionBar, {
@@ -787,7 +787,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				exec: () => {
 					this.moveMailsToSystemFolder(MailSetKind.SPAM)
 				},
-				help: "spam_move_action",
+				help: "reportSpam_action",
 			},
 			{
 				key: Keys.BACKSPACE,
@@ -795,7 +795,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				exec: () => {
 					this.moveMailsToSystemFolder(MailSetKind.SPAM)
 				},
-				help: "spam_move_action",
+				help: "reportSpam_action",
 			},
 			{
 				key: Keys.A,

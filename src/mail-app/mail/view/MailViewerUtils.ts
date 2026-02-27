@@ -45,10 +45,10 @@ export type MailViewerMoreActions = {
 	showImagesAction?: () => void
 	unsubscribeAction?: () => void
 	printAction?: () => void
-	reportSpamAction?: () => void
-	reportPhishingAction?: () => void
 	reapplyInboxRulesAction?: (() => void) | null
-	moveOutOfSpamAction?: () => void
+	reportSpamAction?: () => void
+	reportNotSpamAction?: () => void
+	reportPhishingAction?: () => void
 }
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
@@ -331,14 +331,14 @@ export function getMailViewerMoreActions({
 	print,
 	reportPhishing,
 	reapplyInboxRules,
-	moveOutOfSpam,
+	reportNotSpam,
 }: {
 	viewModel: MailViewerViewModel
 	print: (() => unknown) | null
-	reportSpam: (() => unknown) | null
-	reportPhishing: (() => unknown) | null
 	reapplyInboxRules: (() => unknown) | null
-	moveOutOfSpam: (() => unknown) | null
+	reportSpam: (() => unknown) | null
+	reportNotSpam: (() => unknown) | null
+	reportPhishing: (() => unknown) | null
 }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
@@ -370,8 +370,8 @@ export function getMailViewerMoreActions({
 		actions.reapplyInboxRulesAction = reapplyInboxRules
 	}
 
-	if (moveOutOfSpam) {
-		actions.moveOutOfSpamAction = moveOutOfSpam
+	if (reportNotSpam) {
+		actions.reportNotSpamAction = reportNotSpam
 	}
 
 	return actions
@@ -382,10 +382,10 @@ function mailViewerMoreActions({
 	showImagesAction,
 	unsubscribeAction,
 	printAction,
-	reportSpamAction,
-	reportPhishingAction,
 	reapplyInboxRulesAction,
-	moveOutOfSpamAction,
+	reportSpamAction,
+	reportNotSpamAction,
+	reportPhishingAction,
 }: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
@@ -431,16 +431,16 @@ function mailViewerMoreActions({
 
 	if (reportSpamAction != null) {
 		moreButtons.push({
-			label: "spam_move_action",
+			label: "reportSpam_action",
 			click: reportSpamAction,
 			icon: Icons.Spam,
 		})
 	}
 
-	if (moveOutOfSpamAction != null) {
+	if (reportNotSpamAction != null) {
 		moreButtons.push({
-			label: "moveOutOfSpam_action",
-			click: moveOutOfSpamAction,
+			label: "reportNotSpam_action",
+			click: reportNotSpamAction,
 			icon: Icons.NotBug,
 		})
 	}

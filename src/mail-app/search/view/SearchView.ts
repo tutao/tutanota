@@ -633,7 +633,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					forwardAction: null,
 					mailViewerMoreActions: null,
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
-					moveOutOfSpamAction: null,
+					reportNotSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -681,13 +681,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailViewerMoreActions: getMailViewerMoreActions({
 						viewModel: conversationViewModel.primaryViewModel(),
 						print: this.getPrintAction(),
-						reportSpam: this.getSingleMailMoveOutOfSpamAction(conversationViewModel.primaryViewModel()),
-						reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 						reapplyInboxRules: null,
-						moveOutOfSpam: this.getSingleMailMoveOutOfSpamAction(conversationViewModel.primaryViewModel()),
+						reportSpam: this.getSingleMailReportNotSpamAction(conversationViewModel.primaryViewModel()),
+						reportNotSpam: this.getSingleMailReportNotSpamAction(conversationViewModel.primaryViewModel()),
+						reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 					}),
 					reportSpamAction: this.getReportSelectedMailsSpamAction(),
-					moveOutOfSpamAction: null,
+					reportNotSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.surface_container,
@@ -736,10 +736,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							return getMailViewerMoreActions({
 								viewModel: mailViewerModel,
 								print: this.getPrintAction(),
-								reportSpam: this.getSingleMailSpamAction(mailViewerModel),
-								reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
 								reapplyInboxRules: null,
-								moveOutOfSpam: this.getSingleMailMoveOutOfSpamAction(mailViewerModel),
+								reportSpam: this.getSingleMailSpamAction(mailViewerModel),
+								reportNotSpam: this.getSingleMailReportNotSpamAction(mailViewerModel),
+								reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
 							})
 						},
 					}),
@@ -789,7 +789,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
 		viewModel
-			.reportMail(reportType)
+			.reportSpamForMail(reportType)
 			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			.finally(m.redraw)
 	}
@@ -806,8 +806,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			: null
 	}
 
-	private getSingleMailMoveOutOfSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canMoveOutOfSpam() ? () => viewModel.moveOutOfSpamForMail() : null
+	private getSingleMailReportNotSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
+		return viewModel.canReportNotSpam() ? () => viewModel.reportNotSpamForMail() : null
 	}
 
 	private getReportSelectedMailsSpamAction(): (() => unknown) | null {
@@ -994,12 +994,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				mailViewerMoreActions: getMailViewerMoreActions({
 					viewModel: conversationViewModel.primaryViewModel(),
 					print: this.getPrintAction(),
-					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
-					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 					reapplyInboxRules: null,
-					moveOutOfSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
+					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
+					reportNotSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
+					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 				}),
-				moveOutOfSpamAction: null,
+				reportNotSpamAction: null,
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

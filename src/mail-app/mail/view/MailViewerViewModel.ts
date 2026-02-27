@@ -588,15 +588,15 @@ export class MailViewerViewModel {
 		await this.entityClient.update(this.mail).catch(() => this.setPhishingStatus(oldStatus))
 	}
 
-	async markAsNotPhishing(): Promise<void> {
-		await this.updateMailPhishingStatus(MailPhishingStatus.WHITELISTED)
-	}
-
 	async markAsPhishing(): Promise<void> {
 		await this.updateMailPhishingStatus(MailPhishingStatus.SUSPICIOUS)
 	}
 
-	async reportMail(reportType: MailReportType): Promise<void> {
+	async markAsNotPhishing(): Promise<void> {
+		await this.updateMailPhishingStatus(MailPhishingStatus.WHITELISTED)
+	}
+
+	async reportSpamForMail(reportType: MailReportType): Promise<void> {
 		try {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
 			// We should always have a mailbox, the check above throws due AssertNotNull in response.
@@ -631,7 +631,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async moveOutOfSpamForMail() {
+	async reportNotSpamForMail() {
 		const hasMailMoved = await this.reapplyInboxRuleForMail()
 		if (!hasMailMoved) {
 			const mailFolderForMail = this.mailModel.getMailFolderForMail(this.mail)
@@ -701,7 +701,7 @@ export class MailViewerViewModel {
 		)
 	}
 
-	canMoveOutOfSpam(): boolean {
+	canReportNotSpam(): boolean {
 		return this.logins.isInternalUserLoggedIn() && this.getFolderInfo()?.folderType === MailSetKind.SPAM
 	}
 
