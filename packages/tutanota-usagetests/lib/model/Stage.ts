@@ -44,6 +44,14 @@ export class Stage {
 		this.collectedMetrics.set(metric.name, metric)
 	}
 
+	/**
+	 * @return true if setMetric has been called for {@link name}
+	 * @param name name of metric
+	 */
+	isMetricSet(name: MetricName): boolean {
+		return this.collectedMetrics.has(name)
+	}
+
 	setMetricConfig(metricConfig: MetricConfig) {
 		this.metricConfigs.set(metricConfig.name, metricConfig)
 	}

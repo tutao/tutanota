@@ -17,7 +17,7 @@ import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddress
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { NewPaidPlans, UnsubscribeFailureReason } from "../../api/common/TutanotaConstants"
+import { NewPaidPlans, UnsubscribeFailureReason, UpgradePromptType } from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -87,7 +87,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	private async onAddAlias(attrs: MailAddressTableAttrs) {
 		const userController = locator.logins.getUserController()
 		if (userController.isFreeAccount()) {
-			await showPlanUpgradeRequiredDialog(NewPaidPlans).then((upgraded) => {
+			await showPlanUpgradeRequiredDialog(UpgradePromptType.ALIASES, NewPaidPlans).then((upgraded) => {
 				if (upgraded) {
 					attrs.model.loadAliasCount()
 				}
@@ -216,7 +216,7 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 		.setAliasStatus(alias.address, !deactivateOrDeleteAlias)
 		.catch(ofClass(PreconditionFailedError, handleSetAliasStatusPreconditionFailed))
 		.catch(ofClass(LimitReachedError, () => attrs.model.handleTooManyAliases()))
-		.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
+		.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(UpgradePromptType.ALIASES, e.plans, e.message)))
 	await showProgressDialog("pleaseWait_msg", updateModel)
 }
 

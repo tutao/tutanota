@@ -1,4 +1,10 @@
-import { assertEnumValue, CustomDomainType, CustomDomainTypeCount, CustomDomainValidationResult } from "../../../common/api/common/TutanotaConstants"
+import {
+	assertEnumValue,
+	CustomDomainType,
+	CustomDomainTypeCount,
+	CustomDomainValidationResult,
+	UpgradePromptType,
+} from "../../../common/api/common/TutanotaConstants"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { AddDomainData } from "./AddDomainWizard"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -8,7 +14,7 @@ import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/Wiza
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { downcast, isEmpty, ofClass } from "@tutao/tutanota-utils"
+import { isEmpty, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
@@ -130,7 +136,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 							Dialog.message("tooManyCustomDomains_msg")
 						} else {
 							// ignore promise. always return false to not switch to next page.
-							showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
+							showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_CUSTOM_DOMAINS_NEEDED, plans, "moreCustomDomainsRequired_msg")
 						}
 					} else {
 						Dialog.message(lang.makeTranslation("error_msg", e.toString()))

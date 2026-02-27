@@ -23,6 +23,7 @@ import {
 	Keys,
 	MailAuthenticationStatus,
 	MailMethod,
+	UpgradePromptType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 } from "../../../common/api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
@@ -806,7 +807,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 											model.setDefaultSendAtDate()
 										}
 									} else {
-										showNotAvailableForFreeDialog()
+										showNotAvailableForFreeDialog(UpgradePromptType.SEND_LATER)
 									}
 								},
 								icon: Icons.ScheduleMail,

@@ -8,6 +8,7 @@ import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { UpgradePromptType } from "../../api/common/TutanotaConstants"
 
 type EmailSupportUnavailableAttrs = {
 	data: SupportDialogState
@@ -61,7 +62,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 					text: lang.get("upgrade_action"),
 					class: `button-content border-radius accent-bg center plr-8 flash full-width`,
 					onclick: async () => {
-						await showUpgradeDialog()
+						await showUpgradeDialog(UpgradePromptType.EMAIL_SUPPORT)
 
 						const isPaidPlanNow = !locator.logins.getUserController().isFreeAccount()
 

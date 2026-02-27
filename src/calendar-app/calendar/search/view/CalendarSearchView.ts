@@ -31,7 +31,7 @@ import {
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { FeatureType, Keys } from "../../../../common/api/common/TutanotaConstants.js"
+import { FeatureType, Keys, UpgradePromptType } from "../../../../common/api/common/TutanotaConstants.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../../common/gui/base/ListUtils.js"
@@ -367,7 +367,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					date: this.searchViewModel.startDate ?? undefined,
 					onDateSelected: (date) => {
 						if (this.searchViewModel.selectStartDate(date) !== PaidFunctionResult.Success) {
-							showNotAvailableForFreeDialog()
+							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
 						}
 					},
 					startOfTheWeekOffset: this.startOfTheWeekOffset,
@@ -382,7 +382,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					date: this.searchViewModel.endDate,
 					onDateSelected: (date) => {
 						if (this.searchViewModel.selectEndDate(date) !== PaidFunctionResult.Success) {
-							showNotAvailableForFreeDialog()
+							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
 						}
 					},
 					startOfTheWeekOffset: this.startOfTheWeekOffset,
@@ -477,7 +477,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private async onCalendarDateRangeSelect() {
 		if (!this.searchViewModel.canSelectTimePeriod()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
 		} else {
 			const { start, end } = await showDateRangeSelectionDialog({
 				start: this.searchViewModel.startDate,

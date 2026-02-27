@@ -5,7 +5,7 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/tutanota-utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { AvailablePlanType, HighestTierPlans, ImportStatus, MailSetKind } from "../../common/api/common/TutanotaConstants"
+import { AvailablePlanType, HighestTierPlans, ImportStatus, MailSetKind, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
@@ -66,7 +66,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const currentPlanType = await userController.getPlanType()
 		const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
 		if (!isHighestTierPlan) {
-			await showUpgradeWizardOrSwitchSubscriptionDialog(userController, HighestTierPlans as readonly AvailablePlanType[])
+			await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.IMPORT, userController, HighestTierPlans as readonly AvailablePlanType[])
 			return
 		}
 
