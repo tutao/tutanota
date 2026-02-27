@@ -61,11 +61,12 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
 			platform: "neutral",
-			define: {
-				// See Env.ts for explanation
-				LOAD_ASSERTIONS: "false",
+			transform: {
+				define: {
+					// See Env.ts for explanation
+					LOAD_ASSERTIONS: "false",
+				},
 			},
-
 			external: [
 				"electron",
 				// esbuild can't deal with node imports in ESM output at the moment

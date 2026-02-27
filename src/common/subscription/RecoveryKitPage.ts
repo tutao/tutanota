@@ -13,6 +13,9 @@ import { styles } from "../gui/styles"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { RecoverCodeDisplay } from "./RecoverCodeDisplay"
+import { assertMainOrNode } from "../api/common/Env"
+
+assertMainOrNode()
 
 export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private acceptedWarning: boolean = false

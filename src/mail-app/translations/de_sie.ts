@@ -2231,5 +2231,11 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"reportNotSpam_action": "Kein Spam",
+		"approvalWaitNoticeFastTrack_msg": "Um Tuta frei von Spam zu halten, werden manche Konten einer kurzen Überprüfung unterzogen. Warten Sie entweder 48 Stunden um automatisch freigegeben zu werden oder schreiben Sie uns eine Email, um den Vorgang zu beschleunigen",
+		"waitApprovalButton_action": "Auf automatische Freigabe warten",
+		"fastTrackButtonApproval_action": "Schreiben Sie uns eine Email",
+		"whyThisHappens_msg": "[Erfahren Sie warum das passiert →]",
+		"approvalMail_msg": "Freigabe-Mail für",
+		"oneStep_label": "Ein letzter Schritt zur Privatsphäre"
 	}
 }

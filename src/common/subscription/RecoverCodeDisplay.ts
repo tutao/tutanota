@@ -3,7 +3,6 @@ import { Hex } from "@tutao/tutanota-utils"
 import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { locator } from "../api/main/CommonLocator"
-import { styles } from "../gui/styles"
 import { theme } from "../gui/theme"
 import { px } from "../gui/size"
 import { SecondaryButton, SecondaryButtonAttrs } from "../gui/base/buttons/LoginButton"
@@ -11,6 +10,9 @@ import { Icons } from "../gui/base/icons/Icons"
 import { lang } from "../misc/LanguageViewModel"
 import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
+import { assertMainOrNode } from "../api/common/Env"
+
+assertMainOrNode()
 
 export type RecoverCodeDisplayAttrs = {
 	column: boolean
