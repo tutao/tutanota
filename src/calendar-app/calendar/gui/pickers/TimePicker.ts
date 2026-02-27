@@ -289,7 +289,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private onSelected(attrs: TimePickerAttrs) {
-		this.focused = false
+		this.focused = true
 
 		attrs.onTimeSelected(Time.parseFromString(this.value))
 	}
