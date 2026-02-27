@@ -13,6 +13,7 @@ import { CalendarType } from "../../../common/calendar/date/CalendarUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { CalendarEvent, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
+import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 
 export async function quickCalendarActions(
 	router: Router,
@@ -45,7 +46,7 @@ export async function quickCalendarActions(
 		exec: () => {
 			const userController = logins.getUserController()
 			if (userController.isFreeAccount()) {
-				showNotAvailableForFreeDialog()
+				showNotAvailableForFreeDialog(UpgradePromptType.MULTIPLE_CALENDARS)
 			} else {
 				showCreateEditCalendarDialog({
 					calendarType: CalendarType.Private,

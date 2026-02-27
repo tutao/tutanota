@@ -6,7 +6,7 @@ import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
-import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType, UpgradePromptType } from "../api/common/TutanotaConstants.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 let upgradeDialogShowing = false
@@ -14,7 +14,10 @@ let upgradeDialogShowing = false
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
  */
-export async function showNotAvailableForFreeDialog(acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans): Promise<void> {
+export async function showNotAvailableForFreeDialog(
+	upgradePromptType: UpgradePromptType,
+	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
+): Promise<void> {
 	// upgradeDialogShowing prevents the dialog from being opened multiple times, as could happen when waiting for the wizard to import
 	if (!upgradeDialogShowing) {
 		upgradeDialogShowing = true
@@ -28,6 +31,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: readonly Avai
 			const msg = lang.getTranslation(businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg")
 
 			await wizard.showUpgradeWizard({
+				upgradePromptType,
 				logins: locator.logins,
 				isCalledBySatisfactionDialog: false,
 				acceptedPlans,
@@ -40,13 +44,14 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: readonly Avai
 }
 
 export function createNotAvailableForFreeClickHandler(
+	upgradePromptType: UpgradePromptType,
 	acceptedPlans: readonly AvailablePlanType[],
 	click: ClickHandler,
 	available: () => boolean,
 ): ClickHandler {
 	return (e, dom) => {
 		if (!available()) {
-			showNotAvailableForFreeDialog(acceptedPlans)
+			showNotAvailableForFreeDialog(upgradePromptType, acceptedPlans)
 		} else {
 			click(e, dom)
 		}
@@ -56,9 +61,9 @@ export function createNotAvailableForFreeClickHandler(
 /**
  * Returns whether a paid subscriptino is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
  */
-export async function checkPaidSubscription(): Promise<boolean> {
+export async function checkPaidSubscription(upgradePromptType: UpgradePromptType): Promise<boolean> {
 	if (locator.logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog()
+		showNotAvailableForFreeDialog(upgradePromptType)
 		return false
 	}
 	return true
@@ -73,7 +78,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 	if (confirmed) {
 		if (userController.isFreeAccount()) {
 			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-			return wizard.showUpgradeWizard({ logins: locator.logins })
+			return wizard.showUpgradeWizard({ upgradePromptType: UpgradePromptType.MORE_STORAGE_NEEDED, logins: locator.logins })
 		} else {
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(userController.user))
 			const { getAvailableMatchingPlans } = await import("../subscription/utils/SubscriptionUtils.js")
@@ -84,7 +89,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			if (isEmpty(plansWithMoreStorage)) {
 				await Dialog.message(userController.isGlobalAdmin() ? "insufficientStorageAdmin_msg" : "insufficientStorageUser_msg")
 			} else {
-				await showPlanUpgradeRequiredDialog(plansWithMoreStorage)
+				await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_STORAGE_NEEDED, plansWithMoreStorage)
 			}
 		}
 	}
@@ -93,13 +98,17 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 /**
  * @returns true if the needed plan has been ordered
  */
-export async function showPlanUpgradeRequiredDialog(acceptedPlans: readonly AvailablePlanType[], reason?: TranslationKey): Promise<boolean> {
+export async function showPlanUpgradeRequiredDialog(
+	upgradePromptType: UpgradePromptType,
+	acceptedPlans: readonly AvailablePlanType[],
+	reason?: TranslationKey,
+): Promise<boolean> {
 	if (isEmpty(acceptedPlans)) {
 		throw new ProgrammingError("no plans specified")
 	}
 	const userController = locator.logins.getUserController()
 	if (userController.isFreeAccount()) {
-		await showNotAvailableForFreeDialog(acceptedPlans)
+		await showNotAvailableForFreeDialog(upgradePromptType, acceptedPlans)
 	} else if (!userController.isGlobalAdmin()) {
 		Dialog.message("contactAdmin_msg")
 		return false
@@ -118,12 +127,13 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: readonly Avai
 }
 
 export async function showUpgradeWizardOrSwitchSubscriptionDialog(
+	upgradePromptType: UpgradePromptType,
 	userController: UserController,
 	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
 ): Promise<void> {
 	if (userController.isFreeAccount()) {
 		const { showUpgradeWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-		await showUpgradeWizard({ logins: locator.logins, acceptedPlans: acceptedPlans })
+		await showUpgradeWizard({ upgradePromptType, logins: locator.logins, acceptedPlans: acceptedPlans })
 	} else {
 		await showSwitchPlanDialog(userController, acceptedPlans)
 	}

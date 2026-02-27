@@ -2,7 +2,7 @@ import type { TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeR
 import { TemplateGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
-import { FeatureType } from "../../common/api/common/TutanotaConstants"
+import { FeatureType, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
@@ -17,7 +17,7 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 	let allowed = (await userController.getPlanConfig()).templates || isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
 	if (!allowed) {
 		if (userController.isGlobalAdmin()) {
-			allowed = await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates())
+			allowed = await showPlanUpgradeRequiredDialog(UpgradePromptType.TEMPLATE_LIST, await getAvailablePlansWithTemplates())
 		} else {
 			Dialog.message("contactAdmin_msg")
 		}

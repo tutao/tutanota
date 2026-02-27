@@ -17,7 +17,7 @@ import {
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod, UpgradePromptType } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import type { RepeatRule } from "../../../../common/api/entities/sys/TypeRefs.js"
@@ -67,7 +67,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 						await participation.setParticipation(status)
 					} catch (e) {
 						if (e instanceof UpgradeRequiredError) {
-							const ordered = await showPlanUpgradeRequiredDialog(e.plans, e.message)
+							const ordered = await showPlanUpgradeRequiredDialog(UpgradePromptType.CALENDAR_EVENT_INVITATION_REPLY, e.plans, e.message)
 							if (!ordered) return
 							await participation.setParticipation(status)
 						} else {

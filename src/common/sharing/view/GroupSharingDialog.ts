@@ -8,7 +8,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { GroupType, ShareCapability } from "../../api/common/TutanotaConstants"
+import { GroupType, ShareCapability, UpgradePromptType } from "../../api/common/TutanotaConstants"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { TextField } from "../../gui/base/TextField.js"
@@ -258,7 +258,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 			}
 
 			const { checkPaidSubscription, showPlanUpgradeRequiredDialog } = await import("../../misc/SubscriptionDialogs")
-			if (await checkPaidSubscription()) {
+			if (await checkPaidSubscription(UpgradePromptType.CALENDAR_EVENT_INVITATIONS)) {
 				try {
 					const invitedMailAddresses = await showProgressDialog(
 						"calendarInvitationProgress_msg",
@@ -285,7 +285,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						if (locator.logins.getUserController().isGlobalAdmin()) {
 							const { getAvailablePlansWithSharing } = await import("../../subscription/utils/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()
-							await showPlanUpgradeRequiredDialog(plans)
+							await showPlanUpgradeRequiredDialog(UpgradePromptType.CALENDAR_EVENT_INVITATIONS, plans)
 						} else {
 							Dialog.message("contactAdmin_msg")
 						}

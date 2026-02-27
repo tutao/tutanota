@@ -27,6 +27,7 @@ import {
 	NewPaidPlans,
 	PaymentMethodType,
 	PostingType,
+	UpgradePromptType,
 } from "../api/common/TutanotaConstants"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -196,6 +197,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			}
 		} else {
 			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
+				UpgradePromptType.CHANGE_PAYMENT_METHOD,
 				NewPaidPlans,
 				() => this.accountingInfo && this.changePaymentMethod(),
 				// iOS app is checked above
@@ -495,6 +497,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(IconButton, {
 					title: "invoiceData_msg",
 					click: createNotAvailableForFreeClickHandler(
+						UpgradePromptType.VIEW_INVOICE,
 						NewPaidPlans,
 						() => this.changeInvoiceData(),
 						() => locator.logins.getUserController().isPaidAccount(),

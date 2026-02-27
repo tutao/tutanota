@@ -18,7 +18,7 @@ import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSys
 import { styles } from "../styles.js"
 import { IconButton } from "../base/IconButton.js"
 import { locator } from "../../api/main/CommonLocator"
-import { FeatureType } from "../../api/common/TutanotaConstants"
+import { FeatureType, UpgradePromptType } from "../../api/common/TutanotaConstants"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -95,7 +95,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
 							title: "upgradePremium_label",
-							click: () => showUpgradeDialog(),
+							click: () => showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON),
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,

@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { InboxRuleType, MailSetKind } from "../../common/api/common/TutanotaConstants"
+import { InboxRuleType, MailSetKind, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../common/misc/FormatValidator"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import type { InboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
@@ -38,7 +38,7 @@ export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
 
 export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
 	if (locator.logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog()
+		showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
 	} else if (mailBoxDetail) {
 		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
 		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedFolder) => {

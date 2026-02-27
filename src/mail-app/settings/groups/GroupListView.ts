@@ -27,6 +27,7 @@ import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
+import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 
 assertMainOrNode()
 const className = "group-list"
@@ -136,7 +137,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		} else {
 			const msg = lang.makeTranslation("upgrade_text", lang.get("newPaidPlanRequired_msg") + " " + lang.get("sharedMailboxesMultiUser_msg"))
 			const wizard = await import("../../../common/subscription/UpgradeSubscriptionWizard")
-			await wizard.showUpgradeWizard({ logins: locator.logins, msg })
+			await wizard.showUpgradeWizard({ upgradePromptType: UpgradePromptType.SHARED_MAILBOX, logins: locator.logins, msg })
 		}
 	}
 

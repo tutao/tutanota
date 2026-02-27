@@ -20,7 +20,7 @@ import { getAvailablePlansWithWhitelabel, isWhitelabelActive } from "../subscrip
 import type { UserController } from "../api/main/UserController.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { PlanType } from "../api/common/TutanotaConstants.js"
+import { PlanType, UpgradePromptType } from "../api/common/TutanotaConstants.js"
 import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
 
 import { insertInlineImageB64ClickHandler } from "../mailFunctionality/SharedMailUtils.js"
@@ -63,13 +63,13 @@ export async function showBuyOrSetNotificationEmailDialog(
 	existingTemplate?: NotificationMailTemplate,
 ): Promise<void> {
 	if (locator.logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog([PlanType.Unlimited])
+		showNotAvailableForFreeDialog(UpgradePromptType.CUSTOM_NOTIFICATION_EMAIL, [PlanType.Unlimited])
 	} else {
 		const planConfiguration = await locator.logins.getUserController().getPlanConfig()
 		let whitelabel = isWhitelabelActive(lastBooking, planConfiguration)
 		if (!whitelabel) {
 			const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
-			whitelabel = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
+			whitelabel = await showPlanUpgradeRequiredDialog(UpgradePromptType.CUSTOM_NOTIFICATION_EMAIL, plansWithWhitelabel)
 		}
 		if (whitelabel) {
 			show(existingTemplate ?? null, customerProperties)

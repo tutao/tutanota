@@ -6,6 +6,7 @@ import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../SubscriptionDialogs.js"
+import { UpgradePromptType } from "../../../api/common/TutanotaConstants"
 
 /**
  * News item that informs admin users that the new pricing offer is ending soon.
@@ -39,7 +40,7 @@ export class NewPlansOfferEndingNews implements NewsListItem {
 			{
 				label: "showMoreUpgrade_action",
 				click: async () => {
-					await showUpgradeWizardOrSwitchSubscriptionDialog(this.userController)
+					await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.NEW_PLANS_NEWS, this.userController)
 					if (await this.userController.isNewPaidPlan()) {
 						acknowledgeAction()
 					}

@@ -26,6 +26,7 @@ import {
 	NewPaidPlans,
 	OperationType,
 	TimeFormat,
+	UpgradePromptType,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
@@ -897,7 +898,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	toggleHiddenCalendar = (calendarId: string) => {
 		if (isBirthdayCalendar(calendarId) && !this.isNewPaidPlan) {
-			showPlanUpgradeRequiredDialog(NewPaidPlans)
+			showPlanUpgradeRequiredDialog(UpgradePromptType.BIRTHDAY_CALENDAR, NewPaidPlans)
 			return
 		}
 

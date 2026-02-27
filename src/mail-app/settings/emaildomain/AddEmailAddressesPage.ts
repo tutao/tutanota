@@ -20,6 +20,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -177,7 +178,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				} else if (e instanceof LimitReachedError) {
 					// ignore
 				} else if (e instanceof UpgradeRequiredError) {
-					await showPlanUpgradeRequiredDialog(e.plans, e.message)
+					await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_ALIASES_NEEDED, e.plans, e.message)
 				} else {
 					throw e
 				}
