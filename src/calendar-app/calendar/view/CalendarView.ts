@@ -23,6 +23,7 @@ import {
 	reverse,
 	ShareCapability,
 	TimeFormat,
+	UpgradePromptType,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -903,15 +904,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private onPressedAddCalendar(calendarType: CalendarType) {
+		const upgradePromptType = calendarType === CalendarType.External ? UpgradePromptType.EXTERNAL_CALENDARS : UpgradePromptType.MULTIPLE_CALENDARS
+
 		const userController = locator.logins.getUserController()
 		if (userController.isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(upgradePromptType)
 			return
 		}
 		if (calendarType === CalendarType.External)
 			userController.isNewPaidPlan().then((isNewPaidPlan) => {
 				if (isNewPaidPlan) this.showCreateCalendarDialog(calendarType)
-				else showPlanUpgradeRequiredDialog(NewPaidPlans)
+				else showPlanUpgradeRequiredDialog(upgradePromptType, NewPaidPlans)
 			})
 		else this.showCreateCalendarDialog(calendarType)
 	}
@@ -1072,7 +1075,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private async onPressedEditBirthdayCalendar(calendarInfo: CalendarInfoBase) {
 		if (!this.viewModel.isNewPaidPlan) {
-			showPlanUpgradeRequiredDialog(NewPaidPlans)
+			showPlanUpgradeRequiredDialog(UpgradePromptType.BIRTHDAY_CALENDAR, NewPaidPlans)
 			return
 		}
 		const handleUpdateBirthdayCalendar = (dialog: Dialog, newColor: string) => {
@@ -1446,7 +1449,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private handleShare(userController: UserController, groupInfo: GroupInfo, shared: boolean) {
 		if (userController.isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SHARING)
 		} else {
 			showGroupSharingDialog(groupInfo, shared)
 		}

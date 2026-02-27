@@ -3,7 +3,7 @@ import { Dialog } from "../../common/gui/base/Dialog"
 import type { OutOfOfficeNotification } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../../common/api/common/TutanotaConstants"
+import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
 import { Checkbox } from "../../common/gui/base/Checkbox.js"
 import { px } from "../../common/gui/size"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -46,7 +46,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 			.catch(ofClass(UserError, (e) => showUserError(e)))
 			.catch(
 				ofClass(UpgradeRequiredError, (e) => {
-					showPlanUpgradeRequiredDialog(e.plans)
+					showPlanUpgradeRequiredDialog(UpgradePromptType.OUT_OF_OFFICE_NOTIFICATIONS, e.plans)
 				}),
 			)
 	}

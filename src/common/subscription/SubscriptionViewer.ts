@@ -13,6 +13,7 @@ import {
 	OperationType,
 	PaymentMethodType,
 	PlanType,
+	UpgradePromptType,
 } from "../api/common/TutanotaConstants"
 import {
 	AccountingInfo,
@@ -308,7 +309,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		await showUpgradeWizard({ logins: locator.logins })
+		await showUpgradeWizard({ upgradePromptType: UpgradePromptType.SUBSCRIPTION_VIEWER, logins: locator.logins })
 	}
 
 	private async handleAppStoreSubscriptionChange() {
@@ -808,7 +809,12 @@ function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, pa
 function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
 	const addButtonAttrs: IconButtonAttrs = {
 		title: "buyGiftCard_label",
-		click: createNotAvailableForFreeClickHandler(NewPaidPlans, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
+		click: createNotAvailableForFreeClickHandler(
+			UpgradePromptType.PURCHASE_GIFT_CARDS,
+			NewPaidPlans,
+			() => showPurchaseGiftCardDialog(),
+			isPremiumPredicate,
+		),
 		icon: Icons.Add,
 		size: ButtonSize.Compact,
 	}

@@ -6,7 +6,7 @@ import m from "mithril"
 import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
-import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
+import { PushServiceType, UpgradePromptType } from "../../common/api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
@@ -20,7 +20,7 @@ export class AddNotificationEmailDialog {
 
 	show() {
 		if (this.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(UpgradePromptType.NOTIFICATION_EMAILS)
 		} else {
 			let mailAddress = ""
 

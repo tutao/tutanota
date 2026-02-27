@@ -9,12 +9,11 @@ import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
 import type { CertificateInfo, CustomerInfo } from "../../../common/api/entities/sys/TypeRefs.js"
-import { CertificateState, CertificateType, PlanType } from "../../../common/api/common/TutanotaConstants"
+import { CertificateState, CertificateType, PlanType, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 import { formatDateTime } from "../../../common/misc/Formatter"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
@@ -80,11 +79,11 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 
 	private async edit(isWhitelabelFeatureEnabled: boolean, customerInfo: CustomerInfo): Promise<void> {
 		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog([PlanType.Unlimited])
+			showNotAvailableForFreeDialog(UpgradePromptType.WHITELABEL, [PlanType.Unlimited])
 		} else {
 			if (!isWhitelabelFeatureEnabled) {
 				const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
-				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
+				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog(UpgradePromptType.WHITELABEL, plansWithWhitelabel)
 			}
 			if (isWhitelabelFeatureEnabled) {
 				SetCustomDomainCertificateDialog.show(customerInfo)

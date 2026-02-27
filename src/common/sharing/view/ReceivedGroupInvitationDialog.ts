@@ -13,7 +13,7 @@ import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTempl
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import type { GroupSharingTexts } from "../GroupGuiUtils.js"
 import { getTextsForGroupType } from "../GroupGuiUtils.js"
-import { GroupType } from "../../api/common/TutanotaConstants.js"
+import { GroupType, UpgradePromptType } from "../../api/common/TutanotaConstants.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
@@ -126,7 +126,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
  */
 async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
 	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs.js")
-	const allowed = await SubscriptionDialogUtils.checkPaidSubscription()
+	const allowed = await SubscriptionDialogUtils.checkPaidSubscription(UpgradePromptType.ACCEPT_GROUP_INVITATION)
 	if (!allowed) {
 		return false
 	}
@@ -134,7 +134,7 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	if (isTemplateGroup(getInvitationGroupType(invitation)) && !planConfig.templates) {
 		const { getAvailablePlansWithTemplates } = await import("../../subscription/utils/SubscriptionUtils.js")
 		const plans = await getAvailablePlansWithTemplates()
-		return showPlanUpgradeRequiredDialog(plans)
+		return showPlanUpgradeRequiredDialog(UpgradePromptType.ACCEPT_GROUP_INVITATION, plans)
 	} else {
 		return true
 	}

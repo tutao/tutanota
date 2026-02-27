@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
@@ -425,7 +425,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private async onMailDateRangeSelect() {
 		if (!this.searchViewModel.canSelectTimePeriod()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
 		} else {
 			const { start, end } = await showDateRangeSelectionDialog({
 				start: this.searchViewModel.startDate,
@@ -452,7 +452,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private async onCalendarDateRangeSelect() {
 		if (!this.searchViewModel.canSelectTimePeriod()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
 		} else {
 			const { start, end } = await showDateRangeSelectionDialog({
 				start: this.searchViewModel.startDate,

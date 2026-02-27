@@ -8,7 +8,7 @@ import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/T
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
-import { ContactMergeAction, Keys } from "../../../common/api/common/TutanotaConstants"
+import { ContactMergeAction, Keys, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
@@ -909,7 +909,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			if (locator.logins.getUserController().isGlobalAdmin()) {
 				const { getAvailablePlansWithContactList } = await import("../../../common/subscription/utils/SubscriptionUtils.js")
 				const plans = await getAvailablePlansWithContactList()
-				await showPlanUpgradeRequiredDialog(plans)
+				await showPlanUpgradeRequiredDialog(UpgradePromptType.CONTACT_LISTS, plans)
 			} else {
 				Dialog.message("contactAdmin_msg")
 			}

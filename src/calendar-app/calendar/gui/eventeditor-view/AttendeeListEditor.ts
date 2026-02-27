@@ -4,7 +4,7 @@ import { ToggleButton } from "../../../../common/gui/base/buttons/ToggleButton.j
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { AccountType, CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
+import { AccountType, CalendarAttendeeStatus, UpgradePromptType } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -127,7 +127,10 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 									const plansWithEventInvites = await getAvailablePlansWithEventInvites()
 									if (plansWithEventInvites.length === 0) return
 									//entity event updates are too slow to call updateBusinessFeature()
-									this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
+									this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(
+										UpgradePromptType.CALENDAR_EVENT_INVITATIONS,
+										plansWithEventInvites,
+									)
 									// the user could have, but did not upgrade.
 									if (!this.hasPlanWithInvites) return
 								} else {
