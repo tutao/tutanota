@@ -13,7 +13,7 @@ import de.tutao.tutasdk.CalendarEvent
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoggedInSdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.toBase64
@@ -180,7 +180,7 @@ class WidgetDataRepository() : WidgetRepository() {
 		return calendarEventListMap
 	}
 
-	override suspend fun loadEvents(
+	override suspend fun loadEventsFromCache(
 		context: Context,
 		widgetId: Int,
 		calendars: List<GeneratedId>,
@@ -209,7 +209,7 @@ class WidgetDataRepository() : WidgetRepository() {
 			val id = it.id ?: throw RuntimeException("Trying to convert an event without id to CalendarEventDao")
 
 			CalendarEventDao(
-				IdTuple(id.listId, id.elementId),
+				IdTupleCustom(id.listId, id.elementId),
 				it.startTime,
 				it.endTime,
 				it.summary
@@ -224,7 +224,7 @@ class WidgetDataRepository() : WidgetRepository() {
 			val age = it.contact.birthdayIso?.let { it1 -> calculateContactAge(it1) }
 
 			val event = CalendarEventDao(
-				IdTuple(id.listId, id.elementId),
+				IdTupleCustom(id.listId, id.elementId),
 				it.calendarEvent.startTime,
 				it.calendarEvent.endTime,
 				"" // The event title will be set later inside the composition

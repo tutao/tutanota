@@ -1,11 +1,11 @@
 package de.tutao.calendar.widget.data
 
 import de.tutao.tutasdk.GeneratedId
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 
 data class UIEvent(
 	val calendarId: GeneratedId,
-	val eventId: IdTuple?,
+	val eventId: IdTupleCustom?,
 	val calendarColor: String,
 	val summary: String,
 	val startTime: String,

@@ -44,7 +44,7 @@ import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
@@ -182,7 +182,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents[startOfToday] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"All day today",
 				"08:00",
@@ -199,7 +199,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents[startOfAfterTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello Widget",
 				"08:00",
@@ -235,7 +235,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfToday] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello Widget",
 				"08:00",
@@ -247,7 +247,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents[startOfToday] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"My all day",
 				"00:00",
@@ -265,7 +265,7 @@ class Agenda : GlanceAppWidget() {
 			normalEventData[startOfTomorrow] = normalEventData[startOfTomorrow]!!.plus(
 				UIEvent(
 					"previewCalendar",
-					IdTuple("", ""),
+					IdTupleCustom("", ""),
 					"2196f3",
 					"Event #${i}",
 					"08:00",
@@ -279,7 +279,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents[startOfTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Something else",
 				"00:00",
@@ -289,7 +289,7 @@ class Agenda : GlanceAppWidget() {
 			),
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Vacations",
 				"00:00",
@@ -305,7 +305,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfAfterTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello After Tomorrow Bit title",
 				"08:00",
@@ -315,7 +315,7 @@ class Agenda : GlanceAppWidget() {
 			),
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Meeting After Tomorrow",
 				"12:00",
@@ -349,7 +349,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfToday] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello Widget",
 				"08:00",
@@ -365,7 +365,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello Tomorrow",
 				"08:00",
@@ -375,7 +375,7 @@ class Agenda : GlanceAppWidget() {
 			),
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Meeting Tomorrow",
 				"12:00",
@@ -391,7 +391,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfAfterTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello After Tomorrow Big Title",
 				"08:00",
@@ -401,7 +401,7 @@ class Agenda : GlanceAppWidget() {
 			),
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Meeting After Tomorrow",
 				"12:00",
@@ -441,7 +441,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello Tomorrow",
 				"08:00",
@@ -451,7 +451,7 @@ class Agenda : GlanceAppWidget() {
 			),
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Meeting Tomorrow",
 				"12:00",
@@ -467,7 +467,7 @@ class Agenda : GlanceAppWidget() {
 		normalEventData[startOfAfterTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Hello After Tomorrow Big Title",
 				"08:00",
@@ -477,7 +477,7 @@ class Agenda : GlanceAppWidget() {
 			),
 			UIEvent(
 				"previewCalendar",
-				IdTuple("", ""),
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Meeting After Tomorrow",
 				"12:00",

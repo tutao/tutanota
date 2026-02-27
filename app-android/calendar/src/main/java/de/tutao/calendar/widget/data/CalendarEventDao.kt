@@ -1,11 +1,11 @@
 package de.tutao.calendar.widget.data
 
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class CalendarEventDao(
-	val id: IdTuple?,
+	val id: IdTupleCustom?,
 	val startTime: ULong,
 	val endTime: ULong,
 	val summary: String

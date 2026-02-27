@@ -31,7 +31,7 @@ import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.calendar.widget.style.generateColorProviderForColor
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import de.tutao.tutashared.parseColor
 
 @Composable
@@ -109,7 +109,7 @@ fun AllDaySectionPreview() {
 		allDayEvents = listOf(
 			UIEvent(
 				"calendarId",
-				IdTuple("list", "elemnt"),
+				IdTupleCustom("list", "elemnt"),
 				"dd55ff",
 				"My all day",
 				"",
@@ -130,7 +130,7 @@ fun AllDaySectionBirthdayPreview() {
 		allDayEvents = listOf(
 			UIEvent(
 				"calendarId",
-				IdTuple("list", "elemnt"),
+				IdTupleCustom("list", "elemnt"),
 				"aa55ff",
 				"Jane Birthday",
 				"",
