@@ -75,9 +75,6 @@ export async function runCaptchaFlow({
 			if (isIOSApp()) {
 				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
 				console.log("Attribution Token: ", attributionToken)
-				// 	.getAppleAdsAttributionToken()
-				// 	.then((token) => console.log("Apple AdServices attribution token:", token))
-				// 	.catch((e) => console.log("Failed to load Apple AdServices attribution token:", e))
 			}
 
 			captchaReturn = await locator.serviceExecutor.get(
