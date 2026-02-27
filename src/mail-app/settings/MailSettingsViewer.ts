@@ -557,8 +557,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				deviceConfig.setIsUndoSendEnabled(arg)
 			},
 			dropdownWidth: 350,
-			//FIXME: Help label needed
-			helpLabel: () => "help label if needed",
+			helpLabel: () => lang.get("undoSendMail_msg"),
 		}
 	}
 

@@ -2223,3 +2223,4 @@ export type TranslationKeyType =
 	| "undoSend_label"
 	| "emailScheduled_msg"
 	| "emailSent_msg"
+	| "undoSendMail_msg"
