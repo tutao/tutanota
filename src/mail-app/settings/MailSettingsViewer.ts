@@ -9,6 +9,7 @@ import {
 	isBrowser,
 	OperationType,
 	ReportMovedMailsType,
+	UpgradePromptType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "@tutao/app-env"
