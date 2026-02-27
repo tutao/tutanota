@@ -3411,6 +3411,8 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub language: String,
 	#[serde(rename = "2640")]
 	pub isAutomatedBrowser: bool,
+	#[serde(rename = "2689")]
+	pub adAttribution: Option<AdAttribution>,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
@@ -6264,6 +6266,26 @@ impl Entity for PartnerManagedCustomer {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2672),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct AdAttribution {
+	#[serde(rename = "2685")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2686")]
+	pub attributionId: String,
+	#[serde(rename = "2687")]
+	pub attributionType: i64,
+}
+
+impl Entity for AdAttribution {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2684),
 		}
 	}
 }

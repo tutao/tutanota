@@ -1,6 +1,7 @@
 import { locator } from "../../api/main/CommonLocator.js"
 import { RegistrationCaptchaService, TimelockCaptchaService } from "../../api/entities/sys/Services.js"
 import {
+	createAdAttribution,
 	createClientPerformanceInfo,
 	createRegistrationCaptchaServiceGetData,
 	createTimelockCaptchaGetIn,
@@ -16,6 +17,9 @@ import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"
 import { client } from "../../misc/ClientDetector.js"
+import { isIOSApp } from "../../api/common/Env"
+import { mailLocator } from "../../../mail-app/mailLocator"
+import { AdAttributionType } from "../utils/SubscriptionUtils"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }
@@ -67,6 +71,15 @@ export async function runCaptchaFlow({
 
 		let captchaReturn
 		try {
+			let attributionToken = null
+			if (isIOSApp()) {
+				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
+				console.log("Attribution Token: ", attributionToken)
+				// 	.getAppleAdsAttributionToken()
+				// 	.then((token) => console.log("Apple AdServices attribution token:", token))
+				// 	.catch((e) => console.log("Failed to load Apple AdServices attribution token:", e))
+			}
+
 			captchaReturn = await locator.serviceExecutor.get(
 				RegistrationCaptchaService,
 				createRegistrationCaptchaServiceGetData({
@@ -78,6 +91,9 @@ export async function runCaptchaFlow({
 					timelockChallengeSolution: solution.toString(),
 					language: lang.languageTag,
 					isAutomatedBrowser: client.isAutomatedBrowser,
+					adAttribution: attributionToken
+						? createAdAttribution({ attributionId: attributionToken, attributionType: AdAttributionType.IOS.toString() })
+						: null,
 				}),
 			)
 		} catch (e) {
