@@ -15,6 +15,7 @@ import {
 	OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
 	OperationType,
 	ReportMovedMailsType,
+	UpgradePromptType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 } from "../../common/api/common/TutanotaConstants"
 import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
@@ -452,7 +453,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	private async onEditStoredDataTimeRangeClicked() {
 		if (mailLocator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_OFFLINE_DATA_RANGE)
 		} else {
 			await showEditStoredDataTimeRangeDialog(this.offlineStorageSettings)
 			m.redraw()

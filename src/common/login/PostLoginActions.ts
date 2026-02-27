@@ -14,7 +14,7 @@ import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../m
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, FeatureType, SecondFactorType } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption, Const, FeatureType, SecondFactorType, UpgradePromptType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../gui/Notifications"
 import { LockedError, NotAuthorizedError } from "../api/common/error/RestError"
@@ -279,7 +279,11 @@ export class PostLoginActions implements PostLoginAction {
 			const confirmed = await Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), lang.get("premiumOffer_msg"))
 			if (confirmed) {
 				const wizard = await import("../subscription/UpgradeSubscriptionWizard.js")
-				await wizard.showUpgradeWizard({ logins: this.logins, isCalledBySatisfactionDialog: false })
+				await wizard.showUpgradeWizard({
+					upgradePromptType: UpgradePromptType.UPGRADE_REMINDER,
+					logins: this.logins,
+					isCalledBySatisfactionDialog: false,
+				})
 			}
 
 			const newCustomerProperties = createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())

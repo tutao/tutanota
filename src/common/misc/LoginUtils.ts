@@ -101,7 +101,15 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 		const confirmed = await Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), message)
 		if (confirmed) {
 			// fire-and-forget since the wizard only resolves after the upgrade is done.
-			import("../subscription/UpgradeSubscriptionWizard").then((module) => module.showUpgradeWizard({ logins }))
+			import("../subscription/UpgradeSubscriptionWizard").then((module) =>
+				module.showUpgradeWizard({
+					logins,
+
+					// this user started a paid signup but never completed it, so we don't count
+					// it as an upgrade
+					upgradePromptType: null,
+				}),
+			)
 		}
 		return false
 	} else {

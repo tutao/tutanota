@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BookingItemFeatureType, FeatureType, GroupType } from "../../../common/api/common/TutanotaConstants.js"
+import { BookingItemFeatureType, FeatureType, GroupType, UpgradePromptType } from "../../../common/api/common/TutanotaConstants.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import type { ValidationResult } from "../../../common/settings/SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../../../common/settings/SelectMailAddressForm.js"
@@ -208,7 +208,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED
 					) {
 						const plans = await getAvailablePlansWithTemplates()
-						showPlanUpgradeRequiredDialog(plans)
+						showPlanUpgradeRequiredDialog(UpgradePromptType.TEMPLATE_LIST, plans)
 					} else {
 						Dialog.message(lang.makeTranslation("confirm_msg", e.message))
 					}
