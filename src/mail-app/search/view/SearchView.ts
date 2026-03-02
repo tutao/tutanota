@@ -119,7 +119,6 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
-import { CancelledError } from "../../../common/api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -1190,13 +1189,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				key: Keys.DELETE,
 				shift: true,
 				exec: () => this.moveSelectedToSystemFolder(MailSetKind.SPAM),
-				help: "spam_move_action",
+				help: "reportSpam_action",
 			},
 			{
 				key: Keys.BACKSPACE,
 				shift: true,
 				exec: () => this.moveSelectedToSystemFolder(MailSetKind.SPAM),
-				help: "spam_move_action",
+				help: "reportSpam_action",
 			},
 			{
 				key: Keys.A,
