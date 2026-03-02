@@ -325,6 +325,7 @@ export type TranslationKeyType =
 	| "supportForm_msg"
 	| "supportDownloadMailApp_msg"
 	| "supportBackLostRequest_msg"
+	| "supportCloseLostRequest_msg"
 	| "sunday_label"
 	| "subscription_label"
 	| "subscriptionSettings_label"
