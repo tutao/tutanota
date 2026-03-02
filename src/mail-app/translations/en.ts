@@ -1925,6 +1925,7 @@ export default {
 		"subscriptionSettings_label": "Subscription Settings",
 		"sunday_label": "Sunday",
 		"supportBackLostRequest_msg": "Are you sure you want to go back? Your request will be lost.",
+		"supportCloseLostRequest_msg": "Are you sure you want to close the dialog? Your request will be lost",
 		"supportDownloadMailApp_msg": "You can access the response once support has replied in Tuta Mail using your Tuta Calendar credentials.",
 		"supportForm_msg": "Please provide more details (English or German) so we can assist you better.",
 		"supportForm_title": "Let's get to the bottom of this",
