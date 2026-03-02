@@ -1924,6 +1924,7 @@ export default {
 		"subscriptionSettings_label": "Abonnement-Einstellungen",
 		"sunday_label": "Sonntag",
 		"supportBackLostRequest_msg": "Möchtest du wirklich zurückgehen? Deine Anfrage wird nicht gespeichert.",
+		"supportCloseLostRequest_msg": "Möchtest du den Dialog wirklich schließen? Deine Anfrage wird nicht gespeichert",
 		"supportDownloadMailApp_msg": "Sobald der Support geantwortet hat, kannst du die Antwort in Tuta Mail mit deinen Tuta-Kalender-Anmeldedaten abrufen.",
 		"supportForm_msg": "Bitte gib uns mehr Details (englisch oder deutsch), damit wir dir besser helfen können.",
 		"supportForm_title": "Gehen wir der Sache auf den Grund",
