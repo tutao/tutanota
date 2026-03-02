@@ -1522,7 +1522,6 @@ export default {
 		"someRepetitionsDeleted_msg": "Ορισμένες επαναλήψεις διαγράφηκαν",
 		"sortBy_label": "Ταξινόμηση κατά",
 		"spam_action": "Ανεπιθύμητα",
-		"spam_move_action": "Μετακίνηση στα spam",
 		"spamReports_label": "Αναφορά ανεπιθύμητης αλληλογραφίας",
 		"spamRuleEnterValue_msg": "Συμπληρώστε μια τιμή. ",
 		"spelling_label": "Ορθογραφία",

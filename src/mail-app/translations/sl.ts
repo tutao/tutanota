@@ -1838,7 +1838,6 @@ export default {
 		"sortBy_label": "Razvrsti po",
 		"sourceColor_label": "Barva vira",
 		"spam_action": "Vsiljena pošta",
-		"spam_move_action": "Premakni v vsiljeno pošto",
 		"spamReports_label": "Prijavi vsiljeno pošto",
 		"spamRuleEnterValue_msg": "Prosimo, vnesite vrednost.",
 		"spelling_label": "Črkovanje",

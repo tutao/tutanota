@@ -1786,7 +1786,6 @@ export default {
 		"sortBy_label": "Aranjare după",
 		"sourceColor_label": "Culoarea sursă",
 		"spam_action": "Nedorite",
-		"spam_move_action": "Mută în Nedorite",
 		"spamReports_label": "Raportează mesaje nedorite",
 		"spamRuleEnterValue_msg": "Introdu o valoare.",
 		"spelling_label": "Ortografie",

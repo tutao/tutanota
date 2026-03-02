@@ -1795,7 +1795,6 @@ export default {
 		"sortBy_label": "Ordena per",
 		"sourceColor_label": "Color de font",
 		"spam_action": "Correu brossa",
-		"spam_move_action": "Mou a correu brossa",
 		"spamReports_label": "Informa de correu brossa",
 		"spamRuleEnterValue_msg": "Si us plau, introduïu un valor.",
 		"spelling_label": "Ortografia",

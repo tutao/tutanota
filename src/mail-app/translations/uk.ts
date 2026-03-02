@@ -1742,7 +1742,6 @@ export default {
 		"someRepetitionsDeleted_msg": "Видалено деякі повтори",
 		"sortBy_label": "Критерій сортування",
 		"spam_action": "Спам",
-		"spam_move_action": "Перемістити до спаму",
 		"spamReports_label": "Повідомити про спам",
 		"spamRuleEnterValue_msg": "Введіть значення, будь ласка.",
 		"spelling_label": "Орфографія",

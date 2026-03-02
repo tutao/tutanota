@@ -1797,7 +1797,6 @@ export default {
 		"sortBy_label": "Rendezés szempontja:",
 		"sourceColor_label": "Forrás színe",
 		"spam_action": "Spam",
-		"spam_move_action": "Áthelyezés a spam-be",
 		"spamReports_label": "Jelentse a kéretlen levelet (spam)!",
 		"spamRuleEnterValue_msg": "Kérjük adjon meg egy értéket.",
 		"spelling_label": "Helyesírás",

@@ -1518,7 +1518,6 @@ export default {
 		"someRepetitionsDeleted_msg": "一部の重複が削除されました",
 		"sortBy_label": "次の要素で並び替え",
 		"spam_action": "スパム",
-		"spam_move_action": "スパムに移動",
 		"spamReports_label": "スパムを報告",
 		"spamRuleEnterValue_msg": "値を入力してください。",
 		"spelling_label": "スペル",

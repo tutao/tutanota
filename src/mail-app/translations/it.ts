@@ -1581,7 +1581,6 @@ export default {
 		"sortBy_label": "Ordinamento per",
 		"sourceColor_label": "Colore sorgente",
 		"spam_action": "Spam",
-		"spam_move_action": "Sposta nello spam",
 		"spamReports_label": "Segnala spam",
 		"spamRuleEnterValue_msg": "Per favore inserisci un valore.",
 		"spelling_label": "Ortografia",
