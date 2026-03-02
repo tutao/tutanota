@@ -48,16 +48,27 @@ let cancelCurrentSnackbar: (() => unknown) | null = null
 class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
 		const a = vnode.attrs
+		const actionButton = a.button
+			? m(
+					".flex-end.center-vertically",
+					{
+						class: a.isSnackbarButtonVisible() ? "" : "hidden",
+					},
+					m(Button, a.button),
+				)
+			: null
+		const dismissButton = a.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, a.dismissButton)]) : null
+
 		// use same padding as MinimizedEditor
 		return m(
 			".snackbar",
 			{
-				class: vnode.attrs.dismissButton ? "pl-16" : "plr-16",
+				class: a.dismissButton ? "pl-16" : "plr-16",
 				onmouseenter: () => {
-					vnode.attrs.onHoverChange(true)
+					a.onHoverChange(true)
 				},
 				onmouseleave: () => {
-					vnode.attrs.onHoverChange(false)
+					a.onHoverChange(false)
 				},
 			},
 			[
@@ -70,20 +81,9 @@ class SnackBar implements Component<SnackBarAttrs> {
 								fill: theme.on_surface_variant,
 							},
 						}),
-					m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
+					m(".flex.center-vertically.smaller", lang.getTranslationText(a.message)),
 				]),
-				m(".flex.gap-8.items-center", [
-					vnode.attrs.button
-						? m(
-								".flex-end.center-vertically.pl-12",
-								{
-									class: a.isSnackbarButtonVisible() ? "" : "hidden",
-								},
-								m(Button, vnode.attrs.button),
-							)
-						: null,
-					vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
-				]),
+				actionButton || dismissButton ? m(".flex.gap-8.items-center.pl-12", [actionButton, dismissButton]) : null,
 			],
 		)
 	}
