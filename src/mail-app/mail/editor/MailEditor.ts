@@ -1260,7 +1260,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			const sendAtDate = model.getSendAtDate()
 			const allowUndo = model.undoModel != null && deviceConfig.getIsUndoSendEnabled()
 
-			const sendResult = await model.send(
+			const { success, sendJob } = await model.send(
 				MailMethod.NONE,
 				Dialog.confirm,
 				showProgressDialog,
@@ -1268,43 +1268,45 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				sendAtDate ? "tooManyScheduledMails_msg" : undefined,
 				allowUndo,
 			)
-			if (sendResult.success) {
+			if (success) {
 				dispose()
 				dialog.close()
 
-				const { sendJob } = sendResult
-				const sentMail = assertNotNull(model.draft?._id)
-
+				// Undoing is not possible for approval mails, and scheduled mails (should just go to the scheduled folder and cancel it)
+				// But for consistency we always show something to confirm the email was sent/scheduled, since it will be expected for a snackbar to appear
 				if (allowUndo && sendJob != null) {
-					if (sendAtDate) {
-						// Cannot undo a scheduled mail (should just go to the scheduled folder and cancel it)
-						// But we do want to show something to confirm the email, since it will be expected that a snackbar shows when sending a mail
-						showInfoSnackbar("emailScheduled_msg")
-					} else {
-						showUndoMailSnackbar(
-							model.undoModel,
-							async () => {
-								if (model.draft) {
-									await model.mailFacade.undoSendMail(sentMail, sendJob)
-									const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
-									// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
-									const editorDialog = await newMailEditorFromDraft(
-										model.draft,
-										await loadMailDetails(model.mailFacade, model.draft),
-										conversationEntry,
-										model.getAttachments(),
-										model.loadedInlineImages,
-										true,
-										undefined,
-										model.mailboxDetails,
-									)
-									editorDialog?.show()
-								}
-							},
-							lang.getTranslation("emailSent_msg"),
-							UNDO_SEND_TIMEOUT,
-						)
-					}
+					// sent mail that can be undone
+					const sentMail = assertNotNull(model.draft?._id)
+
+					showUndoMailSnackbar(
+						model.undoModel,
+						async () => {
+							if (model.draft) {
+								await model.mailFacade.undoSendMail(sentMail, sendJob)
+								const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
+								// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
+								const editorDialog = await newMailEditorFromDraft(
+									model.draft,
+									await loadMailDetails(model.mailFacade, model.draft),
+									conversationEntry,
+									model.getAttachments(),
+									model.loadedInlineImages,
+									true,
+									undefined,
+									model.mailboxDetails,
+								)
+								editorDialog?.show()
+							}
+						},
+						lang.getTranslation("emailSent_msg"),
+						UNDO_SEND_TIMEOUT,
+					)
+				} else if (sendAtDate) {
+					// scheduled mail
+					showInfoSnackbar("emailScheduled_msg")
+				} else {
+					// sent mail that cannot be undone, like approval mail
+					showInfoSnackbar("emailSent_msg")
 				}
 
 				const { handleRatingByEvent } = await import("../../../common/ratings/UserSatisfactionDialog.js")
