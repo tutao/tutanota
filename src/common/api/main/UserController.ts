@@ -63,7 +63,7 @@ export class UserController {
 		public readonly loginUsername: string,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly customer: Customer,
+		private customer: Customer,
 	) {
 		this.planConfig = null
 	}
@@ -238,6 +238,9 @@ export class UserController {
 				}
 				// cached plan config might be outdated now
 				this.planConfig = null
+			} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+				// offline cache might still be outdated, so we're playing it safe with WriteOnly
+				this.customer = await this.reloadCustomer(CacheMode.WriteOnly).catch(() => this.customer)
 			}
 		}
 	}
