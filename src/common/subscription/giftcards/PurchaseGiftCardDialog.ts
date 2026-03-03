@@ -26,11 +26,11 @@ import { px } from "../../gui/size"
 import { Icon, IconSize } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { MessageBanner } from "../components/MessageBanner"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
 	confirmed = false
-
 	constructor(
 		private readonly config: {
 			purchaseLimit: number
@@ -38,6 +38,7 @@ class PurchaseGiftCardModel {
 			availablePackages: Array<GiftCardOption>
 			selectedPackage: number
 			revolutionaryPrice: number
+			globalCampaignActive: boolean
 		},
 	) {}
 
@@ -63,6 +64,10 @@ class PurchaseGiftCardModel {
 
 	get revolutionaryPrice(): number {
 		return this.config.revolutionaryPrice
+	}
+
+	get globalCampaignActive(): boolean {
+		return this.config.globalCampaignActive
 	}
 
 	async purchaseGiftCard(): Promise<GiftCard> {
@@ -115,6 +120,12 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 	view(vnode: Vnode<GiftCardPurchaseViewAttrs>): Children {
 		const { model, onGiftCardPurchased } = vnode.attrs
 		return [
+			model.globalCampaignActive
+				? m(MessageBanner, {
+						translation: lang.getTranslation("buyGiftcardWhileCampaignActive_msg"),
+						type: "warning",
+					})
+				: null,
 			m(
 				".flex.center-horizontally.wrap.pt-24",
 				{
@@ -244,7 +255,6 @@ export async function showPurchaseGiftCardDialog() {
 		exec: () => dialog.close(),
 		help: "close_alt",
 	})
-
 	if (client.isMobileDevice()) {
 		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 		dialog.setFocusOnLoadFunction(noOp)
@@ -281,13 +291,14 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 			}),
 		)
 	}
-
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
+	const globalCampaignActive = priceDataProvider.getRawPricingData().hasGlobalFirstYearDiscount
 	return new PurchaseGiftCardModel({
 		purchaseLimit: filterInt(giftCardInfo.maxPerPeriod),
 		purchasePeriodMonths: filterInt(giftCardInfo.period),
 		availablePackages: giftCardInfo.options,
 		selectedPackage: Math.floor(giftCardInfo.options.length / 2),
 		revolutionaryPrice: priceDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice),
+		globalCampaignActive: globalCampaignActive,
 	})
 }
