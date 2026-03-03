@@ -1,6 +1,12 @@
 package de.tutao.calendar
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.preferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
+import de.tutao.calendar.widget.WIDGET_EVENTS_CACHE
+import de.tutao.calendar.widget.data.CalendarEventDao
+import de.tutao.calendar.widget.data.CalendarEventListDao
 import de.tutao.calendar.widget.data.WidgetDataRepository
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.tutasdk.ApiCallException
@@ -11,18 +17,23 @@ import de.tutao.tutasdk.CalendarFacade
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.DateTime
 import de.tutao.tutasdk.ElementValue
+import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.IdTupleGenerated
 import de.tutao.tutasdk.LoggedInSdk
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
 import de.tutao.tutashared.IdTupleCustom
+import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.UnencryptedCredentials
+import de.tutao.tutashared.toBase64
 import junit.framework.TestCase.assertNull
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -32,10 +43,15 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.mockito.kotlin.wheneverBlocking
 import java.util.Date
 
 class WidgetRepositoryTest {
+
+	private val json = Json { ignoreUnknownKeys = true }
+
+
 	private lateinit var repository: WidgetRepository
 	private lateinit var mockedUnencryptedCredentials: UnencryptedCredentials
 	private lateinit var mockedCryptoFacade: AndroidNativeCryptoFacade
@@ -45,12 +61,12 @@ class WidgetRepositoryTest {
 	private val BAR_CAL_ID = "bar"
 	private val WIDGET_ID = 1
 
-	private lateinit var mockedContext: Context
 	private lateinit var mockedFooEvent: CalendarEvent
 	private lateinit var mockedFooCalendarEventsList: CalendarEventsList
 	private lateinit var mockedBarEvent: CalendarEvent
 	private lateinit var mockedBarCalendarEventsList: CalendarEventsList
 	private lateinit var mockedSdk: Sdk
+	private lateinit var mockedDataStore: DataStore<Preferences>
 
 	private val credentialsFacade: NativeCredentialsFacade = mock<NativeCredentialsFacade> {
 		onBlocking { loadByUserId(any()) } doReturn UnencryptedCredentials(
@@ -64,16 +80,31 @@ class WidgetRepositoryTest {
 
 	@Before
 	fun setup() {
+		mockedDataStore = mock<DataStore<Preferences>>()
+
 		repository = WidgetDataRepository()
 		mockedUnencryptedCredentials = mock()
-		mockedCryptoFacade = mock()
-		mockedContext = mock()
-		mockedSdk = mock { onBlocking { login(any()) } doReturn mock() }
+		val mockedDatabaseKey = mock<DataWrapper>()
+		whenever(mockedDatabaseKey.data).thenReturn(ByteArray(0))
+		whenever(mockedUnencryptedCredentials.databaseKey).thenReturn(mockedDatabaseKey)
 
+		mockedCryptoFacade = mock()
+		whenever(mockedCryptoFacade.aesDecryptData(any(), any())).thenReturn(ByteArray(0))
+
+		// Mocking generateIv() to provide a consistent return value for the default argument in
+		// mockedCryptoFacade.aesEncryptData.  It's as a workaround for a bug in mockito kotlin where argument matchers
+		// don't work on method signatures that use default values.
+		// See also: https://github.com/mockito/mockito-kotlin/issues/511
+		val matchableReturnValue = ByteArray(0)
+		whenever(mockedCryptoFacade.generateIv()).thenReturn(matchableReturnValue)
+		whenever(mockedCryptoFacade.aesEncryptData(any(), any(), eq(matchableReturnValue))).thenReturn(
+			ByteArray(0)
+		)
+
+		mockedSdk = mock { onBlocking { login(any()) } doReturn mock() }
 		mockedFooEvent = createCalendarEventStub(
 			id = IdTupleCustom(
-				"fooList",
-				"fooEvent"
+				"fooList", "fooEvent"
 			)
 		)
 		mockedFooCalendarEventsList = CalendarEventsList(listOf(mockedFooEvent), listOf(), listOf())
@@ -81,8 +112,7 @@ class WidgetRepositoryTest {
 
 		mockedBarEvent = createCalendarEventStub(
 			id = IdTupleCustom(
-				"barList",
-				"barEvent"
+				"barList", "barEvent"
 			)
 		)
 		mockedBarCalendarEventsList = CalendarEventsList(listOf(mockedBarEvent), listOf(), listOf())
@@ -141,7 +171,7 @@ class WidgetRepositoryTest {
 
 		// Act
 		val loadedEvents = repository.loadEvents(
-			mockedContext,
+			mockedDataStore,
 			1,
 			"a",
 			listOf(FOO_CAL_ID, BAR_CAL_ID),
@@ -191,7 +221,7 @@ class WidgetRepositoryTest {
 
 		// Act
 		val loadedEvents = repository.loadEvents(
-			mockedContext,
+			mockedDataStore,
 			1,
 			"a",
 			listOf(MISSING_CAL_ID, FOO_CAL_ID, BAR_CAL_ID),
@@ -212,26 +242,125 @@ class WidgetRepositoryTest {
 	}
 
 	@Test
-	fun test_loadEventsFromCache_correctly_loads_events_from_cache() = runTest {
-//		// Arrange
-//		val preferenceKey = stringPreferencesKey("test")
-//		val mockedPreferences = preferencesOf(preferenceKey to "testValue")
-//		val mockedDataStore = mock<DataStore<Preferences>>()
-//		whenever(mockedDataStore.data).thenReturn(flowOf(mockedPreferences))
-//		whenever(mockedContext.widgetCacheDataStore).thenReturn(mockedDataStore)
-//
-//		// Act
-//		val cachedCalendar = repository.loadEventsFromCache(
-//			mockedContext,
-//			WIDGET_ID,
-//			listOf(FOO_CAL_ID, BAR_CAL_ID),
-//			mockedUnencryptedCredentials,
-//			mockedCryptoFacade
-//		)
-//
-//		// Assert
+	fun test_loadEventsFromCache_only_returns_requested_calendars_from_cache() = runTest {
+		// Arrange
+		val cachedCalId = "CACHED"
+		val preferenceKey = stringPreferencesKey("${WIDGET_EVENTS_CACHE}_$WIDGET_ID")
+
+		val fooEventListDao = CalendarEventListDao(
+			mockedFooCalendarEventsList.shortEvents.map {
+				CalendarEventDao(IdTupleCustom(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
+			},
+			listOf<CalendarEventDao>(),
+		)
+		val barEventListDao = CalendarEventListDao(
+			mockedBarCalendarEventsList.shortEvents.map {
+				CalendarEventDao(IdTupleCustom(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
+			},
+			listOf<CalendarEventDao>(),
+		)
+		val cachedEventListDao = CalendarEventListDao(
+			listOf<CalendarEventDao>(),
+			listOf<CalendarEventDao>(),
+		)
+
+		val encodedFooEventList = json.encodeToString(fooEventListDao)
+		val encodedBarEventList = json.encodeToString(barEventListDao)
+		val encodedCachedEventList = json.encodeToString(cachedEventListDao)
+
+		// We are skipping encryption here for test purposes
+		val encodedFooEventListAsBase64 = encodedFooEventList.toByteArray().toBase64()
+		val encodedBarEventListAsBase64 = encodedBarEventList.toByteArray().toBase64()
+		val encodedCachedEventListAsBase64 = encodedCachedEventList.toByteArray().toBase64()
+
+		val encryptedEventListMap: Map<GeneratedId, String> = mapOf(
+			FOO_CAL_ID to encodedFooEventListAsBase64,
+			BAR_CAL_ID to encodedBarEventListAsBase64,
+			cachedCalId to encodedCachedEventListAsBase64
+		)
+
+		val cachedJsonEncodedEventsListMap = json.encodeToString(encryptedEventListMap)
+
+		val mockedPreferences = preferencesOf(preferenceKey to cachedJsonEncodedEventsListMap)
+		whenever(mockedDataStore.data).thenReturn(flowOf(mockedPreferences))
+
+
+		// For each attempt to decrypt one entry of the decoded cachedJsonEncodedEventsListMap
+		// we return encodedFooEventList and encodedBarEventList
+		whenever(
+			mockedCryptoFacade.aesDecryptData(
+				any(), eq(encodedFooEventListAsBase64.base64ToBytes())
+			)
+		).thenReturn(encodedFooEventList.toByteArray())
+		whenever(
+			mockedCryptoFacade.aesDecryptData(
+				any(), eq(encodedBarEventListAsBase64.base64ToBytes())
+			)
+		).thenReturn(encodedBarEventList.toByteArray())
+
+		whenever(
+			mockedCryptoFacade.aesDecryptData(
+				any(), eq(encodedCachedEventListAsBase64.base64ToBytes())
+			)
+		).thenReturn(
+			encodedCachedEventList.toByteArray()
+		)
+
+
+		// Act
+		val cachedCalendar = repository.loadEventsFromCache(
+			mockedDataStore, WIDGET_ID, listOf(FOO_CAL_ID, BAR_CAL_ID), mockedUnencryptedCredentials, mockedCryptoFacade
+		)
+
+		// Assert
+		assert(cachedCalendar.size == 2)
+		assert(cachedCalendar.keys.contains(FOO_CAL_ID))
+		assert(cachedCalendar.keys.contains(BAR_CAL_ID))
+		assert(!cachedCalendar.keys.contains(cachedCalId))
+	}
+
+	@Test
+	fun test_loadEventsFromCache_does_not_throw_if_requested_calendar_is_missing_from_cache() = runTest {
+
+		// Arrange
+		val preferenceKey = stringPreferencesKey("${WIDGET_EVENTS_CACHE}_$WIDGET_ID")
+
+		val fooEventListDao = CalendarEventListDao(
+			mockedFooCalendarEventsList.shortEvents.map {
+				CalendarEventDao(IdTupleCustom(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
+			},
+			listOf<CalendarEventDao>(),
+		)
+		val encodedFooEventList = json.encodeToString(fooEventListDao)
+
+		// We are skipping encryption here for test purposes
+		val encodedFooEventListAsBase64 = encodedFooEventList.toByteArray().toBase64()
+
+		val encryptedEventListMap: Map<GeneratedId, String> = mapOf(
+			FOO_CAL_ID to encodedFooEventListAsBase64,
+		)
+
+		val cachedJsonEncodedEventsListMap = json.encodeToString(encryptedEventListMap)
+		val mockedPreferences = preferencesOf(preferenceKey to cachedJsonEncodedEventsListMap)
+		whenever(mockedDataStore.data).thenReturn(flowOf(mockedPreferences))
+
+		whenever(
+			mockedCryptoFacade.aesDecryptData(
+				any(), eq(encodedFooEventListAsBase64.base64ToBytes())
+			)
+		).thenReturn(encodedFooEventList.toByteArray())
+
+
+		// Act
+		val cachedCalendars = repository.loadEventsFromCache(
+			mockedDataStore, WIDGET_ID, listOf(BAR_CAL_ID), mockedUnencryptedCredentials, mockedCryptoFacade
+		)
+
+		// Assert
+		assert(cachedCalendars.isEmpty())
 	}
 }
+
 
 fun createCalendarEventStub(
 	id: IdTupleCustom?,

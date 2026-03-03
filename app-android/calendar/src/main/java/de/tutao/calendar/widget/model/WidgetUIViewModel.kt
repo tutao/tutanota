@@ -18,6 +18,8 @@ import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
+import de.tutao.calendar.widget.widgetCacheDataStore
+import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -78,12 +80,15 @@ class WidgetUIViewModel(
 		val calendars: List<String>
 
 		try {
-			settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
+			settings = repository.loadSettings(context.widgetDataStore, widgetId) ?: return WidgetUIData(
+				normalEvents,
+				allDayEvents
+			)
 			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
 			settings.calendars.entries.forEach { (calendarId, calendar) ->
 				Log.d(TAG, "$calendarId - ${calendar.name}")
 			}
-			lastSync = repository.loadLastSync(context, widgetId)
+			lastSync = repository.loadLastSync(context.widgetDataStore, widgetId)
 			Log.i(TAG, "Widget last sync at $lastSync")
 
 			sdk?.let { sdk -> loadCalendars(context, sdk, settings) }
@@ -123,7 +128,7 @@ class WidgetUIViewModel(
 					val loggedInSdk = this.sdk.login(credentials.toSdkCredentials())
 
 					repository.loadEvents(
-						context,
+						context.widgetCacheDataStore,
 						widgetId,
 						settings.userId,
 						calendars,
@@ -138,13 +143,31 @@ class WidgetUIViewModel(
 						TAG,
 						"Missing credentials for user ${settings.userId} when trying to load widget content}", e
 					)
-					repository.loadEventsFromCache(context, widgetId, calendars, credentials, cryptoFacade)
+					repository.loadEventsFromCache(
+						context.widgetCacheDataStore,
+						widgetId,
+						calendars,
+						credentials,
+						cryptoFacade
+					)
 				} catch (e: Exception) {
 					Log.e(TAG, "Unknown exception occurred", e)
-					repository.loadEventsFromCache(context, widgetId, calendars, credentials, cryptoFacade)
+					repository.loadEventsFromCache(
+						context.widgetCacheDataStore,
+						widgetId,
+						calendars,
+						credentials,
+						cryptoFacade
+					)
 				}
 			} else {
-				repository.loadEventsFromCache(context, widgetId, calendars, credentials, cryptoFacade)
+				repository.loadEventsFromCache(
+					context.widgetCacheDataStore,
+					widgetId,
+					calendars,
+					credentials,
+					cryptoFacade
+				)
 			}
 
 		val startOfToday = midnightInDate(ZoneId.systemDefault(), now)
@@ -302,7 +325,7 @@ class WidgetUIViewModel(
 
 	suspend fun getLoggedInUser(context: Context): String? {
 		try {
-			return repository.loadSettings(context, widgetId)?.userId
+			return repository.loadSettings(context.widgetDataStore, widgetId)?.userId
 		} catch (e: IOException) {
 			WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
 			Log.e(
