@@ -53,7 +53,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 				return m(
 					".plr-24.pt-24.pb-24.flex.col.gap-16.border-radius-8",
 					{
-						style: { background: theme.surface_container, height: "600px" },
+						style: { background: theme.surface_container, height: "min(600px, 90vh)" },
 					},
 					[
 						m(
