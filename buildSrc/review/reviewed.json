@@ -6453,5 +6453,140 @@
 		"who": "ivk",
 		"when": "2026-02-26",
 		"hash": "3cbce2482a028f9e3e74e9b552c422a519ed519b22b7a3ad88f04c37e776ae9e"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/npmNodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "dfb38b58c7d06b3add874d3eefefd72c9742b858333a5acd12d66d0c93740dba"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/pnpmNodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "94af1543c617469ab5d127b9a059e4c01ef7cc6a58c8588653f12c7113036ba7"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/yarnBerryNodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "da8f4cfbec00d2613ff442da5b99754bc64fa0d1f90da59a6b57f2a06c0a0847"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/yarnNodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "1acd80a2863ed3d323d0bd413a21b34a8e1f7d5c41888aa7be04b54006fe1a49"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/traversalNodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "f648805c8a7e8e1abe299246eed2515ce31e4d0c1717439c8168c01bbb8d9a5f"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/bunNodeModulesCollector.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "67baff83f84f7199a77c2557b5746412695afa3340fe6eae8c42b6fe7debed6a"
+	},
+	"node_modules/app-builder-lib/out/node-module-collector/index.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "2aae551dccb112dc5c9727925c01bd478f062dadff651451bc290642f96aed04"
+	},
+	"node_modules/app-builder-lib/out/util/appFileCopier.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "60fe31fde30654a116ce2a2d3071f90caf3a53e820216013a687c1c9d2052de4"
+	},
+	"node_modules/app-builder-lib/out/asar/asarUtil.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "d27ed4dd22475c882c0823c7892e55f14eab5cb37f32de930fd529209cb02963"
+	},
+	"node_modules/app-builder-lib/out/asar/integrity.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "5502994127252352a5a65060caf82ca9a0ce7deb5dfc195faa7ecb296c761d42"
+	},
+	"node_modules/app-builder-lib/out/Framework.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "9d7a13981dedbbe48a1b10f5a8722dacf6bcd505b98a28bba4038fcb69b31ea2"
+	},
+	"node_modules/app-builder-lib/out/util/appBuilder.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "baaa0774a91ecaecfe015f31454a7460cebf31ca8f9667921a6f9f53798c9527"
+	},
+	"node_modules/@xmldom/xmldom/lib/conventions.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "fca02624b9b84b1709b73afd83a4d1c4dbc99baacc5b5f74a56e5999fbeaac49"
+	},
+	"node_modules/@xmldom/xmldom/lib/dom.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "769b4e1173393ed13aac2546ae3b170b6903627c9a4aac841be8d92b8b7fe9d1"
+	},
+	"node_modules/@xmldom/xmldom/lib/entities.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "332cda4081c610fdadc0266867ee5ed9f945c99d471ea7234ec61ba00cbf0e40"
+	},
+	"node_modules/@xmldom/xmldom/lib/sax.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "a17eb8c4134e7dd179c4eeab28995e3f82e3b14df83343904df45e0ef893cc3b"
+	},
+	"node_modules/@xmldom/xmldom/lib/dom-parser.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "03915c54c4bf44cfee38807af253abaabb022c27652918e8a233fae2d92fe1d2"
+	},
+	"node_modules/@xmldom/xmldom/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "9deb4e9d6d730a51c1c2b05238f8684d01e87f72b9861ba2adcad537ffc56586"
+	},
+	"node_modules/plist/lib/parse.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "622d22643bd671aad115aa951453360839e2383b592c08f299b4d7056fb0eaf7"
+	},
+	"node_modules/base64-js/index.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "829eadd8a1a441d25be0cb93b00e16a0d0c20fd294db95d8f2ed87e6954b7182"
+	},
+	"node_modules/xmlbuilder/lib/Utility.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "ebc5b60d25e485007f6bdde86f5b06ae06df30f516daa82133b61dce969686cd"
+	},
+	"node_modules/xmlbuilder/lib/XMLDOMImplementation.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "78edd387d51cd70664852d17b54c293671d99a20b2ec834344433e3e8ac2496a"
+	},
+	"node_modules/xmlbuilder/lib/XMLDOMErrorHandler.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "932c012f1dfd496c2876a2aef45705ca02c955fb32c23c530e40e6a5719a2a77"
+	},
+	"node_modules/xmlbuilder/lib/XMLDOMStringList.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "6f63b3cae6e59edd3a9084395873ad78f4da628a40f3961ae8ab70c6f50b0758"
+	},
+	"node_modules/xmlbuilder/lib/XMLDOMConfiguration.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "fc6f74126820617ccc63ef881374627fd11fc8798d9b08e69b0248f6ba2ccd2b"
+	},
+	"node_modules/xmlbuilder/lib/XMLNode.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "04c479dbac874d59e2a504b47bd4de6f1afe31c4194b084b80e82f8f638aa7c6"
+	},
+	"node_modules/xmlbuilder/lib/NodeType.js": {
+		"who": "ivk",
+		"when": "2026-03-03",
+		"hash": "0ebe08e279fc38292f1b194f00f92d9f217b79b3824b29f6d040522996286a74"
 	}
 }
