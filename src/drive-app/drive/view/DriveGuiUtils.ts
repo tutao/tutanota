@@ -5,6 +5,7 @@ import { showStandardsFileChooser } from "../../../common/file/FileController"
 import { DriveFolderType } from "./DriveViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { FolderItemId } from "./DriveUtils"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownChildAttrs[] {
 	return [
@@ -69,6 +70,13 @@ export function parseDragItems(str: string): FolderItemId[] | null {
 		}
 	}
 	return parsed
+}
+
+export function isDraggingDriveItems(dataTransfer: DataTransfer | null): boolean {
+	// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-getdata-dev
+	// "Returns the specified data. If there is no such data, returns the empty string."
+	const maybeDriveItem = dataTransfer?.getData(DropType.DriveItems)
+	return maybeDriveItem != null && maybeDriveItem !== ""
 }
 
 export function driveFolderName(folder: DriveFolder): Translation {

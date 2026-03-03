@@ -35,6 +35,9 @@ export interface DropdownButtonAttrs {
 	text?: MaybeTranslation
 	icon?: AllIcons
 	click?: ClickHandler
+	drop?: (event: DragEvent) => unknown
+	dragover?: (event: DragEvent) => unknown
+	dragleave?: (event: DragEvent) => unknown
 	selected?: boolean
 }
 
@@ -275,6 +278,9 @@ export class Dropdown implements ModalComponent {
 			icon: child.icon && showingIcons ? child.icon : showingIcons ? "none" : undefined,
 			class: "dropdown-button",
 			onclick: child.click ? child.click : noOp,
+			ondrop: child.drop ? child.drop : noOp,
+			ondragover: child.dragover ? child.dragover : noOp,
+			ondragleave: child.dragleave ? child.dragleave : noOp,
 		} satisfies RowButtonAttrs)
 	}
 

@@ -17,6 +17,9 @@ export interface BaseButtonAttrs {
 	/** whether the button is visibly highlighted or not for screen readers */
 	selected?: boolean
 	onclick: ClickHandler
+	ondrop?: (event: DragEvent) => unknown
+	ondragover?: (event: DragEvent) => unknown
+	ondragleave?: (event: DragEvent) => unknown
 	onkeydown?: (event: KeyboardEvent) => unknown
 	style?: Record<string, any>
 	class?: string
@@ -47,6 +50,17 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 					if (p instanceof Promise) {
 						p.then(() => m.redraw())
 					}
+				},
+				ondrop: (event: DragEvent) => {
+					attrs.ondrop?.(event)
+				},
+				ondragover: (event: DragEvent) => {
+					// MDN: "The element can elect itself to be a valid drop target by cancelling the dragover event."
+					event.preventDefault()
+					attrs.ondragover?.(event)
+				},
+				ondragleave: (event: DragEvent) => {
+					attrs.ondragleave?.(event)
 				},
 				onkeydown: attrs.onkeydown,
 				class: attrs.class,
