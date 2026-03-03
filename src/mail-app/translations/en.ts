@@ -2247,6 +2247,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
+		"contactDeletionMoveToSpam_msg": "You have moved an email from a contact to the spam folder.\nMails sent by contacts are never classified as spam.\nWould you like to delete the selected contact(s)?",
+		"contactDeletionMoveToSpam_title": "Delete contact(s)?",
 	}
 }

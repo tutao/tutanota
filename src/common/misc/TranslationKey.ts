@@ -2242,6 +2242,7 @@ export type TranslationKeyType =
 	| "emailScheduled_msg"
 	| "emailSent_msg"
 	| "undoSendMail_msg"
+	| "buyGiftcardWhileCampaignActive_msg"
 	| "contactDeletionMoveToSpam_msg"
 	| "contactDeletionMoveToSpam_title"
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
