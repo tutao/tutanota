@@ -7,9 +7,8 @@ import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton"
 import { theme } from "../../../common/gui/theme"
-import { driveFolderName } from "./DriveGuiUtils"
+import { driveFolderName, isDraggingDriveItems } from "./DriveGuiUtils"
 import { FolderItem } from "./DriveUtils"
-import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null
@@ -27,6 +26,8 @@ export interface BreadcrumbLinkAttrs {
 }
 
 const BREADCRUMBS_ITEM_MAXWIDTH = "20ch"
+const BREADCRUMB_BORDER_DRAGOVER = `1px solid ${theme.primary}`
+const BREADCRUMB_BORDER_NONE = `1px solid transparent`
 
 class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 	private isDraggedOver: boolean = false
@@ -38,7 +39,7 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 				href,
 				selector: "a.click.no-text-decoration.state-bg.pl-8.pr-8.pt-4.pb-4.border-radius-4.text-ellipsis.font-weight-500",
 				"data-testid": `btn:${lang.getTestId(label)}`,
-				style: { "max-width": BREADCRUMBS_ITEM_MAXWIDTH, border: this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent` },
+				style: { "max-width": BREADCRUMBS_ITEM_MAXWIDTH, border: this.isDraggedOver ? BREADCRUMB_BORDER_DRAGOVER : BREADCRUMB_BORDER_NONE },
 				onclick: onClick,
 				onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
 					if (isKeyPressed(e.key, Keys.SPACE)) {
@@ -46,12 +47,7 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 					}
 				},
 				ondragover: (event: DragEvent) => {
-					// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-getdata-dev
-					// "Returns the specified data. If there is no such data, returns the empty string."
-					const maybeDriveItem = event.dataTransfer?.getData(DropType.DriveItems)
-					const isDraggingDriveItem = maybeDriveItem != null && maybeDriveItem !== ""
-
-					this.isDraggedOver = (onDrop ?? false) && isDraggingDriveItem
+					this.isDraggedOver = (onDrop ?? false) && isDraggingDriveItems(event.dataTransfer)
 				},
 				ondragleave: () => {
 					this.isDraggedOver = false
@@ -85,7 +81,13 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 									m(BaseButton, {
 										class: "click state-bg pl-8 pr-8 pt-4 pb-4 border-radius-4",
 										text: "…",
-										onclick: (_, dom) => this.onLoadParents(dom, loadParents, onClick),
+										onclick: (_, dom) => this.onLoadParents(dom, loadParents, onClick, undefined),
+										ondragover: (event: DragEvent) => {
+											if (event.target && isDraggingDriveItems(event.dataTransfer)) {
+												const dom = event.target as HTMLElement
+												this.onLoadParents(dom, loadParents, undefined, onDropInto)
+											}
+										},
 										label: "showParentFolders_action",
 									} satisfies BaseButtonAttrs),
 									m("", "/"),
@@ -114,7 +116,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 							{
 								style: {
 									// match the border of breadcrumb links
-									border: "1px solid transparent",
+									border: BREADCRUMB_BORDER_NONE,
 									"max-width": BREADCRUMBS_ITEM_MAXWIDTH,
 								},
 							},
@@ -124,7 +126,12 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 				: null,
 		])
 	}
-	private onLoadParents(dom: HTMLElement, loadParents: () => Promise<DriveFolder[]>, onClick: DriveBreadcrumbsAttrs["onClick"]) {
+	private onLoadParents(
+		dom: HTMLElement,
+		loadParents: () => Promise<DriveFolder[]>,
+		onClick: DriveBreadcrumbsAttrs["onClick"],
+		onDropInto: DriveBreadcrumbsAttrs["onDropInto"],
+	) {
 		const newClickEvent = new MouseEvent("click")
 		createAsyncDropdown({
 			lazyButtons: async () => {
@@ -138,6 +145,17 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 							} else {
 								m.route.set(folderRoute(parent))
 							}
+						},
+						drop: (event) => {
+							onDropInto?.({ type: "folder", folder: parent }, event)
+						},
+						dragover: (event) => {
+							const target = event.target as HTMLElement
+							target.classList.add("state-bg", "selected")
+						},
+						dragleave: (event) => {
+							const target = event.target as HTMLElement
+							target.classList.remove("state-bg", "selected")
 						},
 					}
 				})
