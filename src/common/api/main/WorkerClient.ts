@@ -47,7 +47,7 @@ export class WorkerClient {
 			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
 			// localhost/path/WorkerBootstrap.js respectively.
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
+			const workerUrl = "/apps-extra/tutamail/js/worker-bootstrap.js"
 			const worker = new Worker(workerUrl, { type: "module" })
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
