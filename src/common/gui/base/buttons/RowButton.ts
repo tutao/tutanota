@@ -14,6 +14,9 @@ export interface RowButtonAttrs {
 	icon?: AllIcons | "none"
 	selected?: boolean
 	onclick: ClickHandler
+	ondrop?: (event: DragEvent) => unknown
+	ondragover?: (event: DragEvent) => unknown
+	ondragleave?: (event: DragEvent) => unknown
 	style?: Record<string, any>
 	class?: string
 	role?: AriaRole
@@ -31,7 +34,13 @@ export class RowButton implements Component<RowButtonAttrs> {
 			text: m(
 				".plr-8.text-ellipsis",
 				{
-					style: { color },
+					style: {
+						color,
+
+						// Disable pointer-events if a dragover hook is specified to prevent
+						// this text component from becoming the event target.
+						pointerEvents: attrs.ondragover ? "none" : "auto",
+					},
 					// When the label doesn't match content, screen readers read both
 					ariaHidden: label !== text, // this prevents that
 				},
@@ -57,6 +66,9 @@ export class RowButton implements Component<RowButtonAttrs> {
 				color,
 			},
 			onclick: attrs.onclick,
+			ondrop: attrs.ondrop,
+			ondragover: attrs.ondragover,
+			ondragleave: attrs.ondragleave,
 		})
 	}
 }
