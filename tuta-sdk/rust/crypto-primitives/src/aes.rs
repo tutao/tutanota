@@ -6,16 +6,12 @@ use crate::key::GenericAesKey;
 use crate::randomizer_facade::RandomizerFacade;
 use crate::utils::{array_cast_size, array_cast_slice, ArrayCastingError};
 use aes::cipher::block_padding::Pkcs7;
-use aes::cipher::consts::U4;
-use aes::cipher::typenum::{IsLess, PartialDiv, Same};
-use aes::cipher::{ArrayLength, BlockCipher, BlockSizeUser};
-use aes::cipher::{KeySizeUser, StreamCipher};
+use aes::cipher::{BlockCipher, BlockSizeUser};
+use aes::cipher::{StreamCipher};
 use cbc::cipher::block_padding::UnpadError;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
-use ctr::cipher::typenum::{Integer, Le, NonZero, PartialQuot, U256};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::ops::{Div, Rem};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 use zeroize::ZeroizeOnDrop;
@@ -147,13 +143,7 @@ aes_key!(
 	sha2::Sha512
 );
 
-trait AesKey: Clone
-where
-	<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize: PartialDiv<U4>,
-	PartialQuot<<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize, U4>: ArrayLength<u32>,
-	<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize: IsLess<U256>,
-	Le<<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize, U256>: NonZero,
-{
+trait AesKey: Clone {
 	/// The equivalent type in the RustCrypto packages to this key type
 	type AesKeyType: BlockEncryptMut
 		+ BlockDecryptMut
@@ -397,16 +387,18 @@ impl<Key: AesKey> AesSubKeys<Key> {
 	}
 }
 
-fn aes_ctr_encrypt<Key>(key: &Key, plaintext: &[u8], nonce: &Nonce) -> Vec<u8>
-where
-	Key: AesKey,
-{
-	//type Aes256Ctr32LE = ctr::Ctr32LE<Key::AesKeyType>;
-	// let blah: CtrCore<Key::AesKeyType, flavors::Ctr32LE> = unimplemented!();
-	let mut cipher =
-		ctr::Ctr32LE::<Key::AesKeyType>::new(key.get_bytes().into(), nonce.get_bytes().into());
+fn aes_ctr_encrypt<Key>(key: &GenericAesKey, plaintext: &[u8], nonce: &Nonce) -> Vec<u8> {
 	let mut buffer = plaintext.to_vec();
-	cipher.apply_keystream(&mut buffer);
+	match key {
+		GenericAesKey::Aes128(n) => {
+			ctr::Ctr32LE::<aes::Aes128>::new(key.as_bytes().into(), nonce.get_bytes().into())
+				.apply_keystream(&mut buffer)
+		},
+		GenericAesKey::Aes256(n) => {
+			ctr::Ctr32LE::<aes::Aes256>::new(key.as_bytes().into(), nonce.get_bytes().into())
+				.apply_keystream(&mut buffer)
+		},
+	}
 
 	buffer
 }
