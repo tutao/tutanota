@@ -25,6 +25,7 @@ class Styles {
 
 	// theme-color hints web browsers what color to use when decorating their UIs
 	private readonly themeColorMeta: HTMLMetaElement | null
+	private shadowRoot: ShadowRoot | null = null
 
 	constructor() {
 		this.initialized = false
@@ -47,9 +48,10 @@ class Styles {
 		})
 	}
 
-	init(themeController: ThemeController) {
+	init(themeController: ThemeController, shadowRoot: ShadowRoot | null) {
 		if (this.initialized) return
 		this.initialized = true
+		this.shadowRoot = shadowRoot
 
 		this.updateDomStyles()
 
@@ -138,18 +140,29 @@ class Styles {
 
 	private updateDomStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
 		const styleSheet = this.getDomStyleSheet(`css-${id}`)
-		styleSheet.textContent = toCss(styleCreator())
+		let prepend = ""
+		if (isNextCloudPlugin()) {
+			// ignore nextcloud styles for our plugin
+			prepend = `#nextcloud-tutamail {
+				all: unset;
+			}`
+		}
+		styleSheet.textContent = prepend + toCss(styleCreator())
 		this.styleSheets.set(id, styleSheet)
 	}
 
 	private getDomStyleSheet(id: string): HTMLStyleElement {
-		let styleDomElement = document.getElementById(id)
+		let styleDomElement = this.shadowRoot ? this.shadowRoot.getElementById(id) : document.getElementById(id)
 
 		if (!styleDomElement) {
 			styleDomElement = document.createElement("style")
 			styleDomElement.setAttribute("type", "text/css")
 			styleDomElement.id = id
-			styleDomElement = document.getElementsByTagName("head")[0].appendChild(styleDomElement)
+			if (this.shadowRoot) {
+				styleDomElement = this.shadowRoot.appendChild(styleDomElement)
+			} else {
+				styleDomElement = document.getElementsByTagName("head")[0].appendChild(styleDomElement)
+			}
 		}
 
 		return styleDomElement as HTMLStyleElement

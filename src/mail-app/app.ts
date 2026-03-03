@@ -308,7 +308,13 @@ import("./translations/en.js")
 			})
 		}
 
-		styles.init(mailLocator.themeController)
+		let shadowRoot: ShadowRoot | null = null
+		if (isNextCloudPlugin()) {
+			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
+			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
+		}
+
+		styles.init(mailLocator.themeController, shadowRoot)
 
 		const contactViewResolver = makeViewResolver<
 			ContactViewAttrs,
@@ -813,7 +819,9 @@ import("./translations/en.js")
 		}
 
 		if (isNextCloudPlugin()) {
-			m.route(assertNotNull(document.getElementById("nextcloud-tutamail")), startRoute, resolvers)
+			const mountPoint = document.createElement("div")
+			assertNotNull(shadowRoot).appendChild(mountPoint)
+			m.route(mountPoint, startRoute, resolvers)
 		} else {
 			// keep in sync with RewriteAppResourceUrlHandler.java
 			m.route(document.body, startRoute, resolvers)
@@ -1029,10 +1037,11 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 
 function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
 	let prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
+	let prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 	if (isNextCloudPlugin()) {
 		prefix = "/index.php/apps/tutamail"
+		prefixWithoutFile = "http://nextcloud.local/apps-extra/tutamail/js"
 	}
-	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 	return Object.freeze({ prefix, prefixWithoutFile })
 }
 

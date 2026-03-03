@@ -2008,6 +2008,9 @@ styles.registerStyle("main", () => {
 			"font-weight": "normal",
 			"min-height": 0,
 		},
+		"button > span": {
+			opacity: 1,
+		},
 		".nav-button:hover": !isApp()
 			? {
 					// "text-decoration": "underline",
