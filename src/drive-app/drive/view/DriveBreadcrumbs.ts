@@ -9,6 +9,7 @@ import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/Ba
 import { theme } from "../../../common/gui/theme"
 import { driveFolderName } from "./DriveGuiUtils"
 import { FolderItem } from "./DriveUtils"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null
@@ -44,8 +45,13 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 						m.route.set(href)
 					}
 				},
-				ondragover: () => {
-					this.isDraggedOver = (onDrop ?? false) && true
+				ondragover: (event: DragEvent) => {
+					// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-getdata-dev
+					// "Returns the specified data. If there is no such data, returns the empty string."
+					const maybeDriveItem = event.dataTransfer?.getData(DropType.DriveItems)
+					const isDraggingDriveItem = maybeDriveItem != null && maybeDriveItem !== ""
+
+					this.isDraggedOver = (onDrop ?? false) && isDraggingDriveItem
 				},
 				ondragleave: () => {
 					this.isDraggedOver = false
