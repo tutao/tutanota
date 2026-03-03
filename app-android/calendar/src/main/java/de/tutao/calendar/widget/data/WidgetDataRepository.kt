@@ -1,12 +1,12 @@
 package de.tutao.calendar.widget.data
 
-import android.content.Context
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_EVENTS_CACHE
-import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.BirthdayEvent
 import de.tutao.tutasdk.CalendarEvent
@@ -42,20 +42,20 @@ class WidgetDataRepository() : WidgetRepository() {
 		}
 	}
 
-	private suspend fun updateCacheCreationDate(context: Context, widgetId: Int, now: Date) {
+	private suspend fun updateCacheCreationDate(cacheDataStore: DataStore<Preferences>, widgetId: Int, now: Date) {
 		val nowTimestamp = now.time
 
 		val cacheDateIdentifier = "${WIDGET_CACHE_DATE_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(cacheDateIdentifier)
 
 		val createdAtDao = CacheDateDao(nowTimestamp)
-		context.widgetCacheDataStore.edit { preferences ->
+		cacheDataStore.edit { preferences ->
 			preferences[preferencesKey] = json.encodeToString(createdAtDao)
 		}
 	}
 
 	override suspend fun storeCache(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		eventsMap: Map<GeneratedId, CalendarEventListDao>,
 		cryptoFacade: AndroidNativeCryptoFacade,
@@ -84,15 +84,15 @@ class WidgetDataRepository() : WidgetRepository() {
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val encryptedEventListMapJson = json.encodeToString(encryptedEventListMap)
 
-		context.widgetCacheDataStore.edit { preferences ->
+		cacheDataStore.edit { preferences ->
 			preferences[preferencesKey] = encryptedEventListMapJson
 		}
 
-		updateCacheCreationDate(context, widgetId, Date())
+		updateCacheCreationDate(cacheDataStore, widgetId, Date())
 	}
 
 	override suspend fun loadCache(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		calendars: List<GeneratedId>,
 		cryptoFacade: AndroidNativeCryptoFacade,
@@ -103,7 +103,7 @@ class WidgetDataRepository() : WidgetRepository() {
 		val databaseWidgetIdentifier = "${WIDGET_EVENTS_CACHE}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
-		val preferences = context.widgetCacheDataStore.data.first()
+		val preferences = cacheDataStore.data.first()
 		Log.i(TAG, "Reading dataStore. Looking for key $preferencesKey")
 		val encodedEventsJson = preferences[preferencesKey] ?: return mapOf()
 
@@ -128,7 +128,7 @@ class WidgetDataRepository() : WidgetRepository() {
 	}
 
 	override suspend fun loadEvents(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		userId: GeneratedId,
 		calendars: List<GeneratedId>,
@@ -175,13 +175,13 @@ class WidgetDataRepository() : WidgetRepository() {
 			}
 		}
 
-		storeCache(context, widgetId, calendarEventListMap, cryptoFacade, credentials)
+		storeCache(cacheDataStore, widgetId, calendarEventListMap, cryptoFacade, credentials)
 
 		return calendarEventListMap
 	}
 
 	override suspend fun loadEventsFromCache(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		calendars: List<GeneratedId>,
 		credentials: UnencryptedCredentials,
@@ -190,7 +190,7 @@ class WidgetDataRepository() : WidgetRepository() {
 		Log.i(TAG, "Init loadEvents from cache...")
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
 		val cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> =
-			loadCache(context, widgetId, calendars, cryptoFacade, credentials).toMutableMap()
+			loadCache(cacheDataStore, widgetId, calendars, cryptoFacade, credentials).toMutableMap()
 		val cache = cachedEvents.filterKeys { calendars.contains(it) }
 
 		for ((id, events) in cache.entries) {

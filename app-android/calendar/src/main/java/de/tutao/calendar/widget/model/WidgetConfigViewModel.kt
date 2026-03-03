@@ -14,6 +14,7 @@ import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
+import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoginException
@@ -114,7 +115,7 @@ class WidgetConfigViewModel(
 	fun loadWidgetSettings(context: Context, widgetId: Int) {
 		viewModelScope.launch {
 			try {
-				val settings = repository.loadSettings(context, widgetId) ?: return@launch
+				val settings = repository.loadSettings(context.widgetDataStore, widgetId) ?: return@launch
 
 				_isLoading.value = true
 
