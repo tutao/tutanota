@@ -2239,4 +2239,8 @@ export type TranslationKeyType =
 	| "fastTrackButtonApproval_action"
 	| "whyThisHappens_msg"
 	| "approvalMail_msg"
+	| "undoSend_label"
+	| "emailScheduled_msg"
+	| "emailSent_msg"
+	| "undoSendMail_msg"
 	| "emptyString_msg"
