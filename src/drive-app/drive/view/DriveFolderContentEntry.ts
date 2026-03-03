@@ -10,6 +10,7 @@ import { theme } from "../../../common/gui/theme"
 import { modal } from "../../../common/gui/base/Modal"
 import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -116,8 +117,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					background: selected ? theme.state_bg_hover : theme.surface,
 					border: item.type === "folder" && this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent`,
 				},
-				ondragover: () => {
-					this.isDraggedOver = true
+				ondragover: (event: DragEvent) => {
+					// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-getdata-dev
+					// "Returns the specified data. If there is no such data, returns the empty string."
+					const maybeDriveItem = event.dataTransfer?.getData(DropType.DriveItems)
+					const isDraggingDriveItem = maybeDriveItem != null && maybeDriveItem !== ""
+
+					this.isDraggedOver = isDraggingDriveItem
 				},
 				ondragleave: () => {
 					this.isDraggedOver = false
