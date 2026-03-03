@@ -2005,6 +2005,8 @@ styles.registerStyle("main", () => {
 			// for safari
 			"flex-shrink": 0,
 			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
+			"font-weight": "normal",
+			"min-height": 0,
 		},
 		".nav-button:hover": !isApp()
 			? {
@@ -2404,6 +2406,8 @@ styles.registerStyle("main", () => {
 			position: "relative",
 			transition: `border ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
 			opacity: "0.8",
+			"inset-inline-start": 0,
+			padding: 0,
 		},
 		".checkbox:hover": {
 			opacity: "1",
