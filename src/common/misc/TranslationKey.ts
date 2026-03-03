@@ -2240,3 +2240,4 @@ export type TranslationKeyType =
 	| "whyThisHappens_msg"
 	| "approvalMail_msg"
 	| "emptyString_msg"
+	| "buyGiftcardWhileCampaignActive_msg"
