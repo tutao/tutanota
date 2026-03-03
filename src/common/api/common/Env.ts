@@ -38,6 +38,10 @@ export function isIOSApp(): boolean {
 	return env.mode === Mode.App && env.platformId === "ios"
 }
 
+export function isNextCloudPlugin(): boolean {
+	return document.getElementById("nextcloud-tutamail") !== null
+}
+
 /**
  * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
  */

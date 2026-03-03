@@ -31,7 +31,16 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import {
+	assertMainOrNodeBoot,
+	bootFinished,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
+	isNextCloudPlugin,
+	isOfflineStorageAvailable,
+} from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -803,9 +812,8 @@ import("./translations/en.js")
 			},
 		}
 
-		const nextcloudContainer = document.getElementById("nextcloud-tutamail")
-		if (nextcloudContainer) {
-			m.route(nextcloudContainer, startRoute, resolvers)
+		if (isNextCloudPlugin()) {
+			m.route(assertNotNull(document.getElementById("nextcloud-tutamail")), startRoute, resolvers)
 		} else {
 			// keep in sync with RewriteAppResourceUrlHandler.java
 			m.route(document.body, startRoute, resolvers)
@@ -1020,7 +1028,10 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 }
 
 function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
-	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
+	let prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
+	if (isNextCloudPlugin()) {
+		prefix = "/index.php/apps/tutamail"
+	}
 	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 	return Object.freeze({ prefix, prefixWithoutFile })
 }
