@@ -68,6 +68,7 @@ async function doBuild(options) {
 			projectDir: __dirname,
 			app: options.app,
 			mobileBuild: options.mobileBuild,
+			integrationPlatform: options.integrationPlatform ?? null,
 		})
 
 		const now = new Date(Date.now()).toTimeString().substring(0, 5)

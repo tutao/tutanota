@@ -12,6 +12,9 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Desktop: "Desktop",
 	Admin: "Admin",
 })
+export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
+	Nextcloud: "Nextcloud",
+})
 
 export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 	return (
@@ -39,7 +42,7 @@ export function isIOSApp(): boolean {
 }
 
 export function isNextCloudPlugin(): boolean {
-	return document.getElementById("nextcloud-tutamail") !== null
+	return env.integrationPlatform === IntegrationPlatform.Nextcloud
 }
 
 /**

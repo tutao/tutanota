@@ -15,7 +15,7 @@ import { Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
 import { RestClient } from "./RestClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode, isNextCloudPlugin } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -172,5 +172,9 @@ export class ServiceExecutor implements IServiceExecutor {
 }
 
 export function getServiceRestPath(service: ServiceDefinition) {
-	return `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
+	let path = `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
+	if (isNextCloudPlugin()) {
+		path = "/ocs/v2.php/apps/tutamail" + path
+	}
+	return path
 }

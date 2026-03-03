@@ -26,9 +26,10 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param clean
  * @param networkDebugging
  * @param app {"mail"|"calendar"}
+ * @param integrationPlatform {string}
  * @returns {Promise<void>}
  */
-export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
+export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app, integrationPlatform }) {
 	const isCalendarBuild = app === "calendar"
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
@@ -94,7 +95,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
 
-	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, app })
+	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, app, integrationPlatform })
 
 	if (desktop) {
 		await buildDesktopPart({ version, networkDebugging, app })
@@ -109,9 +110,10 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
  * @param p.domainConfigs {DomainConfigMap}
  * @param p.networkDebugging {boolean}
  * @param p.app {"mail"|"calendar"}
+ * @param p.integrationPlatform {string | null}
  * @return {Promise<void>}
  */
-async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
+async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app, integrationPlatform }) {
 	const isCalendarBuild = app === "calendar"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const resolvedBuildDir = path.resolve(buildDir)
@@ -169,7 +171,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	// Do assets last so that server that listens to index.html changes does not reload too early
 
 	await runStep("Web: Assets", async () => {
-		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging)
+		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, integrationPlatform)
 		await fs.promises.writeFile(
 			`${buildDir}/worker-bootstrap.js`,
 			`import "./polyfill.js"
@@ -220,7 +222,9 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 							targetName: "simple-windows-notifications",
 						})
 					: undefined,
-				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs, networkDebugging })),
+				preludeEnvPlugin(
+					env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs, networkDebugging, integrationPlatform: null }),
+				),
 			],
 		})
 
@@ -320,9 +324,10 @@ function getStaticUrl(stage, mode, host) {
  * @param domainConfigs {DomainConfigMap}
  * @param buildDir {string}
  * @param networkDebugging {boolean}
+ * @param integrationPlatform {string}
  * @return {Promise<void>}
  */
-export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging) {
+export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, integrationPlatform) {
 	await Promise.all([
 		await fs.emptyDir(path.join(root, `${buildDir}/images`)),
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
@@ -339,6 +344,9 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	/** @type {EnvMode[]} */
 	const modes = ["Browser", "App", "Desktop"]
 	for (const mode of modes) {
-		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs, networkDebugging }), buildDir)
+		await createBootstrap(
+			env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs, networkDebugging, integrationPlatform }),
+			buildDir,
+		)
 	}
 }

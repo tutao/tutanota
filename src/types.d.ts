@@ -21,6 +21,7 @@ declare type NativeRequestType = "ipc" | "facade"
 /** Requests from native to web */
 declare type JsRequestType = "ipc"
 
+declare type IntegrationPlatformName = "Nextcloud"
 declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 
@@ -76,6 +77,7 @@ declare var env: {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName?: string
+	integrationPlatform: IntegrationPlatform | null
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }
