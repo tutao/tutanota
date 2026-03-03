@@ -2,6 +2,7 @@ package de.tutao.calendar
 
 import android.content.Context
 import de.tutao.calendar.widget.data.WidgetDataRepository
+import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.CalendarEvent
 import de.tutao.tutasdk.CalendarEventAttendee
@@ -22,8 +23,8 @@ import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import org.junit.Test
-import org.mockito.Mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
@@ -35,10 +36,22 @@ import org.mockito.kotlin.wheneverBlocking
 import java.util.Date
 
 class WidgetRepositoryTest {
-	@Mock
-	private lateinit var mockContext: Context
+	private lateinit var repository: WidgetRepository
+	private lateinit var mockedUnencryptedCredentials: UnencryptedCredentials
+	private lateinit var mockedCryptoFacade: AndroidNativeCryptoFacade
 
-	private val sdk: Sdk = mock<Sdk> { onBlocking { login(any()) } doReturn mock() }
+	private val MISSING_CAL_ID = "missing"
+	private val FOO_CAL_ID = "foo"
+	private val BAR_CAL_ID = "bar"
+	private val WIDGET_ID = 1
+
+	private lateinit var mockedContext: Context
+	private lateinit var mockedFooEvent: CalendarEvent
+	private lateinit var mockedFooCalendarEventsList: CalendarEventsList
+	private lateinit var mockedBarEvent: CalendarEvent
+	private lateinit var mockedBarCalendarEventsList: CalendarEventsList
+	private lateinit var mockedSdk: Sdk
+
 	private val credentialsFacade: NativeCredentialsFacade = mock<NativeCredentialsFacade> {
 		onBlocking { loadByUserId(any()) } doReturn UnencryptedCredentials(
 			CredentialsInfo("sample@example.com", "", CredentialType.INTERNAL),
@@ -49,12 +62,35 @@ class WidgetRepositoryTest {
 		)
 	}
 
+	@Before
+	fun setup() {
+		repository = WidgetDataRepository()
+		mockedUnencryptedCredentials = mock()
+		mockedCryptoFacade = mock()
+		mockedContext = mock()
+		mockedSdk = mock { onBlocking { login(any()) } doReturn mock() }
+
+		mockedFooEvent = createCalendarEventStub(
+			id = IdTupleCustom(
+				"fooList",
+				"fooEvent"
+			)
+		)
+		mockedFooCalendarEventsList = CalendarEventsList(listOf(mockedFooEvent), listOf(), listOf())
+		mockedFooCalendarEventsList.shortEvents = listOf(mockedFooEvent)
+
+		mockedBarEvent = createCalendarEventStub(
+			id = IdTupleCustom(
+				"barList",
+				"barEvent"
+			)
+		)
+		mockedBarCalendarEventsList = CalendarEventsList(listOf(mockedBarEvent), listOf(), listOf())
+		mockedBarCalendarEventsList.shortEvents = listOf(mockedBarEvent)
+	}
+
 	@Test
 	fun testGetCalendarColors() = runTest {
-		mockContext = mock<Context>()
-
-		val repository = WidgetDataRepository()
-		val mockedSdk = mock<Sdk> { onBlocking { login(any()) } doReturn mock() }
 		val mockedCalendarFacade = mock<CalendarFacade> {
 			onBlocking { getCalendarsRenderData() } doReturn mapOf(
 				"foo" to CalendarRenderData("Calendar Foo", "000000"),
@@ -79,37 +115,17 @@ class WidgetRepositoryTest {
 
 	@Test
 	fun test_loadEvents_gets_events_from_server() = runTest {
-		mockContext = mock<Context>()
-		val mockUnencryptedCredentials = mock<UnencryptedCredentials>()
-		val mockCryptoFacade = mock<AndroidNativeCryptoFacade>()
 		// Arrange
-		val missingId = "missing"
-		val fooCalId = "foo"
-		val barCalId = "bar"
-		val missingCalendar = CalendarRenderData(missingId, "AAAAAA")
-
-		val mockedFooEvent = createCalendarEventStub(id = IdTupleCustom("fooList", "fooEvent"))
-		val mockedBarEvent = createCalendarEventStub(id = IdTupleCustom("barList", "barEvent"))
-
-		val mockedFooCalendarEventsList = CalendarEventsList(listOf(mockedFooEvent), listOf(), listOf())
-		val mockedBarCalendarEventsList = CalendarEventsList(listOf(mockedBarEvent), listOf(), listOf())
-
-		mockedFooCalendarEventsList.shortEvents = listOf(mockedFooEvent)
-		mockedBarCalendarEventsList.shortEvents = listOf(mockedBarEvent)
-
-
-		val repository = WidgetDataRepository()
-		val mockedSdk = mock<Sdk> { onBlocking { login(any()) } doReturn mock() }
 		val mockedCalendarFacade = mock<CalendarFacade> {
 			onBlocking {
 				getCalendarEvents(
-					eq(fooCalId), any(), any()
+					eq(FOO_CAL_ID), any(), any()
 				)
 			} doReturn mockedFooCalendarEventsList
 
 			onBlocking {
 				getCalendarEvents(
-					eq(barCalId), any(), any()
+					eq(BAR_CAL_ID), any(), any()
 				)
 			} doReturn mockedBarCalendarEventsList
 		}
@@ -125,64 +141,43 @@ class WidgetRepositoryTest {
 
 		// Act
 		val loadedEvents = repository.loadEvents(
-			mockContext,
+			mockedContext,
 			1,
 			"a",
-			listOf(fooCalId, barCalId),
-			mockUnencryptedCredentials,
+			listOf(FOO_CAL_ID, BAR_CAL_ID),
+			mockedUnencryptedCredentials,
 			mockedLoggedInSdk,
-			mockCryptoFacade
+			mockedCryptoFacade
 		)
 
 		// Assert
 		verify(mockedCalendarFacade, times(2)).getCalendarEvents(any(), any(), any())
 
-		assert(loadedEvents[fooCalId]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedFooEvent.id)
-		assert(loadedEvents[barCalId]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedBarEvent.id)
+		assert(loadedEvents[FOO_CAL_ID]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedFooEvent.id)
+		assert(loadedEvents[BAR_CAL_ID]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedBarEvent.id)
 	}
 
 	@Test
-	fun test_loadEvents_does_not_cache_calendars_where_calendar_group_membership_is_missing_from_server() = runTest {
-
-		mockContext = mock<Context>()
-		val mockUnencryptedCredentials = mock<UnencryptedCredentials>()
-		val mockCryptoFacade = mock<AndroidNativeCryptoFacade>()
+	fun test_loadEvents_should_ignore_calendar_that_throws_missing_membership() = runTest {
 		// Arrange
-		val missingCalId = "missing"
-		val fooCalId = "foo"
-		val barCalId = "bar"
-
-		val mockedFooEvent = createCalendarEventStub(id = IdTupleCustom("fooList", "fooEvent"))
-		val mockedBarEvent = createCalendarEventStub(id = IdTupleCustom("barList", "barEvent"))
-
-		val mockedFooCalendarEventsList = CalendarEventsList(listOf(mockedFooEvent), listOf(), listOf())
-		val mockedBarCalendarEventsList = CalendarEventsList(listOf(mockedBarEvent), listOf(), listOf())
-
-		mockedFooCalendarEventsList.shortEvents = listOf(mockedFooEvent)
-		mockedBarCalendarEventsList.shortEvents = listOf(mockedBarEvent)
-
-
-		val repository = WidgetDataRepository()
-
-		val mockedSdk = mock<Sdk> { onBlocking { login(any()) } doReturn mock() }
 		val mockedCalendarFacade = mock<CalendarFacade> {
 			onBlocking {
 				getCalendarEvents(
-					eq(fooCalId), any(), any()
+					eq(FOO_CAL_ID), any(), any()
 				)
 			} doReturn mockedFooCalendarEventsList
 
 			onBlocking {
 				getCalendarEvents(
-					eq(barCalId), any(), any()
+					eq(BAR_CAL_ID), any(), any()
 				)
 			} doReturn mockedBarCalendarEventsList
 
 			onBlocking {
 				getCalendarEvents(
-					eq(missingCalId), any(), any()
+					eq(MISSING_CAL_ID), any(), any()
 				)
-			} doThrow (ApiCallException.InternalSdkException("de.tutao.tutasdk.ApiCallException\$InternalSdkException: errorMessage=Missing membership for id $missingCalId"))
+			} doThrow (ApiCallException.InternalSdkException("de.tutao.tutasdk.ApiCallException\$InternalSdkException: errorMessage=Missing membership for id $MISSING_CAL_ID"))
 		}
 
 		val mockedLoggedInSdk = mock<LoggedInSdk> {
@@ -196,30 +191,46 @@ class WidgetRepositoryTest {
 
 		// Act
 		val loadedEvents = repository.loadEvents(
-			mockContext,
+			mockedContext,
 			1,
 			"a",
-			listOf(fooCalId, barCalId, missingCalId),
-			mockUnencryptedCredentials,
+			listOf(MISSING_CAL_ID, FOO_CAL_ID, BAR_CAL_ID),
+			mockedUnencryptedCredentials,
 			mockedLoggedInSdk,
-			mockCryptoFacade
+			mockedCryptoFacade
 		)
 
 		// Assert
+		verify(mockedCalendarFacade, times(3)).getCalendarEvents(any(), any(), any())
 		verify(
 			mockedCalendarFacade, times(1)
-		).getCalendarEvents(eq(missingCalId), any(), any())
-		verify(mockedCalendarFacade, times(3)).getCalendarEvents(any(), any(), any())
+		).getCalendarEvents(eq(MISSING_CAL_ID), any(), any())
 
-		assert(loadedEvents[fooCalId]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedFooEvent.id)
-		assert(loadedEvents[barCalId]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedBarEvent.id)
-		assertNull(loadedEvents[missingCalId])
-
+		assert(loadedEvents[FOO_CAL_ID]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedFooEvent.id)
+		assert(loadedEvents[BAR_CAL_ID]?.shortEvents?.first()?.id?.toSdkIdTupleCustom() == mockedBarEvent.id)
+		assertNull(loadedEvents[MISSING_CAL_ID])
 	}
 
 	@Test
-	fun test_loadEventsFromCache_gracefully_handles_missing_membership_errors() = runTest {}
-
+	fun test_loadEventsFromCache_correctly_loads_events_from_cache() = runTest {
+//		// Arrange
+//		val preferenceKey = stringPreferencesKey("test")
+//		val mockedPreferences = preferencesOf(preferenceKey to "testValue")
+//		val mockedDataStore = mock<DataStore<Preferences>>()
+//		whenever(mockedDataStore.data).thenReturn(flowOf(mockedPreferences))
+//		whenever(mockedContext.widgetCacheDataStore).thenReturn(mockedDataStore)
+//
+//		// Act
+//		val cachedCalendar = repository.loadEventsFromCache(
+//			mockedContext,
+//			WIDGET_ID,
+//			listOf(FOO_CAL_ID, BAR_CAL_ID),
+//			mockedUnencryptedCredentials,
+//			mockedCryptoFacade
+//		)
+//
+//		// Assert
+	}
 }
 
 fun createCalendarEventStub(
