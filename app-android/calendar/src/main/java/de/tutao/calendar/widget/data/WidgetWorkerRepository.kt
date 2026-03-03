@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WidgetUpdateTrigger.WORKER
+import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.calendar.widget.widgetDataStore
-import kotlinx.serialization.encodeToString
 import java.util.Date
 
 class WidgetWorkerRepository : WidgetRepository() {
@@ -18,7 +18,7 @@ class WidgetWorkerRepository : WidgetRepository() {
 
 		// We can't access the DataStore while writing to it, so we collect the changes before and then apply
 		for (id in widgetIds) {
-			val cacheCreation = this.loadCacheCreationDate(context, id)
+			val cacheCreation = this.loadCacheCreationDate(context.widgetCacheDataStore, id)
 			val forceRefresh = (nowTimestamp - (cacheCreation?.createdAt ?: 0)) > 3600 // 1hr
 
 			val lastSyncIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$id"

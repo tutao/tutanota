@@ -1,6 +1,8 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
@@ -9,7 +11,6 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
-import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
@@ -69,7 +70,7 @@ abstract class WidgetRepository() {
 	}
 
 	open suspend fun loadEvents(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		userId: GeneratedId,
 		calendars: List<GeneratedId>,
@@ -81,7 +82,7 @@ abstract class WidgetRepository() {
 	}
 
 	open suspend fun loadEventsFromCache(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		calendars: List<GeneratedId>,
 		credentials: UnencryptedCredentials,
@@ -91,7 +92,7 @@ abstract class WidgetRepository() {
 	}
 
 	open suspend fun loadCache(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		calendars: List<GeneratedId>,
 		cryptoFacade: AndroidNativeCryptoFacade,
@@ -101,7 +102,7 @@ abstract class WidgetRepository() {
 	}
 
 	open suspend fun storeCache(
-		context: Context,
+		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		eventsMap: Map<GeneratedId, CalendarEventListDao>,
 		cryptoFacade: AndroidNativeCryptoFacade,
@@ -110,31 +111,31 @@ abstract class WidgetRepository() {
 		throw NotImplementedError()
 	}
 
-	suspend fun loadCacheCreationDate(context: Context, widgetId: Int): CacheDateDao? {
+	suspend fun loadCacheCreationDate(cacheDataStore: DataStore<Preferences>, widgetId: Int): CacheDateDao? {
 		val databaseWidgetIdentifier = "${WIDGET_CACHE_DATE_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
-		val preferences = context.widgetCacheDataStore.data.first()
+		val preferences = cacheDataStore.data.first()
 		val encodedPreference = preferences[preferencesKey] ?: return null
 
 		return json.decodeFromString<CacheDateDao>(encodedPreference)
 	}
 
-	suspend fun loadLastSync(context: Context, widgetId: Int): LastSyncDao? {
+	suspend fun loadLastSync(dataStore: DataStore<Preferences>, widgetId: Int): LastSyncDao? {
 		val databaseWidgetIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
-		val preferences = context.widgetDataStore.data.first()
+		val preferences = dataStore.data.first()
 		val encodedPreference = preferences[preferencesKey] ?: return null
 
 		return json.decodeFromString<LastSyncDao>(encodedPreference)
 	}
 
-	suspend fun loadSettings(context: Context, widgetId: Int): SettingsDao? {
+	suspend fun loadSettings(dataStore: DataStore<Preferences>, widgetId: Int): SettingsDao? {
 		val databaseWidgetIdentifier = "${WIDGET_SETTINGS_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
-		val preferences = context.widgetDataStore.data.first()
+		val preferences = dataStore.data.first()
 		val encodedPreference = preferences[preferencesKey] ?: return null
 
 		return json.decodeFromString<SettingsDao>(encodedPreference)
