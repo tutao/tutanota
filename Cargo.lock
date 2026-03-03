@@ -605,6 +605,7 @@ dependencies = [
  "console_error_panic_hook",
  "const-hex",
  "crypto-primitives",
+ "ctr",
  "ed25519-dalek",
  "getrandom 0.2.16",
  "hmac",
@@ -631,6 +632,15 @@ checksum = "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
 dependencies = [
  "quote",
  "syn",
+]
+
+[[package]]
+name = "ctr"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0369ee1ad671834580515889b80f2ea915f23b8be8d0daa4bbaf2ac5c7590835"
+dependencies = [
+ "cipher",
 ]
 
 [[package]]

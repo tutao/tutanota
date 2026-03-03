@@ -44,6 +44,7 @@ cbc = { version = "0.1.2", features = ["std", "zeroize"] }
 sha2 = "0.10.8"
 sha3 = "0.10.8"
 hmac = "0.12.1"
+ctr = "0.9.2"
 
 [dev-dependencies]
 # Allow enabling features for testing see: https://github.com/kartva/cargo-optional-features-for-testing-and-examples?tab=readme-ov-file

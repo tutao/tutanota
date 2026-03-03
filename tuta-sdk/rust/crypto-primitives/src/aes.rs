@@ -6,11 +6,16 @@ use crate::key::GenericAesKey;
 use crate::randomizer_facade::RandomizerFacade;
 use crate::utils::{array_cast_size, array_cast_slice, ArrayCastingError};
 use aes::cipher::block_padding::Pkcs7;
-use aes::cipher::{BlockCipher, BlockSizeUser};
+use aes::cipher::consts::U4;
+use aes::cipher::typenum::{IsLess, PartialDiv, Same};
+use aes::cipher::{ArrayLength, BlockCipher, BlockSizeUser};
+use aes::cipher::{KeySizeUser, StreamCipher};
 use cbc::cipher::block_padding::UnpadError;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
+use ctr::cipher::typenum::{Integer, Le, NonZero, PartialQuot, U256};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::ops::{Div, Rem};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 use zeroize::ZeroizeOnDrop;
@@ -51,7 +56,7 @@ pub enum EnforceMac {
 /// - $cbc: The type from the `aes` dependency.
 /// - $subkey_digest: The type of SHA hasher from the `sha2` dependency to use.
 macro_rules! aes_key {
-	($name:tt, $type_name:literal, $size:expr, $cbc:ty, $subkey_digest:ty) => {
+	($name:tt, $type_name:literal, $size:expr, $aes_key_type:ty, $subkey_digest:ty) => {
 		#[derive(Clone, ZeroizeOnDrop, PartialEq, Eq, Hash, Tsify, Serialize, Deserialize)]
 		#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 		#[tsify(into_wasm_abi, from_wasm_abi)]
@@ -102,7 +107,7 @@ macro_rules! aes_key {
 		}
 
 		impl AesKey for $name {
-			type CbcKeyType = $cbc;
+			type AesKeyType = $aes_key_type;
 			fn get_bytes(&self) -> &[u8] {
 				&self.0
 			}
@@ -116,7 +121,7 @@ macro_rules! aes_key {
 				let hashed_key = hasher.finalize();
 
 				let (c_key_slice, m_key_slice) =
-					hashed_key.split_at(<Self as AesKey>::CbcKeyType::key_size());
+					hashed_key.split_at(<Self as AesKey>::AesKeyType::key_size());
 				AesSubKeys {
 					c_key: Self::from_bytes(c_key_slice).unwrap(),
 					m_key: Self::from_bytes(m_key_slice).unwrap(),
@@ -142,9 +147,15 @@ aes_key!(
 	sha2::Sha512
 );
 
-trait AesKey: Clone {
+trait AesKey: Clone
+where
+	<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize: PartialDiv<U4>,
+	PartialQuot<<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize, U4>: ArrayLength<u32>,
+	<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize: IsLess<U256>,
+	Le<<<Self as AesKey>::AesKeyType as BlockSizeUser>::BlockSize, U256>: NonZero,
+{
 	/// The equivalent type in the RustCrypto packages to this key type
-	type CbcKeyType: BlockEncryptMut
+	type AesKeyType: BlockEncryptMut
 		+ BlockDecryptMut
 		+ BlockEncrypt
 		+ BlockDecrypt
@@ -154,6 +165,14 @@ trait AesKey: Clone {
 	fn get_bytes(&self) -> &[u8];
 	/// Generates the AES (`c`) and HMAC (`m`) subkeys from the key
 	fn derive_subkeys(&self) -> AesSubKeys<Self>;
+}
+
+pub struct Nonce([u8; NONCE_BYTE_SIZE]);
+
+impl Nonce {
+	pub fn get_bytes(&self) -> &[u8] {
+		&self.0
+	}
 }
 
 /// An initialisation vector for AES encryption
@@ -326,6 +345,9 @@ pub const AES_256_KEY_SIZE: usize = 32;
 /// The size of an AES initialisation vector in bytes
 pub const IV_BYTE_SIZE: usize = 16;
 
+/// The size of an AES-CTR nonce in bytes
+pub const NONCE_BYTE_SIZE: usize = 12;
+
 /// Encrypts a plaintext without adding padding and returns the encrypted text as a vector
 fn encrypt_unpadded_vec_mut<C: BlockCipher + BlockEncryptMut>(
 	encryptor: &mut cbc::Encryptor<C>,
@@ -375,6 +397,20 @@ impl<Key: AesKey> AesSubKeys<Key> {
 	}
 }
 
+fn aes_ctr_encrypt<Key>(key: &Key, plaintext: &[u8], nonce: &Nonce) -> Vec<u8>
+where
+	Key: AesKey,
+{
+	//type Aes256Ctr32LE = ctr::Ctr32LE<Key::AesKeyType>;
+	// let blah: CtrCore<Key::AesKeyType, flavors::Ctr32LE> = unimplemented!();
+	let mut cipher =
+		ctr::Ctr32LE::<Key::AesKeyType>::new(key.get_bytes().into(), nonce.get_bytes().into());
+	let mut buffer = plaintext.to_vec();
+	cipher.apply_keystream(&mut buffer);
+
+	buffer
+}
+
 /// Generic AES-CBC function with optional PKCS7 padding and with optional HMAC-SHA support
 fn aes_encrypt<Key: AesKey>(
 	key: &Key,
@@ -387,13 +423,13 @@ fn aes_encrypt<Key: AesKey>(
 	// whether `c` needs to be derived for MAC s (note that no mac means no sub keys)
 	let (mut encryptor, sub_keys) = match mac_mode {
 		MacMode::NoMac => (
-			cbc::Encryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), &iv.0).unwrap(),
+			cbc::Encryptor::<Key::AesKeyType>::new_from_slices(key.get_bytes(), &iv.0).unwrap(),
 			None,
 		),
 		MacMode::WithMac => {
 			let sub_keys = key.derive_subkeys();
 			(
-				cbc::Encryptor::<Key::CbcKeyType>::new_from_slices(
+				cbc::Encryptor::<Key::AesKeyType>::new_from_slices(
 					sub_keys.c_key.get_bytes(),
 					&iv.0,
 				)
@@ -404,7 +440,7 @@ fn aes_encrypt<Key: AesKey>(
 	};
 
 	// Pad/verify block size
-	let block_size = <Key::CbcKeyType as BlockSizeUser>::block_size();
+	let block_size = <Key::AesKeyType as BlockSizeUser>::block_size();
 	let encrypted_data = match padding_mode {
 		PaddingMode::NoPadding => {
 			if plaintext.len() % block_size != 0 {
@@ -549,7 +585,7 @@ fn aes_decrypt<Key: AesKey>(
 	}
 
 	let mut decryptor =
-		cbc::Decryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), iv_bytes).unwrap();
+		cbc::Decryptor::<Key::AesKeyType>::new_from_slices(key.get_bytes(), iv_bytes).unwrap();
 	let plaintext_data = match padding_mode {
 		// Unpadded encrypted texts do not include the IV
 		PaddingMode::NoPadding => decrypt_unpadded_vec_mut(&mut decryptor, encrypted_bytes),

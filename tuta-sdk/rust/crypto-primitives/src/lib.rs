@@ -1,7 +1,7 @@
 mod utils;
 
-pub mod blake3;
 mod aes;
+pub mod blake3;
 pub mod compatibility_test_utils;
 pub mod ed25519;
 mod hmac;
