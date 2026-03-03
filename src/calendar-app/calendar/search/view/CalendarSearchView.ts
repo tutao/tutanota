@@ -10,7 +10,7 @@ import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEven
 import m, { Children, Vnode } from "mithril"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { layout_size, size } from "../../../../common/gui/size.js"
+import { layout_size } from "../../../../common/gui/size.js"
 import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -39,9 +39,8 @@ import { MultiselectMode } from "../../../../common/gui/base/List.js"
 import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
-import { assertMainOrNode } from "../../../../common/api/common/Env.js"
+import { assertMainOrNode, isAndroidApp } from "../../../../common/api/common/Env.js"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
@@ -458,7 +457,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
-			"#search.main-view",
+			"#search.main-view" + (isAndroidApp() ? ".bottom-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					searchBar: () =>
