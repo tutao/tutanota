@@ -1,6 +1,6 @@
 import { Cat, log, timer } from "../misc/Log"
 import { layout_size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
+import { assertMainOrNodeBoot, isAdminClient, isNextCloudPlugin, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
@@ -157,7 +157,11 @@ class Styles {
 }
 
 function objectToCss(indent: string, key: string, o: Record<string, string>) {
-	let cssString = `${indent} #nextcloud-tutamail ${key} { \n`
+	let prefix = ""
+	if (isNextCloudPlugin()) {
+		prefix = "#nextcloud-tutamail "
+	}
+	let cssString = `${indent} ${prefix}${key} { \n`
 	cssString += indent + toCss(o, indent + "  ")
 	cssString += ` \n${indent}} \n`
 	return cssString
