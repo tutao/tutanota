@@ -803,8 +803,13 @@ import("./translations/en.js")
 			},
 		}
 
-		// keep in sync with RewriteAppResourceUrlHandler.java
-		m.route(document.body, startRoute, resolvers)
+		const nextcloudContainer = document.getElementById("nextcloud-tutamail")
+		if (nextcloudContainer) {
+			m.route(nextcloudContainer, startRoute, resolvers)
+		} else {
+			// keep in sync with RewriteAppResourceUrlHandler.java
+			m.route(document.body, startRoute, resolvers)
+		}
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
