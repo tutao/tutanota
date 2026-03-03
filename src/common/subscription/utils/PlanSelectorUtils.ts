@@ -124,7 +124,7 @@ export function getBorderRadius(hasBanner: boolean, position: PlanBoxPosition) {
 	}
 }
 
-export function getHasCampaign(discountDetail: DiscountDetail | undefined, isYearly: boolean) {
+export function getHasCampaign(discountDetail: DiscountDetail | undefined, isYearly: boolean): boolean {
 	return !!(discountDetail && (discountDetail.discountType === "Permanent" || isYearly))
 }
 

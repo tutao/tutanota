@@ -2244,5 +2244,6 @@ export type TranslationKeyType =
 	| "emailSent_msg"
 	| "undoSendMail_msg"
 	| "emptyString_msg"
+	| "buyGiftcardWhileCampaignActive_msg"
 	| "contactDeletionMoveToSpam_msg"
 	| "contactDeletionMoveToSpam_title"
