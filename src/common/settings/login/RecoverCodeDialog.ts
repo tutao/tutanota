@@ -77,6 +77,7 @@ export function showRecoverCodeDialog(recoverCode: Hex): Promise<void> {
 						column: true,
 						recoverCode,
 						mailAddress: getDefaultSenderFromUser(locator.logins.getUserController()),
+						monoSpaceFontSize: 16,
 					}),
 				],
 			},

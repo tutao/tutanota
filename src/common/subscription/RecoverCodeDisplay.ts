@@ -4,13 +4,13 @@ import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { locator } from "../api/main/CommonLocator"
 import { theme } from "../gui/theme"
-import { px } from "../gui/size"
 import { SecondaryButton, SecondaryButtonAttrs } from "../gui/base/buttons/LoginButton"
 import { Icons } from "../gui/base/icons/Icons"
 import { lang } from "../misc/LanguageViewModel"
 import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { assertMainOrNode } from "../api/common/Env"
+import { px } from "../gui/size"
 
 assertMainOrNode()
 
@@ -18,6 +18,7 @@ export type RecoverCodeDisplayAttrs = {
 	column: boolean
 	recoverCode: Hex
 	mailAddress: string
+	monoSpaceFontSize?: number
 }
 
 /**
@@ -25,7 +26,7 @@ export type RecoverCodeDisplayAttrs = {
  */
 export class RecoverCodeDisplay implements Component<RecoverCodeDisplayAttrs> {
 	view(vnode: Vnode<RecoverCodeDisplayAttrs>): Children {
-		const { recoverCode, mailAddress, column } = vnode.attrs
+		const { recoverCode, mailAddress, column, monoSpaceFontSize } = vnode.attrs
 		return m(".flex.col.gap-8", [
 			m(
 				`.flex.items-start.pt-24.pb-24.plr-32.border-radius-16.gap-24${column ? ".col" : ""}`,
@@ -41,7 +42,7 @@ export class RecoverCodeDisplay implements Component<RecoverCodeDisplayAttrs> {
 							style: {
 								"background-color": theme.surface_container_highest,
 								color: theme.on_surface_variant,
-								"font-size": px(20),
+								"font-size": monoSpaceFontSize ? px(monoSpaceFontSize) : px(20),
 							},
 						},
 
