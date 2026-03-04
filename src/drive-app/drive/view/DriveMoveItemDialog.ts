@@ -1,5 +1,5 @@
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
-import m, { Children, Component, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../../../common/gui/theme"
 import { DriveBreadcrumbs, DriveBreadcrumbsAttrs } from "./DriveBreadcrumbs"
 import { LoginButton, TertiaryButton, TertiaryButtonAttrs } from "../../../common/gui/base/buttons/LoginButton"
@@ -12,6 +12,11 @@ import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItems } from "./DriveUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { DialogHeaderBar } from "../../../common/gui/base/DialogHeaderBar"
+import { ButtonType } from "../../../common/gui/base/Button"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { driveFolderName } from "./DriveGuiUtils"
+import { LoginTextField } from "../../../common/gui/base/LoginTextField"
 
 interface State {
 	currentFolder: DriveFolder
@@ -50,81 +55,104 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 			view(): Children {
 				const { currentFolder, parents, items: currentFolderItems, newFolderName } = state
 				const disabledTargetIds = new Set([getElementId(folderItemEntity(itemToMove))])
-				return m(
-					".plr-24.pt-24.pb-24.flex.col.gap-16.border-radius-8",
-					{
-						style: { background: theme.surface_container, height: "min(600px, 90vh)" },
-					},
-					[
-						m(
-							".h5.b.uppercase.text-ellipsis.no-shrink",
-							{ "data-testid": "dialog:movingItem_title" },
-							lang.getTranslation("movingItem_title", { "{itemName}": itemName }).text,
-						),
-						m(".small.b.uppercase", lang.getTranslationText("chooseDestination_title")),
-						m(
-							"",
-							m(DriveBreadcrumbs, {
-								currentFolder,
-								parents,
-								loadParents,
-								onClick: (f: DriveFolder, e: MouseEvent) => {
-									e.preventDefault()
-									this.onOpenFolder(f)
+				return [
+					m(DialogHeaderBar, {
+						left: [{ label: `close_alt`, click: () => moveDialog.close(), type: ButtonType.Secondary }],
+						middle: "move_action",
+						right: [
+							{
+								label: "moveItemHere_action",
+								click: () => {
+									moveItems([folderItemToId(itemToMove)], state.currentFolder)
+									moveDialog.close()
 								},
-							} satisfies DriveBreadcrumbsAttrs),
-						),
+								type: ButtonType.Secondary,
+							},
+						],
+					}),
+					m(
+						".plr-16.pt-16.pb-16.flex.col.gap-24.border-radius-8",
+						{
+							style: { background: theme.surface_container, height: "min(600px, 90vh)" },
+						},
 						[
-							m(DriveFolderBrowser, {
-								key: getElementId(currentFolder),
-								items: currentFolderItems,
-								disabledTargetIds,
-								newFolder:
-									newFolderName != null
-										? {
+							m(".flex.gap-12", [
+								m(Icon, {
+									icon: Icons.Move,
+									size: IconSize.PX24,
+									style: {
+										fill: theme.on_surface_variant,
+									},
+								}),
+								m(".b.uppercase.text-ellipsis", { "data-testid": "dialog:movingItem_title" }, itemName),
+							]),
+							m(
+								".border-radius-6.plr-16.pt-12.pb-12",
+								{
+									style: {
+										background: theme.surface,
+									},
+								},
+								m(DriveBreadcrumbs, {
+									currentFolder,
+									parents,
+									loadParents,
+									onClick: (f: DriveFolder, e: MouseEvent) => {
+										e.preventDefault()
+										this.onOpenFolder(f)
+									},
+								} satisfies DriveBreadcrumbsAttrs),
+							),
+							m(".flex.col.gap-8.min-height-0", [
+								m(".small.uppercase.font-weight-700", lang.getTranslationText("folderContent_label")),
+								[
+									m(DriveFolderBrowser, {
+										key: getElementId(currentFolder),
+										items: currentFolderItems,
+										disabledTargetIds,
+										onItemClicked: (item: FolderItem) => {
+											if (item.type === "folder" && !isSameId(item.folder._id, folderItemEntity(itemToMove)._id)) {
+												this.onOpenFolder(item.folder)
+											}
+										},
+										oncreate: ({ dom }: VnodeDOM<DriveFolderBrowserAttrs>) => {
+											folderBrowserDom = dom as HTMLElement
+										},
+									}),
+								],
+							]),
+							m(".flex-grow.flex.col.gap-16.justify-end", [
+								m("hr.hr.mt-8"),
+								newFolderName == null
+									? m(
+											".flex.row",
+
+											m(TertiaryButton, {
+												icon: Icons.Plus,
+												width: "flex",
+												label: "createFolder_action",
+												onclick: () => {
+													state.newFolderName = ""
+												},
+											} satisfies TertiaryButtonAttrs),
+										)
+									: [
+											m(
+												".small.uppercase.font-weight-700",
+												lang.getTranslation(`createNewFolderIn_label`, { "{folderName}": driveFolderName(currentFolder).text }).text,
+											),
+											m(DriveFolderBrowserNewFolderEntry, {
 												newFolderName: newFolderName,
 												onNewFolderNameInput: (name) => {
 													state.newFolderName = name
 												},
 												onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder),
-											}
-										: null,
-								onItemClicked: (item: FolderItem) => {
-									if (item.type === "folder" && !isSameId(item.folder._id, folderItemEntity(itemToMove)._id)) {
-										this.onOpenFolder(item.folder)
-									}
-								},
-								oncreate: ({ dom }: VnodeDOM<DriveFolderBrowserAttrs>) => {
-									folderBrowserDom = dom as HTMLElement
-								},
-							}),
+											}),
+										],
+							]),
 						],
-						m(".flex-grow"),
-						m(
-							".flex.row.gap-8",
-							state.newFolderName == null
-								? m(TertiaryButton, {
-										icon: Icons.Plus,
-										width: "flex",
-										label: "createFolder_action",
-										onclick: () => {
-											state.newFolderName = ""
-										},
-									} satisfies TertiaryButtonAttrs)
-								: null,
-							m(".flex-grow"),
-							m(TertiaryButton, { label: "cancel_action", width: "flex", onclick: () => moveDialog.close() } satisfies TertiaryButtonAttrs),
-							m(LoginButton, {
-								label: "moveItemHere_action",
-								width: "flex",
-								onclick: () => {
-									moveItems([folderItemToId(itemToMove)], state.currentFolder)
-									moveDialog.close()
-								},
-							}),
-						),
-					],
-				)
+					),
+				]
 			}
 
 			private async onCreateFolder(newFolderNameCaptured: string, currentFolder: DriveFolder) {
@@ -151,4 +179,38 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 			firstListItem?.focus()
 		})
 		.show()
+}
+
+interface DriveFolderBrowserNewFolderEntryAttrs {
+	newFolderName: string
+	onNewFolderNameInput: (name: string) => unknown
+	onCreateFolder: () => unknown
+}
+
+export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBrowserNewFolderEntryAttrs> {
+	view({ attrs: { newFolderName, onNewFolderNameInput, onCreateFolder } }: Vnode<DriveFolderBrowserNewFolderEntryAttrs>): Children {
+		return m(
+			".flex.row.items-center.gap-12",
+
+			[
+				m(LoginTextField, {
+					class: "flex-grow",
+					label: "folderName_label",
+					value: newFolderName,
+					oninput: onNewFolderNameInput,
+					onReturnKeyPressed: onCreateFolder,
+					onDomInputCreated: (dom) => dom.focus(),
+					leadingIcon: {
+						icon: Icons.FolderFilled,
+						color: theme.on_surface_variant,
+					},
+				}),
+				m(LoginButton, {
+					label: "createFolder_action",
+					width: "flex",
+					onclick: onCreateFolder,
+				}),
+			],
+		)
+	}
 }

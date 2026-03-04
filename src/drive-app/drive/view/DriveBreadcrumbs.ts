@@ -35,7 +35,7 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 			m.route.Link,
 			{
 				href,
-				selector: "a.click.no-text-decoration.state-bg.pl-8.pr-8.pt-4.pb-4.border-radius-4.text-ellipsis",
+				selector: "a.click.no-text-decoration.state-bg.pl-8.pr-8.pt-4.pb-4.border-radius-4.text-ellipsis.font-weight-500",
 				"data-testid": `btn:${lang.getTestId(label)}`,
 				style: { "max-width": BREADCRUMBS_ITEM_MAXWIDTH, border: this.isDraggedOver ? `1px solid ${theme.primary}` : `1px solid transparent` },
 				onclick: onClick,
@@ -104,7 +104,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 			currentFolder
 				? [
 						m(
-							".pl-8.pr-8.pt-4.pb-4.text-ellipsis",
+							".pl-8.pr-8.pt-4.pb-4.text-ellipsis.font-weight-500",
 							{
 								style: {
 									// match the border of breadcrumb links
