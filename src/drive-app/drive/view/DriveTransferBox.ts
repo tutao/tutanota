@@ -8,6 +8,7 @@ import { component_size, px, size } from "../../../common/gui/size"
 import { boxShadowHigh } from "../../../common/gui/main-styles"
 import { theme } from "../../../common/gui/theme"
 import { TranslationKeyType } from "../../../common/misc/TranslationKey"
+import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 
 export interface DriveTransferBoxAttrs {
 	transferState: DriveTransferState
@@ -36,16 +37,13 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 				style: {
 					background: theme.surface,
 					"box-shadow": boxShadowHigh,
-					paddingTop: px(size.spacing_16),
-					paddingBottom: px(size.spacing_16),
-					paddingLeft: px(size.spacing_12),
-					paddingRight: px(size.spacing_12),
+					padding: px(size.spacing_12),
 				},
 			},
 			[
 				m(".flex.row.items-center.justify-between.items-center", [
 					m(".flex.items-center.gap-16.overflow-hidden", [
-						state === "active" || state === "waiting" ? this.renderProgress(percentage) : this.renderTerminateStateIcon(state),
+						this.renderProgress(state, percentage),
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [m(".font-weight-500.text-ellipsis", filename), this.renderStatusText(type, state)]),
 					]),
 
@@ -54,11 +52,12 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 								click: () => onCancel(),
 								icon: Icons.Cancel,
 								title: lang.makeTranslation("cancel", () => "cancel"),
+								size: ButtonSize.Large,
 							})
 						: m("", {
 								style: {
-									width: px(component_size.button_height),
-									height: px(component_size.button_height),
+									width: px(component_size.button_floating_size),
+									height: px(component_size.button_floating_size),
 								},
 							}),
 				]),
@@ -66,7 +65,16 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 		)
 	}
 
-	private renderProgress(percentage: number): Children {
+	private renderProgress(state: DriveTransferState["state"], percentage: number): Children {
+		let indicatorColor = theme.on_surface_variant
+		if (state === "failed") {
+			indicatorColor = theme.error
+			percentage = 100
+		} else if (state === "finished") {
+			indicatorColor = theme.success
+			percentage = 100
+		}
+
 		return m(
 			".flex.justify-center.items-center.no-shrink",
 			{
@@ -80,32 +88,23 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 					height: px(component_size.button_height),
 					borderRadius: "50%",
 					// drawing a circle on the inside and a colored circle on the outside (with the rest filled with transparent)
-					background: `radial-gradient(closest-side, ${theme.surface} 79%, transparent 80% 100%), conic-gradient(${theme.on_surface_variant} calc(var(--progress-value) * 1%), transparent 0)`,
+					background: `radial-gradient(closest-side, ${theme.surface} 79%, transparent 80% 100%), conic-gradient(${indicatorColor} calc(var(--progress-value) * 1%), transparent 0)`,
 					transition: "--progress-value 200ms",
 				},
 			},
-			m(".small.font-weight-500", `${percentage}%`),
+			state === "active" || state === "waiting" ? m(".small.font-weight-500", `${percentage}%`) : this.renderTerminateStateIcon(state),
 		)
 	}
 
 	private renderTerminateStateIcon(state: DriveTransferState["state"]): Children {
-		const [color, icon] = state === "finished" ? [theme.success, Icons.CheckCircleFilled] : [theme.error, Icons.CloseCircleFilled]
-		return m(
-			".flex.justify-center.items-center",
-			{
-				style: {
-					width: px(component_size.button_height),
-					height: px(component_size.button_height),
-				},
+		const [color, icon] = state === "finished" ? [theme.success, Icons.XCheckmark2] : [theme.error, Icons.XCross2]
+		return m(Icon, {
+			icon,
+			size: IconSize.PX32,
+			style: {
+				fill: color,
 			},
-			m(Icon, {
-				icon,
-				size: IconSize.PX32,
-				style: {
-					fill: color,
-				},
-			}),
-		)
+		})
 	}
 
 	private renderStatusText(type: "upload" | "download", state: DriveTransferState["state"]): Children {
