@@ -79,7 +79,7 @@ export function pickNewFileName(originalName: string, takenFileNames: ReadonlySe
 /**
  * @throws MoveCycleError
  */
-export async function moveItems(entityClient: EntityClient, driveFacade: DriveFacade, items: readonly FolderItemId[], destinationFolder: DriveFolder) {
+export async function moveItems(entityClient: EntityClient, driveFacade: DriveFacade, items: readonly FolderItemId[], destinationFolderId: IdTuple) {
 	const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
 	const files = await loadMultipleFromLists(
 		DriveFileTypeRef,
@@ -92,9 +92,9 @@ export async function moveItems(entityClient: EntityClient, driveFacade: DriveFa
 		folderItems.map((item) => item.id),
 	)
 
-	const renamedFiles = await deduplicateItemNames(await loadFolderContents(driveFacade, destinationFolder._id), files, folders)
+	const renamedFiles = await deduplicateItemNames(await loadFolderContents(driveFacade, destinationFolderId), files, folders)
 
-	await driveFacade.move(files, folders, destinationFolder, renamedFiles)
+	await driveFacade.move(files, folders, destinationFolderId, renamedFiles)
 }
 
 export async function loadFolderContents(driveFacade: DriveFacade, folderId: IdTuple): Promise<FolderItem[]> {

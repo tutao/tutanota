@@ -35,7 +35,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 	const parentFolderId = itemToMove.type === "file" ? itemToMove.file.folder : assertNotNull(itemToMove.folder.parent)
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
-	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder) // this.driveViewModel.getMoreParents()
+	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder._id) // this.driveViewModel.getMoreParents()
 
 	const itemName = itemToMove.type === "file" ? itemToMove.file.name : itemToMove.folder.name
 	async function loadFolder(folderId: IdTuple): Promise<State> {
