@@ -130,15 +130,7 @@ impl DateExpansion for Date {
 #[derive(uniffi::Object)]
 pub struct EventFacade;
 
-impl EventFacade {
-	fn filter_result<T, U>(&self, result: Result<T, U>) -> Option<T> {
-		match result {
-			Ok(rt) => Some(rt),
-			_ => None,
-		}
-	}
-}
-
+/// Wrapper around EventFacade implementation that exposes methods to uniffi.
 #[uniffi::export]
 impl EventFacade {
 	#[uniffi::constructor]
@@ -147,6 +139,275 @@ impl EventFacade {
 	}
 
 	pub fn generate_future_instances(
+		&self,
+		date: DateTime,
+		repeat_rule: &EventRepeatRule,
+		progenitor_date: DateTime,
+	) -> Result<Vec<DateTime>, ApiCallError> {
+		self.apply_by_rules(date, repeat_rule, progenitor_date)
+	}
+}
+
+impl EventFacade {
+	/// Calculates all occurrences of a recurring calendar event within the given constraints.
+	///
+	/// This is the core scheduling function. It advances through the recurrence set
+	/// starting from the progenitor (the original event start time), applying BYxxx rules
+	/// at each iteration to expand a single date into potentially multiple occurrences,
+	/// then filters them according to the end condition, excluded dates, and max_date boundary.
+	///
+	/// # Arguments
+	/// * `event_start_time` - The progenitor start time of the event
+	/// * `event_end_time` - The end time of the event
+	/// * `repeat_rule` - The recurrence rule containing frequency and BYxxx expansion rules
+	/// * `repeat_interval` - How many frequency units to advance per iteration (e.g. every 2 weeks)
+	/// * `end_type` - Whether the recurrence ends never, after a count, or at a specific date
+	/// * `end_value` - The count or until-date depending on `end_type`
+	/// * `excluded_dates` - Specific occurrence dates to exclude from the result (EXDATEs in iCal)
+	/// * `max_date` - Upper boundary; occurrences on or after this date are not included
+	/// * `time_zone` - IANA timezone string used for DST-aware date advancement
+	pub fn calculate_event_occurrences(
+		&self,
+		event_start_time: DateTime,
+		event_end_time: DateTime,
+		repeat_rule: EventRepeatRule,
+		repeat_interval: i64,
+		end_type: EndType,
+		end_value: Option<u64>,
+		excluded_dates: Vec<DateTime>,
+		max_date: DateTime,
+		time_zone: String,
+	) -> Result<Vec<DateTime>, ApiCallError> {
+		let is_all_day_event =
+			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
+		let set_pos_rules: Vec<&ByRule> = repeat_rule
+			.by_rules
+			.iter()
+			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
+			.collect();
+
+		let tz = match timezones::get_by_name(&time_zone) {
+			Some(tz) => tz,
+			_ => {
+				log::error!("Failed to find timezone for string {}", time_zone);
+				timezones::db::UTC
+			},
+		};
+
+		let calc_event_start = if is_all_day_event {
+			EventFacade::get_all_day_time(&event_start_time)?
+		} else {
+			event_start_time
+		};
+
+		let end_date = if end_type == EndType::UntilDate {
+			if is_all_day_event {
+				Some(EventFacade::get_all_day_time(&DateTime::from_millis(
+					end_value.unwrap(),
+				))?)
+			} else {
+				Some(DateTime::from_millis(end_value.unwrap()))
+			}
+		} else {
+			None
+		};
+
+		let transformed_excluded_dates: Vec<DateTime> = if is_all_day_event {
+			excluded_dates
+				.iter()
+				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
+				.collect()
+		} else {
+			excluded_dates
+		};
+
+		if end_type != EndType::Never && end_value.is_none() {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!(
+					"Event with different from EndType::Never without EndValue {:?}",
+					event_start_time.as_millis()
+				),
+			});
+		}
+
+		let mut occurrences: u64 = 0;
+		let mut generated_events: Vec<DateTime> = Vec::new();
+
+		let Ok(initial_start_time) =
+			OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
+		else {
+			return Ok(generated_events);
+		};
+
+		let progenitor_offset = tz
+			.get_offset_utc(&initial_start_time)
+			.to_utc()
+			.whole_seconds();
+
+		// iteration=0 means we are at the progenitor itself, then 1, 2, 3...
+		let mut iteration: i64 = 0;
+		let mut current_occurrence_date = initial_start_time;
+
+		while end_type != EndType::Count || occurrences < end_value.unwrap() {
+			let occurrences_for_date = self.apply_by_rules(
+				DateTime::from_seconds(current_occurrence_date.unix_timestamp().unsigned_abs()),
+				&repeat_rule,
+				event_start_time,
+			)?;
+
+			let mut has_invalid_set_pos = false;
+			let parsed_set_pos: Vec<i64> = set_pos_rules
+				.iter()
+				.map(|rule| {
+					let Ok(interval) = rule.interval.parse::<i64>() else {
+						has_invalid_set_pos = true;
+						return 0;
+					};
+					if interval < 0 {
+						(occurrences_for_date.len() as i64) - interval.abs()
+					} else {
+						interval - 1
+					}
+				})
+				.collect();
+
+			let progenitor =
+				DateTime::from_seconds(current_occurrence_date.unix_timestamp() as u64);
+
+			if (end_date.is_some() && progenitor.as_millis() >= end_date.unwrap().as_millis())
+				|| has_invalid_set_pos
+			{
+				break;
+			}
+
+			for (index, occurrence) in occurrences_for_date.iter().enumerate() {
+				if (end_type == EndType::Count && occurrences >= end_value.unwrap())
+					|| (end_type == EndType::UntilDate
+						&& occurrence.as_millis() >= end_value.unwrap())
+				{
+					break;
+				}
+
+				if !parsed_set_pos.is_empty() && !parsed_set_pos.contains(&(index as i64)) {
+					continue;
+				}
+
+				if !transformed_excluded_dates.is_empty()
+					&& transformed_excluded_dates.contains(occurrence)
+				{
+					continue;
+				}
+
+				if occurrence.as_seconds() < event_start_time.as_seconds() {
+					// Occurrence is before the progenitor, skip
+					continue;
+				}
+
+				// Skip re-adding the progenitor if apply_by_rules returns it on iteration 0
+				// and it was already added (matches the TS: skip if iteration==1 and same as eventStartTime)
+				if iteration == 0 && generated_events.contains(occurrence) {
+					continue;
+				}
+
+				if occurrence.as_seconds() < max_date.as_seconds() {
+					generated_events.push(*occurrence);
+				}
+
+				occurrences += 1;
+			}
+
+			if current_occurrence_date.unix_timestamp().unsigned_abs() >= max_date.as_seconds() {
+				break;
+			}
+
+			// Advance to next occurrence date at the bottom, absolutely from initial_start_time
+			iteration += 1;
+			current_occurrence_date = self.calculate_next_occurrence_date(
+				&initial_start_time,
+				repeat_interval,
+				&repeat_rule,
+				iteration,
+				progenitor_offset,
+				&time_zone,
+			)?;
+		}
+
+		Ok(generated_events)
+	}
+
+	/// Computes the next occurrence date by advancing absolutely from the initial start time
+	/// by `repeat_interval * iteration` frequency units, then adjusting for DST changes
+	/// relative to the progenitor offset.
+	///
+	/// Advancing absolutely from the initial start time (rather than incrementally from the
+	/// previous occurrence) prevents drift accumulation over long recurrence series.
+	///
+	/// # Arguments
+	/// * `initial_start_time` - The progenitor date to advance from (not the previous occurrence)
+	/// * `repeat_interval` - The base interval between occurrences
+	/// * `repeat_rule` - Used to determine the frequency unit (daily, weekly, monthly, annually)
+	/// * `iteration` - The current iteration index, multiplied by `repeat_interval` for the total advance
+	/// * `progenitor_offset` - The UTC offset in seconds at the progenitor, used for DST correction
+	/// * `time_zone` - IANA timezone string used to determine the UTC offset at the new date
+	fn calculate_next_occurrence_date(
+		&self,
+		initial_start_time: &OffsetDateTime,
+		repeat_interval: i64,
+		repeat_rule: &EventRepeatRule,
+		iteration: i64,
+		progenitor_offset: i32,
+		time_zone: &str,
+	) -> Result<OffsetDateTime, ApiCallError> {
+		let tz = match timezones::get_by_name(time_zone) {
+			Some(tz) => tz,
+			_ => {
+				log::error!("Failed to find timezone for string {}", time_zone);
+				timezones::db::UTC
+			},
+		};
+
+		let mut next = match self.increment_date_by_repeat_period(
+			initial_start_time,
+			repeat_interval * iteration,
+			&repeat_rule.frequency,
+		) {
+			Some(date) => date,
+			None => {
+				return Err(ApiCallError::InternalSdkError {
+					error_message: format!(
+						"Failed to increment date by repeat period E:{} I:{}",
+						initial_start_time.unix_timestamp(),
+						repeat_interval * iteration
+					),
+				})
+			},
+		};
+
+		let instance_offset = tz.get_offset_utc(&next).to_utc().whole_seconds();
+
+		// Adjust for DST difference between progenitor and this occurrence
+		next = next.replace_offset(
+			UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
+		);
+
+		Ok(next)
+	}
+
+	/// Computes the next occurrence date by advancing absolutely from the initial start time
+	/// by `repeat_interval * iteration` frequency units, then adjusting for DST changes
+	/// relative to the progenitor offset.
+	///
+	/// Advancing absolutely from the initial start time (rather than incrementally from the
+	/// previous occurrence) prevents drift accumulation over long recurrence series.
+	///
+	/// # Arguments
+	/// * `initial_start_time` - The progenitor date to advance from (not the previous occurrence)
+	/// * `repeat_interval` - The base interval between occurrences
+	/// * `repeat_rule` - Used to determine the frequency unit (daily, weekly, monthly, annually)
+	/// * `iteration` - The current iteration index, multiplied by `repeat_interval` for the total advance
+	/// * `progenitor_offset` - The UTC offset in seconds at the progenitor, used for DST correction
+	/// * `time_zone` - IANA timezone string used to determine the UTC offset at the new date
+	fn apply_by_rules(
 		&self,
 		date: DateTime,
 		repeat_rule: &EventRepeatRule,
@@ -276,229 +537,6 @@ impl EventFacade {
 			.map(|date| DateTime::from_seconds(date.assume_utc().unix_timestamp().unsigned_abs()))
 			.collect())
 	}
-
-	/// Generate events instances according to a given repeat rule.
-	/// The progenitor event is not included in the generation unless it matches an Advanced R. Rule.
-	pub fn create_event_instances(
-		&self,
-		event_start_time: DateTime,
-		event_end_time: DateTime,
-		repeat_rule: EventRepeatRule,
-		repeat_interval: u8,
-		end_type: EndType,
-		end_value: Option<u64>,
-		excluded_dates: Vec<DateTime>,
-		max_interval: Option<u8>,
-		max_date: Option<DateTime>,
-		time_zone: String,
-	) -> Result<Vec<DateTime>, ApiCallError> {
-		let is_all_day_event =
-			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
-		let set_pos_rules: Vec<&ByRule> = repeat_rule
-			.by_rules
-			.iter()
-			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
-			.collect();
-
-		let tz = match timezones::get_by_name(&time_zone) {
-			Some(tz) => tz,
-			_ => {
-				log::error!(
-					"{}",
-					format!("Failed to find timezone for string {}", time_zone)
-				);
-				timezones::db::UTC
-			},
-		};
-
-		let calc_event_start = if is_all_day_event {
-			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
-
-			all_day_event
-		} else {
-			event_start_time
-		};
-
-		let end_date = if end_type == EndType::UntilDate {
-			if is_all_day_event {
-				let all_day_event =
-					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
-
-				Some(all_day_event)
-			} else {
-				Some(DateTime::from_millis(end_value.unwrap()))
-			}
-		} else {
-			None
-		};
-
-		let transformed_excluded_dates = if is_all_day_event {
-			excluded_dates
-				.iter()
-				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
-				.collect()
-		} else {
-			excluded_dates
-		};
-
-		if end_type != EndType::Never && end_value.is_none() {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!(
-					"Event with different from EndType::Never without EndValue {:?}",
-					event_start_time.as_millis()
-				),
-			});
-		}
-
-		let mut occurrences = 0;
-		let mut interval_occurrences = 0;
-		let mut generated_events: Vec<DateTime> = Vec::new();
-		let mut interval_multiplier = 0;
-
-		let Ok(progenitor_start) =
-			OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
-		else {
-			return Ok(generated_events);
-		};
-
-		let progenitor_offset = tz
-			.get_offset_utc(&progenitor_start)
-			.to_utc()
-			.whole_seconds();
-
-		while (end_type != EndType::Count || occurrences < end_value.unwrap())
-			&& ((max_interval.is_some() && interval_occurrences < max_interval.unwrap())
-				|| max_interval.is_none())
-		{
-			let Ok(mut start_time) =
-				OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
-			else {
-				break;
-			};
-
-			let repeat_frequency = repeat_rule.frequency;
-			start_time = match self.increment_date_by_repeat_period(
-				&start_time,
-				interval_multiplier * repeat_interval,
-				&repeat_frequency,
-			) {
-				Some(date) => date,
-				_ => {
-					return Err(ApiCallError::InternalSdkError {
-						error_message: format!(
-							"Failed to increment date by repeat period E:{} M:{} I:{}",
-							start_time.unix_timestamp(),
-							interval_multiplier,
-							repeat_interval
-						),
-					})
-				},
-			};
-
-			let tz = match timezones::get_by_name(&time_zone) {
-				Some(tz) => tz,
-				_ => {
-					log::error!(
-						"{}",
-						format!("Failed to find timezone for string {}", time_zone)
-					);
-					timezones::db::UTC
-				},
-			};
-
-			let instance_offset = tz.get_offset_utc(&start_time).to_utc().whole_seconds();
-
-			// The way that time-rs works we must calculate the difference between the progenitor offset
-			// and the instance offset, this will mutate the final unix timestamp to adjust according the
-			// different timezones, if any
-			start_time = start_time.replace_offset(
-				UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
-			);
-
-			let expanded_events: Vec<DateTime> = self.generate_future_instances(
-				DateTime::from_seconds(start_time.unix_timestamp().unsigned_abs()),
-				&repeat_rule,
-				event_start_time,
-			)?;
-
-			let progenitor = DateTime::from_seconds(start_time.unix_timestamp() as u64);
-
-			let mut has_invalid_set_pos = false;
-			let parsed_set_pos: Vec<i64> = set_pos_rules
-				.iter()
-				.map(|rule| {
-					let Ok(interval) = rule.interval.parse::<i64>() else {
-						has_invalid_set_pos = true;
-						return 0;
-					};
-
-					if interval < 0 {
-						(expanded_events.len() as i64) - interval.abs()
-					} else {
-						interval - 1
-					}
-				})
-				.collect();
-
-			if (end_date.is_some() && progenitor.as_millis() >= end_date.unwrap().as_millis())
-				|| has_invalid_set_pos
-			{
-				break;
-			}
-
-			for index in 0..expanded_events.len() {
-				if (end_type == EndType::Count && occurrences >= end_value.unwrap())
-					|| (end_type == EndType::UntilDate
-						&& expanded_events.get(index).unwrap().as_millis() >= end_value.unwrap())
-				{
-					break;
-				}
-
-				if !parsed_set_pos.is_empty() || parsed_set_pos.contains(&(index as i64)) {
-					continue;
-				}
-
-				if !transformed_excluded_dates.is_empty()
-					&& transformed_excluded_dates.contains(expanded_events.get(index).unwrap())
-				{
-					continue;
-				}
-
-				let ev = *expanded_events.get(index).unwrap();
-
-				if ev.as_seconds() < event_start_time.as_seconds() {
-					// Event is in the past, we don't want it
-					continue;
-				}
-
-				if max_date.is_none()
-					|| (max_date.is_some() && ev.as_seconds() < max_date.unwrap().as_seconds())
-				{
-					generated_events.push(ev);
-				}
-
-				occurrences += 1;
-			}
-
-			if interval_occurrences == u8::MAX {
-				break;
-			}
-
-			interval_occurrences += 1;
-			interval_multiplier += 1;
-
-			if max_date.is_some()
-				&& start_time.unix_timestamp().unsigned_abs() >= max_date.unwrap().as_seconds()
-			{
-				break;
-			}
-		}
-
-		Ok(generated_events)
-	}
-}
-
-impl EventFacade {
 	fn apply_month_rules(
 		&self,
 		dates: &Vec<PrimitiveDateTime>,
@@ -1380,8 +1418,8 @@ impl EventFacade {
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
 			|| (week_start != Weekday::Monday // We have WKST
-            && new_date.assume_utc().unix_timestamp()
-            >= next_week)
+			&& new_date.assume_utc().unix_timestamp()
+			>= next_week)
 		{
 			// Or we created an event after the first event or within the next week
 			return Ok(());
@@ -1483,7 +1521,7 @@ impl EventFacade {
 	pub fn increment_date_by_repeat_period(
 		&self,
 		start_date: &OffsetDateTime,
-		repeat_interval: u8,
+		repeat_interval: i64,
 		repeat_period: &RepeatPeriod,
 	) -> Option<OffsetDateTime> {
 		match repeat_period {
@@ -1494,11 +1532,11 @@ impl EventFacade {
 		}
 	}
 
-	fn add_years_to_date(&self, date: &OffsetDateTime, years: u8) -> Option<OffsetDateTime> {
+	fn add_years_to_date(&self, date: &OffsetDateTime, years: i64) -> Option<OffsetDateTime> {
 		self.add_months_to_date(date, years * 12)
 	}
 
-	fn add_months_to_date(&self, date: &OffsetDateTime, months: u8) -> Option<OffsetDateTime> {
+	fn add_months_to_date(&self, date: &OffsetDateTime, months: i64) -> Option<OffsetDateTime> {
 		if months == 0 {
 			return Some(*date);
 		}
@@ -1686,6 +1724,13 @@ impl EventFacade {
 			sender: None,
 		}
 	}
+
+	fn filter_result<T, U>(&self, result: Result<T, U>) -> Option<T> {
+		match result {
+			Ok(rt) => Some(rt),
+			_ => None,
+		}
+	}
 }
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
@@ -1716,9 +1761,17 @@ mod tests {
 	fn test_generate_events_by_day_by_month_yearly() {
 		let events_facade = EventFacade {};
 
-		let events = events_facade.create_event_instances(
-			DateTime::from_seconds(1725235200),
-			DateTime::from_seconds(1725321600),
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, Month::December, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let events = events_facade.calculate_event_occurrences(
+			DateTime::from_seconds(1725235200), // 2024-09-02T00:00:00.000Z
+			DateTime::from_seconds(1725321600), // 2024-09-03T00:00:00.000Z
 			EventRepeatRule {
 				frequency: RepeatPeriod::Annually,
 				by_rules: vec![
@@ -1736,8 +1789,7 @@ mod tests {
 			EndType::Count,
 			Some(6),
 			vec![],
-			None,
-			Some(DateTime::from_seconds(1756944000)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -1745,8 +1797,8 @@ mod tests {
 		assert_eq!(
 			events.unwrap(),
 			[
-				DateTime::from_seconds(1725235200), // Sun May 12 2024 00:00:00 GMT+0000
-				DateTime::from_seconds(1756684800), // Sun May 11 2025 00:00:00 GMT+0000
+				DateTime::from_seconds(1725235200), // 2024-09-02T00:00:00.000Z
+				DateTime::from_seconds(1756684800), // 2025-09-01T00:00:00.000Z
 			]
 		);
 	}
@@ -1755,7 +1807,15 @@ mod tests {
 	fn test_generate_events_by_month_on_last_friday() {
 		let events_facade = EventFacade {};
 
-		let events = events_facade.create_event_instances(
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2026, time::Month::January, 1)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let events = events_facade.calculate_event_occurrences(
 			DateTime::from_seconds(1743147215),
 			DateTime::from_seconds(1743161615),
 			EventRepeatRule {
@@ -1769,8 +1829,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(1768908815)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -1836,9 +1895,17 @@ mod tests {
 	fn test_generate_event_with_by_rule_result_before_incremented_event_instance() {
 		let events_facade = EventFacade {};
 
-		let events = events_facade.create_event_instances(
-			DateTime::from_seconds(1745485200),
-			DateTime::from_seconds(1745501400),
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, time::Month::May, 16)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let events = events_facade.calculate_event_occurrences(
+			DateTime::from_seconds(1745485200), // 2025-04-24T09:00:00.000Z
+			DateTime::from_seconds(1745501400), // 2025-04-24T13:30:00.000Z
 			EventRepeatRule {
 				frequency: RepeatPeriod::Monthly,
 				by_rules: vec![ByRule {
@@ -1850,8 +1917,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(1747346400)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -1874,18 +1940,20 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
-			Time::from_hms(00, 00, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, time::Month::March, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Daily,
 			by_rules: vec![],
 		};
 
-		let events = event_facade.create_event_instances(
+		let events = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			repeat_rule,
@@ -1893,10 +1961,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -1931,11 +1996,13 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2027, Month::May, 1).unwrap(),
-			Time::from_hms(00, 00, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2027, time::Month::May, 1)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Monthly,
@@ -1945,7 +2012,7 @@ mod tests {
 			}],
 		};
 
-		let events = event_facade.create_event_instances(
+		let events = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			repeat_rule,
@@ -1953,10 +2020,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -1992,11 +2056,13 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::July, 1).unwrap(),
-			Time::from_hms(00, 00, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, time::Month::July, 1)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Monthly,
@@ -2006,7 +2072,7 @@ mod tests {
 			}],
 		};
 
-		let events = event_facade.create_event_instances(
+		let events = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			repeat_rule,
@@ -2014,10 +2080,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -2046,18 +2109,20 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::April, 1).unwrap(),
-			Time::from_hms(00, 00, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, time::Month::April, 1)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Daily,
 			by_rules: vec![],
 		};
 
-		let events = event_facade.create_event_instances(
+		let events = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			repeat_rule,
@@ -2065,10 +2130,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -2105,13 +2167,15 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 27).unwrap(),
-			Time::from_hms(14, 38, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, Month::March, 27)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
-		let weekly_events = event_facade.create_event_instances(
+		let weekly_events = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			EventRepeatRule {
@@ -2122,19 +2186,16 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
+		// 27 of march is matching one occurance but max-date is not inclusive.
 		assert_eq!(
 			weekly_events.unwrap(),
 			vec![
 				DateTime::from_millis(1741867200000), //13.03.2025 12:00:00
 				DateTime::from_millis(1742472000000), //20.03.2025 12:00:00
-				DateTime::from_millis(1743076800000)  //20.03.2025 12:00:00
 			]
 		);
 	}
@@ -2155,13 +2216,15 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
-			Time::from_hms(00, 00, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, Month::March, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
-		let excluded_dates = event_facade.create_event_instances(
+		let excluded_dates = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			EventRepeatRule {
@@ -2179,10 +2242,7 @@ mod tests {
 				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
 				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
 			],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -2211,13 +2271,15 @@ mod tests {
 		)
 		.assume_utc();
 
-		let max_date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
-			Time::from_hms(00, 00, 0).unwrap(),
-		)
-		.assume_utc();
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, Month::March, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
 
-		let by_rules = event_facade.create_event_instances(
+		let by_rules = event_facade.calculate_event_occurrences(
 			DateTime::from_seconds(event_start.unix_timestamp() as u64),
 			DateTime::from_seconds(event_end.unix_timestamp() as u64),
 			EventRepeatRule {
@@ -2237,10 +2299,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(
-				max_date.unix_timestamp().unsigned_abs(),
-			)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -3423,6 +3482,14 @@ mod tests {
 	fn test_generate_events_biweekly() {
 		let events_facade = EventFacade {};
 
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2025, Month::December, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Weekly,
 			by_rules: vec![
@@ -3449,7 +3516,7 @@ mod tests {
 			],
 		};
 
-		let events = events_facade.create_event_instances(
+		let events = events_facade.calculate_event_occurrences(
 			DateTime::from_seconds(1756893600),
 			DateTime::from_seconds(1756895400),
 			repeat_rule,
@@ -3457,8 +3524,7 @@ mod tests {
 			EndType::Never,
 			None,
 			vec![],
-			None,
-			Some(DateTime::from_seconds(1759096799)),
+			max_date,
 			"Europe/Berlin".to_string(),
 		);
 
@@ -4338,5 +4404,52 @@ mod tests {
 					.to_date_time(),
 			]
 		);
+	}
+
+	#[test]
+	fn test_generate_instances_for_old_event_reaching_far_future() {
+		let event_facade = EventFacade::new();
+
+		let event_start = DateTime::from_seconds(
+			time::Date::from_calendar_date(2025, time::Month::January, 2)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let event_end = DateTime::from_seconds(
+			time::Date::from_calendar_date(2025, time::Month::January, 2)
+				.unwrap()
+				.with_time(Time::from_hms(18, 30, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let max_date = DateTime::from_seconds(
+			time::Date::from_calendar_date(2026, time::Month::March, 10)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let events = event_facade
+			.calculate_event_occurrences(
+				event_start,
+				event_end,
+				EventRepeatRule {
+					frequency: RepeatPeriod::Daily,
+					by_rules: vec![],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"UTC".to_string(),
+			)
+			.unwrap();
+
+		// Jan 2 2025 to Mar 10 2026 is 432 days, so we expect 432 instances
+		assert_eq!(events.len(), 432);
 	}
 }
