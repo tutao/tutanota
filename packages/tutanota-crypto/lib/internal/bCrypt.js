@@ -441,10 +441,10 @@ bCrypt.prototype.crypt_raw = function (password, salt, log_rounds) {
 	var one_percent;
 
 	if (log_rounds < 4 || log_rounds > 31) {
-		throw "Bad number of rounds";
+		throw new Error("Bad number of rounds");
 	}
-	if (salt.length != this.BCRYPT_SALT_LEN) {
-		throw "Bad _salt length";
+	if (salt.length !== this.BCRYPT_SALT_LEN) {
+		throw new Error("Bad _salt length");
 	}
 
 	rounds = 1 << log_rounds;
