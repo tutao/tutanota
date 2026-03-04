@@ -23,7 +23,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
 
-class WidgetDataRepository() : WidgetRepository() {
+class WidgetDataRepository private constructor() : WidgetRepository() {
 	companion object {
 		private const val TAG = "WidgetDataRepository"
 
@@ -94,7 +94,6 @@ class WidgetDataRepository() : WidgetRepository() {
 	override suspend fun loadCache(
 		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
-		calendars: List<GeneratedId>,
 		cryptoFacade: AndroidNativeCryptoFacade,
 		credentials: UnencryptedCredentials
 	): Map<GeneratedId, CalendarEventListDao> {
@@ -190,7 +189,7 @@ class WidgetDataRepository() : WidgetRepository() {
 		Log.i(TAG, "Init loadEvents from cache...")
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
 		val cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> =
-			loadCache(cacheDataStore, widgetId, calendars, cryptoFacade, credentials).toMutableMap()
+			loadCache(cacheDataStore, widgetId, cryptoFacade, credentials).toMutableMap()
 		val cache = cachedEvents.filterKeys { calendars.contains(it) }
 
 		for ((id, events) in cache.entries) {
