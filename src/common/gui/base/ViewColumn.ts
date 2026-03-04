@@ -37,6 +37,13 @@ export class ViewColumn implements Component<Attrs> {
 	isInForeground: boolean
 	isVisible: boolean
 	ariaRole: AriaLandmarks | null = null
+	/**
+	 * When true and this column is the focused column, the ViewSlider will not
+	 * render any other columns alongside it — it takes the full available width
+	 * Use this when a column should always occupy the entire screen when active,
+	 * regardless of how much space is available
+	 */
+	exclusive: boolean
 
 	/**
 	 * Create a view column.
@@ -87,6 +94,7 @@ export class ViewColumn implements Component<Attrs> {
 		this.isVisible = false
 		// fixup for old-style components
 		this.view = this.view.bind(this)
+		this.exclusive = false
 	}
 
 	view(vnode: Vnode<Attrs>): Children {

@@ -265,6 +265,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 * @param allColumns All columns*
 	 */
 	getNextVisibleColumn(visibleColumns: ViewColumn[], allColumns: ViewColumn[]): ViewColumn | null {
+		// if the column is exclusive we avoid rendering the other one
+		if (visibleColumns[0].exclusive) return null
+
 		// First: try to find a background column which is not visible
 		let nextColumn = allColumns.find((column) => {
 			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
