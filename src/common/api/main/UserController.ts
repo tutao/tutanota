@@ -104,6 +104,10 @@ export class UserController {
 		return this.user.accountType === AccountType.PAID
 	}
 
+	getUserAccountType(): AccountType {
+		return this.user.accountType as AccountType
+	}
+
 	/**
 	 * Provides the information if an internal user is logged in.
 	 * @return True if an internal user is logged in, false if no user or an external user is logged in.
