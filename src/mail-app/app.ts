@@ -1040,7 +1040,7 @@ function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: st
 	let prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 	if (isNextCloudPlugin()) {
 		prefix = "/index.php/apps/tutamail"
-		prefixWithoutFile = "http://nextcloud.local/apps-extra/tutamail/js"
+		prefixWithoutFile = "/apps-extra/tutamail/js"
 	}
 	return Object.freeze({ prefix, prefixWithoutFile })
 }
