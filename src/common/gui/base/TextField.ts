@@ -218,6 +218,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				a.autocompleteAs === Autocomplete.off
 					? [
 							m("input.abs", {
+								"aria-hidden": "true",
 								style: {
 									opacity: "0",
 									height: "0",
@@ -226,6 +227,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								type: TextFieldType.Text,
 							}),
 							m("input.abs", {
+								"aria-hidden": "true",
 								style: {
 									opacity: "0",
 									height: "0",
@@ -234,6 +236,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								type: TextFieldType.Password,
 							}),
 							m("input.abs", {
+								"aria-hidden": "true",
 								style: {
 									opacity: "0",
 									height: "0",
