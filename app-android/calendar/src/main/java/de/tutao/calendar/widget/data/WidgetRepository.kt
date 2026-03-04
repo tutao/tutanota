@@ -50,6 +50,9 @@ abstract class WidgetRepository() {
 		throw NotImplementedError()
 	}
 
+	/**
+	 * Returns the calendar list ordered by its id
+	 */
 	suspend fun loadCalendars(
 		userId: GeneratedId,
 		credentialsFacade: NativeCredentialsFacade,
@@ -94,7 +97,6 @@ abstract class WidgetRepository() {
 	open suspend fun loadCache(
 		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
-		calendars: List<GeneratedId>,
 		cryptoFacade: AndroidNativeCryptoFacade,
 		credentials: UnencryptedCredentials
 	): Map<GeneratedId, CalendarEventListDao> {
