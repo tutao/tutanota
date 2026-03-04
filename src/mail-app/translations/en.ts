@@ -2226,6 +2226,8 @@ export default {
 		"trashItemsSuccess_msg":"Moved {count} item(s) to Trash",
 		"moveItemsSuccess_msg":"Moved {count} item(s)",
 		"restoreItemsSuccess_msg":"Restored {count} items(s)",
-		"deleteItemsSuccess_msg" :"Deleted {count} item(s)"
+		"deleteItemsSuccess_msg" :"Deleted {count} item(s)",
+		"folderContent_label": "Content",
+		"createNewFolderIn_label": "Create a new folder in {folderName}",
 	}
 }
