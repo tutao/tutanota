@@ -2,7 +2,7 @@
 	"8": {
 		"name": "UsageTestMetricConfigValue",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 8,
@@ -41,7 +41,7 @@
 	"12": {
 		"name": "UsageTestMetricConfig",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 12,
@@ -90,7 +90,7 @@
 	"17": {
 		"name": "UsageTestMetricData",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 17,
@@ -129,7 +129,7 @@
 	"35": {
 		"name": "UsageTestStage",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 35,
@@ -194,7 +194,7 @@
 	"53": {
 		"name": "UsageTestAssignmentIn",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 53,
@@ -225,7 +225,7 @@
 	"56": {
 		"name": "UsageTestAssignment",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 56,
@@ -273,6 +273,14 @@
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"110": {
+				"final": false,
+				"name": "variantName",
+				"id": 110,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -290,7 +298,7 @@
 	"63": {
 		"name": "UsageTestAssignmentOut",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 63,
@@ -331,7 +339,7 @@
 	"80": {
 		"name": "UsageTestParticipationIn",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 80,
@@ -396,7 +404,7 @@
 	"90": {
 		"name": "UsageTestParticipationOut",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 90,
@@ -435,7 +443,7 @@
 	"94": {
 		"name": "UsageTestParticipationDeleteIn",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 94,
