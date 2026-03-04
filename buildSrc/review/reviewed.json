@@ -6588,5 +6588,160 @@
 		"who": "ivk",
 		"when": "2026-03-03",
 		"hash": "0ebe08e279fc38292f1b194f00f92d9f217b79b3824b29f6d040522996286a74"
+	},
+	"node_modules/xmlbuilder/lib/XMLStringifier.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "2f57132af0909a7486eb6a8bfc5862bd70c149fc746ea59ce79a91bc9239d664"
+	},
+	"node_modules/xmlbuilder/lib/XMLDeclaration.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "7e4c0b7cfc31e8813b3baf4423b6280c704abc002e7cd5cef156550c327e060e"
+	},
+	"node_modules/xmlbuilder/lib/XMLDTDAttList.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "82f6316da96a3c0000fce27e24a3473678017fb25ed56b9286cd615350b6ddb1"
+	},
+	"node_modules/xmlbuilder/lib/XMLDTDEntity.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "4fe2f047e693a70b54355fbb2e9269986d0ef6530c7fa6b55346399fe5a25200"
+	},
+	"node_modules/xmlbuilder/lib/XMLDTDElement.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "0414a21a5640a63906b7f37208a719c4bbba6b5c71a85ce36258ed18559981c6"
+	},
+	"node_modules/xmlbuilder/lib/XMLDTDNotation.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "bb209763e6eaa3dd228388876d22350b81380c134d339bbbe0a770b482b4dbf0"
+	},
+	"node_modules/xmlbuilder/lib/XMLNamedNodeMap.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "1b652f28741b57985be24f6a95d0c86450a3c440739ed2f28a49ba38ba62c05d"
+	},
+	"node_modules/xmlbuilder/lib/XMLDocType.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "a106e2fca43e39b3b1fa7ab1eee9f79190a11d137aacba5e4c2600dd9bf2e354"
+	},
+	"node_modules/xmlbuilder/lib/XMLCharacterData.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "3165c5af2f19a8c3f09acb659dd9a622e3ee9ea6235ecf5cb0dccf46a0cd9eeb"
+	},
+	"node_modules/xmlbuilder/lib/XMLCData.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "18eb6d3ca1de65dcd9e280f0e663774b7c9f37ade1f384019599c4ff8895dda3"
+	},
+	"node_modules/xmlbuilder/lib/XMLComment.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "2422f4ea7828987b092ed657a344f3520e072739eea29a7619c5eb24f0f4dd9f"
+	},
+	"node_modules/xmlbuilder/lib/XMLAttribute.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "c18d34ac3c15d4a6bb8a8c159d617cae0d64241dadc568bd0a96cc297a6f8822"
+	},
+	"node_modules/xmlbuilder/lib/XMLElement.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "dac954ffadc9d9518029d856b29f8bb92e2795a364f92d6275adb515927c6876"
+	},
+	"node_modules/xmlbuilder/lib/XMLRaw.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "c1239689a8c715f14a6b1ec67fb9da341399571917750bf4dec942dabddb163b"
+	},
+	"node_modules/xmlbuilder/lib/XMLText.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "067b5340ed4fa2b5bd9e1d9dbf733933531200d355b8c50b3beb895c99bbaf0b"
+	},
+	"node_modules/xmlbuilder/lib/XMLProcessingInstruction.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "f188b5498fd32adde2dd2baeebb8f298952d04126b976583869702b0dd5e97f0"
+	},
+	"node_modules/xmlbuilder/lib/XMLDummy.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "c13a609d616a983dd4758319b5280faade3714b0b96196322ef1902592161322"
+	},
+	"node_modules/xmlbuilder/lib/WriterState.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "e069585f57d99b713e4ccff76c7be1e8fed2994429965e8d3ee140236f9e0bf6"
+	},
+	"node_modules/xmlbuilder/lib/XMLWriterBase.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "fc3b6fdbd57296465a3c71b8c2e2476690f3d179dfd7f95ab450a265a6809061"
+	},
+	"node_modules/xmlbuilder/lib/XMLStringWriter.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "197e16bd9399acee3191ae65fff2a94b4fc79692f615bbb03dd74f1838824a82"
+	},
+	"node_modules/xmlbuilder/lib/XMLDocument.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "353ff1a880f7d8c80dfd42828e199338440a369a2f4e62fb288dc8ef555c7a48"
+	},
+	"node_modules/xmlbuilder/lib/XMLDocumentCB.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "42c4dac1e08a3d97ad726606468657f550cf6c1f6ad9ee172f70f106fc800bb5"
+	},
+	"node_modules/xmlbuilder/lib/XMLStreamWriter.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "3f06242dd14b70efa09ed31f8d33fae705e7de7d86c7bda20c99eefed211cdcd"
+	},
+	"node_modules/xmlbuilder/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "4dae3a14220c4aaae63f190795d78b05c32c06756d5703177208cf8a427388df"
+	},
+	"node_modules/plist/lib/build.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "98d2caf11087fa10c765f9a0ec8f2eb7da577b6f293eba86f35711b0420e2255"
+	},
+	"node_modules/plist/index.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "83361b690b01f132fd9e2492060b0ecee6594c2bbfe1ef427ce0a51478d03dd1"
+	},
+	"node_modules/app-builder-lib/out/util/macosIconComposer.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "5ee154e220bbdf547470e6e48cf687defd74d0a036be451d7fb79e7884703d34"
+	},
+	"node_modules/app-builder-lib/out/platformPackager.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "69cff89e1c38d33526ef1f90901e7db045eb8cd2d8baf6960d23cad7c6818b60"
+	},
+	"node_modules/app-builder-lib/out/util/plist.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "7402cc6cc5abb92469629b5d81b93babc60c3dadb2a2a0033ec4a29bf0400538"
+	},
+	"node_modules/app-builder-lib/out/electron/ElectronFramework.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "c95e9f8b9a1adf6511156809ae9d255cb3af3f0f295e34081dd452f7b4485126"
+	},
+	"node_modules/app-builder-lib/out/electron/electronMac.js": {
+		"who": "ivk",
+		"when": "2026-03-04",
+		"hash": "ea29a8e86bcd72ba66ccd9cbb244f44b84a0bc7a01d05dc3bee8f0479ab5af55"
 	}
 }
