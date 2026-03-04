@@ -17,11 +17,15 @@ export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPla
 })
 
 export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
-	return (
-		domainConfig.apiUrl
-			// replaces http: with ws: and https: with wss:
-			.replace(/^http/, "ws")
-	)
+	if (isNextCloudPlugin()) {
+		return "ws://sug:9000"
+	} else {
+		return (
+			domainConfig.apiUrl
+				// replaces http: with ws: and https: with wss:
+				.replace(/^http/, "ws")
+		)
+	}
 }
 
 /** Returns the origin which should be used for API requests. */
