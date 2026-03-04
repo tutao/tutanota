@@ -11,7 +11,7 @@ import {
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode, isNextCloudPlugin } from "../../common/Env"
 import type {
 	ClientModelUntypedInstance,
 	ClientTypeModel,
@@ -49,7 +49,11 @@ import { computePatchPayload } from "../../common/utils/PatchGenerator"
 assertWorkerOrNode()
 
 export function typeModelToRestPath(typeModel: TypeModel): string {
-	return `/rest/${typeModel.app}/${typeModel.name.toLowerCase()}`
+	let path = `/rest/${typeModel.app}/${typeModel.name.toLowerCase()}`
+	if (isNextCloudPlugin()) {
+		path = "/ocs/v2.php/apps/tutamail" + path
+	}
+	return path
 }
 
 export interface EntityRestClientSetupOptions {
