@@ -259,7 +259,7 @@ impl CalendarFacade {
 							})
 							.collect(),
 					},
-					repeat_rule.interval as u8,
+					repeat_rule.interval,
 					EndType::try_from_primitive(repeat_rule.endType as u8).unwrap(),
 					repeat_rule.endValue.map(|val| val.unsigned_abs()),
 					repeat_rule
@@ -267,8 +267,7 @@ impl CalendarFacade {
 						.iter()
 						.map(|date| date.date)
 						.collect(),
-					None,
-					Some(DateTime::from_millis(end_range)),
+					DateTime::from_millis(end_range),
 					repeat_rule.timeZone.clone(),
 				) {
 					Ok(ev) => ev,
