@@ -55,6 +55,7 @@ struct WidgetModel {
 	}
 
 	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> (EventMap, LongEventsDataMap) {
+		printLog("Fetching \(calendars.count) calendars")
 		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
 		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
 		let calendarFacade = self.sdk.calendarFacade()
@@ -65,8 +66,7 @@ struct WidgetModel {
 		var longEvents: LongEventsDataMap = [startOfToday: SimpleLongEventsData(event: nil, count: 0)]
 
 		for calendar in calendars {
-			let eventsList = await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
-
+			let eventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
 			eventsList.birthdayEvents.forEach { event in
 				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
 				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
