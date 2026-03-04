@@ -6,20 +6,23 @@ import { DriveFolderType } from "./DriveViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { FolderItemId } from "./DriveUtils"
 import { DropType } from "../../../common/gui/base/GuiUtils"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownChildAttrs[] {
 	return [
 		{
 			click: (event, dom) => {
-				onNewFile()
-			},
-			label: lang.getTranslation("uploadFile_action"),
-		},
-		{
-			click: (event, dom) => {
 				onNewFolder()
 			},
 			label: lang.getTranslation("createFolder_action"),
+			icon: Icons.Folder,
+		},
+		{
+			click: (event, dom) => {
+				onNewFile()
+			},
+			label: lang.getTranslation("uploadFile_action"),
+			icon: Icons.Upload,
 		},
 	]
 }
