@@ -31,7 +31,7 @@ import { styles } from "../../../common/gui/styles"
 import { BottomNav } from "../../../mail-app/gui/BottomNav"
 import { MobileHeader } from "../../../common/gui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
-import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
+import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./DriveUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import Stream from "mithril/stream"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -123,12 +123,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	constructor(vnode: Vnode<DriveViewAttrs>) {
 		console.log("running constructor for DriveView")
 		super()
-		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog) // this where we see the files of the selected folder being listed
-		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.driveViewModel = vnode.attrs.driveViewModel
 		this.driveViewModel.init()
+		const onTrash = (itemIds: FolderItemId[]) => {
+			this.driveViewModel.moveToTrash(itemIds)
+		}
+		const onMove = (items: FolderItemId[], destinationId: IdTuple) => {
+			this.driveViewModel.moveItems(items, destinationId)
+		}
+		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs, onTrash, onMove) // this is where we see the left bar
+		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog) // this where we see the files of the selected folder being listed
+		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.shortcuts = [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel),
@@ -209,7 +215,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					if (selectedItems.size === 1) {
 						const [selectedItem] = [...selectedItems]
 						vnode.attrs.showMoveItemDialog(selectedItem, (items: readonly FolderItemId[], destination: DriveFolder) =>
-							this.driveViewModel.moveItems(items, destination),
+							this.driveViewModel.moveItems(items, destination._id),
 						)
 					}
 				},
@@ -234,7 +240,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		])
 	}
 
-	private createDriveNavColumn(drawerAttrs: DrawerMenuAttrs) {
+	private createDriveNavColumn(
+		drawerAttrs: DrawerMenuAttrs,
+		onTrash: (items: FolderItemId[]) => unknown,
+		onMove: (items: FolderItemId[], destination: IdTuple) => unknown,
+	) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -254,6 +264,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								renderSidebarFolders(
 									{ rootFolderId: this.driveViewModel.roots.root, trashFolderId: this.driveViewModel.roots.trash },
 									this.driveViewModel.userMailAddress,
+									onTrash,
+									onMove,
+									this.driveViewModel.currentFolder?.folder.type !== DriveFolderType.Trash,
 								),
 								m(".flex-grow"),
 								this.renderStorage(),
@@ -300,7 +313,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								onTrash:
 									isListingTrash || listState.selectedItems.size === 0
 										? null
-										: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems)),
+										: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems).map(folderItemToId)),
 								onDelete:
 									isListingTrash && listState.selectedItems.size > 0
 										? async () => {
@@ -378,7 +391,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										this.driveViewModel.cut([item])
 									},
 									onTrash: (item) => {
-										this.driveViewModel.moveToTrash([item])
+										this.driveViewModel.moveToTrash([folderItemToId(item)])
 									},
 									onRestore: (item) => {
 										this.driveViewModel.restoreFromTrash([item])
@@ -388,11 +401,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									},
 									onRename: (item) => this.onRename(item),
 									onStartMove: (item) => {
-										showMoveItemDialog(item, (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder))
+										showMoveItemDialog(item, (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
 									},
 								},
 								onMove: (items: FolderItemId[], into: FolderFolderItem) => {
-									this.driveViewModel.moveItems(items, into.folder)
+									this.driveViewModel.moveItems(items, into.folder._id)
 								},
 								sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
 								onSortColumn: (column) => this.driveViewModel.sort(column),

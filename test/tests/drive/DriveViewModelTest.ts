@@ -301,8 +301,8 @@ o.spec("DriveViewModel", function () {
 			const driveFiles: DriveFile[] = files.map((f) => createTestEntity(DriveFileTypeRef, { _id: f.id, name: `same name` }))
 			entityRestClientMock.addListInstances(...driveFiles)
 
-			await driveViewModel.moveItems(files, rootFolders.root)
-			verify(driveFacade.move([driveFiles[0]], [], rootFolders.root, new Map([[getElementId(driveFiles[0]), `same name (copy)`]])))
+			await driveViewModel.moveItems(files, rootFolders.root._id)
+			verify(driveFacade.move([driveFiles[0]], [], rootFolders.root._id, new Map([[getElementId(driveFiles[0]), `same name (copy)`]])))
 		})
 
 		o.test("when moving items and the picked name conflicts with existing one it gets renamed", async function () {
@@ -316,9 +316,9 @@ o.spec("DriveViewModel", function () {
 			const driveFiles: DriveFile[] = files.map((f) => createTestEntity(DriveFileTypeRef, { _id: f.id, name: `same name` }))
 			entityRestClientMock.addListInstances(...driveFiles)
 
-			await driveViewModel.moveItems(files, rootFolders.root)
+			await driveViewModel.moveItems(files, rootFolders.root._id)
 			const mapCaptor = matchers.captor()
-			verify(driveFacade.move([driveFiles[0], driveFiles[1]], [], rootFolders.root, mapCaptor.capture()))
+			verify(driveFacade.move([driveFiles[0], driveFiles[1]], [], rootFolders.root._id, mapCaptor.capture()))
 			o.check(mapCaptor.value).deepEquals(new Map([[elementIdPart(files[1].id), `same name (copy) (copy)`]]))
 		})
 	})
