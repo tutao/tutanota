@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 public func translate(_ key: String, default defaultValue: String) -> String {
 	Bundle.main.localizedString(forKey: key, value: defaultValue, table: "InfoPlist")
@@ -67,9 +68,14 @@ public func makeUrlSession() -> URLSession {
 
 func appVersion() -> String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String }
 
+private let logger = Logger.init()
+
 public func printLog(_ message: String, _ file: StaticString = #fileID) {
 	let filename = file
 	TUTSLog("\(filename): \(message)")
+	#if DEBUG
+		logger.info("\(filename, privacy: .public): \(message, privacy: .public)")
+	#endif
 }
 
 public func getLogs() -> String {
