@@ -93,6 +93,7 @@ export type UsageTestAssignment = {
 	name: string;
 	variant: null | NumberString;
 	sendPings: boolean;
+	variantName: null | string;
 
 	stages: UsageTestStage[];
 }
