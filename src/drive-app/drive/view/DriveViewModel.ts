@@ -337,7 +337,7 @@ export class DriveViewModel {
 
 		if (this._clipboard?.action === ClipboardAction.Cut) {
 			const clipboardItems = this._clipboard.items
-			await this.moveItems(clipboardItems, this.currentFolder.folder)
+			await this.moveItems(clipboardItems, this.currentFolder.folder._id)
 			this._clipboard = null
 			this.updateUi()
 		} else if (this._clipboard?.action === ClipboardAction.Copy) {
@@ -369,9 +369,9 @@ export class DriveViewModel {
 	/**
 	 * @throws UserError
 	 */
-	async moveItems(items: readonly FolderItemId[], destination: DriveFolder) {
+	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple) {
 		try {
-			await moveItems(this.entityClient, this.driveFacade, items, destination)
+			await moveItems(this.entityClient, this.driveFacade, items, destinationId)
 			this.operationUpdates({
 				type: DriveOperationType.Move,
 				count: items.length,
@@ -393,15 +393,15 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
-	private itemsIntoIds(items: readonly FolderItem[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
+	private itemsIntoIds(items: readonly FolderItemId[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
 		const [fileFolderItems, folderFolderItems] = partition(items, (item) => item.type === "file")
 		return {
-			fileIds: fileFolderItems.map((item) => item.file._id),
-			folderIds: folderFolderItems.map((item) => item.folder._id),
+			fileIds: fileFolderItems.map((item) => item.id),
+			folderIds: folderFolderItems.map((item) => item.id),
 		}
 	}
 
-	async moveToTrash(items: readonly FolderItem[]) {
+	async moveToTrash(items: readonly FolderItemId[]) {
 		const { fileIds, folderIds } = this.itemsIntoIds(items)
 		try {
 			await this.driveFacade.moveToTrash(fileIds, folderIds)
@@ -423,7 +423,7 @@ export class DriveViewModel {
 	}
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
-		const { fileIds, folderIds } = this.itemsIntoIds(items)
+		const { fileIds, folderIds } = this.itemsIntoIds(items.map(folderItemToId))
 		try {
 			await this.driveFacade.restoreFromTrash(fileIds, folderIds)
 			this.operationUpdates({
@@ -600,7 +600,7 @@ export class DriveViewModel {
 	}
 
 	trashSelectedItems() {
-		this.moveToTrash(this.listModel.getSelectedAsArray())
+		this.moveToTrash(this.listModel.getSelectedAsArray().map(folderItemToId))
 	}
 
 	getUsedStorage(): DriveStorage | null {
@@ -614,7 +614,7 @@ export class DriveViewModel {
 
 		let firstLoadedParent = this.parents[0]
 		if (firstLoadedParent == null) return []
-		return this.driveFacade.getFolderParents(firstLoadedParent)
+		return this.driveFacade.getFolderParents(firstLoadedParent._id)
 	}
 
 	transfers(): DriveTransferState[] {

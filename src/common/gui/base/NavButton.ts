@@ -180,6 +180,12 @@ export class NavButton implements Component<NavButtonAttrs> {
 						mailId: ev.dataTransfer.getData(DropType.Mail),
 					}
 					neverNull(a.dropHandler)(dropData)
+				} else if (ev.dataTransfer?.getData(DropType.DriveItems)) {
+					let dropData: DropData = {
+						dropType: DropType.DriveItems,
+						data: ev.dataTransfer.getData(DropType.DriveItems),
+					}
+					neverNull(a.dropHandler)(dropData)
 				} else if (isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 					neverNull(a.dropHandler)({
 						dropType: DropType.ExternalFile,

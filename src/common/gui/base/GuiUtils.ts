@@ -40,8 +40,12 @@ export type FolderDropData = {
 	dropType: DropType.Folder
 	folderId: string
 }
+export type DriveDropData = {
+	dropType: DropType.DriveItems
+	data: string
+}
 
-export type DropData = FileDropData | MailDropData | FolderDropData
+export type DropData = FileDropData | MailDropData | FolderDropData | DriveDropData
 
 export type DragStartHandler = (event: DragEvent) => void
 export type DropHandler = (dropData: DropData) => void

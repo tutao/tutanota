@@ -288,10 +288,10 @@ export class DriveFacade {
 	/**
 	 * @throws MoveCycleError
 	 */
-	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder, renamedFiles: Map<Id, string>) {
-		const parents = new Set((await this.getFolderParents(destination)).map(getElementId))
-		if (folders.some((f) => parents.has(getElementId(f)) || isSameId(f._id, destination._id))) {
-			throw new MoveCycleError(`Cannot move folder into its child ${destination._id.join("/")}`)
+	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destinationId: IdTuple, renamedFiles: Map<Id, string>) {
+		const parents = new Set((await this.getFolderParents(destinationId)).map(getElementId))
+		if (folders.some((f) => parents.has(getElementId(f)) || isSameId(f._id, destinationId))) {
+			throw new MoveCycleError(`Cannot move folder into its child ${destinationId.join("/")}`)
 		}
 
 		for (const { left: filesChunk, right: foldersChunk } of splitListElementsIntoChunksByList(50, getListId, files, folders)) {
@@ -323,7 +323,7 @@ export class DriveFacade {
 
 			const data = createDriveFolderServicePutIn({
 				items,
-				destination: destination._id,
+				destination: destinationId,
 			})
 			await this.serviceExecutor.put(DriveFolderService, data)
 		}
@@ -333,7 +333,8 @@ export class DriveFacade {
 		return String(this.latestUploadId++) as TransferId
 	}
 
-	async getFolderParents(folder: DriveFolder): Promise<DriveFolder[]> {
+	async getFolderParents(folderId: IdTuple): Promise<DriveFolder[]> {
+		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 		if (folder.parent == null) return []
 		const result: DriveFolder[] = []
 		let currentParent: DriveFolder = folder
