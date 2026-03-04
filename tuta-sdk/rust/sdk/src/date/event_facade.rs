@@ -4394,4 +4394,52 @@ mod tests {
 			]
 		);
 	}
+
+	#[test]
+	fn test_generate_instances_for_old_event_reaching_far_future() {
+		let event_facade = EventFacade::new();
+
+		let event_start = DateTime::from_seconds(
+			time::Date::from_calendar_date(2025, time::Month::January, 2)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let event_end = DateTime::from_seconds(
+			time::Date::from_calendar_date(2025, time::Month::January, 2)
+				.unwrap()
+				.with_time(Time::from_hms(18, 30, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let max_date = DateTime::from_seconds(
+			time::Date::from_calendar_date(2026, time::Month::March, 10)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let events = event_facade
+			.create_event_instances(
+				event_start,
+				event_end,
+				EventRepeatRule {
+					frequency: RepeatPeriod::Daily,
+					by_rules: vec![],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				None,
+				None,
+				"UTC".to_string(),
+			)
+			.unwrap();
+
+		// Jan 2 2025 to Mar 10 2026 is 432 days, so we expect 432 instances
+		assert_eq!(events.len(), 432);
+	}
 }
