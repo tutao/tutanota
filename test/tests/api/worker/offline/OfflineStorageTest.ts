@@ -51,7 +51,7 @@ import {
 import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlType, untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
-import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS, MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
@@ -1026,7 +1026,6 @@ o.spec("OfflineStorageDb", function () {
 				)
 				await storage.put(MailSetTypeRef, storableTrashFolder)
 			})
-
 			o.test("ranges before timeRangeDays will be deleted", async function () {
 				const oneDayBeforeTimeRangeDays = -1
 				const twoDaysBeforeTimeRangeDays = -2
@@ -1081,6 +1080,18 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 				await storage.put(MailDetailsBlobTypeRef, storableDetails)
+				const storableUser = await toStorableInstance(
+					createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+							accountType: AccountType.PAID,
+						},
+						{ populateAggregates: true },
+					),
+				)
+				await storage.put(UserTypeRef, storableUser)
 
 				const lowerMailSetEntryIdForRange = offsetMailSetEntryId(twoDaysBeforeTimeRangeDays, GENERATED_MIN_ID)
 				const upperMailSetEntryIdForRange = offsetMailSetEntryId(oneDayBeforeTimeRangeDays, GENERATED_MAX_ID)
@@ -1101,6 +1112,127 @@ o.spec("OfflineStorageDb", function () {
 				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
 				o.check(allBlobDetails).deepEquals([])
 			})
+			o.test("for free users the default time range is always used", async function () {
+				const oneDayBeforeTimeRangeDays = -1
+				const oneDayBeforeFreeDefaultTimeRangeDays = -FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS - 1
+
+				const mailId1: IdTuple = [mailBagMailListId, "mailId1"]
+				const mailSetEntryElementId1 = offsetMailSetEntryId(oneDayBeforeTimeRangeDays, elementIdPart(mailId1))
+				const mailSetEntryId1: IdTuple = ["mailSetEntriesListId", mailSetEntryElementId1]
+				const mailDetailsBlobId1: IdTuple = ["mailDetailsList", "mailDetailsBlobId1"]
+
+				const mailId2: IdTuple = [mailBagMailListId, "mailId2"]
+				const mailSetEntryElementId2 = offsetMailSetEntryId(oneDayBeforeFreeDefaultTimeRangeDays, elementIdPart(mailId2))
+				const mailSetEntryId2: IdTuple = ["mailSetEntriesListId", mailSetEntryElementId2]
+				const mailDetailsBlobId2: IdTuple = ["mailDetailsList", "mailDetailsBlobId2"]
+
+				const folderId: IdTuple = ["mailFolderList", "mailFolderId"]
+				const storableMailFolder = await toStorableInstance(
+					createTestEntity(MailSetTypeRef, {
+						_id: folderId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						entries: listIdPart(mailSetEntryId1),
+					}),
+				)
+				await storage.put(MailSetTypeRef, storableMailFolder)
+				const storableEntry1 = await toStorableInstance(
+					createTestEntity(MailSetEntryTypeRef, {
+						_id: mailSetEntryId1,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mail: mailId1,
+					}),
+				)
+				const storableEntry2 = await toStorableInstance(
+					createTestEntity(MailSetEntryTypeRef, {
+						_id: mailSetEntryId2,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mail: mailId2,
+					}),
+				)
+				await storage.put(MailSetEntryTypeRef, storableEntry1)
+				await storage.put(MailSetEntryTypeRef, storableEntry2)
+				const storableMail1 = await toStorableInstance(
+					createTestEntity(MailTypeRef, {
+						_id: mailId1,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mailDetails: mailDetailsBlobId1,
+						sets: [folderId],
+						sender: createTestEntity(MailAddressTypeRef, {
+							name: "some name",
+							address: "address@tuta.com",
+						}),
+						conversationEntry: ["listId", "listElementId1"],
+					}),
+				)
+				const storableMail2 = await toStorableInstance(
+					createTestEntity(MailTypeRef, {
+						_id: mailId2,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mailDetails: mailDetailsBlobId2,
+						sets: [folderId],
+						sender: createTestEntity(MailAddressTypeRef, {
+							name: "some name",
+							address: "address@tuta.com",
+						}),
+						conversationEntry: ["listId", "listElementId2"],
+					}),
+				)
+				await storage.put(MailTypeRef, storableMail1)
+				await storage.put(MailTypeRef, storableMail2)
+				const storableDetails1 = await toStorableInstance(
+					createTestEntity(MailDetailsBlobTypeRef, {
+						_id: mailDetailsBlobId1,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						details: createTestEntity(MailDetailsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {}),
+							body: createTestEntity(BodyTypeRef, {}),
+						}),
+					}),
+				)
+				const storableDetails2 = await toStorableInstance(
+					createTestEntity(MailDetailsBlobTypeRef, {
+						_id: mailDetailsBlobId2,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						details: createTestEntity(MailDetailsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {}),
+							body: createTestEntity(BodyTypeRef, {}),
+						}),
+					}),
+				)
+				await storage.put(MailDetailsBlobTypeRef, storableDetails1)
+				await storage.put(MailDetailsBlobTypeRef, storableDetails2)
+				const storableUser = await toStorableInstance(
+					createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+							accountType: AccountType.FREE,
+						},
+						{ populateAggregates: true },
+					),
+				)
+				await storage.put(UserTypeRef, storableUser)
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDate, userId)
+
+				const mailSetEntryTypeModel = await typeModelResolver.resolveClientTypeReference(MailSetEntryTypeRef)
+
+				const allMails = await getAllIdsForType(MailTypeRef)
+				o.check(allMails).deepEquals([elementIdPart(mailId1)])
+				const allMailSetEntries = await getAllIdsForType(MailSetEntryTypeRef)
+				o.check(allMailSetEntries).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, mailSetEntryElementId1)])
+				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
+				o.check(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId1)])
+			})
 			o.test("modified ranges will be shrunk", async function () {
 				const twoDaysBeforeTimeRangeDays = -2
 				const twoDaysAfterTimeRangeDays = 2
@@ -1118,6 +1250,18 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 				await storage.put(MailSetTypeRef, storableInbox)
+				const storableUser = await toStorableInstance(
+					createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+							accountType: AccountType.PAID,
+						},
+						{ populateAggregates: true },
+					),
+				)
+				await storage.put(UserTypeRef, storableUser)
 
 				await storage.setNewRangeForList(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 
@@ -1137,6 +1281,19 @@ o.spec("OfflineStorageDb", function () {
 			o.test("unmodified ranges will not be deleted or shrunk", async function () {
 				const oneDayAfterTimeRangeDays = 1
 				const twoDaysAfterTimeRangeDays = 2
+
+				const storableUser = await toStorableInstance(
+					createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+							accountType: AccountType.PAID,
+						},
+						{ populateAggregates: true },
+					),
+				)
+				await storage.put(UserTypeRef, storableUser)
 
 				const entriesListId = "mailSetEntriesListIdRanges"
 				const lowerMailSetEntryIdForRange = offsetMailSetEntryId(oneDayAfterTimeRangeDays, GENERATED_MIN_ID)
@@ -1228,6 +1385,18 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 				await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
+				const storableUser = await toStorableInstance(
+					createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+							accountType: AccountType.PAID,
+						},
+						{ populateAggregates: true },
+					),
+				)
+				await storage.put(UserTypeRef, storableUser)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDate, userId)
@@ -1312,6 +1481,18 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 				await storage.put(MailDetailsBlobTypeRef, storableDetails)
+				const storableUser = await toStorableInstance(
+					createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+							accountType: AccountType.PAID,
+						},
+						{ populateAggregates: true },
+					),
+				)
+				await storage.put(UserTypeRef, storableUser)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDate, userId)
@@ -1510,6 +1691,17 @@ o.spec("OfflineStorageDb", function () {
 				})
 				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(trashSubDetails))
 
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+						accountType: AccountType.PAID,
+					},
+					{ populateAggregates: true },
+				)
+				await storage.put(UserTypeRef, await toStorableInstance(user))
+
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDate, userId)
 
@@ -1613,6 +1805,16 @@ o.spec("OfflineStorageDb", function () {
 					folderType: MailSetKind.INBOX,
 					entries: inboxFolderEntriesId,
 				})
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+						accountType: AccountType.PAID,
+					},
+					{ populateAggregates: true },
+				)
+				await storage.put(UserTypeRef, await toStorableInstance(user))
 				await storage.put(MailSetTypeRef, await toStorableInstance(inboxFolder))
 				await storage.put(MailTypeRef, await toStorableInstance(mailBefore))
 				await storage.put(MailTypeRef, await toStorableInstance(mailAfter))
@@ -1712,6 +1914,16 @@ o.spec("OfflineStorageDb", function () {
 					folderType: MailSetKind.INBOX,
 					entries: inboxFolderEntriesId,
 				})
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+						accountType: AccountType.PAID,
+					},
+					{ populateAggregates: true },
+				)
+				await storage.put(UserTypeRef, await toStorableInstance(user))
 				await storage.put(MailSetTypeRef, await toStorableInstance(inboxFolder))
 				await storage.put(MailTypeRef, await toStorableInstance(mailOneDayBefore))
 				await storage.put(MailTypeRef, await toStorableInstance(mailTwoDaysBefore))
@@ -1823,6 +2035,16 @@ o.spec("OfflineStorageDb", function () {
 					folderType: MailSetKind.INBOX,
 					entries: inboxFolderEntriesId,
 				})
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+						accountType: AccountType.PAID,
+					},
+					{ populateAggregates: true },
+				)
+				await storage.put(UserTypeRef, await toStorableInstance(user))
 				await storage.put(MailSetTypeRef, await toStorableInstance(inboxFolder))
 				await storage.put(MailSetEntryTypeRef, await toStorableInstance(mailSetEntryBefore))
 				await storage.put(MailSetEntryTypeRef, await toStorableInstance(mailSetEntryAfter))
@@ -2069,6 +2291,19 @@ o.spec("OfflineStorageDb", function () {
 				elementIdPart(getFirstOrThrow(oldSpamMailSetEntries)._id),
 				elementIdPart(lastThrow(newSpamMailSetEntries)._id),
 			)
+
+			const storableUser = await toStorableInstance(
+				createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+						accountType: AccountType.PAID,
+					},
+					{ populateAggregates: true },
+				),
+			)
+			await storage.put(UserTypeRef, storableUser)
 
 			// Here we clear the excluded data
 			await storage.clearExcludedData(timeRangeDate, userId)

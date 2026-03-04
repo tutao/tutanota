@@ -11,8 +11,8 @@ import {
 import {
 	Const,
 	FeatureType,
+	FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
 	InboxRuleType,
-	OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
 	OperationType,
 	ReportMovedMailsType,
 	UpgradePromptType,
@@ -428,7 +428,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		// Even if it is tracked by a date internally, for some users there is a fixed amount of days that they
 		// can have stored, so it makes sense to show them the number of days.
 		const textFieldValue = this.offlineStorageSettings.isFixedDays()
-			? lang.get("storedDataTimeRange_label", { "{numDays}": OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS })
+			? lang.get("storedDataTimeRange_label", { "{numDays}": FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS })
 			: lang.get("storedDataDate_label", { "{date}": formatDate(this.offlineStorageSettings.getTimeRange()) })
 		return [
 			m(".h4.mt-32#localdata", lang.get("localDataSection_label")),
