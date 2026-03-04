@@ -10,6 +10,7 @@ import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { hexToRGBAString } from "./base/Color"
+import { downcast } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -36,9 +37,21 @@ export const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.10), 0 6px 6px rgba(0,0,0
 export const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
 export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
+const FONTS = [
+	new FontFace("Ionicons", `url('${window.tutao.appState.prefixWithoutFile}/images/font.ttf')`),
+	new FontFace("MDIO", `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2')`),
+]
+
 const scrollbarWidthHeight = px(18)
+
+async function loadFonts() {
+	for (const font of FONTS) {
+		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
+	}
+}
 styles.registerStyle("main", () => {
 	const lightTheme = locator.themeController.getBaseTheme("light")
+	loadFonts()
 	return {
 		"#link-tt": isElectronClient()
 			? {
