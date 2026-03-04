@@ -193,7 +193,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		}
 	}
 
-	private updateVisibleBackgroundColumns() {
+	updateVisibleBackgroundColumns() {
 		// In case the first column (folder / sidebar / (calendar app settings categories) column should be rendered
 		// as a Background column instead of, as by default, as a Foreground column,
 		// we update the columnType on every redraw (orientation change, resize, etc.)
@@ -270,13 +270,13 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		// First: try to find a background column which is not visible
 		let nextColumn = allColumns.find((column) => {
-			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
+			return column.columnType === ColumnType.Background && !column.exclusive && visibleColumns.indexOf(column) < 0
 		})
 
 		if (!nextColumn) {
 			// Second: if no more background columns are available add the foreground column to the visible columns
 			nextColumn = allColumns.find((column) => {
-				return column.columnType === ColumnType.Foreground && visibleColumns.indexOf(column) < 0
+				return column.columnType === ColumnType.Foreground && !column.exclusive && visibleColumns.indexOf(column) < 0
 			})
 		}
 
@@ -341,6 +341,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			await this.busy
 			if (this.focusedColumn === viewColumn) return
 			// hide the foreground column if the column is in foreground
+			const previousColumnWasExclusive = this.focusedColumn.exclusive
 			if (this.focusedColumn.isInForeground) {
 				this.busy = this.slideForegroundColumn(this.focusedColumn, false)
 				await this.busy
@@ -359,6 +360,10 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			}
 
 			await this.busy
+
+			if (viewColumn.exclusive || previousColumnWasExclusive) {
+				this.updateVisibleBackgroundColumns()
+			}
 		} finally {
 			// for updating header bar after animation
 			m.redraw()

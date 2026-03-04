@@ -576,7 +576,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	view({ attrs }: Vnode<MailViewAttrs>): Children {
-		this.mailColumn.exclusive = deviceConfig.getMailNoPreviewMode()
+		const exclusive = deviceConfig.getMailNoPreviewMode()
+		if (this.mailColumn.exclusive !== exclusive) {
+			this.mailColumn.exclusive = exclusive
+			this.viewSlider.updateVisibleBackgroundColumns()
+		}
 		return m(
 			"#mail.main-view",
 			{
