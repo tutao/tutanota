@@ -1769,4 +1769,108 @@ mod calendar_facade_unit_tests {
 		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
 		assert_eq!(birthdays.len(), 0);
 	}
+
+
+
+	mod get_calendar_events_tests {
+		use crate::CustomId;
+		use crate::entities::generated::tutanota::CalendarGroupRoot;
+		use super::*;
+
+		const USER_GROUP_ID: &str = "user-group-id";
+		const CALENDAR_ID: &str = "calendar-id";
+		const SHORT_LIST_ID: &str = "short-list";
+		const LONG_LIST_ID: &str = "long-list";
+
+		fn create_test_facade(mut mock_crypto_entity_client: MockCryptoEntityClient) -> CalendarFacade {
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = EventFacade {};
+
+			let user_group = GeneratedId(USER_GROUP_ID.to_owned());
+			let calendar_id = GeneratedId(CALENDAR_ID.to_owned());
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_group_root = CalendarGroupRoot {
+				shortEvents: GeneratedId(SHORT_LIST_ID.to_owned()),
+				longEvents: GeneratedId(LONG_LIST_ID.to_owned()),
+				..create_test_entity()
+			};
+
+			mock_crypto_entity_client
+				.expect_load::<CalendarGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_group_root));
+
+			CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			)
+		}
+
+		fn get_start() -> DateTime {
+			DateTime::from_seconds(
+				time::Date::from_calendar_date(2026, time::Month::May, 1)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			)
+		}
+
+		fn get_end() -> DateTime {
+			DateTime::from_seconds(
+				time::Date::from_calendar_date(2026, time::Month::May, 7)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			)
+		}
+
+		#[tokio::test]
+		async fn test_get_calendar_events_returns_empty() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			mock_crypto_entity_client
+				.expect_load_range::<CalendarEvent, CustomId>()
+				.times(2)
+				.returning(|_, _, _, _| Ok(vec![]));
+
+			let calendar_facade = create_test_facade(mock_crypto_entity_client);
+			let result = calendar_facade
+				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), get_start(), get_end())
+				.await;
+
+			assert!(result.short_events.is_empty());
+			assert!(result.long_events.is_empty());
+			assert!(result.birthday_events.is_empty());
+		}
+
+		#[tokio::test]
+		async fn test_get_calendar_events_with_repeating_event() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			mock_crypto_entity_client
+				.expect_load_range::<CalendarEvent, CustomId>()
+				.withf(|list_id, _, _, _| list_id == &GeneratedId(SHORT_LIST_ID.to_owned()))
+				.returning(|_, _, _, _| Ok(vec![]));
+
+			mock_crypto_entity_client
+				.expect_load_range::<CalendarEvent, CustomId>()
+				.withf(|list_id, _, _, _| list_id == &GeneratedId(LONG_LIST_ID.to_owned()))
+				.return_once(|_, _, _, _| Ok(vec![/* repeating_event */]));
+
+			let calendar_facade = create_test_facade(mock_crypto_entity_client);
+			let result = calendar_facade
+				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), get_start(), get_end())
+				.await;
+
+			// assertions here
+		}
+	}
+
 }
