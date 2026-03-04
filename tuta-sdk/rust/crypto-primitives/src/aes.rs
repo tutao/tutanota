@@ -6,8 +6,8 @@ use crate::key::GenericAesKey;
 use crate::randomizer_facade::RandomizerFacade;
 use crate::utils::{array_cast_size, array_cast_slice, ArrayCastingError};
 use aes::cipher::block_padding::Pkcs7;
+use aes::cipher::StreamCipher;
 use aes::cipher::{BlockCipher, BlockSizeUser};
-use aes::cipher::{StreamCipher};
 use cbc::cipher::block_padding::UnpadError;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
 use serde::{Deserialize, Serialize};
@@ -162,6 +162,10 @@ pub struct Nonce([u8; NONCE_BYTE_SIZE]);
 impl Nonce {
 	pub fn get_bytes(&self) -> &[u8] {
 		&self.0
+	}
+	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
+		let nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
+		Self(nonce)
 	}
 }
 
@@ -387,18 +391,19 @@ impl<Key: AesKey> AesSubKeys<Key> {
 	}
 }
 
-fn aes_ctr_encrypt<Key>(key: &GenericAesKey, plaintext: &[u8], nonce: &Nonce) -> Vec<u8> {
-	let mut buffer = plaintext.to_vec();
-	match key {
-		GenericAesKey::Aes128(n) => {
-			ctr::Ctr32LE::<aes::Aes128>::new(key.as_bytes().into(), nonce.get_bytes().into())
-				.apply_keystream(&mut buffer)
-		},
-		GenericAesKey::Aes256(n) => {
-			ctr::Ctr32LE::<aes::Aes256>::new(key.as_bytes().into(), nonce.get_bytes().into())
-				.apply_keystream(&mut buffer)
-		},
-	}
+fn aes_ctr_encrypt(key: &Aes256Key, plaintext: &[u8], nonce: &Nonce) -> Vec<u8> {
+	aes_ctr_apply(key, plaintext, nonce)
+}
+
+fn aes_ctr_decrypt(key: &Aes256Key, ciphertext: &[u8], nonce: &Nonce) -> Vec<u8> {
+	aes_ctr_apply(key, ciphertext, nonce)
+}
+fn aes_ctr_apply(key: &Aes256Key, text: &[u8], nonce: &Nonce) -> Vec<u8> {
+	let mut buffer = text.to_vec();
+	let mut iv = [0u8; IV_BYTE_SIZE];
+	iv[..12].copy_from_slice(nonce.get_bytes());
+	let mut cipher = ctr::Ctr32BE::<aes::Aes256>::new(key.get_bytes().into(), (&iv).into());
+	cipher.apply_keystream(&mut buffer);
 
 	buffer
 }
@@ -852,5 +857,16 @@ mod tests {
 
 	fn reproduce_iv_from_injected_seed(seed: &Vec<u8>) -> Iv {
 		Iv(seed[..IV_BYTE_SIZE].try_into().unwrap())
+	}
+
+	#[test]
+	fn test_aes_ctr_round_trip() {
+		let randomizer = make_thread_rng_facade();
+		let key_256 = Aes256Key::generate(&randomizer);
+		let nonce = Nonce::generate(&randomizer);
+		let plaintext = "plaintextsdtzduipojükdhg8uij9r8hg8ijeqw0ü".as_bytes();
+		let ciphertext = aes_ctr_encrypt(&key_256, plaintext, &nonce);
+		let decrypted = aes_ctr_decrypt(&key_256, &ciphertext, &nonce);
+		assert_eq!(plaintext, &decrypted);
 	}
 }
