@@ -1,5 +1,5 @@
 import { pureComponent } from "./base/PureComponent.js"
-import m from "mithril"
+import m, { Children } from "mithril"
 import { component_size, px, size } from "./size.js"
 import { responsiveCardHMargin } from "./cards.js"
 
@@ -20,7 +20,8 @@ export const DesktopListToolbar = pureComponent((__, children) => {
 })
 
 /** Toolbar layout that is used in the third/viewer column. */
-export const DesktopViewerToolbar = pureComponent((__, children) => {
+type DesktopViewerToolbarAttrs = { leftContent?: Children }
+export const DesktopViewerToolbar = pureComponent(({ leftContent }: DesktopViewerToolbarAttrs, children) => {
 	// The viewer below will (or at least should) reserve some space for the scrollbar. To match that we put `scrollbar-gutter: stable` and for it to have
 	// effect we put `overflow-y: hidden`.
 	//
@@ -44,6 +45,7 @@ export const DesktopViewerToolbar = pureComponent((__, children) => {
 				},
 			},
 			[
+				leftContent,
 				// Height keeps the toolbar showing for consistency, even if there are no actions
 				m(".flex-grow", { style: { height: px(component_size.button_height) } }),
 				children,

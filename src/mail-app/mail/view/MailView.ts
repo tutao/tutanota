@@ -443,7 +443,20 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
 		return m(BackgroundColumnLayout, {
 			backgroundColor: theme.surface_container,
-			desktopToolbar: () => m(DesktopViewerToolbar, this.mailViewerSingleActions(viewModel)),
+			desktopToolbar: () =>
+				m(
+					DesktopViewerToolbar,
+					{
+						leftContent: deviceConfig.getMailNoPreviewMode()
+							? m(IconButton, {
+									title: "back_action",
+									click: () => this.viewSlider.focusPreviousColumn(),
+									icon: Icons.ArrowBackward,
+								})
+							: null,
+					},
+					this.mailViewerSingleActions(viewModel),
+				),
 			mobileHeader: () =>
 				m(MobileHeader, {
 					...header,
@@ -560,6 +573,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	view({ attrs }: Vnode<MailViewAttrs>): Children {
+		this.mailColumn.exclusive = deviceConfig.getMailNoPreviewMode()
 		return m(
 			"#mail.main-view",
 			{
