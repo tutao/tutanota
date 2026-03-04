@@ -170,11 +170,7 @@ class Styles {
 }
 
 function objectToCss(indent: string, key: string, o: Record<string, string>) {
-	let prefix = ""
-	if (isNextCloudPlugin()) {
-		prefix = "#nextcloud-tutamail "
-	}
-	let cssString = `${indent} ${prefix}${key} { \n`
+	let cssString = `${indent} ${key} { \n`
 	cssString += indent + toCss(o, indent + "  ")
 	cssString += ` \n${indent}} \n`
 	return cssString
