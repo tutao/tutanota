@@ -1395,7 +1395,13 @@ export const enum ArchiveDataType {
 	DriveFile = "4",
 }
 
-export const OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
+export const FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
+
+export const PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 2 * 365
+
+export function getOfflineStorageDefaultTimeRangeDays(accountType: AccountType): number {
+	return accountType === AccountType.PAID ? PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
+}
 
 export enum UsageTestParticipationMode {
 	Once = "0",

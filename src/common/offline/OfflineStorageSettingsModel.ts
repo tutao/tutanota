@@ -1,5 +1,5 @@
 import { assert, DAY_IN_MILLIS, getDayShifted, getStartOfDay } from "@tutao/tutanota-utils"
-import { OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../api/common/TutanotaConstants"
+import { getOfflineStorageDefaultTimeRangeDays } from "../api/common/TutanotaConstants"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { isOfflineStorageAvailable } from "../api/common/Env"
@@ -15,15 +15,18 @@ export class OfflineStorageSettingsModel {
 	private isEnabled: boolean | null = null
 
 	// the default value will never actually be used
-	private defaultTimeRange: Date = getStartOfDay(getDayShifted(new Date(), -OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS))
-	private timeRange: Date = new Date(this.defaultTimeRange.getTime())
+	private defaultTimeRange: Date
+	private timeRange: Date
 
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
 	constructor(
 		private readonly userController: UserController,
 		private readonly deviceConfig: DeviceConfig,
-	) {}
+	) {
+		this.defaultTimeRange = getStartOfDay(getDayShifted(new Date(), -getOfflineStorageDefaultTimeRangeDays(this.userController.getUserAccountType())))
+		this.timeRange = new Date(this.defaultTimeRange.getTime())
+	}
 
 	async init(): Promise<void> {
 		this.isEnabled = isOfflineStorageAvailable()
