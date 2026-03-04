@@ -9,7 +9,7 @@ export const typeModels = {
 	"8": {
 		"name": "UsageTestMetricConfigValue",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 8,
@@ -48,7 +48,7 @@ export const typeModels = {
 	"12": {
 		"name": "UsageTestMetricConfig",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 12,
@@ -97,7 +97,7 @@ export const typeModels = {
 	"17": {
 		"name": "UsageTestMetricData",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 17,
@@ -136,7 +136,7 @@ export const typeModels = {
 	"35": {
 		"name": "UsageTestStage",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 35,
@@ -201,7 +201,7 @@ export const typeModels = {
 	"53": {
 		"name": "UsageTestAssignmentIn",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 53,
@@ -232,7 +232,7 @@ export const typeModels = {
 	"56": {
 		"name": "UsageTestAssignment",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 56,
@@ -280,6 +280,14 @@ export const typeModels = {
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"110": {
+				"final": false,
+				"name": "variantName",
+				"id": 110,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -297,7 +305,7 @@ export const typeModels = {
 	"63": {
 		"name": "UsageTestAssignmentOut",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 63,
@@ -338,7 +346,7 @@ export const typeModels = {
 	"80": {
 		"name": "UsageTestParticipationIn",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 80,
@@ -403,7 +411,7 @@ export const typeModels = {
 	"90": {
 		"name": "UsageTestParticipationOut",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 90,
@@ -442,7 +450,7 @@ export const typeModels = {
 	"94": {
 		"name": "UsageTestParticipationDeleteIn",
 		"app": "usage",
-		"version": 4,
+		"version": 5,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 94,

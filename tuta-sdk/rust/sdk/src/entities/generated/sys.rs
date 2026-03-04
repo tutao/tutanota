@@ -651,6 +651,8 @@ pub struct AccountingInfo {
 	pub _modified: DateTime,
 	#[serde(rename = "2223")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2690")]
+	pub lastUsedOffer: Option<String>,
 	#[serde(rename = "771")]
 	pub invoiceInfo: Option<GeneratedId>,
 	#[serde(rename = "2424")]
@@ -718,6 +720,8 @@ pub struct CustomerInfo {
 	pub plan: i64,
 	#[serde(rename = "2682")]
 	pub promotionId: Option<String>,
+	#[serde(rename = "2691")]
+	pub confirmedHuman: bool,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
@@ -3411,6 +3415,8 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub language: String,
 	#[serde(rename = "2640")]
 	pub isAutomatedBrowser: bool,
+	#[serde(rename = "2689")]
+	pub adAttribution: Option<AdAttribution>,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
@@ -6264,6 +6270,26 @@ impl Entity for PartnerManagedCustomer {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2672),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct AdAttribution {
+	#[serde(rename = "2685")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2686")]
+	pub attributionId: String,
+	#[serde(rename = "2687")]
+	pub attributionType: i64,
+}
+
+impl Entity for AdAttribution {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2684),
 		}
 	}
 }
