@@ -31,6 +31,7 @@ await program
 	.option("--disable-minify", "disable minification")
 	.option("--out-dir <outDir>", "where to copy the client")
 	.option("--mobile-build", "Whether the current build is for the mobile app")
+	.option("--integrate-nextcloud", "Adjust build & webapp for nextcloud integration")
 	.action(async (stage, host, options) => {
 		if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
 			console.error("ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n")
@@ -68,7 +69,7 @@ async function doBuild(options) {
 			projectDir: __dirname,
 			app: options.app,
 			mobileBuild: options.mobileBuild,
-			integrationPlatform: options.integrationPlatform ?? null,
+			integrationPlatform: options.integrateNextcloud ? "Nextcloud" : null,
 		})
 
 		const now = new Date(Date.now()).toTimeString().substring(0, 5)
