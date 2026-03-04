@@ -2251,3 +2251,5 @@ export type TranslationKeyType =
 	| "moveItemsSuccess_msg"
 	| "restoreItemsSuccess_msg"
 	| "deleteItemsSuccess_msg"
+	| "folderContent_label"
+	| "createNewFolderIn_label"

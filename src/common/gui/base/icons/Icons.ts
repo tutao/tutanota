@@ -161,6 +161,7 @@ export const enum Icons {
 	Paypal = "Paypal",
 	WalletOutline = "WalletOutline",
 	SwapHorizontal = "SwapHorizontal",
+	Move = "Move",
 }
 
 export const IconsSvg: Record<Icons, string> = Object.freeze({
@@ -326,6 +327,7 @@ export const IconsSvg: Record<Icons, string> = Object.freeze({
 	Paypal: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M424.81 148.79c-.43 2.76-.93 5.58-1.49 8.48-19.17 98-84.76 131.8-168.54 131.8h-42.65a20.67 20.67 0 0 0-20.47 17.46l-21.84 137.84-6.18 39.07a10.86 10.86 0 0 0 9.07 12.42 11 11 0 0 0 1.7.13h75.65a18.18 18.18 0 0 0 18-15.27l.74-3.83 14.24-90 .91-4.94a18.16 18.16 0 0 1 18-15.3h11.31c73.3 0 130.67-29.62 147.44-115.32 7-35.8 3.38-65.69-15.16-86.72a72.3 72.3 0 0 0-20.73-15.82"/><path d="M385.52 51.09C363.84 26.52 324.71 16 274.63 16H129.25a20.75 20.75 0 0 0-20.54 17.48l-60.55 382a12.43 12.43 0 0 0 10.39 14.22 12.6 12.6 0 0 0 1.94.15h89.76l22.54-142.29-.7 4.46a20.67 20.67 0 0 1 20.47-17.46h42.65c83.77 0 149.36-33.86 168.54-131.8.57-2.9 1.05-5.72 1.49-8.48 5.7-36.22-.05-60.87-19.72-83.19"/></svg>`,
 	WalletOutline: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><rect width="416" height="288" x="48" y="144" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" rx="48" ry="48"/><path fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" d="M411.36 144v-30A50 50 0 0 0 352 64.9L88.64 109.85A50 50 0 0 0 48 159v49"/><path d="M368 320a32 32 0 1 1 32-32 32 32 0 0 1-32 32"/></svg>`,
 	SwapHorizontal: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="m304 48 112 112-112 112m94.87-112H96m112 304L96 352l112-112m-94 112h302"/></svg>`,
+	Move: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path stroke="#4E4545" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.143 6.857 12 4l2.857 2.857M12 4v16m0 0-2.857-2.857M12 20l2.857-2.857m2.286-8L20 12m0 0-2.857 2.857M20 12H4m2.857-2.857L4 12m0 0 2.857 2.857"/></svg>`,
 } as const)
 
 export const SecondFactorImage =
