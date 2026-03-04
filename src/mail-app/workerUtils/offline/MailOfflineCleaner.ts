@@ -13,23 +13,25 @@ import {
 	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	MailSetTypeRef,
 	MailSetEntryTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs"
-import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants"
+import { AccountType, getOfflineStorageDefaultTimeRangeDays } from "../../../common/api/common/TutanotaConstants"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	private cutOffId: Id | null = null
 
 	private async calculateCutOffId(offlineStorage: OfflineStorage, userId: string, timeRangeDate: Date | null, now: number): Promise<Id> {
 		if (!this.cutOffId) {
-			const user = await offlineStorage.get(UserTypeRef, null, userId)
+			const accountType = assertNotNull(await offlineStorage.get(UserTypeRef, null, userId)).accountType as AccountType
 			// Free users always have default time range regardless of what is stored
-			const isFreeUser = user?.accountType === AccountType.FREE
-			const cutoffDate = isFreeUser || timeRangeDate == null ? new Date(now - daysToMillis(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS)) : timeRangeDate
+			const cutoffDate =
+				accountType !== AccountType.FREE && timeRangeDate != null
+					? timeRangeDate
+					: new Date(now - daysToMillis(getOfflineStorageDefaultTimeRangeDays(accountType)))
 			this.cutOffId = constructMailSetEntryId(new Date(cutoffDate), GENERATED_MAX_ID)
 		}
 		return this.cutOffId
