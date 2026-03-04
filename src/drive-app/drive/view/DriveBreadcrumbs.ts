@@ -9,6 +9,8 @@ import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/Ba
 import { theme } from "../../../common/gui/theme"
 import { driveFolderName, isDraggingDriveItems } from "./DriveGuiUtils"
 import { FolderItem } from "./DriveUtils"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null
@@ -71,7 +73,7 @@ function folderRoute(entry: DriveFolder): string {
 
 export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 	view({ attrs: { currentFolder, parents, loadParents, onDropInto, onClick } }: Vnode<DriveBreadcrumbsAttrs>): Children {
-		return m("div.flex.items-center.column-gap-12", [
+		return m("div.flex.items-center.column-gap-4", [
 			parents
 				.map((entry, index) => {
 					return [
@@ -90,7 +92,10 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 										},
 										label: "showParentFolders_action",
 									} satisfies BaseButtonAttrs),
-									m("", "/"),
+									m(Icon, {
+										icon: Icons.ChevronRight,
+										size: IconSize.PX24,
+									}),
 								]
 							: null,
 						m(BreadcrumbLink, {
@@ -105,7 +110,10 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 									}
 								: undefined,
 						}),
-						m("", "/"),
+						m(Icon, {
+							icon: Icons.ChevronRight,
+							size: IconSize.PX24,
+						}),
 					]
 				})
 				.flat(),
