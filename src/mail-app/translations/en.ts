@@ -3,12 +3,6 @@
 export default {
 	"code": "en",
 	"keys": {
-		// todo: remove me after the dev
-		"mailNoPreviewMode_label": "Show the reader",
-		"mailNoPreviewModeWithReader_label": "Yes",
-		"mailNoPreviewModeWithoutReader_label": "No",
-		"mailNoPreviewModeHelp_msg": "Set to no if you dosent want to get the email reader always next to the list of your email.",
-        // end of todo
 		"about_label": "About",
 		"accentColor_label": "Accent color",
 		"accept_action": "Accept",

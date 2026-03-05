@@ -1,11 +1,5 @@
 // AUTO-GENERATED WITH tutanota-translation-sanitizer. DO NOT EDIT!
 export type TranslationKeyType =
-	// todo: remove me
-	| "mailNoPreviewMode_label"
-	| "mailNoPreviewModeWithReader_label"
-	| "mailNoPreviewModeWithoutReader_label"
-	| "mailNoPreviewModeHelp_msg"
-	// end todo
 	| "about_label"
 	| "accentColor_label"
 	| "accept_action"
