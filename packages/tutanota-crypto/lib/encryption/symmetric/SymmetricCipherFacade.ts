@@ -1,5 +1,4 @@
-import { random } from "../../random/Randomizer.js"
-import { AesKey, FIXED_IV, IV_BYTE_LENGTH, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { AesKey, FIXED_IV, generateIV, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
 import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
 import { assert } from "@tutao/tutanota-utils"
@@ -145,7 +144,7 @@ export class SymmetricCipherFacade {
 		mustGenerateRandomIv: boolean = true,
 		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
-		const iv = mustGenerateRandomIv ? this.generateIV() : FIXED_IV
+		const iv = mustGenerateRandomIv ? generateIV() : FIXED_IV
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac:
@@ -175,10 +174,6 @@ export class SymmetricCipherFacade {
 				throw new Error("not yet enabled")
 			}
 		}
-	}
-
-	private generateIV(): Uint8Array {
-		return random.generateRandomData(IV_BYTE_LENGTH)
 	}
 }
 export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE)
