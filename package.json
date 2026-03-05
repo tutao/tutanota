@@ -54,7 +54,7 @@
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
 		"cborg": "4.2.2",
-		"dompurify": "3.2.6",
+		"dompurify": "3.3.2",
 		"electron": "40.4.1",
 		"electron-updater": "6.3.4",
 		"jsqr": "1.4.0",
