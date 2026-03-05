@@ -1,0 +1,132 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "tutamail",
+		"version": "0.0.1",
+		"description": "Tuta Mail for nextcloud",
+		"license": {
+			"name": "AGPL-3.0-or-later"
+		}
+	},
+	"components": {
+		"securitySchemes": {
+			"basic_auth": {
+				"type": "http",
+				"scheme": "basic"
+			},
+			"bearer_auth": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		},
+		"schemas": {
+			"OCSMeta": {
+				"type": "object",
+				"required": ["status", "statuscode"],
+				"properties": {
+					"status": {
+						"type": "string"
+					},
+					"statuscode": {
+						"type": "integer"
+					},
+					"message": {
+						"type": "string"
+					},
+					"totalitems": {
+						"type": "string"
+					},
+					"itemsperpage": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	},
+	"paths": {
+		"/ocs/v2.php/apps/tutamail/api": {
+			"get": {
+				"operationId": "api-index",
+				"summary": "An example API endpoint",
+				"tags": ["api"],
+				"security": [
+					{
+						"bearer_auth": []
+					},
+					{
+						"basic_auth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "OCS-APIRequest",
+						"in": "header",
+						"description": "Required to be true for the API request to pass",
+						"required": true,
+						"schema": {
+							"type": "boolean",
+							"default": true
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Data returned",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": ["ocs"],
+									"properties": {
+										"ocs": {
+											"type": "object",
+											"required": ["meta", "data"],
+											"properties": {
+												"meta": {
+													"$ref": "#/components/schemas/OCSMeta"
+												},
+												"data": {
+													"type": "object",
+													"required": ["message"],
+													"properties": {
+														"message": {
+															"type": "string"
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Current user is not logged in",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": ["ocs"],
+									"properties": {
+										"ocs": {
+											"type": "object",
+											"required": ["meta", "data"],
+											"properties": {
+												"meta": {
+													"$ref": "#/components/schemas/OCSMeta"
+												},
+												"data": {}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"tags": []
+}
