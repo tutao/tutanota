@@ -9,7 +9,7 @@ import type { Shortcut } from "../../misc/KeyManager"
 import { focusNext, focusPrevious, keyManager } from "../../misc/KeyManager"
 import { getElevatedBackground, theme, ThemeId } from "../theme"
 import { px, size } from "../size"
-import { HabReminderImage } from "./icons/Icons"
+import { HabReminderImage, Icons } from "./icons/Icons"
 import { windowFacade } from "../../misc/WindowFacade"
 import { Button, ButtonAttrs, ButtonColor, ButtonType } from "./Button.js"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
@@ -27,6 +27,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
+import { LoginTextField } from "./LoginTextField"
 
 assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"
@@ -978,10 +979,14 @@ export class Dialog implements ModalComponent {
 		dialog = Dialog.showActionDialog({
 			title: props.title,
 			child: () =>
-				m(TextField, {
+				m(LoginTextField, {
 					label: props.label,
 					value: result,
 					type: textFieldType,
+					leadingIcon: {
+						icon: Icons.Edit,
+						color: theme.on_surface_variant,
+					},
 					onReturnKeyPressed: wrappedOkAction,
 					oninput: (newValue) => (result = newValue),
 					onDomInputCreated: (dom) => {
