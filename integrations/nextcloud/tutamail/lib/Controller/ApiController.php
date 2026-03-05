@@ -141,12 +141,14 @@ class ApiController extends OCSController
 		unset($headers['Cookie']);
 
 		$body_target = $request->getMethod() === 'GET' ? 'query' : 'body';
-		$body = $request->getParams();
-		unset($body['_route']);
-		unset($body['tutadbAppName']);
-		unset($body['component']);
+
 		if ($body_target === 'body') {
-			$body = json_encode($body);
+			$body = file_get_contents('php://input');
+		} else {
+			$body = $request->getParams();
+			unset($body['_route']);
+			unset($body['tutadbAppName']);
+			unset($body['component']);
 		}
 
 		$options = [
@@ -158,3 +160,8 @@ class ApiController extends OCSController
 	}
 
 }
+/*
+ *
+ 2026-03-05T15:33:19.350500214Z {"reqId":"uScnpZ7YWpvCj2F0ddvD","level":3,"time":"2026-03-05T15:33:18+00:00","remoteAddr":"192.168.21.5","user":"admin","app":"no app in context","method":"POST","url":"/ocs/v2.php/apps/tutamail/rest/sys/sessionservice","scriptName":"/ocs/v2.php","message":"Tutadb request body2: {\"1212\":\"0\",\"1213\":\"bed-free@tutanota.de\",\"1214\":\"9freUO-QALnxP1N6amLDE7Om_NpEpTWwazRC4u3-UUU\",\"1215\":\"Firefox Browser\",\"1216\":null,\"1217\":null,\"1218\":[],\"1417\":null}","userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:148.0) Gecko/20100101 Firefox/148.0","version":"34.0.0.0","data":[]}
+
+ */
