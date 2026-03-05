@@ -208,6 +208,10 @@ export class OfflineStorage implements CacheStorage {
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 
+	isInitialized(): boolean {
+		return this.userId != null
+	}
+
 	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
 		const { query, params } = sql`SELECT entity
                                     FROM list_entities
