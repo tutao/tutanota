@@ -17,7 +17,7 @@ export function renderSidebarFolders({ rootFolderId, trashFolderId }: { rootFold
 		[
 			m(DriveFolderRow, {
 				label: lang.getTranslation("driveHome_label"),
-				icon: Icons.Drive,
+				icon: Icons.Home,
 				href: `/drive/${listIdPart(rootFolderId)}/${elementIdPart(rootFolderId)}`,
 			}),
 			m(DriveFolderRow, {

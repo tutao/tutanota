@@ -13,7 +13,6 @@ import { FolderItem } from "./DriveUtils"
 export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
-	onUploadClick: (dom: HTMLElement) => void
 	onTrash: (() => unknown) | null
 	onDelete: (() => unknown) | null
 	onRestore: (() => unknown) | null
@@ -26,7 +25,7 @@ export interface DriveFolderNavAttrs {
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view({
-		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, loadParents, onDropInto },
+		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, currentFolder, parents, loadParents, onDropInto },
 	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			".flex.items-center.justify-between.border-radius-12",
@@ -82,12 +81,6 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							icon: Icons.Trash,
 						})
 					: null,
-				[onTrash, onDelete, onRestore, onCopy, onCut].some(isNotNull) ? m(".nav-bar-spacer") : null,
-				m(IconButton, {
-					title: lang.makeTranslation("Upload file", () => "Upload file"),
-					click: (ev, dom) => onUploadClick(dom),
-					icon: Icons.Upload,
-				}),
 			]),
 		)
 	}

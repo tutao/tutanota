@@ -162,6 +162,7 @@ export const enum Icons {
 	WalletOutline = "WalletOutline",
 	SwapHorizontal = "SwapHorizontal",
 	Move = "Move",
+	Home = "Home",
 }
 
 export const IconsSvg: Record<Icons, string> = Object.freeze({
@@ -328,6 +329,7 @@ export const IconsSvg: Record<Icons, string> = Object.freeze({
 	WalletOutline: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><rect width="416" height="288" x="48" y="144" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" rx="48" ry="48"/><path fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" d="M411.36 144v-30A50 50 0 0 0 352 64.9L88.64 109.85A50 50 0 0 0 48 159v49"/><path d="M368 320a32 32 0 1 1 32-32 32 32 0 0 1-32 32"/></svg>`,
 	SwapHorizontal: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="m304 48 112 112-112 112m94.87-112H96m112 304L96 352l112-112m-94 112h302"/></svg>`,
 	Move: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path stroke="#4E4545" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.143 6.857 12 4l2.857 2.857M12 4v16m0 0-2.857-2.857M12 20l2.857-2.857m2.286-8L20 12m0 0-2.857 2.857M20 12H4m2.857-2.857L4 12m0 0 2.857 2.857"/></svg>`,
+	Home: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12.206 5.399a.29.29 0 0 0-.409 0l-6.804 6.78a.3.3 0 0 0-.091.223L4.9 18.767c0 .328.124.641.346.873s.523.361.836.361h3.552a.58.58 0 0 0 .418-.18.63.63 0 0 0 .173-.437V14.14c0-.082.031-.16.087-.218a.3.3 0 0 1 .209-.09h2.956a.3.3 0 0 1 .21.09.32.32 0 0 1 .086.218v5.243c0 .164.062.32.173.436a.58.58 0 0 0 .418.181h3.55c.314 0 .615-.13.837-.361.221-.232.346-.546.346-.873v-6.363a.32.32 0 0 0-.091-.224L12.204 5.4Z"/><path d="M20.312 11.794 17.917 9.42V5.234a.63.63 0 0 0-.173-.436.58.58 0 0 0-.418-.181h-1.774a.58.58 0 0 0-.418.18.63.63 0 0 0-.173.437v1.233l-2.14-2.135A1.13 1.13 0 0 0 12 4c-.32 0-.618.121-.818.333l-7.491 7.46a.65.65 0 0 0-.05.862.6.6 0 0 0 .42.213c.08.004.344 0 .51 0h.98l6.246-7.43A.3.3 0 0 1 12 5.351c.076 0 .15.03.205.085l6.243 7.43c.24 0 1.32.004 1.477 0a.58.58 0 0 0 .414-.188.65.65 0 0 0-.028-.885Z"/></svg>`,
 } as const)
 
 export const SecondFactorImage =
