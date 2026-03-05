@@ -167,6 +167,11 @@ impl Nonce {
 		let nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
 		Self(nonce)
 	}
+
+	pub fn try_from_slice(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
+		let array = array_cast_slice(bytes, "Nonce")?;
+		Ok(Self(array))
+	}
 }
 
 /// An initialisation vector for AES encryption
@@ -340,7 +345,7 @@ pub const AES_256_KEY_SIZE: usize = 32;
 pub const IV_BYTE_SIZE: usize = 16;
 
 /// The size of an AES-CTR nonce in bytes
-pub const NONCE_BYTE_SIZE: usize = 12;
+pub const NONCE_BYTE_SIZE: usize = 16;
 
 /// Encrypts a plaintext without adding padding and returns the encrypted text as a vector
 fn encrypt_unpadded_vec_mut<C: BlockCipher + BlockEncryptMut>(
@@ -391,18 +396,17 @@ impl<Key: AesKey> AesSubKeys<Key> {
 	}
 }
 
-fn aes_ctr_encrypt(key: &Aes256Key, plaintext: &[u8], nonce: &Nonce) -> Vec<u8> {
+pub(super) fn aes_ctr_encrypt(key: &Aes256Key, plaintext: &[u8], nonce: &Nonce) -> Vec<u8> {
 	aes_ctr_apply(key, plaintext, nonce)
 }
 
-fn aes_ctr_decrypt(key: &Aes256Key, ciphertext: &[u8], nonce: &Nonce) -> Vec<u8> {
+pub(super) fn aes_ctr_decrypt(key: &Aes256Key, ciphertext: &[u8], nonce: &Nonce) -> Vec<u8> {
 	aes_ctr_apply(key, ciphertext, nonce)
 }
 fn aes_ctr_apply(key: &Aes256Key, text: &[u8], nonce: &Nonce) -> Vec<u8> {
 	let mut buffer = text.to_vec();
-	let mut iv = [0u8; IV_BYTE_SIZE];
-	iv[..12].copy_from_slice(nonce.get_bytes());
-	let mut cipher = ctr::Ctr32BE::<aes::Aes256>::new(key.get_bytes().into(), (&iv).into());
+	let mut cipher =
+		ctr::Ctr32BE::<aes::Aes256>::new(key.get_bytes().into(), nonce.get_bytes().into());
 	cipher.apply_keystream(&mut buffer);
 
 	buffer

@@ -1,5 +1,6 @@
 mod utils;
 
+mod aead_facade;
 mod aes;
 pub mod blake3;
 pub mod compatibility_test_utils;
