@@ -154,15 +154,15 @@ export class RestClient {
 
 						this.saveServerTimeOffsetFromRequest(xhr)
 
-						// handle new server model and update the applicationTypesJson file if applicable
-						const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
-						if (isNotNull(applicationTypesHashResponseHeader)) {
-							this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
-						} else if (!(path === getServiceRestPath(ApplicationTypesService) && method === HttpMethod.GET)) {
-							throw new ProgrammingError("Empty value for " + APPLICATION_TYPES_HASH_HEADER + " header in response")
-						}
-
 						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
+							// handle new server model and update the applicationTypesJson file if applicable
+							const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
+							if (isNotNull(applicationTypesHashResponseHeader)) {
+								this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
+							} else if (!(path === getServiceRestPath(ApplicationTypesService) && method === HttpMethod.GET)) {
+								throw new ProgrammingError("Empty value for " + APPLICATION_TYPES_HASH_HEADER + " header in response")
+							}
+
 							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
 								resolve(xhr.response)
 							} else if (options.responseType === MediaType.Binary) {
