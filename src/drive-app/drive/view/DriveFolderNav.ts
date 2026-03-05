@@ -2,11 +2,10 @@ import m, { Children, Component, Vnode } from "mithril"
 import { DriveBreadcrumbs } from "./DriveBreadcrumbs"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { lang } from "../../../common/misc/LanguageViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { theme } from "../../../common/gui/theme"
-import { size } from "../../../common/gui/size"
+import { component_size, px, size } from "../../../common/gui/size"
 
 import { FolderItem } from "./DriveUtils"
 
@@ -37,6 +36,14 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			},
 			m(DriveBreadcrumbs, { currentFolder, parents, loadParents, onDropInto }),
 			m(".flex.items-center.column-gap-4", [
+				// Ensure that the height of the bar remains the same even when no buttons are shown
+				m("", {
+					style: {
+						width: px(1),
+						height: px(component_size.button_height),
+					},
+				}),
+
 				// Caution: when adding actions, make sure they match the order in the file context menu.
 				onPaste
 					? m(IconButton, {
@@ -45,7 +52,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							icon: Icons.Clipboard,
 						})
 					: null,
-				[onPaste].some(isNotNull) ? m(".nav-bar-spacer") : null,
+				[onPaste].some(isNotNull) && [onRestore, onDelete, onCopy, onCut, onTrash].some(isNotNull) ? m(".nav-bar-spacer") : null,
 				onRestore
 					? m(IconButton, {
 							title: "restoreFromTrash_action",
