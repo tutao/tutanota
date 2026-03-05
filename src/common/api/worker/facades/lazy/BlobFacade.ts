@@ -20,7 +20,7 @@ import {
 import { ArchiveDataType, CANCEL_UPLOAD_EVENT, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
-import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
+import { assertWorkerOrNode, isApp, isDesktop, isNextCloudPlugin } from "../../../common/Env.js"
 import { isSuspensionResponse, SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
 import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
@@ -45,7 +45,9 @@ import { CancelledError } from "../../../common/error/CancelledError"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 
 assertWorkerOrNode()
-export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
+export const BLOB_SERVICE_REST_PATH = isNextCloudPlugin()
+	? `/ocs/v2.php/apps/tutamail/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
+	: `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
 export const TAG = "BlobFacade"
 
 export interface BlobLoadOptions {

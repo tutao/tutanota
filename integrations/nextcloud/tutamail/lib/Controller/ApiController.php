@@ -12,6 +12,7 @@ use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IRequest;
 use RuntimeException;
+use function OCP\Log\logger;
 
 /**
  * @psalm-suppress UnusedClass
@@ -90,6 +91,20 @@ class ApiController extends OCSController
 	/**
 	 * @throws \Exception
 	 */
+	#[NoAdminRequired]
+	#[ApiRoute(
+			verb: 'PUT',
+			url: '/rest/{tutadbAppName}/{component}',
+			requirements: ['component' => '.+'],
+	)]
+	public function tutaDbPUTRedirect(): DataDisplayResponse
+	{
+		return $this->redirectToTutadbServer();
+	}
+
+	/**
+	 * @throws \Exception
+	 */
 	private function redirectToTutadbServer(): DataDisplayResponse
 	{
 		$request = $this->request;
@@ -107,11 +122,8 @@ class ApiController extends OCSController
 	 */
 	private function getRedirectedTutadbPath(IRequest $request): string
 	{
-		$pathInfo = $request->getPathInfo();
-		if ($pathInfo === false) {
-			throw new RuntimeException('Could not get path info');
-		}
-		$tutadbPath = substr($pathInfo, strlen('/apps/tutamail'));
+		$pathInfo = $request->getRequestUri();
+		$tutadbPath = substr($pathInfo, strlen('/ocs/v2.php/apps/tutamail'));
 		return $this->TUTADB_SERVER_URL . $tutadbPath;
 	}
 
@@ -132,6 +144,15 @@ class ApiController extends OCSController
 	 */
 	public function makeTutadbRequstOptions(IRequest $request): array
 	{
+		$options = ['http_errors' => false];
+
+		// We transfer the whole url as it is in case of GET request.
+		// see getRedirectedTutadbPath
+		if ($request->getMethod() !== 'GET') {
+			$body = file_get_contents('php://input');
+			$options['body'] = $body;
+		}
+
 		$headers = getallheaders();
 		if ($headers === false) {
 			throw new RuntimeException('Could not get request headers');
@@ -140,22 +161,7 @@ class ApiController extends OCSController
 		unset($headers['OCS-APIRequest']);
 		unset($headers['Cookie']);
 
-		$body_target = $request->getMethod() === 'GET' ? 'query' : 'body';
-
-		if ($body_target === 'body') {
-			$body = file_get_contents('php://input');
-		} else {
-			$body = $request->getParams();
-			unset($body['_route']);
-			unset($body['tutadbAppName']);
-			unset($body['component']);
-		}
-
-		$options = [
-				'headers' => $headers,
-				$body_target => $body,
-				'http_errors' => false
-		];
+		$options['headers'] = $headers;
 		return $options;
 	}
 
