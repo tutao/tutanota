@@ -4,6 +4,7 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	AsymmetricKeyPair,
+	asyncDecryptBytes,
 	bitArrayToUint8Array,
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
@@ -134,6 +135,31 @@ o.spec("CompatibilityTest", function () {
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
+		}
+	})
+
+	o.test("aes 256 async", async function () {
+		for (const td of testData.aes256Tests) {
+			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
+
+			let decryptedBytes = uint8ArrayToBase64(await asyncDecryptBytes(key, base64ToUint8Array(td.cipherTextBase64)))
+			o.check(decryptedBytes).equals(td.plainTextBase64)
+		}
+	})
+	o.test("aes 128 async", async function () {
+		for (const td of testData.aes128Tests) {
+			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
+
+			let decryptedBytes = uint8ArrayToBase64(await asyncDecryptBytes(key, base64ToUint8Array(td.cipherTextBase64)))
+			o.check(decryptedBytes).equals(td.plainTextBase64)
+		}
+	})
+	o.test("aes 128 async mac", async function () {
+		for (const td of testData.aes128MacTests) {
+			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
+
+			let decryptedBytes = uint8ArrayToBase64(await asyncDecryptBytes(key, base64ToUint8Array(td.cipherTextBase64)))
+			o.check(decryptedBytes).equals(td.plainTextBase64)
 		}
 	})
 

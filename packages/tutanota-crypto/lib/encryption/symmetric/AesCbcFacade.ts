@@ -11,7 +11,7 @@ import {
 import { CryptoError } from "../../misc/CryptoError.js"
 import { assertNotNull, concat } from "@tutao/tutanota-utils"
 import sjcl from "../../internal/sjcl.js"
-import { hmacSha256, MacTag, verifyHmacSha256 } from "../Hmac.js"
+import { hmacSha256, MacTag, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac.js"
 import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 
@@ -92,15 +92,7 @@ export class AesCbcFacade {
 			default:
 				throw new Error("unexpected cipher version " + cipherVersion)
 		}
-		let iv: Uint8Array
-		let aesCbcCiphertext: Uint8Array
-		if (ivIsPrepended) {
-			iv = cipherTextWithoutMacAndVersionByte.subarray(0, IV_BYTE_LENGTH)
-			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte.subarray(IV_BYTE_LENGTH, cipherTextWithoutMacAndVersionByte.length)
-		} else {
-			iv = FIXED_IV
-			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte
-		}
+		let { iv, aesCbcCiphertext } = this.getIvAndCipherText(ivIsPrepended, cipherTextWithoutMacAndVersionByte)
 		try {
 			return bitArrayToUint8Array(
 				sjcl.mode.cbc.decrypt(
@@ -114,6 +106,57 @@ export class AesCbcFacade {
 		} catch (e) {
 			throw new CryptoError("aes decryption failed", e as Error)
 		}
+	}
+
+	async decryptAsync(
+		key: AesKey,
+		cipherText: Uint8Array,
+		ivIsPrepended: boolean,
+		cipherVersion: SymmetricCipherVersion,
+		skipAuthenticationEnforcement: boolean = false,
+	): Promise<Uint8Array> {
+		const subtle = crypto.subtle
+
+		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		let cipherTextWithoutMacAndVersionByte: Uint8Array
+		switch (cipherVersion) {
+			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+				cipherTextWithoutMacAndVersionByte = cipherText
+				break
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				const authenticationKey = assertNotNull(subKeys.authenticationKey)
+				cipherTextWithoutMacAndVersionByte = cipherText.subarray(
+					SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
+					cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES,
+				)
+				const providedMacBytes = cipherText.subarray(cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, cipherText.length)
+				await verifyHmacSha256Async(authenticationKey, cipherTextWithoutMacAndVersionByte, providedMacBytes as MacTag)
+				break
+			}
+			default:
+				throw new Error("unexpected cipher version " + cipherVersion)
+		}
+		let { iv, aesCbcCiphertext } = this.getIvAndCipherText(ivIsPrepended, cipherTextWithoutMacAndVersionByte)
+		try {
+			const encryptionKey = await subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
+			return new Uint8Array(await subtle.decrypt({ name: "AES-CBC", iv }, encryptionKey, aesCbcCiphertext))
+		} catch (e) {
+			throw new CryptoError("aes decryption failed", e as Error)
+		}
+	}
+
+	private getIvAndCipherText(ivIsPrepended: boolean, cipherTextWithoutMacAndVersionByte: Uint8Array<ArrayBufferLike>) {
+		let iv: Uint8Array
+		let aesCbcCiphertext: Uint8Array
+		if (ivIsPrepended) {
+			iv = cipherTextWithoutMacAndVersionByte.subarray(0, IV_BYTE_LENGTH)
+			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte.subarray(IV_BYTE_LENGTH, cipherTextWithoutMacAndVersionByte.length)
+		} else {
+			iv = FIXED_IV
+			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte
+		}
+		return { iv, aesCbcCiphertext }
 	}
 
 	private tryToEnforceAuthentication(key: AesKey, cipherVersion: SymmetricCipherVersion, skipAuthenticationEnforcement: boolean) {
