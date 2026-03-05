@@ -1,4 +1,4 @@
-use crate::crypto::aes::Aes256Key;
+use crypto_primitives::aes::Aes256Key;
 use argon2::{Algorithm, Argon2, Params, Version};
 use zeroize::Zeroizing;
 

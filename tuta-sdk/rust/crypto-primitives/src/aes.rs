@@ -1,6 +1,6 @@
 //! Contains code to handle AES128/AES256 encryption and decryption
 
-use crate::hmac::{HmacError, HMAC_SHA256_SIZE};
+use crate::hmac::HMAC_SHA256_SIZE;
 use crate::join_slices;
 use crate::key::GenericAesKey;
 use crate::randomizer_facade::RandomizerFacade;
@@ -15,6 +15,7 @@ use std::fmt::Debug;
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 use zeroize::ZeroizeOnDrop;
+use crate::blake3::MacError;
 
 /// Denotes whether a text is/should be padded
 pub enum PaddingMode {
@@ -270,8 +271,8 @@ pub enum AesDecryptError {
 	InvalidDataSizeError,
 	#[error("PaddingError")]
 	PaddingError(#[from] UnpadError),
-	#[error("HmacError")]
-	HmacError(#[from] HmacError),
+	#[error("MacError")]
+	MacError(#[from] MacError),
 }
 
 /// Result of decryption operation.
@@ -384,7 +385,7 @@ impl<Key: AesKey> AesSubKeys<Key> {
 	fn verify_mac(
 		&self,
 		ciphertext_with_authentication: &CiphertextWithAuthentication,
-	) -> Result<(), HmacError> {
+	) -> Result<(), MacError> {
 		use crate::hmac::verify_hmac_sha256;
 		let generic_aes_key =
 			GenericAesKey::from_bytes(self.m_key.get_bytes()).expect("unimplemented key length");
@@ -504,7 +505,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
 
 		// Incorrect size for Hmac
 		if bytes.len() <= IV_BYTE_SIZE + HMAC_SHA256_SIZE {
-			return Err(AesDecryptError::HmacError(HmacError));
+			return Err(AesDecryptError::MacError(MacError));
 		}
 
 		// Split `bytes` into the MAC and combined ciphertext with iv
@@ -515,7 +516,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
 
 		// Extract the iv from the ciphertext and return the extracted components
 		let mac: [u8; HMAC_SHA256_SIZE] = array_cast_slice(provided_mac_bytes, "MAC")
-			.map_err(|_| AesDecryptError::HmacError(HmacError))?;
+			.map_err(|_| AesDecryptError::MacError(MacError))?;
 		Ok(Some(CiphertextWithAuthentication {
 			iv_and_ciphertext: ciphertext_without_mac,
 			mac,
@@ -570,7 +571,7 @@ fn aes_decrypt<Key: AesKey>(
 
 			(subkeys.c_key, iv_bytes, ciphertext)
 		} else if enforce_mac == EnforceMac::EnforceMac {
-			return Err(AesDecryptError::HmacError(HmacError));
+			return Err(AesDecryptError::MacError(MacError));
 		} else {
 			// Separate and check both the initialisation vector
 			let (iv_bytes, cipher_text) = encrypted_bytes.split_at(IV_BYTE_SIZE);

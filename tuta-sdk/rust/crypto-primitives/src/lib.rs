@@ -1,12 +1,12 @@
-mod utils;
+pub mod utils;
 
 mod aead_facade;
-mod aes;
+pub mod aes;
 pub mod blake3;
 pub mod compatibility_test_utils;
 pub mod ed25519;
-mod hmac;
-mod key;
+pub mod hmac;
+pub mod key;
 pub mod randomizer_facade;
 mod sha;
 #[cfg(test)]
@@ -46,7 +46,7 @@ pub fn ed25519_verify(
 pub enum AesDecryptErrorWasm {
 	InvalidDataSizeError,
 	PaddingError,
-	HmacError,
+	MacError,
 }
 
 impl From<AesDecryptError> for AesDecryptErrorWasm {
@@ -54,7 +54,7 @@ impl From<AesDecryptError> for AesDecryptErrorWasm {
 		match value {
 			AesDecryptError::InvalidDataSizeError => Self::InvalidDataSizeError,
 			AesDecryptError::PaddingError(_) => Self::PaddingError,
-			AesDecryptError::HmacError(_) => Self::HmacError,
+			AesDecryptError::MacError(_) => Self::MacError,
 		}
 	}
 }

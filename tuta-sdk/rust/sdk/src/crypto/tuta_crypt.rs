@@ -1,6 +1,3 @@
-use crate::crypto::aes::{
-	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError, Iv, PaddingMode,
-};
 use crate::crypto::hkdf::hkdf;
 use crate::crypto::kyber::{
 	KyberCiphertext, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret,
@@ -10,13 +7,23 @@ use crate::crypto::x25519::{
 };
 use crate::join_slices;
 use crate::util::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
+use crypto_primitives::aes::{
+	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError, Iv, PaddingMode,
+};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 
-#[cfg_attr(test, derive(Debug))]
 pub struct DecapsulatedSymKey {
 	pub sender_identity_pub_key: X25519PublicKey,
 	pub decrypted_sym_key_bytes: Aes256Key,
+}
+
+// We want this to be testing only as this will print the literal key
+#[cfg(test)]
+impl std::fmt::Debug for DecapsulatedSymKey {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		f.write_fmt(format_args!("DecapsulatedSymKey {{ sender_identity_pub_key: {:?}, decrypted_sym_key_bytes: {:?}}}", self.sender_identity_pub_key, self.decrypted_sym_key_bytes.as_bytes()))
+	}
 }
 
 #[cfg_attr(test, derive(Debug, Clone, PartialEq))]
@@ -102,7 +109,15 @@ impl TutaCryptMessage {
 
 		let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?;
 		Ok(DecapsulatedSymKey {
-			decrypted_sym_key_bytes: Aes256Key::try_from(bucket_key)?,
+			// TODO move ArrayCastingError to crypto_primitives
+			decrypted_sym_key_bytes: Aes256Key::try_from(bucket_key.data).map_err(
+				|array_casting_error: crypto_primitives::utils::ArrayCastingError| {
+					ArrayCastingError {
+						type_name: array_casting_error.type_name,
+						actual_size: array_casting_error.actual_size,
+					}
+				},
+			)?,
 			sender_identity_pub_key: self.sender_identity_public_key.clone(),
 		})
 	}

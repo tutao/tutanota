@@ -1,5 +1,5 @@
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
-use crate::crypto::key::GenericAesKey;
+use crypto_primitives::key::GenericAesKey;
 use crate::services::hidden::Executor;
 use crate::ApiCallError;
 use std::collections::HashMap;

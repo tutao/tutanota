@@ -23,7 +23,7 @@ impl GenericAesKey {
 	/// Decrypts the AES key: `encrypted_key` with this key.
 	///
 	/// The returned AES key is zeroized on drop
-	pub fn decrypt_aes_key(&self, encrypted_key: &[u8]) -> Result<GenericAesKey, KeyLoadError> {
+	pub fn decrypt_aes_key(&self, encrypted_key: &[u8]) -> Result<GenericAesKey, KeyDecryptError> {
 		let decrypted = match self {
 			Self::Aes128(key) => aes_128_decrypt_no_padding_fixed_iv(key, encrypted_key)?,
 			Self::Aes256(key) => aes_256_decrypt_no_padding(key, encrypted_key)?.data,
@@ -123,15 +123,15 @@ impl From<Aes256Key> for GenericAesKey {
 }
 
 #[derive(thiserror::Error, Debug)]
-#[error("Failed to load key: {reason}")]
-pub struct KeyLoadError {
+#[error("Failed to decrypt key: {reason}")]
+pub struct KeyDecryptError {
 	pub(crate) reason: String,
 }
 
 /// Used to convert key related error types to `KeyLoadError`
-trait KeyLoadErrorSubtype: ToString {}
+pub trait KeyDecryptErrorSubtype: ToString {}
 
-impl<T: KeyLoadErrorSubtype> From<T> for KeyLoadError {
+impl<T: KeyDecryptErrorSubtype> From<T> for KeyDecryptError {
 	fn from(value: T) -> Self {
 		Self {
 			reason: value.to_string(),
@@ -139,9 +139,9 @@ impl<T: KeyLoadErrorSubtype> From<T> for KeyLoadError {
 	}
 }
 
-impl KeyLoadErrorSubtype for AesDecryptError {}
+impl KeyDecryptErrorSubtype for AesDecryptError {}
 
-impl KeyLoadErrorSubtype for ArrayCastingError {}
+impl KeyDecryptErrorSubtype for ArrayCastingError {}
 
 #[cfg(test)]
 mod tests {

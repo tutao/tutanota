@@ -1,5 +1,5 @@
-use crate::crypto::aes::Iv;
-use crate::crypto::key::GenericAesKey;
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::GenericAesKey;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::generated::sys::BucketKey;

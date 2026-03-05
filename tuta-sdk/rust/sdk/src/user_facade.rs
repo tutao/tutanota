@@ -1,5 +1,5 @@
 use crate::crypto::hkdf;
-use crate::crypto::key::GenericAesKey;
+use crypto_primitives::key::GenericAesKey;
 use crate::crypto::key::VersionedAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};

@@ -2,8 +2,10 @@ use crate::importer::importable_mail::{ImportableMailAttachment, ImportableMailW
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::iter::Peekable;
 use std::path::PathBuf;
-use tutasdk::crypto::aes;
-use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
+use crypto_primitives::aes;
+use crypto_primitives::key::{GenericAesKey};
+use tutasdk::crypto::key::{VersionedAesKey};
+
 use tutasdk::entities::generated::tutanota::ImportMailData;
 
 pub struct MailUploadDataWithAttachment {

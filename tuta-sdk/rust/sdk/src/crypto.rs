@@ -3,18 +3,15 @@
 // TODO: Remove the above allowance when starting to implement higher level functions
 
 #[allow(unused_imports)]
-pub use aes::Aes128Key;
+pub use crypto_primitives::aes::Aes128Key;
 #[allow(unused_imports)]
-pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
+pub use crypto_primitives::aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 pub use argon2_id::generate_key_from_passphrase;
 pub use hkdf::hkdf;
 pub use sha::sha256;
 #[allow(unused_imports)]
 pub use tuta_crypt::TutaCryptKeyPairs;
 pub use x25519::X25519PublicKey;
-
-pub mod aes;
-pub mod hmac;
 
 mod sha;
 

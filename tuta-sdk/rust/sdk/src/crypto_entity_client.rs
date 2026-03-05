@@ -6,7 +6,8 @@ use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+use crate::crypto::key::AsymmetricKeyPair;
+use crypto_primitives::key::GenericAesKey;
 use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError};
 use crate::crypto::X25519PublicKey;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -481,10 +482,12 @@ mod tests {
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::asymmetric_crypto_facade::MockAsymmetricCryptoFacade;
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
-	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+	use crate::crypto::key::AsymmetricKeyPair;
+	use crypto_primitives::key::GenericAesKey;
 	use crate::crypto::public_key_provider::PublicKeyIdentifier;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs, X25519PublicKey};
+	use crate::crypto::{TutaCryptKeyPairs, X25519PublicKey};
+	use crypto_primitives::aes::{Iv, Aes256Key};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
 	use crate::entities::entity_facade::{EntityFacadeImpl, MockEntityFacade, ID_FIELD};

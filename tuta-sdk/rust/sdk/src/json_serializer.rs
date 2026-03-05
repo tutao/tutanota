@@ -617,7 +617,7 @@ mod tests {
 	use super::*;
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
-	use crate::crypto::key::GenericAesKey;
+	use crypto_primitives::key::GenericAesKey;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::generated::sys::{GroupMembership, User};
 	use crate::entities::generated::tutanota::Mail;

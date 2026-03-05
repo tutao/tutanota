@@ -1,6 +1,6 @@
-use crate::crypto::aes::Iv;
+use crypto_primitives::aes::Iv;
 use crate::crypto::crypto_facade::ResolvedSessionKey;
-use crate::crypto::key::GenericAesKey;
+use crypto_primitives::key::GenericAesKey;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Errors;
@@ -660,8 +660,8 @@ mod tests {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
-	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::{aes::Iv, Aes256Key};
+	use crypto_primitives::key::GenericAesKey;
+	use crypto_primitives::aes::{Iv, Aes256Key};
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
 	use crate::entities::entity_facade::{

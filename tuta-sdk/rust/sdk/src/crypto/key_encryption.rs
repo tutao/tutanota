@@ -1,4 +1,5 @@
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
+use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError};
+use crypto_primitives::key::GenericAesKey;
 use crate::crypto::kyber::{KyberKeyPair, KyberPrivateKey, KyberPublicKey};
 use crate::crypto::rsa::{RSAKeyPair, RSAPrivateKey, RSAPublicKey, RSAX25519KeyPair};
 use crate::crypto::tuta_crypt::TutaCryptKeyPairs;
@@ -113,9 +114,11 @@ fn decrypt_rsa_or_rsa_x25519_key_pair(
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+	use crate::crypto::key::AsymmetricKeyPair;
+	use crypto_primitives::key::GenericAesKey;
 	use crate::crypto::x25519::X25519KeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs};
+	use crate::crypto::TutaCryptKeyPairs;
+	use crypto_primitives::aes::{Iv, Aes256Key};
 	use crate::entities::generated::sys::KeyPair;
 	use crate::util::test_utils::generate_random_string;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;

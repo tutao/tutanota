@@ -9,9 +9,10 @@ use std::fs;
 use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tutasdk::crypto::aes;
-use tutasdk::crypto::aes::Iv;
-use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
+use crypto_primitives::aes;
+use crypto_primitives::aes::Iv;
+use crypto_primitives::key::GenericAesKey;
+use tutasdk::crypto::key::VersionedAesKey;
 use tutasdk::entities::generated::sys::StringWrapper;
 
 use crate::importer::attachment_importer::PerChunkAttachmentImporter;

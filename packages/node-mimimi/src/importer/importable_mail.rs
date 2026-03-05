@@ -8,8 +8,8 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use tutasdk::blobs::blob_facade::FileData;
-use tutasdk::crypto::aes;
-use tutasdk::crypto::key::GenericAesKey;
+use crypto_primitives::aes;
+use crypto_primitives::key::GenericAesKey;
 use tutasdk::date::DateTime;
 use tutasdk::entities::generated::sys::BlobReferenceTokenWrapper;
 use tutasdk::entities::generated::tutanota::{

@@ -402,7 +402,7 @@ mod tests {
 	#[mockall_double::double]
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
-	use crate::crypto::key::GenericAesKey;
+	use crypto_primitives::key::GenericAesKey;
 	use crate::crypto::AES_256_KEY_SIZE;
 	use crate::date::DateTime;
 	use crate::element_value::ElementValue;
