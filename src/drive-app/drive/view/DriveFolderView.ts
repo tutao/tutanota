@@ -20,7 +20,6 @@ import { FileActions } from "./DriveFolderContentEntry"
 import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 
 export interface DriveFolderViewAttrs {
-	onUploadClick: (dom: HTMLElement) => void
 	selection: SelectionState
 	onTrash: (() => unknown) | null
 	onDelete: (() => unknown) | null
@@ -62,7 +61,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			onCopy,
 			onCut,
 			onPaste,
-			onUploadClick,
 			onDropFiles,
 			currentFolder,
 			parents,
@@ -137,7 +135,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				onCopy,
 				onCut,
 				onPaste,
-				onUploadClick,
 				currentFolder,
 				parents,
 				loadParents,
