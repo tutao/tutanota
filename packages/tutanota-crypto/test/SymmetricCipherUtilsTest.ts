@@ -27,6 +27,11 @@ o.spec("SymmetricCipherUtilsTest", function () {
 			o(Array.from(uint8ArrayToKey(keyToUint8Array(key)))).deepEquals(key)
 		})
 	})
+	o.spec("bitArrayToUint8Array", function () {
+		o("length is multiple of 4", function () {
+			o(4).equals(bitArrayToUint8Array([125]).length)
+		})
+	})
 	o.spec("key generation", function () {
 		o("check key", function () {
 			const expectedKeyLength = AesKeyLength.Aes256
