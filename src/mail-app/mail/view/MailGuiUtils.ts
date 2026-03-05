@@ -178,6 +178,10 @@ async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, ma
 	const loadedContacts =
 		mails.length === 1 ? await contactModel.searchForContact(mails[0].sender.address).then((c) => (c ? [c] : [])) : await contactModel.loadAllContacts()
 
+	if (loadedContacts.length === 0) {
+		return
+	}
+
 	const addressToContactMap = new Map(loadedContacts.flatMap((c) => c.mailAddresses.map((ma) => [ma.address, c])))
 	const deduplicatedContactSet = new Set(mails.map((m) => addressToContactMap.get(m.sender.address)).filter((contact) => contact !== undefined))
 
