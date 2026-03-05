@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import {
+	AeadFacade,
 	aes256EncryptSearchIndexEntry,
 	aesDecrypt,
 	aesEncrypt,
@@ -179,6 +180,34 @@ o.spec("CompatibilityTest", function () {
 			o(decryptedBytes).equals(td.plainTextBase64)
 		}
 	})
+
+	o("AEAD - CTR-Then-Blake3 with associated data", async function () {
+		for (const td of testData.aeadTests) {
+			random.generateRandomData = (IV_BYTE_LENGTH: number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
+			const aeadFacade = new AeadFacade()
+			const encryptionKey = uint8ArrayToKey(hexToUint8Array(td.encryptionKey))
+			const authenticationKey = uint8ArrayToKey(hexToUint8Array(td.authenticationKey))
+			const keys = { encryptionKey, authenticationKey }
+			const plainText = base64ToUint8Array(td.plainTextBase64)
+			const associatedData = base64ToUint8Array(td.associatedData)
+			const ciphertext = base64ToUint8Array(td.cipherTextBase64)
+			const plaintextKey = hexToUint8Array(td.plaintextKey)
+			const encryptedKey = base64ToUint8Array(td.encryptedKey)
+
+			// encrypt data
+			const encryptedBytes = aeadFacade.encrypt(keys, plainText, associatedData)
+			o(ciphertext).deepEquals(encryptedBytes)
+			const decryptedBytes = aeadFacade.decrypt(keys, ciphertext, associatedData)
+			o(plainText).deepEquals(decryptedBytes)
+
+			// encrypt key
+			const reEncryptedKey = aeadFacade.encrypt(keys, plaintextKey, associatedData)
+			o(encryptedKey).deepEquals(reEncryptedKey)
+			const decryptedKey = aeadFacade.decrypt(keys, reEncryptedKey, associatedData)
+			o(plaintextKey).deepEquals(decryptedKey)
+		}
+	})
+
 	o("unicodeEncoding", function () {
 		for (const td of testData.encodingTests) {
 			let encoded = stringToUtf8Uint8Array(td.string)
