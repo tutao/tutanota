@@ -297,7 +297,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						desktopToolbar: () => [],
 						columnLayout: [
 							m(DriveFolderView, {
-								onUploadClick: () => this.onNewFile(),
 								onTrash:
 									isListingTrash || listState.selectedItems.size === 0
 										? null
