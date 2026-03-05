@@ -577,8 +577,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	view({ attrs }: Vnode<MailViewAttrs>): Children {
 		const exclusive = deviceConfig.getMailNoPreviewMode()
+		// In no-preview mode, list and mail are mutually exclusive: only the focused one is shown
+		// alongside the folder sidebar. Marking both as exclusive prevents the layout algorithm
+		// from showing them side by side, and triggers an in-place DOM swap when switching.
 		if (this.mailColumn.exclusive !== exclusive) {
 			this.mailColumn.exclusive = exclusive
+			this.listColumn.exclusive = exclusive
 			this.viewSlider.updateVisibleBackgroundColumns()
 		}
 		return m(
