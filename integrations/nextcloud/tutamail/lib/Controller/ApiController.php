@@ -97,9 +97,14 @@ class ApiController extends OCSController
 
 		$tutab_path = $this->getRedirectedTutadbPath($request);
 		$options = $this->makeTutadbRequstOptions($request);
-		$tutabResponse = $client->request($request->getMethod(), $tutab_path, $options);
+		try {
 
-		return $this->wrapResponseFromTutadb($tutabResponse);
+			$tutabResponse = $client->request($request->getMethod(), $tutab_path, $options);
+			return $this->wrapResponseFromTutadb($tutabResponse);
+		} catch (\Exception $e) {
+			return $this->wrapErrorFromTutadb($e);
+		}
+
 	}
 
 	/**
@@ -125,6 +130,16 @@ class ApiController extends OCSController
 			->addHeader('X-TutaIntegrationPlatform', 'Nextcloud::v1')
 			->setStatus($tutabResponse->getStatusCode());
 	}
+
+	public function wrapErrorFromTutadb(\Exception $e): DataDisplayResponse
+	{
+		$response = new DataDisplayResponse();
+		return $response
+			->setData($e->getMessage())
+			->addHeader('X-TutaIntegrationPlatform', 'Nextcloud::v1')
+			->setStatus(http_response_code());
+	}
+
 
 	/**
 	 * @param IRequest $request
