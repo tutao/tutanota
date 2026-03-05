@@ -2,6 +2,7 @@ import { pureComponent } from "./base/PureComponent.js"
 import m, { Children } from "mithril"
 import { component_size, px, size } from "./size.js"
 import { responsiveCardHMargin } from "./cards.js"
+import { deviceConfig } from "../misc/DeviceConfig.js"
 
 /** Toolbar layout that is used in the second/list column. */
 export const DesktopListToolbar = pureComponent((__, children) => {
@@ -33,8 +34,9 @@ export const DesktopViewerToolbar = pureComponent(({ leftContent }: DesktopViewe
 		{
 			class: responsiveCardHMargin(),
 			style: {
-				marginLeft: 0,
+				marginLeft: deviceConfig.getMailNoPreviewMode() ? px(size.spacing_8) : 0,
 				marginBottom: px(size.spacing_24),
+				"border-radius": deviceConfig.getMailNoPreviewMode() ? `${size.radius_8}px 0 0 ${size.radius_8}px` : undefined,
 			},
 		},
 		m(
