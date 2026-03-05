@@ -50,9 +50,11 @@ impl AeadFacade {
 	fn encrypt(&self, keys: &AeadKeys, plaintext: &[u8], associated_data: &[u8]) -> Vec<u8> {
 		let nonce = Nonce::generate(&self.randomizer_facade);
 		let ciphertext = aes::aes_ctr_encrypt(&keys.encryption_key, plaintext, &nonce);
+		let end_of_ciphertext: u32 = 1 + NONCE_BYTE_SIZE as u32 + ciphertext.len() as u32;
 		let tag = blake3::blake3_mac(
 			keys.authentication_key.as_bytes(),
 			&[
+				&end_of_ciphertext.to_be_bytes(),
 				&[AEAD_VERSION],
 				nonce.get_bytes(),
 				&ciphertext,
@@ -85,17 +87,23 @@ impl AeadFacade {
 
 		let nonce_offset = 1;
 		let ciphertext_offset = nonce_offset + NONCE_BYTE_SIZE;
-		let tag_offset = tagged_ciphertext.len() - OUT_LEN;
+		let end_of_ciphertext = tagged_ciphertext.len() - OUT_LEN;
 
 		let nonce = &tagged_ciphertext[nonce_offset..ciphertext_offset];
-		let ciphertext = &tagged_ciphertext[ciphertext_offset..tag_offset];
-		let tag = &tagged_ciphertext[tag_offset..];
+		let ciphertext = &tagged_ciphertext[ciphertext_offset..end_of_ciphertext];
+		let tag = &tagged_ciphertext[end_of_ciphertext..];
 		let mut tag_array = [0u8; OUT_LEN];
 		tag_array.copy_from_slice(tag);
 
 		blake3::verify_blake3_mac(
 			keys.authentication_key.as_bytes(),
-			&[&[AEAD_VERSION], nonce, &ciphertext, associated_data],
+			&[
+				&(end_of_ciphertext as u32).to_be_bytes(),
+				&[AEAD_VERSION],
+				nonce,
+				&ciphertext,
+				associated_data,
+			],
 			tag_array,
 		)
 		.map_err(|_| AeadDecryptError::DecryptionError)?;
