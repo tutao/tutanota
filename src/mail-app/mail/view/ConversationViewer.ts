@@ -11,6 +11,7 @@ import { component_size, px, size } from "../../../common/gui/size.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
+import { deviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { assertNotNull, isSameTypeRef, ofClass } from "@tutao/tutanota-utils"
@@ -225,7 +226,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						backgroundColor: theme.surface,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 						// column resize element takes some space, reduce margin to make the gap smaller
-						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.spacing_16),
+						marginLeft: deviceConfig.getMailNoPreviewMode() ? px(size.spacing_8) : styles.isSingleColumnLayout() ? undefined : px(size.spacing_16),
 					},
 				},
 				mailViewerViewModel.isCollapsed()
