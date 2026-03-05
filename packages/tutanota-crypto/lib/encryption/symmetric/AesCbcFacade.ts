@@ -11,7 +11,7 @@ import {
 import { CryptoError } from "../../misc/CryptoError.js"
 import { assertNotNull, concat } from "@tutao/tutanota-utils"
 import sjcl from "../../internal/sjcl.js"
-import { hmacSha256, MacTag, verifyHmacSha256 } from "../Hmac.js"
+import { hmacSha256, MacTag, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac.js"
 import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 
@@ -92,15 +92,7 @@ export class AesCbcFacade {
 			default:
 				throw new Error("unexpected cipher version " + cipherVersion)
 		}
-		let iv: Uint8Array
-		let aesCbcCiphertext: Uint8Array
-		if (ivIsPrepended) {
-			iv = cipherTextWithoutMacAndVersionByte.subarray(0, IV_BYTE_LENGTH)
-			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte.subarray(IV_BYTE_LENGTH, cipherTextWithoutMacAndVersionByte.length)
-		} else {
-			iv = FIXED_IV
-			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte
-		}
+		let { iv, aesCbcCiphertext } = this.getIvAndCipherText(ivIsPrepended, cipherTextWithoutMacAndVersionByte)
 		try {
 			return bitArrayToUint8Array(
 				sjcl.mode.cbc.decrypt(
@@ -139,22 +131,22 @@ export class AesCbcFacade {
 					cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES,
 				)
 				const providedMacBytes = cipherText.subarray(cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, cipherText.length)
-				const subtleAuthenticationKey = await subtle.importKey(
-					"raw",
-					bitArrayToUint8Array(authenticationKey),
-					{ name: "HMAC", hash: "SHA-256" },
-					false,
-					["verify"],
-				)
-				const verified = await subtle.verify("HMAC", subtleAuthenticationKey, providedMacBytes, cipherTextWithoutMacAndVersionByte)
-				if (!verified) {
-					throw new CryptoError("invalid HMAC")
-				}
+				await verifyHmacSha256Async(authenticationKey, cipherTextWithoutMacAndVersionByte, providedMacBytes as MacTag)
 				break
 			}
 			default:
 				throw new Error("unexpected cipher version " + cipherVersion)
 		}
+		let { iv, aesCbcCiphertext } = this.getIvAndCipherText(ivIsPrepended, cipherTextWithoutMacAndVersionByte)
+		try {
+			const encryptionKey = await subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
+			return new Uint8Array(await subtle.decrypt({ name: "AES-CBC", iv }, encryptionKey, aesCbcCiphertext))
+		} catch (e) {
+			throw new CryptoError("aes decryption failed", e as Error)
+		}
+	}
+
+	private getIvAndCipherText(ivIsPrepended: boolean, cipherTextWithoutMacAndVersionByte: Uint8Array<ArrayBufferLike>) {
 		let iv: Uint8Array
 		let aesCbcCiphertext: Uint8Array
 		if (ivIsPrepended) {
@@ -164,12 +156,7 @@ export class AesCbcFacade {
 			iv = FIXED_IV
 			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte
 		}
-		try {
-			const encryptionKey = await subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
-			return new Uint8Array(await subtle.decrypt({ name: "AES-CBC", iv }, encryptionKey, aesCbcCiphertext))
-		} catch (e) {
-			throw new CryptoError("aes decryption failed", e as Error)
-		}
+		return { iv, aesCbcCiphertext }
 	}
 
 	private tryToEnforceAuthentication(key: AesKey, cipherVersion: SymmetricCipherVersion, skipAuthenticationEnforcement: boolean) {

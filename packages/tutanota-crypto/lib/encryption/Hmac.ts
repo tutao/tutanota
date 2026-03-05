@@ -21,4 +21,14 @@ export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
 	if (!sjcl.bitArray.equal(computedTag, tag)) {
 		throw new CryptoError("invalid mac")
 	}
+} /**
+ * Import and verify an HMAC-SHA-256 tag for subtle crypto against the given data and key.
+ * @throws CryptoError if the tag does not match the data and key.
+ */
+export async function verifyHmacSha256Async(key: AesKey, data: Uint8Array, tag: MacTag) {
+	const subtleAuthenticationKey = await crypto.subtle.importKey("raw", bitArrayToUint8Array(key), { name: "HMAC", hash: "SHA-256" }, false, ["verify"])
+	const verified = await crypto.subtle.verify("HMAC", subtleAuthenticationKey, tag, data)
+	if (!verified) {
+		throw new CryptoError("invalid HMAC")
+	}
 }
