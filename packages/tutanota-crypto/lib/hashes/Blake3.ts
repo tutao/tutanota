@@ -5,7 +5,7 @@ import { CryptoError } from "../misc/CryptoError.js"
 import { MacTag } from "../misc/Constants.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 
-const DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES = 32
+export const DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES = 32
 
 /**
  * Compute a 32 byte BLAKE3 hash.

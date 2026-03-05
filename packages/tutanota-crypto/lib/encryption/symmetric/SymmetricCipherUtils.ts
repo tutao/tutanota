@@ -87,3 +87,7 @@ export function keyToUint8Array(key: BitArray): Uint8Array {
 export function aes256RandomKey(): Aes256Key {
 	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256)))
 }
+
+export function generateIV(): Uint8Array {
+	return random.generateRandomData(IV_BYTE_LENGTH)
+}
