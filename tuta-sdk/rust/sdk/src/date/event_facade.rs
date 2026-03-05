@@ -151,6 +151,256 @@ impl EventFacade {
 		repeat_rule: &EventRepeatRule,
 		progenitor_date: DateTime,
 	) -> Vec<DateTime> {
+		self.apply_by_rules(date, repeat_rule, progenitor_date)
+	}
+
+	pub fn create_event_instances(
+		&self,
+		event_start_time: DateTime,
+		event_end_time: DateTime,
+		repeat_rule: EventRepeatRule,
+		repeat_interval: i64,
+		end_type: EndType,
+		end_value: Option<u64>,
+		excluded_dates: Vec<DateTime>,
+		max_date: DateTime,
+		time_zone: String,
+	) -> Result<Vec<DateTime>, ApiCallError> {
+		self.calculate_event_occurrences(
+			event_start_time,
+			event_end_time,
+			repeat_rule,
+			repeat_interval,
+			end_type,
+			end_value,
+			excluded_dates,
+			max_date,
+			time_zone,
+		)
+	}
+}
+
+impl EventFacade {
+	pub fn calculate_event_occurrences(
+		&self,
+		event_start_time: DateTime,
+		event_end_time: DateTime,
+		repeat_rule: EventRepeatRule,
+		repeat_interval: i64,
+		end_type: EndType,
+		end_value: Option<u64>,
+		excluded_dates: Vec<DateTime>,
+		max_date: DateTime,
+		time_zone: String,
+	) -> Result<Vec<DateTime>, ApiCallError> {
+		let is_all_day_event =
+			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
+		let set_pos_rules: Vec<&ByRule> = repeat_rule
+			.by_rules
+			.iter()
+			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
+			.collect();
+
+		let tz = match timezones::get_by_name(&time_zone) {
+			Some(tz) => tz,
+			_ => {
+				log::error!("Failed to find timezone for string {}", time_zone);
+				timezones::db::UTC
+			},
+		};
+
+		let calc_event_start = if is_all_day_event {
+			EventFacade::get_all_day_time(&event_start_time)?
+		} else {
+			event_start_time
+		};
+
+		let end_date = if end_type == EndType::UntilDate {
+			if is_all_day_event {
+				Some(EventFacade::get_all_day_time(&DateTime::from_millis(
+					end_value.unwrap(),
+				))?)
+			} else {
+				Some(DateTime::from_millis(end_value.unwrap()))
+			}
+		} else {
+			None
+		};
+
+		let transformed_excluded_dates: Vec<DateTime> = if is_all_day_event {
+			excluded_dates
+				.iter()
+				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
+				.collect()
+		} else {
+			excluded_dates
+		};
+
+		if end_type != EndType::Never && end_value.is_none() {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!(
+					"Event with different from EndType::Never without EndValue {:?}",
+					event_start_time.as_millis()
+				),
+			});
+		}
+
+		let mut occurrences: u64 = 0;
+		let mut generated_events: Vec<DateTime> = Vec::new();
+
+		let Ok(initial_start_time) =
+			OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
+		else {
+			return Ok(generated_events);
+		};
+
+		let progenitor_offset = tz
+			.get_offset_utc(&initial_start_time)
+			.to_utc()
+			.whole_seconds();
+
+		// iteration=0 means we are at the progenitor itself, then 1, 2, 3...
+		let mut iteration: i64 = 0;
+		let mut current_occurrence_date = initial_start_time;
+
+		while end_type != EndType::Count || occurrences < end_value.unwrap() {
+			let occurrences_for_date = self.apply_by_rules(
+				DateTime::from_seconds(current_occurrence_date.unix_timestamp().unsigned_abs()),
+				&repeat_rule,
+				event_start_time,
+			);
+
+			let mut has_invalid_set_pos = false;
+			let parsed_set_pos: Vec<i64> = set_pos_rules
+				.iter()
+				.map(|rule| {
+					let Ok(interval) = rule.interval.parse::<i64>() else {
+						has_invalid_set_pos = true;
+						return 0;
+					};
+					if interval < 0 {
+						(occurrences_for_date.len() as i64) - interval.abs()
+					} else {
+						interval - 1
+					}
+				})
+				.collect();
+
+			let progenitor =
+				DateTime::from_seconds(current_occurrence_date.unix_timestamp() as u64);
+
+			if (end_date.is_some() && progenitor.as_millis() >= end_date.unwrap().as_millis())
+				|| has_invalid_set_pos
+			{
+				break;
+			}
+
+			for (index, ev) in occurrences_for_date.iter().enumerate() {
+				if (end_type == EndType::Count && occurrences >= end_value.unwrap())
+					|| (end_type == EndType::UntilDate && ev.as_millis() >= end_value.unwrap())
+				{
+					break;
+				}
+
+				if !parsed_set_pos.is_empty() && !parsed_set_pos.contains(&(index as i64)) {
+					continue;
+				}
+
+				if !transformed_excluded_dates.is_empty() && transformed_excluded_dates.contains(ev)
+				{
+					continue;
+				}
+
+				if ev.as_seconds() < event_start_time.as_seconds() {
+					// Occurrence is before the progenitor, skip
+					continue;
+				}
+
+				// Skip re-adding the progenitor if apply_by_rules returns it on iteration 0
+				// and it was already added (matches the TS: skip if iteration==1 and same as eventStartTime)
+				if iteration == 0
+					&& ev.as_seconds() == event_start_time.as_seconds()
+					&& occurrences > 0
+				{
+					continue;
+				}
+
+				if ev.as_seconds() < max_date.as_seconds() {
+					generated_events.push(*ev);
+				}
+
+				occurrences += 1;
+			}
+
+			if current_occurrence_date.unix_timestamp().unsigned_abs() >= max_date.as_seconds() {
+				break;
+			}
+
+			// Advance to next occurrence date at the bottom, absolutely from initial_start_time
+			iteration += 1;
+			current_occurrence_date = self.calculate_next_occurrence_date(
+				&initial_start_time,
+				repeat_interval,
+				&repeat_rule,
+				iteration,
+				progenitor_offset,
+				&time_zone,
+			)?;
+		}
+
+		Ok(generated_events)
+	}
+
+	fn calculate_next_occurrence_date(
+		&self,
+		initial_start_time: &OffsetDateTime,
+		repeat_interval: i64,
+		repeat_rule: &EventRepeatRule,
+		iteration: i64,
+		progenitor_offset: i32,
+		time_zone: &str,
+	) -> Result<OffsetDateTime, ApiCallError> {
+		let tz = match timezones::get_by_name(time_zone) {
+			Some(tz) => tz,
+			_ => {
+				log::error!("Failed to find timezone for string {}", time_zone);
+				timezones::db::UTC
+			},
+		};
+
+		let mut next = match self.increment_date_by_repeat_period(
+			initial_start_time,
+			repeat_interval * iteration,
+			&repeat_rule.frequency,
+		) {
+			Some(date) => date,
+			None => {
+				return Err(ApiCallError::InternalSdkError {
+					error_message: format!(
+						"Failed to increment date by repeat period E:{} I:{}",
+						initial_start_time.unix_timestamp(),
+						repeat_interval * iteration
+					),
+				})
+			},
+		};
+
+		let instance_offset = tz.get_offset_utc(&next).to_utc().whole_seconds();
+
+		// Adjust for DST difference between progenitor and this occurrence
+		next = next.replace_offset(
+			UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
+		);
+
+		Ok(next)
+	}
+
+	fn apply_by_rules(
+		&self,
+		date: DateTime,
+		repeat_rule: &EventRepeatRule,
+		progenitor_date: DateTime,
+	) -> Vec<DateTime> {
 		let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			return Vec::new();
 		};
@@ -273,207 +523,6 @@ impl EventFacade {
 		.map(|date| DateTime::from_seconds(date.assume_utc().unix_timestamp().unsigned_abs()))
 		.collect()
 	}
-
-	/// Generate events instances according to a given repeat rule.
-	/// The progenitor event is not included in the generation unless it matches an Advanced R. Rule.
-	pub fn create_event_instances(
-		&self,
-		event_start_time: DateTime,
-		event_end_time: DateTime,
-		repeat_rule: EventRepeatRule,
-		repeat_interval: i64,
-		end_type: EndType,
-		end_value: Option<u64>,
-		excluded_dates: Vec<DateTime>,
-		max_date: DateTime,
-		time_zone: String,
-	) -> Result<Vec<DateTime>, ApiCallError> {
-		let is_all_day_event =
-			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
-		let set_pos_rules: Vec<&ByRule> = repeat_rule
-			.by_rules
-			.iter()
-			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
-			.collect();
-
-		let tz = match timezones::get_by_name(&time_zone) {
-			Some(tz) => tz,
-			_ => {
-				log::error!(
-					"{}",
-					format!("Failed to find timezone for string {}", time_zone)
-				);
-				timezones::db::UTC
-			},
-		};
-
-		let calc_event_start = if is_all_day_event {
-			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
-
-			all_day_event
-		} else {
-			event_start_time
-		};
-
-		let end_date = if end_type == EndType::UntilDate {
-			if is_all_day_event {
-				let all_day_event =
-					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
-
-				Some(all_day_event)
-			} else {
-				Some(DateTime::from_millis(end_value.unwrap()))
-			}
-		} else {
-			None
-		};
-
-		let transformed_excluded_dates = if is_all_day_event {
-			excluded_dates
-				.iter()
-				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
-				.collect()
-		} else {
-			excluded_dates
-		};
-
-		if end_type != EndType::Never && end_value.is_none() {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!(
-					"Event with different from EndType::Never without EndValue {:?}",
-					event_start_time.as_millis()
-				),
-			});
-		}
-
-		let mut occurrences = 0;
-		let mut generated_events: Vec<DateTime> = Vec::new();
-
-		let Ok(initial_start_time) =
-			OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
-		else {
-			return Ok(generated_events);
-		};
-
-		let progenitor_offset = tz
-			.get_offset_utc(&initial_start_time)
-			.to_utc()
-			.whole_seconds();
-
-		let mut start_time = initial_start_time;
-
-		while (end_type != EndType::Count || occurrences < end_value.unwrap()) {
-			let repeat_frequency = repeat_rule.frequency;
-			start_time = match self.increment_date_by_repeat_period(
-				&start_time,
-				repeat_interval,
-				&repeat_frequency,
-			) {
-				Some(date) => date,
-				_ => {
-					return Err(ApiCallError::InternalSdkError {
-						error_message: format!(
-							"Failed to increment date by repeat period E:{} I:{}",
-							start_time.unix_timestamp(),
-							repeat_interval
-						),
-					})
-				},
-			};
-
-			let tz = match timezones::get_by_name(&time_zone) {
-				Some(tz) => tz,
-				_ => {
-					log::error!(
-						"{}",
-						format!("Failed to find timezone for string {}", time_zone)
-					);
-					timezones::db::UTC
-				},
-			};
-
-			let instance_offset = tz.get_offset_utc(&start_time).to_utc().whole_seconds();
-
-			// The way that time-rs works we must calculate the difference between the progenitor offset
-			// and the instance offset, this will mutate the final unix timestamp to adjust according the
-			// different timezones, if any
-			start_time = start_time.replace_offset(
-				UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
-			);
-
-			let expanded_events: Vec<DateTime> = self.generate_future_instances(
-				DateTime::from_seconds(start_time.unix_timestamp().unsigned_abs()),
-				&repeat_rule,
-				event_start_time,
-			);
-
-			let progenitor = DateTime::from_seconds(start_time.unix_timestamp() as u64);
-
-			let mut has_invalid_set_pos = false;
-			let parsed_set_pos: Vec<i64> = set_pos_rules
-				.iter()
-				.map(|rule| {
-					let Ok(interval) = rule.interval.parse::<i64>() else {
-						has_invalid_set_pos = true;
-						return 0;
-					};
-
-					if interval < 0 {
-						(expanded_events.len() as i64) - interval.abs()
-					} else {
-						interval - 1
-					}
-				})
-				.collect();
-
-			if (end_date.is_some() && progenitor.as_millis() >= end_date.unwrap().as_millis())
-				|| has_invalid_set_pos
-			{
-				break;
-			}
-
-			for index in 0..expanded_events.len() {
-				if (end_type == EndType::Count && occurrences >= end_value.unwrap())
-					|| (end_type == EndType::UntilDate
-						&& expanded_events.get(index).unwrap().as_millis() >= end_value.unwrap())
-				{
-					break;
-				}
-
-				if !parsed_set_pos.is_empty() || parsed_set_pos.contains(&(index as i64)) {
-					continue;
-				}
-
-				if !transformed_excluded_dates.is_empty()
-					&& transformed_excluded_dates.contains(expanded_events.get(index).unwrap())
-				{
-					continue;
-				}
-
-				let ev = *expanded_events.get(index).unwrap();
-
-				if ev.as_seconds() < event_start_time.as_seconds() {
-					// Event is in the past, we don't want it
-					continue;
-				}
-
-				if ev.as_seconds() < max_date.as_seconds() {
-					generated_events.push(ev);
-				}
-
-				occurrences += 1;
-			}
-
-			if start_time.unix_timestamp().unsigned_abs() >= max_date.as_seconds() {
-				break;
-			}
-		}
-
-		Ok(generated_events)
-	}
-}
-
-impl EventFacade {
 	fn apply_month_rules(
 		&self,
 		dates: &Vec<PrimitiveDateTime>,
@@ -1428,8 +1477,8 @@ impl EventFacade {
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
 			|| (week_start != Weekday::Monday // We have WKST
-            && new_date.assume_utc().unix_timestamp()
-            >= next_week)
+			&& new_date.assume_utc().unix_timestamp()
+			>= next_week)
 		{
 			// Or we created an event after the first event or within the next week
 			return;
@@ -1880,13 +1929,7 @@ mod tests {
 	fn test_generate_event_with_by_rule_result_before_incremented_event_instance() {
 		let events_facade = EventFacade {};
 
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, time::Month::May, 1)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
+		let max_date = DateTime::from_seconds(1747346400);
 
 		let events = events_facade.create_event_instances(
 			DateTime::from_seconds(1745485200), // 2025-04-24T09:00:00.000Z
@@ -2155,7 +2198,7 @@ mod tests {
 		let max_date = DateTime::from_seconds(
 			Date::from_calendar_date(2025, Month::March, 27)
 				.unwrap()
-				.midnight()
+				.with_time(Time::from_hms(14, 38, 0).unwrap())
 				.assume_utc()
 				.unix_timestamp() as u64,
 		);
