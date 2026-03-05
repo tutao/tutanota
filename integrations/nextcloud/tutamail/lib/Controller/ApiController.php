@@ -19,12 +19,12 @@ use RuntimeException;
 class ApiController extends OCSController
 {
 	private IClientService $clientService;
-	private string $TUTADB_SERVER_URL = 'http://hostname:9000';
+	private string $TUTADB_SERVER_URL = 'http://frm:9000';
 
 	public function __construct(
-		string         $appName,
-		IRequest       $request,
-		IClientService $clientService,
+			string         $appName,
+			IRequest       $request,
+			IClientService $clientService,
 	)
 	{
 		parent::__construct($appName, $request);
@@ -36,9 +36,9 @@ class ApiController extends OCSController
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(
-		verb: 'GET',
-		url: '/rest/{tutadbAppName}/{component}',
-		requirements: ['component' => '.+'],
+			verb: 'GET',
+			url: '/rest/{tutadbAppName}/{component}',
+			requirements: ['component' => '.+'],
 	)]
 	public function tutaDbGETServiceResourceRedirect(): DataDisplayResponse
 	{
@@ -50,9 +50,9 @@ class ApiController extends OCSController
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(
-		verb: 'POST',
-		url: '/rest/{tutadbAppName}/{component}',
-		requirements: ['component' => '.+'],
+			verb: 'POST',
+			url: '/rest/{tutadbAppName}/{component}',
+			requirements: ['component' => '.+'],
 	)]
 	public function tutaDbPOSTServiceRedirect(): DataDisplayResponse
 	{
@@ -64,9 +64,9 @@ class ApiController extends OCSController
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(
-		verb: 'DELETE',
-		url: '/rest/{tutadbAppName}/{component}',
-		requirements: ['component' => '.+'],
+			verb: 'DELETE',
+			url: '/rest/{tutadbAppName}/{component}',
+			requirements: ['component' => '.+'],
 	)]
 	public function tutaDbDELETERedirect(): DataDisplayResponse
 	{
@@ -78,9 +78,9 @@ class ApiController extends OCSController
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(
-		verb: 'PATCH',
-		url: '/rest/{tutadbAppName}/{component}',
-		requirements: ['component' => '.+'],
+			verb: 'PATCH',
+			url: '/rest/{tutadbAppName}/{component}',
+			requirements: ['component' => '.+'],
 	)]
 	public function tutaDbPATCHRedirect(): DataDisplayResponse
 	{
@@ -97,13 +97,8 @@ class ApiController extends OCSController
 
 		$tutab_path = $this->getRedirectedTutadbPath($request);
 		$options = $this->makeTutadbRequstOptions($request);
-		try {
-
-			$tutabResponse = $client->request($request->getMethod(), $tutab_path, $options);
-			return $this->wrapResponseFromTutadb($tutabResponse);
-		} catch (\Exception $e) {
-			return $this->wrapErrorFromTutadb($e);
-		}
+		$tutabResponse = $client->request($request->getMethod(), $tutab_path, $options);
+		return $this->wrapResponseFromTutadb($tutabResponse);
 
 	}
 
@@ -125,21 +120,11 @@ class ApiController extends OCSController
 	{
 		$response = new DataDisplayResponse();
 		return $response
-			->setData($tutabResponse->getBody())
-			->setHeaders($tutabResponse->getHeaders())
-			->addHeader('X-TutaIntegrationPlatform', 'Nextcloud::v1')
-			->setStatus($tutabResponse->getStatusCode());
+				->setData($tutabResponse->getBody())
+				->setHeaders($tutabResponse->getHeaders())
+				->addHeader('X-TutaIntegrationPlatform', 'Nextcloud::v1')
+				->setStatus($tutabResponse->getStatusCode());
 	}
-
-	public function wrapErrorFromTutadb(\Exception $e): DataDisplayResponse
-	{
-		$response = new DataDisplayResponse();
-		return $response
-			->setData($e->getMessage())
-			->addHeader('X-TutaIntegrationPlatform', 'Nextcloud::v1')
-			->setStatus(http_response_code());
-	}
-
 
 	/**
 	 * @param IRequest $request
@@ -165,8 +150,9 @@ class ApiController extends OCSController
 		}
 
 		$options = [
-			'headers' => $headers,
-			$body_target => $body
+				'headers' => $headers,
+				$body_target => $body,
+				'http_errors' => false
 		];
 		return $options;
 	}
