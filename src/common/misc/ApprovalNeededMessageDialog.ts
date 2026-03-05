@@ -36,7 +36,7 @@ export async function showApprovalNeededMessageDialog(): Promise<void> {
 		const { newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor")
 		try {
 			const editor = await newMailtoUrlMailEditor(
-				"mailto:approval@tutao.de?subject=" + lang.getTranslation("approvalMail_msg", { "{mailAddress}": mailAddress }),
+				"mailto:approval@tutao.de?subject=" + lang.getTranslation("approvalMail_msg", { "{mailAddress}": mailAddress }).text,
 				false,
 			)
 			editor?.show()
