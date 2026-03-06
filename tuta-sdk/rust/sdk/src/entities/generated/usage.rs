@@ -123,6 +123,8 @@ pub struct UsageTestAssignment {
 	pub variant: Option<i64>,
 	#[serde(rename = "61")]
 	pub sendPings: bool,
+	#[serde(rename = "110")]
+	pub variantName: Option<String>,
 	#[serde(rename = "62")]
 	pub stages: Vec<UsageTestStage>,
 }

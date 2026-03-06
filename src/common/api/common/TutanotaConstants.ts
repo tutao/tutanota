@@ -1374,6 +1374,7 @@ export enum UsageTestState {
 	Live = "1",
 	Paused = "2",
 	Finished = "3",
+	Finalized = "4",
 }
 
 export const UsageTestStateToName = reverse(UsageTestState)
