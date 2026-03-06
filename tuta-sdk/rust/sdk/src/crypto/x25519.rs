@@ -1,6 +1,6 @@
-use crate::util::{array_cast_slice, ArrayCastingError};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::ops::Deref;
+use util::array::{array_cast_slice, ArrayCastingError};
 use zeroize::*;
 
 const X25519_KEY_SIZE: usize = 32;

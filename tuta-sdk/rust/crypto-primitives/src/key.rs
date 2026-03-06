@@ -1,6 +1,6 @@
 use super::aes::*;
-use crate::utils::ArrayCastingError;
 use std::fmt::{Debug, Formatter};
+use util::array::ArrayCastingError;
 use zeroize::Zeroizing;
 
 #[derive(Clone, PartialEq, Eq, Hash)]

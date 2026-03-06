@@ -5,8 +5,8 @@ use crate::util::Versioned;
 use crate::ApiCallError;
 use crypto_primitives::aes::*;
 use crypto_primitives::key::*;
-use crypto_primitives::utils::ArrayCastingError;
 use std::fmt::{Debug, Formatter};
+use util::array::ArrayCastingError;
 
 #[derive(Clone, PartialEq)]
 #[allow(clippy::large_enum_variant)]
@@ -90,8 +90,6 @@ impl<T: KeyLoadErrorSubtype> From<T> for KeyLoadError {
 impl KeyLoadErrorSubtype for AesDecryptError {}
 
 impl KeyLoadErrorSubtype for ArrayCastingError {}
-
-impl KeyLoadErrorSubtype for crate::util::ArrayCastingError {}
 
 impl KeyLoadErrorSubtype for RSAKeyError {}
 

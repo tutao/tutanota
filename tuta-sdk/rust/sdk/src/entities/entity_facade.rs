@@ -6,7 +6,6 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelAssociation, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::util::array_cast_slice;
 use crate::{ApiCallError, TypeRef};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -17,6 +16,7 @@ use crypto_primitives::randomizer_facade::RandomizerFacade;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
 use std::sync::Arc;
+use util::array::array_cast_slice;
 
 /// The name of the field that contains the session key encrypted
 /// by the owner group's key in an entity

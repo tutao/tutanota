@@ -19,12 +19,13 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade_factory::UserFacadeFactory;
-use crate::util::{array_cast_slice, BASE64_EXT};
+use crate::util::BASE64_EXT;
 use crate::ApiCallError::InternalSdkError;
 use crate::CustomId;
 use crate::GeneratedId;
 use crate::{ApiCallError, IdTupleCustom};
 use crypto_primitives::key::GenericAesKey;
+use util::array::array_cast_slice;
 
 /// Error that may occur during login and session creation
 #[derive(Error, Debug, uniffi::Error, Clone, PartialEq)]

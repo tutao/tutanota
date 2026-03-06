@@ -25,8 +25,8 @@ use crypto_primitives::aes::{AesEncryptError, Iv};
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::key::KeyDecryptError;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
-use crypto_primitives::utils::ArrayCastingError;
 use std::sync::Arc;
+use util::array::ArrayCastingError;
 use zeroize::Zeroizing;
 
 fn get_sender_ecc_key(public_key: Versioned<PublicKey>) -> Option<X25519PublicKey> {

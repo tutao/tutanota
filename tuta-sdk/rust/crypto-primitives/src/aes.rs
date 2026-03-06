@@ -2,10 +2,8 @@
 
 use crate::blake3::MacError;
 use crate::hmac::HMAC_SHA256_SIZE;
-use crate::join_slices;
 use crate::key::GenericAesKey;
 use crate::randomizer_facade::RandomizerFacade;
-use crate::utils::{array_cast_size, array_cast_slice, ArrayCastingError};
 use aes::cipher::block_padding::Pkcs7;
 use aes::cipher::StreamCipher;
 use aes::cipher::{BlockCipher, BlockSizeUser};
@@ -14,6 +12,8 @@ use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, 
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use tsify::Tsify;
+use util::array::{array_cast_size, array_cast_slice, ArrayCastingError};
+use util::join_slices;
 use wasm_bindgen::prelude::wasm_bindgen;
 use zeroize::ZeroizeOnDrop;
 
@@ -55,7 +55,7 @@ pub enum EnforceMac {
 macro_rules! aes_key {
 	($name:tt, $type_name:literal, $size:expr, $aes_key_type:ty, $subkey_digest:ty) => {
 		#[derive(Clone, ZeroizeOnDrop, PartialEq, Eq, Hash, Tsify, Serialize, Deserialize)]
-		#[cfg_attr(any(test, feature="test_utils"), derive(Debug))] // only allow Debug in tests because this prints the key!
+		#[cfg_attr(any(test, feature = "test_utils"), derive(Debug))] // only allow Debug in tests because this prints the key!
 		#[tsify(into_wasm_abi, from_wasm_abi)]
 		pub struct $name([u8; $size]);
 

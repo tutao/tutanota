@@ -22,7 +22,7 @@ use crate::metamodel::TypeModel;
 use crate::tutanota_constants::{CryptoProtocolVersion, EncryptionAuthStatus, PermissionType};
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::{convert_version_to_u64, ArrayCastingError};
+use crate::util::convert_version_to_u64;
 use crate::IdTupleGenerated;
 use crate::{GeneratedId, ListLoadDirection};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
@@ -32,6 +32,7 @@ use crypto_primitives::key::{GenericAesKey, KeyDecryptError};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use num_enum::TryFromPrimitive;
 use std::sync::Arc;
+use util::array::ArrayCastingError;
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
@@ -479,7 +480,7 @@ impl SessionKeyResolutionErrorSubtype for AsymmetricCryptoError {}
 
 #[must_use]
 pub fn create_auth_verifier(user_passphrase_key: Aes256Key) -> String {
-	let sha_user_passphrase = crate::crypto::sha::sha256(user_passphrase_key.as_bytes());
+	let sha_user_passphrase = crypto_primitives::sha::sha256(user_passphrase_key.as_bytes());
 	BASE64_URL_SAFE_NO_PAD.encode(sha_user_passphrase)
 }
 

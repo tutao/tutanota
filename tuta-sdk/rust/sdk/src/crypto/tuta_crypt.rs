@@ -5,12 +5,12 @@ use crate::crypto::kyber::{
 use crate::crypto::x25519::{
 	x25519_decapsulate, x25519_encapsulate, X25519KeyPair, X25519PublicKey, X25519SharedSecrets,
 };
-use crate::join_slices;
-use crate::util::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
 use crypto_primitives::aes::{
 	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError, Iv, PaddingMode,
 };
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use util::array::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
+use util::join_slices;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 
 #[cfg_attr(test, derive(Debug))]
@@ -104,11 +104,9 @@ impl TutaCryptMessage {
 		Ok(DecapsulatedSymKey {
 			// TODO move ArrayCastingError to crypto_primitives
 			decrypted_sym_key_bytes: Aes256Key::try_from(bucket_key.data).map_err(
-				|array_casting_error: crypto_primitives::utils::ArrayCastingError| {
-					ArrayCastingError {
-						type_name: array_casting_error.type_name,
-						actual_size: array_casting_error.actual_size,
-					}
+				|array_casting_error: util::array::ArrayCastingError| ArrayCastingError {
+					type_name: array_casting_error.type_name,
+					actual_size: array_casting_error.actual_size,
 				},
 			)?,
 			sender_identity_pub_key: self.sender_identity_public_key.clone(),

@@ -8,7 +8,7 @@ pub mod ed25519;
 pub mod hmac;
 pub mod key;
 pub mod randomizer_facade;
-mod sha;
+pub mod sha;
 #[cfg(test)]
 mod test_utils;
 
