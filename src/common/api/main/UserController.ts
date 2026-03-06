@@ -63,7 +63,7 @@ export class UserController {
 		public readonly loginUsername: string,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private customer: Customer,
+		private customer: Customer | null,
 	) {
 		this.planConfig = null
 	}
@@ -116,7 +116,11 @@ export class UserController {
 		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { cacheMode })
 	}
 
-	getCustomer(): Customer {
+	/**
+	 * External users are not allowed to load customer
+	 * @returns {Customer} if the user is internal, otherwise null
+	 */
+	getCustomer(): Customer | null {
 		return this.customer
 	}
 
@@ -408,7 +412,8 @@ export async function initUserController({
 					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
 			),
 		),
-		entityClient.load(CustomerTypeRef, assertNotNull(user.customer)),
+		// External users is not allowed to load Customer
+		isInternalUser(user) ? entityClient.load(CustomerTypeRef, assertNotNull(user.customer)) : null,
 	])
 	return new UserController(
 		user,
