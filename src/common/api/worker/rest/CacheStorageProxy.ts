@@ -44,12 +44,15 @@ export type SomeStorage = OfflineStorage | EphemeralCacheStorage
  */
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
-
 	constructor(
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly ephemeralStorageProvider: () => Promise<EphemeralCacheStorage>,
 		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
 	) {}
+
+	isInitialized(): boolean {
+		return this._inner?.isInitialized() ?? false
+	}
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<ServerModelParsedInstance | null> {
 		return await this.inner.getParsed(typeRef, listId, id)
@@ -83,7 +86,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	async initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn> {
 		// We might call this multiple times.
-		// This happens when persistent credentials login fails and we need to start with new cache for new login.
+		// This happens when persistent credentials login fails, and we need to start with new cache for new login.
 		const { storage, isPersistent, isNewOfflineDb } = await this.getStorage(args)
 		this._inner = storage
 		return {

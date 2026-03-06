@@ -830,18 +830,24 @@ export class LoginFacade {
 	 */
 	private async initCache({ userId, databaseKey, timeRangeDate, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			return {
+			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize({
+				type: "offline",
+				userId,
 				databaseKey,
-				...(await this.cacheInitializer.initialize({
-					type: "offline",
-					userId,
-					databaseKey,
-					timeRangeDate,
-					forceNewDatabase,
-				})),
+				timeRangeDate,
+				forceNewDatabase,
+			})
+			return {
+				isPersistent,
+				isNewOfflineDb,
+				databaseKey,
 			}
 		} else {
-			return { databaseKey: null, ...(await this.cacheInitializer.initialize({ type: "ephemeral", userId })) }
+			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize({
+				type: "ephemeral",
+				userId,
+			})
+			return { isPersistent, isNewOfflineDb, databaseKey: null }
 		}
 	}
 

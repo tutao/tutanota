@@ -2248,5 +2248,6 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"contactDeletionMoveToSpam_msg": "Du hast eine E-Mail von einem deiner Kontakte in den Spamordner verschoben.\nMails von Kontakte werden nie als Spam eingestuft.\nMöchtest du den/die ausgewählten Kontakt(e) löschen?",
 		"contactDeletionMoveToSpam_title": "Kontakt(e) löschen?",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Der Nutzer wurde bereits in alle verfügbaren Gruppen hinzugefügt.\nMöchtest du eine neue Geteilte Mailbox Gruppe erstellen und den Nutzer zu dieser neuen Gruppe hinzufügen?"
 	}
 }

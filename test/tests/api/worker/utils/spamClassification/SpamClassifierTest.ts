@@ -373,7 +373,7 @@ Hello TSPECIALCHAR  these are my MAC Address
 \t\t\t\t§
 \t\t\t\tNumber Sequences TSPECIALCHAR
 \t\t\t\t TNUMBER
-\t\t\t\tIBAN TSPECIALCHAR  DE91  TCREDITCARD  TNUMBER
+\t\t\t\tIBAN TSPECIALCHAR  DE91  TCREDITCARD   TNUMBER
 \t\t\t\tNot Number Sequences
 \t\t\t\tSHLT116
 \t\t\t\tgb TSPECIALCHAR 67ca4b
