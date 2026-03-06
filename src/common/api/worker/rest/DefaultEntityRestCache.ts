@@ -265,6 +265,8 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>
+
+	isInitialized(): boolean
 }
 
 /**
@@ -947,6 +949,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * @return true if the cache can be used, false if a direct network request should be performed
 	 */
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
+		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
+		// but still want to be able to use the client and do a login, etc.
+		if (!this.storage.isInitialized()) {
+			return false
+		}
+
 		// some types won't be cached
 		if (isIgnoredType(typeRef)) {
 			return false
