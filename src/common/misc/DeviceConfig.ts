@@ -57,6 +57,8 @@ interface ConfigObject {
 	offlineTimeRangeDateByUser: Record<Id, number>
 	conversationViewShowOnlySelectedMail: boolean
 	mailListDisplayMode: MailListDisplayMode
+	/** Allow the user to hide the right pane */
+	mailNoPreviewMode: boolean
 	/** Stores each users' definition about contact synchronization */
 	syncContactsWithPhonePreference: Record<Id, boolean>
 	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
@@ -146,6 +148,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			offlineTimeRangeDateByUser: loadedConfig.offlineTimeRangeDateByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
 			mailListDisplayMode: loadedConfig.mailListDisplayMode ?? MailListDisplayMode.CONVERSATIONS,
+			mailNoPreviewMode: loadedConfig.mailNoPreviewMode ?? false,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
@@ -432,6 +435,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	setMailListDisplayMode(setting: MailListDisplayMode) {
 		this.config.mailListDisplayMode = setting
+		this.writeToStorage()
+	}
+
+	getMailNoPreviewMode(): boolean {
+		return this.config.mailNoPreviewMode
+	}
+
+	setMailNoPreviewMode(setting: boolean) {
+		this.config.mailNoPreviewMode = setting
 		this.writeToStorage()
 	}
 

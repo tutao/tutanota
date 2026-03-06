@@ -445,7 +445,20 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
 		return m(BackgroundColumnLayout, {
 			backgroundColor: theme.surface_container,
-			desktopToolbar: () => m(DesktopViewerToolbar, this.mailViewerSingleActions(viewModel)),
+			desktopToolbar: () =>
+				m(
+					DesktopViewerToolbar,
+					{
+						leftContent: deviceConfig.getMailNoPreviewMode()
+							? m(IconButton, {
+									title: "back_action",
+									click: () => this.viewSlider.focusPreviousColumn(),
+									icon: Icons.ArrowBackward,
+								})
+							: null,
+					},
+					this.mailViewerSingleActions(viewModel),
+				),
 			mobileHeader: () =>
 				m(MobileHeader, {
 					...header,
@@ -563,6 +576,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	view({ attrs }: Vnode<MailViewAttrs>): Children {
+		const exclusive = deviceConfig.getMailNoPreviewMode()
+		// In no-preview mode, list and mail are mutually exclusive: only the focused one is shown
+		// alongside the folder sidebar. Marking both as exclusive prevents the layout algorithm
+		// from showing them side by side, and triggers an in-place DOM swap when switching.
+		if (this.mailColumn.exclusive !== exclusive) {
+			this.mailColumn.exclusive = exclusive
+			this.listColumn.exclusive = exclusive
+			this.viewSlider.updateVisibleBackgroundColumns()
+		}
 		return m(
 			"#mail.main-view",
 			{

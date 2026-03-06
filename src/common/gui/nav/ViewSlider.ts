@@ -42,6 +42,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	focusedColumn: ViewColumn
 	private visibleBackgroundColumns: ViewColumn[]
 	private domSlidingPart!: HTMLElement
+	private totalWidth = 0
 	view: Component<ViewSliderAttrs>["view"]
 	private busy: Promise<unknown>
 	private isModalBackgroundVisible: boolean
@@ -163,7 +164,18 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private getColumnsForMainSlider(): Array<ViewColumn> {
-		return this.viewColumns.filter((c) => c.columnType === ColumnType.Background || c.isVisible)
+		// In multi-column exclusive mode (no-preview), only one of the exclusive columns (list or
+		// mail) is active at a time. The inactive one is excluded from the DOM so that switching
+		// between them is an in-place mithril swap with no slide animation.
+		// In single-column mode (mobile) all columns stay in the DOM to allow slide animations.
+		const isMultiColumn = this.visibleBackgroundColumns.length > 1
+		const hasVisibleExclusive = this.viewColumns.some((column) => column.exclusive && column.isVisible)
+		return this.viewColumns.filter((column) => {
+			if (column.columnType === ColumnType.Background) {
+				return !(isMultiColumn && hasVisibleExclusive && column.exclusive && !column.isVisible)
+			}
+			return column.isVisible
+		})
 	}
 
 	private getColumnsForOverlay(): Array<ViewColumn> {
@@ -193,7 +205,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		}
 	}
 
-	private updateVisibleBackgroundColumns() {
+	updateVisibleBackgroundColumns() {
 		// In case the first column (folder / sidebar / (calendar app settings categories) column should be rendered
 		// as a Background column instead of, as by default, as a Foreground column,
 		// we update the columnType on every redraw (orientation change, resize, etc.)
@@ -251,15 +263,15 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 * @param allColumns All columns*
 	 */
 	getNextVisibleColumn(visibleColumns: ViewColumn[], allColumns: ViewColumn[]): ViewColumn | null {
-		// First: try to find a background column which is not visible
+		// First: try to find a non-exclusive background column which is not yet visible
 		let nextColumn = allColumns.find((column) => {
-			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
+			return column.columnType === ColumnType.Background && !column.exclusive && visibleColumns.indexOf(column) < 0
 		})
 
 		if (!nextColumn) {
 			// Second: if no more background columns are available add the foreground column to the visible columns
 			nextColumn = allColumns.find((column) => {
-				return column.columnType === ColumnType.Foreground && visibleColumns.indexOf(column) < 0
+				return column.columnType === ColumnType.Foreground && !column.exclusive && visibleColumns.indexOf(column) < 0
 			})
 		}
 
@@ -324,6 +336,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			await this.busy
 			if (this.focusedColumn === viewColumn) return
 			// hide the foreground column if the column is in foreground
+			const previousColumnWasExclusive = this.focusedColumn.exclusive
 			if (this.focusedColumn.isInForeground) {
 				this.busy = this.slideForegroundColumn(this.focusedColumn, false)
 				await this.busy
@@ -342,6 +355,12 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			}
 
 			await this.busy
+
+			// In exclusive mode, a multi-column layout switch doesn't trigger a slide
+			// animation, so we force a layout recalculation here to add/remove the active column.
+			if (viewColumn.exclusive || previousColumnWasExclusive) {
+				this.updateVisibleBackgroundColumns()
+			}
 		} finally {
 			// for updating header bar after animation
 			m.redraw()
@@ -394,19 +413,28 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	updateOffsets() {
+		// In multi-column exclusive mode (no-preview), the inactive exclusive column (list or mail)
+		// is removed from the DOM entirely, so we must not allocate any offset space for it.
+		// We track the total width explicitly so getWidth() doesn't read a stale value from the
+		// last column, which may be the excluded one.
+		const isMultiColumn = this.viewColumns.filter((column) => column.isVisible).length > 1
+		const hasVisibleExclusive = this.viewColumns.some((column) => column.exclusive && column.isVisible)
 		let offset = 0
 
 		for (let column of this.viewColumns) {
 			if (column.columnType === ColumnType.Background || column.isVisible) {
-				column.offset = offset
-				offset += column.width
+				const excluded = isMultiColumn && hasVisibleExclusive && column.exclusive && !column.isVisible
+				if (!excluded) {
+					column.offset = offset
+					offset += column.width
+				}
 			}
 		}
+		this.totalWidth = offset
 	}
 
 	getWidth(): number {
-		let lastColumn = this.viewColumns[this.viewColumns.length - 1]
-		return lastColumn.offset + lastColumn.width
+		return this.totalWidth
 	}
 
 	getOffset(column: ViewColumn): number {
@@ -438,9 +466,13 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	getPreviousColumn(): ViewColumn | null {
-		if (this.viewColumns.indexOf(this.visibleBackgroundColumns[0]) > 0 && !this.focusedColumn.isInForeground) {
-			let visibleColumnIndex = this.viewColumns.indexOf(this.visibleBackgroundColumns[0])
-			return this.viewColumns[visibleColumnIndex - 1]
+		// In exclusive mode the focused column replaces others at the same position, so we
+		// navigate relative to it rather than relative to the first visible background column
+		// (which would always be folderColumn, making "back" impossible from the reader).
+		const referenceColumn = this.focusedColumn.exclusive ? this.focusedColumn : this.visibleBackgroundColumns[0]
+		if (this.viewColumns.indexOf(referenceColumn) > 0 && !this.focusedColumn.isInForeground) {
+			let columnIndex = this.viewColumns.indexOf(referenceColumn)
+			return this.viewColumns[columnIndex - 1]
 		}
 
 		return null
