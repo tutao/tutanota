@@ -19,7 +19,7 @@ import { renderSidebarFolders } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { Keys, OperationStatus } from "../../../common/api/common/TutanotaConstants"
+import { HighestTierPlans, Keys, OperationStatus } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
@@ -38,6 +38,8 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { MoveItems } from "./DriveMoveItemDialog"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
+import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
+import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -125,7 +127,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		super()
 
 		this.driveViewModel = vnode.attrs.driveViewModel
-		this.driveViewModel.init()
+		this.init()
 		const onTrash = (itemIds: FolderItemId[]) => {
 			this.driveViewModel.moveToTrash(itemIds)
 		}
@@ -223,6 +225,23 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		]
 	}
 
+	private async init() {
+		await this.driveViewModel.init()
+		if (!(await this.driveViewModel.currentPlanSupportsDrive())) {
+			// wait for the upgrade dialog
+			await showUpgradeWizardOrSwitchSubscriptionDialog(this.driveViewModel.loginController.getUserController(), HighestTierPlans)
+			// it could be that we are doing the check too soon but generally it should work
+			if (!(await this.driveViewModel.currentPlanSupportsDrive())) {
+				// if the upgrade didn't happen still bounce back to mail
+				m.route.set(MAIL_PREFIX)
+			} else {
+				// otherwise re-initialize
+				await this.driveViewModel.init()
+				this.driveViewModel.navigateToRootFolder()
+			}
+		}
+	}
+
 	private async onPaste() {
 		await this.driveViewModel.paste()
 	}
@@ -261,13 +280,15 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								},
 							},
 							content: [
-								renderSidebarFolders(
-									{ rootFolderId: this.driveViewModel.roots.root, trashFolderId: this.driveViewModel.roots.trash },
-									this.driveViewModel.userMailAddress,
-									onTrash,
-									onMove,
-									this.driveViewModel.currentFolder?.folder.type !== DriveFolderType.Trash,
-								),
+								this.driveViewModel.roots
+									? renderSidebarFolders(
+											{ rootFolderId: this.driveViewModel.roots.root, trashFolderId: this.driveViewModel.roots.trash },
+											this.driveViewModel.userMailAddress,
+											onTrash,
+											onMove,
+											this.driveViewModel.currentFolder?.folder.type !== DriveFolderType.Trash,
+										)
+									: null,
 								m(".flex-grow"),
 								this.renderStorage(),
 							],

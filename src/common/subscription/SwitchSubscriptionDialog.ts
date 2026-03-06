@@ -388,6 +388,10 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 				detailMsg = lang.getTranslationText("removeScheduledMails_msg")
 				break
 
+			case UnsubscribeFailureReason.DRIVE_NOT_EMPTY:
+				detailMsg = lang.getTranslationText("driveNotEmpty_msg")
+				break
+
 			default:
 				throw e
 		}

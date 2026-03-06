@@ -2229,5 +2229,6 @@ export default {
 		"deleteItemsSuccess_msg" :"Deleted {count} item(s)",
 		"folderContent_label": "Content",
 		"createNewFolderIn_label": "Create a new folder in {folderName}",
+		"driveNotEmpty_msg": "There are still files or folders left in your Drive. Please remove them first."
 	}
 }

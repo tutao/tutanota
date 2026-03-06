@@ -14,7 +14,7 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../src/common/api/entities/drive/TypeRefs"
 import { UserController } from "../../../src/common/api/main/UserController"
 import { TutanotaPropertiesTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
-import { GroupInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
+import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 import { elementIdPart, getElementId } from "../../../src/common/api/common/utils/EntityUtils"
 import { FolderItemId } from "../../../src/drive-app/drive/view/DriveUtils"
 import { DriveTransferController } from "../../../src/drive-app/drive/view/DriveTransferController"
@@ -79,6 +79,7 @@ o.spec("DriveViewModel", function () {
 		userController = {
 			props,
 			userGroupInfo: userGroupInfo,
+			getPlanConfig: async () => createTestEntity(PlanConfigurationTypeRef, { drive: true }),
 		} satisfies Partial<UserController> as UserController
 		userManagementFacade = object()
 

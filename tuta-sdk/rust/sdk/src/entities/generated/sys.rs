@@ -4935,6 +4935,8 @@ pub struct PlanConfiguration {
 	pub maxLabels: i64,
 	#[serde(rename = "2662")]
 	pub scheduledMails: bool,
+	#[serde(rename = "2680")]
+	pub drive: bool,
 }
 
 impl Entity for PlanConfiguration {

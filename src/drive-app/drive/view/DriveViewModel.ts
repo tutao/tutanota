@@ -4,7 +4,7 @@ import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { handleRestError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { assertNotNull, debounceStart, filterInt, lazyMemoized, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, filterInt, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -144,7 +144,7 @@ export class DriveViewModel {
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
 	parents: readonly DriveFolder[] = []
-	roots!: DriveRootFolders
+	roots: DriveRootFolders | null = null
 
 	private _clipboard: DriveClipboard | null = null
 
@@ -165,7 +165,7 @@ export class DriveViewModel {
 		private readonly router: Router,
 		public readonly uploadProgressListener: TransferProgressDispatcher,
 		private readonly eventController: EventController,
-		private readonly loginController: LoginController,
+		public readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly transferController: DriveTransferController,
 		public readonly updateUi: () => unknown,
@@ -173,11 +173,22 @@ export class DriveViewModel {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 	}
 
-	readonly init = lazyMemoized(async () => {
+	readonly init = async () => {
+		// if the roots have already been loaded the init must have been finished
+		if (this.roots) {
+			return
+		}
+
+		// do not finish init if the plan does not support it
+		if (await this.currentPlanSupportsDrive()) {
+			this.roots = await this.driveFacade.loadRootFolders()
+		} else {
+			return
+		}
+
 		this.eventController.addEntityListener(async (events) => {
 			await this.entityEventsReceived(events)
 		})
-		this.roots = await this.driveFacade.loadRootFolders()
 
 		this.uploadProgressListener.addUploadListener((info: ChunkedUploadInfo) => {
 			this.transferController.onChunkUploaded(info.fileId, info.uploadedBytes)
@@ -212,7 +223,11 @@ export class DriveViewModel {
 		})
 
 		this.refreshStorage()
-	})
+	}
+
+	public async currentPlanSupportsDrive(): Promise<boolean> {
+		return (await this.loginController.getUserController().getPlanConfig()).drive
+	}
 
 	isDriveEnabledForCustomer(): boolean {
 		return isDriveEnabled(this.loginController)
@@ -499,6 +514,10 @@ export class DriveViewModel {
 	}
 
 	async uploadFiles(files: File[]): Promise<void> {
+		if (this.roots == null) {
+			console.log("drive is not initialized")
+			return
+		}
 		const targetFolderId: IdTuple =
 			this.currentFolder == null || this.currentFolder.type === DriveFolderType.Trash ? this.roots?.root : this.currentFolder.folder._id
 
@@ -527,8 +546,10 @@ export class DriveViewModel {
 		})
 	}
 
-	async navigateToRootFolder(): Promise<void> {
-		this.navigateToFolder(this.roots.root)
+	navigateToRootFolder() {
+		if (this.roots) {
+			this.navigateToFolder(this.roots.root)
+		}
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {

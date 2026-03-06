@@ -11848,6 +11848,14 @@ export const typeModels = {
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2680": {
+				"final": false,
+				"name": "drive",
+				"id": 2680,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {}
