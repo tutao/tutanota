@@ -2258,3 +2258,4 @@ export type TranslationKeyType =
 	| "deleteItemsSuccess_msg"
 	| "folderContent_label"
 	| "createNewFolderIn_label"
+	| "driveNotEmpty_msg"
