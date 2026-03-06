@@ -29,13 +29,9 @@ This is the official Tuta Mail plugin for nextcloud.
 2. Clone this repo into *nextcloud-docker-dev/workspace/server/apps-extra/* and name it `tutamail`
 
 ```bash
-git clone git@gitlab:tuta/nextcloud-plugins.git nextcloud-docker-dev/workspace/server/apps-extra/tutamail
-```
-
-3. Make sure that the tuta monorepo is linked as a submodule `git submodule update`
-4. Run `npm ci` from *apps-extra/tutamail*
-5. Run `npm ci` from *apps-extra/tutamail/tuta*
-6. Follow instruction
+1. Run `npm ci` from *apps-extra/tutamail*
+2. Run `npm ci` from *apps-extra/tutamail/tuta*
+3. Follow instruction
    from [tutanota client project](https://github.com/tutao/tutanota/blob/master/doc/BUILDING.md#build-steps)
    on how to build the client but pass the flag `--integrate-nextcloud`. Example:
 
