@@ -1,4 +1,4 @@
-package de.tutao.calendar.widget.component
+package de.tutao.calendar.widget.component.eventCard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -27,7 +27,7 @@ fun DayWithWeekday(dateModifier: GlanceModifier, day: String, weekday: String) {
 			Text(
 				style = TextStyle(
 					fontWeight = FontWeight.Bold,
-					fontSize = 22.sp,
+					fontSize = 20.sp,
 					color = GlanceTheme.colors.secondary
 
 				),

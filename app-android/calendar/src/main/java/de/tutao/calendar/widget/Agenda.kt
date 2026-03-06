@@ -1,6 +1,7 @@
 package de.tutao.calendar.widget
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,6 +13,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -29,7 +31,9 @@ import androidx.glance.layout.padding
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
+import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
+import de.tutao.calendar.widget.component.EmptyBody
 import de.tutao.calendar.widget.component.ErrorBody
 import de.tutao.calendar.widget.component.LoadingSpinner
 import de.tutao.calendar.widget.component.ScrollableDaysList
@@ -51,13 +55,16 @@ import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.remote.RemoteStorage
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
+
 
 const val TAG = "AgendaWidget"
 
@@ -75,7 +82,6 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-
 		Log.d(TAG, "provideGlance called")
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
@@ -115,7 +121,6 @@ class Agenda : GlanceAppWidget() {
 				WidgetBody(
 					data,
 					userId,
-					todayHeaderOnTapAction = openCalendarAgenda(context, userId),
 				)
 			}
 		}
@@ -154,8 +159,30 @@ class Agenda : GlanceAppWidget() {
 		return Pair(widgetUIViewModel, userId)
 	}
 
+	private fun openCalendarEditor(context: Context, userId: String? = ""): Action {
+		val openCalendarEventEditor = Intent(context, MainActivity::class.java)
+		openCalendarEventEditor.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		openCalendarEventEditor.action = MainActivity.OPEN_CALENDAR_ACTION
+		openCalendarEventEditor.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+		openCalendarEventEditor.putExtra(
+			MainActivity.OPEN_CALENDAR_IN_APP_ACTION_KEY,
+			CalendarOpenAction.EVENT_EDITOR.value
+		)
+		openCalendarEventEditor.putExtra(
+			MainActivity.OPEN_CALENDAR_DATE_KEY,
+			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+		)
+
+		return actionStartActivity(openCalendarEventEditor)
+	}
+
 	@Composable
-	fun WidgetBody(data: WidgetUIData?, userId: String?, todayHeaderOnTapAction: Action) {
+	fun WidgetBody(data: WidgetUIData?, userId: String?) {
+		val hasAllDayEvents = data?.allDayEvents?.values?.any { it.isNotEmpty() } ?: false
+		val hasNormalEvents = data?.normalEvents?.values?.any { it.isNotEmpty() } ?: false
+
+		val onNewEvent = openCalendarEditor(LocalContext.current, userId)
+
 		Column(
 			modifier = GlanceModifier.padding(
 				top = Dimensions.Spacing.LG.dp,
@@ -164,10 +191,17 @@ class Agenda : GlanceAppWidget() {
 				bottom = 0.dp
 			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
 		) {
-			if (data == null) { //
-				return@Column LoadingSpinner()
+			if (data == null) {
+				LoadingSpinner()
+			} else if (!hasAllDayEvents && !hasNormalEvents) { // unique rendering case for totally empty widget
+				EmptyBody(onNewEvent, userId)
+			} else { // normal rendering case
+				ScrollableDaysList(
+					data,
+					onNewEvent = onNewEvent,
+					userId
+				)
 			}
-			ScrollableDaysList(data, todayHeaderOnTapAction, userId)
 		}
 	}
 
@@ -220,7 +254,6 @@ class Agenda : GlanceAppWidget() {
 					normalEvents = normalEventData,
 				),
 				"",
-				todayHeaderOnTapAction = actionRunCallback<ActionCallback>(),
 			)
 		}
 	}
@@ -289,7 +322,8 @@ class Agenda : GlanceAppWidget() {
 				"00:00",
 				isAllDay = true,
 				startTimestamp = startOfTomorrow
-			), UIEvent(
+			),
+			UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -314,7 +348,8 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			), UIEvent(
+			),
+			UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -333,7 +368,6 @@ class Agenda : GlanceAppWidget() {
 					normalEvents = normalEventData,
 				),
 				"",
-				todayHeaderOnTapAction = actionRunCallback<ActionCallback>(),
 			)
 		}
 	}
@@ -373,7 +407,8 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = tomorrow.toEpochMilli()
-			), UIEvent(
+			),
+			UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -398,7 +433,8 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			), UIEvent(
+			),
+			UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -417,7 +453,6 @@ class Agenda : GlanceAppWidget() {
 					normalEvents = normalEventData,
 				),
 				"",
-				todayHeaderOnTapAction = actionRunCallback<ActionCallback>(),
 			)
 		}
 	}
@@ -447,7 +482,8 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = tomorrow.toEpochMilli()
-			), UIEvent(
+			),
+			UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -472,7 +508,8 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			), UIEvent(
+			),
+			UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -491,7 +528,6 @@ class Agenda : GlanceAppWidget() {
 					normalEvents = normalEventData,
 				),
 				"",
-				todayHeaderOnTapAction = actionRunCallback<ActionCallback>(),
 			)
 		}
 	}
@@ -514,7 +550,6 @@ class Agenda : GlanceAppWidget() {
 					normalEvents = normalEventData,
 				),
 				"",
-				todayHeaderOnTapAction = actionRunCallback<ActionCallback>(),
 			)
 		}
 	}
