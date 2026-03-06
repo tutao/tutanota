@@ -2,11 +2,11 @@
 //! Contains implementations of cryptographic algorithms and their primitives
 // TODO: Remove the above allowance when starting to implement higher level functions
 
+pub use argon2_id::generate_key_from_passphrase;
 #[allow(unused_imports)]
 pub use crypto_primitives::aes::Aes128Key;
 #[allow(unused_imports)]
 pub use crypto_primitives::aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
-pub use argon2_id::generate_key_from_passphrase;
 pub use hkdf::hkdf;
 pub use sha::sha256;
 #[allow(unused_imports)]

@@ -243,9 +243,9 @@ mod tests {
 		serialize_new_blobs_in_binary_chunks, BinaryBlobWrapperSerializationError, BlobWrapper,
 		KeyedNewBlobWrapper, NewBlobWrapper, MAX_NUMBER_OF_BLOBS_IN_BINARY,
 	};
-	use crypto_primitives::key::GenericAesKey;
 	use crate::tutanota_constants::MAX_BLOB_SERVICE_BYTES;
 	use crate::GeneratedId;
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 

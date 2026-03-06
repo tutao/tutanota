@@ -1,10 +1,10 @@
 use crate::importer::importable_mail::{ImportableMailAttachment, ImportableMailWithPath};
+use crypto_primitives::aes;
+use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::iter::Peekable;
 use std::path::PathBuf;
-use crypto_primitives::aes;
-use crypto_primitives::key::{GenericAesKey};
-use tutasdk::crypto::key::{VersionedAesKey};
+use tutasdk::crypto::key::VersionedAesKey;
 
 use tutasdk::entities::generated::tutanota::ImportMailData;
 

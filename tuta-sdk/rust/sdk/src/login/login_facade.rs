@@ -4,7 +4,6 @@ use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::{DecodeError, Engine};
 use thiserror::Error;
 
-use crypto_primitives::key::GenericAesKey;
 use crate::crypto::{generate_key_from_passphrase, sha256, Aes256Key};
 use crate::element_value::ParsedEntity;
 use crate::entities::generated::sys::{Session, User};
@@ -25,6 +24,7 @@ use crate::ApiCallError::InternalSdkError;
 use crate::CustomId;
 use crate::GeneratedId;
 use crate::{ApiCallError, IdTupleCustom};
+use crypto_primitives::key::GenericAesKey;
 
 /// Error that may occur during login and session creation
 #[derive(Error, Debug, uniffi::Error, Clone, PartialEq)]
@@ -218,8 +218,6 @@ mod tests {
 
 	use mockall::predicate::eq;
 
-	use crypto_primitives::key::GenericAesKey;
-	use crypto_primitives::aes::{Iv, Aes128Key, Aes256Key};
 	use crate::entities::generated::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
 	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;
@@ -234,6 +232,8 @@ mod tests {
 	use crate::CustomId;
 	use crate::GeneratedId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
+	use crypto_primitives::aes::{Aes128Key, Aes256Key, Iv};
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 	#[tokio::test]

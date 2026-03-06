@@ -19,10 +19,8 @@ use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::VersionedAesKey;
-use crypto_primitives::key::GenericAesKey;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::public_key_provider::PublicKeyProvider;
-use crypto_primitives::aes::{Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::date::date_provider::SystemDateProvider;
@@ -53,6 +51,8 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 use bindings::file_client::FileClient;
 use bindings::rest_client::{RestClient, RestClientError};
+use crypto_primitives::aes::{Aes256Key, Iv};
+use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 pub mod contacts;

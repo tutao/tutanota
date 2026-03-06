@@ -1,5 +1,4 @@
 use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError, VersionedAesKey};
-use crypto_primitives::key::GenericAesKey;
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::generated::sys::{Group, GroupKey, KeyPair};
 #[cfg_attr(test, mockall_double::double)]
@@ -13,6 +12,7 @@ use crate::CustomId;
 use crate::GeneratedId;
 use crate::IdTupleCustom;
 use crate::ListLoadDirection;
+use crypto_primitives::key::GenericAesKey;
 use futures::future::BoxFuture;
 use std::cmp::Ordering;
 use std::sync::Arc;
@@ -402,7 +402,6 @@ struct FormerGroupKey {
 mod tests {
 	use super::*;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crypto_primitives::aes::Iv;
 	use crate::crypto::TutaCryptKeyPairs;
 	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership};
 	use crate::key_cache::MockKeyCache;
@@ -415,6 +414,7 @@ mod tests {
 	use crate::util::{convert_version_to_i64, get_vec_reversed};
 	use crate::CustomId;
 	use crate::IdTupleGenerated;
+	use crypto_primitives::aes::Iv;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate;

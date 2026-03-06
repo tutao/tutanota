@@ -1,12 +1,12 @@
-use crypto_primitives::aes::*;
-use crypto_primitives::key::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
 use crate::crypto::X25519PublicKey;
 use crate::util::Versioned;
 use crate::ApiCallError;
-use std::fmt::{Debug, Formatter};
+use crypto_primitives::aes::*;
+use crypto_primitives::key::*;
 use crypto_primitives::utils::ArrayCastingError;
+use std::fmt::{Debug, Formatter};
 
 #[derive(Clone, PartialEq)]
 #[allow(clippy::large_enum_variant)]

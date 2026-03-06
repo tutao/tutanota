@@ -13,17 +13,10 @@ use crypto_primitives::aes::{
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 
+#[cfg_attr(test, derive(Debug))]
 pub struct DecapsulatedSymKey {
 	pub sender_identity_pub_key: X25519PublicKey,
 	pub decrypted_sym_key_bytes: Aes256Key,
-}
-
-// We want this to be testing only as this will print the literal key
-#[cfg(test)]
-impl std::fmt::Debug for DecapsulatedSymKey {
-	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-		f.write_fmt(format_args!("DecapsulatedSymKey {{ sender_identity_pub_key: {:?}, decrypted_sym_key_bytes: {:?}}}", self.sender_identity_pub_key, self.decrypted_sym_key_bytes.as_bytes()))
-	}
 }
 
 #[cfg_attr(test, derive(Debug, Clone, PartialEq))]

@@ -1,8 +1,8 @@
+use crate::blake3::MacError;
 use crate::key::GenericAesKey;
 use hmac::digest::core_api::CoreWrapper;
 use hmac::{HmacCore, Mac};
 use sha2::Sha256;
-use crate::blake3::MacError;
 
 /// Size of HMAC authentication added to the ciphertext
 pub const HMAC_SHA256_SIZE: usize = 32;
