@@ -669,7 +669,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)
 						: () => viewModel.downloadAndOpenAttachment(attachment, true),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
-				nextcloud: isNextCloudPlugin() ? () => viewModel.saveToNextcloud() : null,
+				nextcloud: isNextCloudPlugin() ? () => viewModel.saveToNextcloud(attachment) : null,
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})

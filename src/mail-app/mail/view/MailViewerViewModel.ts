@@ -93,7 +93,9 @@ import { isBrowser } from "../../../common/api/common/Env"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { getFilePickerBuilder } from "@nextcloud/dialogs"
+import { default as ncAxios } from "@nextcloud/axios"
+import da from "../../translations/da"
+import { generateRemoteUrl } from "@nextcloud/router"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1279,10 +1281,26 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async saveToNextcloud() {
-		// const client
-		const filePicker = getFilePickerBuilder("Cool file dialog").build()
-		filePicker.pick().then((x) => console.log("File picked ", x))
+	async saveToNextcloud(file: TutanotaFile) {
+		const dataFilePromise = this.fileController.getAsDataFile(file, ArchiveDataType.Attachments)
+		OC.dialogs.filepicker(
+			"Select destination to save",
+			async (selectedFolder: string) => {
+				const saveDirUri = ncAxios.getUri()
+				const username = OC.getCurrentUser().uid
+				const url = generateRemoteUrl(`dav/files/${username}${selectedFolder}/${file.name}`)
+				const dataFile = await dataFilePromise
+				await ncAxios.put(url, dataFile.data)
+			},
+			false,
+			["httpd/unix-directory"], // do not allow choosing file
+			true,
+			undefined,
+			undefined,
+			{
+				allowDirectoryChooser: true,
+			},
+		)
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
