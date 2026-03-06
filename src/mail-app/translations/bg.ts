@@ -425,7 +425,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Календарът „{calendar}“ е споделен с други потребители.",
 		"deleteSingleEventRecurrence_action": "Премахване само на това събитие",
 		"deleteTemplate_msg": "Сигурни ли сте, че искате да премахнете този шаблон?",
-		"deleteTemplateGroups_msg": "Има активни списъци с шаблони, които трябва да премахнете, преди да върнете абонамента. Това може да включва споделени, или не, списъци с шаблон принадлежащи на вашите потребители. ",
 		"department_placeholder": "Отдел",
 		"describeProblem_msg": "Моля въведете въпроса си",
 		"description_label": "Описание",

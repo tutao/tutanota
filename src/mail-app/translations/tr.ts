@@ -530,7 +530,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "\"{Calendar}\" takvimi diğer kullanıcılarla paylaşılıyor.",
 		"deleteSingleEventRecurrence_action": "Sadece bu etkinliği sil",
 		"deleteTemplate_msg": "Bu şablonu silmek istediğinizden emin misiniz?",
-		"deleteTemplateGroups_msg": "Ticari aboneliğinizi iptal etmeden önce silmeniz gereken aktif şablon listeleri mevcut. Bunlar ortak şablon listeleri ya da kullanıcılarınıza ait listeler olabilir.",
 		"deleteThisAndFutureOccurrences_action": "Bu ve gelecekteki etkinlikleri sil",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Bu ve gelecekteki tüm etkinlikleri silmek istediğinizden emin misiniz?",
 		"department_placeholder": "Departman",

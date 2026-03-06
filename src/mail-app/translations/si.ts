@@ -465,7 +465,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "\"{calendar}\" දින දසුන වෙනත් පරිශ්‍රීලකයින් සමඟ බෙදාගෙන ඇත.",
 		"deleteSingleEventRecurrence_action": "මෙම සිදුවීම පමණක් මකන්න",
 		"deleteTemplate_msg": "මෙම අච්චුව මැකීමට අවශ්‍ය බව ඔබට විශ්වාසද?",
-		"deleteTemplateGroups_msg": "ඔබ ව්‍යාපාර විශේෂාංගය පහත හෙළීමට පෙර මැකීමට අවශ්‍ය අච්චු ලේඛනයක් තවමත් සක්‍රියව ඇත. මෙහි ඔබගේ පරිශ්‍රීලකයින්ට අයත් අච්චු ලේඛන හෝ හවුල් අච්චු ලේඛන ඇතුළත් විය හැකිය.",
 		"department_placeholder": "ක්‍රියාංශය",
 		"deprecatedKeyWarning_msg": "මෙම පණිවිඩය පරණ යතුරකින් සංකේතනය කර ඇත. සංකේතන ක්‍රියාවලිය නීත්‍යානුකූල විය හැකි නමුත්, එහි ආරක්‍ෂාව අවමය.",
 		"describeProblem_msg": "ඔබගේ ප්‍රශ්නය ඇතුල් කරන්න",

@@ -433,7 +433,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Kalender _ dibagikan dengan pengguna-pengguna lainnya.",
 		"deleteSingleEventRecurrence_action": "Hapus hanya peristiwa ini",
 		"deleteTemplate_msg": "Apakah Anda yakin ingin menghapus template ini?",
-		"deleteTemplateGroups_msg": "Masih ada daftar template aktif yang perlu dihapus sebelum anda dapat membatalkan fitur Bisnis.  Ini mungkin termasuk daftar template bersama atau daftar template milik pengguna anda.",
 		"department_placeholder": "Departemen",
 		"describeProblem_msg": "Mohon masukkan pertanyaan Anda",
 		"description_label": "Deskripsi",

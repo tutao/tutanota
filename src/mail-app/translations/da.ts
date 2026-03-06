@@ -361,7 +361,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Kalenderen \"{calendar}\" er delt med andre brugere.",
 		"deleteSingleEventRecurrence_action": "Slet kun denne begivenhed",
 		"deleteTemplate_msg": "Er du sikker på du vil slette denne skabelon?",
-		"deleteTemplateGroups_msg": "Der er stadig aktive skabelonlister, som skal slettes, før du kan nedgradere. Dette kan inkludere delte skabelonlister eller skabelonlister, der tilhører dine brugere.",
 		"describeProblem_msg": "Skriv venligst dit spørgsmål",
 		"description_label": "Beskrivelse",
 		"desktop_label": "Skrivebord",

@@ -443,7 +443,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Il calendario \"{calendar}\" è condiviso con altri utenti.",
 		"deleteSingleEventRecurrence_action": "Cancella solo questo evento",
 		"deleteTemplate_msg": "Sei sicuro di voler cancellare questo template?",
-		"deleteTemplateGroups_msg": "Ci sono ancora elenchi di template attivi che dovranno essere cancellati prima che tu possa effettuare il downgrade. Questo può includere elenchi di template condivisi o elenchi di template appartenenti ai tuoi utenti.",
 		"department_placeholder": "Dipartimento",
 		"describeProblem_msg": "Per favore, inserisci la tua domanda",
 		"description_label": "Descrizione",

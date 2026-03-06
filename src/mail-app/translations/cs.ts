@@ -509,7 +509,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Kalendář \"{calendar}\" je sdílen s dalšími uživateli.",
 		"deleteSingleEventRecurrence_action": "Odstranit pouze tuto událost",
 		"deleteTemplate_msg": "Opravdu chcete smazat tuto šablonu?",
-		"deleteTemplateGroups_msg": "Stále máte aktivní seznamy šablon, které musí být smazány předtím, než přejdete na nižší verze předplatného. Může se jednat o sdílený seznam šablon nebo o seznam patřící vašim uživatelům.",
 		"deleteThisAndFutureOccurrences_action": "Vymazat tuto i budoucí události",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Skutečně chcete vymazat tuto a všechny budoucí události?",
 		"department_placeholder": "Oddělení",

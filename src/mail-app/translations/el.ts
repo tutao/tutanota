@@ -445,7 +445,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Το ημερολόγιο \"{calendar}\" είναι κοινοποιημένο σε άλλους χρήστες.",
 		"deleteSingleEventRecurrence_action": "Διαγράφη μόνο αυτού του συμβάντος",
 		"deleteTemplate_msg": "Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το πρότυπο;",
-		"deleteTemplateGroups_msg": "Υπάρχουν ακόμα ενεργές λίστες προτύπων που πρέπει να διαγραφούν προτού κάνετε υποβάθμιση. Μπορεί να είναι κοινόχρηστες λίστες προτύπων ή λίστες προτύπων των χρηστών σας.",
 		"department_placeholder": "Τμήμα",
 		"describeProblem_msg": "Συμπληρώστε την ερώτησή σας",
 		"description_label": "Περιγραφή",

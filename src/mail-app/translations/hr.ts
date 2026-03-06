@@ -478,7 +478,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Kalendar \"{calendar}\" dijeli se s drugim korisnicima.",
 		"deleteSingleEventRecurrence_action": "Izbriši samo ovaj događaj",
 		"deleteTemplate_msg": "Jeste li sigurni da želite izbrisati ovaj predložak?",
-		"deleteTemplateGroups_msg": "Još uvijek postoje aktivne liste predložaka koje se moraju izbrisati prije prebacivanja na nižu tarifu. To može uključivati zajedničke liste predložaka ili liste predložaka koje pripadaju vašim korisnicima.",
 		"department_placeholder": "Odjel",
 		"describeProblem_msg": "Unesite svoje pitanje",
 		"description_label": "Opis",

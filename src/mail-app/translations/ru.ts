@@ -523,7 +523,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Предоставляется общий доступ пользователей к календарю «{calendar}».",
 		"deleteSingleEventRecurrence_action": "Удалить только это событие",
 		"deleteTemplate_msg": "Вы уверены, что хотите удалить этот шаблон?",
-		"deleteTemplateGroups_msg": "Существуют еще активные списки шаблонов, которые необходимо удалить перед переходом на более дешевый тарифный план. Они могут включать общие списки шаблонов или списки шаблонов, принадлежащие вашим пользователям.",
 		"deleteThisAndFutureOccurrences_action": "Удалить текущее и последующие события",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Вы уверены, что вы хотите удалить текущее и последующие события?",
 		"department_placeholder": "Отдел",

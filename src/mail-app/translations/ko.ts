@@ -393,7 +393,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "\"{calendar}\" 캘린더가 다른 사용자와 공유됩니다.",
 		"deleteSingleEventRecurrence_action": "이 이벤트만 삭제하기",
 		"deleteTemplate_msg": "이 템플릿을 삭제하시겠습니까?",
-		"deleteTemplateGroups_msg": "비즈니스 기능을 취소하기 전에 삭제해야 하는 템플릿 목록이 아직 활성화되어 있습니다. 여기에는 공유 템플릿 목록이나 사용자 소유의 템플릿 목록이 포함될 수 있습니다.",
 		"describeProblem_msg": "질문을 입력하세요",
 		"description_label": "설명",
 		"desktop_label": "데스크톱",

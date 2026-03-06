@@ -349,7 +349,6 @@ export default {
 		"deleteLanguageConfirmation_msg": "هل أنت متأكد أنك تريد حذف الإدخال الخاص بـ '{language}'؟",
 		"deleteSharedCalendarConfirm_msg": "تتم مشاركة التقويم \"{calendar}\" مع مستخدمين آخرين.",
 		"deleteTemplate_msg": "هل أنت متأكد أنك تريد حذف هذا النموذج؟",
-		"deleteTemplateGroups_msg": "لا تزال هناك قوائم نماذج نشطة يجب حذفها قبل أن تتمكن من إلغاء ميزة الأعمال. قد يشمل ذلك قوائم النماذج المشتركة أو قوائم النماذج التي تخص المستخدمين.",
 		"describeProblem_msg": "يرجى إدخال سؤالك",
 		"description_label": "وصف",
 		"desktop_label": "سطح المكتب",

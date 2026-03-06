@@ -452,7 +452,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "カレンダー「{calendar}」は他のユーザーと共有されています。",
 		"deleteSingleEventRecurrence_action": "このイベントのみを削除",
 		"deleteTemplate_msg": "このテンプレートを削除して本当によろしいですか？",
-		"deleteTemplateGroups_msg": "ダウングレードする前に削除する必要があるテンプレートリストがまだ有効です。これには、共有テンプレートリスト、または、あなたのユーザーのテンプレートリストが含まれます。",
 		"department_placeholder": "部署",
 		"describeProblem_msg": "質問を入力してください",
 		"description_label": "メモ",

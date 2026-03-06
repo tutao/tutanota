@@ -368,7 +368,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Kalendár \"{calendar}\" sa zdieľa s ostatnými používateľmi.",
 		"deleteSingleEventRecurrence_action": "Odstrániť iba túto udalosť",
 		"deleteTemplate_msg": "Naozaj chceš odstrániť túto šablónu?",
-		"deleteTemplateGroups_msg": "Stále sú aktívne zoznamy šablón, ktoré bude pred downgradom potrebné odstrániť. Môže ísť o zdieľané zoznamy šablón alebo zoznamy šablón patriace tvojim používateľom.",
 		"describeProblem_msg": "Prosím, zadaj otázku",
 		"description_label": "Popis",
 		"desktop_label": "Počítač",

@@ -397,7 +397,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Lịch \"{calendar}\" đã được chia sẻ với những người dùng khác.",
 		"deleteSingleEventRecurrence_action": "Chỉ xoá sự kiện này",
 		"deleteTemplate_msg": "Bạn có chắc chắn muốn xoá bản mẫu này không?",
-		"deleteTemplateGroups_msg": "Vẫn còn có các danh sách bản mẫu đang hoạt động, chúng cần phải bị xoá trước khi bạn có thể hạ cấp. Chúng có thể bao gồm các danh sách bản mẫu được chia sẻ hoặc các danh sách bản mẫu thuộc về những người dùng của bạn.",
 		"describeProblem_msg": "Vui lòng nhập câu hỏi của bạn",
 		"description_label": "Chi tiết",
 		"desktop_label": "Máy tính",

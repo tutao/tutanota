@@ -507,7 +507,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Каляндар \"{calendar}\" абагулены з іншымі карыстальнікамі.",
 		"deleteSingleEventRecurrence_action": "Выдаліць толькі гэтую падзею",
 		"deleteTemplate_msg": "Ці ты ўпэўнены, што хочаш выдаліць гэты шаблён.",
-		"deleteTemplateGroups_msg": "Усё яшчэ ёсьць сьпісы шаблёнаў, якія трэба выдаліць перад тым, як выключыць бізнэс-функцыю. Гэта могуць быць таксама абагуленыя сьпісы шаблёнаў альбо сьпісы шаблёнаў, што належаць тваім карыстальнікам.",
 		"deleteThisAndFutureOccurrences_action": "Выдаліць гэтую ды будучыя падзеі",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Ці ўпэўнены ты, што хочаш выдаліць гэтую ды будучыя падзеі?",
 		"department_placeholder": "Аддзяленне",

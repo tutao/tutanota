@@ -526,7 +526,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Kalenderen \"{calendar}\" deles med andre brukere.",
 		"deleteSingleEventRecurrence_action": "Slett kun denne hendelsen",
 		"deleteTemplate_msg": "Er du sikker på at du vil slette denne malen?",
-		"deleteTemplateGroups_msg": "Det er fortsatt aktive mallister som må slettes for du kan nedgradere. Dette kan inkludere delte mallister eller mallister som tilhørerer en av dine brukere.",
 		"deleteThisAndFutureOccurrences_action": "Slett denne og framtidige hendelser",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Er du sikker på at du vil slette denne og alle fremtidige hendelser i serien?",
 		"department_placeholder": "Avdeling",

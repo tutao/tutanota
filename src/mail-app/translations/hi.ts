@@ -345,7 +345,6 @@ export default {
 		"deleteLanguageConfirmation_msg": "क्या आप वाकई \"{language}\" की प्रविष्टि हटाना चाहते हैं?",
 		"deleteSharedCalendarConfirm_msg": "कैलेंडर {calendar} अन्य उपयोगकर्ताओं के साथ साझा किया जाता है।",
 		"deleteTemplate_msg": "क्या आप वाकई इस टेम्पलेट को हटाना चाहते हैं?",
-		"deleteTemplateGroups_msg": "अभी भी टेम्प्लेट सूचियाँ सक्रिय हैं जिन्हें आपके द्वारा व्यावसायिक सुविधा को रद्द करने से पहले हटाना होगा। इसमें आपके उपयोगकर्ताओं से संबंधित साझा टेम्पलेट सूचियां या टेम्पलेट सूचियां शामिल हो सकती हैं।",
 		"describeProblem_msg": "कृपया अपने प्रश्न को लिखिए।",
 		"description_label": "विवरण",
 		"desktop_label": "डेस्कटाॅप",

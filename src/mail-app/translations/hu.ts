@@ -503,7 +503,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "A naptár \"{calendar}\" megosztásra került másokkal.",
 		"deleteSingleEventRecurrence_action": "Csak ezt az eseményt törölje!",
 		"deleteTemplate_msg": "Biztos benne, hogy törölni akarja ezt a sablont?",
-		"deleteTemplateGroups_msg": "Továbbra is aktívak a sablonlisták, amelyeket törölni kell, mielőtt vissza tud lépni/minősíteni . Ez magában foglalhatja a felhasználóihoz tartozó megosztott sablonlistákat vagy sablonlistákat.",
 		"deleteThisAndFutureOccurrences_action": "Ennek és a jövőbeni eseményeknek a törlése",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Biztos benne, hogy törli ezt és az összes jövőbeni eseményt?",
 		"department_placeholder": "Osztály",

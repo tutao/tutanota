@@ -502,7 +502,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "Calendarul \"{calendar}\" este partajat cu alți utilizatori.",
 		"deleteSingleEventRecurrence_action": "Șterge numai acest eveniment",
 		"deleteTemplate_msg": "Sigur vrei să ștergi acest model?",
-		"deleteTemplateGroups_msg": "Există încă liste cu modele active care vor trebui șterse înainte de a retrograda contul.  Aceasta poate include liste cu modele partajate sau liste cu modele aparținând utilizatorilor tăi.",
 		"deleteThisAndFutureOccurrences_action": "Șterge acest eveniment și cele viitoare",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Se dorește ștergerea acestui eveniment și a celor viitoare?",
 		"department_placeholder": "Departament",

@@ -504,7 +504,6 @@ export default {
 		"deleteSharedCalendarConfirm_msg": "El calendari \"{calendar}\" es comparteix amb d'altres usuaris.",
 		"deleteSingleEventRecurrence_action": "Suprimeix només aquest esdeveniment",
 		"deleteTemplate_msg": "Esteu segur que voleu suprimir aquesta plantilla?",
-		"deleteTemplateGroups_msg": "Encara hi ha llistes de plantilles actives que s'hauran de suprimir abans de poder baixar a una versió anterior. Això pot incloure llistes de plantilles compartides o llistes de plantilles dels vostres usuaris.",
 		"deleteThisAndFutureOccurrences_action": "Eliminar aquest i futurs esdeveniments",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Esteu segur que voleu suprimir aquest i tots els esdeveniments futurs?",
 		"department_placeholder": "Departament",

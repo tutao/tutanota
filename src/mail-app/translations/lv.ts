@@ -291,7 +291,6 @@ export default {
 		"deleteLanguageConfirmation_msg": "Tiešām vēlaties deaktivēt “{language}” valodu?",
 		"deleteSharedCalendarConfirm_msg": "Kalendārs \"{calendar}\" ir koplietots ar citiem lietotājiem.",
 		"deleteTemplate_msg": "Vai tiešām vēlaties dzēst šo šablonu/veidni?",
-		"deleteTemplateGroups_msg": "Joprojām ir aktīvi šablonu saraksti, kuri jāizdzēš, pirms varat atcelt biznesa funkciju/plānu. Tas var ietvert koplietotus šablonu sarakstus vai jūsu lietotāju šablonu sarakstus.",
 		"desktop_label": "Darbvirsma",
 		"desktopIntegration_label": "Darbvirsmas integrācija",
 		"desktopIntegration_msg": "Vai vēlaties integrēt Tuta savā Darbvirsmas Vidē?",
