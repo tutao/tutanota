@@ -436,7 +436,11 @@ export const LegacyPlans: readonly PlanType[] = Object.freeze([
 export const LegacyPrivatePlans: readonly PlanType[] = Object.freeze([PlanType.Premium, PlanType.Teams])
 export const LegacyBusinessPlans: readonly PlanType[] = Object.freeze([PlanType.Pro, PlanType.TeamsBusiness, PlanType.PremiumBusiness])
 export const HighlightedPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Revolutionary, PlanType.Advanced])
-export const HighestTierPlans: readonly PlanType[] = Object.freeze([PlanType.Legend, PlanType.Unlimited])
+export const HighestTierPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Legend, PlanType.Unlimited])
+
+export function isHighestTierPlan(planType: PlanType): boolean {
+	return (HighestTierPlans as readonly PlanType[]).includes(planType)
+}
 
 export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
 
@@ -907,6 +911,7 @@ export const enum UnsubscribeFailureReason {
 	ACTIVE_APPSTORE_SUBSCRIPTION = "unsubscribe.active_appstore_subscription",
 	LABEL_LIMIT_EXCEEDED = "unsubscribe.label_limit_exceeded",
 	HAS_SCHEDULED_MAILS = "unsubscribe.has_scheduled_mails",
+	DRIVE_NOT_EMPTY = "unsubscribe.drive_not_empty",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

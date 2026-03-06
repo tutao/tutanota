@@ -16,9 +16,9 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { isDesktop } from "../../api/common/Env"
-import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
 import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
+import { isHighestTierPlan } from "../../api/common/TutanotaConstants"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -123,7 +123,6 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				} else if (isDesktop() && allFilesAreMail) {
 					// importing mails is currently only allowed on plan LEGEND and UNLIMITED
 					const currentPlanType = await locator.logins.getUserController().getPlanType()
-					const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
 
 					let importAction: { text: MaybeTranslation; value: boolean } = {
 						text: "import_action",
@@ -133,7 +132,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 						text: "attachFiles_action",
 						value: false,
 					}
-					willImport = isHighestTierPlan && (await Dialog.choice("emlOrMboxInSharingFiles_msg", [importAction, attachFilesAction]))
+					willImport = isHighestTierPlan(currentPlanType) && (await Dialog.choice("emlOrMboxInSharingFiles_msg", [importAction, attachFilesAction]))
 				}
 
 				if (willImport) {

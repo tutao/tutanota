@@ -2249,6 +2249,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"folderContent_label": "Content",
-		"createNewFolderIn_label": "Create a new folder in {folderName}"
+		"createNewFolderIn_label": "Create a new folder in {folderName}",
+		"driveNotEmpty_msg": "There are still files or folders left in your Drive. Please remove them first."
 	}
 }
