@@ -11,7 +11,7 @@ import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../
 import { InboxRuleType, Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
-import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
+import { isAndroidApp, isDesktop, isIOSApp, isNextCloudPlugin } from "../../../common/api/common/Env.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
@@ -669,6 +669,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)
 						: () => viewModel.downloadAndOpenAttachment(attachment, true),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
+				nextcloud: isNextCloudPlugin() ? () => viewModel.saveToNextcloud() : null,
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})

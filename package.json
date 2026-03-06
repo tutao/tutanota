@@ -53,6 +53,7 @@
 		"@types/luxon": "3.6.2",
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
+		"@nextcloud/dialogs": "^7.3.0",
 		"cborg": "4.2.2",
 		"dompurify": "3.2.6",
 		"electron": "40.4.1",

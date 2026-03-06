@@ -93,6 +93,7 @@ import { isBrowser } from "../../../common/api/common/Env"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { getFilePickerBuilder } from "@nextcloud/dialogs"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1276,6 +1277,12 @@ export class MailViewerViewModel {
 				await Dialog.message("errorDuringFileOpen_msg")
 			}
 		}
+	}
+
+	async saveToNextcloud() {
+		// const client
+		const filePicker = getFilePickerBuilder("Cool file dialog").build()
+		filePicker.pick().then((x) => console.log("File picked ", x))
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
