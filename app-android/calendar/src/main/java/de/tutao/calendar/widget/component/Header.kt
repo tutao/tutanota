@@ -8,7 +8,6 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.ActionCallback
@@ -29,6 +28,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.R
+import de.tutao.calendar.widget.component.allDayRow.AllDayRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.tutashared.IdTupleCustom
@@ -40,9 +40,6 @@ fun Header(
 	allDayEvents: List<UIEvent>,
 	onNewEvent: Action,
 ) {
-	val hasAllDayEvents = allDayEvents.isNotEmpty()
-	val titleBottomPadding = if (hasAllDayEvents) -(2).dp else -(6).dp
-	val dateNow = LocalDateTime.now()
 
 	Row(
 		verticalAlignment = Alignment.Top,
@@ -53,62 +50,23 @@ fun Header(
 			modifier = GlanceModifier
 				.defaultWeight()
 				.padding(
-					start = Dimensions.Spacing.LG.dp,
-					top = Dimensions.Spacing.SM.dp
+					start = Dimensions.Spacing.MD.dp,
+					top = Dimensions.Spacing.XS.dp
 				)
 		) {
 			Text(
 				style = TextStyle(
 					fontWeight = FontWeight.Bold,
-					fontSize = if (hasAllDayEvents) 16.sp else 28.sp,
+					fontSize = 20.sp,
 					color = GlanceTheme.colors.secondary
 				),
-				text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvents) "dd EEEE" else "dd")),
+				text = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd EEEE")),
 				maxLines = 1,
 				modifier = GlanceModifier.defaultWeight().wrapContentHeight()
-					.padding(bottom = titleBottomPadding)
 			)
 
-			val subTitle = if (hasAllDayEvents) {
-				allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.noTitle_label) }
-			} else {
-				dateNow.format(DateTimeFormatter.ofPattern("EEEE"))
-			}
-
-			Row(
-				modifier = GlanceModifier.defaultWeight(),
-				verticalAlignment = Alignment.CenterVertically
-			) {
-				if (hasAllDayEvents) {
-					AllDayIcon(allDayEvents)
-				}
-
-				Row {
-					Text(
-						style = TextStyle(
-							color = GlanceTheme.colors.secondary,
-							fontSize = 12.sp
-						),
-						maxLines = 1,
-						text = subTitle,
-						modifier = GlanceModifier.padding(start = if (hasAllDayEvents) 4.dp else 0.dp)
-							.defaultWeight()
-					)
-
-					if (allDayEvents.size > 1) {
-						Text(
-							"+${allDayEvents.size - 1}", style = TextStyle(
-								color = GlanceTheme.colors.secondary,
-								fontSize = 12.sp,
-								fontWeight = FontWeight.Bold
-							),
-							maxLines = 1,
-							modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp)
-								.defaultWeight()
-								.wrapContentWidth()
-						)
-					}
-				}
+			if (allDayEvents.isNotEmpty()) {
+				AllDayRow(allDayEvents)
 			}
 		}
 		Row( // add event button row

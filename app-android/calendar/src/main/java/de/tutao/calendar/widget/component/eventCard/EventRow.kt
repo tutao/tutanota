@@ -1,4 +1,4 @@
-package de.tutao.calendar.widget.component
+package de.tutao.calendar.widget.component.eventCard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -87,7 +87,7 @@ fun EventRow(
 				modifier = GlanceModifier,
 				style = TextStyle(
 					color = GlanceTheme.colors.onSurface,
-					fontSize = 10.sp
+					fontSize = 12.sp
 				),
 			)
 		}
