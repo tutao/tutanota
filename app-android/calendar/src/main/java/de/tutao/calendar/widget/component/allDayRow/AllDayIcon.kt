@@ -1,4 +1,4 @@
-package de.tutao.calendar.widget.component
+package de.tutao.calendar.widget.component.allDayRow
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
