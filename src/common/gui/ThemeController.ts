@@ -20,7 +20,7 @@ import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 
 assertMainOrNodeBoot()
 
-export const defaultThemeId = "light" satisfies ThemeId
+export const defaultThemeId = isNextCloudPlugin() ? ("light_secondary" satisfies ThemeId) : ("light" satisfies ThemeId)
 
 export class ThemeController {
 	private readonly theme: Theme
@@ -270,7 +270,7 @@ export class ThemeController {
 	}
 
 	getDefaultTheme(): Theme {
-		return Object.assign({}, themes()[defaultThemeId])
+		return Object.assign({}, themes()["light_secondarygit"])
 	}
 
 	getBaseTheme(baseId: BaseThemeId): Theme {
