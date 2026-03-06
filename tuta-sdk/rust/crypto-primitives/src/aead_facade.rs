@@ -12,15 +12,13 @@ pub enum AeadDecryptError {
 	DecryptionError,
 }
 
-struct AeadKeys {
+struct AeadSubKeys {
 	encryption_key: Aes256Key,
 	authentication_key: Aes256Key,
 }
 
-impl AeadKeys {
+impl AeadSubKeys {
 	fn derive(input_key: &[u8], kdf_nonce: &[u8], instance_type_id: &str) -> Self {
-		// TODO: decide where to put this
-
 		const UNIT_SEPARATOR: char = '\u{001f}';
 		let key_bytes = blake3::blake3_kdf(
 			&[input_key, kdf_nonce],
@@ -47,12 +45,12 @@ impl AeadFacade {
 		Self { randomizer_facade }
 	}
 
-	fn encrypt(&self, keys: &AeadKeys, plaintext: &[u8], associated_data: &[u8]) -> Vec<u8> {
+	fn encrypt(&self, sub_keys: &AeadSubKeys, plaintext: &[u8], associated_data: &[u8]) -> Vec<u8> {
 		let nonce = Nonce::generate(&self.randomizer_facade);
-		let ciphertext = aes::aes_ctr_encrypt(&keys.encryption_key, plaintext, &nonce);
+		let ciphertext = aes::aes_ctr_encrypt(&sub_keys.encryption_key, plaintext, &nonce);
 		let end_of_ciphertext: u32 = 1 + NONCE_BYTE_SIZE as u32 + ciphertext.len() as u32;
 		let tag = blake3::blake3_mac(
-			keys.authentication_key.as_bytes(),
+			sub_keys.authentication_key.as_bytes(),
 			&[
 				&end_of_ciphertext.to_be_bytes(),
 				&[AEAD_VERSION],
@@ -72,7 +70,7 @@ impl AeadFacade {
 
 	fn decrypt(
 		&self,
-		keys: &AeadKeys,
+		sub_keys: &AeadSubKeys,
 		tagged_ciphertext: &[u8],
 		associated_data: &[u8],
 	) -> Result<Vec<u8>, AeadDecryptError> {
@@ -96,7 +94,7 @@ impl AeadFacade {
 		tag_array.copy_from_slice(tag);
 
 		blake3::verify_blake3_mac(
-			keys.authentication_key.as_bytes(),
+			sub_keys.authentication_key.as_bytes(),
 			&[
 				&(end_of_ciphertext as u32).to_be_bytes(),
 				&[AEAD_VERSION],
@@ -109,7 +107,7 @@ impl AeadFacade {
 		.map_err(|_| AeadDecryptError::DecryptionError)?;
 
 		let nonce = Nonce::try_from_slice(nonce).expect("nonce should have correct size");
-		let plaintext = aes_ctr_decrypt(&keys.encryption_key, ciphertext, &nonce);
+		let plaintext = aes_ctr_decrypt(&sub_keys.encryption_key, ciphertext, &nonce);
 
 		Ok(plaintext)
 	}
@@ -117,7 +115,7 @@ impl AeadFacade {
 
 #[cfg(test)]
 mod tests {
-	use crate::aead_facade::{AeadFacade, AeadKeys};
+	use crate::aead_facade::{AeadFacade, AeadSubKeys};
 	use crate::aes::NONCE_BYTE_SIZE;
 	use crate::randomizer_facade::test_util::make_thread_rng_facade;
 
@@ -127,12 +125,12 @@ mod tests {
 		let aead_facade = AeadFacade::new(make_thread_rng_facade());
 		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
 		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
-		let keys = AeadKeys::derive(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
 		let associated_data = b"test";
 		let plaintext = b"plaintext";
-		let ciphertext = aead_facade.encrypt(&keys, plaintext, associated_data);
+		let ciphertext = aead_facade.encrypt(&sub_keys, plaintext, associated_data);
 		let decrypted = aead_facade
-			.decrypt(&keys, &ciphertext, associated_data)
+			.decrypt(&sub_keys, &ciphertext, associated_data)
 			.unwrap();
 		assert_eq!(plaintext, decrypted.as_slice());
 	}
