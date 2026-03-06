@@ -6743,5 +6743,60 @@
 		"who": "ivk",
 		"when": "2026-03-04",
 		"hash": "ea29a8e86bcd72ba66ccd9cbb244f44b84a0bc7a01d05dc3bee8f0479ab5af55"
+	},
+	"node_modules/app-builder-lib/out/frameworks/LibUiFramework.js": {
+		"who": "ivk",
+		"when": "2026-03-05",
+		"hash": "71c3d8364ca09f9ac225ebf919fa81cdd1ed25b22181a140f786b1f2ef0d31e8"
+	},
+	"node_modules/app-builder-lib/out/ProtonFramework.js": {
+		"who": "ivk",
+		"when": "2026-03-05",
+		"hash": "1940f089c0479054c339220963ccfabceefbae6534800f8673d2f50d45d9b693"
+	},
+	"node_modules/@isaacs/fs-minipass/node_modules/minipass/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "e99c4d7c9e0d2f45c53f4f07f418480df83fc99c785e044ca1ea5e592cb322be"
+	},
+	"node_modules/@isaacs/fs-minipass/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "2c934649bd1f847982fc06b02721244cb3271bf254afd71f23f9d20c14f9b59a"
+	},
+	"node_modules/tar/dist/commonjs/options.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "0f17e6496cb4b75ec3a4bb25c8fe540cf08b810b1a21f86e27b62d349e9651e2"
+	},
+	"node_modules/tar/dist/commonjs/make-command.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "08ca7309ebef64142a5bc8f9d2d1e1260ab5f324352c215715fe586a3302e569"
+	},
+	"node_modules/minizlib/dist/commonjs/constants.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "1574ad656e72d59598f1fd44bf2d242ff57d05ebd27cdf177b504e24b3e64fdf"
+	},
+	"node_modules/minizlib/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "1545b857e5a597a4fb9294e5040f8b8e3f207e53901f935de2b135a4200abbbf"
+	},
+	"node_modules/tar/dist/commonjs/large-numbers.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "6de856e25f82701b0ab91e1d1e39efbffc4e73530abcf0a66caba0239b4c9472"
+	},
+	"node_modules/tar/dist/commonjs/types.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "87088f7fa9adad77511f2867bd83830afc1bcbf7bc906dc651ea6e14128e2d0a"
+	},
+	"node_modules/tar/dist/commonjs/header.js": {
+		"who": "ivk",
+		"when": "2026-03-06",
+		"hash": "47119efcfa94c7c76e3a358753f91895b8e4d287be04f341f81293a075c69ef4"
 	}
 }
