@@ -8,6 +8,7 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import de.tutao.calendar.widget.component.eventCard.EventRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
@@ -27,9 +28,9 @@ fun EventList(userId: String?, normalEvents: List<UIEvent>, currentDay: LocalDat
 	eventGroups.forEachIndexed { index, events ->
 		Column(
 			modifier = GlanceModifier.padding(
-				start = Dimensions.Spacing.LG.dp,
+				start = Dimensions.Spacing.MD.dp,
 				top = if (index == 0) Dimensions.Spacing.SM.dp else 0.dp,
-				end = Dimensions.Spacing.LG.dp,
+				end = Dimensions.Spacing.MD.dp,
 				bottom = if (index == eventGroups.size - 1) Dimensions.Spacing.SM.dp else 0.dp,
 			)
 		) {
