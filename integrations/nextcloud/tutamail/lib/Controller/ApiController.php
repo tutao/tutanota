@@ -20,7 +20,7 @@ use function OCP\Log\logger;
 class ApiController extends OCSController
 {
 	private IClientService $clientService;
-	private string $TUTADB_SERVER_URL = 'http://frm:9000';
+	private string $TUTA_SERVER_URL = 'http://frm:9000';
 
 	public function __construct(
 			string         $appName,
@@ -38,12 +38,12 @@ class ApiController extends OCSController
 	#[NoAdminRequired]
 	#[ApiRoute(
 			verb: 'GET',
-			url: '/rest/{tutadbAppName}/{component}',
+			url: '/rest/{tutaAppName}/{component}',
 			requirements: ['component' => '.+'],
 	)]
-	public function tutaDbGETServiceResourceRedirect(): DataDisplayResponse
+	public function tutaGETServiceResourceRedirect(): DataDisplayResponse
 	{
-		return $this->redirectToTutadbServer();
+		return $this->redirectToTutaServer();
 	}
 
 	/**
@@ -52,12 +52,12 @@ class ApiController extends OCSController
 	#[NoAdminRequired]
 	#[ApiRoute(
 			verb: 'POST',
-			url: '/rest/{tutadbAppName}/{component}',
+			url: '/rest/{tutaAppName}/{component}',
 			requirements: ['component' => '.+'],
 	)]
-	public function tutaDbPOSTServiceRedirect(): DataDisplayResponse
+	public function tutaPOSTServiceRedirect(): DataDisplayResponse
 	{
-		return $this->redirectToTutadbServer();
+		return $this->redirectToTutaServer();
 	}
 
 	/**
@@ -66,12 +66,12 @@ class ApiController extends OCSController
 	#[NoAdminRequired]
 	#[ApiRoute(
 			verb: 'DELETE',
-			url: '/rest/{tutadbAppName}/{component}',
+			url: '/rest/{tutaAppName}/{component}',
 			requirements: ['component' => '.+'],
 	)]
-	public function tutaDbDELETERedirect(): DataDisplayResponse
+	public function tutaDELETERedirect(): DataDisplayResponse
 	{
-		return $this->redirectToTutadbServer();
+		return $this->redirectToTutaServer();
 	}
 
 	/**
@@ -80,12 +80,12 @@ class ApiController extends OCSController
 	#[NoAdminRequired]
 	#[ApiRoute(
 			verb: 'PATCH',
-			url: '/rest/{tutadbAppName}/{component}',
+			url: '/rest/{tutaAppName}/{component}',
 			requirements: ['component' => '.+'],
 	)]
-	public function tutaDbPATCHRedirect(): DataDisplayResponse
+	public function tutaPATCHRedirect(): DataDisplayResponse
 	{
-		return $this->redirectToTutadbServer();
+		return $this->redirectToTutaServer();
 	}
 
 	/**
@@ -94,60 +94,70 @@ class ApiController extends OCSController
 	#[NoAdminRequired]
 	#[ApiRoute(
 			verb: 'PUT',
-			url: '/rest/{tutadbAppName}/{component}',
+			url: '/rest/{tutaAppName}/{component}',
 			requirements: ['component' => '.+'],
 	)]
-	public function tutaDbPUTRedirect(): DataDisplayResponse
+	public function tutaPUTRedirect(): DataDisplayResponse
 	{
-		return $this->redirectToTutadbServer();
+		return $this->redirectToTutaServer();
 	}
 
 	/**
 	 * @throws \Exception
 	 */
-	private function redirectToTutadbServer(): DataDisplayResponse
+	private function redirectToTutaServer(): DataDisplayResponse
 	{
 		$request = $this->request;
+		// FIXME: should probably use one request client.
 		$client = $this->clientService->newClient();
 
-		$tutab_path = $this->getRedirectedTutadbPath($request);
-		$options = $this->makeTutadbRequstOptions($request);
-		$tutabResponse = $client->request($request->getMethod(), $tutab_path, $options);
-		return $this->wrapResponseFromTutadb($tutabResponse);
+		$tuta_path = $this->getRedirectedTutaPath($request);
+		$options = $this->makeTutaRequstOptions($request);
+		$tutaResponse = $client->request($request->getMethod(), $tuta_path, $options);
+		return $this->wrapResponseFromTuta($tutaResponse);
 
 	}
 
 	/**
 	 * @throws \Exception
 	 */
-	private function getRedirectedTutadbPath(IRequest $request): string
+	private function getRedirectedTutaPath(IRequest $request): string
 	{
 		$pathInfo = $request->getRequestUri();
-		$tutadbPath = substr($pathInfo, strlen('/ocs/v2.php/apps/tutamail'));
-		return $this->TUTADB_SERVER_URL . $tutadbPath;
+		$tutaPath = substr($pathInfo, strlen('/ocs/v2.php/apps/tutamail'));
+		return $this->TUTA_SERVER_URL . $tutaPath;
 	}
 
 
-	public function wrapResponseFromTutadb(IResponse $tutabResponse): DataDisplayResponse
+	public function wrapResponseFromTuta(IResponse $tutaResponse): DataDisplayResponse
 	{
 		$response = new DataDisplayResponse();
+		$headers = [];
+		foreach ($tutaResponse->getHeaders() as $key => $values) {
+			foreach ($values as $value) {
+				$headers[$key] = $value;
+			}
+		}
+
 		return $response
-				->setData($tutabResponse->getBody())
-				->setHeaders($tutabResponse->getHeaders())
+				->setData($tutaResponse->getBody())
+				->setHeaders($headers)
+				// FIXME: Is this needed to be on response?
 				->addHeader('X-TutaIntegrationPlatform', 'Nextcloud::v1')
-				->setStatus($tutabResponse->getStatusCode());
+				->setStatus($tutaResponse->getStatusCode());
 	}
 
 	/**
+	 * Prepares the incoming request from the pluging to be forwarded to the Tuta server
 	 * @param IRequest $request
 	 * @return array
 	 */
-	public function makeTutadbRequstOptions(IRequest $request): array
+	public function makeTutaRequstOptions(IRequest $request): array
 	{
 		$options = ['http_errors' => false];
 
 		// We transfer the whole url as it is in case of GET request.
-		// see getRedirectedTutadbPath
+		// see getRedirectedTutaPath
 		if ($request->getMethod() !== 'GET') {
 			$body = file_get_contents('php://input');
 			$options['body'] = $body;
@@ -166,8 +176,3 @@ class ApiController extends OCSController
 	}
 
 }
-/*
- *
- 2026-03-05T15:33:19.350500214Z {"reqId":"uScnpZ7YWpvCj2F0ddvD","level":3,"time":"2026-03-05T15:33:18+00:00","remoteAddr":"192.168.21.5","user":"admin","app":"no app in context","method":"POST","url":"/ocs/v2.php/apps/tutamail/rest/sys/sessionservice","scriptName":"/ocs/v2.php","message":"Tutadb request body2: {\"1212\":\"0\",\"1213\":\"bed-free@tutanota.de\",\"1214\":\"9freUO-QALnxP1N6amLDE7Om_NpEpTWwazRC4u3-UUU\",\"1215\":\"Firefox Browser\",\"1216\":null,\"1217\":null,\"1218\":[],\"1417\":null}","userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:148.0) Gecko/20100101 Firefox/148.0","version":"34.0.0.0","data":[]}
-
- */
