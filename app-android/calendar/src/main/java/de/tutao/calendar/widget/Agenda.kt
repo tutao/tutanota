@@ -31,7 +31,9 @@ import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import de.tutao.calendar.widget.component.ErrorBody
 import de.tutao.calendar.widget.component.LoadingSpinner
+import de.tutao.calendar.widget.component.NoUpcomingEvents
 import de.tutao.calendar.widget.component.ScrollableDaysList
+import de.tutao.calendar.widget.component.TodayCard
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.data.WidgetStateDefinition
 import de.tutao.calendar.widget.data.WidgetUIData
@@ -56,6 +58,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
+
 
 const val TAG = "AgendaWidget"
 
@@ -111,8 +114,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	private suspend fun setupWidget(
-		context: Context,
-		appWidgetId: Int
+		context: Context, appWidgetId: Int
 	): Pair<WidgetUIViewModel, String?> {
 		val db = AppDatabase.getDatabase(context, true)
 		val remoteStorage = RemoteStorage(db)
@@ -126,8 +128,9 @@ class Agenda : GlanceAppWidget() {
 			null
 		}
 
-		val widgetUIViewModel =
-			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, crypto, sdk, Calendar.getInstance())
+		val widgetUIViewModel = WidgetUIViewModel(
+			context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, crypto, sdk, Calendar.getInstance()
+		)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		return Pair(widgetUIViewModel, userId)
@@ -135,22 +138,31 @@ class Agenda : GlanceAppWidget() {
 
 	@Composable
 	fun WidgetBody(data: WidgetUIData?, userId: String?, todayHeaderOnTapAction: Action) {
+
+
+		val hasAllDayEvents = data?.allDayEvents?.values?.all { it.isNotEmpty() } ?: false
+		val hasNormalEvents = data?.normalEvents?.values?.any { it.isNotEmpty() } ?: false
+
 		Column(
 			modifier = GlanceModifier.padding(
 				top = Dimensions.Spacing.LG.dp,
 				start = Dimensions.Spacing.LG.dp,
 				end = Dimensions.Spacing.LG.dp,
 				bottom = 0.dp
-			)
-				.background(GlanceTheme.colors.background)
-				.fillMaxSize()
-				.appWidgetBackground()
-				.cornerRadius(20.dp),
+			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
 		) {
-			if (data == null) { //
+			if (data == null) {
 				return@Column LoadingSpinner()
+			} else if (!hasAllDayEvents && !hasNormalEvents) { // unique rendering case for totally empty widget
+				Column() {
+					TodayCard(
+						userId, listOf(), listOf(), todayHeaderOnTapAction, LocalDateTime.now()
+					)
+					NoUpcomingEvents()
+				}
+			} else { // normal rendering case
+				ScrollableDaysList(data, todayHeaderOnTapAction, userId)
 			}
-			ScrollableDaysList(data, todayHeaderOnTapAction, userId)
 		}
 	}
 
@@ -272,8 +284,7 @@ class Agenda : GlanceAppWidget() {
 				"00:00",
 				isAllDay = true,
 				startTimestamp = startOfTomorrow
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
 				"2196f3",
@@ -298,8 +309,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
 				"2196f3",
@@ -358,8 +368,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = tomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
 				"2196f3",
@@ -384,8 +393,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
 				"2196f3",
@@ -434,8 +442,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = tomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
 				"2196f3",
@@ -460,8 +467,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
 				"2196f3",

@@ -7,7 +7,6 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
@@ -24,7 +23,7 @@ import de.tutao.calendar.R
 import de.tutao.calendar.widget.style.Dimensions
 
 @Composable
-fun NoEventsToday() {
+fun NoUpcomingEvents() {
 	Column(
 		modifier = GlanceModifier
 			.fillMaxWidth()
@@ -33,7 +32,8 @@ fun NoEventsToday() {
 		verticalAlignment = Alignment.CenterVertically
 	) {
 		Text(
-			LocalContext.current.getString(R.string.widgetNoEvents_msg),
+//			LocalContext.current.getString(R.string.widgetNoEvents_msg),
+			"No Upcoming Events",
 			style = TextStyle(
 				color = GlanceTheme.colors.onBackground,
 				fontSize = 16.sp
@@ -56,5 +56,5 @@ fun NoEventsToday() {
 @Preview(widthDp = 600, heightDp = 350)
 @Composable
 fun NoEventsTodayPreview() {
-	NoEventsToday()
+	NoUpcomingEvents()
 }
