@@ -11,18 +11,18 @@ export const ML_DATE_REGEX = [
 
 export const ML_DATE_TOKEN = " TDATE "
 
-export const ML_URL_REGEX = /(?:http|https|ftp|sftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
+export const ML_URL_REGEX = /(?:https?|ftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
 
 export const ML_URL_TOKEN = " TURL$1 "
 
-export const ML_EMAIL_ADDR_REGEX = /(?:mailto:)?[A-Za-z0-9_+\-.]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
+export const ML_EMAIL_ADDR_REGEX = /(?:mailto:)?[A-Za-z0-9_+\-.]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?![\w.-])/g
 export const ML_EMAIL_ADDR_TOKEN = " TEMAIL "
 
 export const ML_BITCOIN_REGEX = /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g
 
 export const ML_BITCOIN_TOKEN = " TBITCOIN "
 
-export const ML_CREDIT_CARD_REGEX = /\b(\d{4}\s?){4}\b|\b[0-9]\d{13,16}\b/g
+export const ML_CREDIT_CARD_REGEX = /\b(?:\d{4}[\s-]?){3}\d{4}\b/g
 
 export const ML_CREDIT_CARD_TOKEN = " TCREDITCARD "
 

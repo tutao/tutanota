@@ -97,51 +97,58 @@ export class SpamMailProcessor {
 
 		let preprocessedMail = mailText
 
-		// 1. Remove HTML code
-		if (this.preprocessConfiguration.isRemoveHTML) {
-			preprocessedMail = htmlToText(preprocessedMail)
-		}
-
-		// 2. Replace dates
-		if (this.preprocessConfiguration.isReplaceDates) {
-			for (const datePattern of ML_DATE_REGEX) {
-				preprocessedMail = preprocessedMail.replaceAll(datePattern, ML_DATE_TOKEN)
+		try {
+			// 1. Remove HTML code
+			if (this.preprocessConfiguration.isRemoveHTML) {
+				preprocessedMail = htmlToText(preprocessedMail)
 			}
-		}
 
-		// 3. Replace urls
-		if (this.preprocessConfiguration.isReplaceUrls) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_URL_REGEX, ML_URL_TOKEN)
-		}
+			// 2. Replace dates
+			if (this.preprocessConfiguration.isReplaceDates) {
+				for (const datePattern of ML_DATE_REGEX) {
+					preprocessedMail = preprocessedMail.replaceAll(datePattern, ML_DATE_TOKEN)
+				}
+			}
 
-		// 4. Replace email addresses
-		if (this.preprocessConfiguration.isReplaceMailAddresses) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
-		}
+			// 3. Replace urls
+			if (this.preprocessConfiguration.isReplaceUrls) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_URL_REGEX, ML_URL_TOKEN)
+			}
 
-		// 5. Replace Bitcoin addresses
-		if (this.preprocessConfiguration.isReplaceBitcoinAddress) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)
-		}
+			// 4. Replace email addresses
+			if (this.preprocessConfiguration.isReplaceMailAddresses) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
+			}
 
-		// 6. Replace credit card numbers
-		if (this.preprocessConfiguration.isReplaceCreditCards) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)
-		}
+			// 5. Replace Bitcoin addresses
+			if (this.preprocessConfiguration.isReplaceBitcoinAddress) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)
+			}
 
-		// 7. Replace remaining numbers
-		if (this.preprocessConfiguration.isReplaceNumbers) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)
-		}
+			// 6. Replace credit card numbers
+			if (this.preprocessConfiguration.isReplaceCreditCards) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)
+			}
 
-		// 8. Remove special characters
-		if (this.preprocessConfiguration.isReplaceSpecialCharacters) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_SPECIAL_CHARACTER_REGEX, ML_SPECIAL_CHARACTER_TOKEN)
-		}
+			// 7. Replace remaining numbers
+			if (this.preprocessConfiguration.isReplaceNumbers) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)
+			}
 
-		// 9. Remove spaces at end of lines
-		if (this.preprocessConfiguration.isRemoveSpaceBeforeNewLine) {
-			preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
+			// 8. Remove special characters
+			if (this.preprocessConfiguration.isReplaceSpecialCharacters) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_SPECIAL_CHARACTER_REGEX, ML_SPECIAL_CHARACTER_TOKEN)
+			}
+
+			// 9. Remove spaces at end of lines
+			if (this.preprocessConfiguration.isRemoveSpaceBeforeNewLine) {
+				preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
+			}
+		} catch (e) {
+			// Preprocessing for this mail fail failed, due to an REGEX error, most likely too much recursion,
+			// e.g. too complex html. We just continue in this case, and do not include the mail body
+			// in the training / prediction.
+			preprocessedMail = ""
 		}
 
 		preprocessedMail += this.getHeaderFeatures(mail)
