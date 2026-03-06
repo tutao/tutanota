@@ -36,6 +36,7 @@ import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+import { getCurrentUser } from "@nextcloud/auth"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

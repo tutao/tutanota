@@ -44,7 +44,7 @@ import {
 	startsWith,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, LanguageViewModel } from "../../../common/misc/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
@@ -94,8 +94,8 @@ import { CommonSystemFacade } from "../../../common/native/common/generatedipc/C
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { default as ncAxios } from "@nextcloud/axios"
-import da from "../../translations/da"
-import { generateRemoteUrl } from "@nextcloud/router"
+import { generateRemoteUrl as ncGenerateRemoteUrl } from "@nextcloud/router"
+import { getCurrentUser as ncGetCurrentUser } from "@nextcloud/auth"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1281,16 +1281,38 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async saveToNextcloud(file: TutanotaFile) {
+	public async saveToNextcloud(file: TutanotaFile) {
 		const dataFilePromise = this.fileController.getAsDataFile(file, ArchiveDataType.Attachments)
+		const filePutHeaders = {
+			headers: {
+				"If-None-Match": "*", // do not override already existing files
+			},
+		}
+		const nextcloudUserId = assertNotNull(ncGetCurrentUser(), "Nextcloud user not logged in").uid
+
+		const makePutRequestToNextcloud = async (saveDirUri: string, fileContent: Uint8Array) => {
+			ncAxios
+				.put(saveDirUri, fileContent, filePutHeaders)
+				.then((_) => {
+					Dialog.message(LanguageViewModel.makeTranslation("nextcloud-ok-msg", "Your attachment is saved to nextcloud"))
+				})
+				.catch((err) => {
+					Dialog.message(LanguageViewModel.makeTranslation("nextcloud-err-msg", "You attachment could not be saved to nextcloud"))
+				})
+		}
+
 		OC.dialogs.filepicker(
-			"Select destination to save",
+			`Folder to download ${file.name}`,
 			async (selectedFolder: string) => {
-				const saveDirUri = ncAxios.getUri()
-				const username = OC.getCurrentUser().uid
-				const url = generateRemoteUrl(`dav/files/${username}${selectedFolder}/${file.name}`)
-				const dataFile = await dataFilePromise
-				await ncAxios.put(url, dataFile.data)
+				const fileContent = await dataFilePromise
+				let davFileName = `/dav/files/${nextcloudUserId}${selectedFolder}/${file.name}`
+				davFileName = await this.getUniqueFileName(davFileName)
+
+				await showDownloadProgressDialog(
+					this.transferProgressDispatcher,
+					[file],
+					makePutRequestToNextcloud(ncGenerateRemoteUrl(davFileName), fileContent.data),
+				)
 			},
 			false,
 			["httpd/unix-directory"], // do not allow choosing file
@@ -1301,6 +1323,32 @@ export class MailViewerViewModel {
 				allowDirectoryChooser: true,
 			},
 		)
+	}
+
+	private async getUniqueFileName(davFileName: string) {
+		let n = 1
+		let uniqueFileName = davFileName
+		while (true) {
+			try {
+				await ncAxios.head(ncGenerateRemoteUrl(uniqueFileName))
+				// File exists → generate new name
+				const extIndex = davFileName.lastIndexOf(".")
+				if (extIndex > 0) {
+					const base = davFileName.slice(0, extIndex)
+					const ext = davFileName.slice(extIndex)
+					uniqueFileName = `${base} (${n})${ext}`
+				} else {
+					uniqueFileName = `${davFileName} (${n})`
+				}
+				n++
+			} catch (err) {
+				if (err.response && err.response.status === 404) {
+					return uniqueFileName
+				} else {
+					throw err // Some other error
+				}
+			}
+		}
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
