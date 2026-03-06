@@ -5,6 +5,7 @@ import { styles } from "./common/gui/styles"
 import { assertMainOrNodeBoot, isApp } from "./common/api/common/Env"
 import { Keys } from "./common/api/common/TutanotaConstants.js"
 import { isKeyPressed } from "./common/misc/KeyManager.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 
@@ -43,6 +44,10 @@ export class RootView implements ClassComponent {
 	constructor() {
 		// still "old-style" component, we don't want to lose "this" reference
 		this.view = this.view.bind(this)
+	}
+
+	getDom() {
+		return assertNotNull(this.dom)
 	}
 
 	view(vnode: Vnode): Children {
