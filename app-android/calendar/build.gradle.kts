@@ -1,5 +1,7 @@
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
-import org.gradle.configurationcache.extensions.capitalized
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
 	id("com.android.application")
@@ -50,8 +52,7 @@ android {
 		create("tutao") {
 			signingConfig = signingConfigs.getByName("release")
 		}
-		create("fdroid") {
-		}
+		create("fdroid") { }
 	}
 
 	buildTypes {
@@ -101,10 +102,10 @@ android {
 			val taskName = StringBuilder("sign").run {
 				//Add a task to rename the output file
 				productFlavors.forEach {
-					append(it.name.capitalized())
+					append(it.name.capitalizeFirst())
 				}
 
-				append(buildType.name.capitalized())
+				append(buildType.name.capitalizeFirst())
 				append("Bundle")
 
 				toString()
@@ -121,9 +122,7 @@ android {
 
 	buildTypes.map {
 		it.buildConfigField(
-			"String",
-			"FILE_PROVIDER_AUTHORITY",
-			"\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
+			"String", "FILE_PROVIDER_AUTHORITY", "\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
 		)
 		// keep in sync with src/native/main/NativePushServiceApp.ts
 		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"126\"")
@@ -136,11 +135,14 @@ android {
 		targetCompatibility = JavaVersion.VERSION_17
 	}
 
-	kotlinOptions {
-		jvmTarget = "17"
+	kotlin {
+		// Extension level
+		compilerOptions {
+			jvmTarget = JvmTarget.fromTarget("17")
+		}
 	}
 
-	packagingOptions {
+	packaging {
 		resources {
 			this.excludes.addAll(listOf("META-INF/LICENSE", "META-INF/ASL2.0"))
 		}
@@ -255,4 +257,10 @@ dependencies {
 	implementation("androidx.glance:glance-appwidget:1.1.1")
 	implementation("androidx.glance:glance-appwidget-preview:1.1.1")
 	implementation("androidx.glance:glance-preview:1.1.1")
+}
+
+// Extension function to capitalize the first letter
+fun String.capitalizeFirst(): String {
+	if (this.isEmpty()) return this
+	return this.replaceFirstChar { it.titlecaseChar() }
 }

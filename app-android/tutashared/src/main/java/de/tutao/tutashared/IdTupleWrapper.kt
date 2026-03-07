@@ -23,4 +23,4 @@ fun IdTupleWrapper.toSdkIdTupleGenerated(): IdTupleGenerated {
 
 object IdTupleWrapperZeroOrOneAssociationSerializer : ZeroOrOneAssociationSerializer<IdTupleWrapper>(serializer())
 
-object IdTupleOneAssociationSerializer : OneAssociationSerializer<IdTuple>(serializer())
+object IdTupleOneAssociationSerializer : OneAssociationSerializer<IdTupleWrapper>(serializer())

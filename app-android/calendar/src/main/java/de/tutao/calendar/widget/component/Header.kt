@@ -31,7 +31,7 @@ import androidx.glance.text.TextStyle
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleCustom
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -149,7 +149,7 @@ fun HeaderWIthAllDayPreview() {
 		allDayEvents = listOf(
 			UIEvent(
 				"calendarId",
-				IdTuple("list", "elemnt"),
+				IdTupleCustom("list", "elemnt"),
 				"dd55ff",
 				"My all day",
 				"",
@@ -170,7 +170,7 @@ fun HeaderWIthAllDayBirthdayPreview() {
 		allDayEvents = listOf(
 			UIEvent(
 				"calendarId",
-				IdTuple("list", "elemnt"),
+				IdTupleCustom("list", "elemnt"),
 				"AA55ff",
 				"My all day",
 				"",
@@ -192,7 +192,7 @@ fun HeaderWIthAllDayNoTitlePreview() {
 		allDayEvents = listOf(
 			UIEvent(
 				"calendarId",
-				IdTuple("list", "elemnt"),
+				IdTupleCustom("list", "elemnt"),
 				"AAddff",
 				"",
 				"",

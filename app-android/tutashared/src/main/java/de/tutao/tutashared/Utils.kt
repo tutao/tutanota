@@ -9,7 +9,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
-import android.util.Base64
 import androidx.annotation.ColorInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,10 +19,10 @@ import java.io.*
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.Base64
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -35,7 +34,7 @@ fun SecureRandom.bytes(numBytes: Int): ByteArray {
 	return array
 }
 
-fun ByteArray.toBase64(): String = Base64.encodeToString(this, Base64.NO_WRAP)
+fun ByteArray.toBase64(): String = Base64.getEncoder().encodeToString(this)
 
 fun ByteArray.toHexString() = joinToString("") { java.lang.String.format("%02x", it) }
 
@@ -45,7 +44,7 @@ fun File.toUri(): String = Uri.fromFile(this).toString()
 data class FileInfo(var name: String, var size: Long)
 
 fun String.base64ToBytes(): ByteArray {
-	return Base64.decode(this, Base64.NO_WRAP)
+	return Base64.getDecoder().decode(this)
 }
 
 fun String.base64ToString(): String = String(this.base64ToBytes())
