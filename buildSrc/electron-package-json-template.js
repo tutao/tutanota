@@ -58,7 +58,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 					publishAutoUpdate: true,
 					useMultipleRangeRequest: false,
 				}
-			: undefined,
+			: null,
 		directories: {
 			output: "installers",
 		},
