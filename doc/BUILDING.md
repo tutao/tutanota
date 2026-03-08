@@ -94,8 +94,8 @@ Keep in mind that your own build of Tuta Mail Desktop will not update automatica
 1. Build packages: `npm run build-packages`
 2. Run `node desktop --custom-desktop-release`.
 
-The client for your platform will be in `build/desktop/`. Note that you can add `--unpacked` to the build command to
-skip the packaging of the installer. This will yield a directory containing the client that can be run without
+The client for your platform will be in `artifacts/desktop/`. Note that you can add `--unpacked` to the build command to
+skip the packaging of the installer. This will yield a directory in `build/desktop/` containing the client that can be run without
 installation.
 
 ### Extra Notes:
