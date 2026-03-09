@@ -19,9 +19,8 @@ export class SpamClassificationPostLoginAction implements PostLoginAction {
 
 	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {
 		await this.customerFacade.loadCustomizations()
-		const isSpamClassificationEnabled = await this.customerFacade.isEnabled(FeatureType.SpamClientClassification)
 		const user = assertNotNull(await this.customerFacade.getUser())
-		if (isSpamClassificationEnabled && isInternalUser(user) && this.spamClassifier) {
+		if (isInternalUser(user) && this.spamClassifier) {
 			const ownerGroups = filterMailMemberships(user)
 			for (const ownerGroup of ownerGroups) {
 				this.spamClassifier.initializeFromStorage(ownerGroup.group).catch((e) => {
@@ -33,9 +32,8 @@ export class SpamClassificationPostLoginAction implements PostLoginAction {
 
 	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {
 		await this.customerFacade.loadCustomizations()
-		const isSpamClassificationEnabled = await this.customerFacade.isEnabled(FeatureType.SpamClientClassification)
 		const user = assertNotNull(await this.customerFacade.getUser())
-		if (isSpamClassificationEnabled && isInternalUser(user) && this.spamClassifier) {
+		if (isInternalUser(user) && this.spamClassifier) {
 			const ownerGroups = filterMailMemberships(user)
 			for (const ownerGroup of ownerGroups) {
 				this.syncTracker.addSyncDoneListener({
