@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import {
 	AeadFacade,
 	aes256EncryptSearchIndexEntry,
+	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
 	AsymmetricKeyPair,
@@ -206,6 +207,99 @@ o.spec("CompatibilityTest", function () {
 			const decryptedKey = aeadFacade.decrypt(keys, reEncryptedKey, associatedData)
 			o(plaintextKey).deepEquals(decryptedKey)
 		}
+	})
+
+	o.spec("benchmark symmetric encryption", function () {
+		const string1B = stringToUtf8Uint8Array("1")
+		const string10B = stringToUtf8Uint8Array("1234567890")
+		const string100B = new Uint8Array(100)
+		const string1KiB = new Uint8Array(1024)
+		const string1MiB = new Uint8Array(1024 * 1024)
+		string100B.fill(0x41)
+		string1KiB.fill(0x41)
+		string1MiB.fill(0x41)
+		const plaintextTestData: Uint8Array[] = [string1B, string1B, string10B, string100B, string1KiB, string1MiB]
+		const associatedTestData: Uint8Array[] = [new Uint8Array(0), string1B, string10B, string100B, string1KiB]
+		const NUM_TEST_RUNS = 1000
+		const results = [[]]
+
+		o.before(async function () {
+			await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		})
+
+		o.spec("CBC-then-HMAC-SHA-256", function () {
+			o("encrypt " + NUM_TEST_RUNS + "x", function () {
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					const start = new Date()
+					for (let i = 0; i < NUM_TEST_RUNS; i++) {
+						aesEncrypt(keys.encryptionKey, plaintext)
+					}
+					const end = new Date()
+					console.log("plaintext length ", plaintext.length, "time in ms: ", end.getTime() - start.getTime())
+				}
+			})
+
+			o("decrypt " + NUM_TEST_RUNS + "x", function () {
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					const ciphertext = aesEncrypt(keys.encryptionKey, plaintext)
+					const start = new Date()
+					for (let i = 0; i < NUM_TEST_RUNS; i++) {
+						aesDecrypt(keys.encryptionKey, ciphertext)
+					}
+					const end = new Date()
+					console.log("plaintext length ", plaintext.length, "time in ms: ", end.getTime() - start.getTime())
+				}
+			})
+		})
+
+		o.spec("CTR-then-Blake3", function () {
+			o("encrypt " + NUM_TEST_RUNS + "x", function () {
+				const aeadFacade = new AeadFacade()
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					for (const associatedData of associatedTestData) {
+						const start = new Date()
+						for (let i = 0; i < NUM_TEST_RUNS; i++) {
+							aeadFacade.encrypt(keys, plaintext, associatedData)
+						}
+						const end = new Date()
+						console.log(
+							"plaintext length ",
+							plaintext.length,
+							" associated data of length: ",
+							associatedData.length,
+							"time in ms: ",
+							end.getTime() - start.getTime(),
+						)
+					}
+				}
+			})
+
+			o("decrypt " + NUM_TEST_RUNS + "x", function () {
+				const aeadFacade = new AeadFacade()
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					for (const associatedData of associatedTestData) {
+						const ciphertext = aeadFacade.encrypt(keys, plaintext, associatedData)
+						const start = new Date()
+						for (let i = 0; i < NUM_TEST_RUNS; i++) {
+							aeadFacade.decrypt(keys, ciphertext, associatedData)
+						}
+						const end = new Date()
+						console.log(
+							"string of length ",
+							plaintext.length,
+							" associated data of length: ",
+							associatedData.length,
+							"time in ms: ",
+							end.getTime() - start.getTime(),
+						)
+					}
+				}
+			})
+		})
 	})
 
 	o("unicodeEncoding", function () {
