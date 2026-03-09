@@ -1843,7 +1843,12 @@ sjcl.mode.ctr = {
 			d[i+2] ^= e[2];
 			d[i+3] ^= e[3];
 			for(var carry = 3; carry >= 0; carry--) {
-				if (++c[carry]) break; // If overflowing, it'll be 0 and we'll have to continue propagating the carry
+				if (++c[carry] > 0xffffffff ) {
+					// javascript numbers can be more than 4 byte
+					c[carry] = 0
+				} else {
+					break;
+				}
 			}
 		}
 		return sjcl.bitArray.clamp(d, bl);
