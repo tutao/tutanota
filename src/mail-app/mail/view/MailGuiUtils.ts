@@ -68,6 +68,8 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 import m from "mithril"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
+import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
 
 const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 
@@ -207,18 +209,22 @@ export async function showUndoMailSnackbar(
 async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, mailModel: MailModel, mailIds: ReadonlyArray<IdTuple>) {
 	const { showContactSelectionDialog } = await import("../../contacts/view/ContactSelectionDialog")
 	const mails = await mailModel.loadAllMails(mailIds)
+	const senderAddresses = mails.map((mail) => mail.sender.address)
 
-	const loadedContacts =
-		mails.length === 1 ? await contactModel.searchForContact(mails[0].sender.address).then((c) => (c ? [c] : [])) : await contactModel.loadAllContacts()
-
-	if (loadedContacts.length === 0) {
+	const loadedContacts = await contactModel.loadAllContacts()
+	const matchingContacts = loadedContacts.filter((contact) => contact.mailAddresses.some((a) => senderAddresses.includes(cleanMailAddress(a.address))))
+	if (matchingContacts.length === 0) {
 		return
 	}
 
-	const addressToContactMap = new Map(loadedContacts.flatMap((c) => c.mailAddresses.map((ma) => [ma.address, c])))
-	const deduplicatedContactSet = new Set(mails.map((m) => addressToContactMap.get(m.sender.address)).filter((contact) => contact !== undefined))
+	const attrs: ContactSelectionDialogAttrs = {
+		titleText: "contactDeletionMoveToSpam_title",
+		contentText: "contactDeletionMoveToSpam_msg",
+		okActionText: "delete_action",
+		confirmActionText: "deleteContacts_msg",
+	}
 
-	showContactSelectionDialog(Array.from(deduplicatedContactSet), async (dialog: Dialog, selectedContacts: Contact[]) => {
+	showContactSelectionDialog(attrs, matchingContacts, async (dialog: Dialog, selectedContacts: Contact[]) => {
 		showProgressDialog("pleaseWait_msg", contactModel.eraseContacts(selectedContacts))
 		dialog.close()
 	})
@@ -231,7 +237,7 @@ async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, ma
 export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, mailboxModel, undoModel, contactModel }: MoveMailsParams): Promise<boolean> {
 	try {
 		if (targetFolder.folderType === MailSetKind.SPAM) {
-			await warnUsersIfMovingContactMailToSpam(contactModel, mailModel, mailIds)
+			warnUsersIfMovingContactMailToSpam(contactModel, mailModel, mailIds)
 		}
 
 		const movedMails = await mailModel.moveMails(mailIds, targetFolder, moveMode)
@@ -382,10 +388,16 @@ export async function simpleMoveToSystemFolder(
 	undoModel: UndoModel,
 	targetFolder: SimpleMoveMailTarget,
 	mails: readonly Mail[],
+	contactModel?: ContactModel,
 ): Promise<boolean> {
+	const mailIds = getIds(mails)
+	if (contactModel && targetFolder === MailSetKind.SPAM) {
+		warnUsersIfMovingContactMailToSpam(contactModel, mailModel, mailIds)
+	}
+
 	let movedMails: MovedMails[]
 	try {
-		movedMails = await mailModel.simpleMoveMails(getIds(mails), targetFolder)
+		movedMails = await mailModel.simpleMoveMails(mailIds, targetFolder)
 	} catch (e) {
 		return handleMoveError(e)
 	}
@@ -626,7 +638,7 @@ export async function showMoveMailsDropdown(
 		moveParams = {
 			...moveTargets,
 			onClick: (f: SimpleMoveMailTarget) => {
-				simpleMoveToSystemFolder(mailboxModel, mailModel, undoModel, f, mails)
+				simpleMoveToSystemFolder(mailboxModel, mailModel, undoModel, f, mails, contactModel)
 			},
 		}
 	} else {

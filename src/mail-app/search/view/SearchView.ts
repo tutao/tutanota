@@ -815,7 +815,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return selectedMails.every(isDraft)
 			? null
 			: () => {
-					simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, MailSetKind.SPAM, selectedMails)
+					simpleMoveToSystemFolder(
+						mailLocator.mailboxModel,
+						mailLocator.mailModel,
+						this.undoModel,
+						MailSetKind.SPAM,
+						selectedMails,
+						this.contactModel,
+					)
 				}
 	}
 
@@ -1327,7 +1334,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, targetFolder, selectedMails)
+			simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, targetFolder, selectedMails, mailLocator.contactModel)
 		}
 	}
 
