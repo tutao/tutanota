@@ -1,22 +1,42 @@
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
-import { lang, MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { component_size } from "../../../common/gui/size.js"
+import { List, ListAttrs, ListState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
+import { component_size, px } from "../../../common/gui/size.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../../common/gui/base/Button.js"
 import { KindaContactRow } from "./ContactListView.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
+import { theme } from "../../../common/gui/theme"
+import { Card } from "../../../common/gui/base/Card"
+import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
+import { ListModel, selectionAttrsForList } from "../../../common/misc/ListModel"
+import { elementIdPart, isSameId, sortCompareById } from "../../../common/api/common/utils/EntityUtils"
+import { noOp } from "@tutao/tutanota-utils"
+import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import Stream from "mithril/stream"
+
+export interface ContactSelectionDialogAttrs {
+	titleText: TranslationKey
+	contentText: TranslationKey
+	okActionText: TranslationKey
+	confirmActionText?: TranslationKey
+}
 
 /**
  * Show a dialog with a preview of a given list of contacts
+ * @param attrs the ContactSelectionDialogAttrs to configure the dialog texts
  * @param contacts The contact list to be previewed
  * @param okAction The action to be executed when the user presses the confirm button with at least one contact selected
  */
-export function showContactSelectionDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown) {
-	const viewModel: ContactSelectionDialogViewModel = new ContactSelectionDialogViewModel()
-	viewModel.selectContacts(contacts)
+export function showContactSelectionDialog(
+	attrs: ContactSelectionDialogAttrs,
+	contacts: Contact[],
+	okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown,
+) {
+	const viewModel: ContactSelectionDialogViewModel = new ContactSelectionDialogViewModel(contacts, m.redraw)
+
 	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
@@ -24,123 +44,151 @@ export function showContactSelectionDialog(contacts: Contact[], okAction: (dialo
 		createElement: (dom) => {
 			return new KindaContactRow(
 				dom,
-				(selectedContact: Contact) => viewModel.selectSingleContact(selectedContact),
+				(selectedContact: Contact) => viewModel.listModel.onSingleInclusiveSelection(selectedContact),
 				() => true,
 			)
 		},
 	}
 
-	const dialog = new Dialog(DialogType.EditMedium, {
-		view: () => [
-			/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
-			m(DialogHeaderBar, {
-				left: [
-					{
-						type: ButtonType.Secondary,
-						label: "close_alt",
-						click: () => {
-							dialog.close()
-						},
-					},
-				],
-				middle: "contactDeletionMoveToSpam_title",
-				right: [
-					{
-						type: ButtonType.Primary,
-						label: "delete_action",
-						click: () => {
-							const selectedContacts = [...viewModel.getSelectedContacts()]
-							if (selectedContacts.length <= 0) {
-								Dialog.message("noContact_msg")
-							} else {
-								okAction(dialog, selectedContacts)
-							}
-						},
-					},
-				],
-			} satisfies DialogHeaderBarAttrs),
-			/** variable-size child container that may be scrollable. */
-			m(".plr-4.pb-16.text-break.nav-bg", [
-				m(
-					"#dialog-message.text-break.text-prewrap.selectable.scroll.pt-16",
-					m(".dialog-contentButtonsBottom.text-break.selectable", lang.getTranslationText("contactDeletionMoveToSpam_msg")),
-				),
-				m(
-					".list-bg.border-radius.mt-8.ml-8.mr-8",
-					m(SelectAllCheckbox, {
-						style: {
-							"padding-left": "0",
-						},
-						selected: viewModel.isAllContactsSelected(contacts),
-						selectNone: () => viewModel.clearSelection(),
-						selectAll: () => viewModel.selectContacts(contacts),
-					}),
-				),
-				m(
-					".flex.col.rel.mt-8",
-					{
-						style: {
-							height: "20vh",
-						},
-					},
-					m(List, {
-						renderConfig,
-						state: {
-							items: contacts,
-							loadingStatus: ListLoadingState.Done,
-							loadingAll: false,
-							selectedItems: viewModel.getSelectedContacts(),
-							inMultiselect: true,
-							activeIndex: null,
-						},
-						onLoadMore() {},
-						onRangeSelectionTowards(item: Contact) {},
-						onRetryLoading() {},
-						onSingleSelection(item: Contact) {
-							viewModel.selectSingleContact(item)
-						},
-						onSingleTogglingMultiselection(item: Contact) {},
-						onStopLoading() {},
-					} satisfies ListAttrs<Contact, KindaContactRow>),
-				),
-			]),
+	const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				type: ButtonType.Secondary,
+				label: "close_alt",
+				click: () => {
+					dialog.close()
+				},
+			},
 		],
-	}).show()
+		middle: attrs.titleText,
+	}
+
+	const dialog = new Dialog(DialogType.EditMedium, {
+		view: () => {
+			return m(
+				".flex.col.border-radius",
+				{
+					style: {
+						height: "100%",
+						"background-color": theme.surface_container,
+					},
+				},
+				[
+					m(DialogHeaderBar, dialogHeaderBarAttrs),
+					m(
+						".scroll.hide-outline.plr-24.flex-grow",
+						{ style: { "overflow-x": "hidden" } },
+						m(
+							ContentWithOptionsDialog,
+							{
+								mainActionText: attrs.okActionText,
+								mainActionClick: async () => {
+									const selectedContacts = [...viewModel.listState().selectedItems]
+									if (selectedContacts.length <= 0) {
+										Dialog.message("noContact_msg")
+									} else {
+										if (attrs.confirmActionText) {
+											return Dialog.confirm(attrs.confirmActionText).then((confirmed) => {
+												if (confirmed) {
+													okAction(dialog, selectedContacts)
+												}
+											})
+										} else {
+											okAction(dialog, selectedContacts)
+										}
+									}
+								},
+								subActionText: null,
+								subActionClick: () => {},
+							},
+							[
+								m(Card, m("p.mt-8", lang.getTranslationText(attrs.contentText))),
+								m(
+									".list-bg.border-radius.mt-8",
+									m(SelectAllCheckbox, {
+										style: {
+											paddingLeft: 0,
+										},
+										...selectionAttrsForList(viewModel.listModel),
+									}),
+								),
+								m(
+									".flex.col.rel.mt-8",
+									{
+										style: {
+											marginLeft: px(-8),
+											height: "20vh",
+										},
+									},
+									m(List, {
+										renderConfig,
+										state: viewModel.listState(),
+										onLoadMore: noOp,
+										onRangeSelectionTowards(contact: Contact) {
+											viewModel.listModel.selectRangeTowards(contact)
+										},
+										onRetryLoading() {
+											viewModel.listModel.retryLoading()
+										},
+										onSingleSelection(contact: Contact) {
+											viewModel.listModel.onSingleInclusiveSelection(contact)
+										},
+										onSingleTogglingMultiselection(contact: Contact) {
+											viewModel.listModel.onSingleInclusiveSelection(contact)
+										},
+										onStopLoading: noOp,
+									} satisfies ListAttrs<Contact, KindaContactRow>),
+								),
+							],
+						),
+					),
+				],
+			)
+		},
+	})
+
+	dialog.show()
 }
 
-// Controls the selected contacts
 class ContactSelectionDialogViewModel {
-	private readonly selectedContacts: Set<Contact> = new Set()
+	private listModelStateStream: Stream<unknown> | null = null
+	readonly listModel: ListModel<Contact, Id>
 
-	getSelectedContacts(): Set<Contact> {
-		return new Set(this.selectedContacts)
+	constructor(
+		readonly contacts: Contact[],
+		readonly updateUi: () => void,
+	) {
+		this.listModel = new ListModel({
+			fetch: (_, __) => {
+				return Promise.resolve({ items: contacts, complete: true })
+			},
+
+			sortCompare: (item1, item2) => {
+				return sortCompareById(item1, item2)
+			},
+
+			getItemId: (item) => elementIdPart(item._id),
+
+			isSameId: (id1, id2) => isSameId(id1, id2),
+
+			autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
+		})
+
+		this.listModelStateStream = this.listModel.stateStream.map(() => {
+			this.updateUi()
+		})
+
+		this.listModel.loadInitial().then(() => {
+			this.listModel.selectAll()
+		})
 	}
 
-	// Compares the selected contacts against a list of contacts and returns whether they contain the same contacts
-	isAllContactsSelected(contacts: Contact[]): boolean {
-		const unselectedContacts = contacts.filter((contact) => !this.selectedContacts.has(contact))
-		return unselectedContacts.length <= 0
+	listState(): ListState<Contact> {
+		return this.listModel.state
 	}
 
-	// Deselects all the selected contacts
-	clearSelection(): void {
-		this.selectedContacts.clear()
-	}
-
-	// Toggles the presence of a contact within the selected contacts
-	selectSingleContact(selectedContact: Contact): void {
-		if (this.selectedContacts.has(selectedContact)) {
-			this.selectedContacts.delete(selectedContact)
-		} else {
-			this.selectedContacts.add(selectedContact)
-		}
-	}
-
-	// Replaces the selected contacts with the provided contacts
-	selectContacts(contacts: Contact[]): void {
-		this.selectedContacts.clear()
-		for (const contact of contacts) {
-			this.selectedContacts.add(contact)
-		}
+	dispose() {
+		this.listModelStateStream?.end(true)
+		this.listModelStateStream = null
 	}
 }
