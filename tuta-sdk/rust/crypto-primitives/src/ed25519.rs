@@ -1,7 +1,7 @@
 use crate::randomizer_facade::RandomizerFacade;
 use ed25519_dalek::{
-	SecretKey, Signature, SignatureError, Signer, SigningKey, Verifier, VerifyingKey,
-	PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH,
+	SecretKey, Signature, SignatureError, Signer, SigningKey, VerifyingKey, PUBLIC_KEY_LENGTH,
+	SECRET_KEY_LENGTH,
 };
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
@@ -78,7 +78,7 @@ impl Ed25519PublicKey {
 		let verifying_key = VerifyingKey::from_bytes(&self.0)?;
 		let signature: Signature = Signature::from_bytes(&signature.0);
 		verifying_key
-			.verify(message, &signature)
+			.verify_strict(message, &signature)
 			.map_err(Ed25519SignatureVerificationError)
 	}
 
