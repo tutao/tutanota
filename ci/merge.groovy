@@ -292,6 +292,7 @@ pipeline {
 						// once we spin local http server, we should also include more test by:
 						// --features test-with-local-http-server
 						sh "cargo test --package tuta-sdk"
+						sh "cargo test --package crypto-primitives"
 					}
 				}
 
