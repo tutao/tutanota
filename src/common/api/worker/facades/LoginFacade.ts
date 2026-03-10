@@ -668,6 +668,15 @@ export class LoginFacade {
 	private async triggerFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.lastLoginSessionType = sessionType
 		await this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
+		// If we have been fully logged in at least once already (probably expired ephemeral session)
+		// then we just reconnect and re-download missing events.
+		// For new connections we have special handling.
+		const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
+		if (wasFullyLoggedIn) {
+			await this.eventBusClient.connect(ConnectMode.Reconnect)
+		} else {
+			await this.eventBusClient.connect(ConnectMode.Initial)
+		}
 	}
 
 	public async getSessionType(): Promise<SessionType | null> {
@@ -793,21 +802,10 @@ export class LoginFacade {
 			// this may be the second time we set user in case we had a partial offline login before
 			// we do it unconditionally here, to make sure we unlock the latest user group key right below
 			this.userFacade.setUser(user)
-			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
-
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
+
 			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
-
 			await this.loadEntropy()
-
-			// If we have been fully logged in at least once already (probably expired ephemeral session)
-			// then we just reconnect and re-download missing events.
-			// For new connections we have special handling.
-			if (wasFullyLoggedIn) {
-				this.eventBusClient.connect(ConnectMode.Reconnect)
-			} else {
-				this.eventBusClient.connect(ConnectMode.Initial)
-			}
 
 			await this.entropyFacade.storeEntropy()
 			return { user, accessToken, userGroupInfo }

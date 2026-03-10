@@ -2,6 +2,7 @@ import { EventBusListener } from "./EventBusClient.js"
 import {
 	GroupKeyUpdateTypeRef,
 	OperationStatusUpdate,
+	User,
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 	UserTypeRef,

@@ -145,10 +145,6 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.getIdsInRange(typeRef, listId)
 	}
 
-	getLastBatchIdForGroup(groupId: Id): Promise<Id | null> {
-		return this.inner.getLastBatchIdForGroup(groupId)
-	}
-
 	async getLastUpdateTime(): Promise<LastUpdateTime> {
 		return this._inner ? this.inner.getLastUpdateTime() : { type: "uninitialized" }
 	}
@@ -183,10 +179,6 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void> {
 		return this.inner.putMultiple(typeRef, instances)
-	}
-
-	putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {
-		return this.inner.putLastBatchIdForGroup(groupId, batchId)
 	}
 
 	putLastUpdateTime(value: number): Promise<void> {

@@ -8,7 +8,18 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, Nullable, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	downcast,
+	getFirstOrThrow,
+	getTypeString,
+	isNotEmpty,
+	isSameTypeRef,
+	lastThrow,
+	lazyAsync,
+	Nullable,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -49,12 +60,13 @@ import { assertWorkerOrNode, isTest } from "../../common/Env"
 import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { EntityUpdateData, isUpdateForTypeRef, PrefetchStatus } from "../../common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
 import { hasError, isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
+import { LastProcessedEventBatchStorageFacade } from "../LastProcessedEventBatchStorageFacade"
 
 assertWorkerOrNode()
 
@@ -100,18 +112,6 @@ export interface EntityRestCache extends EntityRestInterface {
 	 * Clear out the contents of the cache.
 	 */
 	purgeStorage(): Promise<void>
-
-	/**
-	 * Get the batch id of the most recently processed batch for the given group.
-	 */
-	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null>
-
-	/**
-	 * Saved tha batch id of the most recently processed batch manually.
-	 *
-	 * Is needed when the cache is new but we want to make sure that the next time we will download from this moment, even if we don't receive any events.
-	 */
-	setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void>
 
 	/**
 	 * Persist the last time client downloaded event batches. This is not the last *processed* item, merely when things were *downloaded*. We use it to
@@ -261,16 +261,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>>
 
-	/**
-	 * Persist the last processed batch for a given group id.
-	 */
-	putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void>
-
-	/**
-	 * Retrieve the least processed batch id for a given group.
-	 */
-	getLastBatchIdForGroup(groupId: Id): Promise<Id | null>
-
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	/**
@@ -319,6 +309,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		private readonly storage: CacheStorage,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly patchMerger: PatchMerger,
+		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>,
 	) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
@@ -377,12 +368,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.entityRestClient.eraseMultiple(listId, instances, options)
 	}
 
-	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
-		return this.storage.getLastBatchIdForGroup(groupId)
-	}
-
-	setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
-		return this.storage.putLastBatchIdForGroup(groupId, batchId)
+	async putLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
+		const lastProcessedEventBatchStorageFacade = await this.lastProcessedEventBatchStorageFacade()
+		return lastProcessedEventBatchStorageFacade.putLastEntityEventBatchForGroup(groupId, batchId)
 	}
 
 	purgeStorage(): Promise<void> {
@@ -796,9 +784,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
 		await this.recordSyncTime()
 
-		// we do not want to process entityUpdates where the prefetchStatus is PrefetchStatus.NotAvailable
-		// PrefetchStatus.NotAvailable indicates that we failed to fetch the instance because of 404 NotFound, 403 NotAuthorized
-		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor" && u.prefetchStatus !== PrefetchStatus.NotAvailable)
+		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor")
 		// we need an array of UpdateEntityData
 		const filteredUpdateEvents: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
@@ -878,30 +864,27 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 
 		// the whole batch has been written successfully
-		await this.storage.putLastBatchIdForGroup(groupId, batchId)
+		await this.putLastEntityEventBatchForGroup(groupId, batchId)
 		// merge the results
 		return filteredUpdateEvents
 	}
 
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
-		// if entityUpdate has been Prefetched or is NotAvailable, we do not need to do anything
-		if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
-			// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
-			if (update.instanceListId != null) {
-				// if there is a custom handler we follow its decision
-				let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
-				// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
-				shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
+		// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
+		if (update.instanceListId != null) {
+			// if there is a custom handler we follow its decision
+			let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
+			// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
+			shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
 
-				if (shouldUpdateDb) {
-					try {
-						return await this.loadAndStoreInstanceFromUpdate(update)
-					} catch (e) {
-						if (isExpectedErrorForSynchronization(e)) {
-							return null
-						} else {
-							throw e
-						}
+			if (shouldUpdateDb) {
+				try {
+					return await this.loadAndStoreInstanceFromUpdate(update)
+				} catch (e) {
+					if (isExpectedErrorForSynchronization(e)) {
+						return null
+					} else {
+						throw e
 					}
 				}
 			}
@@ -919,15 +902,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// if the entity is not in cache we don't want to patch or re-download it
 		if (cached) {
 			try {
-				if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
-					if (update.patches) {
-						const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
-						if (patchAppliedInstance == null) {
-							return await this.loadAndStoreInstanceFromUpdate(update)
-						}
-					} else {
+				if (update.patches) {
+					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
+					if (patchAppliedInstance == null) {
 						return await this.loadAndStoreInstanceFromUpdate(update)
 					}
+				} else {
+					return await this.loadAndStoreInstanceFromUpdate(update)
 				}
 			} catch (e) {
 				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
@@ -955,6 +936,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
 			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 			await this.storage.put(update.typeRef, instanceOnUpdate)
+			const blobInstanceOnUpdate = update.blobInstance
+			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, MailTypeRef)) {
+				await this.storage.put(MailDetailsBlobTypeRef, blobInstanceOnUpdate)
+			}
 			return update
 		} else {
 			console.log("re-downloading instance from entity event, due to error : ", getTypeString(update.typeRef), update.instanceListId, update.instanceId)

@@ -19,11 +19,13 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { RolloutFacade } from "../../../../src/common/api/worker/facades/RolloutFacade"
 import { GroupManagementFacade } from "../../../../src/common/api/worker/facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker"
 import { IdentityKeyCreator } from "../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
+
+import { noPatchesAndInstance } from "./EventBusClientTest"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -195,18 +197,14 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceId: userId,
 				instanceListId: null,
 				operation: OperationType.UPDATE,
-				instance: null,
-				patches: null,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
+				...noPatchesAndInstance,
 			},
 			{
 				typeRef: UserGroupKeyDistributionTypeRef,
 				instanceId: userGroupId,
 				instanceListId: null,
 				operation: OperationType.CREATE,
-				instance: null,
-				patches: null,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
+				...noPatchesAndInstance,
 			},
 		]
 
@@ -225,9 +223,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceId: userId,
 				instanceListId: null,
 				operation: OperationType.UPDATE,
-				instance: null,
-				patches: null,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
+				...noPatchesAndInstance,
 			},
 		]
 
@@ -250,7 +246,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				operation: OperationType.CREATE,
 				instance: null,
 				patches: null,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
+				blobInstance: null,
 			},
 		]
 

@@ -54,7 +54,12 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
+import {
+	compareMetaEntriesOldest,
+	filterIndexMemberships,
+	getIdFromEncSearchIndexEntry,
+	typeRefToTypeInfo,
+} from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -104,6 +109,7 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../common/api/worker/search/IndexEncryptionUtils"
+import type { User } from "../../../common/api/entities/sys/TypeRefs"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -117,6 +123,11 @@ type WriteOperation = {
 	transactionFactory: () => Promise<DbTransaction>
 	deferred: DeferredObject<void>
 	isAbortedForBackgroundMode: boolean
+}
+
+export interface GroupBatches {
+	groupId: Id
+	eventBatchIds: Id[]
 }
 
 /**
@@ -134,6 +145,7 @@ export class IndexerCore {
 	private _promiseMapCompat: PromiseMapFn
 	private _needsExplicitIds: boolean
 	private _explicitIdStart: number
+	indexedGroupIds: Array<Id>
 
 	constructor(db: EncryptedDbWrapper, browserData: BrowserData) {
 		this.db = db
@@ -141,6 +153,7 @@ export class IndexerCore {
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 		this._needsExplicitIds = browserData.needsExplicitIDBIds
 		this._explicitIdStart = Date.now()
+		this.indexedGroupIds = []
 	}
 
 	async storeMetadata(key: keyof typeof Metadata, value: unknown): Promise<void> {
@@ -284,13 +297,25 @@ export class IndexerCore {
 		return this._writeIndexUpdate(indexUpdate, noOp)
 	}
 
-	async writeGroupDataBatchId(groupId: Id, batchId: Id) {
+	async putLastBatchIdForGroup(groupId: Id, batchId: Id) {
 		await this._executeOperation({
 			transaction: null,
 			deferred: defer(),
 			isAbortedForBackgroundMode: false,
 			transactionFactory: () => this.db.dbFacade.createTransaction(false, [SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS]),
 			operation: (transaction) => this._updateGroupDataBatchId(groupId, batchId, transaction),
+		})
+	}
+
+	async getLastProcessedEventBatchIdForGroup(groupId: Id): Promise<Id | null> {
+		return await this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
+			return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
+				if (groupData) {
+					return lastThrow(groupData.lastBatchIds)
+				} else {
+					return null
+				}
+			})
 		})
 	}
 

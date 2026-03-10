@@ -50,11 +50,11 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
-import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils"
 import { ConfigurationDatabase } from "../../../src/common/api/worker/facades/lazy/ConfigurationDatabase"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
 import { DateProvider } from "../../../src/common/api/common/DateProvider"
 import { ProgrammingError } from "../../../src/common/api/common/error/ProgrammingError"
+import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
 const { anything, argThat } = matchers
 
@@ -94,10 +94,6 @@ const BODY_TEXT_1 = "lorem ipsum dolor yaddah yaddah"
 const SUBJECT_LINE_1 = "Did you get that thing I sent ya"
 const STRONG_PASSWORD = "@()IE!)(@FME)0-123jfDSA32SDACmmnvnvddEW"
 const WEAK_PASSWORD = "123"
-const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
-	instance: null,
-	patches: null,
-}
 
 o.spec("SendMailModel", () => {
 	o.before(() => {
@@ -802,7 +798,6 @@ o.spec("SendMailModel", () => {
 				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: CustomerTypeRef,
@@ -810,7 +805,6 @@ o.spec("SendMailModel", () => {
 				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: NotificationMailTypeRef,
@@ -818,7 +812,6 @@ o.spec("SendMailModel", () => {
 				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: ChallengeTypeRef,
@@ -826,7 +819,6 @@ o.spec("SendMailModel", () => {
 				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: MailTypeRef,
@@ -834,7 +826,6 @@ o.spec("SendMailModel", () => {
 				instanceListId: "mail-list-id",
 				instanceId: "",
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
@@ -866,7 +857,6 @@ o.spec("SendMailModel", () => {
 				instanceListId,
 				instanceId,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			o.check(model.allRecipients().length).equals(2)
 			const updatedRecipient = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -901,7 +891,6 @@ o.spec("SendMailModel", () => {
 				instanceListId,
 				instanceId,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			o.check(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -916,7 +905,6 @@ o.spec("SendMailModel", () => {
 				instanceListId,
 				instanceId,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			o.check(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -1035,7 +1023,6 @@ o.spec("SendMailModel", () => {
 						instanceListId: draftListId,
 						instanceId: `not ${draftElementId}`,
 						...noPatchesAndInstance,
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 					})
 
 					o.check(model.getMailRemotelyUpdatedAt()).equals(1000)
@@ -1056,7 +1043,6 @@ o.spec("SendMailModel", () => {
 						instanceListId: draftListId,
 						instanceId: draftElementId,
 						...noPatchesAndInstance,
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 					})
 
 					o.check(model.getMailRemotelyUpdatedAt()).equals(0)
@@ -1077,7 +1063,6 @@ o.spec("SendMailModel", () => {
 					instanceListId: draftListId,
 					instanceId: draftElementId,
 					...noPatchesAndInstance,
-					prefetchStatus: PrefetchStatus.NotPrefetched,
 				})
 				o.check(model._draftSavedRecently).equals(false)
 				o.check(model.getMailRemotelyUpdatedAt()).equals(1000)
@@ -1098,7 +1083,6 @@ o.spec("SendMailModel", () => {
 					instanceListId: draftListId,
 					instanceId: draftElementId,
 					...noPatchesAndInstance,
-					prefetchStatus: PrefetchStatus.NotPrefetched,
 				})
 				o.check(model.getMailRemotelyUpdatedAt()).equals(1234)
 				o.check(model.hasDraftDataChangedOnServer()).equals(true)

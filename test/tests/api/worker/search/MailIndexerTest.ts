@@ -21,15 +21,15 @@ import {
 	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailSet,
-	MailSetRefTypeRef,
-	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
+	MailSetRefTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { assertNotNull, DAY_IN_MILLIS, defer, getDayShifted, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, DAY_IN_MILLIS, defer, getDayShifted } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
 	isSameId,
@@ -105,7 +105,7 @@ o.spec("MailIndexer", () => {
 
 		indexer = new MailIndexer(
 			infoMessageHandler,
-			() => bulkMailLoader,
+			() => Promise.resolve(bulkMailLoader),
 			entityClient,
 			dateProvider,
 			mailFacade,

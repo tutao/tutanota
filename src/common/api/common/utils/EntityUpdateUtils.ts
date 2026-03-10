@@ -14,25 +14,17 @@ export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
 	instanceId: string
 	operation: OperationType
 	instance: Nullable<ServerModelParsedInstance>
+	blobInstance: Nullable<ServerModelParsedInstance>
 
 	// emptyList: when server did not send patchList, or empty re-write to the server database.
 	// length > 0: normal case for patch
 	patches: Nullable<Array<Patch>>
-
-	/// status returned by EventInstancePrefetcher trying to download this instance
-	prefetchStatus: PrefetchStatus
-}
-
-export enum PrefetchStatus {
-	NotPrefetched = "NotPrefetched",
-	Prefetched = "Prefetched",
-	NotAvailable = "NotAvailable", // 403 (not authorized), 404 (not found)
 }
 
 export async function entityUpdateToUpdateData<T extends SomeEntity>(
 	update: EntityUpdate,
 	instance: Nullable<ServerModelParsedInstance> = null,
-	prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
+	blobInstance: Nullable<ServerModelParsedInstance> = null,
 ): Promise<EntityUpdateData<T>> {
 	const typeId = parseInt(update.typeId)
 	const typeRefOfEntityUpdateType = new TypeRef<T>(update.application as AppName, typeId)
@@ -43,7 +35,7 @@ export async function entityUpdateToUpdateData<T extends SomeEntity>(
 		operation: update.operation as OperationType,
 		patches: update.patch?.patches ?? null,
 		instance,
-		prefetchStatus,
+		blobInstance,
 	}
 }
 
@@ -60,7 +52,7 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 }
 
 export function getLogStringForEntityEvent(event: EntityUpdateData): string {
-	return `event: ${getTypeString(event.typeRef)}, listId: ${event.instanceListId}, elementId: ${event.instanceId}, prefetchStatus: ${event.prefetchStatus}, operation: ${event.operation}, patches: ${getLogStringForPatches(event.patches ?? [])} ;`
+	return `event: ${getTypeString(event.typeRef)}, listId: ${event.instanceListId}, elementId: ${event.instanceId}, operation: ${event.operation}, patches: ${getLogStringForPatches(event.patches ?? [])} ;`
 }
 
 export function getLogStringForPatches(patches: Array<Patch>) {

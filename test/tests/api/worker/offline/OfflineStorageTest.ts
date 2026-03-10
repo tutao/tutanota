@@ -66,6 +66,7 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "../../../../../src/common/api/entities/storage/TypeRefs"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
+import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
@@ -473,15 +474,6 @@ o.spec("OfflineStorageDb", function () {
 
 					await storage.deleteAllOwnedBy(groupId)
 					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
-				})
-
-				o.test("removes last batch id for the deleted group", async function () {
-					await storage.putLastBatchIdForGroup("group1", "batch1")
-					await storage.putLastBatchIdForGroup("group2", "batch2")
-
-					await storage.deleteAllOwnedBy("group1")
-					o.check(await storage.getLastBatchIdForGroup("group1")).equals(null)
-					o.check(await storage.getLastBatchIdForGroup("group2")).equals("batch2")
 				})
 			})
 
@@ -1839,6 +1831,25 @@ o.spec("OfflineStorageDb", function () {
 				o.check(await getAllIdsForType(MailTypeRef)).deepEquals([getElementId(mailAfter)])
 				o.check(await getAllIdsForType(FileTypeRef)).deepEquals([getElementId(fileAfter)])
 			})
+		})
+	})
+
+	o.spec("OfflineStorageLastProcessedEventBatchStorageFacade tests", function () {
+		let offlineStorageLastProcessedEventBatchStorageFacade: OfflineStorageLastProcessedEventBatchStorageFacade
+		const groupId1 = "groupId1"
+		const lastProcessedEventBatchId1 = "lastProcessedEventBatchId1"
+		o.beforeEach(async function () {
+			await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+			offlineStorageLastProcessedEventBatchStorageFacade = new OfflineStorageLastProcessedEventBatchStorageFacade(dbFacade)
+		})
+		o.test("getLastEntityEventBatchForGroup roundtrip works", async () => {
+			await offlineStorageLastProcessedEventBatchStorageFacade.putLastEntityEventBatchForGroup(groupId1, lastProcessedEventBatchId1)
+			const lastProcessedEventBatchIdFromDb = await offlineStorageLastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(groupId1)
+			o.check(lastProcessedEventBatchIdFromDb).equals(lastProcessedEventBatchId1)
+		})
+		o.test("getLastEntityEventBatchForGroup returns null when there is no entry", async () => {
+			const lastProcessedEventBatchIdFromDb = await offlineStorageLastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(groupId1)
+			o.check(lastProcessedEventBatchIdFromDb).equals(null)
 		})
 	})
 

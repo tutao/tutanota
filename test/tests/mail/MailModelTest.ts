@@ -21,7 +21,7 @@ import { LoginController } from "../../../src/common/api/main/LoginController.js
 import { instance, matchers, object, when } from "testdouble"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
-import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
@@ -32,6 +32,8 @@ import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketCo
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
 import { NotAuthorizedError } from "../../../src/common/api/common/error/RestError"
 import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
+
+import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
 const { anything } = matchers
 
@@ -258,9 +260,7 @@ o.spec("MailModelTest", function () {
 			operation,
 			instanceListId,
 			instanceId,
-			instance: null,
-			patches: null,
-			prefetchStatus: PrefetchStatus.NotPrefetched,
+			...noPatchesAndInstance,
 		}
 	}
 })

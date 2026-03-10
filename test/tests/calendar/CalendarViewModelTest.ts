@@ -14,7 +14,7 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js
 import { ReceivedGroupInvitationsModel } from "../../../src/common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { object, when } from "testdouble"
-import { EntityEventsListener, EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityEventsListener, EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
@@ -31,6 +31,8 @@ import { addDaysForEventInstance, getMonthRange } from "../../../src/common/cale
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
+
+import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -419,9 +421,7 @@ o.spec("CalendarViewModel", function () {
 				instanceListId: getListId(wrapperToDrag.event) as NonEmptyString,
 				instanceId: getElementId(wrapperToDrag.event),
 				operation: OperationType.CREATE,
-				instance: null,
-				patches: null,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
+				...noPatchesAndInstance,
 			}
 			const updatedEventFromServer = makeEvent(
 				getElementId(wrapperToDrag.event),
