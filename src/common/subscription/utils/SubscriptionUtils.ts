@@ -45,6 +45,12 @@ export const enum UpgradeType {
 	Switch = "Switch",
 }
 
+export const enum AdAttributionType {
+	UNKNOWN = 0,
+	IOS = 1,
+	ANDROID = 2,
+}
+
 export function getCurrentCount(featureType: BookingItemFeatureType, booking: Booking | null): number {
 	if (booking) {
 		let bookingItem = booking.items.find((item) => item.featureType === featureType)
