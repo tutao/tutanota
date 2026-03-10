@@ -2236,6 +2236,8 @@ export type RegistrationCaptchaServiceGetData = {
 	timelockChallengeSolution: null | string;
 	language: string;
 	isAutomatedBrowser: boolean;
+
+	adAttribution: null | AdAttribution;
 }
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", 1483)
 
@@ -4161,4 +4163,18 @@ export type PartnerManagedCustomer = {
 	_ownerKeyVersion: null | NumberString;
 
 	customerInfo: IdTuple;
+}
+export const AdAttributionTypeRef: TypeRef<AdAttribution> = new TypeRef("sys", 2684)
+
+export function createAdAttribution(values: StrippedEntity<AdAttribution>): AdAttribution {
+    return Object.assign(create(typeModels[AdAttributionTypeRef.typeId], AdAttributionTypeRef), values)
+}
+
+export type AdAttribution = {
+	_type: TypeRef<AdAttribution>;
+	_original?: AdAttribution
+
+	_id: Id;
+	attributionId: string;
+	attributionType: NumberString;
 }
