@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { layout_size, px, size } from "../size"
+import { component_size, layout_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay, PositionRect } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
@@ -14,6 +14,7 @@ import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { Icons } from "./icons/Icons"
+import { displayingFab, fabBottomSpacing } from "../FloatingActionButton"
 
 assertMainOrNode()
 
@@ -204,7 +205,7 @@ function getSnackBarPosition() {
 	const leftOffset = styles.isDesktopLayout() ? layout_size.drawer_menu_width : 0
 	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
 	let result: PositionRect = {
-		bottom: px(snackBarMargin),
+		bottom: px(snackBarMargin + fabBottomSpacing()),
 		"max-width": px(snackBarWidth),
 		zIndex: LayerType.Modal,
 	}

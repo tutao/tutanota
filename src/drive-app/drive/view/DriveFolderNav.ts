@@ -12,19 +12,29 @@ import { FolderItem } from "./DriveUtils"
 export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
+	loadParents: () => Promise<DriveFolder[]>
+	onDropInto: (f: FolderItem, event: DragEvent) => unknown
+	selectedItemsActions: DriveSelectedItemsActions
+}
+
+export interface DriveSelectedItemsActions {
 	onTrash: (() => unknown) | null
 	onDelete: (() => unknown) | null
 	onRestore: (() => unknown) | null
 	onCopy: (() => unknown) | null
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
-	loadParents: () => Promise<DriveFolder[]>
-	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view({
-		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, currentFolder, parents, loadParents, onDropInto },
+		attrs: {
+			currentFolder,
+			parents,
+			loadParents,
+			onDropInto,
+			selectedItemsActions: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste },
+		},
 	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			".flex.items-center.justify-between.border-radius-12",
@@ -52,7 +62,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 							icon: Icons.Clipboard,
 						})
 					: null,
-				[onPaste].some(isNotNull) && [onRestore, onDelete, onCopy, onCut, onTrash].some(isNotNull) ? m(".nav-bar-spacer") : null,
+				isNotNull(onPaste) && [onRestore, onDelete, onCopy, onCut, onTrash].some(isNotNull) ? m(".nav-bar-spacer") : null,
 				onRestore
 					? m(IconButton, {
 							title: "restoreFromTrash_action",

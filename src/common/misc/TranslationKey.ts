@@ -2254,3 +2254,4 @@ export type TranslationKeyType =
 	| "folderContent_label"
 	| "createNewFolderIn_label"
 	| "driveNotEmpty_msg"
+	| "driveBetaWarning_msg"

@@ -4,7 +4,7 @@ import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { handleRestError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { assertNotNull, debounceStart, filterInt, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -505,6 +505,14 @@ export class DriveViewModel {
 		}
 	}
 
+	goToParentFolder() {
+		const parents = this.parents
+		const directParent = last(parents)
+		if (directParent != null) {
+			this.navigateToFolder(directParent._id)
+		}
+	}
+
 	openActiveItem() {
 		const activeItem = this.listModel.getActiveItem()
 		if (activeItem != null) {
@@ -660,6 +668,10 @@ export class DriveViewModel {
 		}
 		this.updateUi()
 	})
+
+	enterMultiselect() {
+		this.listModel.enterMultiselect()
+	}
 }
 
 export type SortOrder = "asc" | "desc"

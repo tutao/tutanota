@@ -61,6 +61,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 		return m(
 			SelectableRowContainer,
 			{
+				class: "pt-12 pb-12 pl-12 pr-12",
 				onSelectedChangeRef: (changer) => {
 					this.selectionSetter = changer
 				},

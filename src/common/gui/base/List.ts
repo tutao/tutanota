@@ -247,6 +247,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		return m("li.list-row", {
 			role: "listitem",
 			draggable: renderConfig.dragStart ? "true" : undefined,
+			style: {
+				height: px(renderConfig.itemHeight),
+			},
 			oncreate: (vnode: VnodeDOM) => {
 				const dom = vnode.dom as HTMLElement
 				const row = {

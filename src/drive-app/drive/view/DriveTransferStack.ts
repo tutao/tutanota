@@ -3,6 +3,7 @@ import { DriveTransferState } from "./DriveTransferController"
 import { DriveTransferBox, DriveTransferBoxAttrs } from "./DriveTransferBox"
 import { px, size } from "../../../common/gui/size"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { fabBottomSpacing } from "../../../common/gui/FloatingActionButton"
 
 export interface DriveTransferStackAttrs {
 	transfers: readonly DriveTransferState[]
@@ -17,7 +18,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				"data-testid": "drive:transferstack",
 				style: {
 					width: `min(calc(100vw - ${size.spacing_12}px * 2), 500px)`,
-					bottom: px(size.spacing_12),
+					bottom: px(size.spacing_12 + fabBottomSpacing()),
 					right: px(size.spacing_12),
 					gap: px(size.spacing_12),
 				},
