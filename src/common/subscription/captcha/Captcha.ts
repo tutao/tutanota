@@ -71,7 +71,7 @@ export async function runCaptchaFlow({
 
 		let captchaReturn
 		try {
-			let attributionToken = null
+			let attributionToken: string | null = null
 			if (isIOSApp()) {
 				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
 			}
