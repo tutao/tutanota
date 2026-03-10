@@ -78,7 +78,7 @@ import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.j
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { client } from "../../../common/misc/ClientDetector.js"
-import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
+import { FloatingActionButton } from "../../../common/gui/FloatingActionButton.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { getExternalCalendarName, parseCalendarStringData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
@@ -659,7 +659,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				icon: Icons.Plus,
 				title: "newEvent_action",
 				colors: ButtonColor.Fab,
-				action: () => this.createNewEventDialog(),
+				click: () => this.createNewEventDialog(),
 			})
 		}
 

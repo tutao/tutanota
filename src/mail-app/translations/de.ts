@@ -2255,6 +2255,7 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"folderContent_label": "Inhalt",
 		"createNewFolderIn_label": "Neuen Ordner erstellen in {folderName}",
-		"driveNotEmpty_msg": "Dein Drive enthält noch Dateien oder Ordner. Bitte entferne diese zuerst."
+		"driveNotEmpty_msg": "Dein Drive enthält noch Dateien oder Ordner. Bitte entferne diese zuerst.",
+		"driveBetaWarning_msg": "While Drive is in beta there might be instances of the data loss without prior warning"
 	}
 }

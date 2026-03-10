@@ -4,9 +4,10 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
 import { DriveFolderType } from "./DriveViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
-import { FolderItemId } from "./DriveUtils"
+import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { styles } from "../../../common/gui/styles"
 
 export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownChildAttrs[] {
 	return [
@@ -15,7 +16,7 @@ export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => un
 				onNewFolder()
 			},
 			label: lang.getTranslation("createFolder_action"),
-			icon: Icons.Folder,
+			icon: Icons.FolderFilled,
 		},
 		{
 			click: (event, dom) => {
@@ -91,4 +92,80 @@ export function driveFolderName(folder: DriveFolder): Translation {
 		default:
 			return lang.makeTranslation(`${folder.name}`, folder.name)
 	}
+}
+export function getContextActions(
+	item: FileFolderItem | FolderFolderItem,
+	onRename: (f: FolderItem) => unknown,
+	onCopy: (f: FolderItem) => unknown,
+	onCut: (f: FolderItem) => unknown,
+	onRestore: (f: FolderItem) => unknown,
+	onTrash: (f: FolderItem) => unknown,
+	onStartMove: (f: FolderItem) => unknown,
+	onDelete: (f: FolderItem) => unknown,
+): DropdownChildAttrs[] {
+	const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+
+	// Caution: when adding actions, make sure they match the order in the action bar.
+	const actions: DropdownChildAttrs[] = []
+	if (!itemInTrash) {
+		actions.push(
+			{
+				label: "rename_action",
+				icon: Icons.PenFilled,
+				click: () => {
+					onRename(item)
+				},
+			},
+			{
+				label: "copy_action",
+				icon: Icons.CopyFilled,
+				click: () => {
+					onCopy(item)
+				},
+			},
+			{
+				label: "cut_action",
+				icon: Icons.ScissorsFilled,
+				click: () => {
+					onCut(item)
+				},
+			},
+			{
+				label: "move_action",
+				icon: Icons.FolderFilled,
+				click: () => {
+					onStartMove(item)
+				},
+			},
+			{
+				label: "trash_action",
+				icon: Icons.TrashFilled,
+				click: () => {
+					onTrash(item)
+				},
+			},
+		)
+	} else {
+		actions.push(
+			{
+				label: "restoreFromTrash_action",
+				icon: Icons.ArrowBackFilled,
+				click: () => {
+					onRestore(item)
+				},
+			},
+			{
+				label: "delete_action",
+				icon: Icons.TrashCrossFilled,
+				click: () => {
+					onDelete(item)
+				},
+			},
+		)
+	}
+	return actions
+}
+
+export function isMobileDriveLayout(): boolean {
+	return styles.isUsingBottomNavigation()
 }

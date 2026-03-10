@@ -10,7 +10,7 @@ import { theme } from "../../../common/gui/theme"
 import { modal } from "../../../common/gui/base/Modal"
 import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
-import { isDraggingDriveItems } from "./DriveGuiUtils"
+import { getContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -46,7 +46,7 @@ const isMusicMimeType = (mimeType: string) => ["audio/mpeg", "audio/wav", "audio
 
 const isDocumentMimeType = (mimeType: string) => ["text/plain", "application/pdf"].includes(mimeType)
 
-export function iconPerMimeType(mimeType: string): AllIcons {
+export function iconPerMimeType(mimeType: string): Icons {
 	if (isImageMimeType(mimeType)) {
 		return Icons.PictureFilled
 	} else if (isMusicMimeType(mimeType)) {
@@ -153,7 +153,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				oncontextmenu: (e: MouseEvent) => {
 					e.preventDefault()
 					e.stopPropagation()
-					const dropdown = new Dropdown(() => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete), 300)
+					const dropdown = new Dropdown(() => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete), 300)
 					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 					modal.displayUnique(dropdown, false)
 				},
@@ -206,7 +206,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 									// is focused programmatically
 									tabindex: TabIndex.Programmatic,
 								},
-								childAttrs: () => this.getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete),
+								childAttrs: () => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete),
 							}),
 							oncreate: (vnode: VnodeDOM<IconButtonAttrs, _NoLifecycle<IconButton>>) => {
 								this.moreButtonDom = vnode.dom as HTMLElement
@@ -216,78 +216,5 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 			],
 		)
-	}
-
-	private getContextActions(
-		item: FileFolderItem | FolderFolderItem,
-		onRename: (f: FolderItem) => unknown,
-		onCopy: (f: FolderItem) => unknown,
-		onCut: (f: FolderItem) => unknown,
-		onRestore: (f: FolderItem) => unknown,
-		onTrash: (f: FolderItem) => unknown,
-		onStartMove: (f: FolderItem) => unknown,
-		onDelete: (f: FolderItem) => unknown,
-	): DropdownChildAttrs[] {
-		const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
-
-		// Caution: when adding actions, make sure they match the order in the action bar.
-		const actions: DropdownChildAttrs[] = []
-		if (!itemInTrash) {
-			actions.push(
-				{
-					label: "rename_action",
-				icon: Icons.PenFilled,
-					click: () => {
-						onRename(item)
-					},
-				},
-				{
-					label: "copy_action",
-				icon: Icons.CopyFilled,
-					click: () => {
-						onCopy(item)
-					},
-				},
-				{
-					label: "cut_action",
-				icon: Icons.ScissorsFilled,
-					click: () => {
-						onCut(item)
-					},
-				},
-				{
-					label: "move_action",
-				icon: Icons.FolderFilled,
-					click: () => {
-						onStartMove(item)
-					},
-				},
-				{
-					label: "trash_action",
-					icon: Icons.TrashFilled,
-					click: () => {
-						onTrash(item)
-					},
-				},
-			)
-		} else {
-			actions.push(
-				{
-					label: "restoreFromTrash_action",
-						icon: Icons.ArrowBackFilled,
-					click: () => {
-						onRestore(item)
-					},
-				},
-				{
-					label: "delete_action",
-					icon: Icons.TrashCrossFilled,
-					click: () => {
-						onDelete(item)
-					},
-				},
-			)
-		}
-		return actions
 	}
 }

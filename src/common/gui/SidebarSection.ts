@@ -21,7 +21,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 		// eslint-disable-next-line eqeqeq -- Using loose equality to check if children has any contents
 		if (hideIfEmpty && content == false) return null
 		return m(
-			".sidebar-section",
+			".sidebar-section.flex-column",
 			{
 				"data-testid": `section:${lang.getTestId(name)}`,
 				style: {

@@ -135,6 +135,7 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 		return m(
 			SelectableRowContainer,
 			{
+				class: "pt-12 pb-12 pl-12 pr-12",
 				oncreate: (vnode) => {
 					Promise.resolve().then(() => this.showCheckbox(shouldAlwaysShowMultiselectCheckbox()))
 				},

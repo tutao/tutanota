@@ -1901,7 +1901,6 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			left: 0,
 			right: 0,
-			height: px(component_size.list_row_height),
 		},
 		".odd-row": {
 			"background-color": theme.surface,
@@ -2951,12 +2950,6 @@ styles.registerStyle("main", () => {
 			position: "fixed",
 			"border-radius": "25%",
 		},
-		".posb-ml": {
-			bottom: px(size.spacing_24),
-		},
-		".posr-ml": {
-			right: px(size.spacing_24),
-		},
 		".mb-small-line-height": {
 			"margin-bottom": px(font_size.line_height * font_size.small),
 		},
@@ -3301,12 +3294,12 @@ styles.registerStyle("main", () => {
 		".base-button-sm": {
 			"padding-inline": px(12),
 			height: px(component_size.button_height_sm),
-			"border-radius": px(size.radius_8),
+			"border-radius": px(size.radius_4),
 			"text-align": "center",
 		},
 		".base-button-md": {
 			"padding-inline": px(16),
-			height: px(component_size.button_height),
+			height: px(component_size.button_height_md),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},

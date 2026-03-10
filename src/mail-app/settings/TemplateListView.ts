@@ -221,6 +221,7 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 		return m(
 			SelectableRowContainer,
 			{
+				class: "pt-12 pb-12 pl-12 pr-12",
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col", [

@@ -17,6 +17,7 @@ import { ButtonType } from "../../../common/gui/base/Button"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { driveFolderName } from "./DriveGuiUtils"
 import { LoginTextField } from "../../../common/gui/base/LoginTextField"
+import { styles } from "../../../common/gui/styles"
 
 interface State {
 	currentFolder: DriveFolder
@@ -191,7 +192,11 @@ export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBr
 	view({ attrs: { newFolderName, onNewFolderNameInput, onCreateFolder } }: Vnode<DriveFolderBrowserNewFolderEntryAttrs>): Children {
 		return m(
 			".flex.row.items-center.gap-12",
-
+			{
+				style: {
+					flexDirection: styles.isDesktopLayout() ? "row" : "column",
+				},
+			},
 			[
 				m(LoginTextField, {
 					class: "flex-grow",
@@ -206,8 +211,9 @@ export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBr
 					},
 				}),
 				m(LoginButton, {
+					size: "md",
 					label: "createFolder_action",
-					width: "flex",
+					width: styles.isDesktopLayout() ? "flex" : "full",
 					onclick: onCreateFolder,
 				}),
 			],

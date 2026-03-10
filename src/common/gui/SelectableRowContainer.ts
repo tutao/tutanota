@@ -11,6 +11,8 @@ export type SelectableRowSelectedSetter = (selected: boolean, isInMultiselect: b
 export interface SelectableRowContainerAttrs {
 	/** This function will be called with a setter for the row style once it's available. */
 	onSelectedChangeRef?: (changer: SelectableRowSelectedSetter) => unknown
+	class?: string
+	style?: Record<string, any>
 }
 
 export class SelectableRowContainer implements ClassComponent<SelectableRowContainerAttrs> {
@@ -20,11 +22,11 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 
 	view({ attrs, children }: Vnode<SelectableRowContainerAttrs>) {
 		return m(
-			".flex.mb-4.border-radius.pt-12.pb-12.pl-12.pr-12.ml-8",
+			".flex.border-radius.ml-8.mb-4.",
 			{
+				class: attrs.class,
 				style: {
-					paddingTop: "12px",
-					paddingBottom: "12px",
+					...attrs.style,
 					// this is an adjustment to keep tha columns aligned, space between columns is too big otherwise.
 					// this is an obscure place to put it and ideally should not be done here or should be passed down here.
 					marginRight: styles.isSingleColumnLayout() ? px(size.spacing_8) : "0",

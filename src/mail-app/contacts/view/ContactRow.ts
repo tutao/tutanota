@@ -65,6 +65,7 @@ export class ContactRow implements VirtualRow<Contact> {
 		return m(
 			SelectableRowContainer,
 			{
+				class: "pt-12 pb-12 pl-12 pr-12",
 				oncreate: (vnode) => {
 					Promise.resolve().then(() => this.showCheckbox(this.shouldShowCheckbox()))
 				},

@@ -251,6 +251,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 		return m(
 			SelectableRowContainer,
 			{
+				class: "pt-12 pb-12 pl-12 pr-12",
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col.flex-grow", [
