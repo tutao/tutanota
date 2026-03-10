@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "路徑",
 		"usageData_label": "使用數據",
 		"userAccountDeactivated_msg": "此用戶已被停用。",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "此用戶已分配至所有可用群組。\n您要建立新的共用郵箱群組，並新增此用戶至該新群組嗎？",
 		"userColumn_label": "用戶",
 		"userEmailSignature_label": "電郵簽名",
 		"userExportProgress_msg": "準備匯出{total}個用戶中的{current}個…",

@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "Chemin",
 		"usageData_label": "Données d'utilisation",
 		"userAccountDeactivated_msg": "Cet utilisateur est désactivé.",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Cet utilisateur est déjà assigné à tous les groupes disponibles.\nSouhaitez-vous créer un nouveau groupe de boîte mail partagée et y ajouter cet utilisateur ?",
 		"userColumn_label": "Utilisateur",
 		"userEmailSignature_label": "Signature d'e-mail",
 		"userExportProgress_msg": "Préparation de {current} sur {total} utilisateur(s) pour l'exportation...",

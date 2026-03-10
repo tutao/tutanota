@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "Pad",
 		"usageData_label": "Gebruiksgegevens",
 		"userAccountDeactivated_msg": "Deze gebruiker is gedeactiveerd.",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Deze gebruiker is al toegevoegd aan alle groepen. Wilt u een nog gedeelde mailboxgroep aanmaken en de gebruiker aan deze groep toevoegen?",
 		"userColumn_label": "Gebruiker",
 		"userEmailSignature_label": "E-mail-ondertekening",
 		"userExportProgress_msg": "Voorbereiding {current} van {total} exportdata",

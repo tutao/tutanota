@@ -2244,4 +2244,5 @@ export type TranslationKeyType =
 	| "undoSendMail_msg"
 	| "contactDeletionMoveToSpam_msg"
 	| "contactDeletionMoveToSpam_title"
+	| "userAlreadyAssignedToAllAvailableGroups_msg"
 	| "emptyString_msg"

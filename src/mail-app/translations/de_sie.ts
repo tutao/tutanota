@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "Pfad",
 		"usageData_label": "Nutzungsdaten",
 		"userAccountDeactivated_msg": "Benutzer ist deaktiviert.",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Dieser Nutzer wurde bereits in alle verfügbaren Gruppen hinzugefügt.\nMöchten Sie eine neue Geteilte Mailbox Gruppe erstellen und den Nutzer zu dieser neuen Gruppe hinzufügen?",
 		"userColumn_label": "Benutzer",
 		"userEmailSignature_label": "E-Mail-Signatur",
 		"userExportProgress_msg": "Vorbereitung von {current} von {total} Benutzern für den Export...",

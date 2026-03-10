@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "Caminho",
 		"usageData_label": "Dados de uso",
 		"userAccountDeactivated_msg": "Este usuário está desativado.",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Esse usuário já está designado para todos os grupos disponíveis. Gostaria de criar uma nova caixa de entrada compartilhada e adicionar esse usuário a ela?",
 		"userColumn_label": "Usuário",
 		"userEmailSignature_label": "Assinatura de email",
 		"userExportProgress_msg": "Preparando {current} de {total} usuário(s) para exportação...",

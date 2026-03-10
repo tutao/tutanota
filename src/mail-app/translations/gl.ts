@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "Ruta",
 		"usageData_label": "Uso de datos",
 		"userAccountDeactivated_msg": "Esta usuaria está desactivada.",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Este identificador xa está asignado a todos os grupos dispoñibles.\nQueres crear un novo grupo con caixa de correo compartida e engadir a esta usuaria ao novo grupo?",
 		"userColumn_label": "Usuaria",
 		"userEmailSignature_label": "Sinatura do correo",
 		"userExportProgress_msg": "Preparando {current} de {total} usuaria(s) para exportar…",
