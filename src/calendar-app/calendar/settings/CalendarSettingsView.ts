@@ -16,7 +16,6 @@ import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn.js"
 import { SettingsFolder } from "../../../common/settings/SettingsFolder.js"
 import { LazyLoaded, lazyStringValue } from "@tutao/tutanota-utils"
 import { FeatureType, GroupType } from "../../../common/api/common/TutanotaConstants.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
@@ -75,21 +74,21 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.userFolders = [
 			new SettingsFolder(
 				() => "login_label",
-				() => BootIcons.User,
+				() => Icons.PersonFilled,
 				"login",
 				() => new LoginSettingsViewer(calendarLocator.credentialsProvider, isApp() ? calendarLocator.systemFacade : null),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "appearanceSettings_label",
-				() => Icons.Palette,
+				() => Icons.ColorpaletteFilled,
 				"appearance",
 				() => new AppearanceSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "notificationSettings_action",
-				() => Icons.Bell,
+				() => Icons.BellFilled,
 				"notifications",
 				() => new NotificationSettingsViewer(),
 				undefined,
@@ -225,7 +224,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					label: "supportMenu_label",
 					text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
 					icon: m(Icon, {
-						icon: Icons.SpeechBubbleFill,
+						icon: Icons.ChatbubbleFilled,
 						size: IconSize.PX24,
 						class: "center-h",
 						container: "div",
@@ -266,7 +265,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.subscriptionFolders.push(
 			new SettingsFolder<void>(
 				() => "adminSubscription_action",
-				() => BootIcons.Premium,
+				() => Icons.TrophyFilled,
 				"subscription",
 				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
 				undefined,
@@ -276,7 +275,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.subscriptionFolders.push(
 			new SettingsFolder<void>(
 				() => "adminPayment_action",
-				() => Icons.CreditCard,
+				() => Icons.CreditcardFilled,
 				"invoice",
 				() => new PaymentViewer(),
 				undefined,
@@ -286,7 +285,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.subscriptionFolders.push(
 			new SettingsFolder(
 				() => "referralSettings_label",
-				() => BootIcons.Share,
+				() => Icons.ShareFilled,
 				"referral",
 				() => new ReferralSettingsViewer(),
 				undefined,
@@ -306,7 +305,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.adminFolders.push(
 			new SettingsFolder(
 				() => "globalSettings_label",
-				() => BootIcons.Settings,
+				() => Icons.GearWheelFilled,
 				"global",
 				() => new GlobalSettingsViewer(),
 				undefined,
@@ -317,7 +316,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			this.adminFolders.push(
 				new SettingsFolder(
 					() => "whitelabel_label",
-					() => Icons.Wand,
+					() => Icons.ColorwandFilled,
 					"whitelabel",
 					() =>
 						new WhitelabelSettingsViewer(

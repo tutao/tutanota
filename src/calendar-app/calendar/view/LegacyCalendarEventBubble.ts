@@ -76,7 +76,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 			[
 				attrs.hasAlarm
 					? m(Icon, {
-							icon: Icons.Notifications,
+							icon: Icons.BellFilled,
 							style: {
 								fill: colorForBg(normalizedBackgroundColor),
 								"padding-top": "2px",
@@ -87,7 +87,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					: null,
 				attrs.isAltered
 					? m(Icon, {
-							icon: Icons.Edit,
+							icon: Icons.PenFilled,
 							style: {
 								fill: colorForBg(normalizedBackgroundColor),
 								"padding-top": "2px",
@@ -98,7 +98,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					: null,
 				attrs.isBirthday
 					? m(Icon, {
-							icon: Icons.Gift,
+							icon: Icons.GiftFilled,
 							style: {
 								fill: colorForBg(normalizedBackgroundColor),
 								"padding-top": "2px",
@@ -158,7 +158,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					? [
 							`${text} `,
 							m(Icon, {
-								icon: Icons.Time,
+								icon: Icons.ClockOutlines,
 								style: {
 									fill: colorForBg(normalizeColorHex(backgroundColor)),
 									"padding-top": "2px",

@@ -97,7 +97,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 					},
 				},
 				m(NavButton, {
-					icon: () => Icons.QuestionMark,
+					icon: () => Icons.QuestionmarkFilled,
 					href: helpLink,
 					small: true,
 					hideLabel: true,

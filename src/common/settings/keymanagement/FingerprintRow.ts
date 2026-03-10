@@ -44,7 +44,7 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 		return m(Card, [
 			m(".flex.items-center.selectable.pl-8.mb-8.gap-4", [
 				m(Icon, {
-					icon: Icons.Shield,
+					icon: Icons.ShieldFilled,
 					size: IconSize.PX20,
 					style: { fill: theme.success },
 				}),

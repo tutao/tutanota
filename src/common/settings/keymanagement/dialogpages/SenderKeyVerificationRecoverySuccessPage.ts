@@ -20,7 +20,7 @@ export class SenderKeyVerificationRecoverySuccessPage implements Component<Sende
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.CheckCircleOutline,
+				icon: Icons.SuccessOutline,
 				iconOptions: { color: theme.success },
 			}),
 			m(

@@ -14,7 +14,6 @@ import { Icons } from "../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 
 interface MailExportSettingsAttrs {
 	mailboxDetails: MailboxDetail[]
@@ -74,13 +73,13 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					),
 					m(".flex-space-between.border-radius-12.mt-8.rel.nav-bg.full-width.center-vertically", [
 						m(Icon, {
-							icon: BootIcons.Progress,
+							icon: Icons.Sync,
 							class: "flex-center items-center icon-progress-tiny icon-progress ml-8",
 							size: IconSize.PX24,
 						}),
 						m(IconButton, {
 							title: "cancel_action",
-							icon: Icons.Cancel,
+							icon: Icons.X,
 							click: () => {
 								controller.cancelExport()
 							},

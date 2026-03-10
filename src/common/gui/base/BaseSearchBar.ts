@@ -3,7 +3,6 @@ import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
 import { font_size, px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { TabIndex } from "../../api/common/TutanotaConstants.js"
-import { BootIcons } from "./icons/BootIcons.js"
 import { DefaultAnimationTime } from "../animation/Animations.js"
 import { Icons } from "./icons/Icons.js"
 import { TextFieldType } from "./TextField.js"
@@ -56,7 +55,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			[
 				styles.isDesktopLayout()
 					? m(Icon, {
-							icon: BootIcons.Search,
+							icon: Icons.Search,
 							size: IconSize.PX24,
 							style: {
 								fill: theme.on_surface_variant,
@@ -83,7 +82,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							icon: m(Icon, {
 								container: "div",
 								size: IconSize.PX24,
-								icon: attrs.busy ? BootIcons.Progress : Icons.Close,
+								icon: attrs.busy ? Icons.Sync : Icons.X,
 								class: "center-h  " + (attrs.busy ? "icon-progress-search icon-progress" : ""),
 								style: {
 									fill: theme.on_surface_variant,

@@ -4,10 +4,10 @@ import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
-import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { MailSet } from "../../api/entities/tutanota/TypeRefs"
 import { IndentedFolder } from "../../api/common/mail/FolderSystem"
 import { repeat } from "@tutao/tutanota-utils"
+import { Icons } from "../../gui/base/icons/Icons"
 
 /**
  * Shows a dialog with the users mailSets that are able to import mails.
@@ -53,7 +53,7 @@ export function folderSelectionDialog(indentedFolders: IndentedFolder[], okActio
 					}),
 					selectedValue: selectedIndentedFolder.folder,
 					selectionChangedHandler: (v) => (selectedIndentedFolder.folder = v),
-					icon: BootIcons.Expand,
+					icon: Icons.ArrowDown,
 				} satisfies DropDownSelectorAttrs<MailSet>),
 			]),
 		],

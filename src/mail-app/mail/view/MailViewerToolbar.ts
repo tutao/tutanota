@@ -80,7 +80,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "trash_action",
 				click: trashMailsAction,
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 			})
 		)
 	}
@@ -91,7 +91,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "delete_action",
 				click: deleteMailAction,
-				icon: Icons.DeleteForever,
+				icon: Icons.TrashCrossFilled,
 			})
 		)
 	}
@@ -102,7 +102,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "reportSpam_action",
 				click: reportSpamAction,
-				icon: Icons.Spam,
+				icon: Icons.BugFilled,
 			})
 		)
 	}
@@ -113,7 +113,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "reportNotSpam_action",
 				click: reportNotSpamAction,
-				icon: Icons.NotBug,
+				icon: Icons.BugCrossedFilled,
 			})
 		)
 	}
@@ -123,7 +123,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			moveMailsAction &&
 			m(IconButton, {
 				title: "move_action",
-				icon: Icons.Folder,
+				icon: Icons.FolderFilled,
 				click: (e, dom) => moveMailsAction(dom.getBoundingClientRect()),
 			})
 		)
@@ -134,7 +134,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			applyLabelsAction &&
 			m(IconButton, {
 				title: "assignLabel_action",
-				icon: Icons.Label,
+				icon: Icons.LabelFilled,
 				click: (_, dom) => {
 					applyLabelsAction(dom)
 				},
@@ -150,12 +150,12 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		const markReadButton = m(IconButton, {
 			title: "markRead_action",
 			click: () => setUnreadStateAction(false),
-			icon: Icons.Eye,
+			icon: Icons.EyeFilled,
 		})
 		const markUnreadButton = m(IconButton, {
 			title: "markUnread_action",
 			click: () => setUnreadStateAction(true),
-			icon: Icons.NoEye,
+			icon: Icons.EyeCrossedFilled,
 		})
 
 		// isUnread means we are viewing one mail; otherwise, it is coming from a MultiViewer
@@ -181,7 +181,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "reply_action",
 				click: replyAction,
-				icon: Icons.Reply,
+				icon: Icons.ArrowBackFilled,
 			}),
 		)
 
@@ -190,7 +190,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				m(IconButton, {
 					title: "replyAll_action",
 					click: replyAllAction,
-					icon: Icons.ReplyAll,
+					icon: Icons.DoubleArrowBackFilled,
 				}),
 			)
 		}
@@ -203,7 +203,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "forward_action",
 				click: forwardAction,
-				icon: Icons.Forward,
+				icon: Icons.ArrowForwardFilled,
 			})
 		)
 	}
@@ -230,7 +230,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			? m(IconButton, {
 					title: "edit_action",
 					click: editDraftAction,
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 				})
 			: null
 	}

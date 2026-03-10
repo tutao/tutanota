@@ -24,7 +24,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 					? m(IconButton, {
 							title: "edit_action",
 							click: () => this.showEditMetaTagsDialog(metaTags, onMetaTagsChanged),
-							icon: Icons.Edit,
+							icon: Icons.PenFilled,
 							size: ButtonSize.Compact,
 						})
 					: null,

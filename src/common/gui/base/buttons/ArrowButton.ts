@@ -1,18 +1,16 @@
 import m, { Children } from "mithril"
 import { Icons } from "../icons/Icons.js"
-import { BootIcons } from "../icons/BootIcons.js"
 import { ClickHandler } from "../GuiUtils.js"
 import { px } from "../../size.js"
 import { BaseButton } from "./BaseButton.js"
-import { lang } from "../../../misc/LanguageViewModel.js"
-import { Icon, IconSize } from "../Icon.js"
+import { Icon } from "../Icon.js"
 import { theme } from "../../theme.js"
 
 export default function renderSwitchMonthArrowIcon(forward: boolean, size: number, onClick: ClickHandler): Children {
 	return m(BaseButton, {
 		label: forward ? "nextMonth_label" : "prevMonth_label",
 		icon: m(Icon, {
-			icon: forward ? Icons.ArrowForward : BootIcons.Back,
+			icon: forward ? Icons.ChevronRight : Icons.ChevronLeft,
 			container: "div",
 			class: "center-h",
 			style: {

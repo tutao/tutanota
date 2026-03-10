@@ -3,9 +3,9 @@ import { Icons } from "./icons/Icons"
 import type { Editor, Listing, Style } from "../editor/Editor"
 import { Alignment } from "../editor/Editor"
 import { numberRange } from "@tutao/tutanota-utils"
-import { font_size, size } from "../size"
+import { font_size } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
-import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { animations, height, opacity } from "../animation/Animations"
 import { client } from "../../misc/ClientDetector"
 import { BrowserType } from "../../misc/ClientConstants"
@@ -77,14 +77,14 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			this.renderStyleToggleButton("i", lang.get("formatTextItalic_msg") + " (Ctrl + I)", Icons.Italic, editor),
 			this.renderStyleToggleButton("u", lang.get("formatTextUnderline_msg") + " (Ctrl + U)", Icons.Underline, editor),
 			this.renderStyleToggleButton("c", lang.get("formatTextMonospace_msg"), Icons.Code, editor),
-			this.renderStyleToggleButton("a", editor.hasStyle("a") ? lang.get("breakLink_action") : lang.get("makeLink_action"), Icons.Link, editor),
-			this.renderListToggleButton("ol", lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)", Icons.ListOrdered, editor),
-			this.renderListToggleButton("ul", lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)", Icons.ListUnordered, editor),
+			this.renderStyleToggleButton("a", editor.hasStyle("a") ? lang.get("breakLink_action") : lang.get("makeLink_action"), Icons.Chainlink, editor),
+			this.renderListToggleButton("ol", lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)", Icons.OrderedList, editor),
+			this.renderListToggleButton("ul", lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)", Icons.UnorderedList, editor),
 			imageButtonClickHandler
 				? m(IconButton, {
 						title: "insertImage_action",
 						click: (ev) => imageButtonClickHandler(ev, editor),
-						icon: Icons.Picture,
+						icon: Icons.PictureFilled,
 						size: ButtonSize.Compact,
 					})
 				: null,
@@ -155,10 +155,10 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 				createDropdown({
 					width: 200,
 					lazyButtons: () => [
-						alignButtonAttrs("left", "formatTextLeft_msg", Icons.AlignLeft),
-						alignButtonAttrs("center", "formatTextCenter_msg", Icons.AlignCenter),
-						alignButtonAttrs("right", "formatTextRight_msg", Icons.AlignRight),
-						alignButtonAttrs("justify", "formatTextJustify_msg", Icons.AlignJustified),
+						alignButtonAttrs("left", "formatTextLeft_msg", Icons.TextAlignLeft),
+						alignButtonAttrs("center", "formatTextCenter_msg", Icons.TextAlignCenter),
+						alignButtonAttrs("right", "formatTextRight_msg", Icons.TextAlignRight),
+						alignButtonAttrs("justify", "formatTextJustify_msg", Icons.TextAlignJustify),
 					],
 				})(e, dom)
 			},
@@ -168,23 +168,23 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	private alignIcon(attrs: RichTextToolbarAttrs) {
 		switch (attrs.editor.styles.alignment) {
 			case "left":
-				return Icons.AlignLeft
+				return Icons.TextAlignLeft
 
 			case "center":
-				return Icons.AlignCenter
+				return Icons.TextAlignCenter
 
 			case "right":
-				return Icons.AlignRight
+				return Icons.TextAlignRight
 
 			case "justify":
-				return Icons.AlignJustified
+				return Icons.TextAlignJustify
 		}
 	}
 
 	private renderSizeButtons({ editor }: RichTextToolbarAttrs): Children {
 		return m(IconButton, {
 			title: "formatTextFontSize_msg",
-			icon: Icons.FontSize,
+			icon: Icons.TextHeight,
 			size: ButtonSize.Compact,
 			click: (e, dom) => {
 				e.stopPropagation()

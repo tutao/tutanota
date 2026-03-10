@@ -148,14 +148,14 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				isBackButtonEnabled(controller.currentStep) &&
 				(styles.isSingleColumnLayout()
 					? m(IconButton, {
-							icon: Icons.ArrowBackward,
+							icon: Icons.ChevronLeft,
 							title: lang.getTranslation("back_action"),
 							click: ctx.goPrev,
 						})
 					: m(TertiaryButton, {
 							text: lang.getTranslationText("back_action"),
 							label: lang.getTranslation("back_action"),
-							icon: Icons.ArrowBackward,
+							icon: Icons.ChevronLeft,
 							onclick: ctx.goPrev,
 							width: "flex",
 						}))

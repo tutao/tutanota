@@ -60,7 +60,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 						click: () => {
 							onAddTemplate()
 						},
-						icon: Icons.Add,
+						icon: Icons.Plus,
 						size: ButtonSize.Compact,
 					},
 					lines: notificationMailTemplates.map((template) => {
@@ -71,7 +71,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 							actionButtonAttrs: attachDropdown({
 								mainButtonAttrs: {
 									title: "edit_action",
-									icon: Icons.Edit,
+									icon: Icons.PenFilled,
 									size: ButtonSize.Compact,
 								},
 								childAttrs: () => [

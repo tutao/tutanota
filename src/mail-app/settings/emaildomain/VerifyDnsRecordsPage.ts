@@ -8,7 +8,6 @@ import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import type { DnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { downcast } from "@tutao/tutanota-utils"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
@@ -17,6 +16,7 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
 import { DnsRecordTable } from "./DnsRecordTable.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -175,7 +175,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 					? null
 					: {
 							title: "refresh_action",
-							icon: BootIcons.Progress,
+							icon: Icons.Sync,
 							size: ButtonSize.Compact,
 							click: () => _updateDnsStatus(domainStatus),
 						},

@@ -4,12 +4,11 @@ import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { component_size, size } from "../../../common/gui/size.js"
+import { component_size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -19,6 +18,7 @@ import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUti
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -101,17 +101,17 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	} {
 		if (isSameTypeRef(type, ContactTypeRef)) {
 			return {
-				icon: BootIcons.Contacts,
+				icon: Icons.PeopleFilled,
 				renderConfig: this.contactRenderConfig,
 			}
 		} else if (isSameTypeRef(type, CalendarEventTypeRef)) {
 			return {
-				icon: BootIcons.Calendar,
+				icon: Icons.CalendarFilled,
 				renderConfig: this.calendarRenderConfig,
 			}
 		} else {
 			return {
-				icon: BootIcons.Mail,
+				icon: Icons.MailFilled,
 				renderConfig: this.mailRenderConfig,
 			}
 		}

@@ -86,9 +86,9 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 							...(styles.isMobileLayout() && { "flex-wrap": "wrap" }),
 						},
 					},
-					renderFeature("pricing.comparisonStorage_msg", Icons.PricingStorage, "storage"),
-					renderFeature("pricing.comparisonOneCalendar_msg", Icons.PricingCalendar, undefined, true),
-					renderFeature("pricing.comparisonFaqSupport_msg", Icons.PricingSupport, undefined),
+					renderFeature("pricing.comparisonStorage_msg", Icons.CloudOutline, "storage"),
+					renderFeature("pricing.comparisonOneCalendar_msg", Icons.CalendarNumberOutline, undefined, true),
+					renderFeature("pricing.comparisonFaqSupport_msg", Icons.SmileyfaceOutline, undefined),
 					m(
 						".smaller.pt-8",
 						{ style: { color: theme.on_surface_variant, opacity: 0.7 } },

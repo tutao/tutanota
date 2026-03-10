@@ -135,11 +135,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	private getIconForPaymentMethodSetting(accountingInfo: AccountingInfo | null) {
 		if (this.customer?.type === AccountType.PAID && isIOSApp()) {
-			return Icons.InfoCircleOutline
+			return Icons.InfoOutline
 		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
-			return Icons.InfoCircleOutline
+			return Icons.InfoOutline
 		}
-		return Icons.Edit
+		return Icons.PenFilled
 	}
 
 	private async handlePaymentMethodClick(e: MouseEvent, dom: HTMLElement) {
@@ -335,7 +335,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit || posting.type === PostingType.SalesCommission
 					? {
 							title: "download_action",
-							icon: Icons.Download,
+							icon: Icons.DownloadFilled,
 							size: ButtonSize.Compact,
 							click: (e, dom) => {
 								if (this.customer?.businessUse) {
@@ -499,7 +499,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						() => this.changeInvoiceData(),
 						() => locator.logins.getUserController().isPaidAccount(),
 					),
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 					size: ButtonSize.Compact,
 				}),
 			]),

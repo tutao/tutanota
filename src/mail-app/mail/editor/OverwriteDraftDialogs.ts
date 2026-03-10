@@ -67,7 +67,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 					m(".normal-font-size", lang.get("remoteDraftVersion_msg")),
 					m(".normal-font-size.b", lang.formats.dateTime.format(vnode.attrs.mailRemotelyUpdatedAt)),
 				],
-				icon: Icons.AlertCircleOutline,
+				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
 			}),
 			m(Card, m(".plr-12.flex.flex-column.gap-16.center", lang.get("confirmOverwriteServerDraft_msg"))),
@@ -78,7 +78,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 					vnode.attrs.overwriteChoice("overwrite")
 				},
 				icon: m(Icon, {
-					icon: Icons.XCheckmark,
+					icon: Icons.Checkmark,
 					size: IconSize.PX20,
 					class: "mr-8 flex-center",
 					style: {
@@ -93,7 +93,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 					vnode.attrs.overwriteChoice("discard")
 				},
 				icon: m(Icon, {
-					icon: Icons.XCross,
+					icon: Icons.X,
 					size: IconSize.PX20,
 					class: "mr-8 flex-center",
 					style: {
@@ -146,7 +146,7 @@ class OverwriteDraftDialog implements Component<OverwriteDraftDialogAttrs> {
 			m(TitleSection, {
 				title: lang.get("confirmCreateNewDraftOverAutosavedDraft_msg"),
 				subTitle: null,
-				icon: Icons.AlertCircleOutline,
+				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
 			}),
 			m(LoginButton, {

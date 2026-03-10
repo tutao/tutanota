@@ -8,7 +8,6 @@ import { ReferralCodeService } from "../../../api/entities/sys/Services.js"
 import { TextField, TextFieldAttrs } from "../../../gui/base/TextField.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../gui/base/IconButton.js"
-import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
@@ -50,13 +49,13 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 			m(IconButton, {
 				title: "copy_action",
 				click: () => this.copyAction(referralLink),
-				icon: Icons.Copy,
+				icon: Icons.CopyFilled,
 				size: ButtonSize.Compact,
 			}),
 			m(IconButton, {
 				title: "share_action",
 				click: () => this.shareAction(referralLink),
-				icon: BootIcons.Share,
+				icon: Icons.ShareFilled,
 				size: ButtonSize.Compact,
 			}),
 		]

@@ -36,7 +36,7 @@ export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<Si
 								label: lang.getTranslation("address_label"),
 								value: ctx.viewModel.addressInputStore ?? "",
 								leadingIcon: {
-									icon: Icons.Eye,
+									icon: Icons.EyeFilled,
 									color: theme.on_surface_variant,
 								},
 							}),
@@ -45,7 +45,7 @@ export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<Si
 								m(LoginButton, {
 									label: "next_action",
 									width: "full",
-									icon: Icons.Eye,
+									icon: Icons.EyeFilled,
 									onclick: () => ctx.goNext(),
 								}),
 							),
@@ -54,13 +54,13 @@ export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<Si
 								m(SecondaryButton, {
 									label: "next_action",
 									width: "full",
-									icon: Icons.Eye,
+									icon: Icons.EyeFilled,
 									onclick: () => ctx.goNext(),
 								}),
 							),
 							m(TertiaryButton, {
 								label: "previous_action",
-								icon: Icons.Eye,
+								icon: Icons.EyeFilled,
 								width: "flex",
 								onclick: () => m.route.set("/"),
 							}),

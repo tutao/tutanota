@@ -19,25 +19,25 @@ function getBannerTheme(type: MessageBannerType): { background: string; color: s
 			return {
 				background: theme.surface_container,
 				color: theme.on_surface_variant,
-				icon: Icons.InfoCircleOutline,
+				icon: Icons.InfoOutline,
 			}
 		case "success":
 			return {
 				background: theme.success_container,
 				color: theme.on_success_container,
-				icon: Icons.CheckCircleFilled,
+				icon: Icons.SuccessOutline,
 			}
 		case "warning":
 			return {
 				background: theme.warning_container,
 				color: theme.on_warning_container,
-				icon: Icons.AlertCircle,
+				icon: Icons.ExclamationOutline,
 			}
 		case "error":
 			return {
 				background: theme.error_container,
 				color: theme.on_error_container,
-				icon: Icons.CloseCircleFilled,
+				icon: Icons.FailureOutline,
 			}
 	}
 }

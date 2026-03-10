@@ -66,7 +66,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 				isReadOnly: true,
 				injectionsRight: () =>
 					m(IconButton, {
-						icon: Icons.Edit,
+						icon: Icons.PenFilled,
 						title: "setSenderName_action",
 						click: () => {
 							this.showChangeSenderNameDialog()
@@ -112,7 +112,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 				m(IconButton, {
 					title: "edit_action",
 					click: () => this.showChangeNameDialog(),
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 					size: ButtonSize.Compact,
 				}),
 		})
@@ -192,7 +192,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		const addUserButtonAttrs: IconButtonAttrs = {
 			title: "addUserToGroup_label",
 			click: () => this.showAddMemberDialog(),
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			size: ButtonSize.Compact,
 		} as const
 
@@ -200,7 +200,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			const removeButtonAttrs: IconButtonAttrs = {
 				title: "remove_action",
 				click: () => showProgressDialog("pleaseWait_msg", this.model.removeGroupMember(userGroupInfo)),
-				icon: Icons.Cancel,
+				icon: Icons.X,
 				size: ButtonSize.Compact,
 			}
 			return {

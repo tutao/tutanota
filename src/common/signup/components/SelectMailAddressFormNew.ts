@@ -7,7 +7,6 @@ import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { font_size, px } from "../../gui/size"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown"
-import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
 import { formatMailAddressFromParts } from "../../misc/Formatter"
 import { Icon } from "../../gui/base/Icon"
@@ -16,6 +15,7 @@ import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils"
 import { locator } from "../../api/main/CommonLocator"
 import { AccessDeactivatedError } from "../../api/common/error/RestError"
 import { theme } from "../../gui/theme"
+import { Icons } from "../../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -85,7 +85,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 			label: "username_label",
 			value: this.username,
 			leadingIcon: {
-				icon: BootIcons.Mail,
+				icon: Icons.MailFilled,
 				color: theme.on_surface_variant,
 			},
 			autocompleteAs: Autocomplete.newPassword,
@@ -115,7 +115,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 							attachDropdown({
 								mainButtonAttrs: {
 									title: "domain_label",
-									icon: BootIcons.Expand,
+									icon: Icons.ArrowDown,
 									size: ButtonSize.Compact,
 								},
 								childAttrs: () => attrs.availableDomains.map((domain) => this.createDropdownItemAttrs(domain, attrs)),
@@ -143,7 +143,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 
 	private progressIcon(): Children {
 		return m(Icon, {
-			icon: BootIcons.Progress,
+			icon: Icons.Sync,
 			class: "icon-progress mr-8",
 		})
 	}
@@ -154,7 +154,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 			click: () => {
 				attrs.onDomainChanged(domainData)
 			},
-			icon: domainData.isPaid ? BootIcons.Premium : undefined,
+			icon: domainData.isPaid ? Icons.TrophyFilled : undefined,
 		}
 	}
 

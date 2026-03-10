@@ -65,7 +65,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			onBusyStateChanged: (isBusy) => (a.isMailVerificationBusy = isBusy),
 			injectionsRightButtonAttrs: {
 				title: "addEmailAlias_label",
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				size: ButtonSize.Compact,
 				click: () =>
 					vnode.attrs.addAliasFromInput().then(() => {

@@ -76,7 +76,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								left: px(5 + indentationMargin + buttonWidth / 2),
 								fill: isNavButtonSelected(button) ? theme.primary : theme.on_surface_variant,
 							},
-							icon: Icons.Add,
+							icon: Icons.Plus,
 							class: "icon-small",
 						})
 					: null,

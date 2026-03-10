@@ -69,7 +69,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 	private renderRemoveButton(entry: KnowledgeBaseEntry) {
 		return m(IconButton, {
 			title: "remove_action",
-			icon: Icons.Trash,
+			icon: Icons.TrashFilled,
 			click: () => {
 				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(NotFoundError, noOp)))
 			},
@@ -79,7 +79,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 	private renderEditButton(entry: KnowledgeBaseEntry) {
 		return m(IconButton, {
 			title: "edit_action",
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			click: () => {
 				import("../../settings/KnowledgeBaseEditor.js").then(({ showKnowledgeBaseEditor }) => {
 					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {

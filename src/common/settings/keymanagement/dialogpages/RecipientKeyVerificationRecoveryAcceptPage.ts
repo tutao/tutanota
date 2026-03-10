@@ -22,7 +22,7 @@ export class RecipientKeyVerificationRecoveryAcceptPage implements Component<Ver
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.CheckCircleOutline,
+				icon: Icons.SuccessOutline,
 				iconOptions: { color: theme.success },
 			}),
 			m(

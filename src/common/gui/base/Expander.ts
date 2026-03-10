@@ -3,7 +3,6 @@ import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { Icon, IconSize } from "./Icon"
 import { Icons } from "./icons/Icons"
-import { BootIcons } from "./icons/BootIcons"
 import { theme } from "../theme"
 import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
@@ -53,7 +52,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 				[
 					a.showWarning
 						? m(Icon, {
-								icon: Icons.Warning,
+								icon: Icons.ExclamationFilled,
 								style: {
 									fill: a.color ? a.color : theme.on_surface_variant,
 								},
@@ -69,7 +68,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						a.isUnformattedLabel ? label : label.toUpperCase(),
 					),
 					m(Icon, {
-						icon: BootIcons.Expand,
+						icon: Icons.PaddedArrowDown,
 						class: "flex-center items-center",
 						size: a.isBig ? IconSize.PX24 : undefined,
 						style: {

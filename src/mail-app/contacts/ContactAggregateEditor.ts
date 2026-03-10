@@ -1,11 +1,10 @@
 import { Autocapitalize, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
-import { lang, TranslationKey, MaybeTranslation } from "../../common/misc/LanguageViewModel"
+import { lang, MaybeTranslation, TranslationKey } from "../../common/misc/LanguageViewModel"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { animations, height, opacity } from "../../common/gui/animation/Animations"
 import { attachDropdown } from "../../common/gui/base/Dropdown.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 
 export type AggregateEditorAttrs<AggregateType> = {
@@ -59,7 +58,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 			return m(IconButton, {
 				title: "remove_action",
 				click: () => attrs.cancelAction(),
-				icon: Icons.Cancel,
+				icon: Icons.X,
 			})
 		} else {
 			// placeholder so that the text field does not jump around
@@ -73,7 +72,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 			attachDropdown({
 				mainButtonAttrs: {
 					title: "more_label",
-					icon: BootIcons.Expand,
+					icon: Icons.ArrowDown,
 					size: ButtonSize.Compact,
 				},
 				childAttrs: () =>

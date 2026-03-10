@@ -1,9 +1,9 @@
 import m, { Child, Children, Vnode } from "mithril"
 import { Icon } from "../../common/gui/base/Icon"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { delay } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
+import { Icons } from "../../common/gui/base/icons/Icons"
 
 export type UpdateHelpLabelAttrs = {
 	updateAvailable: Stream<boolean>
@@ -70,7 +70,7 @@ export class DesktopUpdateHelpLabel {
 	getIcon(): Child {
 		return this._waiting && !this._error
 			? m(Icon, {
-					icon: BootIcons.Progress,
+					icon: Icons.Sync,
 					class: "flex-center items-center icon-progress-tiny icon-progress",
 				})
 			: null

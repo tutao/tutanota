@@ -34,7 +34,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 						".mr-negative-8",
 						m(IconButton, {
 							title: "addTemplate_label",
-							icon: Icons.Add,
+							icon: Icons.Plus,
 							click: () => {
 								// SettingsView will reroute to the folder for the newly created template list (if there is one)
 								createInitialTemplateListIfAllowed().then((groupRoot) => {
@@ -51,7 +51,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 				".fill-absolute.overflow-hidden",
 				m(ColumnEmptyMessageBox, {
 					color: theme.on_surface_variant,
-					icon: Icons.ListAlt,
+					icon: Icons.Template,
 					message: "noEntries_msg",
 				}),
 			),

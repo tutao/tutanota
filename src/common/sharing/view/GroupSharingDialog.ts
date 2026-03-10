@@ -98,7 +98,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 					? {
 							title: "addParticipant_action",
 							click: () => showAddParticipantDialog(model, texts),
-							icon: Icons.Add,
+							icon: Icons.Plus,
 						}
 					: null,
 			}),
@@ -117,7 +117,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						m.redraw()
 					})
 				},
-				icon: Icons.Cancel,
+				icon: Icons.X,
 			}
 			return {
 				cells: () => [
@@ -148,7 +148,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 				actionButtonAttrs: model.canRemoveGroupMember(memberInfo.member)
 					? {
 							title: "delete_action",
-							icon: Icons.Cancel,
+							icon: Icons.X,
 							click: () => {
 								getConfirmation(
 									lang.makeTranslation("confirmation_msg", texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))),

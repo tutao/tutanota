@@ -283,7 +283,7 @@ export class ContactMergeView {
 					}
 				})
 			},
-			icon: Icons.Trash,
+			icon: Icons.TrashFilled,
 		})
 	}
 

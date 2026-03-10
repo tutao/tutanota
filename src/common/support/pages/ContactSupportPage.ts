@@ -15,7 +15,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { Switch } from "../../gui/base/Switch.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { Icon, IconSize } from "../../gui/base/Icon.js"
+import { Icon } from "../../gui/base/Icon.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { ButtonColor, getColors } from "../../gui/base/Button.js"
 import { px, size } from "../../gui/size.js"
@@ -151,7 +151,7 @@ export class ContactSupportPage implements Component<Props> {
 					[
 						m(SectionButton, {
 							text: "attachFiles_action",
-							rightIcon: { icon: Icons.Attachment, title: "attachFiles_action" },
+							rightIcon: { icon: Icons.Paperclip, title: "attachFiles_action" },
 							isDisabled: this.sendMailModel == null,
 							onclick: async (_, dom) => {
 								await chooseAndAttachFile(this.sendMailModel!, dom.getBoundingClientRect())
@@ -174,7 +174,7 @@ export class ContactSupportPage implements Component<Props> {
 										class: "flex justify-between flash",
 									},
 									m(Icon, {
-										icon: Icons.Trash,
+										icon: Icons.TrashFilled,
 										style: {
 											fill: getColors(ButtonColor.Content).button,
 											paddingInline: px((size.icon_24 - size.icon_16) / 2),

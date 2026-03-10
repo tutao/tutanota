@@ -9,7 +9,6 @@ import { createCalendarEventAttendee, createEncryptedMailAddress } from "../../.
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import {
 	areAllAdvancedRepeatRulesValid,
@@ -104,7 +103,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 		return m(".flex.col.smaller", [
 			this.renderRow(
-				BootIcons.Calendar,
+				Icons.CalendarFilled,
 				[m("span.h3", highlightedStrings ? highlightTextInQueryAsChildren(eventTitle, highlightedStrings) : eventTitle)],
 				true,
 				true,
@@ -113,7 +112,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				? this.renderCalendar(calendarInfo.name, calendarInfo.color, CALENDAR_TYPE_TRANSLATION_MAP.get(calendarInfo.type) ?? "yourCalendars_label")
 				: null,
 			this.renderRow(
-				Icons.Time,
+				Icons.ClockOutlines,
 				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
 				true,
 			),
@@ -160,7 +159,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 	private renderLocation(location: string | null): Children {
 		if (location == null || location.trim().length === 0) return null
-		return this.renderRow(Icons.Pin, [
+		return this.renderRow(Icons.PlaceFilled, [
 			m(
 				".text-ellipsis.selectable",
 				m(ExternalLink, {
@@ -175,7 +174,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	private renderAttendeesSection(attendees: Array<CalendarEventAttendee>, participation: EventPreviewViewAttrs["participation"]): Children {
 		if (attendees.length === 0) return null
 		return this.renderRow(
-			Icons.People,
+			Icons.PeopleFilled,
 			[
 				m(
 					".flex-wrap",
@@ -203,7 +202,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
 		return m("", [
 			m(".flex.pb-8", [
-				this.renderSectionIndicator(BootIcons.Contacts),
+				this.renderSectionIndicator(Icons.PeopleFilled),
 				m(".flex.flex-column", [
 					m(".small", lang.get("invitedToEvent_msg")),
 					m(".fit-content", { style: { "min-height": px(font_size.line_height_input * 7) } }, [
@@ -253,7 +252,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 	private renderDescription(sanitizedDescription: string | null, highlightedStrings?: readonly SearchToken[]) {
 		if (sanitizedDescription == null || sanitizedDescription.length === 0) return null
-		return this.renderRow(Icons.AlignLeft, [m.trust(sanitizedDescription)], true)
+		return this.renderRow(Icons.TextAlignLeft, [m.trust(sanitizedDescription)], true)
 	}
 
 	private renderCalendar(calendarName: string, calendarColor: string, calendarType: TranslationKey) {

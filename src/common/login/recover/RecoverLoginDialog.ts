@@ -43,7 +43,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	const resetActionButtonAttrs: IconButtonAttrs = {
 		title: "action_label",
 		click: resetActionClickHandler,
-		icon: Icons.Edit,
+		icon: Icons.PenFilled,
 		size: ButtonSize.Compact,
 	}
 	const selectedValueLabelStream = selectedAction.map((v) => {

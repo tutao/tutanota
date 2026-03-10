@@ -86,7 +86,7 @@ export function renderCountryDropdownNew(params: {
 		selectedValue: params.selectedCountry,
 		selectionChangedHandler: params.onSelectionChanged,
 		icon: {
-			icon: Icons.Pin,
+			icon: Icons.PlaceFilled,
 			color: theme.on_surface_variant,
 		},
 	} satisfies DropDownSelectorNewAttrs<Country | null>)

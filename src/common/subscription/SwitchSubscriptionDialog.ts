@@ -65,8 +65,8 @@ import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { px } from "../gui/size"
+import { Icons } from "../gui/base/icons/Icons"
 import { TemplateGroupService } from "../api/entities/tutanota/Services"
 import { createUserAreaGroupDeleteData } from "../api/entities/tutanota/TypeRefs"
 import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
@@ -141,7 +141,7 @@ export async function showSwitchDialog({
 				anyHasGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
 					translation: lang.getTranslation("pricing.cyber_monday_msg"),
-					icon: BootIcons.Heart,
+					icon: Icons.HeartFilled,
 				}),
 			// Headline for general messages
 			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),

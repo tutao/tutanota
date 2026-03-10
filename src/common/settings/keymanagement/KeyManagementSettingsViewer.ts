@@ -124,7 +124,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				},
 				[
 					m(TitleSection, {
-						icon: Icons.KeyRegular,
+						icon: Icons.KeyOutline,
 						title: lang.get("keyManagement.keyVerification_label"),
 						subTitle: lang.get("keyManagement.keyVerification_subtitle_label"),
 					}),
@@ -148,7 +148,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 												() => obj.reload(),
 											)
 										},
-										icon: Icons.Add,
+										icon: Icons.Plus,
 										size: ButtonSize.Compact,
 									}),
 								])
@@ -173,7 +173,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 						await this.keyVerificationFacade.untrust(mailAddress)
 						await this.reload()
 					},
-					icon: Icons.Trash,
+					icon: Icons.TrashFilled,
 					tooltip: "delete_action",
 				},
 			})

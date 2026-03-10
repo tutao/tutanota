@@ -80,7 +80,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 				windowFacade.openLink(url)
 			},
-			rightIcon: { icon: Icons.Open, title: "open_action" },
+			rightIcon: { icon: Icons.OpenFilled, title: "open_action" },
 		})
 	}
 
@@ -97,7 +97,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 				windowFacade.openLink(url)
 			},
-			rightIcon: { icon: Icons.Open, title: "open_action" },
+			rightIcon: { icon: Icons.OpenFilled, title: "open_action" },
 		})
 	}
 }

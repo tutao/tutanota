@@ -5,7 +5,6 @@ import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageVie
 import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { layout_size } from "../../../common/gui/size"
@@ -285,7 +284,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.mail)
 							m.route.set(href)
 						},
-						icon: BootIcons.Mail,
+						icon: Icons.MailFilled,
 					},
 					{
 						label: "contacts_label",
@@ -293,7 +292,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.contact)
 							m.route.set(href)
 						},
-						icon: BootIcons.Contacts,
+						icon: Icons.PeopleFilled,
 					},
 					{
 						label: "calendar_label",
@@ -301,7 +300,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.calendar)
 							m.route.set(href)
 						},
-						icon: BootIcons.Calendar,
+						icon: Icons.CalendarFilled,
 					},
 				],
 			}),
@@ -323,7 +322,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const availableMailFolders = this.getAvailableMailFolders()
 		const selectedFolder = first(this.searchViewModel.selectedMailFolder)
 		return [
-			this.renderCategoryChip("emails_label", BootIcons.Mail),
+			this.renderCategoryChip("emails_label", Icons.MailFilled),
 			m(FilterChip, {
 				label: lang.makeTranslation(
 					"btn:date",
@@ -522,7 +521,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						".icon-button",
 						m(IconButton, {
 							title: "back_action",
-							icon: BootIcons.Back,
+							icon: Icons.ChevronLeft,
 							click: () => {
 								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 									m.route.set(MAIL_PREFIX)
@@ -764,7 +763,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectedEvent == null
 						? m(ColumnEmptyMessageBox, {
 								message: "noEventSelect_msg",
-								icon: BootIcons.Calendar,
+								icon: Icons.CalendarFilled,
 								color: theme.on_surface_variant,
 								backgroundColor: theme.surface_container,
 							})
@@ -1022,12 +1021,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return m(MobileActionBar, {
 					actions: [
 						{
-							icon: Icons.Edit,
+							icon: Icons.PenFilled,
 							title: "edit_action",
 							action: () => new ContactEditor(locator.entityClient, this.searchViewModel.getSelectedContacts()[0]).show(),
 						},
 						{
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 							title: "delete_action",
 							action: () => deleteContacts(this.searchViewModel.getSelectedContacts()),
 						},
@@ -1044,21 +1043,21 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				if (previewModel) {
 					if (previewModel.canSendUpdates) {
 						actions.push({
-							icon: BootIcons.Mail,
+							icon: Icons.MailFilled,
 							title: "sendUpdates_label",
 							action: () => handleSendUpdatesClick(previewModel),
 						})
 					}
 					if (previewModel.canEdit) {
 						actions.push({
-							icon: Icons.Edit,
+							icon: Icons.PenFilled,
 							title: "edit_action",
 							action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
 						})
 					}
 					if (previewModel.canDelete) {
 						actions.push({
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 							title: "delete_action",
 							action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
 						})
@@ -1424,14 +1423,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderContactsFilterChips(): Children {
-		return [this.renderCategoryChip("contacts_label", BootIcons.Contacts)]
+		return [this.renderCategoryChip("contacts_label", Icons.PeopleFilled)]
 	}
 
 	private renderCalendarFilterChips() {
 		const availableCalendars = this.searchViewModel.getAvailableCalendars(true)
 		const selectedCalendar = this.searchViewModel.selectedCalendar
 		return [
-			this.renderCategoryChip("calendar_label", BootIcons.Calendar),
+			this.renderCategoryChip("calendar_label", Icons.CalendarFilled),
 			m(FilterChip, {
 				label: lang.makeTranslation(
 					"btn:date",

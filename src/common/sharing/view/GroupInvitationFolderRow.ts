@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { component_size, size } from "../../gui/size"
+import { component_size } from "../../gui/size"
 import { getCapabilityText } from "../GroupUtils"
 import { downcast } from "@tutao/tutanota-utils"
 import { showGroupInvitationDialog } from "./ReceivedGroupInvitationDialog.js"
@@ -48,7 +48,7 @@ export class GroupInvitationFolderRow implements Component<GroupInvitationFolder
 				m(IconButton, {
 					title: "show_action",
 					click: () => showGroupInvitationDialog(invitation),
-					icon: icon ?? Icons.Eye,
+					icon: icon ?? Icons.EyeFilled,
 				}),
 			]),
 		]

@@ -124,7 +124,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								m(Button, {
 									label: "cancel_action",
 									click: () => mailLocator.indexerFacade.cancelMailIndexing(),
-									//icon: () => Icons.Cancel
+									//icon: () => Icons.X
 									type: ButtonType.Secondary,
 								}),
 							)
@@ -266,7 +266,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
 						}),
 						m(Icon, {
-							icon: Icons.Attachment,
+							icon: Icons.Paperclip,
 							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
 							style: {
 								display: mail.attachments.length > 0 ? "" : "none",

@@ -185,7 +185,7 @@ export async function showUndoMailSnackbar(
 			dismissButton: {
 				title: "close_alt",
 				click: () => cancelSnackbar(),
-				icon: Icons.Cancel,
+				icon: Icons.X,
 			},
 			onShow: () => {
 				// we don't want to immediately set the undo action, as the user might be looking at a different snackbar
@@ -411,31 +411,31 @@ export async function simpleMoveToSystemFolder(
 export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 	switch (folderType) {
 		case MailSetKind.CUSTOM:
-			return Icons.Folder
+			return Icons.FolderFilled
 
 		case MailSetKind.INBOX:
-			return Icons.Inbox
+			return Icons.InboxFilled
 
 		case MailSetKind.SENT:
-			return Icons.Send
+			return Icons.SendFilled
 
 		case MailSetKind.TRASH:
-			return Icons.TrashBin
+			return Icons.TrashFilled
 
 		case MailSetKind.ARCHIVE:
-			return Icons.Archive
+			return Icons.ArchiveFilled
 
 		case MailSetKind.SPAM:
-			return Icons.Spam
+			return Icons.BugFilled
 
 		case MailSetKind.DRAFT:
-			return Icons.Draft
+			return Icons.DraftFilled
 
 		case MailSetKind.SCHEDULED:
-			return Icons.ScheduleMail
+			return Icons.SendlaterFilled
 
 		default:
-			return Icons.Folder
+			return Icons.FolderFilled
 	}
 }
 
@@ -449,7 +449,7 @@ export function getMailFolderIcon(mailModel: MailModel, mail: Mail): AllIcons {
 	if (folder) {
 		return getFolderIcon(folder)
 	} else {
-		return Icons.Folder
+		return Icons.FolderFilled
 	}
 }
 
@@ -750,9 +750,9 @@ export function getConfidentialIcon(mail: Mail): Icons {
 		mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED ||
 		mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_SENDER
 	) {
-		return Icons.PQLock
+		return Icons.QuantumLockFilled
 	} else {
-		return Icons.Lock
+		return Icons.GenericLockFilled
 	}
 }
 
@@ -762,7 +762,7 @@ export function getConfidentialIcon(mail: Mail): Icons {
  */
 export function getConfidentialFontIcon(mail: Mail): string {
 	const confidentialIcon = getConfidentialIcon(mail)
-	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
+	return confidentialIcon === Icons.QuantumLockFilled ? FontIcons.MiniQuantumLock : FontIcons.GenericLockFilled
 }
 
 function cssAttributeSetNonInherit(color: string): boolean {

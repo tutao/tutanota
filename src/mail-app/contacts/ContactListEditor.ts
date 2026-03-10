@@ -171,7 +171,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 				m(".flex-grow"),
 				m(IconButton, {
 					title: "remove_action",
-					icon: Icons.Cancel,
+					icon: Icons.X,
 					click: () => this.model.removeRecipient(address),
 				}),
 			],

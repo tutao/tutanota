@@ -94,7 +94,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 							".flex.row.gap-8",
 							state.newFolderName == null
 								? m(TertiaryButton, {
-										icon: Icons.Add,
+										icon: Icons.Plus,
 										width: "flex",
 										label: "createFolder_action",
 										onclick: () => {

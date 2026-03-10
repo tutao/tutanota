@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
-import { component_size, size } from "../gui/size.js"
+import { component_size } from "../gui/size.js"
 import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { contains, LazyLoaded, noOp } from "@tutao/tutanota-utils"
@@ -8,8 +8,6 @@ import { UserViewer } from "./UserViewer.js"
 import { FeatureType, GroupType } from "../api/common/TutanotaConstants.js"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { BootIcons } from "../gui/base/icons/BootIcons.js"
-
 import { compareGroupInfos } from "../api/common/utils/GroupUtils.js"
 import { elementIdPart } from "../api/common/utils/EntityUtils.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
@@ -110,7 +108,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						".mr-negative-8",
 						m(IconButton, {
 							title: "addUsers_action",
-							icon: Icons.Add,
+							icon: Icons.Plus,
 							click: () => this.addButtonClicked(),
 						}),
 						this.renderImportButton(),
@@ -120,7 +118,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
-						icon: BootIcons.User,
+						icon: Icons.PersonFilled,
 						message: "noEntries_msg",
 					})
 				: m(List, {
@@ -317,7 +315,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 					}),
 					m(".icons.flex", [
 						m(Icon, {
-							icon: BootIcons.Settings,
+							icon: Icons.GearWheelFilled,
 							oncreate: (vnode) => (this.adminIconDom = vnode.dom as HTMLElement),
 							class: "svg-list-accent-fg",
 							style: {
@@ -325,7 +323,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 							},
 						}),
 						m(Icon, {
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 							oncreate: (vnode) => (this.deletedIconDom = vnode.dom as HTMLElement),
 							class: "svg-list-accent-fg",
 							style: {

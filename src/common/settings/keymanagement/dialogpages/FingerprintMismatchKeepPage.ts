@@ -29,7 +29,7 @@ export class FingerprintMismatchKeepPage implements Component<FingerprintMismatc
 			m(TitleSection, {
 				title,
 				subTitle: subtitle,
-				icon: Icons.AlertCircleOutline,
+				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.warning },
 			}),
 			m(

@@ -48,7 +48,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 						},
 						m.trust(TutaFavicon),
 					),
-					rightIcon: { icon: Icons.Open, title: "open_action" },
+					rightIcon: { icon: Icons.OpenFilled, title: "open_action" },
 					onclick: () => {
 						windowFacade.openLink("https://tuta.com/support")
 					},

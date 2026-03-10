@@ -70,7 +70,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					showActionButtonColumn: true,
 					addButtonAttrs: {
 						title: "addGroup_label",
-						icon: Icons.Add,
+						icon: Icons.Plus,
 						click: () => this.showAddUserToGroupDialog(),
 					},
 					lines: [],
@@ -104,7 +104,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		const changePasswordButtonAttrs: IconButtonAttrs = {
 			title: "changePassword_label",
 			click: () => this.changePassword(),
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		} as const
 		const passwordFieldAttrs = {
@@ -161,7 +161,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				m(IconButton, {
 					title: "edit_action",
 					click: () => this.onChangeName(name),
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 					size: ButtonSize.Compact,
 				}),
 		})
@@ -285,7 +285,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 									}),
 								)
 							},
-							icon: Icons.Cancel,
+							icon: Icons.X,
 						} as const,
 					}
 				},

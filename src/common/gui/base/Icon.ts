@@ -3,13 +3,15 @@ import { theme } from "../theme"
 import type { lazy } from "@tutao/tutanota-utils"
 import { memoized } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import { Icons } from "./icons/Icons"
 import { px, size } from "../size.js"
 
 assertMainOrNode()
 
-export type AllIcons = BootIcons | Icons
+/**
+ * @deprecated use {@link Icons} directly instead
+ */
+export type AllIcons = Icons
 
 export enum IconSize {
 	PX20,
@@ -56,7 +58,7 @@ export class Icon implements Component<IconAttrs> {
 				title: vnode.attrs.title ?? null,
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
-				icon: Icons.Eye,
+				icon: Icons.EyeFilled,
 				style: this.getStyle(vnode.attrs.style ?? null),
 				// mithril lets us mute the normal redraw that occurs after
 				// event callbacks, but TS doesn't know
@@ -99,7 +101,7 @@ export class Icon implements Component<IconAttrs> {
 
 	private getIcon = memoized((args: { icon: AllIcons; parameters?: Record<string, string> }) => {
 		// @ts-ignore
-		let rawIcon = BootIconsSvg[args.icon] ?? IconsSvg[args.icon]
+		let rawIcon = IconsSvg[args.icon]
 		if (typeof rawIcon !== "string") return null
 		for (const parameter in args.parameters) {
 			rawIcon = rawIcon.replace(`{${parameter}}`, args.parameters[parameter])
@@ -157,7 +159,7 @@ export class Icon implements Component<IconAttrs> {
 
 export function progressIcon(): Vnode<IconAttrs> {
 	return m(Icon, {
-		icon: BootIcons.Progress,
+		icon: Icons.Sync,
 		class: "icon-24 icon-progress",
 	})
 }

@@ -35,7 +35,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 			m(".flex.col.flex-grow.gap-8", [
 				m(".flex.gap-8.items-center.pr-8", [
 					m(Icon, {
-						icon: Icons.Time,
+						icon: Icons.ClockOutlines,
 						style: {
 							fill: theme.on_surface,
 						},

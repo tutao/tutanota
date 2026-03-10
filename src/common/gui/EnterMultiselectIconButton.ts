@@ -5,7 +5,7 @@ import { Icons } from "./base/icons/Icons.js"
 
 export const EnterMultiselectIconButton = pureComponent(({ clickAction }: { clickAction: () => unknown }) =>
 	m(IconButton, {
-		icon: Icons.AddCheckCirle,
+		icon: Icons.CircleCheckOutline,
 		title: "selectMultiple_action",
 		click: () => {
 			clickAction()

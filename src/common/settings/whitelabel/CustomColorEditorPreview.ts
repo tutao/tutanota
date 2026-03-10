@@ -60,12 +60,12 @@ export class CustomColorEditorPreview implements Component {
 				m(".pt-16", [
 					m(IconButton, {
 						title: lang.makeTranslation("icon_button", "Icon button"),
-						icon: Icons.Folder,
+						icon: Icons.FolderFilled,
 						click: noOp,
 					}),
 					m(ToggleButton, {
 						title: lang.makeTranslation("toggle_button", "Toggle button"),
-						icon: this.toggleSelected ? Icons.Lock : Icons.Unlock,
+						icon: this.toggleSelected ? Icons.GenericLockFilled : Icons.LockOpenFilled,
 						toggled: this.toggleSelected,
 						onToggled: () => (this.toggleSelected = !this.toggleSelected),
 					}),

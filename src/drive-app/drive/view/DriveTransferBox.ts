@@ -52,7 +52,7 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 					state === "active"
 						? m(IconButton, {
 								click: () => onCancel(),
-								icon: Icons.Cancel,
+								icon: Icons.X,
 								title: lang.makeTranslation("cancel", () => "cancel"),
 							})
 						: m("", {
@@ -89,7 +89,7 @@ export class DriveTransferBox implements Component<DriveTransferBoxAttrs> {
 	}
 
 	private renderTerminateStateIcon(state: DriveTransferState["state"]): Children {
-		const [color, icon] = state === "finished" ? [theme.success, Icons.CheckCircleFilled] : [theme.error, Icons.CloseCircleFilled]
+		const [color, icon] = state === "finished" ? [theme.success, Icons.Checkmark] : [theme.error, Icons.X]
 		return m(
 			".flex.justify-center.items-center",
 			{

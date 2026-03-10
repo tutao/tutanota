@@ -148,14 +148,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							? m(IconButton, {
 									title: "upgrade_action",
 									click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
-									icon: Icons.Edit,
+									icon: Icons.PenFilled,
 									size: ButtonSize.Compact,
 								})
 							: !this._isCancelled
 								? m(IconButton, {
 										title: "subscription_label",
 										click: () => this.onSubscriptionClick(),
-										icon: Icons.Edit,
+										icon: Icons.PenFilled,
 										size: ButtonSize.Compact,
 									})
 								: null,
@@ -757,7 +757,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				locator.entityClient
 					.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
 					.then((signerUserGroupInfo) => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
-			icon: Icons.Download,
+			icon: Icons.DownloadFilled,
 			size: ButtonSize.Compact,
 		})
 	}
@@ -766,7 +766,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return m(IconButton, {
 			title: "sign_action",
 			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		})
 	}
@@ -809,7 +809,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 	const addButtonAttrs: IconButtonAttrs = {
 		title: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(NewPaidPlans, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
-		icon: Icons.Add,
+		icon: Icons.Plus,
 		size: ButtonSize.Compact,
 	}
 	const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]

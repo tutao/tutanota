@@ -3,14 +3,12 @@
  * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
  */
 import { PasswordField, PasswordFieldAttrs } from "./PasswordField.js"
-import { TranslationKey, MaybeTranslation } from "../LanguageViewModel.js"
+import { MaybeTranslation, TranslationKey } from "../LanguageViewModel.js"
 import { Dialog, INPUT } from "../../gui/base/Dialog.js"
 import m from "mithril"
 import { Autocomplete } from "../../gui/base/TextField.js"
-import { isKeyPressed, KeyPress } from "../KeyManager.js"
-import { Keys } from "../../api/common/TutanotaConstants.js"
 import { Icon } from "../../gui/base/Icon.js"
-import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { Icons } from "../../gui/base/icons/Icons"
 
 export function showRequestPasswordDialog(props: {
 	title?: MaybeTranslation
@@ -49,7 +47,7 @@ export function showRequestPasswordDialog(props: {
 						} satisfies PasswordFieldAttrs),
 					])
 				: m(Icon, {
-						icon: BootIcons.Progress,
+						icon: Icons.Sync,
 						class: "icon-32 icon-progress block mt-16 mb-16",
 						style: {
 							marginLeft: "auto",

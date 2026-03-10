@@ -52,7 +52,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 			m(Card, { shouldDivide: true }, [
 				m(SectionButton, {
 					leftIcon: {
-						icon: Icons.BulbOutline,
+						icon: Icons.LightbulbOutline,
 						title: "ratingSuggestion_label",
 						fill: theme.primary,
 					},
@@ -63,7 +63,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 				}),
 				m(SectionButton, {
 					leftIcon: {
-						icon: Icons.AlertCircleOutline,
+						icon: Icons.ExclamationOutline,
 						title: "ratingNeedUrgentHelp_label",
 						fill: theme.primary,
 					},

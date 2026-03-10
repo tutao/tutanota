@@ -17,7 +17,6 @@ import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 import { hasError } from "../api/common/utils/ErrorUtils.js"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
-import { BootIcons } from "./base/icons/BootIcons.js"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../file/FileController.js"
 import { lang } from "../misc/LanguageViewModel.js"
 
@@ -46,7 +45,7 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 			return m(BubbleButton, {
 				label: "emptyString_msg",
 				text: "corrupted_msg",
-				icon: Icons.Warning,
+				icon: Icons.ExclamationFilled,
 				onclick: noOp,
 			})
 		} else {
@@ -82,11 +81,11 @@ async function showAttachmentDetailsPopup(dom: HTMLElement, attrs: AttachmentBub
 function getAttachmentIcon(type: AttachmentType): AllIcons {
 	switch (type) {
 		case AttachmentType.CONTACT:
-			return Icons.People
+			return Icons.PeopleFilled
 		case AttachmentType.CALENDAR:
-			return BootIcons.Calendar
+			return Icons.CalendarFilled
 		default:
-			return Icons.Attachment
+			return Icons.Paperclip
 	}
 }
 

@@ -141,7 +141,7 @@ export class SecondFactorEditDialog {
 		const copyButtonAttrs: IconButtonAttrs = {
 			title: "copy_action",
 			click: () => copyToClipboard(this.model.totpKeys.readableKey),
-			icon: Icons.Clipboard,
+			icon: Icons.ClipboardFilled,
 			size: ButtonSize.Compact,
 		}
 		return m(".mb-16", [
@@ -234,7 +234,7 @@ export class SecondFactorEditDialog {
 
 			case VerificationStatus.Failed:
 				return m(Icon, {
-					icon: Icons.Cancel,
+					icon: Icons.X,
 					size: IconSize.PX24,
 					style: {
 						fill: theme.primary,

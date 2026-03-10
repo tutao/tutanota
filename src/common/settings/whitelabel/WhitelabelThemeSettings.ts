@@ -46,14 +46,14 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 				? m(IconButton, {
 						title: "deactivate_action",
 						click: () => this.deactivateCustomColors(whitelabelData),
-						icon: Icons.Cancel,
+						icon: Icons.X,
 						size: ButtonSize.Compact,
 					})
 				: null,
 			m(IconButton, {
 				title: "edit_action",
 				click: () => this.showCustomColorsDialog(whitelabelData),
-				icon: Icons.Edit,
+				icon: Icons.PenFilled,
 				size: ButtonSize.Compact,
 			}),
 		]
@@ -95,14 +95,14 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 						click: async () => {
 							await this.deactivateCustomLogo(whitelabelData)
 						},
-						icon: Icons.Cancel,
+						icon: Icons.X,
 						size: ButtonSize.Compact,
 					})
 				: null,
 			m(IconButton, {
 				title: "edit_action",
 				click: () => this.editCustomLogo(whitelabelData),
-				icon: Icons.Edit,
+				icon: Icons.PenFilled,
 				size: ButtonSize.Compact,
 			}),
 		]

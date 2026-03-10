@@ -69,7 +69,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 			option.value.type === "recipient"
 				? option.value.value.name
 				: m(Icon, {
-						icon: Icons.People,
+						icon: Icons.PeopleFilled,
 						style: {
 							fill: theme.on_surface,
 							"aria-describedby": lang.get("contactListName_label"),

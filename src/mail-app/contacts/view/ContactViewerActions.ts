@@ -28,7 +28,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 				m(IconButton, {
 					title: "edit_action",
 					click: () => onEdit(contacts[0]),
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 				}),
 			)
 		} else if (this.canMerge(contacts)) {
@@ -36,7 +36,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 				m(IconButton, {
 					title: "merge_action",
 					click: () => onMerge(contacts[0], contacts[1]),
-					icon: Icons.People,
+					icon: Icons.PeopleFilled,
 				}),
 			)
 		}
@@ -46,7 +46,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 				m(IconButton, {
 					title: "export_action",
 					click: () => onExport(contacts),
-					icon: Icons.Export,
+					icon: Icons.CloudDownloadFilled,
 				}),
 			)
 		}
@@ -55,7 +55,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 				m(IconButton, {
 					title: "delete_action",
 					click: () => onDelete(contacts),
-					icon: Icons.Trash,
+					icon: Icons.TrashFilled,
 				}),
 			)
 		}

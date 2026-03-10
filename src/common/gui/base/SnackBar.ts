@@ -106,7 +106,7 @@ export function showInfoSnackbar(message: TranslationKey) {
 		dismissButton: {
 			title: "close_alt",
 			click: () => cancelSnackbar(),
-			icon: Icons.Cancel,
+			icon: Icons.X,
 		},
 		showingTime: INFO_SNACKBAR_SHOW_TIME,
 		replace: true,

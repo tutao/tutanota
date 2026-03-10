@@ -102,7 +102,7 @@ export interface IntervalOption {
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
 		title: label,
-		icon: Icons.ArrowBackward,
+		icon: Icons.ChevronLeft,
 		click,
 	})
 }
@@ -110,7 +110,7 @@ export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () 
 export function renderCalendarSwitchRightButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
 		title: label,
-		icon: Icons.ArrowForward,
+		icon: Icons.ChevronRight,
 		click,
 	})
 }
@@ -299,11 +299,11 @@ export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 
 export function getIconForViewType(viewType: CalendarViewType): AllIcons {
 	const lookupTable: Record<CalendarViewType, AllIcons> = {
-		[CalendarViewType.DAY]: Icons.TableSingle,
-		[CalendarViewType.THREE_DAY]: Icons.TableColumns,
+		[CalendarViewType.DAY]: Icons.OneDay,
+		[CalendarViewType.THREE_DAY]: Icons.ThreeDays,
 		[CalendarViewType.WEEK]: Icons.Week,
-		[CalendarViewType.MONTH]: Icons.Table,
-		[CalendarViewType.AGENDA]: Icons.ListUnordered,
+		[CalendarViewType.MONTH]: Icons.Month,
+		[CalendarViewType.AGENDA]: Icons.UnorderedList,
 	}
 	return lookupTable[viewType]
 }
@@ -915,11 +915,11 @@ export const eventInviteEmailTypeToCalendarAttendeeStatus = Object.freeze({
 })
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
-	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
-	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
-	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
-	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleHelp,
-	[CalendarAttendeeStatus.ADDED]: Icons.CircleHelp,
+	[CalendarAttendeeStatus.ACCEPTED]: Icons.SuccessOutline,
+	[CalendarAttendeeStatus.TENTATIVE]: Icons.QuestionmarkOutline,
+	[CalendarAttendeeStatus.DECLINED]: Icons.FailureOutline,
+	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.QuestionmarkOutline,
+	[CalendarAttendeeStatus.ADDED]: Icons.QuestionmarkOutline,
 })
 
 /**

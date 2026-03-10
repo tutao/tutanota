@@ -125,7 +125,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 		return m(IconButton, {
 			title: "edit_action",
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			click: () => assertNotNull(attrs.editAction, "Invalid Edit action in Contact Viewer")(contact),
 		})
 	}
@@ -137,7 +137,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 		return m(IconButton, {
 			title: "delete_action",
-			icon: Icons.Trash,
+			icon: Icons.TrashFilled,
 			click: () => assertNotNull(attrs.deleteAction, "Invalid Delete action in Contact Viewer")([contact]),
 		})
 	}
@@ -148,7 +148,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		if (attrs.editAction) {
 			actions.push({
 				label: "edit_action",
-				icon: Icons.Edit,
+				icon: Icons.PenFilled,
 				click: () => {
 					assertNotNull(attrs.editAction, "Edit action in Contact Viewer has disappeared")(contact)
 				},
@@ -158,7 +158,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		if (attrs.deleteAction) {
 			actions.push({
 				label: "delete_action",
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 				click: () => {
 					assertNotNull(attrs.deleteAction, "Delete action in Contact Viewer has disappeared")([contact])
 				},
@@ -316,7 +316,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
-			icon: Icons.ArrowForward,
+			icon: Icons.ChevronRight,
 			size: ButtonSize.Compact,
 		})
 		const socialUrl = getSocialUrl(contactSocialId)
@@ -332,7 +332,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
-			icon: Icons.ArrowForward,
+			icon: Icons.ChevronRight,
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
@@ -347,7 +347,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
-			icon: Icons.ArrowForward,
+			icon: Icons.ChevronRight,
 			size: ButtonSize.Compact,
 		})
 		const messengerUrl = getMessengerHandleUrl(messengerHandle)
@@ -368,7 +368,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 					address: address.address,
 					contact: contact,
 				}),
-			icon: Icons.PencilSquare,
+			icon: Icons.Write,
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
@@ -383,7 +383,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		const callButton = m(IconButton, {
 			title: "callNumber_alt",
 			click: () => null,
-			icon: Icons.Call,
+			icon: Icons.PhoneFilled,
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
@@ -406,7 +406,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		const showButton = m(IconButton, {
 			title: "showAddress_alt",
 			click: () => null,
-			icon: Icons.Pin,
+			icon: Icons.PlaceFilled,
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {

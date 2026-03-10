@@ -158,7 +158,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 	private renderFeaturedTexts(title: string, color: string, isConflict: boolean) {
 		return m(".flex.items-start", [
 			m(Icon, {
-				icon: isConflict ? Icons.AlertCircle : Icons.Checkmark,
+				icon: isConflict ? Icons.ExclamationFilled : Icons.Checkmark,
 				container: "div",
 				class: "mr-xxs",
 				style: {
@@ -229,7 +229,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		return m(".flex.items-center.text-ellipsis", [
 			!showSecondLine
 				? m(Icon, {
-						icon: Icons.Time,
+						icon: Icons.ClockOutlines,
 						class: "icon-small ml-4 mr-4",
 						style: {
 							fill: iconFillColor,

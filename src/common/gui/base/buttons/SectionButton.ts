@@ -54,7 +54,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 			injectionRight == null ? null : injectionRight,
 			rightIcon == null
 				? m(Icon, {
-						icon: Icons.ArrowForward,
+						icon: Icons.ChevronRight,
 						style: { fill: getColors(ButtonColor.Content).button },
 						title: lang.get("next_action"),
 						size: IconSize.PX24,

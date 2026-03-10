@@ -45,7 +45,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
 						message: "noEntries_msg",
-						icon: Icons.People,
+						icon: Icons.PeopleFilled,
 					})
 				: m(List, {
 						renderConfig: this.renderConfig,

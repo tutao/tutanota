@@ -45,7 +45,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 					"",
 					{ style: { "max-width": px(530) } },
 
-					m(MessageBanner, { translation: lang.getTranslation("pricing.cyber_monday_msg"), type: "base", icon: Icons.Gift }),
+					m(MessageBanner, { translation: lang.getTranslation("pricing.cyber_monday_msg"), type: "base", icon: Icons.GiftFilled }),
 				),
 			// Headline for general messages
 			data.msg && m(MessageBanner, { translation: data.msg, type: "base" }),

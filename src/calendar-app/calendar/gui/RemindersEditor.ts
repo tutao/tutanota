@@ -52,7 +52,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "delete_action",
-					icon: Icons.Cancel,
+					icon: Icons.X,
 					click: () => removeAlarm(a),
 				}),
 		}))
@@ -67,7 +67,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 					attachDropdown({
 						mainButtonAttrs: {
 							title: "add_action",
-							icon: Icons.Add,
+							icon: Icons.Plus,
 						},
 						childAttrs: () => [
 							...createAlarmIntervalItems(lang.languageTag).map((i) => ({
@@ -141,7 +141,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 							class: "flex items-center",
 						},
 						m(Icon, {
-							icon: Icons.Cancel,
+							icon: Icons.X,
 							size: IconSize.PX24,
 							style: {
 								fill: getColors(ButtonColor.Content).button,

@@ -191,7 +191,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return m(RowButton, {
 			label: "addFolder_action",
 			key: "addFolder",
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			class: "folder-row mlr-8 border-radius-4",
 			style: {
 				width: `calc(100% - ${px(size.spacing_8 * 2)})`,
@@ -252,7 +252,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	private deleteButtonAttrs(attrs: MailFolderViewAttrs, folder: MailSet): DropdownButtonAttrs {
 		return {
 			label: "delete_action",
-			icon: Icons.Trash,
+			icon: Icons.TrashFilled,
 			click: () => {
 				attrs.onDeleteCustomMailFolder(folder)
 			},
@@ -262,7 +262,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	private addButtonAttrs(attrs: MailFolderViewAttrs, folder: MailSet): DropdownButtonAttrs {
 		return {
 			label: "addFolder_action",
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			click: () => {
 				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, folder)
 			},
@@ -272,7 +272,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	private editButtonAttrs(attrs: MailFolderViewAttrs, folders: FolderSystem, folder: MailSet): DropdownButtonAttrs {
 		return {
 			label: "edit_action",
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			click: () => {
 				attrs.onShowFolderAddEditDialog(
 					attrs.mailboxDetail.mailGroup._id,
@@ -289,7 +289,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			click: () => {
 				return attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, parentFolder)
 			},
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			size: ButtonSize.Compact,
 		})
 	}
@@ -298,7 +298,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return m(IconButton, {
 			title: "edit_action",
 			click: () => attrs.onEditMailbox(),
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		})
 	}

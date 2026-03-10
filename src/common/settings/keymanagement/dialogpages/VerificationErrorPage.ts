@@ -49,7 +49,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.CloseCircleOutline,
+				icon: Icons.FailureOutline,
 				iconOptions: { color: theme.error },
 			}),
 			m(LoginButton, {

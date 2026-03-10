@@ -29,7 +29,6 @@ import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
 import { theme } from "../gui/theme"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { Country } from "../api/common/CountryList"
 import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
@@ -38,6 +37,7 @@ import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import SignupWizardLayout from "./SignupWizardLayout"
 import { noOp } from "@tutao/tutanota-utils"
+import { Icons } from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -248,7 +248,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					? m(
 							".flex-grow.flex.col.justify-center",
 							m(IconMessageBox, {
-								icon: BootIcons.Progress,
+								icon: Icons.Sync,
 								message: "pleaseWait_msg",
 								color: theme.on_surface_variant,
 							} satisfies InfoMessaggeBoxAttrs),

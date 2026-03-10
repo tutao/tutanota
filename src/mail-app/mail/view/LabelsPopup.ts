@@ -131,9 +131,9 @@ export class LabelsPopup implements ModalComponent {
 	private iconForState(state: LabelState): AllIcons {
 		switch (state) {
 			case LabelState.AppliedToSome:
-				return Icons.LabelPartial
+				return Icons.LabelPartialOutline
 			case LabelState.Applied:
-				return Icons.Label
+				return Icons.LabelFilled
 			case LabelState.NotApplied:
 				return Icons.LabelOutline
 		}

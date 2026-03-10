@@ -29,7 +29,7 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 				const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
 				showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 			},
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		})
 	}

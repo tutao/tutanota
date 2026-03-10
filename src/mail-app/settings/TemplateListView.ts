@@ -20,7 +20,7 @@ import ColumnEmptyMessageBox from "../../common/gui/base/ColumnEmptyMessageBox.j
 import { theme } from "../../common/gui/theme.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
-import { component_size, size } from "../../common/gui/size.js"
+import { component_size } from "../../common/gui/size.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../common/gui/base/ListUtils.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
@@ -131,7 +131,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 								".mr-negative-8",
 								m(IconButton, {
 									title: "addTemplate_label",
-									icon: Icons.Add,
+									icon: Icons.Plus,
 									click: () => {
 										showTemplateEditor(null, this.groupInstance.groupRoot)
 									},
@@ -143,7 +143,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
-						icon: Icons.ListAlt,
+						icon: Icons.Template,
 						message: "noEntries_msg",
 					})
 				: m(List, {

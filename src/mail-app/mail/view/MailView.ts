@@ -751,7 +751,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					m(IconButton, {
 						title: "newMail_action",
 						click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
-						icon: Icons.PencilSquare,
+						icon: Icons.Write,
 					}),
 				]
 			: null
@@ -1474,7 +1474,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								const path = `${MAIL_PREFIX}/${getElementId(label)}`
 
 								return m(SidebarSectionRow, {
-									icon: Icons.Label,
+									icon: Icons.LabelFilled,
 									iconColor: getLabelColor(label.color),
 									label: lang.makeTranslation(`folder:${label.name}`, label.name),
 									path,
@@ -1499,14 +1499,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										childAttrs: () => [
 											{
 												label: "edit_action",
-												icon: Icons.Edit,
+												icon: Icons.PenFilled,
 												click: () => {
 													this.showLabelEditDialog(label)
 												},
 											},
 											{
 												label: "delete_action",
-												icon: Icons.Trash,
+												icon: Icons.TrashFilled,
 												click: () => {
 													this.showLabelDeleteDialog(label)
 												},
@@ -1520,7 +1520,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			),
 			m(RowButton, {
 				label: "addLabel_action",
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				class: "folder-row mlr-8 border-radius-4",
 				style: {
 					width: `calc(100% - ${px(size.spacing_8 * 2)})`,
@@ -1534,7 +1534,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private renderEditMailboxButton(onEditMailbox: () => unknown) {
 		return m(IconButton, {
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 			title: "edit_action",
 			click: onEditMailbox,
@@ -1544,7 +1544,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private renderAddLabelButton(mailboxDetail: MailboxDetail) {
 		return m(IconButton, {
 			title: "addLabel_action",
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			click: () => {
 				this.showLabelAddDialog(mailboxDetail.mailbox)
 			},

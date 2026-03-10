@@ -88,18 +88,18 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 						? m(IconButton, {
 								title: "edit_action",
 								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
-								icon: Icons.Edit,
+								icon: Icons.PenFilled,
 							})
 						: null,
 					m(IconButton, {
 						title: "delete_action",
 						click: () => this._onDeleteClicked(minimizedEditor, viewModel),
-						icon: Icons.Trash,
+						icon: Icons.TrashFilled,
 					}),
 					m(IconButton, {
 						title: "close_alt",
 						click: () => viewModel.removeMinimizedEditor(minimizedEditor),
-						icon: Icons.Cancel,
+						icon: Icons.X,
 					}),
 				]),
 			]),

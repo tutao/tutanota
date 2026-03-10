@@ -1,5 +1,5 @@
 import { Icon, IconSize, lazyIcon } from "../../common/gui/base/Icon.js"
-import { lang, Translation, MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
 import { ClickHandler } from "../../common/gui/base/GuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton } from "../../common/gui/base/buttons/BaseButton.js"
@@ -33,7 +33,7 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 				class: `flex justify-start full-width gap-16 pl-16 pr-16 items-center`,
 			},
 			m(Icon, {
-				icon: Icons.ArrowForward,
+				icon: Icons.ChevronRight,
 				container: "div",
 				class: "center-h items-ends",
 				size: IconSize.PX20,

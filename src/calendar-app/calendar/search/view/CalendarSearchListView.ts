@@ -2,16 +2,16 @@ import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../../common/api/common/Env"
 import { downcast } from "@tutao/tutanota-utils"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../common/gui/base/List.js"
-import { component_size, size } from "../../../../common/gui/size.js"
+import { component_size } from "../../../../common/gui/size.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { VirtualRow } from "../../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../../common/gui/styles.js"
 import { KindaCalendarRow } from "../../gui/CalendarRow.js"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { CalendarInfoBase } from "../../model/CalendarModel"
+import { Icons } from "../../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -39,7 +39,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 	}
 
 	view({ attrs }: Vnode<CalendarSearchListViewAttrs>): Children {
-		const icon = BootIcons.Calendar
+		const icon = Icons.CalendarFilled
 		const renderConfig = this.calendarRenderConfig
 
 		return attrs.listModel.isEmptyAndDone()

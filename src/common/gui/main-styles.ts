@@ -2417,7 +2417,7 @@ styles.registerStyle("main", () => {
 		},
 		".checkbox:after": {
 			"font-family": "'Ionicons'",
-			content: `'${FontIcons.Checkbox}'`,
+			content: `'${FontIcons.CheckboxCheckmark}'`,
 			position: "absolute",
 			display: "none",
 			"font-size": "12px",

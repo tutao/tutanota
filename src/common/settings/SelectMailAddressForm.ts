@@ -13,8 +13,8 @@ import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
-import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
+import { Icons } from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -109,7 +109,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 							attachDropdown({
 								mainButtonAttrs: {
 									title: "domain_label",
-									icon: BootIcons.Expand,
+									icon: Icons.ArrowDown,
 									size: ButtonSize.Compact,
 								},
 								childAttrs: () => attrs.availableDomains.map((domain) => this.createDropdownItemAttrs(domain, attrs)),
@@ -136,7 +136,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 	private progressIcon(): Children {
 		return m(Icon, {
-			icon: BootIcons.Progress,
+			icon: Icons.Sync,
 			class: "icon-progress mr-8",
 		})
 	}
@@ -147,7 +147,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			click: () => {
 				attrs.onDomainChanged(domainData)
 			},
-			icon: domainData.isPaid ? BootIcons.Premium : undefined,
+			icon: domainData.isPaid ? Icons.TrophyFilled : undefined,
 		}
 	}
 

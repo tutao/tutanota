@@ -3,7 +3,7 @@ import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../../common/api/ent
 import { KnowledgeBaseEntryTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../common/misc/LanguageViewModel"
 
-import { component_size, size } from "../../common/gui/size"
+import { component_size } from "../../common/gui/size"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { isSameId, listIdPart } from "../../common/api/common/utils/EntityUtils"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
@@ -132,7 +132,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 								".mr-negative-8",
 								m(IconButton, {
 									title: "addEntry_label",
-									icon: Icons.Add,
+									icon: Icons.Plus,
 									click: () => {
 										showKnowledgeBaseEditor(null, this.templateGroupRoot)
 									},
@@ -144,7 +144,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
-						icon: Icons.Book,
+						icon: Icons.BookFilled,
 						message: "noEntries_msg",
 					})
 				: m(List, {

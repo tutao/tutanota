@@ -64,7 +64,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 		const model = vnode.attrs
 		this.linkedTemplateButtonAttrs = {
 			title: "linkTemplate_label",
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			colors: ButtonColor.Elevated,
 			click: (e, dom) => {
 				e.stopPropagation()

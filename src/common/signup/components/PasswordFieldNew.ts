@@ -28,7 +28,7 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 		return m(LoginTextField, {
 			...textFieldAttrs,
 			leadingIcon: {
-				icon: Icons.Lock,
+				icon: Icons.GenericLockFilled,
 				color: theme.on_surface_variant,
 			},
 			label: label === undefined ? "password_label" : label,
@@ -55,7 +55,7 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 				onRevealToggled(value)
 				e.stopPropagation()
 			},
-			icon: isPasswordRevealed ? Icons.NoEye : Icons.Eye,
+			icon: isPasswordRevealed ? Icons.EyeCrossedFilled : Icons.EyeFilled,
 			size: ButtonSize.Compact,
 		})
 	}

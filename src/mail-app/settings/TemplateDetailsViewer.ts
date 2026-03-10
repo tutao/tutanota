@@ -49,12 +49,12 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 						buttons: [
 							{
 								title: "edit_action",
-								icon: Icons.Edit,
+								icon: Icons.PenFilled,
 								click: () => this.editTemplate(),
 							},
 							{
 								title: "remove_action",
-								icon: Icons.Trash,
+								icon: Icons.TrashFilled,
 								click: () => this.deleteTemplate(),
 							},
 						],

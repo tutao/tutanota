@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { ButtonColor } from "../base/Button.js"
-import { BootIcons } from "../base/icons/BootIcons"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
 import { isIOSApp, isWebClient } from "../../api/common/Env"
 import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
@@ -51,7 +50,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				isInternalUser && isLoggedIn
 					? m(".news-button", [
 							m(IconButton, {
-								icon: Icons.Bulb,
+								icon: Icons.LightbulbFilled,
 								title: "news_label",
 								click: () => showNewsDialog(newsModel),
 								colors: ButtonColor.DrawerNav,
@@ -71,7 +70,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					: null,
 				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !customer?.businessUse
 					? m(IconButton, {
-							icon: Icons.Gift,
+							icon: Icons.GiftFilled,
 							title: "buyGiftCard_label",
 							click: () => {
 								m.route.set("/settings/subscription")
@@ -84,7 +83,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					: null,
 				desktopSystemFacade
 					? m(IconButton, {
-							icon: Icons.NewWindow,
+							icon: Icons.BrowserAddOutline,
 							title: "openNewWindow_action",
 							click: () => {
 								desktopSystemFacade.openNewWindow()
@@ -94,7 +93,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					: null,
 				!isIOSApp() && isLoggedIn && userController.isFreeAccount()
 					? m(IconButton, {
-							icon: BootIcons.Premium,
+							icon: Icons.TrophyFilled,
 							title: "upgradePremium_label",
 							click: () => showUpgradeDialog(),
 							colors: ButtonColor.DrawerNav,
@@ -102,18 +101,18 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					: null,
 				m(IconButton, {
 					title: "showHelp_action",
-					icon: BootIcons.Help,
+					icon: Icons.QuestionmarkFilled,
 					click: (e, dom) =>
 						createDropdown({
 							width: 300,
 							lazyButtons: () => [
 								{
-									icon: Icons.SpeechBubbleFill,
+									icon: Icons.ChatbubbleFilled,
 									label: "supportMenu_label",
 									click: () => void showSupportDialog(logins),
 								},
 								{
-									icon: Icons.KeyboardFill,
+									icon: Icons.KeyboardFilled,
 									label: "keyboardShortcuts_title",
 									click: () => keyManager.openF1Help(true),
 								},
@@ -123,7 +122,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				}),
 				isPartnerEnabled(locator.logins)
 					? m(IconButton, {
-							icon: Icons.Heart,
+							icon: Icons.HeartFilled,
 							title: { testId: "partner_label", text: "Partner" },
 							click: () => m.route.set(PARTNER_PREFIX),
 							colors: ButtonColor.DrawerNav,
@@ -131,14 +130,14 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					: null,
 				isInternalUser
 					? m(IconButton, {
-							icon: BootIcons.Settings,
+							icon: Icons.GearWheelFilled,
 							title: "settings_label",
 							click: () => m.route.set(SETTINGS_PREFIX),
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
 				m(IconButton, {
-					icon: BootIcons.Logout,
+					icon: Icons.Logout,
 					title: "switchAccount_action",
 					click: () => m.route.set(LogoutUrl),
 					colors: ButtonColor.DrawerNav,

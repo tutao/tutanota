@@ -50,12 +50,12 @@ export class MobileMailMultiselectionActionBar {
 		return setUnreadStateAction
 			? [
 					m(IconButton, {
-						icon: Icons.Eye,
+						icon: Icons.EyeFilled,
 						title: "markRead_action",
 						click: () => setUnreadStateAction(false),
 					}),
 					m(IconButton, {
-						icon: Icons.NoEye,
+						icon: Icons.EyeCrossedFilled,
 						title: "markUnread_action",
 						click: () => setUnreadStateAction(true),
 					}),
@@ -67,7 +67,7 @@ export class MobileMailMultiselectionActionBar {
 		return (
 			applyLabelsAction &&
 			m(IconButton, {
-				icon: Icons.Label,
+				icon: Icons.LabelFilled,
 				title: "assignLabel_action",
 				click: (e, dom) => {
 					const referenceDom = this.dom ?? dom
@@ -81,7 +81,7 @@ export class MobileMailMultiselectionActionBar {
 		return (
 			moveMailsAction &&
 			m(IconButton, {
-				icon: Icons.Folder,
+				icon: Icons.FolderFilled,
 				title: "move_action",
 				click: (e, dom) => {
 					const referenceDom = this.dom ?? dom
@@ -98,7 +98,7 @@ export class MobileMailMultiselectionActionBar {
 		return (
 			trashMailsAction &&
 			m(IconButton, {
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 				title: "trash_action",
 				click: trashMailsAction,
 			})
@@ -109,7 +109,7 @@ export class MobileMailMultiselectionActionBar {
 		return (
 			deleteMailsAction &&
 			m(IconButton, {
-				icon: Icons.DeleteForever,
+				icon: Icons.TrashCrossFilled,
 				title: "delete_action",
 				click: deleteMailsAction,
 			})

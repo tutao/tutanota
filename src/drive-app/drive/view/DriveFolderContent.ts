@@ -189,7 +189,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							},
 						},
 						m(Icon, {
-							icon: item.type === "folder" ? Icons.Folder : iconPerMimeType(item.file.mimeType),
+							icon: item.type === "folder" ? Icons.FolderFilled : iconPerMimeType(item.file.mimeType),
 							size: IconSize.PX24,
 							style: {
 								fill: theme.on_surface,

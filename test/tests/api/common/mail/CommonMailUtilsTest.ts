@@ -84,22 +84,22 @@ o.spec("CommonMailUtils", () => {
 			confidential: true,
 			encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
 		})
-		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
+		o(getConfidentialIcon(mail)).equals(Icons.QuantumLockFilled)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
+		o(getConfidentialIcon(mail)).equals(Icons.QuantumLockFilled)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
-		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+		o(getConfidentialIcon(mail)).equals(Icons.GenericLockFilled)
 
 		mail.encryptionAuthStatus = null
-		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+		o(getConfidentialIcon(mail)).equals(Icons.GenericLockFilled)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
-		o(getConfidentialIcon(mail)).equals(Icons.Lock)
+		o(getConfidentialIcon(mail)).equals(Icons.GenericLockFilled)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_SENDER
-		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
+		o(getConfidentialIcon(mail)).equals(Icons.QuantumLockFilled)
 
 		mail.confidential = false
 		o(() => getConfidentialIcon(mail)).throws(ProgrammingError)

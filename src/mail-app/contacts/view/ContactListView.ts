@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { component_size, size } from "../../../common/gui/size"
+import { component_size } from "../../../common/gui/size"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../common/gui/base/List.js"
@@ -8,10 +8,10 @@ import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../common/gui/theme.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { styles } from "../../../common/gui/styles.js"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -34,7 +34,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
 						message: "noContacts_msg",
-						icon: BootIcons.Contacts,
+						icon: Icons.PeopleFilled,
 					})
 				: m(List, {
 						renderConfig: this.renderConfig,

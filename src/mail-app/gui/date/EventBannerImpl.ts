@@ -21,7 +21,6 @@ import { theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
 import { layout_size, px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { collidesWith, formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -176,7 +175,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
 					m(".flex", [
 						m(Icon, {
-							icon: BootIcons.Calendar,
+							icon: Icons.CalendarFilled,
 							container: "div",
 							class: "mr-4",
 							style: { fill: theme.on_surface },
@@ -207,7 +206,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								m(".flex.flex-column.mb-8", [
 									m(".flex.items-center.gap-4", [
 										m(Icon, {
-											icon: Icons.Time,
+											icon: Icons.ClockOutlines,
 											container: "div",
 											style: { fill: theme.on_surface },
 											size: IconSize.PX24,
@@ -235,7 +234,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 														: {},
 													[
 														m(Icon, {
-															icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+															icon: hasConflict ? Icons.ExclamationFilled : Icons.SuccessFilled,
 															container: "div",
 															class: "mr-4",
 															style: {
@@ -343,7 +342,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				m("span", { class: totalConflicts > 0 ? "b" : "" }, stringParts.join(" ")),
 				totalConflicts > 1
 					? m(Icon, {
-							icon: BootIcons.Expand,
+							icon: Icons.ArrowDown,
 							container: "div",
 							class: `fit-content`,
 							size: IconSize.PX24,

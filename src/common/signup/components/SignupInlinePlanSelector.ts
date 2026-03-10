@@ -19,80 +19,80 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 		{
 			type: PlanType.Revolutionary,
 			tagLine: "mostPopular_label",
-			icon: Icons.Revo,
+			icon: Icons.Revolutionary,
 			features: [
 				{
 					label: "pricing.comparisonStorage_msg",
-					icon: Icons.PricingStorage,
+					icon: Icons.CloudOutline,
 					replacementKey: "storage",
 				},
 				{
 					label: "pricing.calendarsPremium_label",
-					icon: Icons.PricingCalendar,
+					icon: Icons.CalendarNumberOutline,
 				},
 				{
 					label: "pricing.mailAddressAliasesShort_label",
-					icon: Icons.PricingMail,
+					icon: Icons.MailOutline,
 					replacementKey: "mailAddressAliases",
 				},
 				{
 					label: "pricing.comparisonCustomDomains_msg",
-					icon: Icons.PricingCustomDomain,
+					icon: Icons.GlobeOutline,
 					replacementKey: "customDomains",
 				},
 				{
 					label: "pricing.comparisonSupportPremium_msg",
-					icon: Icons.PricingSupport,
+					icon: Icons.SmileyfaceOutline,
 				},
 			],
 		},
 		{
 			type: PlanType.Legend,
 			tagLine: "allYouNeed_label",
-			icon: Icons.Legend,
+			icon: Icons.Legendary,
 			features: [
 				{
 					label: "pricing.comparisonStorage_msg",
-					icon: Icons.PricingStorage,
+					icon: Icons.CloudOutline,
 					replacementKey: "storage",
 				},
 				{
 					label: "pricing.calendarsPremium_label",
-					icon: Icons.PricingCalendar,
+					icon: Icons.CalendarNumberOutline,
 				},
 				{
 					label: "pricing.mailAddressAliasesShort_label",
-					icon: Icons.PricingMail,
+					icon: Icons.MailOutline,
 					replacementKey: "mailAddressAliases",
 				},
 				{
 					label: "pricing.comparisonCustomDomains_msg",
-					icon: Icons.PricingCustomDomain,
+					icon: Icons.GlobeOutline,
 					replacementKey: "customDomains",
 				},
 				{
 					label: "pricing.comparisonSupportPro_msg",
-					icon: Icons.PricingSupport,
+					icon: Icons.SmileyfaceOutline,
 				},
 			],
 		},
 		{
 			type: PlanType.Free,
 			tagLine: "emptyString_msg",
-			icon: Icons.Revo,
+			icon: Icons.Revolutionary,
 			features: [
 				{
 					label: "pricing.comparisonStorage_msg",
-					icon: Icons.PricingStorage,
+					icon: Icons.CloudOutline,
 					replacementKey: "storage",
 				},
 				{
 					label: "pricing.comparisonOneCalendar_msg",
-					icon: Icons.PricingCalendar,
+					icon: Icons.CalendarNumberOutline,
 				},
 				{
 					label: "pricing.comparisonFaqSupport_msg",
-					icon: Icons.PricingSupport,
+					icon: Icons.SmileyfaceOutline,
 				},
 			],
 		},

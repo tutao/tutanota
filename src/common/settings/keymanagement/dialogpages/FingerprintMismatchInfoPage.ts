@@ -39,7 +39,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			m(TitleSection, {
 				title,
 				subTitle: m.trust(subTitle),
-				icon: Icons.CloseCircleOutline,
+				icon: Icons.FailureOutline,
 				iconOptions: { color: theme.error },
 			}),
 			m(
@@ -63,7 +63,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 				},
 				class: "flex-center row center-vertically",
 				icon: m(Icon, {
-					icon: Icons.Trash,
+					icon: Icons.TrashFilled,
 					size: IconSize.PX24,
 					class: "mr-8 flex-center",
 					style: {

@@ -141,7 +141,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 							".flex-center",
 							Array(Math.pow(2, index)).fill(
 								m(Icon, {
-									icon: Icons.Gift,
+									icon: Icons.GiftFilled,
 									size: IconSize.PX24,
 								}),
 							),

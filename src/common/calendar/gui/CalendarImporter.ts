@@ -13,7 +13,6 @@ import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
-import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { UserController } from "../../api/main/UserController.js"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
@@ -21,6 +20,7 @@ import { renderCalendarColor } from "../../../calendar-app/calendar/gui/Calendar
 import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
 import { handleCalendarImport } from "./CalendarImporterDialog.js"
 import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
+import { Icons } from "../../gui/base/icons/Icons"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {
@@ -186,7 +186,7 @@ export function calendarSelectionDialog(
 					}),
 					selectedValue: selectedCalendar,
 					selectionChangedHandler: (v) => (selectedCalendar = v),
-					icon: BootIcons.Expand,
+					icon: Icons.ArrowDown,
 					disabled: availableCalendars.length < 2,
 					helpLabel: () => renderCalendarColor(selectedCalendar, groupColors),
 				} satisfies DropDownSelectorAttrs<CalendarInfo>),

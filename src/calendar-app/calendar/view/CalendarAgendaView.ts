@@ -9,7 +9,6 @@ import { styles } from "../../../common/gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { layout_size, px, size } from "../../../common/gui/size.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
@@ -32,6 +31,7 @@ import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardVi
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -157,7 +157,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		const events = this.getEventsToRender(attrs.selectedDate, attrs)
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
-				icon: BootIcons.Calendar,
+				icon: Icons.CalendarFilled,
 				message: "noEntries_msg",
 				color: theme.on_surface_variant,
 			})
@@ -191,7 +191,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		const events = this.getEventsToRender(day, attrs)
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
-				icon: BootIcons.Calendar,
+				icon: Icons.CalendarFilled,
 				message: "noEntries_msg",
 				color: theme.on_surface_variant,
 				bottomContent: !client.isCalendarApp()
@@ -257,7 +257,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					? m(
 							".rel.flex-grow.height-100p",
 							m(ColumnEmptyMessageBox, {
-								icon: BootIcons.Calendar,
+								icon: Icons.CalendarFilled,
 								message: "noEventSelect_msg",
 								color: theme.on_surface_variant,
 							}),

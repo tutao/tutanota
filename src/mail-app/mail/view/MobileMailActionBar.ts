@@ -63,7 +63,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			m(IconButton, {
 				title: "reportNotSpam_action",
 				click: reportNotSpamAction,
-				icon: Icons.NotBug,
+				icon: Icons.BugCrossedFilled,
 			})
 		)
 	}
@@ -78,7 +78,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 						width: this.dropdownWidth(),
 						withBackground: true,
 					}),
-				icon: Icons.Folder,
+				icon: Icons.FolderFilled,
 			})
 		)
 	}
@@ -110,19 +110,19 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 									origin: referenceDom.getBoundingClientRect(),
 								})
 							},
-							icon: Icons.Label,
+							icon: Icons.LabelFilled,
 						})
 					}
 					if (setUnreadStateAction != null) {
 						const readButton: DropdownButtonAttrs = {
 							label: "markRead_action",
 							click: () => setUnreadStateAction(false),
-							icon: Icons.Eye,
+							icon: Icons.EyeFilled,
 						}
 						const unreadButton: DropdownButtonAttrs = {
 							label: "markUnread_action",
 							click: () => setUnreadStateAction(true),
-							icon: Icons.NoEye,
+							icon: Icons.EyeCrossedFilled,
 						}
 
 						// isUnread means we are viewing one mail; otherwise, it is coming from a MultiViewer
@@ -152,7 +152,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			m(IconButton, {
 				title: "delete_action",
 				click: deleteMailsAction,
-				icon: Icons.DeleteForever,
+				icon: Icons.TrashCrossFilled,
 			})
 		)
 	}
@@ -163,7 +163,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			m(IconButton, {
 				title: "trash_action",
 				click: trashMailsAction,
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 			})
 		)
 	}
@@ -174,7 +174,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			m(IconButton, {
 				title: "forward_action",
 				click: forwardAction,
-				icon: Icons.Forward,
+				icon: Icons.ArrowForwardFilled,
 			})
 		)
 	}
@@ -191,12 +191,12 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 									() => [
 										{
 											label: "replyAll_action",
-											icon: Icons.ReplyAll,
+											icon: Icons.DoubleArrowBackFilled,
 											click: replyAllAction,
 										},
 										{
 											label: "reply_action",
-											icon: Icons.Reply,
+											icon: Icons.ArrowBackFilled,
 											click: replyAction,
 										},
 									],
@@ -208,7 +208,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 								modal.displayUnique(dropdown, true)
 							}
 						: replyAction,
-				icon: replyAllAction != null ? Icons.ReplyAll : Icons.Reply,
+				icon: replyAllAction != null ? Icons.DoubleArrowBackFilled : Icons.ArrowBackFilled,
 			})
 		)
 	}
@@ -218,7 +218,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			editDraftAction &&
 			m(IconButton, {
 				title: "edit_action",
-				icon: Icons.Edit,
+				icon: Icons.PenFilled,
 				click: editDraftAction,
 			})
 		)
@@ -229,7 +229,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			unscheduleMailAction &&
 			m(IconButton, {
 				title: "cancelSend_action",
-				icon: Icons.XCross,
+				icon: Icons.X,
 				click: unscheduleMailAction,
 			})
 		)

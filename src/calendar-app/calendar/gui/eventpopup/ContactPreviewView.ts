@@ -2,7 +2,6 @@ import type { CalendarEvent, Contact } from "../../../../common/api/entities/tut
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { calculateContactsAge, getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
 import { memoized, noOp } from "@tutao/tutanota-utils"
@@ -39,9 +38,9 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
-			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)]),
-			this.renderRow(Icons.Time, [formatEventDuration(event, getTimeZone(), false)]),
-			age ? this.renderRow(Icons.Gift, ageString) : null,
+			this.renderRow(Icons.CalendarFilled, [m("span.h3", eventTitle)]),
+			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, getTimeZone(), false)]),
+			age ? this.renderRow(Icons.GiftFilled, ageString) : null,
 			this.renderActions(contact),
 		])
 	}
@@ -172,7 +171,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 					singleEmailAdress && client.isCalendarApp() ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",
 					m(
 						BannerButton,
-						makeActionButtonAttrs(onSendMailClick, "sendMail_label", emailButtonColors, renderIcon(BootIcons.Mail, emailButtonColors.color)),
+						makeActionButtonAttrs(onSendMailClick, "sendMail_label", emailButtonColors, renderIcon(Icons.MailFilled, emailButtonColors.color)),
 					),
 				)
 			: null,
@@ -185,7 +184,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 							singlePhoneNumber ? noOp : showPhoneDropdown,
 							"callNumber_label",
 							phoneButtonColors,
-							renderIcon(Icons.Call, phoneButtonColors.color),
+							renderIcon(Icons.PhoneFilled, phoneButtonColors.color),
 						),
 					),
 				)

@@ -42,7 +42,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 					? m(IconButton, {
 							title: "paste_action",
 							click: onPaste,
-							icon: Icons.Clipboard,
+							icon: Icons.ClipboardFilled,
 						})
 					: null,
 				[onPaste].some(isNotNull) ? m(".nav-bar-spacer") : null,
@@ -50,35 +50,35 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 					? m(IconButton, {
 							title: "trash_action",
 							click: onTrash,
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 						})
 					: null,
 				onDelete
 					? m(IconButton, {
 							title: "delete_action",
 							click: onDelete,
-							icon: Icons.DeleteForever,
+							icon: Icons.TrashCrossFilled,
 						})
 					: null,
 				onRestore
 					? m(IconButton, {
 							title: "restoreFromTrash_action",
 							click: onRestore,
-							icon: Icons.Reply,
+							icon: Icons.ArrowBackFilled,
 						})
 					: null,
 				onCopy
 					? m(IconButton, {
 							title: "copy_action",
 							click: onCopy,
-							icon: Icons.Copy,
+							icon: Icons.CopyFilled,
 						})
 					: null,
 				onCut
 					? m(IconButton, {
 							title: "cut_action",
 							click: onCut,
-							icon: Icons.Cut,
+							icon: Icons.ScissorsFilled,
 						})
 					: null,
 				[onTrash, onDelete, onRestore, onCopy, onCut].some(isNotNull) ? m(".nav-bar-spacer") : null,

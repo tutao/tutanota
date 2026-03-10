@@ -59,7 +59,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 									[
 										step.currentIndex > step.index
 											? m(Icon, {
-													icon: step.isReachable ? Icons.Checkmark : Icons.Lock,
+													icon: step.isReachable ? Icons.Checkmark : Icons.GenericLockFilled,
 													size: IconSize.PX20,
 													style: {
 														fill: theme.on_primary,

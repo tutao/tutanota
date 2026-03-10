@@ -19,7 +19,6 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
-import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { RecoverCodeDisplay } from "../../subscription/RecoverCodeDisplay"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
 
@@ -131,14 +130,14 @@ export class RecoverCodeField {
 				? m(".flex.flex-end.mt-12", [
 						m(IconButton, {
 							title: "copy_action",
-							icon: Icons.Clipboard,
+							icon: Icons.ClipboardFilled,
 							click: () => copyToClipboard(splitRecoverCode),
 						}),
 						isApp() || typeof window.print !== "function"
 							? null
 							: m(IconButton, {
 									title: "print_action",
-									icon: Icons.Print,
+									icon: Icons.PrinterFilled,
 									click: () => window.print(),
 								}),
 					])
@@ -207,7 +206,7 @@ export class RecoverCodeInput implements Component<RecoverCodeInputAttrs> {
 				".mt-8",
 				m(LoginButton, {
 					label: this.isScanning ? "cancel_action" : "keyManagement.qrCode_label",
-					icon: this.isScanning ? Icons.Close : BootIcons.QRCodeOutline,
+					icon: this.isScanning ? Icons.X : Icons.QRCodeSimple,
 					onclick: () => {
 						this.isScanning = !this.isScanning
 					},

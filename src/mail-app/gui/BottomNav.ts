@@ -3,7 +3,6 @@ import { NavButton } from "../../common/gui/base/NavButton.js"
 import { font_size } from "../../common/gui/size"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, MAIL_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange"
 import { FeatureType } from "../../common/api/common/TutanotaConstants"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { isDriveEnabled } from "../../common/api/common/drive/DriveUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
@@ -30,7 +29,7 @@ export class BottomNav implements Component<Attrs> {
 		return m("nav.bottom-nav.flex.items-center.z1.gap-4.plr-4", [
 			m(NavButton, {
 				label: "emails_label",
-				icon: () => BootIcons.Mail,
+				icon: () => Icons.MailFilled,
 				href: MAIL_PREFIX,
 				vertical: true,
 				fontSize,
@@ -38,7 +37,7 @@ export class BottomNav implements Component<Attrs> {
 			locator.logins.isInternalUserLoggedIn()
 				? m(NavButton, {
 						label: "search_label",
-						icon: () => BootIcons.Search,
+						icon: () => Icons.Search,
 						href: () => getHrefForSearch(),
 						isSelectedPrefix: SEARCH_PREFIX,
 						vertical: true,
@@ -48,7 +47,7 @@ export class BottomNav implements Component<Attrs> {
 			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 				? m(NavButton, {
 						label: "contacts_label",
-						icon: () => BootIcons.Contacts,
+						icon: () => Icons.PeopleFilled,
 						href: () => CONTACTS_PREFIX,
 						isSelectedPrefix: CONTACTS_PREFIX,
 						vertical: true,
@@ -58,7 +57,7 @@ export class BottomNav implements Component<Attrs> {
 			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableCalendar)
 				? m(NavButton, {
 						label: "calendar_label",
-						icon: () => BootIcons.Calendar,
+						icon: () => Icons.CalendarFilled,
 						href: CALENDAR_PREFIX,
 						vertical: true,
 						fontSize,
@@ -67,7 +66,7 @@ export class BottomNav implements Component<Attrs> {
 			isDriveEnabled(locator.logins)
 				? m(NavButton, {
 						label: "driveView_action",
-						icon: () => Icons.Drive,
+						icon: () => Icons.DriveFilled,
 						href: DRIVE_PREFIX,
 						vertical: true,
 						fontSize,

@@ -97,7 +97,6 @@ import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTe
 import { readLocalFiles } from "../../../common/file/FileController"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ToggleButton, ToggleButtonAttrs } from "../../../common/gui/base/buttons/ToggleButton.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DialogInjectionRightAttrs } from "../../../common/gui/base/DialogInjectionRight.js"
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
@@ -514,7 +513,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				e.stopPropagation()
 				model.setConfidential(!model.isConfidential())
 			},
-			icon: model.isConfidential() ? Icons.Lock : Icons.Unlock,
+			icon: model.isConfidential() ? Icons.GenericLockFilled : Icons.LockOpenFilled,
 			toggled: model.isConfidential(),
 			size: ButtonSize.Compact,
 		}
@@ -524,7 +523,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const attachFilesButtonAttrs: IconButtonAttrs = {
 			title: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
-			icon: Icons.Attachment,
+			icon: Icons.Paperclip,
 			size: ButtonSize.Compact,
 		}
 
@@ -541,7 +540,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			!plaintextFormatting
 				? m(ToggleButton, {
 						title: "showRichTextToolbar_action",
-						icon: Icons.FontSize,
+						icon: Icons.TextHeight,
 						size: ButtonSize.Compact,
 						toggled: a.doShowToolbar(),
 						onToggled: (_, e) => {
@@ -789,7 +788,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									m.redraw()
 								},
 								// reflect the current mode in the bulb
-								icon: forcedLightMode ? Icons.Bulb : Icons.BulbOutline,
+								icon: forcedLightMode ? Icons.LightbulbFilled : Icons.LightbulbOutline,
 								size: ButtonSize.Compact,
 							})
 						: null,
@@ -809,7 +808,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 										showNotAvailableForFreeDialog()
 									}
 								},
-								icon: Icons.ScheduleMail,
+								icon: Icons.SendlaterFilled,
 								size: ButtonSize.Compact,
 								toggled: model.getSendAtDate() != null,
 							})
@@ -871,7 +870,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
-			icon: Icons.Picture,
+			icon: Icons.PictureFilled,
 			helpLink: canSeeTutaLinks(attrs.model.logins) ? InfoLink.LoadImages : null,
 			buttons: [showButton],
 		})
@@ -914,7 +913,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					knowledgeBaseInjection.componentAttrs.model.init()
 				}
 			},
-			icon: Icons.Book,
+			icon: Icons.BookFilled,
 			size: ButtonSize.Compact,
 		})
 	}
@@ -940,7 +939,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									click: () => {
 										this.openTemplates()
 									},
-									icon: Icons.ListAlt,
+									icon: Icons.Template,
 									size: ButtonSize.Compact,
 								},
 							]
@@ -1036,7 +1035,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							"",
 							m(ToggleButton, {
 								title: "show_action",
-								icon: BootIcons.Expand,
+								icon: Icons.ArrowDown,
 								size: ButtonSize.Compact,
 								toggled: this.areDetailsExpanded,
 								onToggled: (_, e) => {
@@ -1383,7 +1382,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						m(IconButton, {
 							title: "close_alt",
 							click: () => minimize(),
-							icon: Icons.XCross,
+							icon: Icons.X,
 							colors: ButtonColor.Primary,
 						}),
 					)
@@ -1401,7 +1400,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						click: () => {
 							send()
 						},
-						icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
+						icon: scheduledMail ? Icons.SendlaterFilled : Icons.SendFilled,
 						colors: ButtonColor.Primary,
 					})
 				: m(Button, {

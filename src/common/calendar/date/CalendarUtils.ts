@@ -1910,7 +1910,7 @@ export function getTimeFromClickInteraction(e: MouseEvent, time: Time): Time {
 
 export type EventWrapperFlagKeys = keyof Pick<EventWrapperFlags, "hasAlarms" | "isAlteredInstance" | "isBirthdayEvent">
 export const FlagKeyToIcon: Record<EventWrapperFlagKeys, AllIcons> = {
-	hasAlarms: Icons.Notifications,
-	isAlteredInstance: Icons.Edit,
-	isBirthdayEvent: Icons.Gift,
+	hasAlarms: Icons.BellFilled,
+	isAlteredInstance: Icons.PenFilled,
+	isBirthdayEvent: Icons.GiftFilled,
 }

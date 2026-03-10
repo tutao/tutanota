@@ -77,7 +77,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 			m(IconButton, {
 				title: "emailPushNotification_action",
 				click: () => this.showAddEmailNotificationDialog(),
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				size: ButtonSize.Compact,
 			}),
 		])

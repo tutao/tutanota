@@ -288,21 +288,21 @@ export class TemplatePopup implements ModalComponent {
 						}
 					})
 				},
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				colors: ButtonColor.DrawerNav,
 			}
 		} else if (writeableGroups.length === 1) {
 			return {
 				title: "createTemplate_action",
 				click: () => this.showTemplateEditor(null, writeableGroups[0].groupRoot),
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				colors: ButtonColor.DrawerNav,
 			}
 		} else if (writeableGroups.length > 1) {
 			return attachDropdown({
 				mainButtonAttrs: {
 					title: "createTemplate_action",
-					icon: Icons.Add,
+					icon: Icons.Plus,
 					colors: ButtonColor.DrawerNav,
 				},
 				childAttrs: () =>
@@ -358,7 +358,7 @@ export class TemplatePopup implements ModalComponent {
 								locator.entityClient
 									.load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
 									.then((groupRoot) => this.showTemplateEditor(selectedTemplate, groupRoot)),
-							icon: Icons.Edit,
+							icon: Icons.PenFilled,
 							colors: ButtonColor.DrawerNav,
 						}),
 						m(IconButton, {
@@ -366,7 +366,7 @@ export class TemplatePopup implements ModalComponent {
 							click: () => {
 								getConfirmation("deleteTemplate_msg").confirmed(() => locator.entityClient.erase(selectedTemplate))
 							},
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 							colors: ButtonColor.DrawerNav,
 						}),
 					]

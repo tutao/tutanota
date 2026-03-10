@@ -318,7 +318,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 								void showSnackBar({
 									message: "copied_msg",
 									showingTime: 3000,
-									leadingIcon: Icons.Clipboard,
+									leadingIcon: Icons.ClipboardFilled,
 								})
 							},
 						},

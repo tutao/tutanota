@@ -9,7 +9,6 @@ import { Dialog } from "../../gui/base/Dialog"
 import { ButtonType } from "../../gui/base/Button.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
-import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { isAndroidApp, isApp } from "../../api/common/Env"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { Keys } from "../../api/common/TutanotaConstants"
@@ -102,7 +101,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 								)
 							},
 							title: "shareViaEmail_action",
-							icon: BootIcons.Mail,
+							icon: Icons.MailFilled,
 						}),
 						isAndroidApp()
 							? m(IconButton, {
@@ -115,7 +114,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										)
 									},
 									title: "share_action",
-									icon: BootIcons.Share,
+									icon: Icons.ShareFilled,
 								})
 							: m(IconButton, {
 									click: () => {
@@ -128,7 +127,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 											})
 									},
 									title: "copyToClipboard_action",
-									icon: Icons.Clipboard,
+									icon: Icons.ClipboardFilled,
 								}),
 						!isApp()
 							? m(IconButton, {
@@ -137,7 +136,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										window.print()
 									},
 									title: "print_action",
-									icon: Icons.Print,
+									icon: Icons.PrinterFilled,
 								})
 							: null,
 					]),

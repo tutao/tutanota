@@ -1,13 +1,13 @@
 import m, { Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
-import { lang, MaybeTranslation, Translation } from "../../../common/misc/LanguageViewModel"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
+import { lang, Translation, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
 import { theme } from "../../../common/gui/theme"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -30,7 +30,7 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
 						message: attrs.getSelectionMessage(selectedEntities),
-						icon: BootIcons.Mail,
+						icon: Icons.MailFilled,
 						color: theme.on_surface_variant,
 						backgroundColor: theme.surface_container,
 						bottomContent: this.renderEmptyMessageButtons(attrs),

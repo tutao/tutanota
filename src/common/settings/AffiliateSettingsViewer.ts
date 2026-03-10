@@ -58,7 +58,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 							m(IconButton, {
 								title: "copy_action",
 								click: () => this.onCopyButtonClick(shareUrl),
-								icon: Icons.Copy,
+								icon: Icons.CopyFilled,
 								size: ButtonSize.Compact,
 							}),
 					}),

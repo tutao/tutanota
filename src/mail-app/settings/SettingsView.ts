@@ -17,7 +17,6 @@ import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/White
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
 import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
@@ -113,42 +112,42 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this._userFolders = [
 			new SettingsFolder(
 				() => "login_label",
-				() => BootIcons.User,
+				() => Icons.PersonFilled,
 				"login",
 				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "email_label",
-				() => BootIcons.Mail,
+				() => Icons.MailFilled,
 				"mail",
 				() => new MailSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "contacts_label",
-				() => BootIcons.Contacts,
+				() => Icons.PeopleFilled,
 				"contacts",
 				() => new ContactsSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "appearanceSettings_label",
-				() => Icons.Palette,
+				() => Icons.ColorpaletteFilled,
 				"appearance",
 				() => new AppearanceSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "notificationSettings_action",
-				() => Icons.Bell,
+				() => Icons.BellFilled,
 				"notifications",
 				() => new NotificationSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
 				() => "keyManagement_label",
-				() => Icons.KeySolid,
+				() => Icons.KeyFilled,
 				"keymanagement",
 				() => {
 					const settingsViewer = new KeyManagementSettingsViewer(
@@ -172,7 +171,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			this._userFolders.push(
 				new SettingsFolder(
 					() => "desktop_label",
-					() => Icons.Desktop,
+					() => Icons.DesktopFilled,
 					"desktop",
 					() => {
 						const desktopSettingsViewer = new DesktopSettingsViewer()
@@ -190,7 +189,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			this._userFolders.push(
 				new SettingsFolder(
 					() => "mailImportSettings_label",
-					() => Icons.Import,
+					() => Icons.CloudUploadFilled,
 					"mailImport",
 					() => {
 						if (isDesktop()) {
@@ -207,7 +206,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this._userFolders.push(
 			new SettingsFolder(
 				() => "mailExportSettings_label",
-				() => Icons.Export,
+				() => Icons.CloudDownloadFilled,
 				"mailExport",
 				() => new MailExportViewer(),
 				undefined,
@@ -224,7 +223,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		this._dummyTemplateFolder = new SettingsFolder<void>(
 			() => "templateGroupDefaultName_label",
-			() => Icons.ListAlt,
+			() => Icons.Template,
 			{
 				folder: "templates",
 				id: "init",
@@ -411,7 +410,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			adminFolders.push(
 				new SettingsFolder(
 					() => "adminUserList_action",
-					() => BootIcons.User,
+					() => Icons.PersonFilled,
 					"users",
 					() =>
 						new UserListView(
@@ -428,7 +427,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				adminFolders.push(
 					new SettingsFolder(
 						() => "sharedMailboxes_label",
-						() => Icons.People,
+						() => Icons.PeopleFilled,
 						"groups",
 						() =>
 							new GroupListView(
@@ -445,7 +444,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			adminFolders.push(
 				new SettingsFolder(
 					() => "globalSettings_label",
-					() => BootIcons.Settings,
+					() => Icons.GearWheelFilled,
 					"global",
 					() => new GlobalSettingsViewer(),
 					undefined,
@@ -456,7 +455,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				adminFolders.push(
 					new SettingsFolder(
 						() => "whitelabel_label",
-						() => Icons.Wand,
+						() => Icons.ColorwandFilled,
 						"whitelabel",
 						() => new WhitelabelSettingsViewer(locator.entityClient, this.logins, locator.themeController, locator.whitelabelThemeGenerator),
 						undefined,
@@ -470,7 +469,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				adminFolders.push(
 					new SettingsFolder<void>(
 						() => "adminSubscription_action",
-						() => BootIcons.Premium,
+						() => Icons.TrophyFilled,
 						"subscription",
 						() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
 						undefined,
@@ -480,7 +479,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				adminFolders.push(
 					new SettingsFolder<void>(
 						() => "adminPayment_action",
-						() => Icons.CreditCard,
+						() => Icons.CreditcardFilled,
 						"invoice",
 						() => new PaymentViewer(),
 						undefined,
@@ -490,7 +489,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				adminFolders.push(
 					new SettingsFolder(
 						() => "referralSettings_label",
-						() => BootIcons.Share,
+						() => Icons.ShareFilled,
 						"referral",
 						() => new ReferralSettingsViewer(),
 						undefined,
@@ -500,7 +499,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				adminFolders.push(
 					new SettingsFolder(
 						() => "affiliateSettings_label",
-						() => BootIcons.Share,
+						() => Icons.ShareFilled,
 						"affiliate",
 						() =>
 							new AffiliateSettingsViewer(
@@ -592,22 +591,22 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						? {
 								label: "delete_action",
 								click: () => this._deleteTemplateGroup(folder.data),
-								icon: Icons.Trash,
+								icon: Icons.TrashFilled,
 							}
 						: {
 								label: "leaveGroup_action",
 								click: () => this._leaveTemplateGroup(folder.data),
-								icon: Icons.Trash,
+								icon: Icons.TrashFilled,
 							},
 					{
 						label: "sharing_label",
 						click: () => showGroupSharingDialog(folder.data.groupInfo, true),
-						icon: Icons.ContactImport,
+						icon: Icons.PersonAddFilled,
 					},
 					{
 						label: "rename_action",
 						click: () => showRenameTemplateListDialog(folder.data),
-						icon: Icons.Edit,
+						icon: Icons.PenFilled,
 					},
 				]),
 			),
@@ -639,7 +638,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	_renderTemplateInvitationFolderRow(invitation: ReceivedGroupInvitation): Children {
 		return m(GroupInvitationFolderRow, {
 			invitation: invitation,
-			icon: BootIcons.Mail,
+			icon: Icons.MailFilled,
 		})
 	}
 
@@ -841,7 +840,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				label: "supportMenu_label",
 				text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
 				icon: m(Icon, {
-					icon: Icons.SpeechBubbleFill,
+					icon: Icons.ChatbubbleFilled,
 					size: IconSize.PX24,
 					class: "center-h",
 					container: "div",
@@ -914,7 +913,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			const sharedGroupName = getNullableSharedGroupName(groupInstance.groupInfo, userController.userSettingsGroupRoot, true)
 			return new SettingsFolder(
 				() => (sharedGroupName ? lang.makeTranslation("templateGroupDefaultName_label", sharedGroupName) : "templateGroupDefaultName_label"),
-				() => Icons.ListAlt,
+				() => Icons.Template,
 				{
 					folder: "templates",
 					id: getEtId(groupInstance.group),
@@ -942,7 +941,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				const sharedGroupName = getNullableSharedGroupName(groupInstance.groupInfo, userController.userSettingsGroupRoot, true)
 				return new SettingsFolder(
 					() => (sharedGroupName ? lang.makeTranslation("templateGroupDefaultName_label", sharedGroupName) : "templateGroupDefaultName_label"),
-					() => Icons.Book,
+					() => Icons.BookFilled,
 					{
 						folder: "knowledgebase",
 						id: getEtId(groupInstance.group),

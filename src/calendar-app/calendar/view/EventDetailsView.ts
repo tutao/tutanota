@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { EventPreviewView } from "../gui/eventpopup/EventPreviewView.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -51,7 +50,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		if (this.model == null || !this.model.canEdit || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "edit_action",
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			click: (event, dom) => handleEventEditButtonClick(this.model, event, dom, callback),
 		})
 	}
@@ -60,7 +59,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		if (this.model == null || !this.model.canDelete || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "delete_action",
-			icon: Icons.Trash,
+			icon: Icons.TrashFilled,
 			click: (event, dom) => handleEventDeleteButtonClick(this.model, event, dom, callback),
 		})
 	}
@@ -70,7 +69,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		return m(IconButton, {
 			title: "sendUpdates_label",
 			click: () => handleSendUpdatesClick(this.model),
-			icon: BootIcons.Mail,
+			icon: Icons.MailFilled,
 		})
 	}
 
@@ -79,7 +78,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		return m(IconButton, {
 			title: "duplicateEvent_label",
 			click: () => handleEventDuplicate(this.model!),
-			icon: Icons.Duplicate,
+			icon: Icons.DuplicateFilled,
 		})
 	}
 

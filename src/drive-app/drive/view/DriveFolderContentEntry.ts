@@ -54,14 +54,14 @@ const isDocumentMimeType = (mimeType: string) => ["text/plain", "application/pdf
 
 export function iconPerMimeType(mimeType: string): AllIcons {
 	if (isImageMimeType(mimeType)) {
-		return Icons.PictureFile
+		return Icons.PictureFilled
 	} else if (isMusicMimeType(mimeType)) {
-		return Icons.MusicFile
+		return Icons.AudioFilled
 	} else if (isDocumentMimeType(mimeType)) {
-		return Icons.TextFile
+		return Icons.TextFilled
 	}
 
-	return Icons.GenericFile
+	return Icons.EmptyDocumentFilled
 }
 
 const mimeTypeRepresentations: Record<string, string> = {
@@ -169,7 +169,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				m(
 					"div",
 					m(Icon, {
-						icon: item.type === "folder" ? Icons.Folder : iconPerMimeType(item.file.mimeType),
+						icon: item.type === "folder" ? Icons.FolderFilled : iconPerMimeType(item.file.mimeType),
 						size: IconSize.PX24,
 						style: {
 							fill: theme.on_surface,
@@ -214,28 +214,28 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		return [
 			{
 				label: "rename_action",
-				icon: Icons.Edit,
+				icon: Icons.PenFilled,
 				click: () => {
 					onRename(item)
 				},
 			},
 			{
 				label: "copy_action",
-				icon: Icons.Copy,
+				icon: Icons.CopyFilled,
 				click: () => {
 					onCopy(item)
 				},
 			},
 			{
 				label: "cut_action",
-				icon: Icons.Cut,
+				icon: Icons.ScissorsFilled,
 				click: () => {
 					onCut(item)
 				},
 			},
 			{
 				label: "move_action",
-				icon: Icons.Folder,
+				icon: Icons.FolderFilled,
 				click: () => {
 					onStartMove(item)
 				},
@@ -243,14 +243,14 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
 				? {
 						label: "restoreFromTrash_action",
-						icon: Icons.Reply,
+						icon: Icons.ArrowBackFilled,
 						click: () => {
 							onRestore(item)
 						},
 					}
 				: {
 						label: "trash_action",
-						icon: Icons.Trash,
+						icon: Icons.TrashCrossFilled,
 						click: () => {
 							onDelete(item)
 						},

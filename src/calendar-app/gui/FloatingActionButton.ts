@@ -2,14 +2,13 @@ import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../common/gui/base/Button.js"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
 import type { MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 
 export type FloatingActionButtonAttrs = {
 	title: MaybeTranslation
 	colors: ButtonColor
-	icon: Icons | BootIcons
+	icon: Icons
 	action: () => unknown
 }
 

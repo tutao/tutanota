@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BubbleTextField, BubbleTextFieldAttrs, BubbleTextFieldClickBehaviour } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
-import { component_size, px, size } from "./size.js"
+import { component_size, px } from "./size.js"
 import { Icon, IconSize, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
@@ -79,7 +79,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			getBubbleIcon: (recipient: Recipient) => {
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
 					return m(Icon, {
-						icon: Icons.BrokenShield,
+						icon: Icons.BrokenShieldFilled,
 						size: IconSize.PX20, // we want 20px
 						style: {
 							fill: theme.error,
@@ -90,7 +90,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 					})
 				} else if (recipient.verificationState === PresentableKeyVerificationState.SECURE) {
 					return m(Icon, {
-						icon: Icons.Shield,
+						icon: Icons.ShieldFilled,
 						size: IconSize.PX20,
 						style: {
 							fill: theme.success,
@@ -186,7 +186,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 					} else {
 						return {
 							firstRow: m(Icon, {
-								icon: Icons.People,
+								icon: Icons.PeopleFilled,
 								style: {
 									fill: theme.on_surface,
 									"aria-describedby": lang.get("contactListName_label"),

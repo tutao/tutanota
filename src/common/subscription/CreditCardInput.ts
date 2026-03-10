@@ -57,7 +57,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 				autocompleteAs: Autocomplete.ccNumber,
 				onDomInputCreated: (dom) => (this.ccNumberDom = dom),
 				leadingIcon: {
-					icon: Icons.CreditCard,
+					icon: Icons.CreditcardFilled,
 					color: theme.on_surface_variant,
 				},
 			} satisfies LoginTextFieldAttrs),
@@ -90,7 +90,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 					onblur: () => (this.cvvFieldLeft = true),
 					autocompleteAs: Autocomplete.ccCsc,
 					leadingIcon: {
-						icon: Icons.Lock,
+						icon: Icons.GenericLockFilled,
 						color: theme.on_surface_variant,
 					},
 				}),

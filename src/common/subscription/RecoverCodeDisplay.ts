@@ -56,14 +56,14 @@ export class RecoverCodeDisplay implements Component<RecoverCodeDisplayAttrs> {
 					m(".flex.col.items-start.full-width.gap-16.flex-grow", [
 						m(SecondaryButton, {
 							label: "recoveryCode_label",
-							icon: Icons.Clipboard,
+							icon: Icons.ClipboardFilled,
 							text: lang.getTranslationText("copyRecoveryCode_action"),
 							onclick: () => {
 								copyToClipboard(recoverCode)
 								void showSnackBar({
 									message: "copied_msg",
 									showingTime: 3000,
-									leadingIcon: Icons.Clipboard,
+									leadingIcon: Icons.ClipboardFilled,
 								})
 							},
 							class: "flex-grow",
@@ -71,7 +71,7 @@ export class RecoverCodeDisplay implements Component<RecoverCodeDisplayAttrs> {
 
 						m(SecondaryButton, {
 							label: "recoveryCode_label",
-							icon: Icons.Download,
+							icon: Icons.DownloadFilled,
 							text: lang.getTranslationText("downloadRecoveryCode_action"),
 							onclick: () => this.saveRecoveryCodeAsPdf(recoverCode, mailAddress),
 							class: "flex-grow",

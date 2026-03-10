@@ -49,7 +49,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 				onRevealToggled(value)
 				e.stopPropagation()
 			},
-			icon: isPasswordRevealed ? Icons.NoEye : Icons.Eye,
+			icon: isPasswordRevealed ? Icons.EyeCrossedFilled : Icons.EyeFilled,
 			size: ButtonSize.Compact,
 		})
 	}

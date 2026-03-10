@@ -60,7 +60,7 @@ export class SecondFactorsEditForm {
 						this.showAddSecondFactorDialog()
 					}
 				},
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				size: ButtonSize.Compact,
 			},
 		}
@@ -107,7 +107,7 @@ export class SecondFactorsEditForm {
 						this.removeSecondFactor(f)
 					}
 				},
-				icon: Icons.Cancel,
+				icon: Icons.X,
 				size: ButtonSize.Compact,
 			}
 

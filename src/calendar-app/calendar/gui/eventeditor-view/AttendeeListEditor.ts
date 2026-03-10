@@ -101,7 +101,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					m(".flex.items-center.justify-center.min-h-s", [
 						m(IconMessageBox, {
 							message: "noEntries_msg",
-							icon: Icons.People,
+							icon: Icons.PeopleFilled,
 							color: theme.on_surface_variant,
 						}),
 					]),
@@ -153,7 +153,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 								whoModel.isConfidential = !whoModel.isConfidential
 								e.stopPropagation()
 							},
-							icon: whoModel.isConfidential ? Icons.Lock : Icons.Unlock,
+							icon: whoModel.isConfidential ? Icons.GenericLockFilled : Icons.LockOpenFilled,
 							toggled: whoModel.isConfidential,
 							size: ButtonSize.Normal,
 						}),
@@ -267,7 +267,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 											}),
 										),
 									size: ButtonSize.Compact,
-									icon: Icons.PencilSquare,
+									icon: Icons.Write,
 								})
 							: null,
 					]),
@@ -314,7 +314,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		} else if (whoModel.canModifyGuests) {
 			rightContent = m(IconButton, {
 				title: "remove_action",
-				icon: Icons.Cancel,
+				icon: Icons.X,
 				click: () => whoModel.removeAttendee(guest.address),
 			})
 		}

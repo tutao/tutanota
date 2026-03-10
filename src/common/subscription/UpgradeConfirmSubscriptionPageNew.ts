@@ -34,12 +34,12 @@ import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/Upgr
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
-		[PlanType.Free]: Icons.Revo,
-		[PlanType.Revolutionary]: Icons.Revo,
-		[PlanType.Legend]: Icons.Legend,
-		[PlanType.Essential]: Icons.BusinessEssential,
-		[PlanType.Advanced]: Icons.BusinessAdvanced,
-		[PlanType.Unlimited]: Icons.BusinessUnlimited,
+		[PlanType.Free]: Icons.Revolutionary,
+		[PlanType.Revolutionary]: Icons.Revolutionary,
+		[PlanType.Legend]: Icons.Legendary,
+		[PlanType.Essential]: Icons.HouseOutline,
+		[PlanType.Advanced]: Icons.StoreOutline,
+		[PlanType.Unlimited]: Icons.CityOutline,
 	}
 
 	private _setStep(ctx: WizardStepContext<SignupViewModel>, index: number) {
@@ -90,7 +90,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								},
 								injectionsRight: () => {
 									return m(IconButton, {
-										icon: Icons.Edit,
+										icon: Icons.PenFilled,
 										title: "edit_action",
 										click: () => {
 											if (styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
@@ -109,14 +109,14 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								isReadOnly: true,
 								class: "",
 								leadingIcon: {
-									icon: data.paymentData.paymentMethod === PaymentMethodType.Paypal ? Icons.Paypal : Icons.CreditCard,
+									icon: data.paymentData.paymentMethod === PaymentMethodType.Paypal ? Icons.LogoPaypal : Icons.CreditcardFilled,
 									color: theme.on_surface_variant,
 								},
 								injectionsRight: () => {
 									return isIOSApp()
 										? undefined
 										: m(IconButton, {
-												icon: Icons.Edit,
+												icon: Icons.PenFilled,
 												title: "edit_action",
 												click: () => {
 													this._setStep(ctx, 2)
@@ -131,12 +131,12 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 									isReadOnly: true,
 									class: "",
 									leadingIcon: {
-										icon: Icons.Pin,
+										icon: Icons.PlaceFilled,
 										color: theme.on_surface_variant,
 									},
 									injectionsRight: () => {
 										return m(IconButton, {
-											icon: Icons.Edit,
+											icon: Icons.PenFilled,
 											title: "edit_action",
 											click: () => {
 												this._setStep(ctx, 2)
@@ -156,7 +156,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 
 								injectionsRight: () => {
 									return m(IconButton, {
-										icon: Icons.SwapHorizontal,
+										icon: Icons.Swap,
 										title: "edit_action",
 										click: () => {
 											if (isYearly) {

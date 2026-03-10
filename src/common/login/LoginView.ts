@@ -3,7 +3,6 @@ import { client } from "../misc/ClientDetector.js"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { DeviceType } from "../misc/ClientConstants.js"
@@ -22,6 +21,7 @@ import { styles } from "../gui/styles.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../gui/base/SnackBar.js"
+import { Icons } from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -328,7 +328,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 							e.preventDefault()
 						},
-						icon: BootIcons.Android,
+						icon: Icons.LogoAndroid,
 					})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
@@ -339,7 +339,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 							e.preventDefault()
 						},
-						icon: BootIcons.Apple,
+						icon: Icons.LogoApple,
 					})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
@@ -350,7 +350,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 							e.preventDefault()
 						},
-						icon: BootIcons.FDroid,
+						icon: Icons.LogoFDroid,
 					})
 				: null,
 		])

@@ -6,7 +6,6 @@ import { assertNotNull, noOp } from "@tutao/tutanota-utils"
 import { FeatureType } from "../api/common/TutanotaConstants.js"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -108,7 +107,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 						".mr-negative-8",
 						m(IconButton, {
 							title: "addManagedCustomers_action",
-							icon: Icons.Add,
+							icon: Icons.Plus,
 							click: () => this.addButtonClicked(),
 						}),
 					),
@@ -117,7 +116,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
-						icon: BootIcons.User,
+						icon: Icons.PersonFilled,
 						message: "noEntries_msg",
 					})
 				: m(List, {
@@ -280,7 +279,7 @@ export class ManagedCustomerRow implements VirtualRow<CustomerInfo> {
 					}),
 					m(".icons.flex", [
 						m(Icon, {
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 							oncreate: (vnode) => (this.deletedIconDom = vnode.dom as HTMLElement),
 							class: "svg-list-accent-fg",
 							style: {

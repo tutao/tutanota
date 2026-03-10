@@ -9,7 +9,6 @@ import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { createAsyncDropdown, DROPDOWN_MARGIN, PosRect, showDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { Keys } from "../../../../common/api/common/TutanotaConstants.js"
 import type { HtmlSanitizer } from "../../../../common/misc/HtmlSanitizer.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
@@ -158,17 +157,17 @@ export class CalendarEventPopup implements ModalComponent {
 
 	private renderDuplicateButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "duplicateEvent_label", icon: Icons.Duplicate, click: this.handleCloneButtonClick })
+		return m(IconButton, { title: "duplicateEvent_label", icon: Icons.DuplicateFilled, click: this.handleCloneButtonClick })
 	}
 
 	private renderEditButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "edit_action", icon: Icons.Edit, click: this.handleEditButtonClick })
+		return m(IconButton, { title: "edit_action", icon: Icons.PenFilled, click: this.handleEditButtonClick })
 	}
 
 	private renderDeleteButton(): Children {
 		if (!this.model.canDelete) return null
-		return m(IconButton, { title: "delete_action", icon: Icons.Trash, click: this.handleDeleteButtonClick })
+		return m(IconButton, { title: "delete_action", icon: Icons.TrashFilled, click: this.handleDeleteButtonClick })
 	}
 
 	private renderSendUpdateButton(): Children {
@@ -176,7 +175,7 @@ export class CalendarEventPopup implements ModalComponent {
 		return m(IconButton, {
 			title: "sendUpdates_label",
 			click: () => this.handleSendUpdatesClick(),
-			icon: BootIcons.Mail,
+			icon: Icons.MailFilled,
 		})
 	}
 
@@ -184,7 +183,7 @@ export class CalendarEventPopup implements ModalComponent {
 		return m(IconButton, {
 			title: "close_alt",
 			click: () => this.close(),
-			icon: Icons.Cancel,
+			icon: Icons.X,
 		})
 	}
 

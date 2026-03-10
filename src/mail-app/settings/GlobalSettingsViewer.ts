@@ -29,7 +29,6 @@ import { ColumnWidth, createRowActions } from "../../common/gui/base/Table.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../common/gui/base/Dropdown.js"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { showDnsCheckDialog } from "./CheckDomainDnsStatusDialog"
-import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import {
 	GENERATED_MAX_ID,
 	generatedIdToTimestamp,
@@ -94,7 +93,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			addButtonAttrs: {
 				title: "addSpamRule_action",
 				click: () => showAddSpamRuleDialog(null),
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				size: ButtonSize.Compact,
 			},
 			lines: this.spamRuleLines,
@@ -108,7 +107,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				click: () => {
 					this.updateRejectedSenderTable()
 				},
-				icon: BootIcons.Progress,
+				icon: Icons.Sync,
 				size: ButtonSize.Compact,
 			},
 			lines: this.rejectedSenderLines,
@@ -129,7 +128,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						this.updateDomains()
 					}
 				},
-				icon: Icons.Add,
+				icon: Icons.Plus,
 				size: ButtonSize.Compact,
 			},
 			lines: this.customDomainLines,

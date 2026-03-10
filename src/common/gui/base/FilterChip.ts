@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AllIcons, Icon } from "./Icon"
-import { BootIcons } from "./icons/BootIcons"
 import { theme } from "../theme"
 import { ClickHandler } from "./GuiUtils"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { lang, Translation } from "../../misc/LanguageViewModel"
-import { component_size, px, size } from "../size"
+import { component_size, px } from "../size"
+import { Icons } from "./icons/Icons"
 
 export interface FilterChipAttrs {
 	label: Translation
@@ -69,7 +69,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 				m("span.text-ellipsis", lang.getTranslationText(label)),
 				chevron
 					? m(Icon, {
-							icon: BootIcons.Expand,
+							icon: Icons.ArrowDown,
 							style: {
 								fill: contentColor,
 							},

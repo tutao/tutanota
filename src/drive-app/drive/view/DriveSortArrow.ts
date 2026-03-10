@@ -33,7 +33,7 @@ export class DriveSortArrow implements Component<DriveSortArrowAttrs> {
 				"aria-description": label.text,
 			},
 			m(Icon, {
-				icon: Icons.SortArrow,
+				icon: Icons.ArrowRight,
 				// svg inside the span has some random line-height and it makes the svg overflow. na-ah ☝
 				style: { lineHeight: "0", fill: theme.on_surface, transform: `rotate(${rotation})` },
 			}),

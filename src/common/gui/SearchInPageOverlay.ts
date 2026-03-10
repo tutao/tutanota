@@ -1,11 +1,10 @@
 import m, { Children, Component } from "mithril"
 import type { PositionRect } from "./base/Overlay"
 import { displayOverlay } from "./base/Overlay"
-import { component_size, px, size } from "./size"
+import { component_size, px } from "./size"
 import { Icons } from "./base/icons/Icons"
 import { assertMainOrNode } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
-import { transform, TransformEnum } from "./animation/Animations"
 import { Keys } from "../api/common/TutanotaConstants"
 import { locator } from "../api/main/CommonLocator"
 import { ElectronResult } from "../native/common/generatedipc/ElectronResult.js"
@@ -160,17 +159,17 @@ export class SearchInPageOverlay {
 								this.inputField(),
 								m(IconButton, {
 									title: "previous_action",
-									icon: Icons.ArrowBackward,
+									icon: Icons.ChevronLeft,
 									click: () => this.find(false, true),
 								}),
 								m(IconButton, {
 									title: "next_action",
-									icon: Icons.ArrowForward,
+									icon: Icons.ChevronRight,
 									click: () => this.find(true, true),
 								}),
 								m(ToggleButton, {
 									title: "matchCase_alt",
-									icon: Icons.MatchCase,
+									icon: Icons.Letters,
 									toggled: this.matchCase,
 									onToggled: () => {
 										this.matchCase = !this.matchCase
@@ -183,7 +182,7 @@ export class SearchInPageOverlay {
 						),
 						m(IconButton, {
 							title: "close_alt",
-							icon: Icons.Cancel,
+							icon: Icons.X,
 							click: () => this.close(),
 						}),
 					],

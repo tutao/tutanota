@@ -22,10 +22,10 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { px, size } from "../gui/size"
 import { LocationService } from "../api/entities/sys/Services"
 import { LoginTextField } from "../gui/base/LoginTextField"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
 import { TextFieldType } from "../gui/base/TextField"
+import { Icons } from "../gui/base/icons/Icons"
 
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
@@ -255,7 +255,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 								isReadOnly: true,
 								class: "",
 								leadingIcon: {
-									icon: BootIcons.Mail,
+									icon: Icons.MailFilled,
 									color: theme.on_surface_variant,
 								},
 							}),

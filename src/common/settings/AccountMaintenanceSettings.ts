@@ -24,7 +24,6 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ColumnWidth, TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { formatDateTime, formatDateTimeFromYesterdayOn } from "../misc/Formatter.js"
@@ -79,7 +78,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 			addButtonAttrs: {
 				title: "refresh_action",
 				click: () => showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw()),
-				icon: BootIcons.Progress,
+				icon: Icons.Sync,
 				size: ButtonSize.Compact,
 			},
 		}

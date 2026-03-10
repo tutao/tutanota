@@ -2,9 +2,9 @@ import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme.js"
 import { TextArea, TextAreaAttrs } from "./TextArea.js"
 import { Icon, IconSize } from "./Icon.js"
-import { BootIcons } from "./icons/BootIcons.js"
 import { px, size } from "../size.js"
 import { DefaultAnimationTime } from "../animation/Animations.js"
+import { Icons } from "./icons/Icons"
 
 type TextAreaVariant = "normal" | "outlined"
 
@@ -112,7 +112,7 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 				} satisfies TextAreaAttrs),
 				!this.isExpanded
 					? m(Icon, {
-							icon: BootIcons.Expand,
+							icon: Icons.ArrowDown,
 							class: "flex-center items-center abs",
 							size: IconSize.PX24,
 							style: {

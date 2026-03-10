@@ -219,7 +219,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const makeMessage = (message: TranslationKey): Children =>
 			m(InfoBanner, {
 				message: () => m(".small.selectable", lang.get(message)),
-				icon: Icons.People,
+				icon: Icons.PeopleFilled,
 				type: BannerType.Info,
 				buttons: [],
 			} satisfies InfoBannerAttrs)
@@ -279,7 +279,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderGuestsNavButton({ navigationCallback, model }: CalendarEventEditViewAttrs): Children {
 		return m(SectionButton, {
-			leftIcon: { icon: Icons.People, title: "calendarRepeating_label" },
+			leftIcon: { icon: Icons.PeopleFilled, title: "calendarRepeating_label" },
 			text: "guests_label",
 			injectionRight: model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
 			onclick: () => {
@@ -376,7 +376,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					},
 					[
 						m(Icon, {
-							icon: Icons.Clock,
+							icon: Icons.AlarmOutline,
 							style: { fill: getColors(ButtonColor.Content).button },
 							title: lang.get("reminderBeforeEvent_label"),
 							size: IconSize.PX24,
@@ -413,7 +413,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					placeholder: lang.get("location_label"),
 					disabled: !model.isFullyWritable(),
 					leadingIcon: {
-						icon: Icons.Pin,
+						icon: Icons.PlaceFilled,
 						color: getColors(ButtonColor.Content).button,
 					},
 					type: TextFieldType.Text,

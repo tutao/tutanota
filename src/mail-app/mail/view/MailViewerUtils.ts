@@ -275,7 +275,7 @@ export function multipleMailViewerMoreActions(exportAction: (() => void) | null,
 		moreButtons.push({
 			label: "export_action",
 			click: exportAction,
-			icon: Icons.Export,
+			icon: Icons.CloudDownloadFilled,
 		})
 	}
 
@@ -292,7 +292,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 		moreButtons.push({
 			label: "export_action",
 			click: () => showProgressDialog("pleaseWait_msg", viewModel.exportMail()),
-			icon: Icons.Export,
+			icon: Icons.CloudDownloadFilled,
 		})
 	}
 
@@ -300,7 +300,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 		moreButtons.push({
 			label: "showHeaders_action",
 			click: () => showHeaderDialog(viewModel.getHeaders()),
-			icon: Icons.ListUnordered,
+			icon: Icons.UnorderedList,
 		})
 	}
 
@@ -320,7 +320,7 @@ export function addToggleLightModeButtonAttrs(viewModel: MailViewerViewModel, to
 		toArray.push({
 			label: willForceLightMode ? "viewInLightMode_action" : "viewInDarkMode_action",
 			click: () => viewModel.setForceLightMode(willForceLightMode),
-			icon: willForceLightMode ? Icons.Bulb : Icons.BulbOutline,
+			icon: willForceLightMode ? Icons.LightbulbFilled : Icons.LightbulbOutline,
 		})
 	}
 }
@@ -393,7 +393,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "disallowExternalContent_action",
 			click: disallowExternalContentAction,
-			icon: Icons.Picture,
+			icon: Icons.PictureFilled,
 		})
 	}
 
@@ -401,7 +401,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "showImages_action",
 			click: showImagesAction,
-			icon: Icons.Picture,
+			icon: Icons.PictureFilled,
 		})
 	}
 
@@ -409,7 +409,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "unsubscribe_action",
 			click: unsubscribeAction,
-			icon: Icons.Cancel,
+			icon: Icons.X,
 		})
 	}
 
@@ -417,7 +417,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "print_action",
 			click: printAction,
-			icon: Icons.Print,
+			icon: Icons.PrinterFilled,
 		})
 	}
 
@@ -425,7 +425,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "reapplyInboxRules_action",
 			click: reapplyInboxRulesAction,
-			icon: Icons.Redo,
+			icon: Icons.ArrowCurvedForwardFilled,
 		})
 	}
 
@@ -433,7 +433,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "reportSpam_action",
 			click: reportSpamAction,
-			icon: Icons.Spam,
+			icon: Icons.BugFilled,
 		})
 	}
 
@@ -441,7 +441,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "reportNotSpam_action",
 			click: reportNotSpamAction,
-			icon: Icons.NotBug,
+			icon: Icons.BugCrossedFilled,
 		})
 	}
 
@@ -449,7 +449,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "reportPhishing_action",
 			click: reportPhishingAction,
-			icon: Icons.Warning,
+			icon: Icons.ExclamationFilled,
 		})
 	}
 	// adding more optional buttons? put them above the report action so the new button

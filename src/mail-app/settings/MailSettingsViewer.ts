@@ -175,7 +175,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const changeSignatureButtonAttrs: IconButtonAttrs = {
 			title: "userEmailSignature_label",
 			click: () => showEditSignatureDialog(mailLocator.logins.getUserController().props),
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		}
 		const signatureAttrs: TextFieldAttrs = {
@@ -191,7 +191,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			click: () => {
 				this._outOfOfficeNotification.getAsync().then((notification) => showEditOutOfOfficeNotificationDialog(notification))
 			},
-			icon: Icons.Edit,
+			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		}
 
@@ -296,7 +296,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const addInboxRuleButtonAttrs: IconButtonAttrs = {
 			title: "addInboxRule_action",
 			click: () => mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
-			icon: Icons.Add,
+			icon: Icons.Plus,
 			size: ButtonSize.Compact,
 		}
 		const inboxRulesTableAttrs: TableAttrs = {
@@ -442,7 +442,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(IconButton, {
 						title: "edit_action",
 						click: () => this.onEditStoredDataTimeRangeClicked(),
-						icon: Icons.Edit,
+						icon: Icons.PenFilled,
 						size: ButtonSize.Compact,
 					}),
 				],

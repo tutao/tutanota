@@ -24,7 +24,6 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailViewModel } from "./MailViewModel.js"
 import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../../common/gui/base/List.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
@@ -360,7 +359,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				},
 				listModel == null || listModel.isEmptyAndDone()
 					? m(ColumnEmptyMessageBox, {
-							icon: BootIcons.Mail,
+							icon: Icons.MailFilled,
 							message: "noMails_msg",
 							color: theme.on_surface_variant,
 						})
@@ -457,13 +456,13 @@ export class MailListView implements Component<MailListViewAttrs> {
 		return this.showingDraft
 			? [
 					m(Icon, {
-						icon: Icons.Cancel,
+						icon: Icons.X,
 					}),
 					m(".pl-4", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
 				]
 			: [
 					m(Icon, {
-						icon: Icons.Folder,
+						icon: Icons.FolderFilled,
 					}),
 					m(
 						".pl-4",
@@ -479,7 +478,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	private renderRightSpacer(): Children {
 		return [
 			m(Icon, {
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 			}),
 			m(".pl-4", lang.get("delete_action")),
 		]

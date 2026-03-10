@@ -6,7 +6,6 @@ import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsVi
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../../../common/api/common/Env.js"
@@ -14,7 +13,7 @@ import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../common/gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { component_size, size } from "../../../common/gui/size.js"
+import { component_size } from "../../../common/gui/size.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../common/api/common/utils/GroupUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
@@ -97,7 +96,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 						".mr-negative-8",
 						m(IconButton, {
 							title: "createSharedMailbox_label",
-							icon: Icons.Add,
+							icon: Icons.Plus,
 							click: () => this.addButtonClicked(),
 						}),
 					),
@@ -106,7 +105,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
-						icon: Icons.People,
+						icon: Icons.PeopleFilled,
 						message: "noEntries_msg",
 					})
 				: m(List, {
@@ -266,7 +265,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 					}),
 					m(".icons.flex", [
 						m(Icon, {
-							icon: Icons.Trash,
+							icon: Icons.TrashFilled,
 							oncreate: (vnode) => (this.deletedIconDom = vnode.dom as HTMLElement),
 							class: "svg-list-accent-fg",
 							style: {
@@ -274,7 +273,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 							},
 						}),
 						m(Icon, {
-							icon: BootIcons.Settings,
+							icon: Icons.GearWheelFilled,
 							oncreate: (vnode) => (this.localAdminIconDom = vnode.dom as HTMLElement),
 							class: "svg-list-accent-fg",
 							style: {
@@ -282,7 +281,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 							},
 						}),
 						m(Icon, {
-							icon: BootIcons.Mail,
+							icon: Icons.MailFilled,
 							oncreate: (vnode) => (this.mailIconDom = vnode.dom as HTMLElement),
 							class: "svg-list-accent-fg",
 							style: {

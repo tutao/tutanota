@@ -16,14 +16,13 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { getContactSelectionMessage, MultiContactViewer } from "./MultiContactViewer"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactMergeView } from "./ContactMergeView"
 import { getMergeableContacts, mergeContacts } from "../ContactMergeUtils"
 import { exportContacts } from "../VCardExporter"
 import { styles } from "../../../common/gui/styles"
-import { layout_size, size } from "../../../common/gui/size"
+import { layout_size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
 import { SidebarSection, SidebarSectionAttrs } from "../../../common/gui/SidebarSection"
@@ -261,7 +260,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			if (recipients && recipients.length > 0 && this.canEditSelectedContactList()) {
 				return m(IconButton, {
 					title: "delete_action",
-					icon: Icons.Trash,
+					icon: Icons.TrashFilled,
 					click: () => this.contactListViewModel.deleteContactListEntries(recipients),
 				})
 			}
@@ -316,7 +315,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 									actions: this.canEditSelectedContactList()
 										? [
 												{
-													icon: Icons.Trash,
+													icon: Icons.TrashFilled,
 													title: "delete_action",
 													action: () => this.contactListViewModel.deleteSelectedEntries(),
 												},
@@ -326,12 +325,12 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							: m(MobileActionBar, {
 									actions: [
 										{
-											icon: Icons.Edit,
+											icon: Icons.PenFilled,
 											title: "edit_action",
 											action: () => this.editSelectedContact(),
 										},
 										{
-											icon: Icons.Trash,
+											icon: Icons.TrashFilled,
 											title: "delete_action",
 											action: () => this.deleteSelectedContacts(),
 										},
@@ -389,7 +388,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return m(IconButton, {
 			title: "newContact_action",
 			click: () => this.createNewContact(),
-			icon: Icons.Add,
+			icon: Icons.Plus,
 		})
 	}
 
@@ -398,7 +397,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			return m(IconButton, {
 				title: "addEntries_action",
 				click: () => this.addAddressesToContactList(),
-				icon: Icons.Add,
+				icon: Icons.Plus,
 			})
 		} else {
 			return null
@@ -411,7 +410,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			return this.contactListViewModel.listModel == null || this.showingListView()
 				? m(ColumnEmptyMessageBox, {
 						message: getContactListEntriesSelectionMessage(entries),
-						icon: Icons.People,
+						icon: Icons.PeopleFilled,
 						color: theme.on_surface_variant,
 						bottomContent:
 							entries.length > 0
@@ -495,7 +494,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private renderSidebarElements(): Children {
 		return [
 			m(SidebarSectionRow, {
-				icon: BootIcons.Contacts,
+				icon: Icons.PeopleFilled,
 				label: "all_contacts_label",
 				path: `/contact`,
 				onClick: () => this.viewSlider.focus(this.listColumn),
@@ -507,7 +506,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				{
 					name: "contactLists_label",
 					button: m(IconButton, {
-						icon: Icons.Add,
+						icon: Icons.Plus,
 						size: ButtonSize.Compact,
 						title: "addContactList_action",
 						click: () => {
@@ -579,14 +578,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							{
 								label: "importContacts_label",
 								click: () => importContacts(),
-								icon: Icons.ContactImport,
+								icon: Icons.PersonAddFilled,
 							},
 						]
 					: [
 							{
 								label: "exportVCard_action",
 								click: () => exportAsVCard(locator.contactModel),
-								icon: Icons.Export,
+								icon: Icons.CloudDownloadFilled,
 							},
 						]
 
@@ -594,11 +593,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					{
 						label: "importVCard_action",
 						click: () => importAsVCard(),
-						icon: Icons.ContactImport,
+						icon: Icons.PersonAddFilled,
 					},
 					{
 						label: "merge_action",
-						icon: Icons.People,
+						icon: Icons.PeopleFilled,
 						click: () => this._mergeAction(),
 					},
 				])
@@ -611,7 +610,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		const moreButton = this.createContactListMoreButton(contactListInfo)
 
 		return m(SidebarSectionRow, {
-			icon: Icons.People,
+			icon: Icons.PeopleFilled,
 			label: lang.makeTranslation("contactlist_name", contactListInfo.name),
 			path: `${CONTACTLIST_PREFIX}/${contactListInfo.groupRoot.entries}`,
 			onClick: () => {
@@ -635,7 +634,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				return [
 					{
 						label: "edit_action",
-						icon: Icons.Edit,
+						icon: Icons.PenFilled,
 						click: async () => {
 							showContactListNameEditor(
 								await this.contactListViewModel.getContactListNewNameData(contactListInfo.groupInfo),
@@ -647,7 +646,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					},
 					{
 						label: "sharing_label",
-						icon: Icons.ContactImport,
+						icon: Icons.PersonAddFilled,
 						click: async () => {
 							const { showGroupSharingDialog } = await import("../../../common/sharing/view/GroupSharingDialog.js")
 							showGroupSharingDialog(contactListInfo.groupInfo, true)
@@ -656,7 +655,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					contactListInfo.isOwner
 						? {
 								label: "delete_action",
-								icon: Icons.Trash,
+								icon: Icons.TrashFilled,
 								click: async () => {
 									if (await Dialog.confirm("confirmDeleteContactList_msg")) {
 										this.contactListViewModel.deleteContactList(contactListInfo)
@@ -665,7 +664,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							}
 						: {
 								label: "leaveGroup_action",
-								icon: Icons.Trash,
+								icon: Icons.TrashFilled,
 								click: async () => {
 									if (
 										await Dialog.confirm(
@@ -850,7 +849,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				this.canEditSelectedContactList()
 					? m(IconButton, {
 							title: "addEntries_action",
-							icon: Icons.Add,
+							icon: Icons.Plus,
 							click: () => {
 								this.addAddressesToContactList()
 							},
@@ -878,7 +877,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private renderSortByButton() {
 		return m(IconButton, {
 			title: "sortBy_label",
-			icon: Icons.ListOrdered,
+			icon: Icons.OrderedList,
 			click: (e: MouseEvent, dom: HTMLElement) => {
 				createDropdown({
 					lazyButtons: () => [

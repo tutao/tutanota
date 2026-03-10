@@ -17,12 +17,12 @@ export function renderSidebarFolders({ rootFolderId, trashFolderId }: { rootFold
 		[
 			m(DriveFolderRow, {
 				label: lang.makeTranslation("asdf", () => "Home"), // TODO
-				icon: Icons.Drive,
+				icon: Icons.HouseFilled,
 				href: `/drive/${listIdPart(rootFolderId)}/${elementIdPart(rootFolderId)}`,
 			}),
 			m(DriveFolderRow, {
 				label: lang.makeTranslation("asdf2", () => "Trash"), // TODO
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 				href: `/drive/${listIdPart(trashFolderId)}/${elementIdPart(trashFolderId)}`,
 			}),
 		],

@@ -40,7 +40,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			? {
 					title: "addEmailAlias_label",
 					click: () => this.onAddAlias(attrs),
-					icon: Icons.Add,
+					icon: Icons.Plus,
 					size: ButtonSize.Compact,
 				}
 			: null

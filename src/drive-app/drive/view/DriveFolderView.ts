@@ -165,12 +165,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			folder && folder.type === DriveFolderType.Trash
 				? m(IconMessageBox, {
 						message: lang.getTranslation("trashIsEmpty_msg"),
-						icon: Icons.TrashEmpty,
+						icon: Icons.TrashEmptyFilled,
 						color: theme.on_surface_variant,
 					})
 				: m(IconMessageBox, {
 						message: lang.getTranslation("dropFilesHere_msg"),
-						icon: Icons.Drive,
+						icon: Icons.DriveFilled,
 						color: theme.on_surface_variant,
 						bottomContent: "Or use 'new' button",
 					}),

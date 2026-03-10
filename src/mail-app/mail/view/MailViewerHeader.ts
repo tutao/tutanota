@@ -19,7 +19,6 @@ import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType } from "./MailGuiUtils.js"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { addToggleLightModeButtonAttrs, editDraft, MailViewerMoreActions, singleMailViewerMoreActions, unsubscribe } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
@@ -240,7 +239,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? m(
 								".flex.row.mr-4.align-self-center",
 								m(Icon, {
-									icon: Icons.Edit,
+									icon: Icons.PenFilled,
 									container: "div",
 									style: {
 										fill: theme.on_surface_variant,
@@ -342,7 +341,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				"." + responsiveCardHMargin(),
 				m(InfoBanner, {
 					message: "mailPartsNotLoaded_msg",
-					icon: Icons.Warning,
+					icon: Icons.ExclamationFilled,
 					buttons: [
 						{
 							label: "retry_action",
@@ -368,7 +367,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							".small.text-break",
 							lang.getTranslation("sendScheduledForDate_msg", { "{dateTime}": formatDateWithWeekday(sendAt) + " • " + formatTime(sendAt) }).text,
 						),
-					icon: Icons.ScheduleMail,
+					icon: Icons.SendlaterFilled,
 					buttons: [
 						{
 							label: "cancelSend_action",
@@ -690,7 +689,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderPhishingWarning(viewModel: MailViewerViewModel): Children {
 		return m(InfoBanner, {
 			message: "phishingMessageBody_msg",
-			icon: Icons.Warning,
+			icon: Icons.ExclamationFilled,
 			type: BannerType.Warning,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 			buttons: [
@@ -706,7 +705,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (viewModel.hasListUnsubscribeHeader() && viewModel.getNewsletterBannerRule() === NewsletterBannerRule.Allow && !viewModel.isImportedMail()) {
 			return m(InfoBanner, {
 				message: viewModel.isListUnsubscribe() ? "newsletterBanner_msg" : "newsletterBannerUnsubscribed_msg",
-				icon: Icons.PricingMail,
+				icon: Icons.MailOutline,
 				type: BannerType.Info,
 				buttons: viewModel.isListUnsubscribe()
 					? [
@@ -732,7 +731,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
 		return m(InfoBanner, {
 			message: "mailAuthFailed_msg",
-			icon: Icons.Warning,
+			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			type: BannerType.Warning,
 			buttons: [
@@ -758,7 +757,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							"{sender}": viewModel.mail.differentEnvelopeSender,
 						})
 					: lang.get("mailAuthMissing_label"),
-			icon: Icons.Warning,
+			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			buttons: buttons,
 		})
@@ -773,7 +772,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		]
 		return m(InfoBanner, {
 			message: () => lang.get("deprecatedKeyWarning_msg"),
-			icon: Icons.Warning,
+			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.DeprecatedKey : null,
 			buttons: buttons,
 		})
@@ -818,7 +817,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				: alwaysOrNeverAllowButtons
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
-			icon: Icons.Picture,
+			icon: Icons.PictureFilled,
 			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
 			buttons: [showButton, ...maybeDropdownButtons],
 		})
@@ -843,7 +842,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? {
 								label: "delete_action",
 								click: () => deleteAction(),
-								icon: Icons.DeleteForever,
+								icon: Icons.TrashCrossFilled,
 							}
 						: null
 				const trashButton: DropdownButtonAttrs | null =
@@ -851,7 +850,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? {
 								label: "trash_action",
 								click: () => trashAction(),
-								icon: Icons.Trash,
+								icon: Icons.TrashFilled,
 							}
 						: null
 				const deleteOrTrashButton = deleteButton ?? trashButton
@@ -861,7 +860,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? {
 								label: "move_action",
 								click: (_: MouseEvent, dom: HTMLElement) => moveAction(dom),
-								icon: Icons.Folder,
+								icon: Icons.FolderFilled,
 							}
 						: null
 
@@ -884,7 +883,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									popup.show()
 								}, 16)
 							},
-							icon: Icons.Label,
+							icon: Icons.LabelFilled,
 						}
 					: null
 
@@ -895,34 +894,34 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							await viewModel.unscheduleMail()
 							editDraft(viewModel)
 						},
-						icon: Icons.XCross,
+						icon: Icons.X,
 					})
 				} else if (viewModel.isEditableDraft()) {
 					actionButtons.push({
 						label: "edit_action",
 						click: () => editDraft(viewModel),
-						icon: Icons.Edit,
+						icon: Icons.PenFilled,
 					})
 				} else {
 					if (viewModel.canReply()) {
 						actionButtons.push({
 							label: "reply_action",
 							click: () => viewModel.reply(false),
-							icon: Icons.Reply,
+							icon: Icons.ArrowBackFilled,
 						})
 					}
 					if (viewModel.canReplyAll()) {
 						actionButtons.push({
 							label: "replyAll_action",
 							click: () => viewModel.reply(true),
-							icon: Icons.ReplyAll,
+							icon: Icons.DoubleArrowBackFilled,
 						})
 					}
 					if (viewModel.canForward()) {
 						actionButtons.push({
 							label: "forward_action",
 							click: () => viewModel.forward(),
-							icon: Icons.Forward,
+							icon: Icons.ArrowForwardFilled,
 						})
 					}
 				}
@@ -941,13 +940,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					actionButtons.push({
 						label: "markRead_action",
 						click: () => viewModel.setUnread(false),
-						icon: Icons.Eye,
+						icon: Icons.EyeFilled,
 					})
 				} else {
 					actionButtons.push({
 						label: "markUnread_action",
 						click: () => viewModel.setUnread(true),
-						icon: Icons.NoEye,
+						icon: Icons.EyeCrossedFilled,
 					})
 				}
 
@@ -982,7 +981,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					m(".flex.no-wrap", [
 						numberOfAllRecipients > 1 ? `+ ${numberOfAllRecipients - 1}` : null,
 						m(Icon, {
-							icon: BootIcons.Expand,
+							icon: Icons.ArrowDown,
 							container: "div",
 							style: {
 								fill: theme.on_surface,

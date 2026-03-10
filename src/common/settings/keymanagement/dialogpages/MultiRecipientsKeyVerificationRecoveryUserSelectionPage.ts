@@ -36,7 +36,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.BrokenShield,
+				icon: Icons.BrokenShieldFilled,
 				iconOptions: { color: theme.error },
 			}),
 			m(
@@ -78,7 +78,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.CheckCircleOutline,
+				icon: Icons.SuccessOutline,
 				iconOptions: { color: theme.success },
 			}),
 			m(Card, m(".plr-12.flex.flex-column.gap-16.pt-8.pb-8", [message])),

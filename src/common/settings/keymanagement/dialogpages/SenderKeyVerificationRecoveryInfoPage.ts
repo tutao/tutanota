@@ -30,7 +30,7 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.BrokenShield,
+				icon: Icons.BrokenShieldFilled,
 				iconOptions: { color: theme.error },
 			}),
 			m(
@@ -58,7 +58,7 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 				label: lang.makeTranslation("reject_recommended", `${lang.get("reject_action")} (${lang.get("recommended_action")})`),
 				onclick: async () => vnode.attrs.goToRejectPage(),
 				icon: m(Icon, {
-					icon: Icons.XCheckmark,
+					icon: Icons.Checkmark,
 					size: IconSize.PX20,
 					class: "mr-8 flex-center",
 					style: {

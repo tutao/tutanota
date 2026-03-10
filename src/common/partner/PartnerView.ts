@@ -5,7 +5,6 @@ import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
 import { AppHeaderAttrs, Header } from "../gui/Header.js"
 import { theme } from "../gui/theme"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/CommonLocator"
 import type { NavButtonAttrs } from "../gui/base/NavButton.js"
 import { NavButtonColor } from "../gui/base/NavButton.js"
@@ -24,6 +23,7 @@ import { EntityEventsListener, EntityUpdateData, OnEntityUpdateReceivedPriority 
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
+import { Icons } from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -57,7 +57,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		this._partnerFolders = [
 			new SettingsFolder(
 				() => "adminManagedCustomerList_action",
-				() => BootIcons.User,
+				() => Icons.PersonFilled,
 				"customers",
 				() =>
 					new ManagedCustomerListView(

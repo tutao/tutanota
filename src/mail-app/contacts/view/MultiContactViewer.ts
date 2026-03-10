@@ -1,11 +1,11 @@
 import m, { Component, Vnode } from "mithril"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { theme } from "../../../common/gui/theme"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -22,7 +22,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 		return [
 			m(ColumnEmptyMessageBox, {
 				message: getContactSelectionMessage(attrs.selectedEntities.length),
-				icon: BootIcons.Contacts,
+				icon: Icons.PeopleFilled,
 				color: theme.on_surface_variant,
 				bottomContent:
 					attrs.selectedEntities.length > 0

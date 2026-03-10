@@ -9,8 +9,7 @@ import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoize
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { layout_size, size } from "../../../../common/gui/size.js"
+import { layout_size } from "../../../../common/gui/size.js"
 import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -39,7 +38,6 @@ import { MultiselectMode } from "../../../../common/gui/base/List.js"
 import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
 import { calendarLocator } from "../../../calendarLocator.js"
@@ -182,7 +180,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				m(NavButton, {
 					label: "back_action",
 					hideLabel: true,
-					icon: () => BootIcons.Back,
+					icon: () => Icons.ChevronLeft,
 					href: CALENDAR_PREFIX,
 					centred: true,
 					fillSpaceAround: false,
@@ -227,7 +225,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				selectedEvent == null
 					? m(ColumnEmptyMessageBox, {
 							message: "noEventSelect_msg",
-							icon: BootIcons.Calendar,
+							icon: Icons.CalendarFilled,
 							color: theme.on_surface_variant,
 							backgroundColor: theme.surface_container,
 						})
@@ -299,21 +297,21 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		if (previewModel) {
 			if (previewModel.canSendUpdates) {
 				actions.push({
-					icon: BootIcons.Mail,
+					icon: Icons.MailFilled,
 					title: "sendUpdates_label",
 					action: () => handleSendUpdatesClick(previewModel),
 				})
 			}
 			if (previewModel.canEdit) {
 				actions.push({
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 					title: "edit_action",
 					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
 				})
 			}
 			if (previewModel.canDelete) {
 				actions.push({
-					icon: Icons.Trash,
+					icon: Icons.TrashFilled,
 					title: "delete_action",
 					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
 				})
@@ -344,7 +342,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			return m(IconButton, {
 				click: () => this.createNewEventDialog(),
 				title: "newEvent_action",
-				icon: Icons.Add,
+				icon: Icons.Plus,
 			})
 		} else if (client.isCalendarApp()) {
 			return m.fragment({}, [this.renderSearchResultActions()])

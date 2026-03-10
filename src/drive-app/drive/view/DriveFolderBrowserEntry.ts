@@ -36,7 +36,7 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 			[
 				m(Icon, {
 					class: isInvalidTarget ? "translucent" : undefined,
-					icon: item.type === "folder" ? Icons.Folder : Icons.GenericFile,
+					icon: item.type === "folder" ? Icons.FolderFilled : Icons.EmptyDocumentFilled,
 					size: IconSize.PX24,
 					style: {
 						fill: theme.on_surface,

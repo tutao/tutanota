@@ -34,9 +34,9 @@ export class SupportLandingPage implements Component<Props> {
 			},
 		}))
 		visibleCategorySections.push({
-			leftIcon: { icon: Icons.QuestionMark, title: "emptyString_msg", fill: theme.primary },
+			leftIcon: { icon: Icons.QuestionmarkFilled, title: "emptyString_msg", fill: theme.primary },
 			text: { text: "tuta.com/support", testId: "" },
-			rightIcon: { icon: Icons.Open, title: "open_action" },
+			rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
 			onclick: () => {
 				countFaqLinkTrigger()
 				windowFacade.openLink("https://tuta.com/support")
@@ -57,7 +57,7 @@ export class SupportLandingPage implements Component<Props> {
 					)
 				: m("", [
 						m(TitleSection, {
-							icon: Icons.SpeechBubbleOutline,
+							icon: Icons.ChatbubbleOutline,
 							title: lang.get("supportStartPage_title"),
 							subTitle: lang.get("supportStartPage_msg"),
 						}),

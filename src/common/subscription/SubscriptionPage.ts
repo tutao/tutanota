@@ -22,7 +22,6 @@ import { styles } from "../gui/styles.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
-import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../misc/TranslationKey"
@@ -91,7 +90,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 				anyHasGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
 					translation: lang.getTranslation("pricing.cyber_monday_msg"),
-					icon: BootIcons.Heart,
+					icon: Icons.HeartFilled,
 				}),
 			// Headline for general messages
 			data.msg && m(PlanSelectorHeadline, { translation: data.msg }),
@@ -317,7 +316,7 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, ava
 		icon: styles.isMobileLayout()
 			? null
 			: m(Icon, {
-					icon: isBusiness ? BootIcons.User : Icons.Business,
+					icon: isBusiness ? Icons.PersonFilled : Icons.SkyscraperOutline,
 					size: IconSize.PX20,
 					class: "mr-4",
 					style: {

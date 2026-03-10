@@ -1,4 +1,4 @@
-import m, { Children, ClassComponent, Component, CVnode, CVnodeDOM, Vnode, VnodeDOM } from "mithril"
+import m, { Children, ClassComponent, CVnode, CVnodeDOM, Vnode } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { Icon } from "./base/Icon"
@@ -69,7 +69,7 @@ export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs
 						a.renderItem(item),
 						isSelected
 							? m(Icon, {
-									icon: Icons.ArrowForward,
+									icon: Icons.ChevronRight,
 									style: {
 										marginTop: "auto",
 										marginBottom: "auto",

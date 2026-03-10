@@ -17,7 +17,6 @@ import { theme } from "../gui/theme"
 import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
 import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
@@ -25,7 +24,7 @@ import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
 const CHECK_INFO_ICON = { icon: Icons.Checkmark, color: theme.success }
-const CROSS_INFO_ICON = { icon: Icons.XCross, color: theme.error }
+const CROSS_INFO_ICON = { icon: Icons.X, color: theme.error }
 
 class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
 	private lastSeenTransitionSeq = 0
@@ -33,9 +32,9 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 
 	private readonly seeOtherPlansLabel = lang.makeTranslation("seeOtherPlans_action", "See other plans")
 	readonly planSelectorInfoItems: InfoBoxItem[] = [
-		{ icon: { icon: Icons.PQLockOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("quantumSafeE2ee_label") },
+		{ icon: { icon: Icons.QuantumLockOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("quantumSafeE2ee_label") },
 		{ icon: { icon: Icons.LeafOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("greenEnergy_label") },
-		{ icon: { icon: Icons.StopHandOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("adFree_label") },
+		{ icon: { icon: Icons.HandOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("adFree_label") },
 		{ icon: { icon: Icons.OpenSourceOutline, color: theme.on_surface_variant }, text: lang.getTranslationText("openSource_label") },
 	]
 	readonly formPageInfoItems: Record<AvailablePlanType, InfoBoxItem[]> = {
@@ -85,10 +84,10 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		],
 	}
 	readonly paymentInfoItems: InfoBoxItem[] = [
-		{ icon: { icon: Icons.CreditCard, color: theme.on_surface_variant }, text: lang.getTranslationText("safePayment_label") },
-		{ icon: { icon: Icons.Reply, color: theme.on_surface_variant }, text: lang.getTranslationText("moneyBackGuarantee_msg") },
-		{ icon: { icon: Icons.CloseCircleFilled, color: theme.on_surface_variant }, text: lang.getTranslationText("cancelAnyTime_msg") },
-		{ icon: { icon: BootIcons.User, color: theme.on_surface_variant }, text: lang.getTranslationText("directSupport_msg") },
+		{ icon: { icon: Icons.CreditcardFilled, color: theme.on_surface_variant }, text: lang.getTranslationText("safePayment_label") },
+		{ icon: { icon: Icons.ArrowBackFilled, color: theme.on_surface_variant }, text: lang.getTranslationText("moneyBackGuarantee_msg") },
+		{ icon: { icon: Icons.FailureFilled, color: theme.on_surface_variant }, text: lang.getTranslationText("cancelAnyTime_msg") },
+		{ icon: { icon: Icons.PersonFilled, color: theme.on_surface_variant }, text: lang.getTranslationText("directSupport_msg") },
 	]
 	private infoItems: InfoBoxItem[] = this.planSelectorInfoItems
 	private transitionIllustrationName: string | null = null
