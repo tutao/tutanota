@@ -1,5 +1,5 @@
 import m, { Component, Vnode, VnodeDOM } from "mithril"
-import { Icon, IconSize } from "../../gui/base/Icon"
+import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
 import { theme } from "../../gui/theme"
 import { Translation } from "../../misc/LanguageViewModel"
 import { px } from "../../gui/size"
@@ -10,6 +10,24 @@ const COLUMN_THRESHOLD = 120
 interface MessageBannerAttrs {
 	translation: Translation
 	type: InfoBannerTypes
+}
+
+const bannerThemeByType: Record<InfoBannerTypes, { background: string; color: string; icon: AllIcons }> = {
+	success: {
+		background: theme.success_container,
+		color: theme.on_success_container,
+		icon: Icons.CheckCircleFilled,
+	},
+	warning: {
+		background: theme.warning_container,
+		color: theme.on_warning_container,
+		icon: Icons.AlertCircle,
+	},
+	error: {
+		background: theme.error_container,
+		color: theme.on_error_container,
+		icon: Icons.CloseCircleFilled,
+	},
 }
 
 /* Component for general information on the website
@@ -40,23 +58,7 @@ export class MessageBanner implements Component<MessageBannerAttrs> {
 	}
 
 	view({ attrs: { translation, type } }: Vnode<MessageBannerAttrs>) {
-		let background = null
-		let color = null
-		let icon = null
-		if (type === "success") {
-			background = theme.success_container
-			color = theme.on_success_container
-			icon = Icons.CheckCircleFilled
-		} else if (type === "warning") {
-			background = theme.warning_container
-			color = theme.on_warning_container
-			icon = Icons.AlertCircle
-		} else {
-			// type == error
-			background = theme.error_container
-			color = theme.on_error_container
-			icon = Icons.CloseCircleFilled
-		}
+		const { background, color, icon } = bannerThemeByType[type]
 		const flexDir = this.isTall ? ".col" : ".row"
 
 		return m(
