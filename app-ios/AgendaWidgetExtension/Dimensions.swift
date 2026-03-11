@@ -29,4 +29,11 @@ struct Dimensions {
 		static let XL = 20.0
 		static let XXL = 24.0
 	}
+
+	struct FontSize {
+		static let font_20 = 20.0
+		static let font_16 = 16.0
+		static let font_14 = 14.0
+		static let font_12 = 12.0
+	}
 }
