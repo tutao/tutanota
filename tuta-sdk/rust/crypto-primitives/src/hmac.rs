@@ -32,11 +32,13 @@ pub fn verify_hmac_sha256(
 #[cfg(test)]
 mod tests {
 	use crate::aes::Aes256Key;
+	use crate::blake3::blake3_mac;
 	use crate::hmac::hmac_sha256;
 	use crate::hmac::{verify_hmac_sha256, HMAC_SHA256_SIZE};
 	use crate::key::GenericAesKey;
 	use crate::test_utils::random_aes256_key;
 	use crypto_primitives::compatibility_test_utils::get_compatibility_test_data;
+	use std::time::Instant;
 
 	#[test]
 	fn compatibility_test() {
@@ -73,5 +75,50 @@ mod tests {
 		let result = verify_hmac_sha256(&key, bad_data, tag);
 
 		assert!(result.is_err());
+	}
+
+	#[test]
+	fn hmac_benchmark() {
+		let mac_test_data: [Vec<u8>; 6] = [
+			vec![0x41; 1],
+			vec![0x41; 10],
+			vec![0x41; 100],
+			vec![0x41; 1024],
+			vec![0x41; 1024 * 1024],
+			vec![0x41; 10 * 1024 * 1024],
+		];
+		let key = GenericAesKey::Aes256(random_aes256_key());
+		for data in mac_test_data.as_slice() {
+			let now = Instant::now();
+			for _i in 0..1000 {
+				let tag = hmac_sha256(&key, data.as_slice());
+			}
+			let time_spent = now.elapsed().as_millis();
+			let length = data.len();
+			println!("data length: {length} time in ms: {time_spent}");
+		}
+	}
+
+	#[test]
+	fn blake3_benchmark() {
+		let mac_test_data: [Vec<u8>; 6] = [
+			vec![0x41; 1],
+			vec![0x41; 10],
+			vec![0x41; 100],
+			vec![0x41; 1024],
+			vec![0x41; 1024 * 1024],
+			vec![0x41; 10 * 1024 * 1024],
+		];
+		let key = random_aes256_key();
+		for data in mac_test_data.as_slice() {
+			let d = [data.as_slice()];
+			let now = Instant::now();
+			for _i in 0..1000 {
+				let tag = blake3_mac(key.as_bytes(), d.as_slice());
+			}
+			let time_spent = now.elapsed().as_millis();
+			let length = data.len();
+			println!("data length: {length} time in ms: {time_spent}");
+		}
 	}
 }
