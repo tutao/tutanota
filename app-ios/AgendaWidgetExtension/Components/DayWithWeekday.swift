@@ -19,7 +19,7 @@ struct DayWithWeekday: View {
 		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
 		HStack(alignment: VerticalAlignment.center) {
-			VStack(spacing: -2) {
+			VStack {
 				Text(day).font(.system(size: 20, weight: .bold))
 				Text(weekday).font(.system(size: 12, weight: .regular)).lineLimit(1)
 			}

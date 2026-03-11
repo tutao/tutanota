@@ -15,27 +15,23 @@ struct Header: View {
 	let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
 
 	var body: some View {
-		let hasAllDayEvents = (allDayEvents[startOfToday]?.count ?? 0) > 0
-		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -Dimensions.Spacing.XS }
-
+		let hasAllDayEventsToday = (allDayEvents[startOfToday]?.count ?? 0) > 0
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
 		return HStack(alignment: .top) {
 			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
 				HStack {
-					VStack(alignment: .leading, spacing: titleBottomPadding) {
-						Text(day + " " + weekday).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
-						if hasAllDayEvents {
-							AllDayEventRow(allDayEventsData: allDayEvents[startOfToday] ?? SimpleLongEventsData(event: nil, count: 0))
-						}
+					VStack(alignment: .leading, spacing: Dimensions.Spacing.XS / 2) {
+						Text(day + " " + weekday).lineLimit(1).fontWeight(.bold).font(.system(size: 20))
+						if(hasAllDayEventsToday){
+							AllDayEventRow(allDayEventsData: allDayEvents[startOfToday]!).padding(.bottom, Dimensions.Spacing.SM)	}
 					}
-					.foregroundStyle(Color(.onSurface))
 					Spacer()
 				}
 			}
-			.buttonStyle(.plain).padding(.leading, Dimensions.Spacing.MD).padding(.top, Dimensions.Spacing.SM)
+			.buttonStyle(.plain).padding(.top, Dimensions.Spacing.SM)
 			HeaderButton(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor))
-		}
+		}.padding(.leading, Dimensions.Spacing.MD)
 	}
 }

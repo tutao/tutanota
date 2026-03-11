@@ -24,7 +24,7 @@ struct AllDayEventRow: View {
 		let backgroundColor: UIColor = UIColor(hex: allDayEventsData.event?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if backgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
-		return HStack(alignment: .center, spacing: Dimensions.Spacing.XS) {
+		return HStack {
 			Image(allDayImage).foregroundStyle(foregroundColor).font(.system(size: 14)).padding(allDayPadding).background(Color(backgroundColor.cgColor))
 				.clipShape(.rect(cornerRadius: 12))
 			Text(eventTitle).lineLimit(1).font(.system(size: 12)).if(textColor != nil) { $0.foregroundStyle(textColor!) }

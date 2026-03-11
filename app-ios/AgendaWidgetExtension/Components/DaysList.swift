@@ -28,24 +28,33 @@ struct DaysList: View {
 
 				Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
 					Card {
-						if isToday {  // render TodayCard
-							Header(allDayEvents: allDayEventsData, userId: userId)
-							if normalEventsOnDay.isEmpty && !hasAllDayEvents {
-								VStack(alignment: .center) { Text("No events today") }
-							} else {
-								EventsList(userId: userId, events: normalEventsOnDay)
-							}
-						} else {  // render OtherDayCard
-							if normalEventsOnDay.isEmpty && hasAllDayEvents {
-								// render All Day Events Only Row
-								AllDayEventRow(allDayEventsData: allDayEventsOnDay)
-							} else if !normalEventsOnDay.isEmpty && !hasAllDayEvents {
-								// render only the Event list (no all day events)
-								EventsList(userId: userId, events: normalEventsOnDay)
-							} else {
-								// render both All Day section and Events List
-								AllDayEventRow(allDayEventsData: allDayEventsOnDay)
-								EventsList(userId: userId, events: normalEventsOnDay)
+						VStack(spacing: 0) {
+							if isToday {  // render TodayCard
+								Header(allDayEvents: allDayEventsData, userId: userId)
+								if normalEventsOnDay.isEmpty && !hasAllDayEvents {
+									Text("No events today").font(.system(size: 16)).padding(.top, -Dimensions.Spacing.MD).padding(.bottom, Dimensions.Spacing.SM)
+								} else if (!normalEventsOnDay.isEmpty) {
+									EventsList(userId: userId, events: normalEventsOnDay).padding(.bottom, Dimensions.Spacing.SM)
+								}
+							} else {  // render OtherDayCard
+								if normalEventsOnDay.isEmpty && hasAllDayEvents {
+									// render All Day Events Only Row
+									HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.SM) {
+										DayWithWeekday(date: parsedDay)
+										AllDayEventRow(allDayEventsData: allDayEventsOnDay)
+									}
+									.padding(.horizontal, Dimensions.Spacing.MD).padding(.vertical, Dimensions.Spacing.SM)
+
+								} else if !normalEventsOnDay.isEmpty && !hasAllDayEvents {
+									// render only the Event list (no all day events)
+									EventsList(userId: userId, events: normalEventsOnDay).padding(.vertical, Dimensions.Spacing.SM)
+								} else {
+									// render both All Day section and Events List
+									VStack(alignment: .leading, spacing: Dimensions.Spacing.XS) {
+										AllDayHeader(allDayEventsData: allDayEventsOnDay)
+										EventsList(userId: userId, events: normalEventsOnDay).padding(.vertical, Dimensions.Spacing.SM)
+									}
+								}
 							}
 						}
 					}

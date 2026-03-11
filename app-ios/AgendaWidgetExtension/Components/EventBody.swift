@@ -25,10 +25,7 @@ struct EventBody: View {
 			eventTitle = event == nil ? translate("TutaoWidgetNoEventsMsg", default: "No events") : translate("TutaoNoTitleLabel", default: "<No title>")
 		}
 		return HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.MD) {
-			if !happensToday {
-				DayWithWeekday(date: eventDate)
-				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 28, alignment: .leading)
-			}
+			if !happensToday { DayWithWeekday(date: eventDate).opacity(isFirstEventOfDay ? 1 : 0) }
 			Button(
 				intent: WidgetActionsIntent(
 					userId: userId,
@@ -41,7 +38,7 @@ struct EventBody: View {
 					VStack { Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3)) }
 					VStack(alignment: .leading) {
 						Text(eventTitle).fontWeight(.bold).font(.system(size: 14))
-						if eventTime != nil { Text(eventTime!).font(.system(size: 10)) }
+						if eventTime != nil { Text(eventTime!).font(.system(size: 12)) }
 					}
 					.foregroundStyle(Color(.onSurface)).frame(maxHeight: .infinity, alignment: .center)
 				}

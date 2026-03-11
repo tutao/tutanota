@@ -37,6 +37,6 @@ struct EventsList: View {
 				)
 			}
 		}
-		.padding(.horizontal, Dimensions.Spacing.MD).padding(.vertical, Dimensions.Spacing.SM)
+		.padding(.horizontal, Dimensions.Spacing.MD)
 	}
 }
