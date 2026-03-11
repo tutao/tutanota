@@ -38,7 +38,6 @@ struct DaysList: View {
 						if isEmpty {
 							EmptyBody(widgetHeight: widgetHeight, family: family)
 						} else {
-							// Has at least one all day event
 							if events.isEmpty {
 								self.RenderOnlyAllDayEvents(date: parsedDay, hasAllDay: hasAllDayEvents)
 							} else {
