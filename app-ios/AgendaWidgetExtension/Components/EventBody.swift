@@ -24,19 +24,9 @@ struct EventBody: View {
 		} else {
 			eventTitle = event == nil ? translate("TutaoWidgetNoEventsMsg", default: "No events") : translate("TutaoNoTitleLabel", default: "<No title>")
 		}
-
-		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: eventDate)
-		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
-		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
-
 		return HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.MD) {
 			if !happensToday {
-				HStack(alignment: VerticalAlignment.center) {
-					VStack(spacing: -2) {
-						Text(day).font(.system(size: 20, weight: .bold))
-						Text(weekday).font(.system(size: 12, weight: .regular)).lineLimit(1)
-					}
-				}
+				DayWithWeekday(date: eventDate)
 				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 28, alignment: .leading)
 			}
 			Button(

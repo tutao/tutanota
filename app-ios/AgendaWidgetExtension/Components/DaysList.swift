@@ -10,7 +10,6 @@ import WidgetKit
 
 struct DaysList: View {
 	var userId: String
-	var isEmpty: Bool
 	var family: WidgetFamily
 	var widgetHeight: CGFloat
 	var normalEvents: EventMap
@@ -21,27 +20,32 @@ struct DaysList: View {
 			ForEach(normalEvents.keys.sorted(by: { $0 < $1 }), id: \.self) { startOfDay in
 				let parsedDay = Date(timeIntervalSince1970: startOfDay)
 
-				let events = normalEvents[startOfDay] ?? []
-				let allDayEvents = allDayEventsData[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
+				let normalEventsOnDay: [CalendarEventData] = normalEvents[startOfDay] ?? []
+				let allDayEventsOnDay: SimpleLongEventsData = allDayEventsData[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
 
-				let hasAllDayEvents = allDayEvents.count > 0
+				let hasAllDayEvents = allDayEventsOnDay.count > 0
 				let isToday = Calendar.current.isDateInToday(parsedDay)
 
-				return Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
+				Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
 					Card {
-						if isToday {
+						if isToday {  // render TodayCard
 							Header(allDayEvents: allDayEventsData, userId: userId)
-						} else if hasAllDayEvents {
-							AllDayHeader(allDayEventsData: allDayEvents)
-						}
-
-						if isEmpty {
-							EmptyBody(widgetHeight: widgetHeight, family: family)
-						} else {
-							if events.isEmpty {
-								self.RenderOnlyAllDayEvents(date: parsedDay, hasAllDay: hasAllDayEvents)
+							if normalEventsOnDay.isEmpty && !hasAllDayEvents {
+								VStack(alignment: .center) { Text("No events today") }
 							} else {
-								EventsList(userId: userId, events: events)
+								EventsList(userId: userId, events: normalEventsOnDay)
+							}
+						} else {  // render OtherDayCard
+							if normalEventsOnDay.isEmpty && hasAllDayEvents {
+								// render All Day Events Only Row
+								AllDayEventRow(allDayEventsData: allDayEventsOnDay)
+							} else if !normalEventsOnDay.isEmpty && !hasAllDayEvents {
+								// render only the Event list (no all day events)
+								EventsList(userId: userId, events: normalEventsOnDay)
+							} else {
+								// render both All Day section and Events List
+								AllDayEventRow(allDayEventsData: allDayEventsOnDay)
+								EventsList(userId: userId, events: normalEventsOnDay)
 							}
 						}
 					}

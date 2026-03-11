@@ -25,11 +25,9 @@ struct Header: View {
 			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
 				HStack {
 					VStack(alignment: .leading, spacing: titleBottomPadding) {
+						Text(day + " " + weekday).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
 						if hasAllDayEvents {
-							HeaderDate(allDayEventsData: allDayEvents[startOfToday] ?? SimpleLongEventsData(event: nil, count: 0), weekday: weekday, day: day)
-						} else {
-							Text(day).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
-							Text(weekday).font(.system(size: 12))
+							AllDayEventRow(allDayEventsData: allDayEvents[startOfToday] ?? SimpleLongEventsData(event: nil, count: 0))
 						}
 					}
 					.foregroundStyle(Color(.onSurface))
@@ -40,5 +38,4 @@ struct Header: View {
 			HeaderButton(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor))
 		}
 	}
-
 }

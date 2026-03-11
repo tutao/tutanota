@@ -181,35 +181,31 @@ extension View {
 
 struct AgendaWidgetEntryView: View {
 	var normalEvents: EventMap
-	var allDayEventsData: LongEventsDataMap
+	var allDayEventsData: LongEventsDataMap  // a map of
 	var error: WidgetError?
 	var userId: String
 
 	@Environment(\.widgetRenderingMode) var renderingMode
 
 	@Environment(\.widgetFamily) var family
+
 	var body: some View {
+
+		let isEmpty =
+			normalEvents.allSatisfy({ $0.value.isEmpty })
+			&& !(allDayEventsData.contains(where: {
+				if let today = normalEvents.keys.min() { return $0.key != today && $0.value.count != 0 }
+
+				return false
+			}))
 		GeometryReader { g in
 			VStack {
 				if let err = error {
 					ErrorBody(error: err)
+				} else if isEmpty {
+					EmptyBody(widgetHeight: g.size.height, family: family, userId: userId)
 				} else {
-					let isEmpty =
-						normalEvents.allSatisfy({ $0.value.isEmpty })
-						&& !(allDayEventsData.contains(where: {
-							if let today = normalEvents.keys.min() { return $0.key != today && $0.value.count != 0 }
-
-							return false
-						}))
-
-					DaysList(
-						userId: userId,
-						isEmpty: isEmpty,
-						family: family,
-						widgetHeight: g.size.height,
-						normalEvents: normalEvents,
-						allDayEventsData: allDayEventsData
-					)
+					DaysList(userId: userId, family: family, widgetHeight: g.size.height, normalEvents: normalEvents, allDayEventsData: allDayEventsData)
 				}
 			}
 			.frame(maxHeight: g.size.height, alignment: .top)

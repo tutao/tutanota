@@ -12,11 +12,14 @@ import WidgetKit
 struct EmptyBody: View {
 	var widgetHeight: CGFloat
 	var family: WidgetFamily
+	var userId: String
 	private let emptyImages = [ImageResource.widgetEmptyMusic, ImageResource.widgetEmptyDog]
 
 	var body: some View {
 		let imageIndex = Int.random(in: 0...1)
 		return VStack(alignment: .center) {
+			Header(allDayEvents: LongEventsDataMap(), userId: userId)
+
 			Text(translate("TutaoWidgetNoEventsMsg", default: "No events")).lineLimit(2).multilineTextAlignment(.center).foregroundStyle(Color(.onSurface))
 				.padding([.top, .bottom], Dimensions.Spacing.SM)
 
