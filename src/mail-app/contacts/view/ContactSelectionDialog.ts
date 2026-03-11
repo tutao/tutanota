@@ -17,10 +17,16 @@ import { noOp } from "@tutao/tutanota-utils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import Stream from "mithril/stream"
 
+export enum ContactSelectionDialogSize {
+	Medium,
+	Large,
+}
+
 export interface ContactSelectionDialogAttrs {
 	titleText: TranslationKey
-	contentText: TranslationKey
 	okActionText: TranslationKey
+	contentText?: TranslationKey
+	dialogSize?: ContactSelectionDialogSize
 	confirmActionText?: TranslationKey
 }
 
@@ -76,8 +82,7 @@ export function showContactSelectionDialog(
 				[
 					m(DialogHeaderBar, dialogHeaderBarAttrs),
 					m(
-						".scroll.hide-outline.plr-24.flex-grow",
-						{ style: { "overflow-x": "hidden" } },
+						`${attrs.dialogSize === ContactSelectionDialogSize.Large ? ".dialog-max-height" : ""}.plr-24.flex-grow`,
 						m(
 							ContentWithOptionsDialog,
 							{
@@ -102,7 +107,7 @@ export function showContactSelectionDialog(
 								subActionClick: () => {},
 							},
 							[
-								m(Card, m("p.mt-8", lang.getTranslationText(attrs.contentText))),
+								attrs.contentText ? m(Card, m("p.mt-8", lang.getTranslationText(attrs.contentText))) : null,
 								m(
 									".list-bg.border-radius.mt-8",
 									m(SelectAllCheckbox, {
@@ -113,11 +118,11 @@ export function showContactSelectionDialog(
 									}),
 								),
 								m(
-									".flex.col.rel.mt-8",
+									".flex.col.rel",
 									{
 										style: {
 											marginLeft: px(-8),
-											height: "20vh",
+											height: attrs.dialogSize === ContactSelectionDialogSize.Large ? "60vh" : "20vh",
 										},
 									},
 									m(List, {

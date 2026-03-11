@@ -41,6 +41,7 @@ import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
 import { isIOSApp } from "../../common/api/common/Env"
 import { _compareContactsForMerge } from "./ContactMergeUtils"
 import { ContactComparisonResult } from "../../common/api/common/TutanotaConstants"
+import { ContactSelectionDialogAttrs, ContactSelectionDialogSize, showContactSelectionDialog } from "./view/ContactSelectionDialog"
 
 export class ContactImporter {
 	constructor(
@@ -58,14 +59,23 @@ export class ContactImporter {
 		const contactMembership = getFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
 		const contacts = vCardListToContacts(vCardList, contactMembership.group)
 
-		return showContactImportDialog(
-			contacts,
-			(dialog, selectedContacts) => {
-				dialog.close()
-				this.importContacts(selectedContacts, contactListId)
-			},
-			"importVCard_action",
-		)
+		const attrs: ContactSelectionDialogAttrs = {
+			okActionText: "import_action",
+			titleText: "importVCard_action",
+			dialogSize: ContactSelectionDialogSize.Large,
+		}
+
+		return showContactSelectionDialog(attrs, contacts, (dialog, selectedContacts) => {
+			dialog.close()
+			// the contactSelectionDialog uses a listModel which expects _id's to be set
+			// we remove them here again to not cause problems when importing
+			selectedContacts = selectedContacts.map((contact) => {
+				// @ts-ignore
+				contact._id = null
+				return contact
+			})
+			this.importContacts(selectedContacts, contactListId)
+		})
 	}
 
 	private static combineVCardData(vCardData: string[]): string[] | null {
@@ -139,21 +149,31 @@ export class ContactImporter {
 				async (book) => await mobileContactsFacade.getContactsInContactBook(book.id, locator.logins.getUserController().loginUsername),
 			)
 		).flat()
-		const allImportableContacts = new Map(
-			allImportableStructuredContacts.map((structuredContact) => [
-				this.contactFromStructuredContact(contactGroupId, structuredContact),
+		const allImportableContactsToStructuredContact = new Map(
+			allImportableStructuredContacts.map((structuredContact, index) => [
+				this.contactFromStructuredContact(contactGroupId, structuredContact, index),
 				structuredContact,
 			]),
 		)
 
-		showContactImportDialog(
-			[...allImportableContacts.keys()],
-			async (dialog, selectedContacts) => {
-				dialog.close()
-				await this.onContactImportConfirmed(contactListId, selectedContacts, allImportableContacts)
-			},
-			"importContacts_label",
-		)
+		const attrs: ContactSelectionDialogAttrs = {
+			okActionText: "import_action",
+			titleText: "importContacts_label",
+			dialogSize: ContactSelectionDialogSize.Large,
+		}
+
+		const allImportableContacts = allImportableContactsToStructuredContact.keys()
+		showContactSelectionDialog(attrs, [...allImportableContacts], async (dialog, selectedContacts) => {
+			dialog.close()
+			// the contactSelectionDialog uses a listModel which expects _id's to be set
+			// we remove them here again to not cause problems when importing
+			selectedContacts = selectedContacts.map((contact) => {
+				// @ts-ignore
+				contact._id = null
+				return contact
+			})
+			await this.onContactImportConfirmed(contactListId, selectedContacts, allImportableContactsToStructuredContact)
+		})
 	}
 
 	private async onContactImportConfirmed(contactListId: string | null, selectedContacts: Contact[], allImportableContacts: Map<Contact, StructuredContact>) {
@@ -202,8 +222,9 @@ export class ContactImporter {
 		}
 	}
 
-	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
+	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact, index: number): Contact {
 		return createContact({
+			_id: ["dummyContactListId", "dummyContactElementId" + index],
 			_ownerGroup: ownerGroupId,
 			nickname: contact.nickname,
 			firstName: contact.firstName,
@@ -263,138 +284,6 @@ export class ContactImporter {
 			}
 		} else {
 			return null
-		}
-	}
-}
-
-/**
- * Show a dialog with a preview of a given list of contacts
- * @param contacts The contact list to be previewed
- * @param okAction The action to be executed when the user press the import button with at least one contact selected
- */
-export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: MaybeTranslation) {
-	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()
-	viewModel.selectContacts(contacts)
-	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
-		itemHeight: component_size.list_row_height,
-		multiselectionAllowed: MultiselectMode.Enabled,
-		swipe: null,
-		createElement: (dom) => {
-			return new KindaContactRow(
-				dom,
-				(selectedContact: Contact) => viewModel.selectSingleContact(selectedContact),
-				() => true,
-			)
-		},
-	}
-
-	const dialog = new Dialog(DialogType.EditSmall, {
-		view: () => [
-			/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
-			m(DialogHeaderBar, {
-				left: [
-					{
-						type: ButtonType.Secondary,
-						label: "cancel_action",
-						click: () => {
-							dialog.close()
-						},
-					},
-				],
-				middle: title,
-				right: [
-					{
-						type: ButtonType.Primary,
-						label: "import_action",
-						click: () => {
-							const selectedContacts = [...viewModel.getSelectedContacts()]
-							if (selectedContacts.length <= 0) {
-								Dialog.message("noContact_msg")
-							} else {
-								okAction(dialog, selectedContacts)
-							}
-						},
-					},
-				],
-			} satisfies DialogHeaderBarAttrs),
-			/** variable-size child container that may be scrollable. */
-			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
-				m(
-					".list-bg.border-radius.mt-8.ml-8.mr-8",
-					m(SelectAllCheckbox, {
-						style: {
-							"padding-left": "0",
-						},
-						selected: viewModel.isAllContactsSelected(contacts),
-						selectNone: () => viewModel.clearSelection(),
-						selectAll: () => viewModel.selectContacts(contacts),
-					}),
-				),
-				m(
-					".flex.col.rel.mt-8",
-					{
-						style: {
-							height: "80vh",
-						},
-					},
-					m(List, {
-						renderConfig,
-						state: {
-							items: contacts,
-							loadingStatus: ListLoadingState.Done,
-							loadingAll: false,
-							selectedItems: viewModel.getSelectedContacts(),
-							inMultiselect: true,
-							activeIndex: null,
-						},
-						onLoadMore() {},
-						onRangeSelectionTowards(item: Contact) {},
-						onRetryLoading() {},
-						onSingleSelection(item: Contact) {
-							viewModel.selectSingleContact(item)
-						},
-						onSingleTogglingMultiselection(item: Contact) {},
-						onStopLoading() {},
-					} satisfies ListAttrs<Contact, KindaContactRow>),
-				),
-			]),
-		],
-	}).show()
-}
-
-// Controls the selected contacts in `showContactImportDialog()`
-class ContactImportDialogViewModel {
-	private readonly selectedContacts: Set<Contact> = new Set()
-
-	getSelectedContacts(): Set<Contact> {
-		return new Set(this.selectedContacts)
-	}
-
-	// Compares the selected contacts against a list of contacts and returns whether they contain the same contacts
-	isAllContactsSelected(contacts: Contact[]): boolean {
-		const unselectedContacts = contacts.filter((contact) => !this.selectedContacts.has(contact))
-		return unselectedContacts.length <= 0
-	}
-
-	// Deselects all the selected contacts
-	clearSelection(): void {
-		this.selectedContacts.clear()
-	}
-
-	// Toggles the presence of a contact within the selected contacts
-	selectSingleContact(selectedContact: Contact): void {
-		if (this.selectedContacts.has(selectedContact)) {
-			this.selectedContacts.delete(selectedContact)
-		} else {
-			this.selectedContacts.add(selectedContact)
-		}
-	}
-
-	// Replaces the selected contacts with the provided contacts
-	selectContacts(contacts: Contact[]): void {
-		this.selectedContacts.clear()
-		for (const contact of contacts) {
-			this.selectedContacts.add(contact)
 		}
 	}
 }

@@ -1,21 +1,10 @@
 import o from "@tutao/otest"
-import {
-	ContactAddressTypeRef,
-	ContactMailAddressTypeRef,
-	ContactPhoneNumberTypeRef,
-	ContactTypeRef,
-	createContact,
-	createContactAddress,
-	createContactMailAddress,
-	createContactPhoneNumber,
-	createMailAddress,
-} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 // @ts-ignore[untyped-import]
 import en from "../../../src/mail-app/translations/en.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { createTestEntity } from "../TestUtils.js"
 
 o.spec("VCardImporterTest", function () {
 	o.before(async function () {
@@ -165,6 +154,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardData = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
+			_id: ["dummyContactListId", "dummyContactElementId0"],
 			_ownerGroup: "",
 			firstName: "John;Quinlan",
 			lastName: "Public\\",
@@ -206,6 +196,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardData = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
+			_id: ["dummyContactListId", "dummyContactElementId0"],
 			_ownerGroup: "",
 			firstName: "John;Quinlan",
 			lastName: "Public\\",
@@ -248,6 +239,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardData = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
+			_id: ["dummyContactListId", "dummyContactElementId0"],
 			_ownerGroup: "",
 			firstName: "John; Quinlan",
 			lastName: "Public\\",
@@ -298,6 +290,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardContent = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
 		const parsedContacts = vCardListToContacts(vcardContent, "")
 		const expectedContact = createContact({
+			_id: ["dummyContactListId", "dummyContactElementId0"],
 			_ownerGroup: "",
 			firstName: "",
 			lastName: "",
