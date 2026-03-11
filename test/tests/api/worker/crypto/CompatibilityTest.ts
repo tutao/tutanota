@@ -41,6 +41,7 @@ import {
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
+	sha256Hash,
 	uint8ArrayToKey,
 	verifyHmacSha256,
 	x25519Decapsulate,
@@ -231,12 +232,35 @@ o.spec("CompatibilityTest", function () {
 		})
 
 		o.spec("hash functions", function () {
+			const string10MiB = new Uint8Array(10 * 1024 * 1024)
+			const hashTestData: Uint8Array[] = []
+			hashTestData.push(...plaintextTestData, string10MiB)
+			o.spec("hash", function () {
+				o("Blake3", function () {
+					for (const testData of hashTestData) {
+						const start = new Date()
+						for (let i = 0; i < NUM_TEST_RUNS; i++) {
+							blake3Hash(testData)
+						}
+						const end = new Date()
+						console.log("testData length ", testData.length, "time in ms: ", end.getTime() - start.getTime())
+					}
+				})
+				o("SHA-256", function () {
+					for (const testData of hashTestData) {
+						const start = new Date()
+						for (let i = 0; i < NUM_TEST_RUNS; i++) {
+							sha256Hash(testData)
+						}
+						const end = new Date()
+						console.log("testData length ", testData.length, "time in ms: ", end.getTime() - start.getTime())
+					}
+				})
+			})
+
 			o.spec("MAC", function () {
-				const string10MiB = new Uint8Array(10 * 1024 * 1024)
-				const macTestData: Uint8Array[] = []
-				macTestData.push(...plaintextTestData, string10MiB)
 				o("Blake3 compute Mac", function () {
-					for (const testData of macTestData) {
+					for (const testData of hashTestData) {
 						const start = new Date()
 						for (let i = 0; i < NUM_TEST_RUNS; i++) {
 							blake3Mac(keys.authenticationKey, testData)
@@ -246,13 +270,42 @@ o.spec("CompatibilityTest", function () {
 					}
 				})
 				o("HMAC-SHA-256 compute Mac", function () {
-					for (const testData of macTestData) {
+					for (const testData of hashTestData) {
 						const start = new Date()
 						for (let i = 0; i < NUM_TEST_RUNS; i++) {
 							hmacSha256(keys.authenticationKey, testData)
 						}
 						const end = new Date()
 						console.log("testData length ", testData.length, "time in ms: ", end.getTime() - start.getTime())
+					}
+				})
+			})
+
+			o.spec("KDF", function () {
+				const context = utf8Uint8ArrayToString(string100B)
+				const outputLength = [32, 64, 128, 1024]
+				o("Blake3 derive key", function () {
+					for (const testData of hashTestData) {
+						for (const outLength of outputLength) {
+							const start = new Date()
+							for (let i = 0; i < NUM_TEST_RUNS; i++) {
+								blake3Kdf(testData, context, outLength)
+							}
+							const end = new Date()
+							console.log("testData length ", testData.length, " output length: ", outLength, " time in ms: ", end.getTime() - start.getTime())
+						}
+					}
+				})
+				o("HKDF-SHA-256 derive key", function () {
+					for (const testData of hashTestData) {
+						for (const outLength of outputLength) {
+							const start = new Date()
+							for (let i = 0; i < NUM_TEST_RUNS; i++) {
+								hkdf(null, testData, string100B, outLength)
+							}
+							const end = new Date()
+							console.log("testData length ", testData.length, " output length: ", outLength, " time in ms: ", end.getTime() - start.getTime())
+						}
 					}
 				})
 			})
