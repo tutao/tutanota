@@ -8,6 +8,11 @@ import TutanotaSharedFramework
 import tutasdk
 
 // Start of day to list of events
+/**
+ A map representing a set of events on a given day.
+ Keys are the epoch milliseconds (or seconds?) representing the start of a day.
+ Values are an array of CalendarEventData for events occurring on that day.
+ */
 typealias EventMap = [Double: [CalendarEventData]]
 
 typealias LongEventsDataMap = [Double: SimpleLongEventsData]
@@ -21,6 +26,13 @@ struct CalendarEventData: Equatable, Hashable, Encodable {
 	var isBirthdayEvent: Bool
 }
 
+/**
+ 	Data representing the Long Events and All Day events that will be displayed in the widget.
+ 	(This may have been done to handle memory constraints due to how iOS Timeline functions.)
+
+ 	- Parameter event: The *only* event that will have its data displayed in the widget.
+ 	- Parameter count: The total number of events of this type, not all of which will have their info displayed.
+ */
 struct SimpleLongEventsData: Equatable, Hashable, Encodable {
 	var event: CalendarEventData?
 	var count: Int

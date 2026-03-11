@@ -9,36 +9,25 @@ import TutanotaSharedFramework
 import WidgetKit
 
 struct Header: View {
-	var allDayEvents: LongEventsDataMap
+	var allDayEvents: SimpleLongEventsData
 	var userId: String
 	let startOfToday = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
 	let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
-
 	var body: some View {
-		let hasAllDayEvents = (allDayEvents[startOfToday]?.count ?? 0) > 0
-		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -Dimensions.Spacing.XS }
-
+		let hasAllDayEventsToday = allDayEvents.count > 0
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
-
 		return HStack(alignment: .top) {
 			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
-				HStack {
-					VStack(alignment: .leading, spacing: titleBottomPadding) {
-						if hasAllDayEvents {
-							HeaderDate(allDayEventsData: allDayEvents[startOfToday] ?? SimpleLongEventsData(event: nil, count: 0), weekday: weekday, day: day)
-						} else {
-							Text(day).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
-							Text(weekday).font(.system(size: 12))
-						}
-					}
-					.foregroundStyle(Color(.onSurface))
-					Spacer()
+				VStack(alignment: .leading, spacing: 0) {
+					Text(day + " " + weekday).lineLimit(1).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_20))
 				}
+				// padding is necessary because HeaderButton must be flush with card corner, but the text info must not.
+				.padding(.leading, Dimensions.Spacing.SM).padding(.top, Dimensions.Spacing.SM).buttonStyle(.plain)
 			}
-			.buttonStyle(.plain).padding(.leading, Dimensions.Spacing.MD).padding(.top, Dimensions.Spacing.SM)
+			Spacer()
 			HeaderButton(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor))
 		}
+		.buttonStyle(.plain)
 	}
-
 }

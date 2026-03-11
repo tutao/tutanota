@@ -10,7 +10,6 @@ import WidgetKit
 
 struct DaysList: View {
 	var userId: String
-	var isEmpty: Bool
 	var family: WidgetFamily
 	var widgetHeight: CGFloat
 	var normalEvents: EventMap
@@ -18,43 +17,31 @@ struct DaysList: View {
 
 	var body: some View {
 		LazyVStack(alignment: .leading, spacing: 6) {
-			ForEach(normalEvents.keys.sorted(by: { $0 < $1 }), id: \.self) { startOfDay in
-				let parsedDay = Date(timeIntervalSince1970: startOfDay)
+			let days: [Double] = normalEvents.keys.sorted(by: { $0 < $1 })
 
-				let events = normalEvents[startOfDay] ?? []
-				let allDayEvents = allDayEventsData[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
-
-				let hasAllDayEvents = allDayEvents.count > 0
-				let isToday = Calendar.current.isDateInToday(parsedDay)
-
-				return Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
-					Card {
-						if isToday {
-							Header(allDayEvents: allDayEventsData, userId: userId)
-						} else if hasAllDayEvents {
-							AllDayHeader(allDayEventsData: allDayEvents)
-						}
-
-						if isEmpty {
-							EmptyBody(widgetHeight: widgetHeight, family: family)
-						} else {
-							// Has at least one all day event
-							if events.isEmpty {
-								self.RenderOnlyAllDayEvents(date: parsedDay, hasAllDay: hasAllDayEvents)
-							} else {
-								EventsList(userId: userId, events: events)
-							}
-						}
-					}
-				}
-				.buttonStyle(.plain)
+			ForEach(days, id: \.self) { startOfDay in
+				DayRow(startOfDay: startOfDay, userId: userId, normalEvents: normalEvents, allDayEventsData: allDayEventsData)
 			}
 		}
 	}
+}
 
-	@ViewBuilder private func RenderOnlyAllDayEvents(date: Date, hasAllDay: Bool) -> some View {
-		let isToday = Calendar.current.isDateInToday(date)
+private struct DayRow: View {
+	let startOfDay: Double
+	let userId: String
+	let normalEvents: EventMap
+	let allDayEventsData: LongEventsDataMap
 
-		if isToday { NoEventsSmall() } else if hasAllDay { NoEvents(userId: userId, isToday: isToday, date: date) }
+	var body: some View {
+		let parsedDay = Date(timeIntervalSince1970: startOfDay)
+		let normalEventsOnDay: [CalendarEventData] = normalEvents[startOfDay] ?? []
+		let allDayEventsOnDay: SimpleLongEventsData = allDayEventsData[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
+		let isToday = Calendar.current.isDateInToday(parsedDay)
+
+		if isToday {
+			TodayCard(allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: parsedDay)
+		} else {
+			OtherDayCard(userId: userId, date: parsedDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
+		}
 	}
 }
