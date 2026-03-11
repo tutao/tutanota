@@ -1,5 +1,5 @@
 import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
-import { MailAuthenticationStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { MailAuthenticationStatus, MailPhishingStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -8,6 +8,9 @@ import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
+import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
+import { LoginController } from "../../../common/api/main/LoginController"
 
 assertMainOrNode()
 
@@ -25,6 +28,8 @@ export class SpamClassificationHandler {
 	public constructor(
 		private readonly spamClassifier: SpamClassifier,
 		private readonly contactModel: ContactModel,
+		private readonly mailFacade: MailFacade,
+		private readonly loginController: LoginController,
 	) {}
 
 	public async predictSpamForNewMail(
@@ -35,10 +40,12 @@ export class SpamClassificationHandler {
 	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
 		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
+		const isMailMarkedAsPhishing = mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
+
 		const serverClassifiers = mail.serverClassificationData ? extractServerClassifiers(mail.serverClassificationData) : []
-		const isMailFromAContact = await this.isMailFromContacts(mail, mailDetails)
 		const isMailClassifiedByTrustedServerClassifier = serverClassifiers.some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
-		const useClientSpamClassifier = !isMailClassifiedByTrustedServerClassifier && !isMailFromAContact
+		const isMailFromTrustedSender = await this.isMailFromTrustedSender(mail, mailDetails)
+		const useClientSpamClassifier = !isMailMarkedAsPhishing && !isMailFromTrustedSender && !isMailClassifiedByTrustedServerClassifier
 
 		let targetFolder = sourceFolder
 		if (useClientSpamClassifier && modelInput) {
@@ -49,8 +56,11 @@ export class SpamClassificationHandler {
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 			}
 		} else if (!useClientSpamClassifier) {
-			if (isMailFromAContact) {
-				console.log(`skipped spam classification for mail from contacts ${mail.sender.address}`)
+			if (isMailMarkedAsPhishing) {
+				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
+				console.log(`skipped spam classification for mail marked as phishing`)
+			} else if (isMailFromTrustedSender) {
+				console.log(`skipped spam classification for mail from trusted sender`)
 			} else if (isMailClassifiedByTrustedServerClassifier) {
 				console.log(`skipped spam classification for new mail because of trusted server classifiers ${serverClassifiers} for ownerGroup ${ownerGroup}`)
 			}
@@ -67,10 +77,32 @@ export class SpamClassificationHandler {
 		return { targetFolder, processInboxDatum: processInboxDatum }
 	}
 
+	private async isMailFromTrustedSender(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+		// check if phishingStatus is not suspicious and if the sender is a trusted sender
+		const isMailFromContact = await this.isMailFromContacts(mail, mailDetails)
+		const isMailFromSelf = await this.isMailFromSelf(mail, mailDetails)
+		const isMailFromTutaTeam = isTutaTeamMail(mail)
+
+		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && (isMailFromSelf || isMailFromTutaTeam || isMailFromContact)
+	}
+
 	private async isMailFromContacts(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		return (
 			((await this.contactModel.searchForContact(mail.sender.address)) != null && mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) ??
 			false
 		)
+	}
+
+	/**
+	 * We check if a mail is from yourself, meaning your own user, aliases and shared mailboxes.
+	 *
+	 * We cannot use EncryptionAuthStatus, we verify only the authStatus for now, because EncryptionAuthStatus is not
+	 * yet updated at the point this check is performed.
+	 *
+	 */
+	private async isMailFromSelf(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
+		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
+		return mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED && isMailFromSelf
 	}
 }
