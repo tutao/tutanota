@@ -344,64 +344,25 @@ import("./translations/en.js")
 			return {
 				async onmatch(...args) {
 					if (actualResolver == null) {
-						const activeTests = await mailLocator.usageTestModel.loadActiveUsageTests()
-						mailLocator.usageTestController.setTests(activeTests)
-						const { SignupFlowUsageTestController } = await import("../common/subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils.js")
-						const variant = SignupFlowUsageTestController.getUsageTestVariant()
-						if (variant === 1) {
-							// old signup
-							console.log("signup old variant", variant)
-							actualResolver = {
-								async onmatch() {
-									const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
-
-									// We have to manually parse it because mithril does not put hash into args of onmatch
-									const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-									showSignupDialog(urlParams)
-
-									// Change the href of the canonical link element to make the /signup path indexed.
-									// Since this is just for search crawlers, we do not have to change it again later.
-									// We know at least Google crawler executes js to render the application.
-									const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
-									if (canonicalEl) {
-										canonicalEl.href = "https://app.tuta.com/signup"
+						// new signup
+						const { SignupView, SignupViewModel } = await import("../common/signup/SignupView")
+						actualResolver = makeViewResolver<SignupViewAttrs, SignupView, { viewModel: SignupViewModel }>(
+							{
+								prepareRoute: async () => {
+									const migrator = await mailLocator.credentialFormatMigrator()
+									await migrator.migrate()
+									return {
+										component: SignupView,
+										cache: {
+											viewModel: new SignupViewModel(),
+										},
 									}
-
-									// when the user presses the browser back button, we would get a /login route without arguments
-									// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
-									// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
-									// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
-									m.route.set("/login", {
-										keepSession: true,
-									})
-									m.route.set("/login", {
-										keepSession: true,
-									})
-									return null
 								},
-							}
-						} else {
-							// new signup
-							const { SignupView, SignupViewModel } = await import("../common/signup/SignupView")
-							console.log("signup new variant", variant)
-							actualResolver = makeViewResolver<SignupViewAttrs, SignupView, { viewModel: SignupViewModel }>(
-								{
-									prepareRoute: async () => {
-										const migrator = await mailLocator.credentialFormatMigrator()
-										await migrator.migrate()
-										return {
-											component: SignupView,
-											cache: {
-												viewModel: new SignupViewModel(),
-											},
-										}
-									},
-									prepareAttrs: (cache) => cache,
-									requireLogin: false,
-								},
-								mailLocator.logins,
-							)
-						}
+								prepareAttrs: (cache) => cache,
+								requireLogin: false,
+							},
+							mailLocator.logins,
+						)
 					}
 					return actualResolver.onmatch?.(...args)
 				},
