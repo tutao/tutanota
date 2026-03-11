@@ -24,40 +24,24 @@ struct EventBody: View {
 		} else {
 			eventTitle = event == nil ? translate("TutaoWidgetNoEventsMsg", default: "No events") : translate("TutaoNoTitleLabel", default: "<No title>")
 		}
-
-		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: eventDate)
-		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
-		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
-
-		return HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.MD) {
-			if !happensToday {
-				HStack(alignment: VerticalAlignment.center) {
-					VStack(spacing: -2) {
-						Text(day).font(.system(size: 20, weight: .bold))
-						Text(weekday).font(.system(size: 12, weight: .regular)).lineLimit(1)
-					}
+		return Button(
+			intent: WidgetActionsIntent(
+				userId: userId,
+				date: eventDate,
+				action: event?.id == nil ? WidgetActions.agenda : WidgetActions.eventDetails,
+				eventId: event?.id
+			)
+		) {
+			HStack(spacing: Dimensions.Spacing.MD) {
+				Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).clipShape(.rect(cornerRadius: 3))
+				VStack(alignment: .leading) {
+					Text(eventTitle).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_14))
+					if eventTime != nil { Text(eventTime!).font(.system(size: Dimensions.FontSize.font_12)) }
 				}
-				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 28, alignment: .leading)
+				Spacer()
 			}
-			Button(
-				intent: WidgetActionsIntent(
-					userId: userId,
-					date: eventDate,
-					action: event?.id == nil ? WidgetActions.agenda : WidgetActions.eventDetails,
-					eventId: event?.id
-				)
-			) {
-				HStack(spacing: Dimensions.Spacing.MD) {
-					VStack { Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3)) }
-					VStack(alignment: .leading) {
-						Text(eventTitle).fontWeight(.bold).font(.system(size: 14))
-						if eventTime != nil { Text(eventTime!).font(.system(size: 10)) }
-					}
-					.foregroundStyle(Color(.onSurface)).frame(maxHeight: .infinity, alignment: .center)
-				}
-				.frame(maxWidth: .infinity, alignment: .leading)
-			}
-			.buttonStyle(.plain)
+			.fixedSize(horizontal: false, vertical: true)
 		}
+		.buttonStyle(.plain)
 	}
 }
