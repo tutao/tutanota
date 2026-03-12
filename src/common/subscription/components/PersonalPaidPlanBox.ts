@@ -5,7 +5,7 @@ import { type Callback } from "@tutao/tutanota-utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"
-import { Theme, theme } from "../../gui/theme.js"
+import { isLightTheme, theme, Theme } from "../../gui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -154,6 +154,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						checked: isSelected,
 						style: {
 							opacity: isDisabled ? "0" : "1",
+							"accent-color": isLightTheme() ? localTheme.primary : localTheme.primary_container,
 						},
 						disabled: isDisabled,
 					}),

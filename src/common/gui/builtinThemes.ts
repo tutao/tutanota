@@ -108,6 +108,9 @@ export const themes = (): Themes => {
 		il_outline: "#3B080F",
 		il_ne_outline: "#3B080F",
 		il_highlight: "#F9E5E5",
+		il_sign_up_flow_switch: "#F5EEEA",
+		il_sign_up_flow_switch_2: "#FFF",
+		il_sign_up_flow_switch_4: "#FFF",
 	})
 	const darkRed = Object.freeze<Theme>({
 		...semanticColorsDark,
@@ -165,6 +168,9 @@ export const themes = (): Themes => {
 		il_outline: "#1A1111",
 		il_ne_outline: "#F9E5E5",
 		il_highlight: "#F9E5E5",
+		il_sign_up_flow_switch: "#D7C1C1",
+		il_sign_up_flow_switch_2: "#FCF9F6",
+		il_sign_up_flow_switch_4: "#FCF9F6",
 	})
 	const lightBlue = Object.freeze<Theme>({
 		...semanticColorsLight,
@@ -222,6 +228,9 @@ export const themes = (): Themes => {
 		il_outline: "#001A40",
 		il_ne_outline: "#001A40",
 		il_highlight: "#E9EFFF",
+		il_sign_up_flow_switch: "#EBEEF5",
+		il_sign_up_flow_switch_2: "#F7F9FC",
+		il_sign_up_flow_switch_4: "#F7F9FC",
 	})
 	const darkBlue = Object.freeze<Theme>({
 		...semanticColorsDark,
@@ -279,6 +288,9 @@ export const themes = (): Themes => {
 		il_outline: "#101418",
 		il_ne_outline: "#E9EFFF",
 		il_highlight: "#E9EFFF",
+		il_sign_up_flow_switch: "#C4C6D0",
+		il_sign_up_flow_switch_2: "#F7F9FC",
+		il_sign_up_flow_switch_4: "#F7F9FC",
 	})
 
 	return {
