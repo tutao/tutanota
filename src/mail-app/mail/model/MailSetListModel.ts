@@ -104,6 +104,11 @@ export interface MailSetListModel {
 	retryLoading(): Promise<void>
 
 	/**
+	 * Reload the list from the start.
+	 */
+	reload(): Promise<void>
+
+	/**
 	 * Load older items in the list.
 	 */
 	loadMore(): Promise<void>

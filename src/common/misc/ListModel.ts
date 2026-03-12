@@ -160,6 +160,17 @@ export class ListModel<ItemType, IdType> {
 		await this.doLoad()
 	}
 
+	async reload() {
+		if (this.rawState.loadingStatus === ListLoadingState.Loading) {
+			return this.loading
+		}
+		if (this.initialLoading == null || (this.rawState.loadingStatus !== ListLoadingState.Idle && this.rawState.loadingStatus !== ListLoadingState.Done)) {
+			return
+		}
+		this.rawStateStream(this.defaultRawStateStream)
+		await this.doLoad()
+	}
+
 	updateLoadingStatus(status: ListLoadingState) {
 		if (this.rawState.loadingStatus === status) return
 

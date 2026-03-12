@@ -343,6 +343,10 @@ export class ConversationListModel implements MailSetListModel {
 		await this.listModel.retryLoading()
 	}
 
+	async reload() {
+		await this.listModel.reload()
+	}
+
 	selectAll(): void {
 		this.listModel.selectAll()
 	}

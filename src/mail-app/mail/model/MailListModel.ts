@@ -268,6 +268,10 @@ export class MailListModel implements MailSetListModel {
 		await this.listModel.retryLoading()
 	}
 
+	async reload() {
+		await this.listModel.reload()
+	}
+
 	stopLoading() {
 		this.listModel.stopLoading()
 	}

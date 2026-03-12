@@ -96,7 +96,6 @@ o.spec("ListModel", function () {
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
 			o(listModel.state.items).deepEquals([knowledgeBaseEntry])
 		})
-
 		o("when called with retryLoading after connection error it will set state to loading and will load again", async function () {
 			const initialLoading = listModel.loadInitial()
 			fetchDefer.reject(new ConnectionError("oops"))
@@ -108,6 +107,55 @@ o.spec("ListModel", function () {
 
 			fetchDefer.resolve({ items: [], complete: true })
 			await retryLoading
+
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
+		})
+
+		o("when reload is called it reloads only if the list model is in Idle state", async function () {
+			const initialLoading = listModel.loadInitial()
+			fetchDefer.resolve({ items: [], complete: false })
+			await initialLoading
+
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			fetchDefer = defer()
+			const reloading = listModel.reload()
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
+
+			const knowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: [listId, timestampToGeneratedId(10)],
+			})
+
+			fetchDefer.resolve({
+				items: [knowledgeBaseEntry],
+				complete: true,
+			})
+
+			await reloading
+
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
+			o(listModel.state.items).deepEquals([knowledgeBaseEntry])
+		})
+
+		o("when reload is called and initialLoading is null it does nothing", async function () {
+			const result = listModel.reload()
+
+			o(await result).equals(undefined)
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+		})
+
+		o("when reload is called on already loading list model it does not start another load", async function () {
+			const initialLoading = listModel.loadInitial()
+			fetchDefer.resolve({ items: [], complete: true })
+			await initialLoading
+
+			const reload1 = listModel.reload()
+			const reload2 = listModel.reload()
+
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
+
+			fetchDefer.resolve({ items: [], complete: true })
+
+			await reload1
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
 		})
