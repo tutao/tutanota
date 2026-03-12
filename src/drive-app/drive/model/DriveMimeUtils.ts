@@ -1,5 +1,6 @@
 import { getFileExtension } from "../../../common/api/common/utils/FileUtils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { theme } from "../../../common/gui/theme"
 
 export enum FileType {
 	Default,
@@ -7,6 +8,16 @@ export enum FileType {
 	Image,
 	Audio,
 	Video,
+}
+
+// If we mapped to the color values directly, they would not
+// reflect theme changes, as this record only gets evaluated once.
+const fileTypeFill: Record<FileType, () => string> = {
+	[FileType.Default]: () => theme.on_surface,
+	[FileType.Document]: () => theme.drive_document,
+	[FileType.Image]: () => theme.drive_image,
+	[FileType.Audio]: () => theme.drive_audio,
+	[FileType.Video]: () => theme.drive_video,
 }
 
 export type FileFormat =
@@ -77,6 +88,14 @@ export function getFileIcon(displayFileType: DisplayFileType): Icons {
 		return Icons.VideoFilled
 	} else {
 		return Icons.EmptyDocumentFilled
+	}
+}
+
+export function getItemIconFill(maybeDisplayFileType: DisplayFileType | null): string {
+	if (maybeDisplayFileType) {
+		return fileTypeFill[maybeDisplayFileType.fileType]()
+	} else {
+		return theme.drive_folder
 	}
 }
 

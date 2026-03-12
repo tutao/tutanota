@@ -94,6 +94,12 @@ export type Theme = {
 	experimental_tertiary: string
 	go_european: string
 	on_go_european: string
+	// Drive icon colors
+	drive_folder: string
+	drive_document: string
+	drive_image: string
+	drive_video: string
+	drive_audio: string
 }
 
 const themeSingleton = {}

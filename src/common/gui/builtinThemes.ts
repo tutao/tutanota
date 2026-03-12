@@ -111,6 +111,12 @@ export const themes = (): Themes => {
 		il_sign_up_flow_switch: "#F5EEEA",
 		il_sign_up_flow_switch_2: "#FFF",
 		il_sign_up_flow_switch_4: "#FFF",
+		// Drive icon colors
+		drive_folder: "#4A662C",
+		drive_document: "#8F4A4E",
+		drive_image: "#006A65",
+		drive_video: "#7F4D7B",
+		drive_audio: "#A2752F",
 	})
 	const darkRed = Object.freeze<Theme>({
 		...semanticColorsDark,
@@ -171,6 +177,12 @@ export const themes = (): Themes => {
 		il_sign_up_flow_switch: "#D7C1C1",
 		il_sign_up_flow_switch_2: "#FCF9F6",
 		il_sign_up_flow_switch_4: "#FCF9F6",
+		// Drive icon colors
+		drive_folder: "#B0D18B",
+		drive_document: "#FFB3B5",
+		drive_image: "#81D5CE",
+		drive_video: "#F0B3E8",
+		drive_audio: "#F3BD6E",
 	})
 	const lightBlue = Object.freeze<Theme>({
 		...semanticColorsLight,
@@ -231,6 +243,12 @@ export const themes = (): Themes => {
 		il_sign_up_flow_switch: "#EBEEF5",
 		il_sign_up_flow_switch_2: "#F7F9FC",
 		il_sign_up_flow_switch_4: "#F7F9FC",
+		// Drive icon colors
+		drive_folder: "#4A662C",
+		drive_document: "#8F4A4E",
+		drive_image: "#006A65",
+		drive_video: "#7F4D7B",
+		drive_audio: "#A2752F",
 	})
 	const darkBlue = Object.freeze<Theme>({
 		...semanticColorsDark,
@@ -291,6 +309,12 @@ export const themes = (): Themes => {
 		il_sign_up_flow_switch: "#C4C6D0",
 		il_sign_up_flow_switch_2: "#F7F9FC",
 		il_sign_up_flow_switch_4: "#F7F9FC",
+		// Drive icon colors
+		drive_folder: "#B0D18B",
+		drive_document: "#FFB3B5",
+		drive_image: "#81D5CE",
+		drive_video: "#F0B3E8",
+		drive_audio: "#F3BD6E",
 	})
 
 	return {
