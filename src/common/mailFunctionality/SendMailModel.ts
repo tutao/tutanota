@@ -8,6 +8,7 @@ import {
 	MAX_ATTACHMENT_SIZE,
 	minutesToMillis,
 	OperationType,
+	ProgrammingError,
 	ReplyType,
 } from "@tutao/app-env"
 import { DataFile } from "../api/common/DataFile.js"
@@ -49,7 +50,6 @@ import { UserController } from "../api/main/UserController.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
 import * as restError from "@tutao/rest-client/error"
-import { ProgrammingError } from "@tutao/app-env"
 import { UserError } from "../api/main/UserError.js"
 import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
 import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResolvedError.js"
@@ -136,6 +136,8 @@ export class SendMailModel {
 
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
+	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
+	private removedInlineImages: Array<Attachment> = []
 
 	private replyTos: Array<ResolvableRecipient> = []
 
@@ -770,6 +772,10 @@ export class SendMailModel {
 	 */
 	getAttachments(): Array<Attachment> {
 		return this.attachments
+	}
+
+	getRemovedInlineImages(): Array<Attachment> {
+		return this.removedInlineImages
 	}
 
 	/** @throws UserError in case files are too big to add */
