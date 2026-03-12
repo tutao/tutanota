@@ -1,7 +1,6 @@
 import m, { _NoLifecycle, Children, CommonAttributes, Component, Vnode, VnodeDOM } from "mithril"
-import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
-import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton"
@@ -11,6 +10,7 @@ import { modal } from "../../../common/gui/base/Modal"
 import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { getContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
+import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -40,36 +40,6 @@ export interface DriveFolderContentEntryAttrs {
 	onDomUpdated?: (dom: HTMLElement, moreActionsDom: HTMLElement) => unknown
 }
 
-const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
-
-const isMusicMimeType = (mimeType: string) => ["audio/mpeg", "audio/wav", "audio/wave", "audio/x-wav", "audio/mp4"].includes(mimeType)
-
-const isDocumentMimeType = (mimeType: string) => ["text/plain", "application/pdf"].includes(mimeType)
-
-export function iconPerMimeType(mimeType: string): Icons {
-	if (isImageMimeType(mimeType)) {
-		return Icons.PictureFilled
-	} else if (isMusicMimeType(mimeType)) {
-		return Icons.AudioFilled
-	} else if (isDocumentMimeType(mimeType)) {
-		return Icons.TextFilled
-	}
-
-	return Icons.EmptyDocumentFilled
-}
-
-const mimeTypeRepresentations: Record<string, string> = {
-	"image/jpeg": "JPEG",
-	"image/png": "PNG",
-	"audio/mpeg": "MPEG",
-	"audio/mp4": "AAC/ALAC",
-	"application/pdf": "PDF",
-	"text/plain": "Text",
-}
-const mimeTypeAsText = (mimeType: string) => {
-	return mimeTypeRepresentations[mimeType] || "File"
-}
-
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	private isDraggedOver: boolean = false
 	private moreButtonDom: HTMLElement | null = null
@@ -96,7 +66,9 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
-		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
+
+		const displayType = item.type === "file" ? getDisplayType(item.file.mimeType, item.file.name) : null
+		const fileFormat = displayType?.fileFormat ?? "Folder"
 
 		return m(
 			"div.flex.row.folder-row.cursor-pointer",
@@ -176,7 +148,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					"div",
 					{ role: "gridcell" },
 					m(Icon, {
-						icon: item.type === "folder" ? Icons.FolderFilled : iconPerMimeType(item.file.mimeType),
+						icon: item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(displayType)),
 						size: IconSize.PX24,
 						style: {
 							fill: theme.on_surface,
@@ -191,7 +163,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					{ "data-testid": "drivecontententry:name", role: "gridcell" },
 					m("span", item.type === "file" ? item.file.name : item.folder.name),
 				),
-				m("div", { role: "gridcell" }, thisFileMimeType),
+				m("div", { role: "gridcell" }, fileFormat),
 				m("div", { role: "gridcell" }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
 				m("div", { role: "gridcell" }, updatedDate.toLocaleString()),
 				m(

@@ -1,6 +1,6 @@
 import m, { Children, CommonAttributes, Component, Vnode } from "mithril"
 import { ClipboardAction, DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
-import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
+import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { component_size, font_size, px, size } from "../../../common/gui/size"
@@ -16,6 +16,7 @@ import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { styles } from "../../../common/gui/styles"
 import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
+import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -251,7 +252,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							},
 						},
 						m(Icon, {
-							icon: item.type === "folder" ? Icons.FolderFilled : iconPerMimeType(item.file.mimeType),
+							icon: item.type === "folder" ? Icons.FolderFilled : getFileIcon(getDisplayType(item.file.mimeType)),
 							size: IconSize.PX24,
 							style: {
 								fill: theme.on_surface,

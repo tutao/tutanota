@@ -9,9 +9,11 @@ import { theme } from "../../../common/gui/theme"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { attachDropdown } from "../../../common/gui/base/Dropdown"
 import { formatDateTime } from "../../../common/misc/Formatter"
-import { FileActions, iconPerMimeType } from "./DriveFolderContentEntry"
+import { FileActions } from "./DriveFolderContentEntry"
 import { getContextActions } from "./DriveGuiUtils"
 import { DriveFolderSelectionEvents } from "./DriveFolderContent"
+import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export interface DriveFolderContentMobileAttrs {
 	listState: ListState<FolderItem>
@@ -139,9 +141,12 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 		this.filenameDom.innerText = item.type === "file" ? item.file.name : item.folder.name
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
 		this.dateDom.innerText = formatDateTime(updatedDate)
-		const icon = item.type === "file" ? iconPerMimeType(item.file.mimeType) : Icons.FolderFilled
+
+		const displayType = item.type === "file" ? getDisplayType(item.file.mimeType) : null
+		const icon = item.type === "file" ? getFileIcon(assertNotNull(displayType)) : Icons.FolderFilled
 		// SAFETY: we only use our sanitized icons
 		this.iconDom.innerHTML = IconsSvg[icon]
+
 		this.selectionSetter(selected, multiselect)
 	}
 }
