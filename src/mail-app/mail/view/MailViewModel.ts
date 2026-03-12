@@ -1,26 +1,22 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
-	ImportedMailTypeRef,
 	ImportMailState,
 	ImportMailStateTypeRef,
 	Mail,
 	MailBox,
 	MailSet,
-	MailSetEntry,
 	MailSetEntryTypeRef,
-	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { $Promisable, assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { elementIdPart, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/tutanota-utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
+import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import {
 	getMailSetKind,
-	ImportStatus,
 	isPermanentDeleteAllowedForFolder,
 	MailSetKind,
 	OperationType,
@@ -34,7 +30,7 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority, PrefetchStatus } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
@@ -710,12 +706,9 @@ export class MailViewModel {
 			return
 		}
 
-		let importMailStateUpdates: Array<EntityUpdateData<ImportMailState>> = []
 		for (const update of updates) {
-			if (update.operation === OperationType.CREATE) {
-				if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-					importMailStateUpdates.push(update)
-				}
+			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 			} else if (update.operation === OperationType.UPDATE) {
 				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
@@ -725,70 +718,29 @@ export class MailViewModel {
 						this.setListId(folderForMail)
 					}
 				} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-					importMailStateUpdates.push(update)
+					await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 				}
 			}
 
 			await listModel.handleEntityUpdate(update)
-
-			for (let importMailStateUpdate of importMailStateUpdates) {
-				await this.processImportedMails(importMailStateUpdate)
-			}
 		}
 	}
 
-	private async processImportedMails(update: EntityUpdateData<ImportMailState>) {
+	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData<ImportMailState>) {
+		// We delete the range of MailSetEntries for the targetFolder entries list of the import.
+		// This makes sure, that we keep already downloaded MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
+		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to this import in background
+		// and ensures that all imported mails are searchable immediately.
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-		let status = parseInt(importMailState.status) as ImportStatus
+		const targetFolder = await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
+		if (targetFolder) {
+			const targetFolderEntriesListId = targetFolder.entries
+			await this.cacheStorage.deleteRange(MailSetEntryTypeRef, targetFolderEntriesListId)
 
-		if (status === ImportStatus.Finished || status === ImportStatus.Canceled) {
-			let importedFolder
-			try {
-				importedFolder = await this.entityClient.load(MailSetTypeRef, importMailState.targetFolder)
-			} catch (e) {
-				if (isExpectedErrorForSynchronization(e)) {
-					// in case the import folder was deleted, we can return
-					return Promise.resolve()
-				}
-				throw e
+			const selectedMailSet = this.getFolder()
+			if (selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
+				this.listModel?.reload()
 			}
-
-			let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
-			if (isEmpty(importedMailEntries)) {
-				return Promise.resolve()
-			}
-
-			const mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
-			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
-			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
-			if (isEmpty(importedMailSetEntries)) {
-				return Promise.resolve()
-			}
-
-			// put mails into the cache before the list model downloads them one by one
-			await this.preloadMails(importedMailSetEntries)
-
-			const listModelOfImport = assertNotNull(this._listModel)
-			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
-				return listModelOfImport.handleEntityUpdate({
-					instanceId: elementIdPart(importedMailSetEntry._id),
-					instanceListId: importedFolder.entries as NonEmptyString,
-					operation: OperationType.CREATE,
-					typeRef: MailSetEntryTypeRef,
-					instance: null,
-					patches: null,
-					prefetchStatus: PrefetchStatus.Prefetched,
-				})
-			})
-		}
-	}
-
-	private async preloadMails(importedMailSetEntries: MailSetEntry[]) {
-		const mailIds = importedMailSetEntries.map((mse) => mse.mail)
-		const mailsByList = groupBy(mailIds, (m) => listIdPart(m))
-		for (const [listId, mailIds] of mailsByList.entries()) {
-			const mailElementIds = mailIds.map((m) => elementIdPart(m))
-			await this.entityClient.loadMultiple(MailTypeRef, listId, mailElementIds)
 		}
 	}
 
