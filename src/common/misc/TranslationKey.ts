@@ -2260,3 +2260,7 @@ export type TranslationKeyType =
 	| "widgetNoEventsToday_msg"
 	| "emptyString_msg"
 	| "mailExportSuggestAlternative_msg"
+	| "reIndexLocalData_msg"
+	| "reIndexRunInBackground_msg"
+	| "rebuildSearchIndex_action"
+	| "indexingEmails_msg"

@@ -648,6 +648,19 @@ export class MailIndexer {
 	private get backend(): MailIndexerBackend {
 		return assertNotNull(this._backend)
 	}
+
+	async rebuildIndex(user: User) {
+		if (!this._mailIndexingEnabled) {
+			return
+		}
+		if (this._isIndexing) {
+			this.cancelMailIndexing()
+		}
+		const currentIndexTimestamp = this._currentIndexTimestamp
+		await this.backend.resetIndex()
+		await this.updateCurrentIndexTimestamp(user)
+		await this.indexMailboxes(user, currentIndexTimestamp)
+	}
 }
 
 // Given all index timestamps find a common denominator.

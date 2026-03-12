@@ -574,4 +574,8 @@ export class IndexedDbIndexer implements Indexer {
 	async resizeMailIndex(_: number) {
 		throw new ProgrammingError("resizeMailIndex can only be called with offline storage")
 	}
+
+	async rebuildMailIndex() {
+		await this.mailIndexer.rebuildIndex(this.initParams.user)
+	}
 }

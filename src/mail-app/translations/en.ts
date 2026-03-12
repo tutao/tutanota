@@ -2262,5 +2262,9 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"mailExportSuggestAlternative_msg": "Preparing {current} of {total} emails for export...\n\nNote: When exporting more than 1000 mails, please use Settings -> Export instead.",
+		"reIndexLocalData_msg": "Re-index all emails up to the Local Data Storage date. This may be useful if you are missing emails in search.",
+		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
+		"rebuildSearchIndex_action": "Rebuild search index",
+		"indexingEmails_msg": "Indexing emails"
 	}
 }

@@ -83,4 +83,8 @@ export class OfflineStorageIndexer implements Indexer {
 	cancelMailIndexing() {
 		this.mailIndexer.cancelMailIndexing()
 	}
+
+	async rebuildMailIndex() {
+		await this.mailIndexer.rebuildIndex(assertNotNull(this.userFacade.getUser()))
+	}
 }

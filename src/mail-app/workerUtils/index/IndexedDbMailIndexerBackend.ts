@@ -139,4 +139,8 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	truncateAllCurrentIndexTimestamps(_newTimestamp: number): Promise<void> {
 		throw new ProgrammingError("truncateAllCurrentIndexTimestamps can only be called with offline storage")
 	}
+
+	async resetIndex() {
+		throw new ProgrammingError("resetIndex can only be called with offline storage")
+	}
 }

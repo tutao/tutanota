@@ -2261,6 +2261,10 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails...\n\nHinweis: Beim exportieren von mehr als 1000 E-Mails, empfehlen wir die Funktion unter Einstellungen -> Export zu verwenden."
+		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails...\n\nHinweis: Beim exportieren von mehr als 1000 E-Mails, empfehlen wir die Funktion unter Einstellungen -> Export zu verwenden.",
+		"reIndexLocalData_msg": "Re-index all emails up to the Local Data Storage date. This may be useful if you are missing emails in search.",
+		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
+		"rebuildSearchIndex_action": "Rebuild search index",
+		"indexingEmails_msg": "Indexing emails"
 	}
 }
