@@ -11,7 +11,6 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
-import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoggedInSdk
@@ -36,12 +35,12 @@ abstract class WidgetRepository() {
 		throw NotImplementedError()
 	}
 
-	suspend fun storeSettings(context: Context, widgetId: Int, settings: SettingsDao) {
+	suspend fun storeSettings(widgetDataStore: DataStore<Preferences>, widgetId: Int, settings: SettingsDao) {
 		val databaseWidgetIdentifier = "${WIDGET_SETTINGS_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val serializedSettings = json.encodeToString(settings)
 
-		context.widgetDataStore.edit { preferences ->
+		widgetDataStore.edit { preferences ->
 			preferences[preferencesKey] = serializedSettings
 		}
 	}

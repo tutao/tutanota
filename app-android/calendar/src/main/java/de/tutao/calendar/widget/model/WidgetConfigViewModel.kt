@@ -167,7 +167,7 @@ class WidgetConfigViewModel(
 			try {
 				repository.storeLastSyncInBatch(context, intArrayOf(widgetId), Date())
 				repository.storeSettings(
-					context,
+					context.widgetDataStore,
 					widgetId,
 					SettingsDao(
 						calendars = _selectedCalendars.value,
