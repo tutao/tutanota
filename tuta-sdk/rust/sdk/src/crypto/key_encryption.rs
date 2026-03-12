@@ -68,8 +68,7 @@ fn decrypt_tuta_crypt_key_pair(
 	Ok(AsymmetricKeyPair::TutaCryptKeyPairs(TutaCryptKeyPairs {
 		x25519_keys: X25519KeyPair {
 			public_key: X25519PublicKey::from_bytes(x25519_public_key).map_err(mapped_error)?,
-			private_key: X25519PrivateKey::from_bytes(x25519_private_key.as_slice())
-				.map_err(mapped_error)?,
+			private_key: X25519PrivateKey::from_slice(x25519_private_key.as_slice())?,
 		},
 		kyber_keys: KyberKeyPair {
 			public_key: kyber_public_key,
@@ -103,7 +102,7 @@ fn decrypt_rsa_or_rsa_x25519_key_pair(
 			rsa_key_pair,
 			x25519_key_pair: X25519KeyPair {
 				public_key: X25519PublicKey::from_bytes(public_x25519_key)?,
-				private_key: X25519PrivateKey::from_bytes(private_x25519_key.as_slice())?,
+				private_key: X25519PrivateKey::from_slice(private_x25519_key.as_slice())?,
 			},
 		}))
 	} else {

@@ -32,7 +32,6 @@ default-members = []
 tuta-sdk = { path = "tuta-sdk/rust/sdk", default-features = false }
 crypto-primitives = { path = "tuta-sdk/rust/crypto-primitives", default-features = false }
 util = { path = "tuta-sdk/rust/util", default-features = false }
-thiserror = { version = "2.0" }
 base64 = { version = "0.22.1" }
 log = { version = "0.4.22" }
 serde = { version = "1.0.210", features = ["derive", "rc"] }

@@ -3,7 +3,8 @@ use crate::crypto::kyber::{
 	KyberCiphertext, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret,
 };
 use crate::crypto::x25519::{
-	x25519_decapsulate, x25519_encapsulate, X25519KeyPair, X25519PublicKey, X25519SharedSecrets,
+	x25519_decapsulate, x25519_encapsulate, X25519Error, X25519KeyPair, X25519PublicKey,
+	X25519SharedSecrets,
 };
 use crypto_primitives::aes::{
 	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError, Iv, PaddingMode,
@@ -84,7 +85,7 @@ impl TutaCryptMessage {
 			&self.sender_identity_public_key,
 			&self.ephemeral_public_key,
 			&x25519_keys.private_key,
-		);
+		)?;
 		let kyber_shared_secret = kyber_keys
 			.private_key
 			.decapsulate(&self.encapsulation.kyber_ciphertext)?;
@@ -120,7 +121,7 @@ impl TutaCryptMessage {
 			&sender_x25519_keypair.private_key,
 			&ephemeral_x25519_keypair.private_key,
 			recipient_x25519_key,
-		);
+		)?;
 		let encapsulation = recipient_kyber_key.encapsulate();
 
 		let kek = derive_tuta_crypt_kek(
@@ -235,6 +236,7 @@ impl TutaCryptErrorType for KyberDecapsulationError {}
 impl TutaCryptErrorType for AesDecryptError {}
 
 impl TutaCryptErrorType for AesEncryptError {}
+impl TutaCryptErrorType for X25519Error {}
 
 #[cfg(test)]
 mod tests {
@@ -286,7 +288,7 @@ mod tests {
 			// Note that the test data uses sender keys as recipient keys, so we are basically just simulating sending mail to ourselves.
 			let sender_x25519_keypair = x25519_keys;
 			let ephemeral_x25519_keypair = X25519KeyPair {
-				private_key: X25519PrivateKey::from_bytes(&i.epheremal_private_x25519_key).unwrap(),
+				private_key: X25519PrivateKey::from_slice(&i.epheremal_private_x25519_key).unwrap(),
 				public_key: X25519PublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap(),
 			};
 
@@ -335,7 +337,7 @@ mod tests {
 
 	fn get_recipient_keys(test: &PQCryptEncryptionTest) -> TutaCryptKeyPairs {
 		let x25519_private =
-			X25519PrivateKey::from_bytes(test.private_x25519_key.as_slice()).unwrap();
+			X25519PrivateKey::from_slice(test.private_x25519_key.as_slice()).unwrap();
 		let x25519_public = X25519PublicKey::from_bytes(test.public_x25519_key.as_slice()).unwrap();
 		let kyber_private =
 			KyberPrivateKey::deserialize(test.private_kyber_key.as_slice()).unwrap();
