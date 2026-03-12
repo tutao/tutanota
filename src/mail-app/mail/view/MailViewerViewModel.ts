@@ -1269,7 +1269,7 @@ export class MailViewerViewModel {
 			await showDownloadProgressDialog(
 				this.transferProgressDispatcher,
 				nonInlineAttachments,
-				this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments),
+				await this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments),
 			)
 		} catch (e) {
 			if (e instanceof FileOpenError) {
@@ -1286,9 +1286,9 @@ export class MailViewerViewModel {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			if (open) {
-				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], this.fileController.open(file))
+				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], await this.fileController.open(file))
 			} else {
-				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], this.fileController.download(file))
+				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], await this.fileController.download(file))
 			}
 		} catch (e) {
 			if (e instanceof FileOpenError) {

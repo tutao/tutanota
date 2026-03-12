@@ -534,11 +534,19 @@ export class MailFacade {
 				// user added attachment
 				const fileSessionKey = aes256RandomKey()
 				let referenceTokens: Array<BlobReferenceTokenWrapper>
+				const transferId = await this.blobFacade.generateTransferId()
 				if (isApp() || isDesktop()) {
 					const { location } = await this.fileApp.writeDataFile(providedFile)
+					// there is no upload progress in native yet
 					referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, senderMailGroupId, fileSessionKey)
 				} else {
-					referenceTokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.Attachments, providedFile.data, senderMailGroupId, fileSessionKey)
+					referenceTokens = await this.blobFacade.encryptAndUpload(
+						ArchiveDataType.Attachments,
+						providedFile.data,
+						senderMailGroupId,
+						fileSessionKey,
+						transferId,
+					)
 				}
 				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (isFileReference(providedFile)) {

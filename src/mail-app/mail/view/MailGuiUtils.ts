@@ -32,7 +32,7 @@ import {
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { FileController, handleDownloadErrors } from "../../../common/file/FileController"
+import { DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
@@ -71,6 +71,7 @@ import m from "mithril"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
+import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
 const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 
@@ -895,21 +896,21 @@ export function showLabelsPopup(
 export async function showDownloadProgressDialog(
 	transferProgressDispatcher: TransferProgressDispatcher,
 	files: readonly TutanotaFile[],
-	promise: Promise<unknown>,
+	downloadReturn: DownloadReturn,
 ): Promise<unknown> {
 	const progressStream = stream(0)
 	const totalFileSize = files.reduce((acc, file) => acc + filterInt(file.size), 0)
-	const bytesPerFile = new Map<Id, number>()
-	const listener: DownloadListener = ({ fileId, downloadedBytes }) => {
-		if (files.some((file) => getElementId(file) === fileId)) {
-			bytesPerFile.set(fileId, downloadedBytes)
+	const bytesPerTransfer = new Map<TransferId, number>()
+	const listener: DownloadListener = ({ transferId, downloadedBytes }) => {
+		if (downloadReturn.transferIds.includes(transferId)) {
+			bytesPerTransfer.set(transferId, downloadedBytes)
 		}
-		const downloadedTotal = Array.from(bytesPerFile.values()).reduce((acc, bytes) => acc + bytes, 0)
+		const downloadedTotal = Array.from(bytesPerTransfer.values()).reduce((acc, bytes) => acc + bytes, 0)
 		progressStream((downloadedTotal / totalFileSize) * 100)
 	}
 	transferProgressDispatcher.addDownloadListener(listener)
 	try {
-		return await showProgressDialog("loading_msg", promise, progressStream)
+		return await showProgressDialog("loading_msg", downloadReturn.promise, progressStream)
 	} catch (e) {
 		// handle the user cancelling the dialog
 		if (e instanceof CancelledError) {

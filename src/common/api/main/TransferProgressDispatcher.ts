@@ -1,8 +1,8 @@
 import { remove } from "@tutao/tutanota-utils"
-import { ChunkedDownloadInfo, ChunkedUploadInfo } from "../common/drive/DriveTypes"
+import { DownloadProgressInfo, UploadProgressInfo } from "../common/drive/DriveTypes"
 
-export type UploadListener = (info: ChunkedUploadInfo) => unknown
-export type DownloadListener = (info: ChunkedDownloadInfo) => unknown
+export type UploadListener = (info: UploadProgressInfo) => unknown
+export type DownloadListener = (info: DownloadProgressInfo) => unknown
 
 /**
  * Listen to/dispatch upload/download progress events.
@@ -32,14 +32,14 @@ export class TransferProgressDispatcher {
 	}
 
 	/** IPC: safe to call from different context */
-	onChunkUploaded(info: ChunkedUploadInfo) {
+	onChunkUploaded(info: UploadProgressInfo) {
 		for (const listener of this.uploadListeners) {
 			listener(info)
 		}
 	}
 
 	/** IPC: safe to call from different context */
-	onChunkDownloaded(info: ChunkedDownloadInfo) {
+	onChunkDownloaded(info: DownloadProgressInfo) {
 		for (const listener of this.downloadListeners) {
 			listener(info)
 		}

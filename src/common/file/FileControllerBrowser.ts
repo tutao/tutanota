@@ -1,11 +1,12 @@
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode } from "../api/common/Env"
-import { FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
+import { downloadAndDecryptFromArchive, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/tutanota-utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { assertOnlyDataFiles, FileReference } from "../api/common/utils/FileUtils.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { DownloadableFileEntity } from "../api/common/utils/BlobUtils"
+import { TransferId } from "../api/common/drive/DriveTypes"
 
 assertMainOrNode()
 
@@ -18,8 +19,8 @@ export class FileControllerBrowser extends FileController {
 		return openDataFileInBrowser(file)
 	}
 
-	async downloadAndDecrypt(file: DownloadableFileEntity, archiveType: ArchiveDataType): Promise<DataFile | FileReference> {
-		return this.getAsDataFile(file, archiveType)
+	async downloadAndDecrypt(file: DownloadableFileEntity, transferId: TransferId, archiveType: ArchiveDataType): Promise<DataFile | FileReference> {
+		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType, transferId)
 	}
 
 	async writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {

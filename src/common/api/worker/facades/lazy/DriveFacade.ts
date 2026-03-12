@@ -67,8 +67,6 @@ export interface DriveRootFolders {
  */
 export class DriveFacade {
 	private readonly abortControllers: Map<TransferId, AbortController> = new Map()
-	// this will not work with having multiple windows in desktop client
-	private latestUploadId: number = 0
 
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
@@ -327,10 +325,6 @@ export class DriveFacade {
 			})
 			await this.serviceExecutor.put(DriveFolderService, data)
 		}
-	}
-
-	async generateUploadId(): Promise<TransferId> {
-		return String(this.latestUploadId++) as TransferId
 	}
 
 	async getFolderParents(folderId: IdTuple): Promise<DriveFolder[]> {
