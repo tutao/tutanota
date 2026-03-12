@@ -29,6 +29,7 @@ import androidx.glance.layout.padding
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
+import de.tutao.calendar.R
 import de.tutao.calendar.widget.component.ErrorBody
 import de.tutao.calendar.widget.component.LoadingSpinner
 import de.tutao.calendar.widget.component.ScrollableDaysList
@@ -38,6 +39,7 @@ import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
+import de.tutao.calendar.widget.model.BirthdayStrings
 import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.AppTheme
@@ -94,7 +96,9 @@ class Agenda : GlanceAppWidget() {
 			LaunchedEffect(
 				preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
 			) {
-				widgetUIViewModel.loadUIState(context, LocalDateTime.now())
+				widgetUIViewModel.loadUIState(
+					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+				)
 			}
 
 			GlanceTheme(
@@ -118,8 +122,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	private suspend fun setupWidget(
-		context: Context,
-		appWidgetId: Int
+		context: Context, appWidgetId: Int
 	): Pair<WidgetUIViewModel, String?> {
 		val db = AppDatabase.getDatabase(context, true)
 		val remoteStorage = RemoteStorage(db)
@@ -133,15 +136,19 @@ class Agenda : GlanceAppWidget() {
 			null
 		}
 
-		val widgetUIViewModel =
-			WidgetUIViewModel(
-				context.widgetDataRepository,
-				appWidgetId,
-				nativeCredentialsFacade,
-				crypto,
-				sdk,
-				Calendar.getInstance()
-			)
+		val birthdayStrings = BirthdayStrings(
+			context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
+		)
+
+		val widgetUIViewModel = WidgetUIViewModel(
+			context.widgetDataRepository,
+			appWidgetId,
+			nativeCredentialsFacade,
+			crypto,
+			sdk,
+			Calendar.getInstance(),
+			birthdayStrings
+		)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		return Pair(widgetUIViewModel, userId)
@@ -155,11 +162,7 @@ class Agenda : GlanceAppWidget() {
 				start = Dimensions.Spacing.LG.dp,
 				end = Dimensions.Spacing.LG.dp,
 				bottom = 0.dp
-			)
-				.background(GlanceTheme.colors.background)
-				.fillMaxSize()
-				.appWidgetBackground()
-				.cornerRadius(20.dp),
+			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
 		) {
 			if (data == null) { //
 				return@Column LoadingSpinner()
@@ -286,8 +289,7 @@ class Agenda : GlanceAppWidget() {
 				"00:00",
 				isAllDay = true,
 				startTimestamp = startOfTomorrow
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -312,8 +314,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -372,8 +373,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = tomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -398,8 +398,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -448,8 +447,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = tomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
@@ -474,8 +472,7 @@ class Agenda : GlanceAppWidget() {
 				"17:00",
 				isAllDay = false,
 				startTimestamp = afterTomorrow.toEpochMilli()
-			),
-			UIEvent(
+			), UIEvent(
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",

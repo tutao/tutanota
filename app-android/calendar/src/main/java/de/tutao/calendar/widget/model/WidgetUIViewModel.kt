@@ -3,12 +3,13 @@ package de.tutao.calendar.widget.model
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
+import androidx.datastore.preferences.core.Preferences
 import androidx.glance.action.Action
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.MainActivity
-import de.tutao.calendar.R
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.BirthdayEventDao
 import de.tutao.calendar.widget.data.LastSyncDao
@@ -18,7 +19,6 @@ import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
-import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
@@ -50,7 +50,8 @@ class WidgetUIViewModel(
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val cryptoFacade: AndroidNativeCryptoFacade,
 	private val sdk: Sdk?,
-	private val calendar: Calendar
+	private val calendar: Calendar,
+	private val birthdayStrings: BirthdayStrings
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
 	val uiState: StateFlow<WidgetUIData?> = _uiState.asStateFlow()
@@ -62,7 +63,11 @@ class WidgetUIViewModel(
 		private const val TAG = "WidgetUIViewModel"
 	}
 
-	suspend fun loadUIState(context: Context, now: LocalDateTime): WidgetUIData? {
+	suspend fun loadUIState(
+		widgetDataStore: DataStore<Preferences>,
+		widgetCacheDataStore: DataStore<Preferences>,
+		now: LocalDateTime
+	): WidgetUIData? {
 		Log.i(TAG, "Init loadUIState")
 		val allDayEvents: HashMap<Long, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<Long, List<UIEvent>> = HashMap()
@@ -80,7 +85,7 @@ class WidgetUIViewModel(
 		val calendars: List<String>
 
 		try {
-			settings = repository.loadSettings(context.widgetDataStore, widgetId) ?: return WidgetUIData(
+			settings = repository.loadSettings(widgetDataStore, widgetId) ?: return WidgetUIData(
 				normalEvents,
 				allDayEvents
 			)
@@ -88,10 +93,10 @@ class WidgetUIViewModel(
 			settings.calendars.entries.forEach { (calendarId, calendar) ->
 				Log.d(TAG, "$calendarId - ${calendar.name}")
 			}
-			lastSync = repository.loadLastSync(context.widgetDataStore, widgetId)
+			lastSync = repository.loadLastSync(widgetDataStore, widgetId)
 			Log.i(TAG, "Widget last sync at $lastSync")
 
-			sdk?.let { sdk -> loadCalendars(context, sdk, settings) }
+			sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
 			// We couldn't load widget settings, so we must show an error to User
@@ -128,7 +133,7 @@ class WidgetUIViewModel(
 					val loggedInSdk = this.sdk.login(credentials.toSdkCredentials())
 
 					repository.loadEvents(
-						context.widgetCacheDataStore,
+						widgetCacheDataStore,
 						widgetId,
 						settings.userId,
 						calendars,
@@ -144,7 +149,7 @@ class WidgetUIViewModel(
 						"Missing credentials for user ${settings.userId} when trying to load widget content}", e
 					)
 					repository.loadEventsFromCache(
-						context.widgetCacheDataStore,
+						widgetCacheDataStore,
 						widgetId,
 						calendars,
 						credentials,
@@ -153,7 +158,7 @@ class WidgetUIViewModel(
 				} catch (e: Exception) {
 					Log.e(TAG, "Unknown exception occurred", e)
 					repository.loadEventsFromCache(
-						context.widgetCacheDataStore,
+						widgetCacheDataStore,
 						widgetId,
 						calendars,
 						credentials,
@@ -162,7 +167,7 @@ class WidgetUIViewModel(
 				}
 			} else {
 				repository.loadEventsFromCache(
-					context.widgetCacheDataStore,
+					widgetCacheDataStore,
 					widgetId,
 					calendars,
 					credentials,
@@ -244,7 +249,7 @@ class WidgetUIViewModel(
 					calendarId,
 					it.eventDao.id,
 					calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
-					summary = buildBirthdayEventTitle(it, context),
+					summary = buildBirthdayEventTitle(it),
 					start.format(formatter),
 					end.format(formatter),
 					isAllDay = true,
@@ -288,7 +293,7 @@ class WidgetUIViewModel(
 		return uiState.value
 	}
 
-	private suspend fun loadCalendars(context: Context, sdk: Sdk, settings: SettingsDao) {
+	private suspend fun loadCalendars(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
 		try {
 			Log.i(TAG, "Fetching new calendar data from server")
 			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
@@ -296,7 +301,7 @@ class WidgetUIViewModel(
 			for (key in loadedCalendars.keys) {
 				settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
 			}
-			repository.storeSettings(context, widgetId, settings)
+			repository.storeSettings(widgetDataStore, widgetId, settings)
 			Log.i(TAG, "Cached calendar data updated successfully!")
 		} catch (e: LoginException.ApiCall) {
 			// Failed to login into SDK, probably because of connection issues
@@ -310,12 +315,12 @@ class WidgetUIViewModel(
 		}
 	}
 
-	private fun buildBirthdayEventTitle(event: BirthdayEventDao, context: Context): String {
+	private fun buildBirthdayEventTitle(event: BirthdayEventDao): String {
 		if (event.contact.age == null) {
-			return context.getString(R.string.birthdayEvent_title).replace("{name}", event.contact.name)
+			return birthdayStrings.birthdayTitleTemplate.replace("{name}", event.contact.name)
 		}
 
-		val age = context.getString(R.string.birthdayEventAge_title).replace(
+		val age = birthdayStrings.birthdayAgeTemplate.replace(
 			"{age}",
 			event.contact.age.toString()
 		)
@@ -372,3 +377,8 @@ fun openCalendarAgenda(
 
 	return actionStartActivity(openCalendarAgenda)
 }
+
+data class BirthdayStrings(
+	val birthdayTitleTemplate: String,
+	val birthdayAgeTemplate: String
+)
