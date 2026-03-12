@@ -21,7 +21,7 @@ import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/Us
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
-import { ChunkedDownloadInfo, ChunkedUploadInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { DownloadProgressInfo, UploadProgressInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
 import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
@@ -193,13 +193,13 @@ export class DriveViewModel {
 			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 
-		this.uploadProgressListener.addUploadListener((info: ChunkedUploadInfo) => {
-			this.transferController.onChunkUploaded(info.fileId, info.uploadedBytes)
+		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {
+			this.transferController.onChunkUploaded(info.transferId, info.uploadedBytes)
 			this.updateUi()
 		})
 
-		this.uploadProgressListener.addDownloadListener((info: ChunkedDownloadInfo) => {
-			this.transferController.onChunkDownloaded(info.fileId, info.downloadedBytes)
+		this.uploadProgressListener.addDownloadListener((info: DownloadProgressInfo) => {
+			this.transferController.onChunkDownloaded(info.transferId, info.downloadedBytes)
 			this.updateUi()
 		})
 

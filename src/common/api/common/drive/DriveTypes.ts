@@ -1,11 +1,13 @@
-export type ChunkedUploadInfo = {
-	fileId: TransferId
+export type UploadProgressInfo = {
+	transferId: TransferId
+	/** bytes downloaded so far for the transfer */
 	uploadedBytes: number
 	totalBytes: number
 }
 
-export type ChunkedDownloadInfo = {
-	fileId: TransferId
+export type DownloadProgressInfo = {
+	transferId: TransferId
+	/** bytes downloaded so far for the transfer */
 	downloadedBytes: number
 }
 

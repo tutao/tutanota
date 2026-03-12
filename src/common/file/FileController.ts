@@ -17,6 +17,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { createReferencingInstance, DownloadableFileEntity } from "../api/common/utils/BlobUtils.js"
+import { TransferId } from "../api/common/drive/DriveTypes"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -37,7 +38,17 @@ const enum DownloadPostProcessing {
 	Write,
 }
 
-export type ProgressObserver = (somePromise: Promise<void>, progress?: Stream<number>) => Promise<void>
+export interface DownloadReturn {
+	/** Transfer IDs for all the files */
+	transferIds: readonly TransferId[]
+	/** Will be resolved once download finishes or fails */
+	promise: Promise<void>
+}
+
+export interface DownloadParam {
+	file: DownloadableFileEntity
+	transferId: TransferId
+}
 
 /**
  * coordinates single and multiple downloads on different platforms
@@ -46,7 +57,7 @@ export abstract class FileController {
 	protected constructor(protected readonly blobFacade: BlobFacade) {}
 
 	private async doDownload(
-		tutanotaFiles: readonly DownloadableFileEntity[],
+		tutanotaFiles: readonly DownloadParam[],
 		action: DownloadPostProcessing,
 		options: {
 			archiveType: ArchiveDataType
@@ -60,9 +71,9 @@ export abstract class FileController {
 		try {
 			let isOffline = false
 			let downloadFilesBytes = 0
-			for (const file of tutanotaFiles) {
+			for (const { file, transferId } of tutanotaFiles) {
 				try {
-					const downloadedFile = await this.downloadAndDecrypt(file, archiveType)
+					const downloadedFile = await this.downloadAndDecrypt(file, transferId, archiveType)
 					downloadedFiles.push(downloadedFile)
 					downloadFilesBytes += filterInt(file.size)
 				} catch (e) {
@@ -98,7 +109,7 @@ export abstract class FileController {
 	 */
 	async getAsDataFile(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DataFile> {
 		// using the browser's built-in download since we don't want to write anything to disk here
-		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType)
+		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType, await this.blobFacade.generateTransferId())
 	}
 
 	/**
@@ -109,8 +120,9 @@ export abstract class FileController {
 	/**
 	 * Download a file from the server to the filesystem
 	 */
-	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
-		await this.doDownload([file], DownloadPostProcessing.Write, { archiveType })
+	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DownloadReturn> {
+		const transferId = await this.blobFacade.generateTransferId()
+		return { transferIds: [transferId], promise: this.doDownload([{ file, transferId }], DownloadPostProcessing.Write, { archiveType }) }
 	}
 
 	/**
@@ -118,16 +130,20 @@ export abstract class FileController {
 	 *
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async downloadAll(files: readonly DownloadableFileEntity[], archiveType: ArchiveDataType): Promise<void> {
-		await this.doDownload(files, DownloadPostProcessing.Write, { archiveType })
+	async downloadAll(files: readonly DownloadableFileEntity[], archiveType: ArchiveDataType): Promise<DownloadReturn> {
+		const preparedParams = await promiseMap(files, async (file) => {
+			return { file, transferId: await this.blobFacade.generateTransferId() }
+		})
+		return { transferIds: preparedParams.map((p) => p.transferId), promise: this.doDownload(preparedParams, DownloadPostProcessing.Write, { archiveType }) }
 	}
 
 	/**
 	 * Open a file in the host system
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
-		await this.doDownload([file], DownloadPostProcessing.Open, { archiveType })
+	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DownloadReturn> {
+		const transferId = await this.blobFacade.generateTransferId()
+		return { transferIds: [transferId], promise: this.doDownload([{ file, transferId }], DownloadPostProcessing.Open, { archiveType }) }
 	}
 
 	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
@@ -139,7 +155,7 @@ export abstract class FileController {
 	/**
 	 * Get a file from the server and decrypt it
 	 */
-	protected abstract downloadAndDecrypt(file: DownloadableFileEntity, archiveType: ArchiveDataType): Promise<FileReference | DataFile>
+	protected abstract downloadAndDecrypt(file: DownloadableFileEntity, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference | DataFile>
 }
 
 export function handleDownloadErrors<R>(e: Error, errorAction: (msg: TranslationKey) => R): R {
@@ -324,8 +340,13 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 	}
 }
 
-export async function downloadAndDecryptFromArchive(file: DownloadableFileEntity, blobFacade: BlobFacade, archiveDataType: ArchiveDataType): Promise<DataFile> {
-	const bytes = await blobFacade.downloadAndDecrypt(archiveDataType, createReferencingInstance(file))
+export async function downloadAndDecryptFromArchive(
+	file: DownloadableFileEntity,
+	blobFacade: BlobFacade,
+	archiveDataType: ArchiveDataType,
+	transferId: TransferId,
+): Promise<DataFile> {
+	const bytes = await blobFacade.downloadAndDecrypt(archiveDataType, createReferencingInstance(file), transferId)
 	return convertToDataFile(file, bytes)
 }
 

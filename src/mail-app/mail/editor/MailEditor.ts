@@ -489,12 +489,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		return modifiedDom.innerHTML
 	}
 
-	private downloadInlineImage(model: SendMailModel, cid: string) {
+	private async downloadInlineImage(model: SendMailModel, cid: string) {
 		const tutanotaFiles = model.getAttachments().filter((attachment) => isTutanotaFile(attachment))
 		const inlineAttachment = tutanotaFiles.find((attachment) => attachment.cid === cid)
 
 		if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
-			showDownloadProgressDialog(locator.transferProgressDispatcher, [inlineAttachment], locator.fileController.open(inlineAttachment)).catch(
+			showDownloadProgressDialog(locator.transferProgressDispatcher, [inlineAttachment], await locator.fileController.open(inlineAttachment)).catch(
 				ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")),
 			)
 		}

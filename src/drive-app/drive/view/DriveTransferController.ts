@@ -70,7 +70,7 @@ export class DriveTransferController {
 	) {}
 
 	async upload(file: File, filename: string, targetFolderId: IdTuple) {
-		const transferId = await this.driveFacade.generateUploadId()
+		const transferId = await this.blobFacade.generateTransferId()
 		this.queue.push({
 			id: transferId,
 			state: "waiting",
@@ -141,12 +141,12 @@ export class DriveTransferController {
 		this.updateUi()
 	}
 
-	async onChunkUploaded(fileId: FileId, uploadedBytesSoFar: number): Promise<void> {
-		const stateForThisFile = this.transferForId(fileId)
+	async onChunkUploaded(transferId: FileId, uploadedBytesSoFar: number): Promise<void> {
+		const stateForThisFile = this.transferForId(transferId)
 		if (stateForThisFile) {
 			stateForThisFile.transferredSize = uploadedBytesSoFar
 		} else {
-			console.debug(`${fileId} is not part of the state. This can be due to an upload being canceled`)
+			console.debug(`${transferId} is not part of the state. This can be due to an upload being canceled`)
 		}
 	}
 
@@ -154,16 +154,16 @@ export class DriveTransferController {
 		return this.queue.find((item) => item.id === fileId)
 	}
 
-	async cancelTransfer(fileId: FileId): Promise<void> {
-		const state = this.transferForId(fileId)
+	async cancelTransfer(transferId: TransferId): Promise<void> {
+		const state = this.transferForId(transferId)
 		if (state?.state === "active") {
 			if (state.type === "upload") {
-				await this.driveFacade.cancelCurrentUpload(fileId)
+				await this.driveFacade.cancelCurrentUpload(transferId)
 			} else if (state.type === "download") {
-				await this.blobFacade.cancelDownload(fileId)
+				await this.blobFacade.cancelDownload(transferId)
 			}
 		} else if (state?.state === "waiting") {
-			this.removeTransfer(fileId)
+			this.removeTransfer(transferId)
 		}
 	}
 
@@ -185,8 +185,8 @@ export class DriveTransferController {
 		}
 	}
 
-	download(file: DriveFile) {
-		const transferId = getElementId(file) as TransferId
+	async download(file: DriveFile) {
+		const transferId = await this.blobFacade.generateTransferId()
 		this.queue.push({
 			id: transferId,
 			state: "waiting",
@@ -206,8 +206,8 @@ export class DriveTransferController {
 		}
 	}
 
-	async onChunkDownloaded(fileId: TransferId, completedBytes: number): Promise<void> {
-		const fileState = this.transferForId(fileId)
+	async onChunkDownloaded(transferId: TransferId, completedBytes: number): Promise<void> {
+		const fileState = this.transferForId(transferId)
 		if (fileState != null) {
 			fileState.transferredSize = completedBytes
 			this.updateUi()

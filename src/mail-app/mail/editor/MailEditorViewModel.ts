@@ -112,7 +112,7 @@ export async function _openAndDownloadAttachment(attachment: Attachment) {
 		} else if (isDataFile(attachment)) {
 			await locator.fileController.saveDataFile(attachment)
 		} else if (isTutanotaFile(attachment)) {
-			await showDownloadProgressDialog(locator.transferProgressDispatcher, [attachment], locator.fileController.open(attachment))
+			await showDownloadProgressDialog(locator.transferProgressDispatcher, [attachment], await locator.fileController.open(attachment))
 		} else {
 			throw new ProgrammingError("attachment is neither reference, datafile nor tutanotafile!")
 		}

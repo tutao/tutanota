@@ -11,6 +11,7 @@ import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
+import { TransferId } from "../api/common/drive/DriveTypes"
 
 assertMainOrNode()
 
@@ -64,12 +65,13 @@ export class FileControllerNative extends FileController {
 	}
 
 	/** Public for testing */
-	async downloadAndDecrypt(tutanotaFile: TutanotaFile, archiveType: ArchiveDataType): Promise<FileReference> {
+	async downloadAndDecrypt(tutanotaFile: TutanotaFile, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(
 			archiveType,
 			createReferencingInstance(tutanotaFile),
 			tutanotaFile.name,
 			assertNotNull(tutanotaFile.mimeType, "tried to call blobfacade.downloadAndDecryptNative with null mimeType"),
+			transferId,
 		)
 	}
 
