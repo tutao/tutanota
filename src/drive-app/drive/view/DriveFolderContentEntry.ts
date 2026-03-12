@@ -10,7 +10,7 @@ import { modal } from "../../../common/gui/base/Modal"
 import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { getContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
-import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
+import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -151,7 +151,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						icon: item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(displayType)),
 						size: IconSize.PX24,
 						style: {
-							fill: theme.on_surface,
+							fill: getItemIconFill(displayType),
 							display: "block",
 							margin: "0 auto",
 							opacity: isCut ? "0.5" : undefined,

@@ -13,10 +13,10 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { FolderItem, folderItemEntity, FolderItemId } from "./DriveUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { Keys } from "../../../common/api/common/TutanotaConstants"
-import { styles } from "../../../common/gui/styles"
 import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
-import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
+import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -210,6 +210,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 		document.body.append(el)
 		// TODO: Use theme as soon as we agreed on it.
 		const boxShadow = `#D5D5D5 1px 1px 1px`
+		const displayType = item.type === "file" ? getDisplayType(item.file.mimeType) : null
 		m.render(
 			el,
 			m(
@@ -252,10 +253,10 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							},
 						},
 						m(Icon, {
-							icon: item.type === "folder" ? Icons.FolderFilled : getFileIcon(getDisplayType(item.file.mimeType)),
+							icon: item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(displayType)),
 							size: IconSize.PX24,
 							style: {
-								fill: theme.on_surface,
+								fill: getItemIconFill(displayType),
 								display: "block",
 								margin: `0 ${size.core_8}px`,
 							},
