@@ -20,8 +20,8 @@ struct DayWithWeekday: View {
 
 		HStack(alignment: VerticalAlignment.center) {
 			VStack {
-				Text(day).font(.system(size: 20, weight: .bold))
-				Text(weekday).font(.system(size: 12, weight: .regular)).lineLimit(1)
+				Text(day).font(.system(size: Dimensions.FontSize.font_20, weight: .bold))
+				Text(weekday).font(.system(size: Dimensions.FontSize.font_12, weight: .regular)).lineLimit(1)
 			}
 		}
 	}

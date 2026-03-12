@@ -18,7 +18,7 @@ struct EmptyBody: View {
 	var body: some View {
 		let imageIndex = Int.random(in: 0...1)
 		return VStack(alignment: .center, spacing: Dimensions.Spacing.MD) {
-			Header(allDayEvents: LongEventsDataMap(), userId: userId)
+			Header(allDayEvents: SimpleLongEventsData(event: nil, count: 0), userId: userId)
 
 			Text(translate("TutaoWidgetNoEventsMsg", default: "No events")).lineLimit(2).multilineTextAlignment(.center).foregroundStyle(Color(.onSurface))
 				.padding([.top, .bottom], Dimensions.Spacing.SM)
