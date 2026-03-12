@@ -14,7 +14,7 @@ import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { styles } from "../../gui/styles"
 import { boxShadowHigh, boxShadowLow } from "../../gui/main-styles"
 import { PlanBadge } from "./PlanBadge"
-import { DiscountDetail, getHasCampaign } from "../utils/PlanSelectorUtils"
+import { blackFridayTheme, DiscountDetail, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import Stream from "mithril/stream"
 
@@ -86,13 +86,13 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	view({ attrs }: Vnode<BusinessPlanBoxAttrs>): Children {
 		const isMobileLayout = this.isMobileLayout(attrs)
 		const forceExpanded = attrs.forceExpanded === true
-		const localTheme = theme
-		const renderFeature = this.generateRenderFeature(attrs.planConfig.type, attrs.priceAndConfigProvider, localTheme)
 		const { selectedPaymentInterval, planConfig, price, referencePrice, isSelected, isDisabled, isCurrentPlan, onclick, discountDetail, priceHintLabel } =
 			attrs
 
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
+		const localTheme = hasCampaign ? blackFridayTheme() : theme
+		const renderFeature = this.generateRenderFeature(attrs.planConfig.type, attrs.priceAndConfigProvider, localTheme)
 		const canHover = !isDisabled && !isSelected
 		const showHover = canHover && this.isHovered
 		const handleSelect = (event: Event) => {
@@ -129,6 +129,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				m(PromotionRibbon, {
 					planBoxPosition: "center",
 					translation: attrs.discountDetail!.ribbonTranslation,
+					localTheme,
 				}),
 			m(
 				"div.plan-box-surface",
@@ -146,6 +147,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						borderWidth: hasCampaign ? `0 ${px(2)} ${px(2)} ${px(2)}` : px(2),
 						borderColor: isSelected ? localTheme.primary : showHover ? localTheme.outline : localTheme.outline_variant,
 						backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
+						color: localTheme.on_surface,
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
 						padding: `${px(isMobileLayout ? 12 : size.spacing_24)} ${px(isMobileLayout ? 12 : size.spacing_24)}`,
 						opacity: isDisabled ? 0.6 : 1,
@@ -163,7 +165,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 									icon: planConfig.icon,
 									size: IconSize.PX24,
 									style: {
-										fill: theme.on_surface_variant,
+										fill: localTheme.on_surface_variant,
 									},
 								}),
 								m(Icon, {
@@ -175,7 +177,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 										margin: "-3px",
 										transform: `rotateZ(${attrs.isSelected ? 180 : 0}deg)`,
 										transition: `transform ${DefaultAnimationTime}ms`,
-										color: theme.on_surface_variant,
+										color: localTheme.on_surface_variant,
 									},
 								}),
 							]),
@@ -282,7 +284,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 		)
 	}
 
-	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, theme: Theme) {
+	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, localTheme: Theme) {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex.feature-row",
@@ -294,7 +296,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				m(Icon, {
 					icon,
 					style: {
-						fill: theme.secondary,
+						fill: localTheme.secondary,
 					},
 				}),
 				m(".smaller", lang.getTranslation(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)).text),

@@ -77,6 +77,9 @@ export type Theme = {
 	il_outline: string
 	il_ne_outline: string
 	il_highlight: string
+	il_sign_up_flow_switch: string
+	il_sign_up_flow_switch_2: string
+	il_sign_up_flow_switch_4: string
 	/**
 	 * @deprecated Use not experimental color tokens instead.
 	 */
