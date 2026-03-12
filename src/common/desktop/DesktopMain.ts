@@ -236,7 +236,7 @@ async function createComponents(): Promise<Components> {
 
 	electron.app.on("session-created", async (session) => {
 		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
-		const dictUrl = updateUrl ? updateUrl : "https://app.tuta.com/desktop/"
+		const dictUrl = updateUrl ? updateUrl + "/dictionaries/" : "https://app.tuta.com/desktop/dictionaries/"
 		manageDownloadsForSession(session, dictUrl)
 	})
 
@@ -445,7 +445,6 @@ async function main(components: Components) {
 }
 
 function manageDownloadsForSession(session: Session, dictUrl: string) {
-	dictUrl = dictUrl + "/dictionaries/"
 	log.debug(TAG, "getting dictionaries from:", dictUrl)
 	session.setSpellCheckerDictionaryDownloadURL(dictUrl)
 	session
