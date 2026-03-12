@@ -699,6 +699,72 @@ o.spec("OfflineStorageDb", function () {
 					o.check(rangeAfter).equals(null)
 				})
 
+				o.test("deleteRange", async function () {
+					const listId = "listId1"
+					const elementId = "id1"
+					const storableMail = await toStorableInstance(
+						createTestEntity(MailTypeRef, {
+							_id: [listId, elementId],
+							_ownerGroup: "ownerGroup",
+							_permissions: "permissions",
+							sender: createTestEntity(MailAddressTypeRef, {
+								name: "some name",
+								address: "address@tuta.com",
+							}),
+							conversationEntry: ["listId", "listElementId"],
+						}),
+					)
+
+					const otherListId = "listId2"
+					const otherElementId = "id2"
+					const otherStorableMail = await toStorableInstance(
+						createTestEntity(MailTypeRef, {
+							_id: [otherListId, otherElementId],
+							_ownerGroup: "ownerGroup",
+							_permissions: "permissions",
+							sender: createTestEntity(MailAddressTypeRef, {
+								name: "other name",
+								address: "other@tuta.com",
+							}),
+							conversationEntry: ["listId", "listElementId"],
+						}),
+					)
+
+					await storage.init({ userId: elementId, databaseKey, timeRangeDate, forceNewDatabase: false })
+
+					let mail = await storage.get(MailTypeRef, listId, elementId)
+					o.check(mail).equals(null)
+
+					await storage.put(MailTypeRef, storableMail)
+					await storage.setNewRangeForList(MailTypeRef, listId, elementId, elementId)
+
+					await storage.put(MailTypeRef, otherStorableMail)
+					await storage.setNewRangeForList(MailTypeRef, otherListId, otherElementId, otherElementId)
+
+					mail = await storage.get(MailTypeRef, listId, elementId)
+					o.check(mail!._id).deepEquals([listId, elementId])
+					mail = await storage.get(MailTypeRef, otherListId, otherElementId)
+					o.check(mail!._id).deepEquals([otherListId, otherElementId])
+
+					let rangeBefore = await storage.getRangeForList(MailTypeRef, listId)
+					o.check(rangeBefore).deepEquals({ upper: elementId, lower: elementId })
+					rangeBefore = await storage.getRangeForList(MailTypeRef, otherListId)
+					o.check(rangeBefore).deepEquals({ upper: otherElementId, lower: otherElementId })
+
+					await storage.deleteRange(MailTypeRef, listId)
+
+					//Check that entities are still in cache and only range is deleted
+					mail = await storage.get(MailTypeRef, listId, elementId)
+					o.check(mail!._id).deepEquals([listId, elementId])
+					mail = await storage.get(MailTypeRef, otherListId, otherElementId)
+					o.check(mail!._id).deepEquals([otherListId, otherElementId])
+
+					let rangeAfter = await storage.getRangeForList(MailTypeRef, listId)
+					o.check(rangeAfter).equals(null)
+					rangeAfter = await storage.getRangeForList(MailTypeRef, otherListId)
+					o.check(rangeAfter).deepEquals({ upper: otherElementId, lower: otherElementId })
+				})
+
 				o.test("putMultiple and provideMultiple", async function () {
 					const listId = "listId1"
 					const elementId1 = "id1"

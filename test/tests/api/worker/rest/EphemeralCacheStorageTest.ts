@@ -6,6 +6,7 @@ import {
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -14,7 +15,7 @@ import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMa
 import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 
@@ -171,6 +172,80 @@ o.spec("EphemeralCacheStorage", function () {
 
 			await storage.deleteIfExists(UserTypeRef, null, userId)
 			verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
+		})
+
+		o.test("deleteRange deletes instances for the listId", async function () {
+			const mailSetEntryListId = "mseListId"
+			const mailSetEntryListElementIdOne = "mseElement1"
+			const mailSetEntryListElementIdTwo = "mseElement2"
+			const mailSetEntryOtherListId = "mseOtherListId"
+			const mailSetEntryOtherElementId = "mseOtherElement"
+			storage.init({ userId })
+
+			const mailSetEntryListOne = createTestEntity(
+				MailSetEntryTypeRef,
+				{
+					_id: [mailSetEntryListId, mailSetEntryListElementIdOne],
+					_ownerGroup: "ownerGroup",
+				},
+				{ populateAggregates: true },
+			)
+			const mailSetEntryListTwo = createTestEntity(
+				MailSetEntryTypeRef,
+				{
+					_id: [mailSetEntryListId, mailSetEntryListElementIdTwo],
+					_ownerGroup: "ownerGroup",
+				},
+				{ populateAggregates: true },
+			)
+			const mailSetEntryOther = createTestEntity(
+				MailSetEntryTypeRef,
+				{
+					_id: [mailSetEntryOtherListId, mailSetEntryOtherElementId],
+					_ownerGroup: "ownerGroup",
+				},
+				{ populateAggregates: true },
+			)
+			let mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
+			o(mailSetEntryFromDb).equals(null)
+
+			const storableMailSetEntry = (await modelMapper.mapToClientModelParsedInstance(
+				MailSetEntryTypeRef,
+				mailSetEntryListOne,
+			)) as unknown as ServerModelParsedInstance
+			await storage.put(MailSetEntryTypeRef, storableMailSetEntry)
+
+			const storableMailSetEntryTwo = (await modelMapper.mapToClientModelParsedInstance(
+				MailSetEntryTypeRef,
+				mailSetEntryListTwo,
+			)) as unknown as ServerModelParsedInstance
+			await storage.put(MailSetEntryTypeRef, storableMailSetEntryTwo)
+
+			const storableMailSetEntryOther = (await modelMapper.mapToClientModelParsedInstance(
+				MailSetEntryTypeRef,
+				mailSetEntryOther,
+			)) as unknown as ServerModelParsedInstance
+			await storage.put(MailSetEntryTypeRef, storableMailSetEntryOther)
+
+			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
+			removeOriginals(mailSetEntryFromDb)
+			o(mailSetEntryFromDb).deepEquals(mailSetEntryListOne)
+			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdTwo)
+			removeOriginals(mailSetEntryFromDb)
+			o(mailSetEntryFromDb).deepEquals(mailSetEntryListTwo)
+			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryOtherListId, mailSetEntryOtherElementId)
+			removeOriginals(mailSetEntryFromDb)
+			o(mailSetEntryFromDb).deepEquals(mailSetEntryOther)
+
+			await storage.deleteRange(MailSetEntryTypeRef, mailSetEntryListId)
+
+			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
+			o(mailSetEntryFromDb).deepEquals(null)
+			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdTwo)
+			o(mailSetEntryFromDb).deepEquals(null)
+			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryOtherListId, mailSetEntryOtherElementId)
+			removeOriginals(mailSetEntryFromDb)
+			o(mailSetEntryFromDb).deepEquals(mailSetEntryOther)
 		})
 
 		o.spec("deleteAllOwnedBy", function () {

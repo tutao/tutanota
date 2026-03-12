@@ -735,7 +735,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async deleteRange(typeRef: TypeRef<unknown>, listId: string): Promise<void> {
+	async deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void> {
 		const { query, params } = sql`DELETE
                                     FROM ranges
                                     WHERE type = ${getTypeString(typeRef)}

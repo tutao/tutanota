@@ -205,6 +205,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 	}
 
+	async deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void> {
+		const typeId = getTypeString(typeRef)
+		const cache = this.lists.get(typeId)
+		if (cache) {
+			cache.delete(listId)
+		}
+	}
+
 	private putElementEntity(typeRef: TypeRef<unknown>, id: Id, entity: ServerModelParsedInstance) {
 		getFromMap(this.entities, getTypeString(typeRef), () => new Map()).set(id, entity)
 	}
