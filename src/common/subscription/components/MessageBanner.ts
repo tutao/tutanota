@@ -5,29 +5,41 @@ import { Translation } from "../../misc/LanguageViewModel"
 import { px } from "../../gui/size"
 import { Icons } from "../../gui/base/icons/Icons"
 
-type InfoBannerTypes = "success" | "warning" | "error"
+type MessageBannerType = "success" | "warning" | "error" | "base"
 const COLUMN_THRESHOLD = 120
 interface MessageBannerAttrs {
 	translation: Translation
-	type: InfoBannerTypes
+	type: MessageBannerType
+	icon?: AllIcons
 }
 
-const bannerThemeByType: Record<InfoBannerTypes, { background: string; color: string; icon: AllIcons }> = {
-	success: {
-		background: theme.success_container,
-		color: theme.on_success_container,
-		icon: Icons.CheckCircleFilled,
-	},
-	warning: {
-		background: theme.warning_container,
-		color: theme.on_warning_container,
-		icon: Icons.AlertCircle,
-	},
-	error: {
-		background: theme.error_container,
-		color: theme.on_error_container,
-		icon: Icons.CloseCircleFilled,
-	},
+function getBannerTheme(type: MessageBannerType): { background: string; color: string; icon: AllIcons } {
+	switch (type) {
+		case "base":
+			return {
+				background: theme.surface_container,
+				color: theme.on_surface_variant,
+				icon: Icons.InfoCircleOutline,
+			}
+		case "success":
+			return {
+				background: theme.success_container,
+				color: theme.on_success_container,
+				icon: Icons.CheckCircleFilled,
+			}
+		case "warning":
+			return {
+				background: theme.warning_container,
+				color: theme.on_warning_container,
+				icon: Icons.AlertCircle,
+			}
+		case "error":
+			return {
+				background: theme.error_container,
+				color: theme.on_error_container,
+				icon: Icons.CloseCircleFilled,
+			}
+	}
 }
 
 /* Component for general information on the website
@@ -57,8 +69,9 @@ export class MessageBanner implements Component<MessageBannerAttrs> {
 		this.isTall = dom.getBoundingClientRect().height > COLUMN_THRESHOLD
 	}
 
-	view({ attrs: { translation, type } }: Vnode<MessageBannerAttrs>) {
-		const { background, color, icon } = bannerThemeByType[type]
+	view({ attrs: { translation, type, icon: customIcon } }: Vnode<MessageBannerAttrs>) {
+		const { background, color, icon } = getBannerTheme(type)
+		const bannerIcon = customIcon ?? icon
 		const flexDir = this.isTall ? ".col" : ".row"
 
 		return m(
@@ -72,7 +85,7 @@ export class MessageBanner implements Component<MessageBannerAttrs> {
 				},
 			},
 			m(Icon, {
-				icon,
+				icon: bannerIcon,
 				size: IconSize.PX24,
 				container: "div",
 				style: {
@@ -80,7 +93,7 @@ export class MessageBanner implements Component<MessageBannerAttrs> {
 					marginRight: this.isTall ? px(0) : px(16),
 				},
 			}),
-			m(".center.normal-font-size", translation.text),
+			m(".left.normal-font-size", translation.text),
 		)
 	}
 }
