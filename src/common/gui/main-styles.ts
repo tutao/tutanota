@@ -3273,6 +3273,9 @@ styles.registerStyle("main", () => {
 			"--il-outline": theme.il_outline,
 			"--il-ne-outline": theme.il_ne_outline,
 			"--il-highlight": theme.il_highlight,
+			"--il-sign-up-flow-switch": theme.il_sign_up_flow_switch,
+			"--il-sign-up-flow-switch-2": theme.il_sign_up_flow_switch_2,
+			"--il-sign-up-flow-switch-4": theme.il_sign_up_flow_switch_4,
 		},
 		".svg-fill-primary_container": {
 			fill: theme.primary_container,
