@@ -291,12 +291,14 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 									}),
 								),
 								m(".rel", { style: { "max-width": px(400), "margin-inline": "auto", ...infoPanelStyle } }, [
-									m(DynamicColorSvg, {
-										path: this.getIllustrationPath(illustrationName),
-									}),
+									m(".z1", { style: { width: "100%" } }, [
+										m(DynamicColorSvg, {
+											path: this.getIllustrationPath(illustrationName),
+										}),
+									]),
 									index <= 2 && // not show info box after the confirmation page
 										m(
-											".abs.border-radius-16.flex.col.gap-16.plr-24.pt-24.pb-24",
+											".abs.z2.border-radius-16.flex.col.gap-16.plr-24.pt-24.pb-24",
 											{
 												style: {
 													width: "100%",
@@ -329,6 +331,21 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 														},
 													}),
 												),
+										),
+									index <= 2 &&
+										viewModel.planPrices?.getRawPricingData().hasGlobalFirstYearDiscount &&
+										m(
+											".abs.z3",
+											{
+												style: {
+													top: px(260),
+													right: px(14),
+													width: px(250),
+												},
+											},
+											m(DynamicColorSvg, {
+												path: this.getIllustrationPath("signup-cake.svg"),
+											}),
 										),
 								]),
 							]),

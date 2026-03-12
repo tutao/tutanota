@@ -113,7 +113,7 @@ export class SignupViewModel {
 		}
 		this.price = null
 		this.nextYearPrice = null
-		this.targetPlanType = PlanType.Revolutionary
+		this.targetPlanType = PlanType.Legend
 		this.accountingInfo = null
 		this.customer = null
 		this.newAccountData = null
