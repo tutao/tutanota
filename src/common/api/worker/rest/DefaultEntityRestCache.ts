@@ -916,31 +916,34 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 		}
 
-		try {
-			if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
-				if (update.patches) {
-					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
-					if (patchAppliedInstance == null) {
-						return await this.loadAndStoreInstanceFromUpdate(update)
-					}
-				} else {
-					const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
-					if (cached != null) {
+		const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
+		// if the entity is not in cache we don't want to patch or re-download it
+		if (cached) {
+			try {
+				if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
+					if (update.patches) {
+						const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
+						if (patchAppliedInstance == null) {
+							return await this.loadAndStoreInstanceFromUpdate(update)
+						}
+					} else {
 						return await this.loadAndStoreInstanceFromUpdate(update)
 					}
 				}
+			} catch (e) {
+				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
+				// Even for list elements this should be safe as the instance is not there anymore.
+				if (isExpectedErrorForSynchronization(e)) {
+					console.log(`instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache`)
+					await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+					return null
+				} else {
+					throw e
+				}
 			}
 			return update
-		} catch (e) {
-			// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
-			// Even for list elements this should be safe as the instance is not there anymore.
-			if (isExpectedErrorForSynchronization(e)) {
-				console.log(`instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache`)
-				await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
-				return null
-			} else {
-				throw e
-			}
+		} else {
+			return null
 		}
 	}
 

@@ -492,7 +492,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
-				o(updates).deepEquals(batch)
+				o(updates).deepEquals([])
 			})
 
 			o("update partially not found", async function () {
@@ -689,6 +689,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
 				await storage.put(ContactTypeRef, await toStorableInstance(fourthContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(secondContact))
 
 				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
@@ -743,6 +745,51 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				for (const update of batch) {
 					o(filteredUpdates.includes(update)).equals(true)
 				}
+			})
+
+			o("update events are processed only for instances already in cache", async function () {
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id2, GENERATED_MAX_ID)
+
+				const sampleContact = createTestEntity(ContactTypeRef, {
+					_permissions: "permissions",
+					_ownerGroup: "owner-group",
+				})
+				const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
+				const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
+
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
+
+				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
+
+				const firstNamePatch = createPatch({
+					attributePath: assertNotNull(AttributeModel.getAttributeId(contactTypeModel, "firstName")).toString(),
+					patchOperation: PatchOperationType.REPLACE,
+					value: "CipherTextForGuenther",
+				})
+
+				const firstContactPatched = Object.assign(structuredClone(sampleContact), {
+					_id: [firstContactListId, id1],
+					firstName: "Guenther",
+				})
+
+				const batch = [
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch], PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch], PrefetchStatus.NotPrefetched), // update for item not in cache should be skipped
+				]
+
+				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenDo(async () => {
+					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
+					await storage.put(ContactTypeRef, firstContactPatchedParsed)
+					return firstContactPatchedParsed
+				})
+
+				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContactPatched)
+				o(await storage.get(ContactTypeRef, firstContactListId, id2)).deepEquals(null)
+
+				o(filteredUpdates.length).equals(1)
+				o(filteredUpdates.includes(batch[0])).equals(true)
+				o(filteredUpdates.includes(batch[1])).equals(false)
 			})
 
 			o.test("Create event for new entity is received, it should not be downloaded - when update has instance attached", async () => {
