@@ -18,6 +18,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { driveFolderName } from "./DriveGuiUtils"
 import { LoginTextField } from "../../../common/gui/base/LoginTextField"
 import { styles } from "../../../common/gui/styles"
+import { component_size } from "../../../common/gui/size"
 
 interface State {
 	currentFolder: DriveFolder
@@ -74,7 +75,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 					m(
 						".plr-16.pt-16.pb-16.flex.col.gap-24.border-radius-8",
 						{
-							style: { background: theme.surface_container, height: "min(600px, 90vh)" },
+							style: { background: theme.surface_container, height: `min(600px, 90vh, calc(100% - ${component_size.button_height}px)` },
 						},
 						[
 							m(".flex.gap-12", [
