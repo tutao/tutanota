@@ -2154,6 +2154,7 @@ export default {
 		"urlPath_label": "Ścieżka",
 		"usageData_label": "Dane dotyczące użytkowania",
 		"userAccountDeactivated_msg": "Ten użytkownik jest nieaktywny.",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "Ten użytkownik jest już przypisany do wszystkich dostępnych grup. Czy chcesz utworzyć nową grupę skrzynek współdzielonych i dodać użytkownika do tej nowej grupy?",
 		"userColumn_label": "Użytkownik",
 		"userEmailSignature_label": "Podpis pod wiadomością e-mail",
 		"userExportProgress_msg": "Przygotowywanie {current} z {total} użytkowników do eksportu...",

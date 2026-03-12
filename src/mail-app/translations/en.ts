@@ -2154,7 +2154,7 @@ export default {
 		"urlPath_label": "Path",
 		"usageData_label": "Usage data",
 		"userAccountDeactivated_msg": "This user is deactivated.",
-		"userAlreadyAssignedToAllAvailableGroups_msg": "This user is already assigned to all available groups.\nWould you like to create a new shared mailbox group and add the user to this new group?",
+		"userAlreadyAssignedToAllAvailableGroups_msg": "This user is already assigned to all available groups. Would you like to create a new shared mailbox group and add the user to this new group?",
 		"userColumn_label": "User",
 		"userEmailSignature_label": "Email signature",
 		"userExportProgress_msg": "Preparing {current} of {total} user(s) for export...",
