@@ -27,6 +27,11 @@ export type FileFormat =
 	// Document
 	| "PDF"
 	| "Text"
+	| "Rich text"
+	| "Word document"
+	| "ODF text document"
+	| "Excel sheet"
+	| "ODS sheet"
 
 	// Image
 	| "JPEG"
@@ -48,6 +53,14 @@ const mimeTypes: Record<string, DisplayFileType> = {
 	// Document
 	"application/pdf": { fileType: FileType.Document, fileFormat: "PDF" },
 	"text/plain": { fileType: FileType.Document, fileFormat: "Text" },
+	"application/rtf": { fileType: FileType.Document, fileFormat: "Rich text" },
+	"application/msword": { fileType: FileType.Document, fileFormat: "Word document" },
+	// The mime type that only a trillion-dollar corporation can get you:
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": { fileType: FileType.Document, fileFormat: "Word document" },
+	"application/vnd.oasis.opendocument.text": { fileType: FileType.Document, fileFormat: "ODF text document" },
+	"application/vnd.ms-excel": { fileType: FileType.Document, fileFormat: "Excel sheet" },
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { fileType: FileType.Document, fileFormat: "Excel sheet" },
+	"application/vnd.oasis.opendocument.spreadsheet": { fileType: FileType.Document, fileFormat: "ODS sheet" },
 
 	// Image
 	"image/jpeg": { fileType: FileType.Image, fileFormat: "JPEG" },
