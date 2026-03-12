@@ -454,14 +454,13 @@ export function replaceCidsWithInlineImages(
 	dom: HTMLElement,
 	inlineImages: InlineImages,
 	onContext: (cid: string, arg1: MouseEvent | TouchEvent, arg2: HTMLElement) => unknown,
-): Array<{ cid: string; url: string }> {
+): void {
 	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
 	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	if (dom.shadowRoot) {
 		const shadowImageElements: Array<HTMLElement> = Array.from(dom.shadowRoot.querySelectorAll("img[cid]"))
 		imageElements.push(...shadowImageElements)
 	}
-	const elementsWithCid: { cid: string; url: string }[] = []
 	for (const imageElement of imageElements) {
 		const cid = imageElement.getAttribute("cid")
 
@@ -469,7 +468,6 @@ export function replaceCidsWithInlineImages(
 			const inlineImage = inlineImages.get(cid)
 
 			if (inlineImage) {
-				elementsWithCid.push({ cid: cid, url: inlineImage.objectUrl })
 				imageElement.setAttribute("src", inlineImage.objectUrl)
 				imageElement.classList.remove("tutanota-placeholder")
 
@@ -525,7 +523,6 @@ export function replaceCidsWithInlineImages(
 			}
 		}
 	}
-	return elementsWithCid
 }
 
 export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
