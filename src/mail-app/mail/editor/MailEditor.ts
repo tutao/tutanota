@@ -198,7 +198,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		bcc: stream(""),
 	}
 
-	mentionedInlineImages: Array<{ cid: string; url: string }>
 	templateModel: TemplatePopupModel | null
 	knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null = null
 	sendMailModel: SendMailModel
@@ -218,7 +217,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
 		this.attrs = a
-		this.mentionedInlineImages = []
 		const model = a.model
 		this.sendMailModel = model
 		this.templateModel = a.templateModel
@@ -266,7 +264,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		)
 
 		const onEditorChanged = () => {
-			cleanupInlineAttachments(this.editor.getDOM(), this.mentionedInlineImages, model.getAttachments())
+			cleanupInlineAttachments(this.editor.getDOM(), model.getAttachments(), model.getRemovedInlineImages())
 			model.markAsChangedIfNecessary(true)
 			m.redraw()
 		}
@@ -561,7 +559,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			oninput: (val) => model.setSubject(val),
 		}
 
-		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, this.mentionedInlineImages, () => {
+		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, () => {
 			return this.editor.getDOM()
 		})
 
@@ -889,7 +887,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private processInlineImages() {
-		this.mentionedInlineImages = replaceCidsWithInlineImages(this.editor.getDOM(), this.sendMailModel.loadedInlineImages, (cid, event, dom) => {
+		replaceCidsWithInlineImages(this.editor.getDOM(), this.sendMailModel.loadedInlineImages, (cid, event, dom) => {
 			const downloadClickHandler = createDropdown({
 				lazyButtons: () => [
 					{
@@ -962,7 +960,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		for (const file of files) {
 			const img = createInlineImage(file as DataFile)
 			model.loadedInlineImages.set(img.cid, img)
-			this.mentionedInlineImages.push({ cid: img.cid, url: img.objectUrl })
 			this.editor.insertImage(img.objectUrl, {
 				cid: img.cid,
 				style: "max-width: 100%",

@@ -158,6 +158,8 @@ export class SendMailModel {
 
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
+	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
+	private removedInlineImages: Array<Attachment> = []
 
 	private replyTos: Array<ResolvableRecipient> = []
 
@@ -792,6 +794,10 @@ export class SendMailModel {
 	 */
 	getAttachments(): Array<Attachment> {
 		return this.attachments
+	}
+
+	getRemovedInlineImages(): Array<Attachment> {
+		return this.removedInlineImages
 	}
 
 	/** @throws UserError in case files are too big to add */

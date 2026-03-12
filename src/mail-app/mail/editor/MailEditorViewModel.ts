@@ -1,7 +1,7 @@
 import m from "mithril"
 import type { Attachment } from "../../../common/mailFunctionality/SendMailModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
-import { debounce, findAllAndRemove, isNotNull, ofClass, remove } from "@tutao/tutanota-utils"
+import { contains, debounce, findAllAndRemove, isNotNull, ofClass } from "@tutao/tutanota-utils"
 import { Mode } from "../../../common/api/common/Env"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../common/gui/base/Dialog"
@@ -75,28 +75,21 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 		)
 }
 
-export function createAttachmentBubbleAttrs(
-	model: SendMailModel,
-	inlineImageElementIds: Array<{ cid: string; url: string }>,
-	getDomElement: () => HTMLElement,
-): Array<AttachmentBubbleAttrs> {
+export function createAttachmentBubbleAttrs(model: SendMailModel, getDomElement: () => HTMLElement): Array<AttachmentBubbleAttrs> {
 	return model.getAttachments().map((attachment) => ({
 		attachment,
 		open: () => _openAndDownloadAttachment(attachment),
 		download: null,
 		remove: () => {
-			model.removeAttachment(attachment)
-
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {
-				const imageElement = inlineImageElementIds.find((e) => e.cid === attachment.cid)
-
-				if (imageElement) {
-					const images = getDomElement().querySelector(`[cid='${imageElement.cid}']`)
-					images?.remove()
-					remove(inlineImageElementIds, imageElement)
+				if (contains(model.getAttachments(), attachment)) {
+					model.getRemovedInlineImages().push(attachment)
+					const inlineImageElement = getDomElement().querySelector(`[cid='${attachment.cid}']`)
+					inlineImageElement?.remove()
 				}
 			}
+			model.removeAttachment(attachment)
 
 			m.redraw()
 		},
@@ -127,9 +120,9 @@ export async function _openAndDownloadAttachment(attachment: Attachment) {
 	}
 }
 
-export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<{ cid: string; url: string }>, arg2: Array<Attachment>) => void = debounce(
+export const cleanupInlineAttachments: (arg0: HTMLElement, arg2: Array<Attachment>, arg3: Array<Attachment>) => void = debounce(
 	50,
-	(domElement: HTMLElement, inlineImageElementIds: Array<{ cid: string; url: string }>, attachments: Array<Attachment>) => {
+	(domElement: HTMLElement, attachments: Array<Attachment>, removedInlineImages: Array<Attachment>) => {
 		// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
 		// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
 		// and check each descendant and if it's an image with CID or not.
@@ -141,31 +134,38 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<{ cid: st
 		// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
 		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 		// means removal + insertion.
-		const elementsToRemove: { cid: string; url: string }[] = []
 		if (domElement) {
-			const images = domElement.getElementsByTagName("img")
-			let imageCids: string[] = []
-			for (let i = 0; i < images.length; i++) {
-				const cid = images[i].getAttribute("cid")
+			const elementsToRemove: Attachment[] = []
+			const imagesInDocument = domElement.querySelectorAll("img[cid]")
+			const imageCids: string[] = []
+
+			for (let i = 0; i < imagesInDocument.length; i++) {
+				const cid = imagesInDocument[i].getAttribute("cid")
 				if (cid) {
 					imageCids.push(cid)
-				}
-			}
-			for (const image of inlineImageElementIds) {
-				if (!imageCids.includes(image.cid)) {
-					elementsToRemove.push(image)
-					URL.revokeObjectURL(image.url)
 
-					const attachmentIndex = attachments.findIndex((a) => a.cid === image.cid)
+					// We try to find if image was previously removed and is now being added back in (undo to bring back a removed image)
+					const attachmentIndex = removedInlineImages.findIndex((a) => a.cid === cid)
 					if (attachmentIndex !== -1) {
-						attachments.splice(attachmentIndex, 1)
+						const removedAttachment = removedInlineImages.splice(attachmentIndex, 1)[0]
+						attachments.push(removedAttachment)
 						m.redraw()
 					}
 				}
 			}
-		}
 
-		findAllAndRemove(inlineImageElementIds, (imageElement) => elementsToRemove.includes(imageElement))
+			for (const attachment of attachments) {
+				// if the attachment has a cid then it is an inline image
+				if (attachment.cid && !imageCids.includes(attachment.cid)) {
+					elementsToRemove.push(attachment)
+					removedInlineImages.push(attachment)
+				}
+			}
+
+			if (findAllAndRemove(attachments, (attachment) => elementsToRemove.includes(attachment))) {
+				m.redraw()
+			}
+		}
 	},
 )
 
