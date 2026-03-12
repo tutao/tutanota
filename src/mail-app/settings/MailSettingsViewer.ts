@@ -15,8 +15,8 @@ import {
 	InboxRuleType,
 	OperationType,
 	ReportMovedMailsType,
-	UpgradePromptType,
 	UNDO_SEND_TIMEOUT_SECONDS,
+	UpgradePromptType,
 } from "../../common/api/common/TutanotaConstants"
 import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
@@ -59,6 +59,8 @@ import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
 import { client } from "../../common/misc/ClientDetector"
+import { ProgressBar, ProgressBarType } from "../../common/gui/base/ProgressBar"
+import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 
 assertMainOrNode()
 
@@ -448,7 +450,48 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					}),
 				],
 			}),
+			this.renderRebuildSearchIndex(),
 		]
+	}
+	private renderRebuildSearchIndex() {
+		const searchIndexStateInfo = mailLocator.search.indexState()
+		return m(
+			"",
+			searchIndexStateInfo.progress !== 0
+				? [
+						m(
+							".mt-16.full-width.button-content.rel.border-radius-12.nav-bg",
+							m(ProgressBar, {
+								progress: searchIndexStateInfo.progress / 100.0,
+								type: ProgressBarType.Large,
+							}),
+						),
+						m("small.mt-12", lang.getTranslationText("indexingEmails_msg")),
+					]
+				: [
+						m(
+							".mt-16",
+							m(LoginButton, {
+								width: "flex",
+								label: "rebuildSearchIndex_action",
+								onclick: () => this.confirmClearData(),
+							}),
+						),
+						m("small.mt-12", lang.getTranslationText("reIndexLocalData_msg")),
+					],
+		)
+	}
+
+	private async confirmClearData(): Promise<void> {
+		const confirm = await Dialog.confirm(
+			lang.makeTranslation(
+				"reIndexLocalData_msg",
+				`${lang.getTranslationText("reIndexLocalData_msg")}\n\n${lang.getTranslationText("reIndexRunInBackground_msg")}`,
+			),
+		)
+		if (confirm) {
+			await mailLocator.indexerFacade.rebuildMailIndex()
+		}
 	}
 
 	private async onEditStoredDataTimeRangeClicked() {

@@ -171,4 +171,9 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 
 		verify(persistence.deleteMailData(mailId))
 	})
+
+	o.test("resetIndex", async function () {
+		await backend.resetIndex()
+		verify(persistence.resetMailIndex())
+	})
 })

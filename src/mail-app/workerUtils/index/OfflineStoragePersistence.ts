@@ -1,7 +1,7 @@
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
-import { GroupType } from "../../../common/api/common/TutanotaConstants"
+import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -264,6 +264,25 @@ export class OfflineStoragePersistence {
 			return null
 		}
 		return untagSqlObject(rowIdResult).rowid
+	}
+
+	async resetMailIndex() {
+		{
+			const { query, params } = sql`UPDATE search_group_data
+									SET indexedTimestamp = ${NOTHING_INDEXED_TIMESTAMP}
+                                    WHERE groupType = ${GroupType.Mail}`
+			await this.sqlCipherFacade.run(query, params)
+		}
+		{
+			const { query, params } = sql`DELETE
+										  FROM mail_index`
+			await this.sqlCipherFacade.run(query, params)
+		}
+		{
+			const { query, params } = sql`DELETE
+										  FROM content_mail_index`
+			await this.sqlCipherFacade.run(query, params)
+		}
 	}
 }
 

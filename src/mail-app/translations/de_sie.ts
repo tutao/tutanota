@@ -2261,6 +2261,10 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}"
+		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}",
+		"reIndexLocalData_msg": "Re-index all emails up to the Local Data Storage date. This may be useful if you are missing emails in search.",
+		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
+		"rebuildSearchIndex_action": "Rebuild search index",
+		"indexingEmails_msg": "Indexing emails"
 	}
 }
