@@ -17,21 +17,14 @@ struct DaysList: View {
 
 	var body: some View {
 		LazyVStack(alignment: .leading, spacing: 6) {
-			let days: [Double]  = normalEvents.keys.sorted(by: { $0 < $1 })
+			let days: [Double] = normalEvents.keys.sorted(by: { $0 < $1 })
 
 			ForEach(days, id: \.self) { startOfDay in
-				DayRow(
-								   startOfDay: startOfDay,
-								   userId: userId,
-								   normalEvents: normalEvents,
-								   allDayEventsData: allDayEventsData
-							   )
+				DayRow(startOfDay: startOfDay, userId: userId, normalEvents: normalEvents, allDayEventsData: allDayEventsData)
 			}
 		}
 	}
 }
-
-
 
 private struct DayRow: View {
 	let startOfDay: Double
@@ -46,7 +39,7 @@ private struct DayRow: View {
 		let isToday = Calendar.current.isDateInToday(parsedDay)
 
 		if isToday {
-			TodayCard (allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: parsedDay )
+			TodayCard(allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: parsedDay)
 		} else {
 			OtherDayCard(userId: userId, date: parsedDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
 		}

@@ -14,10 +14,7 @@ struct AllDayEventRow: View {
 	var textColor: Color?
 	var body: some View {
 		let (allDayImage, allDayPadding): (ImageResource, CGFloat) =
-		if let firstEvent = allDayEventsData.event, firstEvent.isBirthdayEvent {
-			(.giftIcon, Dimensions.Spacing.XS/2 )
-		}
-		    else {
+			if let firstEvent = allDayEventsData.event, firstEvent.isBirthdayEvent { (.giftIcon, Dimensions.Spacing.XS / 2) } else {
 				(.allDayIcon, Dimensions.Spacing.XS / 2)
 			}
 		let eventTitle: String =
@@ -28,13 +25,8 @@ struct AllDayEventRow: View {
 		let foregroundColor: Color = if backgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
 		return HStack {
-			Image(allDayImage)
-				.resizable()
-				.frame(width: Dimensions.Size.XS, height: Dimensions.Size.XS)
-				.foregroundStyle(foregroundColor)
-				.padding(allDayPadding)
-				.background(Color(backgroundColor.cgColor))
-				.clipShape(.rect(cornerRadius: Dimensions.Size.SM))
+			Image(allDayImage).resizable().frame(width: Dimensions.Size.XS, height: Dimensions.Size.XS).foregroundStyle(foregroundColor).padding(allDayPadding)
+				.background(Color(backgroundColor.cgColor)).clipShape(.rect(cornerRadius: Dimensions.Size.SM))
 			Text(eventTitle).lineLimit(1).font(.system(size: Dimensions.FontSize.font_12)).if(textColor != nil) { $0.foregroundStyle(textColor!) }
 
 			if allDayEventsData.count > 1 {

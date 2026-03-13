@@ -9,13 +9,11 @@ import SwiftUI
 import TutanotaSharedFramework
 import WidgetKit
 
-
 struct OtherDayCard: View {
 	var userId: String
 	var date: Date
 	var allDayEventsOnDay: SimpleLongEventsData
 	var normalEvents: [CalendarEventData]
-
 
 	var body: some View {
 
@@ -42,6 +40,7 @@ struct OtherDayCard: View {
 					}
 				}
 			}
-		}.buttonStyle(.plain)
+		}
+		.buttonStyle(.plain)
 	}
 }
