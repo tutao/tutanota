@@ -19,7 +19,7 @@ import {
 	startsWith,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { lang, LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { isOfflineError, LockedError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
@@ -31,7 +31,7 @@ import {
 	moveMailsToSystemFolder,
 	showDownloadProgressDialog,
 } from "./MailGuiUtils"
-import { DownloadPostProcessing, FileController } from "../../../common/file/FileController"
+import { DownloadPostProcessing, FileController, DownloadReturn } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -88,6 +88,10 @@ import {
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
+import { default as ncAxios } from "@nextcloud/axios"
+import { generateRemoteUrl as ncGenerateRemoteUrl } from "@nextcloud/router"
+import { getCurrentUser as ncGetCurrentUser } from "@nextcloud/auth"
+import { TransferId } from "../../../../entities/drive/Utils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1291,6 +1295,77 @@ export class MailViewerViewModel {
 			} else {
 				console.error("could not open file:", e.message ?? "unknown error")
 				await Dialog.message("errorDuringFileOpen_msg")
+			}
+		}
+	}
+	public async saveToNextcloud(file: File) {
+		const dataFilePromise = this.fileController.getAsDataFile(file, ArchiveDataType.Attachments)
+		const filePutHeaders = {
+			headers: {
+				"If-None-Match": "*", // do not override already existing files
+			},
+		}
+		const nextcloudUserId = assertNotNull(ncGetCurrentUser(), "Nextcloud user not logged in").uid
+
+		const makePutRequestToNextcloud = (saveDirUri: string, fileContent: Uint8Array): DownloadReturn => {
+			const transferIds: TransferId[] = []
+			const promise = ncAxios
+				.put(saveDirUri, fileContent, filePutHeaders)
+				.then((_) => {
+					Dialog.message(LanguageViewModel.makeTranslation("nextcloud-ok-msg", "Your attachment is saved to nextcloud"))
+				})
+				.catch((err) => {
+					Dialog.message(LanguageViewModel.makeTranslation("nextcloud-err-msg", "You attachment could not be saved to nextcloud"))
+				})
+			return { transferIds, promise }
+		}
+
+		OC.dialogs.filepicker(
+			`Folder to download ${file.name}`,
+			async (selectedFolder: string) => {
+				const fileContent = await dataFilePromise
+				let davFileName = `/dav/files/${nextcloudUserId}${selectedFolder}/${file.name}`
+				davFileName = await this.getUniqueFileName(davFileName)
+
+				await showDownloadProgressDialog(
+					this.transferProgressDispatcher,
+					[file],
+					makePutRequestToNextcloud(ncGenerateRemoteUrl(davFileName), fileContent.data),
+				)
+			},
+			false,
+			["httpd/unix-directory"], // do not allow choosing file
+			true,
+			undefined,
+			undefined,
+			{
+				allowDirectoryChooser: true,
+			},
+		)
+	}
+
+	private async getUniqueFileName(davFileName: string) {
+		let n = 1
+		let uniqueFileName = davFileName
+		while (true) {
+			try {
+				await ncAxios.head(ncGenerateRemoteUrl(uniqueFileName))
+				// File exists → generate new name
+				const extIndex = davFileName.lastIndexOf(".")
+				if (extIndex > 0) {
+					const base = davFileName.slice(0, extIndex)
+					const ext = davFileName.slice(extIndex)
+					uniqueFileName = `${base} (${n})${ext}`
+				} else {
+					uniqueFileName = `${davFileName} (${n})`
+				}
+				n++
+			} catch (err) {
+				if (err.response && err.response.status === 404) {
+					return uniqueFileName
+				} else {
+					throw err // Some other error
+				}
 			}
 		}
 	}

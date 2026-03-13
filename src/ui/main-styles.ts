@@ -1,6 +1,6 @@
 import { styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "../platform-kit/app-env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop, NEXTCLOUD_PREFIX_WITHOUT_FILE } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -10,6 +10,7 @@ import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
 import { client } from "../platform-kit/app-env/boot/ClientDetector"
+import { downcast } from "@tutao/utils"
 
 assertMainOrNode()
 
@@ -40,8 +41,8 @@ const scrollbarWidthHeight = px(18)
 
 async function loadFonts() {
 	const fonts = [
-		new FontFace("Ionicons", `url('${window.tutao.appState.prefixWithoutFile}/images/font.ttf')`),
-		new FontFace("MDIO", `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2')`),
+		new FontFace("Ionicons", `url('${NEXTCLOUD_PREFIX_WITHOUT_FILE}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${NEXTCLOUD_PREFIX_WITHOUT_FILE}/images/MDIO-Semibold.woff2')`),
 	]
 	for (const font of fonts) {
 		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
