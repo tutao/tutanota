@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="350"
+   height="350"
+   viewBox="0 0 350 350"
+   fill="none"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="app-dark.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   inkscape:export-filename="app.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.8157895"
+     inkscape:cx="152"
+     inkscape:cy="172.96552"
+     inkscape:window-width="2560"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="350"
+       height="350"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <g
+     id="g3"
+     transform="translate(1.5851165,-5.752088)"
+     style="fill:#000000">
+    <path
+       d="M 45.526456,31.866176 97.55706,84.432787 c 1.2168,1.215 2.4341,1.5189 4.2596,1.5189 h 219.379 c 1.522,0 2.435,-1.8229 0.913,-3.3425 l -51.421,-51.958051 c -1.218,-1.215695 -2.435,-1.82355 -4.869,-1.82355 H 46.743756 c -2.1297,0 -2.4341,1.82355 -1.2173,3.03859 z"
+       fill="white"
+       id="path1"
+       style="fill:#000000" />
+    <path
+       d="m 37.920056,330.24659 c -0.3037,1.215 0.3043,2.43 1.826,2.43 H 256.08266 c 2.13,0 3.042,-0.912 3.651,-2.734 l 65.419,-210.8725 c 0.608,-2.1268 -0.305,-2.7347 -2.131,-2.7347 h -216.9446 c -1.8254,0 -2.4341,0.6079 -3.0428,2.1268 z"
+       fill="white"
+       id="path2"
+       style="fill:#000000" />
+    <path
+       d="m 21.489656,269.47759 c 0,2.431 3.0428,2.431 3.65149,0 l 49.59591,-161.344 c 0.6087,-1.8229 0.6087,-3.0386 -0.913,-4.5575 l -49.2916,-48.920104 c -1.21738,-1.2157 -3.0428,-0.6079 -3.0428,0.9117 z"
+       fill="white"
+       id="path3"
+       style="fill:#000000" />
+  </g>
+</svg>

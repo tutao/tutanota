@@ -38,6 +38,16 @@ export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
 const scrollbarWidthHeight = px(18)
 
+async function loadFonts() {
+	const fonts = [
+		new FontFace("Ionicons", `url('${window.tutao.appState.prefixWithoutFile}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2')`),
+	]
+	for (const font of fonts) {
+		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
+	}
+}
+
 export class MainStyles {
 	constructor(
 		private readonly baseThemeProvider: BaseThemeProvider,
@@ -51,6 +61,7 @@ export class MainStyles {
 
 		styles.registerStyle("main", () => {
 			const lightTheme = this.baseThemeProvider.getBaseTheme("light")
+			loadFonts()
 			return {
 				"#link-tt":
 					isDesktop() || isAdminClient()

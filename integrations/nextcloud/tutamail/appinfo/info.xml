@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>tutamail</id>
+    <name>Tuta Mail</name>
+    <summary>Tuta Mail for Nextcloud</summary>
+    <description>Seamless integration of Tuta Mail into Nextcloud.</description>
+    <version>1.0.0</version>
+    <licence>GPL-3.0-or-later</licence>
+    <author mail="nextcloud@tutao.de" homepage="https://tuta.com">Tutao GmbH</author>
+    <namespace>TutaMail</namespace>
+    <category>office</category>
+    <category>organization</category>
+    <category>security</category>
+    <bugs>https://github.com/tutao/tutanota/issues</bugs>
+    <dependencies>
+        <nextcloud min-version="33" max-version="34"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <id>tutamail</id>
+            <name>Tuta</name>
+            <route>tutamail.page.index</route>
+            <icon>tuta.svg</icon>
+            <type>link</type>
+        </navigation>
+    </navigations>
+    <external-app>
+        <docker-install>
+            <registry>ghcr.io</registry>
+            <image>tutao/tutamail-proxy</image>
+            <image-tag>latest</image-tag>
+        </docker-install>
+    </external-app>
+</info>

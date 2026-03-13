@@ -159,7 +159,7 @@ import("../../ui/translations/en.js")
 			})
 		}
 
-		styles.init(calendarLocator.themeController)
+		styles.init(calendarLocator.themeController, null)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({

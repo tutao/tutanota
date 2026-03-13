@@ -33,7 +33,7 @@ import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false, integrationPlatform }) {
 	const buildDir = buildDirForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
 	const { entry: entryFile, worker: workerFile } = entryPointsForApp(app)
@@ -163,6 +163,7 @@ import "./worker.js"`,
 			dist: true,
 			domainConfigs,
 			networkDebugging,
+			integrationPlatform,
 		}),
 		app,
 	)
@@ -175,6 +176,7 @@ import "./worker.js"`,
 				dist: true,
 				domainConfigs,
 				networkDebugging,
+				integrationPlatform,
 			}),
 			app,
 		)

@@ -268,7 +268,7 @@ export class ThemeController implements BaseThemeProvider {
 	}
 
 	getDefaultTheme(): Theme {
-		return Object.assign({}, themes()[defaultThemeId])
+		return Object.assign({}, themes()["light_secondarygit"])
 	}
 
 	getBaseTheme(baseId: BaseThemeId): Theme {
@@ -308,8 +308,8 @@ export class ThemeController implements BaseThemeProvider {
 	/**
 	 * Get new Material3 theme customizations from old customizations
 	 * Could be removed after:
-	 * 	- all users who have whitelabel color customization have migrated to the new color tokens.
-	 * 	- the client affected by issue#9790 is outdated, and the `version` field is migrated on all affected themes.
+	 *    - all users who have whitelabel color customization have migrated to the new color tokens.
+	 *    - the client affected by issue#9790 is outdated, and the `version` field is migrated on all affected themes.
 	 */
 	async getMaterial3Customizations(unknownCustomizations: UnknownThemeCustomizations): Promise<ThemeCustomizations> {
 		// the customizations' version was first introduced as number in 5592c691.
@@ -376,7 +376,10 @@ export class WebThemeFacade implements ThemeFacade {
 	constructor(private readonly deviceConfig: ThemeConfigurator) {}
 
 	async getThemePreference(): Promise<ThemeId | null> {
-		return this.deviceConfig.getTheme()
+		const preferedTheme = this.deviceConfig.getTheme()
+		if (isNotNull(preferedTheme)) return preferedTheme
+		else if (isNextCloudPlugin()) return (await this.prefersDark()) ? "dark_secondary" : "light_secondary"
+		return null
 	}
 
 	async setThemePreference(theme: ThemeId): Promise<void> {
@@ -393,6 +396,7 @@ export class WebThemeFacade implements ThemeFacade {
 	}
 
 	async prefersDark(): Promise<boolean> {
+		if (isWebClient() && isNextCloudPlugin() && document.body.dataset.themes?.indexOf("dark") !== -1) return true
 		return this.mediaQuery?.matches ?? false
 	}
 
