@@ -5,6 +5,13 @@ import { TypeChecks } from "./TsTypeChecks"
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
+export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
+	Nextcloud: "Nextcloud",
+})
+
+export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
+export const NEXTCLOUD_PREFIX_WITHOUT_FILE: string = "/apps-extra/tutamail/js"
+
 export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
 	staticUrl: string | null // if null the url from the browser is used
@@ -16,6 +23,7 @@ export type EnvType = {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName: string | null
+	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
 }
 
 export const enum PlatformId {
@@ -39,6 +47,7 @@ export type DomainConfig = {
 	 * Important! You probably do not want to use it directly but rather through the accessor function
 	 */
 	apiUrl: string
+	websocketUrl: string
 	/**
 	 * Which URL should be opened for Webauthn flow on desktop for keys associated with our current domain (tuta.com).
 	 */
@@ -135,6 +144,10 @@ export class EnvProvider {
 		return this.isApp() && this.env.platformId === PlatformId.Ios
 	}
 
+	public isNextCloudPlugin(): boolean {
+		return env.integrationPlatform === IntegrationPlatform.Nextcloud
+	}
+
 	/**
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
@@ -224,6 +237,11 @@ export class EnvProvider {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
 			return domainConfig.apiUrl.replace(/^http/, "api")
+		} else if (this.isNextCloudPlugin()) {
+			const currentLocation = new URL(location.href)
+			// tutamail is the APP_ID for the nextcloud pluging. It is used for both the App and the ExApp (AppApi)
+			currentLocation.pathname = "/index.php/apps/app_api/proxy/tutamail"
+			return currentLocation.toString()
 		} else {
 			return domainConfig.apiUrl
 		}

@@ -102,9 +102,25 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig)
+				let origin: string
+				if (EnvProvider.get().isNextCloudPlugin() && isNotNull(options.baseUrl)) {
+					origin = EnvProvider.get().getApiBaseUrl(this.domainConfig)
+					options.headers = options.headers ?? {}
+					options.headers["X-Nextcloud-BaseUrl"] = options.baseUrl
+				} else {
+					origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig)
+				}
+				if (method === HttpMethod.PATCH && EnvProvider.get().isNextCloudPlugin()) {
+					// because nextcloud doesnt support PATCH requests, we send a PUT request to /patch instead
+					method = HttpMethod.PUT
+					path = "/patch" + path
+				}
 				const resourceURL = new URL(origin)
-				resourceURL.pathname = path
+				if (resourceURL.pathname === "/") {
+					resourceURL.pathname = path
+				} else {
+					resourceURL.pathname += path
+				}
 				const url = addParamsToUrl(resourceURL, queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
@@ -380,6 +396,11 @@ export class RestClient implements RestClientInterface {
 		if (isNotNull(responseType)) {
 			headers["Accept"] = responseType
 		}
+
+		if (EnvProvider.get().isNextCloudPlugin()) {
+			headers["OCS-APIRequest"] = String(true)
+		}
+
 		for (const i in headers) {
 			xhr.setRequestHeader(i, headers[i])
 		}

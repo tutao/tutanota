@@ -41,3 +41,6 @@ fdroid-metadata-workaround
 # temporary annoyance until further modularization
 /src/platform-kit/network/types.d.ts
 /src/platform-kit/network/types.js
+
+integrations/nextcloud/tutamail/vendor
+integrations/nextcloud/tutamail/vendor-bin

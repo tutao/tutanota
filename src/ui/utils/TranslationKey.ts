@@ -2520,3 +2520,4 @@ export type TranslationKeyType =
 	| "migrationGreetingTimeout_msg"
 	| "labelNameInvalidExisting_msg"
 	| "emptyString_msg"
+	| "saveToNextcloud_action"
