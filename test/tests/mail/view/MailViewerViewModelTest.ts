@@ -112,6 +112,7 @@ o.spec("MailViewerViewModel", function () {
 			transferProgressDispatcher,
 			object(),
 			object(),
+			object(),
 		)
 	}
 

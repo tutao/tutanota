@@ -155,6 +155,7 @@ o.spec("CalendarEventModel", function () {
 				entityClient,
 				null,
 				mockCalendarInviteHandler,
+				object(),
 				"Europe/Berlin",
 				identity,
 				noOp,
