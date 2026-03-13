@@ -86,8 +86,12 @@ export async function showSupportDialog(logins: LoginController) {
 						data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
 						data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
 					}
-
 					navigateToPage("categoryDetail")
+				},
+				countFaqLinkTrigger: () => {
+					const topicStage = getSupportUsageTestStage(1)
+					topicStage.setMetric({ name: "Topic", value: "clickedFaqLink" })
+					topicStage.complete()
 				},
 			}),
 			rightAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "done_action", title: "done_action" },
