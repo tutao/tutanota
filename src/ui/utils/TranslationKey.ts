@@ -2405,3 +2405,4 @@ export type TranslationKeyType =
 	| "moreEmailsAvailable_msg"
 	| "sendDate_label"
 	| "emptyString_msg"
+	| "saveToNextcloud_action"

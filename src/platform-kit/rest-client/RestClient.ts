@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isNextCloudPlugin, isWebClient, isWorker } from "@tutao/app-env"
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
@@ -99,9 +99,25 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
+				let origin: string
+				if (isNextCloudPlugin() && options.baseUrl) {
+					origin = getApiBaseUrl(this.domainConfig)
+					options.headers = options.headers ?? {}
+					options.headers["X-Nextcloud-BaseUrl"] = options.baseUrl
+				} else {
+					origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
+				}
+				if (method === HttpMethod.PATCH && isNextCloudPlugin()) {
+					// because nextcloud doesnt support PATCH requests, we send a PUT request to /patch instead
+					method = HttpMethod.PUT
+					path = "/patch" + path
+				}
 				const resourceURL = new URL(origin)
-				resourceURL.pathname = path
+				if (resourceURL.pathname === "/") {
+					resourceURL.pathname = path
+				} else {
+					resourceURL.pathname += path
+				}
 				const url = addParamsToUrl(resourceURL, queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
@@ -376,6 +392,11 @@ export class RestClient implements RestClientInterface {
 		if (responseType) {
 			headers["Accept"] = responseType
 		}
+
+		if (isNextCloudPlugin()) {
+			headers["OCS-APIRequest"] = String(true)
+		}
+
 		for (const i in headers) {
 			xhr.setRequestHeader(i, headers[i])
 		}

@@ -1176,10 +1176,8 @@ export class LoginFacade implements SessionTypeProvider {
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest, null)
 		const kdfType = asKdfType(saltReturn.kdfVersion)
-		return {
-			userPassphraseKey: await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt }),
-			kdfType,
-		}
+		const userPassphraseKey = await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt })
+		return { userPassphraseKey, kdfType }
 	}
 
 	private getSessionElementId(accessToken: Base64Url): Id {

@@ -1,0 +1,33 @@
+{
+	"name": "tutamail",
+	"version": "1.0.0",
+	"license": "AGPL-3.0-or-later",
+	"type": "module",
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite --mode development build",
+		"lint": "eslint src",
+		"stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
+		"watch": "vite --mode development build --watch"
+	},
+	"browserslist": [
+		"extends @nextcloud/browserslist-config"
+	],
+	"dependencies": {
+		"@nextcloud/vue": "^9.3.1",
+		"vue": "^3.5.25"
+	},
+	"devDependencies": {
+		"@nextcloud/browserslist-config": "^3.1.2",
+		"@nextcloud/eslint-config": "^8.4.2",
+		"@nextcloud/stylelint-config": "^3.1.1",
+		"@nextcloud/vite-config": "^2.5.2",
+		"@vue/tsconfig": "^0.8.1",
+		"typescript": "^5.9.3",
+		"vite": "^7.2.7"
+	},
+	"engines": {
+		"node": "^24.0.0",
+		"npm": "^11.3.0"
+	}
+}
