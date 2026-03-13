@@ -24,7 +24,8 @@ struct EventBody: View {
 		} else {
 			eventTitle = event == nil ? translate("TutaoWidgetNoEventsMsg", default: "No events") : translate("TutaoNoTitleLabel", default: "<No title>")
 		}
-		return Button(
+		return HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.MD) {
+			Button(
 				intent: WidgetActionsIntent(
 					userId: userId,
 					date: eventDate,
@@ -33,15 +34,16 @@ struct EventBody: View {
 				)
 			) {
 				HStack(spacing: Dimensions.Spacing.MD) {
-					Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3))
+					VStack { Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3)) }
 					VStack(alignment: .leading) {
 						Text(eventTitle).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_14))
 						if eventTime != nil { Text(eventTime!).font(.system(size: Dimensions.FontSize.font_12)) }
 					}
+					.foregroundStyle(Color(.onSurface)).frame(maxHeight: .infinity, alignment: .center)
 				}
-				Spacer()
+				.frame(maxWidth: .infinity, alignment: .leading)
 			}
-
 			.buttonStyle(.plain)
+		}
 	}
 }

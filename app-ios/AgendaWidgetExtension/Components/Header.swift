@@ -20,15 +20,13 @@ struct Header: View {
 		return HStack(alignment: .top) {
 			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
 				VStack(alignment: .leading, spacing: 0) {
-					Text(day + " " + weekday).lineLimit(1).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_20))
+						Text(day + " " + weekday).lineLimit(1).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_20))
 					if hasAllDayEventsToday { AllDayEventRow(allDayEventsData: allDayEvents).padding(.bottom, Dimensions.Spacing.SM).padding(.leading, 2) }
-				}
-				// padding is necessary because HeaderButton must be flush with card corner, but the text info must not.
-				.padding(.leading, Dimensions.Spacing.SM).padding(.top, Dimensions.Spacing.SM).buttonStyle(.plain)
+				}.padding(.leading, Dimensions.Spacing.SM).padding(.top, Dimensions.Spacing.SM)
+				.buttonStyle(.plain)
 			}
 			Spacer()
 			HeaderButton(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor))
-		}
-		.buttonStyle(.plain)
+		}.buttonStyle(.plain)
 	}
 }
