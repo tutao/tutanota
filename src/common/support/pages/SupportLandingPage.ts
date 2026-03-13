@@ -13,6 +13,7 @@ import { windowFacade } from "../../misc/WindowFacade"
 type Props = {
 	data: SupportDialogState
 	toCategoryDetail: Thunk
+	countFaqLinkTrigger: Thunk
 }
 
 export class SupportLandingPage implements Component<Props> {
@@ -20,6 +21,7 @@ export class SupportLandingPage implements Component<Props> {
 		attrs: {
 			data: { categories, selectedCategory },
 			toCategoryDetail,
+			countFaqLinkTrigger,
 		},
 	}: Vnode<Props>): Children {
 		const defaultHeight = 666
@@ -36,6 +38,7 @@ export class SupportLandingPage implements Component<Props> {
 			text: { text: "tuta.com/support", testId: "" },
 			rightIcon: { icon: Icons.Open, title: "open_action" },
 			onclick: () => {
+				countFaqLinkTrigger()
 				windowFacade.openLink("https://tuta.com/support")
 			},
 		})
