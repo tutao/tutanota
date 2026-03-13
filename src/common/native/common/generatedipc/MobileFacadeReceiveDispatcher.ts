@@ -17,6 +17,10 @@ export class MobileFacadeReceiveDispatcher {
 				const newSize: number = arg[0]
 				return this.facade.keyboardSizeChanged(newSize)
 			}
+			case "handleAppleInAppEvents": {
+				const action: string = arg[0]
+				return this.facade.handleAppleInAppEvents(action)
+			}
 		}
 	}
 }

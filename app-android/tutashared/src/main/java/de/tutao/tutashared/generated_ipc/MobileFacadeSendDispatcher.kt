@@ -40,4 +40,14 @@ class MobileFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun handleAppleInAppEvents(
+		action: String,
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("handleAppleInAppEvents")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(action))
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 }

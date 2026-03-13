@@ -39,4 +39,15 @@ public class MobileFacadeSendDispatcher : MobileFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	 public func handleAppleInAppEvents(
+		_ action: String
+	) async throws -> Void
+		{
+		var args = [String]()
+		args.append(toJson(action))
+		let encodedFacadeName = toJson("MobileFacade")
+		let encodedMethodName = toJson("handleAppleInAppEvents")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 }

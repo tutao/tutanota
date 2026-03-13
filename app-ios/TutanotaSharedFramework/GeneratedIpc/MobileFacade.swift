@@ -24,4 +24,10 @@ public protocol MobileFacade {
 	func keyboardSizeChanged(
 		_ newSize: Int
 	) async throws -> Void
+	/**
+	 * iOS: called when an Apple in-app event should open signup or the upgrade flow.
+	 */
+	func handleAppleInAppEvents(
+		_ action: String
+	) async throws -> Void
 }
