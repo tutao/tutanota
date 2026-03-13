@@ -104,7 +104,11 @@ export class RestClient implements RestClientInterface {
 
 				const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig)
 				const resourceURL = new URL(origin)
-				resourceURL.pathname = path
+				if (resourceURL.pathname === "/") {
+					resourceURL.pathname = path
+				} else {
+					resourceURL.pathname += path
+				}
 				const url = addParamsToUrl(resourceURL, queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
@@ -380,6 +384,11 @@ export class RestClient implements RestClientInterface {
 		if (isNotNull(responseType)) {
 			headers["Accept"] = responseType
 		}
+
+		if (EnvProvider.get().isNextCloudPlugin()) {
+			headers["OCS-APIRequest"] = String(true)
+		}
+
 		for (const i in headers) {
 			xhr.setRequestHeader(i, headers[i])
 		}

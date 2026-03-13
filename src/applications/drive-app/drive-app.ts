@@ -125,7 +125,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		Styles.get().init(driveLocator.themeController)
+		Styles.get().init(driveLocator.themeController, null)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({

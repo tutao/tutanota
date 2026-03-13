@@ -5,6 +5,13 @@ import { TypeChecks } from "./TsTypeChecks"
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
+export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
+	Nextcloud: "Nextcloud",
+})
+
+export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
+export const NEXTCLOUD_PREFIX_WITHOUT_FILE: string = "/apps/tutamail/js"
+
 export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
 	staticUrl: string | null // if null the url from the browser is used
@@ -17,6 +24,7 @@ export type EnvType = {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName: string | null
+	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
 }
 
 export const enum PlatformId {
@@ -49,6 +57,7 @@ export type DomainConfig = {
 	 * Important! You probably do not want to use it directly but rather through the accessor function
 	 */
 	apiUrl: string
+	websocketUrl: string
 	/**
 	 * Which URL should be opened for Webauthn flow on desktop for keys associated with our current domain (tuta.com).
 	 */
@@ -143,6 +152,10 @@ export class EnvProvider {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
 		return this.isApp() && this.env.platformId === PlatformId.Ios
+	}
+
+	public isNextCloudPlugin(): boolean {
+		return env.integrationPlatform === IntegrationPlatform.Nextcloud
 	}
 
 	/**

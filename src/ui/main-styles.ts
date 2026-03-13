@@ -1,6 +1,6 @@
 import { Styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, NEXTCLOUD_PREFIX_WITHOUT_FILE } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -10,6 +10,7 @@ import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
+import { downcast } from "@tutao/utils"
 
 EnvProvider.assertMainOrNode()
 
@@ -38,6 +39,18 @@ export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
 const scrollbarWidthHeight = px(18)
 
+async function loadFonts() {
+	if (!EnvProvider.get().isNextCloudPlugin()) return
+
+	const fonts = [
+		new FontFace("Ionicons", `url('${NEXTCLOUD_PREFIX_WITHOUT_FILE}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${NEXTCLOUD_PREFIX_WITHOUT_FILE}/images/MDIO-Semibold.woff2')`),
+	]
+	for (const font of fonts) {
+		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
+	}
+}
+
 export class MainStyles {
 	constructor(
 		private readonly baseThemeProvider: BaseThemeProvider,
@@ -51,6 +64,7 @@ export class MainStyles {
 
 		Styles.get().registerStyle("main", () => {
 			const lightTheme = this.baseThemeProvider.getBaseTheme("light")
+			loadFonts()
 			return {
 				"#link-tt":
 					EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()

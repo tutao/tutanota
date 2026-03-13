@@ -2538,3 +2538,4 @@ export type TranslationKeyType =
 	| "giftCardNotAvailableApple_msg"
 	| "giftCardNotAvailableGoogle_msg"
 	| "emptyString_msg"
+	| "saveToNextcloud_action"
