@@ -3,7 +3,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { theme } from "../../../common/gui/theme"
 
 export enum FileType {
-	Default,
+	Generic,
 	Document,
 	Image,
 	Audio,
@@ -13,7 +13,7 @@ export enum FileType {
 // If we mapped to the color values directly, they would not
 // reflect theme changes, as this record only gets evaluated once.
 const fileTypeFill: Record<FileType, () => string> = {
-	[FileType.Default]: () => theme.on_surface,
+	[FileType.Generic]: () => theme.on_surface,
 	[FileType.Document]: () => theme.drive_document,
 	[FileType.Image]: () => theme.drive_image,
 	[FileType.Audio]: () => theme.drive_audio,
@@ -21,12 +21,15 @@ const fileTypeFill: Record<FileType, () => string> = {
 }
 
 export type FileFormat =
-	// Default
+	// Generic
 	| "File"
+	| "Text"
+	| "Image"
+	| "Audio"
+	| "Video"
 
 	// Document
 	| "PDF"
-	| "Text"
 	| "Rich text"
 	| "Word document"
 	| "ODF text document"
@@ -79,16 +82,16 @@ const mimeTypes: Record<string, DisplayFileType> = {
 
 // Sometimes the browser only provides a generic mime type but more information
 // can be inferred by looking at the file extension, e.g. for MP3.
-export type FileFormatOverride = {
-	extension: string
-	fileFormat: FileFormat
+export interface FileFormatOverride {
+	readonly extension: string
+	readonly fileFormat: FileFormat
 }
 
-export type DisplayFileType = {
-	fileType: FileType
-	fileFormat: FileFormat
+export interface DisplayFileType {
+	readonly fileType: FileType
+	readonly fileFormat: FileFormat
 
-	overrides?: FileFormatOverride[]
+	readonly overrides?: readonly FileFormatOverride[]
 }
 
 export function getFileIcon(displayFileType: DisplayFileType): Icons {
@@ -116,7 +119,12 @@ export function getItemIconFill(maybeDisplayFileType: DisplayFileType | null): s
 }
 
 export function getDisplayType(mimeType: string, fileName?: string): DisplayFileType {
-	const displayType = mimeTypes[mimeType]
+	const [cleanMimeType] = mimeType.split(/\s*;\s*/, 1)
+	if (cleanMimeType == null) {
+		return { fileType: FileType.Generic, fileFormat: "File" }
+	}
+
+	const displayType = mimeTypes[cleanMimeType]
 
 	if (fileName && displayType?.overrides) {
 		const fileExtension = getFileExtension(fileName)
@@ -126,5 +134,18 @@ export function getDisplayType(mimeType: string, fileName?: string): DisplayFile
 		}
 	}
 
-	return displayType ?? { fileType: FileType.Default, fileFormat: "File" }
+	if (displayType != null) {
+		return displayType
+	} else {
+		const [genericType] = cleanMimeType.split("/", 1)
+
+		const genericTypeToDisplayFileType: Record<string, DisplayFileType> = {
+			audio: { fileType: FileType.Audio, fileFormat: "Audio" },
+			video: { fileType: FileType.Video, fileFormat: "Video" },
+			text: { fileType: FileType.Document, fileFormat: "Text" },
+			image: { fileType: FileType.Image, fileFormat: "Image" },
+		}
+
+		return genericTypeToDisplayFileType[genericType] ?? { fileType: FileType.Generic, fileFormat: "File" }
+	}
 }
