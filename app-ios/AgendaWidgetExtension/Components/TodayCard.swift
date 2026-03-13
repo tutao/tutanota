@@ -24,9 +24,10 @@ struct TodayCard: View {
 					if normalEventsOnDay.isEmpty && !hasAllDayEvents {
 						Text("No events today").font(.system(size: Dimensions.FontSize.font_12)).padding(.bottom, Dimensions.Spacing.SM)
 					} else if !normalEventsOnDay.isEmpty {
-						EventsList(userId: userId, events: normalEventsOnDay, date: parsedDay).padding(.bottom, Dimensions.Spacing.SM)
+						EventsList(userId: userId, events: normalEventsOnDay).padding(.bottom, Dimensions.Spacing.SM)
 					}
-				}.padding(.top, -Dimensions.Spacing.XS) // moves EventsList up slightly so its alignment overlaps with the HeaderButton
+				}
+				.padding(.top, -Dimensions.Spacing.XS)  // moves EventsList up slightly so its alignment overlaps with the HeaderButton
 			}
 		}
 		.buttonStyle(.plain)

@@ -29,11 +29,9 @@ struct OtherDayCard: View {
 					.padding(.horizontal, Dimensions.Spacing.MD).padding(.vertical, Dimensions.Spacing.SM)
 
 				} else {
-						if hasAllDayEvents {
-							AllDayHeader(allDayEventsData: allDayEventsOnDay)
-						}
-						EventsList(userId: userId, events: normalEvents, date: date).padding(.vertical, Dimensions.Spacing.SM)
-					}
+					if hasAllDayEvents { AllDayHeader(allDayEventsData: allDayEventsOnDay) }
+					EventsList(userId: userId, events: normalEvents, displayDate: date).padding(.vertical, Dimensions.Spacing.SM)
+				}
 			}
 		}
 		.buttonStyle(.plain)
