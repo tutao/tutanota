@@ -336,16 +336,16 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 350,
 		}
-		const mailNoPreviewMode: DropDownSelectorAttrs<boolean> = {
-			label: "mailNoPreviewMode_label",
+		const noMailViewerMode: DropDownSelectorAttrs<boolean> = {
+			label: "showMailViewer_label",
 			items: [
-				{ name: lang.getTranslationText("mailNoPreviewModeWithReader_label"), value: false },
-				{ name: lang.getTranslationText("mailNoPreviewModeWithoutReader_label"), value: true },
+				{ name: lang.getTranslationText("activated_label"), value: false },
+				{ name: lang.getTranslationText("deactivated_label"), value: true },
 			],
-			selectedValue: deviceConfig.getMailNoPreviewMode(),
-			helpLabel: () => lang.getTranslationText("mailNoPreviewModeHelp_msg"),
+			selectedValue: deviceConfig.getNoMailViewerMode(),
+			helpLabel: () => lang.getTranslationText("showMailViewerHelp_msg"),
 			selectionChangedHandler: (arg: boolean) => {
-				deviceConfig.setMailNoPreviewMode(arg)
+				deviceConfig.setNoMailViewerMode(arg)
 				m.redraw()
 			},
 			dropdownWidth: 350,
@@ -384,7 +384,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-32#general", lang.get("general_label")),
 					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
 					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
-					m("#maillistissplit", m(DropDownSelector, mailNoPreviewMode)),
+					m("#maillistissplit", m(DropDownSelector, noMailViewerMode)),
 					isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),

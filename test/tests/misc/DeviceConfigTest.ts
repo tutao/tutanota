@@ -190,7 +190,7 @@ o.spec("DeviceConfig", function () {
 				retryRatingPromptAfter: null,
 				scrollTime: 8,
 				mailListDisplayMode: MailListDisplayMode.MAILS,
-				mailNoPreviewMode: false,
+				noMailViewerMode: false,
 				mailListSize: {},
 
 				_version: DeviceConfig.Version,

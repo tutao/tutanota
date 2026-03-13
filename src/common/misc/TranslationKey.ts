@@ -2246,3 +2246,5 @@ export type TranslationKeyType =
 	| "contactDeletionMoveToSpam_title"
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
 	| "emptyString_msg"
+	| "showMailViewer_label"
+	| "showMailViewerHelp_msg"

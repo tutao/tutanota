@@ -164,8 +164,8 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private getColumnsForMainSlider(): Array<ViewColumn> {
-		// In multi-column exclusive mode (no-preview), only one of the exclusive columns (list or
-		// mail) is active at a time. The inactive one is excluded from the DOM so that switching
+		// In multi-column exclusive mode, only one of the exclusive columns (list or
+		// viewer) is active at a time. The inactive one is excluded from the DOM so that switching
 		// between them is an in-place mithril swap with no slide animation.
 		// In single-column mode (mobile) all columns stay in the DOM to allow slide animations.
 		const isMultiColumn = this.visibleBackgroundColumns.length > 1
@@ -427,7 +427,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	updateOffsets() {
-		// In multi-column exclusive mode (no-preview), the inactive exclusive column (list or mail)
+		// In multi-column exclusive mode, the inactive exclusive column (list or viewer)
 		// is removed from the DOM entirely, so we must not allocate any offset space for it.
 		// We track the total width explicitly so getWidth() doesn't read a stale value from the
 		// last column, which may be the excluded one.

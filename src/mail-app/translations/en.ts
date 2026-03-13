@@ -2247,6 +2247,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"showMailViewer_label": "Show Mail Viewer",
+		"showMailViewerHelp_msg": "Deactivate to not have the mail view next to the mail list",
 	}
 }

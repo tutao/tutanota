@@ -2247,6 +2247,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"showMailViewer_label": "Show Mail Viewer",
+		"showMailViewerHelp_msg": "Deactivate to not have the mail view next to the mail list",
 	}
 }
