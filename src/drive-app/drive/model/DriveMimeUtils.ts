@@ -21,6 +21,9 @@ const fileTypeFill: Record<FileType, () => string> = {
 }
 
 export type FileFormat =
+	// Default
+	| "File"
+
 	// Document
 	| "PDF"
 	| "Text"
@@ -99,7 +102,7 @@ export function getItemIconFill(maybeDisplayFileType: DisplayFileType | null): s
 	}
 }
 
-export function getDisplayType(mimeType: string, fileName?: string) {
+export function getDisplayType(mimeType: string, fileName?: string): DisplayFileType {
 	const displayType = mimeTypes[mimeType]
 
 	if (fileName && displayType?.overrides) {
