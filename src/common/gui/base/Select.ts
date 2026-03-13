@@ -519,13 +519,13 @@ class OptionListContainer implements ClassComponent {
 	}
 
 	oncreate() {
-		document.addEventListener("keydown", this.handleKeyPress)
-		document.addEventListener("mousedown", this.handleMouseClick)
+		window.tutao.root.getDom().addEventListener("keydown", this.handleKeyPress)
+		window.tutao.root.getDom().addEventListener("mousedown", this.handleMouseClick)
 	}
 
 	onremove() {
-		document.removeEventListener("keydown", this.handleKeyPress)
-		document.removeEventListener("mousedown", this.handleMouseClick)
+		window.tutao.root.getDom().removeEventListener("keydown", this.handleKeyPress)
+		window.tutao.root.getDom().removeEventListener("mousedown", this.handleMouseClick)
 	}
 
 	private handleMouseClick = (e: MouseEvent) => {
