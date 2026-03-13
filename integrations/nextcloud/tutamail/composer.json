@@ -1,0 +1,51 @@
+{
+	"name": "nextcloud/tutamail",
+	"description": "Seamless integration of Tuta Mail into nextcloud.",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Tutao GmbH",
+			"email": "hello@tutao.de",
+			"homepage": "https://tuta.com"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"OCA\\TutaMail\\": "lib/"
+		}
+	},
+	"scripts": {
+		"post-install-cmd": [
+			"@composer bin all install --ansi"
+		],
+		"post-update-cmd": [
+			"@composer bin all install --ansi"
+		],
+		"lint": "find . -name \\*.php -not -path './vendor/*' -not -path './vendor-bin/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
+		"cs:check": "php-cs-fixer fix --dry-run --diff",
+		"cs:fix": "php-cs-fixer fix",
+		"psalm": "psalm --threads=1 --no-cache",
+		"test:unit": "phpunit tests -c tests/phpunit.xml --colors=always --fail-on-warning --fail-on-risky",
+		"openapi": "generate-spec",
+		"rector": "rector && composer cs:fix"
+	},
+	"require": {
+		"bamarni/composer-bin-plugin": "^1.8",
+		"php": "^8.1",
+		"guzzle/http": "*"
+	},
+	"require-dev": {
+		"nextcloud/ocp": "dev-stable31",
+		"roave/security-advisories": "dev-latest"
+	},
+	"config": {
+		"allow-plugins": {
+			"bamarni/composer-bin-plugin": true
+		},
+		"optimize-autoloader": true,
+		"sort-packages": true,
+		"platform": {
+			"php": "8.1"
+		}
+	}
+}

@@ -21,6 +21,7 @@ declare type NativeRequestType = "ipc" | "facade"
 /** Requests from native to web */
 declare type JsRequestType = "ipc"
 
+declare type IntegrationPlatformName = "Nextcloud"
 declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 
@@ -37,6 +38,7 @@ type DomainConfig = {
 	 * Important! You probably do not want to use it directly but rather through the accessor function
 	 */
 	apiUrl: string
+	websocketUrl: string
 	/**
 	 * Which URL should be opened for Webauthn flow on desktop for keys associated with our current domain (tuta.com).
 	 */
@@ -76,6 +78,7 @@ declare var env: {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName?: string
+	integrationPlatform: IntegrationPlatform | null
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }

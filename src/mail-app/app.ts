@@ -31,7 +31,16 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import {
+	assertMainOrNodeBoot,
+	bootFinished,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
+	isNextCloudPlugin,
+	isOfflineStorageAvailable,
+} from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -299,7 +308,13 @@ import("./translations/en.js")
 			})
 		}
 
-		styles.init(mailLocator.themeController)
+		let shadowRoot: ShadowRoot | null = null
+		if (isNextCloudPlugin()) {
+			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
+			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
+		}
+
+		styles.init(mailLocator.themeController, shadowRoot)
 
 		const contactViewResolver = makeViewResolver<
 			ContactViewAttrs,
@@ -803,8 +818,14 @@ import("./translations/en.js")
 			},
 		}
 
-		// keep in sync with RewriteAppResourceUrlHandler.java
-		m.route(document.body, startRoute, resolvers)
+		if (isNextCloudPlugin()) {
+			const mountPoint = document.createElement("div")
+			assertNotNull(shadowRoot).appendChild(mountPoint)
+			m.route(mountPoint, startRoute, resolvers)
+		} else {
+			// keep in sync with RewriteAppResourceUrlHandler.java
+			m.route(document.body, startRoute, resolvers)
+		}
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
@@ -1015,8 +1036,12 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 }
 
 function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
-	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
-	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
+	let prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
+	let prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
+	if (isNextCloudPlugin()) {
+		prefix = "/index.php/apps/tutamail"
+		prefixWithoutFile = "/apps-extra/tutamail/js"
+	}
 	return Object.freeze({ prefix, prefixWithoutFile })
 }
 
