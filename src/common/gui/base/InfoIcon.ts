@@ -57,12 +57,12 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 
 	private expand(): void {
 		this.expanded = true
-		document.addEventListener("click", this.listener, { capture: true })
+		window.tutao.root.getDom().addEventListener("click", this.listener, { capture: true })
 	}
 
 	private readonly listener = (e: Event) => {
 		this.expanded = false
-		document.removeEventListener("click", this.listener, { capture: true })
+		window.tutao.root.getDom().removeEventListener("click", this.listener, { capture: true })
 		e.stopPropagation()
 		m.redraw()
 	}
