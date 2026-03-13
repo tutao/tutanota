@@ -143,10 +143,6 @@ export function getNavigationMenuBg(): string {
 	return isColorLight(theme.surface) ? theme.surface_container_high : theme.surface
 }
 
-export function isDefaultLightTheme(): boolean {
-	return theme.themeId === "light" || theme.themeId === "light_secondary"
-}
-
 /**
  * @return true if the current theme is a light theme
  */

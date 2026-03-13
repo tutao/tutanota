@@ -2273,3 +2273,4 @@ export type TranslationKeyType =
 	| "dark_green_label"
 	| "driveNotEnabled_msg"
 	| "emptyString_msg"
+	| "saveToNextcloud_action"

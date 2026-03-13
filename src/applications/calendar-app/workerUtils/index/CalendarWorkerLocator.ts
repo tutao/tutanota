@@ -670,7 +670,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as EntityRestCache,
 		locator.user,
 		locator.instancePipeline,
-		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(domainConfig.websocketUrl + path),
 		new SleepDetector(scheduler, dateProvider),
 		typeModelResolver,
 		locator.crypto,

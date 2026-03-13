@@ -10,6 +10,7 @@ import {
 	isIOSApp,
 	ProgrammingError,
 	SessionType,
+	isNextCloudPlugin
 } from "../../platform-kit/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
@@ -333,7 +334,13 @@ import("../../ui/translations/en.js")
 			})
 		}
 
-		styles.init(mailLocator.themeController)
+		let shadowRoot: ShadowRoot | null = null
+		if (isNextCloudPlugin()) {
+			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
+			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
+		}
+
+		styles.init(mailLocator.themeController, shadowRoot)
 
 		const contactViewResolver = makeViewResolver<
 			ContactViewAttrs,
@@ -800,8 +807,14 @@ import("../../ui/translations/en.js")
 			},
 		}
 
-		// keep in sync with RewriteAppResourceUrlHandler.java
-		m.route(document.body, startRoute, resolvers)
+		if (isNextCloudPlugin()) {
+			const mountPoint = document.createElement("div")
+			assertNotNull(shadowRoot).appendChild(mountPoint)
+			m.route(mountPoint, startRoute, resolvers)
+		} else {
+			// keep in sync with RewriteAppResourceUrlHandler.java
+			m.route(document.body, startRoute, resolvers)
+		}
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost

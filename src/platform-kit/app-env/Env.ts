@@ -10,20 +10,20 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Desktop: "Desktop",
 	Admin: "Admin",
 })
-
-export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
-	return (
-		domainConfig.apiUrl
-			// replaces http: with ws: and https: with wss:
-			.replace(/^http/, "ws")
-	)
-}
+export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
+	Nextcloud: "Nextcloud",
+})
 
 /** Returns the origin which should be used for API requests. */
 export function getApiBaseUrl(domainConfig: DomainConfig): string {
 	if (isIOSApp()) {
 		// http:// -> api:// and https:// -> apis://
 		return domainConfig.apiUrl.replace(/^http/, "api")
+	} else if (isNextCloudPlugin()) {
+		const currentLocation = new URL(location.href)
+		// tutamail is the APP_ID for the nextcloud pluging. It is used for both the App and the ExApp (AppApi)
+		currentLocation.pathname = "/index.php/apps/app_api/proxy/tutamail"
+		return currentLocation.toString()
 	} else {
 		return domainConfig.apiUrl
 	}
@@ -34,6 +34,10 @@ export function isIOSApp(): boolean {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
 	return isApp() && env.platformId === "ios"
+}
+
+export function isNextCloudPlugin(): boolean {
+	return env.integrationPlatform === IntegrationPlatform.Nextcloud
 }
 
 /**

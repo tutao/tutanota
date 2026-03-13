@@ -33,6 +33,7 @@ o.spec("ReferralLinkNews", function () {
 		giftCardBaseUrl: "https://app.test.tuta.com/giftcard",
 		referralBaseUrl: "https://app.test.tuta.com/signup",
 		websiteBaseUrl: "https://tuta.com",
+		websocketUrl: "",
 	}
 
 	o.beforeEach(function () {
