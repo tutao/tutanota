@@ -133,7 +133,7 @@ export default {
 		"approvalMail_msg": "Freigabe-Mail für {mailAddress}",
 		"approvalMailBody_msg": "Bitte schreiben Sie uns an approval@tutao.de und ersetzen Sie diesen Text mit einer kurzen Nachricht auf Deutsch oder Englisch, in der Sie uns bitten, Ihr Konto zu bestätigen.",
 		"approvalWaitNotice_msg": "Ihr Konto benötigt eine manuelle Freigabe. Das bedeutet, dass Sie keine E-Mails senden oder empfangen können. Die Freigabe erfolgt an Werktagen in der Regel innerhalb von 24 Stunden.",
-		"approvalWaitNoticeFastTrack_msg": "Um Tuta frei von Spam zu halten, werden manche Konten einer kurzen Überprüfung unterzogen. Warten Sie entweder 48 Stunden um automatisch freigegeben zu werden oder schreiben Sie uns eine E-Mail, um den Vorgang zu beschleunigen",
+		"approvalWaitNoticeFastTrack_msg": "Um Tuta frei von Spam zu halten, werden manche Konten einer kurzen Überprüfung unterzogen. Warten Sie entweder 48 Stunden um automatisch freigegeben zu werden oder schreiben Sie uns eine E-Mail an approval@tutao.de, um den Vorgang zu beschleunigen",
 		"appStoreNotAvailable_msg": "App Store-Abonnements sind derzeit nicht verfügbar.",
 		"appStoreRenewProblemBody_msg": "Hallo,\n    \nIhr Abonnement sollte am {expirationDate} verlängert werden.\n     \nLeider haben wir keine Zahlung vom App Store für Ihr Abonnement erhalten, was möglicherweise auf einen Abrechnungsfehler zurückzuführen ist. Bitte überprüfen Sie, ob Ihre Zahlungseinstellungen im App Store korrekt sind.\n\nWenn wir keine Zahlung erhalten, wird Ihr Konto am {finalExpirationDate} wegen Nichtbezahlung deaktiviert. Alternativ können Sie Ihr Abonnement kündigen oder zu einer anderen Zahlungsmethode wechseln.\n \nViele Grüße,\nIhr Tuta-Team",
 		"appStoreRenewProblemSubject_msg": "App Store Abrechnungsfehler",
@@ -2251,5 +2251,6 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"buyGiftcardWhileCampaignActive_msg": "Gutscheine sind nicht mit Rabattaktionen kombinierbar.",
+		"approvalMailBody_msg": "Bitte schreiben Sie uns an approval@tutao.de und ersetzen Sie diesen Text mit einer kurzen Nachricht auf Deutsch oder Englisch, in der Sie uns bitten, Ihr Konto zu bestätigen."
 	}
 }

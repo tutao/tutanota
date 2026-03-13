@@ -133,7 +133,7 @@ export default {
 		"approvalMail_msg": "Approval Mail for {mailAddress}",
 		"approvalMailBody_msg": "Please write us at approval@tutao.de and replace this text with a short message in English or German asking us to approve your account.",
 		"approvalWaitNotice_msg": "Your account was marked for manual approval. This means you are not able to send or receive emails. On working days, the approval usually happens within 24 hours.",
-		"approvalWaitNoticeFastTrack_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 48 hours for automatic approval or send us a message to speed things up.",
+		"approvalWaitNoticeFastTrack_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 48 hours for automatic approval or send us an email at approval@tutao.de to speed things up.",
 		"appStoreNotAvailable_msg": "App Store subscriptions are not available at the moment.",
 		"appStoreRenewProblemBody_msg": "Hello,\n      \nYour subscription was due to renew on {expirationDate}.\n       \nUnfortunately, we were unable to receive any payment from the App Store for your subscription, which may be due to a billing failure. Please check that your payment settings on the App Store are correct.\n\nIf we do not receive any payment, your account will be disabled on {finalExpirationDate} for nonpayment. Alternatively, you may choose to cancel your subscription or switch to another payment method.\n   \nStay secure,\nYour Tuta Team",
 		"appStoreRenewProblemSubject_msg": "App Store billing failure",
@@ -2252,6 +2252,7 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
 		"one_step": "One last step to privacy",
-		"approvalWaitNotice_nice_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 24 hours for automatic approval or send us a message to speed things up.",
+		"approvalWaitNotice_nice_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 24 hours for automatic approval or send us an email to speed things up.",
+		"approvalMailBody_msg": "Please write us at approval@tutao.de and replace this text with a short message in English or German asking us to approve your account."
 	}
 }
