@@ -142,6 +142,14 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	func loadMainPage(params: [String: String]) { DispatchQueue.main.async { self._loadMainPage(params: params) } }
 
+	func handleAppleInAppEvents(_ action: String) {
+		Task {
+			do { try await MobileFacadeSendDispatcher(transport: self.bridge).handleAppleInAppEvents(action) } catch {
+				TUTSLog("failed to handle Apple in-app event: \(error)")
+			}
+		}
+	}
+
 	@objc private func onKeyboardDidShow(note: Notification) {
 		let rect = note.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! CGRect
 		self.onAnyKeyboardSizeChange(newHeight: rect.size.height)

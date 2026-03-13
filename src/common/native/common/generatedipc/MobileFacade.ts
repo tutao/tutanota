@@ -18,4 +18,9 @@ export interface MobileFacade {
 	 * iOS: called when keyboard opens/closes/resizes. Passes the height of the keyboard.
 	 */
 	keyboardSizeChanged(newSize: number): Promise<void>
+
+	/**
+	 * iOS: called when an Apple in-app event should open signup or the upgrade flow.
+	 */
+	handleAppleInAppEvents(action: string): Promise<void>
 }

@@ -27,4 +27,10 @@ interface MobileFacade {
 	suspend fun keyboardSizeChanged(
 		newSize: Int,
 	): Unit
+	/**
+	 * iOS: called when an Apple in-app event should open signup or the upgrade flow.
+	 */
+	suspend fun handleAppleInAppEvents(
+		action: String,
+	): Unit
 }

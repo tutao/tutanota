@@ -5,6 +5,7 @@ import tutasdk
 
 public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 public let TUTA_MAIL_MAILTO_SCHEME = "tutamailto"
+public let TUTANOTA_SCHEME = "tutanota"
 public let MAILTO_SCHEME = "mailto"
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -117,11 +118,28 @@ public let MAILTO_SCHEME = "mailto"
 	}
 
 	/// handles tutanota deep links:
-	/// tutanota:// -> ?
+	/// tutanota:// -> redirects for Apple in-app events
 	/// tutashare:// -> share requests from the sharing extension
 	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
 		switch url.scheme {
 		case TUTANOTA_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
+		case TUTANOTA_SCHEME:
+			if url.host?.lowercased() == "signup" {
+				do {
+					let credentialsDb = try CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
+					let persistedCredentials = try credentialsDb.getAll()
+					switch persistedCredentials.count {
+					case 0: self.viewController.handleAppleInAppEvents("signup")
+					case 1: self.viewController.handleAppleInAppEvents("upgrade")
+					default: break
+					}
+				} catch {
+					TUTSLog("failed to inspect saved credentials for Apple in-app event: \(error)")
+					self.viewController.handleAppleInAppEvents("signup")
+				}
+			} else {
+				TUTSLog("unknown tutanota deep link: \(url)")
+			}
 		case TUTA_MAIL_INTEROP_SCHEME:
 			Task {
 				guard let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication] else { return }
@@ -200,10 +218,8 @@ public let MAILTO_SCHEME = "mailto"
 		default: TUTSLog("Invalid Notification Action")
 		}
 	}
-	func applicationDidEnterBackground(_ application: UIApplication) {
-		self.viewController.onApplicationDidEnterBackground()
 
-	}
+	func applicationDidEnterBackground(_ application: UIApplication) { self.viewController.onApplicationDidEnterBackground() }
 
 	func applicationWillTerminate(_ application: UIApplication) {
 		self.viewController.onApplicationWillTerminate()

@@ -19,6 +19,11 @@
 			"doc": "iOS: called when keyboard opens/closes/resizes. Passes the height of the keyboard.",
 			"arg": [{ "newSize": "number" }],
 			"ret": "void"
+		},
+		"handleAppleInAppEvents": {
+			"doc": "iOS: called when an Apple in-app event should open signup or the upgrade flow.",
+			"arg": [{ "action": "string" }],
+			"ret": "void"
 		}
 	}
 }

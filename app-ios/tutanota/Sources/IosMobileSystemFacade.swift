@@ -113,9 +113,7 @@ class IosMobileSystemFacade: MobileSystemFacade {
 
 	func getAppleAdsAttributionToken() async throws -> String? {
 		if #available(iOS 14.3, *) {
-			do {
-				return try AAAttribution.attributionToken()
-			} catch {
+			do { return try AAAttribution.attributionToken() } catch {
 				TUTSLog("Failed to request AdServices attribution token: \(error)")
 				return nil
 			}
