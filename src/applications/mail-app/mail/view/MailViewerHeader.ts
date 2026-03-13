@@ -7,7 +7,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../../ui/base/I
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { RecipientButton } from "../../../../ui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
-import { isAndroidApp, isDesktop, isIOSApp, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
+import { isAndroidApp, isDesktop, isIOSApp, isNextCloudPlugin, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
 import { Icon, progressIcon } from "../../../../ui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../../ui/utils/Formatter.js"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
@@ -672,6 +672,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				open: viewModel.attachmentDownloader.canOpenAttachment(attachment)
 					? () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.Open)
 					: null,
+				nextcloud: isNextCloudPlugin() ? () => viewModel.saveToNextcloud(attachment) : null,
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})

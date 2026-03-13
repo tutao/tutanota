@@ -60,7 +60,11 @@
 		"postal-mime": "2.7.4",
 		"qrcode-svg": "1.1.0",
 		"squire-rte": "2.2.7",
-		"undici": "7.28.0"
+		"undici": "7.28.0",
+		"@nextcloud/typings": "1.10.0",
+		"@nextcloud/axios": "2.5.2",
+		"@nextcloud/router": "3.1.0",
+		"@nextcloud/auth": "2.5.3"
 	},
 	"optionalDependencies": {
 		"dmg-license": "1.0.11"
