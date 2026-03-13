@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isNextCloudPlugin, isWebClient, isWorker } from "@tutao/app-env"
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
@@ -152,6 +152,7 @@ export class RestClient implements RestClientInterface {
 
 						await Promise.all(this.responseMiddlewares.map((middleware) => middleware.interceptResponse(xhr, method)))
 
+						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
 								resolve(xhr.response)
 							} else if (options.responseType === MediaType.Binary) {

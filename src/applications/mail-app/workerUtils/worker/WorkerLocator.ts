@@ -12,7 +12,6 @@ import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMoni
 import {
 	assertWorkerOrNode,
 	Const,
-	getWebsocketBaseUrl,
 	isAdminClient,
 	isAndroidApp,
 	isBrowser,

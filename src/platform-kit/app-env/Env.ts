@@ -14,6 +14,17 @@ export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPla
 	Nextcloud: "Nextcloud",
 })
 
+export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
+export const NEXTCLOUD_PREFIX_WITHOUT_FILE: string = "/apps-extra/tutamail/js"
+
+export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
+	return (
+		domainConfig.apiUrl
+			// replaces http: with ws: and https: with wss:
+			.replace(/^http/, "ws")
+	)
+}
+
 /** Returns the origin which should be used for API requests. */
 export function getApiBaseUrl(domainConfig: DomainConfig): string {
 	if (isIOSApp()) {

@@ -121,7 +121,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		styles.init(driveLocator.themeController)
+		styles.init(driveLocator.themeController, null)
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
