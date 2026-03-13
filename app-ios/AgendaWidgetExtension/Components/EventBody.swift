@@ -8,6 +8,7 @@ import SwiftUI
 import TutanotaSharedFramework
 import WidgetKit
 
+
 struct EventBody: View {
 	var userId: String
 	var happensToday: Bool
@@ -16,6 +17,7 @@ struct EventBody: View {
 	var eventDate: Date
 	var eventTime: String?
 	var event: CalendarEventData?
+
 
 	var body: some View {
 		let eventTitle: String
@@ -34,7 +36,7 @@ struct EventBody: View {
 				)
 			) {
 				HStack(spacing: Dimensions.Spacing.MD) {
-					VStack { Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3)) }
+					VStack { Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3)) }.padding(.vertical, 4)
 					VStack(alignment: .leading) {
 						Text(eventTitle).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_14))
 						if eventTime != nil { Text(eventTime!).font(.system(size: Dimensions.FontSize.font_12)) }

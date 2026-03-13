@@ -22,23 +22,18 @@ struct OtherDayCard: View {
 		Button(intent: WidgetActionsIntent(userId: userId, date: date, action: WidgetActions.agenda)) {
 			Card {
 				if normalEvents.isEmpty && hasAllDayEvents {
-					// render All Day Events Only Row
 					HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.SM) {
 						DayWithWeekday(date: date)
 						AllDayEventRow(allDayEventsData: allDayEventsOnDay)
 					}
 					.padding(.horizontal, Dimensions.Spacing.MD).padding(.vertical, Dimensions.Spacing.SM)
 
-				} else if !normalEvents.isEmpty && !hasAllDayEvents {
-					// render only the Event list (no all day events)
-					EventsList(userId: userId, events: normalEvents).padding(.vertical, Dimensions.Spacing.SM)
 				} else {
-					// render both All Day section and Events List
-					VStack(alignment: .leading, spacing: Dimensions.Spacing.XS) {
-						AllDayHeader(allDayEventsData: allDayEventsOnDay)
-						EventsList(userId: userId, events: normalEvents).padding(.vertical, Dimensions.Spacing.SM)
+						if hasAllDayEvents {
+							AllDayHeader(allDayEventsData: allDayEventsOnDay)
+						}
+						EventsList(userId: userId, events: normalEvents, date: date).padding(.vertical, Dimensions.Spacing.SM)
 					}
-				}
 			}
 		}
 		.buttonStyle(.plain)

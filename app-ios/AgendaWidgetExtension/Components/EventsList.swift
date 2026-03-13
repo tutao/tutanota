@@ -11,6 +11,7 @@ import WidgetKit
 struct EventsList: View {
 	var userId: String
 	var events: [CalendarEventData]
+	var date: Date
 
 	private let eventTimeFormatter: DateFormatter = {
 		let formatter = DateFormatter()
@@ -20,23 +21,26 @@ struct EventsList: View {
 	}()
 
 	var body: some View {
-		VStack(alignment: .leading, spacing: 6) {
+		VStack(alignment: .leading, spacing: 4) {
 			ForEach(Array(events.enumerated()), id: \.element) { index, event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
 				let eventTime = eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
 				let happensToday = Calendar.current.isDateInToday(event.startDate)
-
-				EventBody(
-					userId: userId,
-					happensToday: happensToday,
-					isFirstEventOfDay: index == 0,
-					calendarColor: calendarColor,
-					eventDate: event.startDate,
-					eventTime: eventTime,
-					event: event
-				)
-			}
+				HStack {
+					DayWithWeekday(date: date)
+					EventBody(
+						userId: userId,
+						happensToday: happensToday,
+						isFirstEventOfDay: index == 0,
+						calendarColor: calendarColor,
+						eventDate: event.startDate,
+						eventTime: eventTime,
+						event: event
+					)
+				}
+			}.padding(.horizontal, Dimensions.Spacing.MD)
 		}
-		.padding(.horizontal, Dimensions.Spacing.MD)
+		}
 	}
-}
+
+
