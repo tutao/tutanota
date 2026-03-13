@@ -135,8 +135,8 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 
 	private collapse(): void {
 		this.expanded = false
-		document.removeEventListener("click", this.onClick, { capture: true })
-		window.removeEventListener("scroll", this.onScroll, { capture: true })
+		window.tutao.root.getDom().removeEventListener("click", this.onClick, { capture: true })
+		window.tutao.root.getDom().removeEventListener("scroll", this.onScroll, { capture: true })
 		this.closeOverlay()
 	}
 

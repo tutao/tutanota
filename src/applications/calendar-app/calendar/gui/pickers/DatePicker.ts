@@ -239,13 +239,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 					this.documentInteractionListener = listener
 
-					const inputViewDom = document.querySelector("#root") as HTMLElement
+					const inputViewDom = window.tutao.root.getDom()
 					inputViewDom.addEventListener("click", listener, true)
 					inputViewDom.addEventListener("focus", listener, true)
 				},
 				onremove: () => {
 					if (this.documentInteractionListener) {
-						const mainViewDom = document.querySelector("#root") as HTMLElement
+						const mainViewDom = window.tutao.root.getDom()
 						mainViewDom.removeEventListener("click", this.documentInteractionListener, true)
 						mainViewDom.removeEventListener("focus", this.documentInteractionListener, true)
 					}
