@@ -20,7 +20,7 @@ struct EventsList: View {
 	}()
 
 	var body: some View {
-		VStack(alignment: .leading, spacing: 6) {
+		VStack(alignment: .leading) {
 			ForEach(Array(events.enumerated()), id: \.element) { index, event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
 				let eventTime = eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
@@ -37,6 +37,5 @@ struct EventsList: View {
 				)
 			}
 		}
-		.padding(.horizontal, Dimensions.Spacing.MD)
 	}
 }
