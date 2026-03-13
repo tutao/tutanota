@@ -31,7 +31,7 @@ import { copyCryptoPrimitiveCrateIntoWasmDir } from "./cryptoPrimitivesUtils.js"
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false, integrationPlatform }) {
 	const isCalendarApp = app === "calendar"
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
@@ -180,6 +180,7 @@ import "./${builtWorkerFile}"`,
 			dist: true,
 			domainConfigs,
 			networkDebugging,
+			integrationPlatform,
 		}),
 		app,
 	)
@@ -192,6 +193,7 @@ import "./${builtWorkerFile}"`,
 				dist: true,
 				domainConfigs,
 				networkDebugging,
+				integrationPlatform,
 			}),
 			app,
 		)

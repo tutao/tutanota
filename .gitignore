@@ -30,3 +30,5 @@ DerivedData/
 tuta-sdk/rust/out
 tuta-sdk/android
 import-trace.json
+integrations/nextcloud/tutamail/vendor
+integrations/nextcloud/tutamail/vendor-bin

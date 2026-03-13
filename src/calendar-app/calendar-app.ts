@@ -130,7 +130,7 @@ import("../mail-app/translations/en.js")
 			)
 		}
 
-		styles.init(calendarLocator.themeController)
+		styles.init(calendarLocator.themeController, null)
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{

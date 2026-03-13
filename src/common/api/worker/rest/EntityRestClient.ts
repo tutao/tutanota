@@ -11,7 +11,7 @@ import {
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode, isNextCloudPlugin } from "../../common/Env"
 import type {
 	ClientModelUntypedInstance,
 	ClientTypeModel,
@@ -618,6 +618,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 		// PatchList has no encrypted fields (sk == null)
 		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+
 		await this.restClient.request(path, HttpMethod.PATCH, {
 			baseUrl: options?.baseUrl,
 			queryParams,
