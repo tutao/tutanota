@@ -4,7 +4,7 @@ import { px, size } from "../../gui/size"
 import { Translation } from "../../misc/LanguageViewModel"
 import { PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg"
-import { isMobile } from "@tensorflow/tfjs-core/dist/device_util"
+import { isApp } from "../../api/common/Env"
 
 interface PromotionRibbonAttrs {
 	translation: Translation
@@ -18,7 +18,7 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 			m(
 				".abs.z3",
 				{
-					style: isMobile()
+					style: isApp()
 						? {
 								top: px(-88),
 								right: px(9),
