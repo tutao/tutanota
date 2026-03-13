@@ -868,6 +868,7 @@ class MailLocator implements CommonLocator {
 			this.connectivityModel,
 			this.processInboxHandler,
 			this.progressTracker,
+			this.bulkMailLoader,
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {

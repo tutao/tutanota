@@ -23,6 +23,7 @@ import {
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
+	MailAuthenticationStatus,
 	MailReportType,
 	MailSetKind,
 	SimpleMoveMailTarget,
@@ -208,8 +209,10 @@ export async function showUndoMailSnackbar(
 
 async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, mailModel: MailModel, mailIds: ReadonlyArray<IdTuple>) {
 	const { showContactSelectionDialog } = await import("../../contacts/view/ContactSelectionDialog")
-	const mails = await mailModel.loadAllMails(mailIds)
-	const senderAddresses = mails.map((mail) => mail.sender.address)
+	const mailWithDetails = await mailModel.loadAllMailsWithDetails(mailIds)
+	const senderAddresses = mailWithDetails
+		.filter((mailWithMailDetails) => mailWithMailDetails.mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED)
+		.map((mailWithMailDetails) => mailWithMailDetails.mail.sender.address)
 
 	const loadedContacts = await contactModel.loadAllContacts()
 	const matchingContacts = loadedContacts.filter((contact) => contact.mailAddresses.some((a) => senderAddresses.includes(cleanMailAddress(a.address))))

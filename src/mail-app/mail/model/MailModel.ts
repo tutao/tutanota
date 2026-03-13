@@ -57,6 +57,8 @@ import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { isWebClient } from "../../../common/api/common/Env"
 import { ProgressMonitorId } from "../../../common/api/common/utils/ProgressMonitor"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
+import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
+import { EntityRestClientLoadOptions } from "../../../common/api/worker/rest/EntityRestClient"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -95,7 +97,8 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
 		private readonly processInboxHandler: () => ProcessInboxHandler,
-		private readonly progessTracker: ProgressTracker,
+		private readonly progressTracker: ProgressTracker,
+		private readonly bulkMailLoader: BulkMailLoader,
 	) {}
 
 	// only init listeners once
@@ -233,7 +236,7 @@ export class MailModel {
 
 					// complete work when the mail is processed or deleted
 					if (mail == null || !mail.processNeeded) {
-						this.progessTracker.workDoneForMonitor(eventQueueProgressMonitorId, 1)
+						this.progressTracker.workDoneForMonitor(eventQueueProgressMonitorId, 1)
 					}
 				}
 			}
@@ -640,5 +643,14 @@ export class MailModel {
 
 	async unscheduleMail(mail: Mail): Promise<void> {
 		return await this.mailFacade.unscheduleMail(mail._id)
+	}
+
+	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
+		return this.bulkMailLoader.loadMailDetails(mails, options)
+	}
+
+	async loadAllMailsWithDetails(mailIds: readonly IdTuple[]): Promise<MailWithMailDetails[]> {
+		const mails = await this.loadAllMails(mailIds)
+		return this.loadMailDetails(mails)
 	}
 }
