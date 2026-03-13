@@ -1,8 +1,9 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { modal } from "./Modal"
 import { overlay } from "./Overlay"
-import { EnvProvider } from "../../platform-kit/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
+import { assertNotNull } from "@tutao/utils"
 import { Keys } from "../utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -42,6 +43,10 @@ export class RootView implements ClassComponent {
 	constructor() {
 		// still "old-style" component, we don't want to lose "this" reference
 		this.view = this.view.bind(this)
+	}
+
+	getDom() {
+		return assertNotNull(this.dom)
 	}
 
 	view(vnode: Vnode): Children {
