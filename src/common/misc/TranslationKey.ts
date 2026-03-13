@@ -2247,3 +2247,4 @@ export type TranslationKeyType =
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
 	| "approvalMailBody_msg"
 	| "emptyString_msg"
+	| "saveToNextcloud_action"

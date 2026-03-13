@@ -2,8 +2,8 @@ import { DeviceConfig } from "../misc/DeviceConfig"
 import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
-import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot, isApp, isDesktop, isNextCloudPlugin, isWebClient } from "../api/common/Env"
+import { downcast, findAndRemove, isNotNull, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
@@ -20,7 +20,7 @@ import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 
 assertMainOrNodeBoot()
 
-export const defaultThemeId = "light" satisfies ThemeId
+export const defaultThemeId = isNextCloudPlugin() ? ("light_secondary" satisfies ThemeId) : ("light" satisfies ThemeId)
 
 export class ThemeController {
 	private readonly theme: Theme
@@ -270,7 +270,7 @@ export class ThemeController {
 	}
 
 	getDefaultTheme(): Theme {
-		return Object.assign({}, themes()[defaultThemeId])
+		return Object.assign({}, themes()["light_secondarygit"])
 	}
 
 	getBaseTheme(baseId: BaseThemeId): Theme {
@@ -310,8 +310,8 @@ export class ThemeController {
 	/**
 	 * Get new Material3 theme customizations from old customizations
 	 * Could be removed after:
-	 * 	- all users who have whitelabel color customization have migrated to the new color tokens.
-	 * 	- the client affected by issue#9790 is outdated, and the `version` field is migrated on all affected themes.
+	 *    - all users who have whitelabel color customization have migrated to the new color tokens.
+	 *    - the client affected by issue#9790 is outdated, and the `version` field is migrated on all affected themes.
 	 */
 	async getMaterial3Customizations(unknownCustomizations: UnknownThemeCustomizations): Promise<ThemeCustomizations> {
 		// the customizations' version was first introduced as number in 5592c691.
@@ -378,7 +378,10 @@ export class WebThemeFacade implements ThemeFacade {
 	constructor(private readonly deviceConfig: DeviceConfig) {}
 
 	async getThemePreference(): Promise<ThemeId | null> {
-		return this.deviceConfig.getTheme()
+		const preferedTheme = this.deviceConfig.getTheme()
+		if (isNotNull(preferedTheme)) return preferedTheme
+		else if (isNextCloudPlugin()) return (await this.prefersDark()) ? "dark_secondary" : "light_secondary"
+		return null
 	}
 
 	async setThemePreference(theme: ThemeId): Promise<void> {
@@ -395,6 +398,7 @@ export class WebThemeFacade implements ThemeFacade {
 	}
 
 	async prefersDark(): Promise<boolean> {
+		if (isWebClient() && isNextCloudPlugin() && document.body.dataset.themes?.indexOf("dark") !== -1) return true
 		return this.mediaQuery?.matches ?? false
 	}
 

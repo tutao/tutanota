@@ -577,13 +577,17 @@ export class LanguageViewModel {
 		return typeof value === "object" ? (value as Translation).testId : (value as TranslationKey)
 	}
 
+	makeTranslation(testId: string, unresolved: string | lazy<string>): Translation {
+		return LanguageViewModel.makeTranslation(testId, unresolved)
+	}
+
 	/**
 	 * Creates a Translation. Only to be used in rare cases where we can't use a
 	 * TranslationKey (e.g. rendering the name of a folder).
 	 * @param testId
 	 * @param unresolved
 	 */
-	makeTranslation(testId: string, unresolved: string | lazy<string>): Translation {
+	static makeTranslation(testId: string, unresolved: string | lazy<string>): Translation {
 		let text = typeof unresolved === "function" ? unresolved() : unresolved
 		return { testId: testId, text }
 	}

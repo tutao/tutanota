@@ -8,7 +8,7 @@ import { mock } from "@tutao/tutanota-test-utils"
 import { Aes256Key, aes256RandomKey, FIXED_IV } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
-import { Entity, ModelValue, ParsedInstance, TypeModel } from "../../src/common/api/common/EntityTypes.js"
+import { Entity, ModelValue, TypeModel } from "../../src/common/api/common/EntityTypes.js"
 import { create, generatedIdToTimestamp, timestampToGeneratedId } from "../../src/common/api/common/utils/EntityUtils.js"
 import { ClientModelInfo, ServerModelInfo, ServerModels, TypeModelResolver } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
@@ -139,6 +139,7 @@ export const domainConfigStub: DomainConfig = {
 	webauthnMobileUrl: "",
 	legacyWebauthnMobileUrl: "",
 	websiteBaseUrl: "",
+	websocketUrl: "",
 }
 
 // non-async copy of the function

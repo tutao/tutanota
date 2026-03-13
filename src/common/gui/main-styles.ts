@@ -10,6 +10,7 @@ import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { hexToRGBAString } from "./base/Color"
+import { downcast } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -37,8 +38,19 @@ export const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
 export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
 const scrollbarWidthHeight = px(18)
+
+async function loadFonts() {
+	const fonts = [
+		new FontFace("Ionicons", `url('${window.tutao.appState.prefixWithoutFile}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2')`),
+	]
+	for (const font of fonts) {
+		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
+	}
+}
 styles.registerStyle("main", () => {
 	const lightTheme = locator.themeController.getBaseTheme("light")
+	loadFonts()
 	return {
 		"#link-tt": isElectronClient()
 			? {
@@ -2005,6 +2017,11 @@ styles.registerStyle("main", () => {
 			// for safari
 			"flex-shrink": 0,
 			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
+			"font-weight": "normal",
+			"min-height": 0,
+		},
+		"button > span": {
+			opacity: 1,
 		},
 		".nav-button:hover": !isApp()
 			? {
@@ -2173,7 +2190,7 @@ styles.registerStyle("main", () => {
 			display: "block",
 			resize: "none",
 			border: 0,
-			padding: 0,
+			padding: "0 0",
 			margin: 0,
 			// for safari browser
 			background: "transparent",
@@ -2404,6 +2421,8 @@ styles.registerStyle("main", () => {
 			position: "relative",
 			transition: `border ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
 			opacity: "0.8",
+			"inset-inline-start": 0,
+			padding: 0,
 		},
 		".checkbox:hover": {
 			opacity: "1",

@@ -9,7 +9,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import { assertWorkerOrNode, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, isOfflineStorageAvailable } from "../../../common/api/common/Env.js"
+import { assertWorkerOrNode, isAndroidApp, isBrowser, isIOSApp, isOfflineStorageAvailable } from "../../../common/api/common/Env.js"
 import { Const } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -606,7 +606,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.user,
 		locator.cachingEntityClient,
 		locator.instancePipeline,
-		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(domainConfig.websocketUrl + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
 		typeModelResolver,

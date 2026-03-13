@@ -60,7 +60,7 @@ import {
 import { NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode, isNextCloudPlugin } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
 import {

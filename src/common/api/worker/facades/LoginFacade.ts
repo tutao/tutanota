@@ -906,10 +906,8 @@ export class LoginFacade {
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
 		const kdfType = asKdfType(saltReturn.kdfVersion)
-		return {
-			userPassphraseKey: await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt }),
-			kdfType,
-		}
+		const userPassphraseKey = await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt })
+		return { userPassphraseKey, kdfType }
 	}
 
 	/**

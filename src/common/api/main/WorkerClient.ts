@@ -1,7 +1,7 @@
 import type { Commands } from "../common/threading/MessageDispatcher.js"
 import { MessageDispatcher, Request } from "../common/threading/MessageDispatcher.js"
 import { Transport, WebWorkerTransport } from "../common/threading/Transport.js"
-import { assertMainOrNode } from "../common/Env"
+import { assertMainOrNode, isNextCloudPlugin } from "../common/Env"
 import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
@@ -47,7 +47,7 @@ export class WorkerClient {
 			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
 			// localhost/path/WorkerBootstrap.js respectively.
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
+			const workerUrl = isNextCloudPlugin() ? "/apps-extra/tutamail/js/worker-bootstrap.js" : prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl, { type: "module" })
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))

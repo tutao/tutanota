@@ -32,6 +32,7 @@ export type AttachmentBubbleAttrs = {
 	attachment: Attachment
 	download: Thunk | null
 	open: Thunk | null
+	nextcloud?: Thunk | null
 	remove: Thunk | null
 	fileImport: Thunk | null
 	type: AttachmentType
@@ -191,7 +192,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private renderContent(): Children {
 		// We are trying to make some contents look like the attachment button to make the transition look smooth.
 		// It is somewhat harder as it looks different with mobile layout.
-		const { remove, open, download, attachment, fileImport, type } = this.attrs
+		const { remove, open, download, attachment, fileImport, type, nextcloud } = this.attrs
 		return m(
 			".flex.mb-8.pr-12",
 			{
@@ -232,6 +233,9 @@ export class AttachmentDetailsPopup implements ModalComponent {
 								: null,
 							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,
 							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => this.thenClose(download) }) : null,
+							nextcloud
+								? m(Button, { type: ButtonType.Secondary, label: "saveToNextcloud_action", click: () => this.thenClose(nextcloud) })
+								: null,
 						]),
 					]),
 				),
