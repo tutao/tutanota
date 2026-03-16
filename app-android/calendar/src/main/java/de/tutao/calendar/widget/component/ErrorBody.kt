@@ -32,11 +32,11 @@ import de.tutao.calendar.widget.style.Dimensions
 @Composable
 fun ErrorBody(error: WidgetError?, logsAction: Action, loginAction: Action) {
 	Column(
-		modifier = GlanceModifier.padding(Dimensions.Spacing.MD.dp)
+		modifier = GlanceModifier.padding(Dimensions.Spacing.space_12.dp)
 			.background(GlanceTheme.colors.background)
 			.fillMaxSize()
 			.appWidgetBackground()
-			.cornerRadius(Dimensions.Spacing.SM.dp),
+			.cornerRadius(Dimensions.Spacing.space_8.dp),
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
@@ -57,7 +57,7 @@ fun ErrorBody(error: WidgetError?, logsAction: Action, loginAction: Action) {
 			Text(
 				WidgetErrorHandler.getErrorMessage(LocalContext.current, error),
 				style = TextStyle(
-					fontSize = 14.sp,
+					fontSize = Dimensions.FontSize.font_14.sp,
 					color = GlanceTheme.colors.onBackground,
 					textAlign = TextAlign.Center,
 					fontWeight = FontWeight.Normal
