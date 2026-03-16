@@ -1,6 +1,8 @@
 package de.tutao.tutashared.alarms
 
+import android.util.Log
 import androidx.annotation.VisibleForTesting
+import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutasdk.ByRuleType
 import de.tutao.tutasdk.DateTime
@@ -8,8 +10,6 @@ import de.tutao.tutasdk.EventFacade
 import de.tutao.tutasdk.EventRepeatRule
 import de.tutao.tutashared.isAllDayEventByTimes
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -18,8 +18,10 @@ import kotlin.math.abs
 object AlarmModel {
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	const val OCCURRENCES_SCHEDULED_AHEAD = 10
+	const val TAG = "AlarmModel"
 
 	@JvmStatic
+	@Throws(ApiCallException::class)
 	fun iterateAlarmOccurrences(
 		now: Date,
 		timeZone: TimeZone,
@@ -80,11 +82,20 @@ object AlarmModel {
 				intervalAfterNow += 1
 			}
 
-			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
-				calendar.time.time.toULong(),
-				EventRepeatRule(frequency.toSdkPeriod(), byRules),
-				startTime
-			)
+			var expandedEvents: List<DateTime> = listOf()
+			try {
+				expandedEvents = eventFacade.generateFutureInstances(
+					calendar.time.time.toULong(),
+					EventRepeatRule(frequency.toSdkPeriod(), byRules),
+					startTime
+				)
+			} catch (e: ApiCallException.InternalSdkException) {
+				Log.e(TAG, "InternalSdkException occurred", e)
+				throw e
+			} catch (e: Exception) {
+				Log.e(TAG, "Unknown error occurred", e)
+				throw e
+			}
 
 			// Add the progenitor if it isn't included in the expansion
 			if (intervalOccurrences == 0 && !expandedEvents.contains(startTime)) {

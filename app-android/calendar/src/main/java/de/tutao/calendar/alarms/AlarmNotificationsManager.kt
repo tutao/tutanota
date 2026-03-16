@@ -1,8 +1,9 @@
 package de.tutao.calendar.alarms
 
 import android.util.Log
-import de.tutao.calendar.*
+import de.tutao.calendar.R
 import de.tutao.calendar.push.LocalNotificationsFacade
+import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
@@ -18,7 +19,8 @@ import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
-import java.util.*
+import java.util.Date
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 class AlarmNotificationsManager(
@@ -81,7 +83,8 @@ class AlarmNotificationsManager(
 		for (alarmNotification in alarmNotifications) {
 			if (alarmNotification.operation == OperationType.CREATE) {
 				val alarmNotificationEntity = alarmNotification.toEntity()
-				val sessionKey = newDeviceSessionKey ?: resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
+				val sessionKey =
+					newDeviceSessionKey ?: resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
 				if (sessionKey == null) {
 					Log.d(TAG, "Failed to resolve session key for alarm notification.")
 					return
@@ -214,12 +217,21 @@ class AlarmNotificationsManager(
 				}
 
 				Log.d(TAG, "Attempting to cancel alarm ${alarmNotification.alarmInfo.alarmIdentifier}")
-				iterateAlarmOccurrences(alarmNotification) { _, occurrence, _ ->
-					Log.d(
+				try {
+					iterateAlarmOccurrences(alarmNotification) { _, occurrence, _ ->
+						Log.d(
+							TAG,
+							"Cancelling alarm " + savedAlarmNotification.alarmInfo.identifier + " # " + occurrence
+						)
+						systemAlarmFacade.cancelAlarm(savedAlarmNotification.alarmInfo.identifier, occurrence)
+					}
+				} catch (e: Exception) {
+					Log.e(
 						TAG,
-						"Cancelling alarm " + savedAlarmNotification.alarmInfo.identifier + " # " + occurrence
+						"Error when trying to cancel saved alarm, this could be a source of duplicated or ghost alarms!",
+						e
 					)
-					systemAlarmFacade.cancelAlarm(savedAlarmNotification.alarmInfo.identifier, occurrence)
+					localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg, e)
 				}
 			}
 		} else {
@@ -228,7 +240,7 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	@Throws(CryptoError::class)
+	@Throws(CryptoError::class, ApiCallException::class)
 	private fun iterateAlarmOccurrences(
 		alarmNotification: AlarmNotification,
 		callback: AlarmModel.AlarmIterationCallback,
