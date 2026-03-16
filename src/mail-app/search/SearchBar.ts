@@ -54,7 +54,6 @@ type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
 	searchResult: SearchResult | null
-	indexState: SearchIndexStateInfo
 	entities: Entries
 	selected: Entry | null
 }
@@ -82,7 +81,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
-			indexState: mailLocator.search?.indexState(),
 			entities: [] as Entries,
 			selected: null,
 		})
@@ -230,17 +228,12 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			if (
 				!indexState.failedIndexingUpTo &&
 				currentResult &&
-				this.state().indexState.progress !== 0 &&
 				indexState.progress === 0 &&
 				//if period is changed from search view a new search is triggered there,  and we do not want to overwrite its result
 				!this.timePeriodHasChanged(currentResult.restriction.end, indexState.aimedMailIndexTimestamp)
 			) {
 				this.doSearch(this.state().query, currentResult.restriction, m.redraw)
 			}
-
-			this.updateState({
-				indexState,
-			})
 		})
 
 		this.stateStream = this.state.map((state) => m.redraw())

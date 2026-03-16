@@ -119,6 +119,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
+import { SearchProgressStack } from "./SearchViewIndexingStack"
 
 assertMainOrNode()
 
@@ -647,19 +648,21 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							multicolumnActions: () => actions,
 							primaryAction: () => null,
 						}),
-					columnLayout: m(MultiItemViewer, {
-						selectedEntities: selectedMails,
-						selectNone: () => this.searchViewModel.listModel.selectNone(),
-						loadAll: () => this.searchViewModel.loadAll(),
-						stopLoadAll: () => this.searchViewModel.stopLoadAll(),
-						loadingAll:
-							this.searchViewModel.loadingAllForSearchResult != null
-								? "loading"
-								: this.searchViewModel.listModel.isLoadedCompletely()
-									? "loaded"
-									: "can_load",
-						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
-					}),
+					columnLayout: [
+						m(MultiItemViewer, {
+							selectedEntities: selectedMails,
+							selectNone: () => this.searchViewModel.listModel.selectNone(),
+							loadAll: () => this.searchViewModel.loadAll(),
+							stopLoadAll: () => this.searchViewModel.stopLoadAll(),
+							loadingAll:
+								this.searchViewModel.loadingAllForSearchResult != null
+									? "loading"
+									: this.searchViewModel.listModel.isLoadedCompletely()
+										? "loaded"
+										: "can_load",
+							getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
+						}),
+					],
 				})
 			} else {
 				const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
@@ -982,6 +985,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					...attrs.header,
 				}),
 				bottomNav: this.renderBottomNav(),
+			}),
+			m(SearchProgressStack, {
+				searchIndexStateStream: this.searchViewModel.getSearchIndexStateStream(),
 			}),
 		)
 	}
