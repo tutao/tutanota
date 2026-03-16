@@ -94,6 +94,8 @@ o.spec("DesktopExportFacade", function () {
 					mailBagId,
 					mailId,
 					exportedMails: 0,
+					failedCount: 0,
+					failedMailIds: [],
 				}),
 			)
 		})
@@ -115,6 +117,8 @@ o.spec("DesktopExportFacade", function () {
 					mailBagId,
 					mailId,
 					exportedMails: 0,
+					failedCount: 0,
+					failedMailIds: [],
 				}),
 			)
 		})
@@ -136,6 +140,8 @@ o.spec("DesktopExportFacade", function () {
 				mailBagId,
 				exportDirectoryPath,
 				exportedMails: 42,
+				failedCount: 0,
+				failedMailIds: [],
 			}
 			when(persistence.getStateForUser(userId)).thenResolve(previousState)
 			await facade.endMailboxExport(userId)
@@ -145,8 +151,38 @@ o.spec("DesktopExportFacade", function () {
 					userId,
 					exportDirectoryPath,
 					mailboxId,
+					failedCount: 0,
+					failedMailIds: [],
 				}),
 			)
+		})
+
+		o.test("returns the state", async function () {
+			const exportDirectoryPath = "exportPath"
+			const previousState: MailboxExportState = {
+				type: "running",
+				userId,
+				mailboxId,
+				mailId,
+				mailBagId,
+				exportDirectoryPath,
+				exportedMails: 42,
+				failedCount: 12,
+				failedMailIds: [["listId", "elementId"]],
+			}
+			const expectedState: MailboxExportState = {
+				type: "finished",
+				userId,
+				mailboxId,
+				exportDirectoryPath,
+				failedCount: 12,
+				failedMailIds: [["listId", "elementId"]],
+			}
+
+			when(persistence.getStateForUser(userId)).thenResolve(previousState, expectedState)
+			const result = await facade.endMailboxExport(userId)
+
+			o(result).deepEquals(expectedState)
 		})
 	})
 
@@ -184,6 +220,8 @@ o.spec("DesktopExportFacade", function () {
 				mailBagId,
 				exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
 				exportedMails: 42,
+				failedCount: 0,
+				failedMailIds: [],
 			}
 			when(persistence.getStateForUser(userId)).thenResolve(runningState)
 			await facade.saveMailboxExport(mailBundleStub, userId, mailBagId, mailId)
@@ -201,6 +239,48 @@ o.spec("DesktopExportFacade", function () {
 					mailBagId,
 					exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
 					exportedMails: 43,
+					failedCount: 0,
+					failedMailIds: [],
+				}),
+			)
+		})
+	})
+
+	o.spec("saveMailboxExportFailure", function () {
+		o.test("when there's no previous state it throws an error", async function () {
+			when(persistence.getStateForUser(userId)).thenResolve(null)
+
+			await o(() => facade.saveMailboxExportFailure(userId, mailBagId, ["elementId", mailId])).asyncThrows(ProgrammingError)
+		})
+
+		o.test("saves the state with failure data", async function () {
+			const runningState: MailboxExportState = {
+				type: "running",
+				userId,
+				mailboxId,
+				mailId,
+				mailBagId,
+				exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
+				exportedMails: 42,
+				failedCount: 0,
+				failedMailIds: [],
+			}
+			when(persistence.getStateForUser(userId)).thenResolve(runningState)
+
+			const mailIdTuple: IdTuple = ["listId", mailId]
+			await facade.saveMailboxExportFailure(userId, mailBagId, mailIdTuple)
+
+			verify(
+				persistence.setStateForUser({
+					type: "running",
+					userId,
+					mailboxId,
+					mailId,
+					mailBagId,
+					exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
+					exportedMails: 42,
+					failedCount: 1,
+					failedMailIds: [mailIdTuple],
 				}),
 			)
 		})

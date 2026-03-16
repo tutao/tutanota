@@ -676,6 +676,7 @@ export default {
 		"exportErrorTooManyRequests_label": "Too many exports were requested recently",
 		"exportFinished_label": "Export completed",
 		"exportingEmails_label": "Exporting emails: {count}",
+		"exportingEmailsFailure_label": "Failed emails: {count}",
 		"exportMailbox_label": "Export Mailbox",
 		"exportRunningElsewhere_label": "Export may be running in another window.",
 		"exportUsers_action": "Export users",
