@@ -35,7 +35,7 @@ fun ErrorButton(error: WidgetError, action: Action) {
 			.padding(horizontal = 16.dp)
 			.height(44.dp)
 			.background(GlanceTheme.colors.primary)
-			.cornerRadius(Dimensions.Spacing.SM.dp)
+			.cornerRadius(Dimensions.Spacing.space_8.dp)
 			.clickable(
 				rippleOverride = R.drawable.transparent_ripple,
 				onClick = action

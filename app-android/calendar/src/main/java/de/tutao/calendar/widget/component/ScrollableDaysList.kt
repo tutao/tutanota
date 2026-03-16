@@ -46,10 +46,10 @@ fun ScrollableDaysList(
 			val currentDay = LocalDateTime.ofInstant(Instant.ofEpochMilli(startOfDay), ZoneId.systemDefault())
 			val isFirstDay = dayIndex == 0
 			val topPadding = if (!isFirstDay) {
-				Dimensions.Spacing.SM.dp
+				Dimensions.Spacing.space_8.dp
 			} else 0.dp
 			val bottomPadding = if (dayIndex == data.normalEvents.size - 1) {
-				Dimensions.Spacing.LG.dp
+				Dimensions.Spacing.space_16.dp
 			} else {
 				0.dp
 			}

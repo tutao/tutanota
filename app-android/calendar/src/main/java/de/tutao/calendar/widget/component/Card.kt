@@ -20,7 +20,7 @@ fun Card(
 	Column(
 		modifier = GlanceModifier
 			.background(GlanceTheme.colors.surface)
-			.cornerRadius(Dimensions.Spacing.SM.dp)
+			.cornerRadius(Dimensions.Spacing.space_8.dp)
 			.fillMaxWidth()
 			.clickable(onTapAction),
 	) {
