@@ -10,12 +10,16 @@ export type MailboxExportState =
 			mailBagId: Id
 			mailId: Id
 			exportedMails: number
+			failedCount: number
+			failedMailIds: IdTuple[]
 	  }
 	| {
 			type: "finished"
 			userId: Id
 			mailboxId: Id
 			exportDirectoryPath: string
+			failedCount: number
+			failedMailIds: IdTuple[]
 	  }
 	| {
 			type: "locked"

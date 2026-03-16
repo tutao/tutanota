@@ -47,6 +47,12 @@ export class ExportFacadeReceiveDispatcher {
 				const mailId: string = arg[3]
 				return this.facade.saveMailboxExport(bundle, userId, mailBagId, mailId)
 			}
+			case "saveMailboxExportFailure": {
+				const userId: string = arg[0]
+				const mailBagId: string = arg[1]
+				const mailId: readonly [string, string] = arg[2]
+				return this.facade.saveMailboxExportFailure(userId, mailBagId, mailId)
+			}
 			case "clearExportState": {
 				const userId: string = arg[0]
 				return this.facade.clearExportState(userId)

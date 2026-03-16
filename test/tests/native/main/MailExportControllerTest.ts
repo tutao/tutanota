@@ -28,8 +28,9 @@ import { MailExportFacade } from "../../../../src/common/api/worker/facades/lazy
 import { BlobServerUrlTypeRef } from "../../../../src/common/api/entities/storage/TypeRefs"
 import { ExportError, ExportErrorReason } from "../../../../src/common/api/common/error/ExportError"
 import { MailboxExportState } from "../../../../src/common/desktop/export/MailboxExportPersistence"
-import { spy } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { SuspensionError } from "../../../../src/common/api/common/error/SuspensionError"
+import { MailModel } from "../../../../src/mail-app/mail/model/MailModel"
 
 o.spec("MailExportController", function () {
 	const userId = "userId"
@@ -42,6 +43,7 @@ o.spec("MailExportController", function () {
 	let mailboxDetail: MailboxDetail
 	let userController: UserController
 	let scheduler: SchedulerMock
+	let mailModel: MailModel
 
 	const sanitizer = {
 		sanitizeHTML: (text, _) => ({ html: text, blockedExternalContent: 0, inlineImageCids: [], links: [] }),
@@ -71,8 +73,9 @@ o.spec("MailExportController", function () {
 		mailboxModel = object()
 		when(mailboxModel.getMailboxDetailByMailboxId(mailboxDetail.mailbox._id)).thenResolve(mailboxDetail)
 		scheduler = new SchedulerMock()
+		mailModel = object()
 
-		controller = new MailExportController(mailExportFacade, sanitizer, exportFacade, logins, mailboxModel, scheduler)
+		controller = new MailExportController(mailExportFacade, sanitizer, exportFacade, logins, mailboxModel, scheduler, mailModel)
 	})
 
 	function prepareMailData(mailBag: MailBag, startId: Id, num: number) {
@@ -157,6 +160,8 @@ o.spec("MailExportController", function () {
 				mailBagId: mailBag._id,
 				exportedMails: 0,
 				exportDirectoryPath: "directory",
+				failedCount: 0,
+				failedMailIds: [],
 			}
 			when(exportFacade.getMailboxExportState(userId)).thenResolve(persistedState)
 			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([createTestEntity(BlobServerUrlTypeRef, { url: "baseUrl" })])
@@ -274,6 +279,101 @@ o.spec("MailExportController", function () {
 			await controller.startExport(mailboxDetail)
 			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything(), matchers.anything()), { times: 3 + 1 })
 			o(wasThrown).equals(true)
+		})
+
+		o.test("Throws in case of errors when downloading mails", async () => {
+			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([
+				{
+					_id: "id",
+					url: "baseUrl",
+					_type: BlobServerUrlTypeRef,
+				},
+			])
+			let wasThrown = false
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => {
+				if (wasThrown) {
+					return Promise.resolve([])
+				} else {
+					wasThrown = true
+					return Promise.reject(new Error(":("))
+				}
+			})
+			const thrown = await assertThrows(Error, async () => await controller.startExport(mailboxDetail))
+			o(thrown.message).equals(":(")
+
+			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
+			o(wasThrown).equals(true)
+		})
+
+		o.test("Skips first downloaded mail in case downloadMailDetails throws", async () => {
+			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([
+				{
+					_id: "id",
+					url: "baseUrl",
+					_type: BlobServerUrlTypeRef,
+				},
+			])
+			const mail = createTestEntity(MailTypeRef, { _id: ["listId", "first"] })
+			const mail2 = createTestEntity(MailTypeRef, { _id: ["listId", "second"] })
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything(), matchers.anything())).thenDo((mails, id) => {
+				if (id === GENERATED_MAX_ID) {
+					return Promise.resolve([mail, mail2])
+				} else if (id === getElementId(mail)) {
+					return Promise.resolve([mail2])
+				} else {
+					return Promise.resolve([])
+				}
+			})
+			when(mailExportFacade.loadMailDetails(matchers.anything(), matchers.anything())).thenReject(new Error(":/"))
+
+			await controller.startExport(mailboxDetail)
+
+			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), GENERATED_MAX_ID, matchers.anything()), { times: 3 })
+			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), getElementId(mail), matchers.anything()), { times: 3 })
+		})
+
+		o.test("Records saveMailboxExportFailure in case of errors while looping over mails", async () => {
+			const mailDetails = createTestEntity(MailDetailsTypeRef, {
+				sentDate: new Date(42),
+				body: createTestEntity(BodyTypeRef, {
+					compressedText: "body! compressed",
+				}),
+				recipients: createTestEntity(RecipientsTypeRef),
+			})
+			const mail = createTestEntity(MailTypeRef, {
+				_id: ["mailListId", `_${1}`],
+				attachments: [],
+				receivedDate: new Date(43),
+				sender: createTestEntity(MailAddressTypeRef, {
+					name: "MailSender",
+					address: "sender@list.com",
+				}),
+			})
+			const mail2 = createTestEntity(MailTypeRef, { _id: ["mailListId", "second"] })
+			const currentMailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(currentMailBag.mails, GENERATED_MAX_ID, matchers.anything())).thenResolve([mail, mail2])
+			when(mailExportFacade.loadMailDetails([mail, mail2], matchers.anything())).thenResolve([
+				{ mail, mailDetails },
+				{ mail: mail2, mailDetails },
+			])
+			when(mailExportFacade.loadAttachments([mail, mail2], matchers.anything())).thenResolve([])
+			when(mailExportFacade.loadAttachmentData(mail, [])).thenResolve([])
+			when(mailExportFacade.loadAttachmentData(mail2, [])).thenReject(new Error("Oh no"))
+			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([
+				{
+					_id: "id",
+					url: "baseUrl",
+					_type: BlobServerUrlTypeRef,
+				},
+			])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(currentMailBag.mails, matchers.not(GENERATED_MAX_ID), matchers.anything())).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.not(currentMailBag.mails), matchers.anything(), matchers.anything())).thenResolve([])
+
+			await controller.startExport(mailboxDetail)
+
+			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), GENERATED_MAX_ID, matchers.anything()), { times: 3 })
+			verify(exportFacade.saveMailboxExport(matchers.anything(), userId, currentMailBag._id, getElementId(mail)), { times: 1 })
+			verify(exportFacade.saveMailboxExportFailure(userId, currentMailBag._id, mail2._id), { times: 1 })
 		})
 	})
 })

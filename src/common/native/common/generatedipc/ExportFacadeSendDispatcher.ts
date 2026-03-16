@@ -31,6 +31,10 @@ export class ExportFacadeSendDispatcher implements ExportFacade {
 	async saveMailboxExport(...args: Parameters<ExportFacade["saveMailboxExport"]>) {
 		return this.transport.invokeNative("ipc", ["ExportFacade", "saveMailboxExport", ...args])
 	}
+	async saveMailboxExportFailure(...args: Parameters<ExportFacade["saveMailboxExportFailure"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "saveMailboxExportFailure", ...args])
+	}
+
 	async clearExportState(...args: Parameters<ExportFacade["clearExportState"]>) {
 		return this.transport.invokeNative("ipc", ["ExportFacade", "clearExportState", ...args])
 	}
