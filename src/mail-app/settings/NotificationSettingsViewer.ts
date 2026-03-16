@@ -33,7 +33,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this.expanded = stream<boolean>(false)
 		this.user = locator.logins.getUserController().user
-		this.model = new NotificationSettingsViewerModel(locator.pushService, this.user, locator.entityClient)
+		this.model = new NotificationSettingsViewerModel(isBrowser() ? null : locator.pushService, this.user, locator.entityClient)
 
 		if (isApp() || isDesktop()) {
 			const promises: Promise<any>[] = [locator.pushService.getExtendedNotificationMode()]

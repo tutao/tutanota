@@ -1,6 +1,6 @@
 import { PushIdentifier, PushIdentifierTypeRef, User } from "../../common/api/entities/sys/TypeRefs"
 import { AppType } from "../../common/misc/ClientConstants"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode, isBrowser } from "../../common/api/common/Env"
 import type { NativePushServiceApp } from "../../common/native/main/NativePushServiceApp"
 import { EntityClient } from "../../common/api/common/EntityClient"
 
@@ -18,7 +18,7 @@ export class NotificationSettingsViewerModel {
 	private identifiers: readonly PushIdentifier[] = []
 
 	constructor(
-		private readonly pushService: NativePushServiceApp,
+		private readonly pushService: NativePushServiceApp | null,
 		private readonly user: User,
 		private readonly entityClient: EntityClient,
 	) {}
@@ -70,7 +70,8 @@ export class NotificationSettingsViewerModel {
 	 * (Re)load everything.
 	 */
 	public async reload() {
-		this.currentIdentifier = this.pushService.getLoadedPushIdentifier()?.identifier ?? null
+		this.currentIdentifier = this.pushService?.getLoadedPushIdentifier()?.identifier ?? null
+
 		const list = this.user.pushIdentifierList
 
 		if (list) {
