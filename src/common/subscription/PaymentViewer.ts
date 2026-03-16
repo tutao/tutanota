@@ -127,10 +127,19 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(IconButton, {
 					title: "paymentMethod_label",
 					click: (e, dom) => this.handlePaymentMethodClick(e, dom),
-					icon: Icons.Edit,
+					icon: this.getIconForPaymentMethodSetting(this.accountingInfo),
 					size: ButtonSize.Compact,
 				}),
 		})
+	}
+
+	private getIconForPaymentMethodSetting(accountingInfo: AccountingInfo | null) {
+		if (this.customer?.type === AccountType.PAID && isIOSApp()) {
+			return Icons.InfoCircleOutline
+		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
+			return Icons.InfoCircleOutline
+		}
+		return Icons.Edit
 	}
 
 	private async handlePaymentMethodClick(e: MouseEvent, dom: HTMLElement) {
@@ -139,9 +148,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
 		if (isIOSApp()) {
-			// Paid users trying to change payment method on iOS with an active subscription
-			if (currentPaymentMethod !== PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
+			if (currentPaymentMethod === PaymentMethodType.AppStore) {
+				// Paid users trying to change payment method on iOS with an active subscription
 				return Dialog.message(lang.getTranslation("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+			} else if (this.customer?.type === AccountType.PAID) {
+				// Paid users trying to change payment method on iOS without an active subscription.
+				return Dialog.message(lang.getTranslation("settingNotApplicableInIos_msg"))
 			}
 
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()

@@ -2251,6 +2251,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"buyGiftcardWhileCampaignActive_msg": "Gutscheine sind nicht mit Rabattaktionen kombinierbar.",
-		"approvalMailBody_msg": "Bitte schreibe uns an approval@tutao.de und ersetze diesen Text mit einer kurzen Nachricht auf Deutsch oder Englisch, in der du uns bittest, dein Konto zu bestätigen."
+		"approvalMailBody_msg": "Bitte schreibe uns an approval@tutao.de und ersetze diesen Text mit einer kurzen Nachricht auf Deutsch oder Englisch, in der du uns bittest, dein Konto zu bestätigen.",
+		"settingNotApplicableInIos_msg": "Diese Einstellung betrifft die iOS-App nicht. Bitte logge dich in der Web-App ein, um sie zu ändern.",
 	}
 }

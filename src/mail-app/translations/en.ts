@@ -2251,6 +2251,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
-		"approvalMailBody_msg": "Please write us at approval@tutao.de and replace this text with a short message in English or German asking us to approve your account."
+		"approvalMailBody_msg": "Please write us at approval@tutao.de and replace this text with a short message in English or German asking us to approve your account.",
+		"settingNotApplicableInIos_msg": "This setting does not apply to the iOS app and cannot be changed here. Please log into the web app to change it.",
 	}
 }
