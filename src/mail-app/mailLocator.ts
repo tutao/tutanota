@@ -1296,7 +1296,15 @@ class MailLocator implements CommonLocator {
 	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
 		const { getHtmlSanitizer } = await import("../common/misc/HtmlSanitizer")
 		const { MailExportController } = await import("./native/main/MailExportController.js")
-		return new MailExportController(this.mailExportFacade, getHtmlSanitizer(), this.exportFacade, this.logins, this.mailboxModel, await this.scheduler())
+		return new MailExportController(
+			this.mailExportFacade,
+			getHtmlSanitizer(),
+			this.exportFacade,
+			this.logins,
+			this.mailboxModel,
+			await this.scheduler(),
+			this.mailModel,
+		)
 	})
 
 	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {

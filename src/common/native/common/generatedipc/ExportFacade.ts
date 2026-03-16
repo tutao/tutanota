@@ -3,6 +3,7 @@
 import { MailBundle } from "./MailBundle.js"
 import { DataFile } from "./DataFile.js"
 import { MailboxExportState } from "./MailboxExportState.js"
+
 export interface ExportFacade {
 	/**
 	 * Convert mail to .msg format.
@@ -20,7 +21,7 @@ export interface ExportFacade {
 
 	getMailboxExportState(userId: string): Promise<MailboxExportState | null>
 
-	endMailboxExport(userId: string): Promise<void>
+	endMailboxExport(userId: string): Promise<MailboxExportState | null>
 
 	/**
 	 * Pick a directory for storing the export data and persist the export state
@@ -31,6 +32,10 @@ export interface ExportFacade {
 	 * Save current state of the export and write export data to the export directory
 	 */
 	saveMailboxExport(bundle: MailBundle, userId: string, mailBagId: string, mailId: string): Promise<void>
+	/**
+	 * Save a current mail as a failed export
+	 */
+	saveMailboxExportFailure(userId: string, mailBagId: string, mailId: IdTuple): Promise<void>
 
 	clearExportState(userId: string): Promise<void>
 
