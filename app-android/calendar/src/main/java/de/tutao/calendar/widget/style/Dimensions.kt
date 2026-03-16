@@ -6,12 +6,12 @@ object Dimensions {
 	 * It is a scale in increments of 8 as it doesn't need to be as granular as Spacing
 	 */
 	object Size {
-		const val XS = 8
-		const val SM = 16
-		const val MD = 24
-		const val LG = 32
-		const val XL = 40
-		const val XXL = 48
+		const val core_8 = 8
+		const val core_16 = 16
+		const val core_24 = 24
+		const val core_32 = 32
+		const val core_40 = 40
+		const val core_48 = 48
 	}
 
 	/*
@@ -19,11 +19,19 @@ object Dimensions {
 	 * It is a scale in increments of 4 as it needs to be more granular
 	 */
 	object Spacing {
-		const val XS = 4
-		const val SM = 8
-		const val MD = 12
-		const val LG = 16
-		const val XL = 20
-		const val XXL = 24
+		const val space_4 = 4
+		const val space_8 = 8
+		const val space_12 = 12
+		const val space_16 = 16
+		const val space_20 = 20
+		const val space_24 = 24
 	}
+
+	object FontSize {
+		const val font_20 = 20
+		const val font_16 = 16
+		const val font_14 = 14
+		const val font_12 = 12
+	}
+
 }
