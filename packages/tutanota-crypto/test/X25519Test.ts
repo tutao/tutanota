@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import { deriveX25519PublicKey, generateX25519KeyPair, hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, X25519KeyPair } from "../lib/index.js"
 import { CryptoError } from "../lib/error.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 
 const originalRandom = random.generateRandomData
 o.spec("X25519Test", function () {
@@ -57,5 +58,16 @@ o.spec("X25519Test", function () {
 		const keyPair = generateX25519KeyPair()
 		const extractedPublicKey = deriveX25519PublicKey(keyPair.privateKey)
 		o(extractedPublicKey).deepEquals(keyPair.publicKey)
+	})
+
+	o.test("shared secret is not the identity", async function () {
+		const staticKeyPair = generateX25519KeyPair()
+		const ephemeralKeyPair = generateX25519KeyPair()
+		const identityPublicKey = new Uint8Array(32)
+		identityPublicKey.fill(0)
+
+		await assertThrows(Error, async () => x25519Encapsulate(staticKeyPair.privateKey, ephemeralKeyPair.privateKey, identityPublicKey))
+		await assertThrows(Error, async () => x25519Decapsulate(identityPublicKey, ephemeralKeyPair.publicKey, staticKeyPair.privateKey))
+		await assertThrows(Error, async () => x25519Decapsulate(ephemeralKeyPair.publicKey, identityPublicKey, staticKeyPair.privateKey))
 	})
 })
