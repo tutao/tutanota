@@ -131,6 +131,7 @@ export default {
 		"appInfoIosImageAlt_alt": "Aplikacja na iOS w App store",
 		"apply_action": "Zastosuj",
 		"approvalMail_msg": "Wiadomość zatwierdzająca dla {mailAddress}",
+		"approvalMailBody_msg": "Napisz do nas na adres approval@tutao.de i zastąp ten tekst krótką wiadomością w języku angielskim lub niemieckim z prośbą o zatwierdzenie swojego konta.",
 		"approvalWaitNotice_msg": "Twoje konto zostało oznaczone do ręcznego zatwierdzenia. Oznacza to, że nie możesz wysyłać ani odbierać wiadomości e-mail. W dni robocze zatwierdzenie następuje zazwyczaj w ciągu 24 godzin.",
 		"approvalWaitNoticeFastTrack_msg": "Aby serwis Tuta był wolny od spamu, niektóre nowe konta podlegają krótkiej weryfikacji. Poczekaj 48 godzin na automatyczne zatwierdzenie lub wyślij nam wiadomość, aby przyspieszyć proces.",
 		"appStoreNotAvailable_msg": "Subskrypcje App Store nie są obecnie dostępne.",

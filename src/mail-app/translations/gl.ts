@@ -131,6 +131,7 @@ export default {
 		"appInfoIosImageAlt_alt": "app iOS na App Store",
 		"apply_action": "Aplicar",
 		"approvalMail_msg": "Aprobación do Correo para {mailAddress}",
+		"approvalMailBody_msg": "Por favor, escríbenos a approval@tutao.de e substitúe este texto cunha mensaxe curta en Inglés ou Alemán solicitando que aprobemos a conta.",
 		"approvalWaitNotice_msg": "A túa conta marcouse para comprobación manual. Isto significa que non podes enviar ou recibir correos. En días laborais normalmente facemos a comprobación en 24 horas.",
 		"approvalWaitNoticeFastTrack_msg": "Analizamos algunhas novas contas manter Tuta libre de spam. Agarda unhas 48 horas para que sexa aprobada automaticamente ou envíanos unha mensaxe para acelerar este proceso.",
 		"appStoreNotAvailable_msg": "Actualmente non está dispoñible a opción de subscribirse desde a App Store",

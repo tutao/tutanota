@@ -131,6 +131,7 @@ export default {
 		"appInfoIosImageAlt_alt": "iOS app in de App Store",
 		"apply_action": "Toepassen",
 		"approvalMail_msg": "Goedkeuring voor {mailAddress}",
+		"approvalMailBody_msg": "Stuur een email naar approval@tutao.de en met een kort bericht in het Engels of Duits om goedkeuring van je account. te vragen.",
 		"approvalWaitNotice_msg": "Uw account dient handmatig te worden goedgekeurd. Dit betekent dat u niet in staat bent emails te verzenden of te ontvangen. Op werkdagen geschiedt de goedkeuring doorgaans binnen 24 uur.",
 		"approvalWaitNoticeFastTrack_msg": "Om Tuta spamvrij te houden worden enkele nieuwe accounts herbezien. Wacht 48 uur voor een automatisch akkoord of zend ons een bericht.",
 		"appStoreNotAvailable_msg": "App Store-abonnementen zijn momenteel niet beschikbaar.",

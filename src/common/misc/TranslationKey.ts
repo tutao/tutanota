@@ -2245,4 +2245,5 @@ export type TranslationKeyType =
 	| "contactDeletionMoveToSpam_msg"
 	| "contactDeletionMoveToSpam_title"
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
+	| "approvalMailBody_msg"
 	| "emptyString_msg"
