@@ -400,6 +400,7 @@ export type AccountingInfo = {
 	paypalBillingAgreement: null | string;
 	_modified: Date;
 	_ownerKeyVersion: null | NumberString;
+	lastUsedOffer: null | string;
 
 	invoiceInfo: null | Id;
 	appStoreSubscription: null | IdTuple;
@@ -437,6 +438,7 @@ export type CustomerInfo = {
 	perUserAliasCount: NumberString;
 	plan: NumberString;
 	promotionId: null | string;
+	confirmedHuman: boolean;
 
 	customer: Id;
 	accountingInfo: Id;

@@ -651,6 +651,8 @@ pub struct AccountingInfo {
 	pub _modified: DateTime,
 	#[serde(rename = "2223")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2690")]
+	pub lastUsedOffer: Option<String>,
 	#[serde(rename = "771")]
 	pub invoiceInfo: Option<GeneratedId>,
 	#[serde(rename = "2424")]
@@ -718,6 +720,8 @@ pub struct CustomerInfo {
 	pub plan: i64,
 	#[serde(rename = "2682")]
 	pub promotionId: Option<String>,
+	#[serde(rename = "2691")]
+	pub confirmedHuman: bool,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
