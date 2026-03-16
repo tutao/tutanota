@@ -185,9 +185,9 @@ class Agenda : GlanceAppWidget() {
 
 		Column(
 			modifier = GlanceModifier.padding(
-				top = Dimensions.Spacing.LG.dp,
-				start = Dimensions.Spacing.LG.dp,
-				end = Dimensions.Spacing.LG.dp,
+				top = Dimensions.Spacing.space_16.dp,
+				start = Dimensions.Spacing.space_16.dp,
+				end = Dimensions.Spacing.space_16.dp,
 				bottom = 0.dp
 			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
 		) {
@@ -273,7 +273,7 @@ class Agenda : GlanceAppWidget() {
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
-				"Hello Widget",
+				"Hello Widget wiith very long event title",
 				"08:00",
 				"17:00",
 				isAllDay = false,
@@ -285,7 +285,17 @@ class Agenda : GlanceAppWidget() {
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
-				"My all day",
+				"My all day which has a very very long title",
+				"00:00",
+				"00:00",
+				isAllDay = true,
+				startTimestamp = startOfToday
+			),
+			UIEvent(
+				"previewCalendar",
+				IdTupleCustom("", ""),
+				"2196f3",
+				"Second all day event",
 				"00:00",
 				"00:00",
 				isAllDay = true,
@@ -386,7 +396,7 @@ class Agenda : GlanceAppWidget() {
 				"previewCalendar",
 				IdTupleCustom("", ""),
 				"2196f3",
-				"Hello Widget",
+				"Hello Widget with very long name",
 				"08:00",
 				"17:00",
 				isAllDay = false,

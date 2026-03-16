@@ -11,6 +11,7 @@ import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Spacer
@@ -30,31 +31,38 @@ fun EmptyBody(
 	openCalendarEditorAction: Action,
 	userId: String?
 ) {
-	Column(
-		GlanceModifier.clickable(openCalendarAgenda(LocalContext.current, userId)),
-	) {
-		Header(listOf(), onNewEvent = openCalendarEditorAction)
+	Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+		NewEventButton(clickAction = openCalendarEditorAction)
 		Column(
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = GlanceModifier.fillMaxSize()
+			modifier = GlanceModifier
+				.clickable(openCalendarAgenda(LocalContext.current, userId))
+				.padding(
+					vertical = Dimensions.Spacing.space_8.dp,
+					horizontal = Dimensions.Spacing.space_12.dp
+				)
 		) {
-			Text(
-				LocalContext.current.getString(R.string.widgetNoEvents_msg),
-				style = TextStyle(
-					color = GlanceTheme.colors.onBackground,
-					fontSize = 16.sp
-				),
-				modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp, bottom = 0.dp)
-			)
-			Spacer(modifier = GlanceModifier.height(Dimensions.Spacing.LG.dp))
-			Image(
-				provider = ImageProvider(getEmptyResource()),
-				contentDescription = null,
-				contentScale = ContentScale.Fit,
-				modifier = GlanceModifier.defaultWeight().wrapContentHeight()
-			)
-
+			TodayWithWeekday()
+			Column(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = GlanceModifier.fillMaxSize()
+			) {
+				Text(
+					LocalContext.current.getString(R.string.widgetNoEvents_msg),
+					style = TextStyle(
+						color = GlanceTheme.colors.onBackground,
+						fontSize = Dimensions.FontSize.font_16.sp,
+					),
+					modifier = GlanceModifier.padding(start = Dimensions.Spacing.space_8.dp, bottom = 0.dp)
+				)
+				Spacer(modifier = GlanceModifier.height(Dimensions.Spacing.space_16.dp))
+				Image(
+					provider = ImageProvider(getEmptyResource()),
+					contentDescription = null,
+					contentScale = ContentScale.Fit,
+					modifier = GlanceModifier.defaultWeight().wrapContentHeight()
+				)
+			}
 		}
 	}
 }

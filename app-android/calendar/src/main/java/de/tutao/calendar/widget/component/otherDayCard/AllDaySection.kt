@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
@@ -18,7 +19,9 @@ import de.tutao.tutashared.IdTupleCustom
 @Composable
 fun AllDaySection(allDayEvents: List<UIEvent>) {
 	Row(
-		modifier = GlanceModifier.padding(Dimensions.Spacing.MD.dp, Dimensions.Spacing.SM.dp).fillMaxWidth()
+		verticalAlignment = Alignment.CenterVertically,
+		modifier = GlanceModifier.padding(horizontal = Dimensions.Spacing.space_12.dp, vertical = Dimensions.Spacing.space_4.dp)
+			.fillMaxWidth()
 			.background(GlanceTheme.colors.surfaceVariant),
 	) {
 		AllDayRow(allDayEvents)
