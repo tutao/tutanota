@@ -110,7 +110,7 @@ impl AeadFacade {
 				&(end_of_ciphertext as u32).to_be_bytes(),
 				&[AEAD_VERSION],
 				nonce,
-				&ciphertext,
+				ciphertext,
 				associated_data,
 			],
 			tag,
