@@ -137,6 +137,10 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			description: `${emailSettingsLabel} ${lang.getTranslationText("outOfOfficeNotification_title")}`,
 			exec: () => routeToFolderSection(router, folder, "outofoffice"),
 		},
+		{
+			description: `${emailSettingsLabel} ${lang.getTranslationText("undoSend_label")}`,
+			exec: () => routeToFolderSection(router, folder, "undoSend"),
+		},
 		!isBrowser() && !(env.mode === Mode.Admin)
 			? {
 					description: `${emailSettingsLabel} ${lang.getTranslationText("localDataSection_label")}`,
