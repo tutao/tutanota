@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { AeadFacade } from "../lib/encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
-import { aes256RandomKey, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
+import { aes256RandomKey, keyToUint8Array, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
 import { _aes128RandomKey } from "./AesTest.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "../lib/misc/CryptoError.js"
@@ -16,7 +16,7 @@ o.spec("AeadFacadeTest", function () {
 	o.beforeEach(function () {
 		aeadFacade = new AeadFacade()
 		const encryptionKey = aes256RandomKey()
-		const authenticationKey = aes256RandomKey()
+		const authenticationKey = keyToUint8Array(aes256RandomKey())
 		keys = { encryptionKey, authenticationKey }
 	})
 	o("encrypt roundtrip success", function () {

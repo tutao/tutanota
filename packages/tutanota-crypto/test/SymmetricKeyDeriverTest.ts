@@ -47,4 +47,37 @@ o.spec("SymmetricKeyDeriverTest", function () {
 			o(subKeys.encryptionKey).deepEquals(expectedEncryptionKey)
 		})
 	})
+
+	o.spec("AEAD", function () {
+		const globalMailTypeId = "tutanota/97"
+		let kdfNonce: Uint8Array
+		o.beforeEach(function () {
+			kdfNonce = keyToUint8Array(aes256RandomKey()) //get 32 random bytes
+		})
+
+		o.test("derive from group key and nonce is reproducible", function () {
+			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes256Key, kdfNonce, globalMailTypeId)
+			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes256Key, kdfNonce, globalMailTypeId)
+			o.check(derivedKeys).deepEquals(derivedKeysSecond)
+		})
+
+		o.test("derive from group key and nonce is reproducible for legacy 128bit group key", function () {
+			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes128Key, kdfNonce, globalMailTypeId)
+			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes128Key, kdfNonce, globalMailTypeId)
+			o.check(derivedKeys).deepEquals(derivedKeysSecond)
+		})
+
+		o.test("derive from session key is reproducible", function () {
+			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, globalMailTypeId)
+			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, globalMailTypeId)
+			o.check(derivedKeys).deepEquals(derivedKeysSecond)
+		})
+
+		o.test("domain separation between key derivations", function () {
+			const derivedKeysGroupKey = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes256Key, kdfNonce, globalMailTypeId)
+			const derivedKeysSessionkey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, globalMailTypeId)
+			o.check(derivedKeysGroupKey.encryptionKey).notDeepEquals(derivedKeysSessionkey.encryptionKey)
+			o.check(derivedKeysGroupKey.authenticationKey).notDeepEquals(derivedKeysSessionkey.authenticationKey)
+		})
+	})
 })
