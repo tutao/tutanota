@@ -8,6 +8,7 @@ use base64::Engine;
 use regex::{Match, Regex};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::panic;
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 use time_tz::{timezones, Offset, TimeZone};
@@ -150,9 +151,10 @@ impl EventFacade {
 		date: DateTime,
 		repeat_rule: &EventRepeatRule,
 		progenitor_date: DateTime,
-	) -> Vec<DateTime> {
+	) -> Result<Vec<DateTime>, ApiCallError> {
 		let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
-			return Vec::new();
+			log::warn!("Possible invalid date ({date:?}) provided to generate_future_instance, returning empty vec.");
+			return Ok(Vec::new());
 		};
 
 		let date = PrimitiveDateTime::new(parsed_date.date(), parsed_date.time());
@@ -261,17 +263,18 @@ impl EventFacade {
 			valid_month_days,
 			valid_year_days,
 			!by_month_rules.is_empty(),
-		);
+		)?;
 
 		let date_timestamp = progenitor_date.as_seconds();
-		self.finish_rules(
-			day_applied_events,
-			valid_months.clone(),
-			Some(date_timestamp),
-		)
-		.iter()
-		.map(|date| DateTime::from_seconds(date.assume_utc().unix_timestamp().unsigned_abs()))
-		.collect()
+		Ok(self
+			.finish_rules(
+				day_applied_events,
+				valid_months.clone(),
+				Some(date_timestamp),
+			)
+			.iter()
+			.map(|date| DateTime::from_seconds(date.assume_utc().unix_timestamp().unsigned_abs()))
+			.collect())
 	}
 
 	/// Generate events instances according to a given repeat rule.
@@ -416,7 +419,7 @@ impl EventFacade {
 				DateTime::from_seconds(start_time.unix_timestamp().unsigned_abs()),
 				&repeat_rule,
 				event_start_time,
-			);
+			)?;
 
 			let progenitor = DateTime::from_seconds(start_time.unix_timestamp() as u64);
 
@@ -826,9 +829,9 @@ impl EventFacade {
 		valid_month_days: Vec<i8>,
 		valid_year_days: Vec<i16>,
 		has_by_month: bool,
-	) -> Vec<PrimitiveDateTime> {
+	) -> Result<Vec<PrimitiveDateTime>, ApiCallError> {
 		if rules.is_empty() {
-			return dates.clone();
+			return Ok(dates.clone());
 		}
 
 		let mut new_dates: Vec<PrimitiveDateTime> = Vec::new();
@@ -858,7 +861,7 @@ impl EventFacade {
 						&mut new_dates,
 						date,
 						target_week_day,
-					)
+					)?
 				} else if frequency == &RepeatPeriod::Monthly && target_week_day.is_some() {
 					self.expand_by_day_rule_for_monthly_events(
 						&valid_months,
@@ -867,7 +870,7 @@ impl EventFacade {
 						date,
 						target_week_day,
 						leading_value,
-					);
+					)?;
 				} else if frequency == &RepeatPeriod::Annually {
 					self.expand_by_day_rule_for_annually_events(
 						week_start,
@@ -877,20 +880,21 @@ impl EventFacade {
 						target_week_day,
 						leading_value,
 						has_by_month,
-					)
+						rule.by_rule == ByRuleType::ByWeekNo,
+					)?
 				}
 			}
 		}
 
 		if frequency == &RepeatPeriod::Annually {
-			return new_dates
+			return Ok(new_dates
 				.iter()
 				.filter(|date| self.is_valid_day_in_year(**date, valid_year_days.clone()))
 				.copied()
-				.collect();
+				.collect());
 		}
 
-		new_dates
+		Ok(new_dates)
 	}
 
 	fn expand_by_day_rule_for_annually_events(
@@ -902,40 +906,38 @@ impl EventFacade {
 		target_week_day: Option<Match>,
 		leading_value: Option<Match>,
 		has_by_month: bool,
-	) {
-		let week_change = leading_value
+		is_iterating_on_week_number_by_rule: bool,
+	) -> Result<(), ApiCallError> {
+		let offset_at_by_rule = leading_value
 			.map_or(Ok(0), |m| m.as_str().parse::<i64>())
 			.unwrap_or_default();
 
-		if has_week_no && week_change != 0 {
-			println!("Invalid repeat rule, can't use BYWEEKNO with Week Offset on BYDAY");
-			return;
+		if !is_iterating_on_week_number_by_rule && has_week_no && offset_at_by_rule != 0 {
+			return Err(ApiCallError::internal(
+				"Invalid repeat rule, can't use BYWEEKNO with Offset on BYDAY".into(),
+			));
 		}
 
-		if week_change != 0 && !has_week_no {
+		if offset_at_by_rule != 0 && !has_week_no {
 			let mut new_date: PrimitiveDateTime;
 
 			// If there's no target week day, we just set the day of the year.
 			if target_week_day.is_none() {
-				if week_change > 0 {
+				if offset_at_by_rule > 0 {
 					new_date = match date
 						.replace_day(1)
 						.unwrap()
 						.replace_month(Month::January)
 						.unwrap()
-						.checked_add(Duration::days(week_change - 1))
+						.checked_add(Duration::days(offset_at_by_rule - 1))
 					{
 						Some(date) => date,
 						None => {
-							log::error!(
-								"{}",
-								format!(
-									"Failed to add {} days to start of {}",
-									week_change - 1,
-									date.year()
-								)
-							);
-							return;
+							return Err(ApiCallError::internal(format!(
+								"Failed to add {} days to start of {}",
+								offset_at_by_rule - 1,
+								date.year()
+							)))
 						},
 					}
 				} else {
@@ -944,31 +946,27 @@ impl EventFacade {
 						.unwrap()
 						.replace_day(31)
 						.unwrap()
-						.checked_sub(Duration::days(week_change.abs() - 1))
+						.checked_sub(Duration::days(offset_at_by_rule.abs() - 1))
 					{
 						Some(date) => date,
 						None => {
-							log::error!(
-								"{}",
-								format!(
-									"Failed to sub {} days to end of {}",
-									week_change - 1,
-									date.year()
-								)
-							);
-							return;
+							return Err(ApiCallError::internal(format!(
+								"Failed to sub {} days to end of {}",
+								offset_at_by_rule - 1,
+								date.year()
+							)))
 						},
 					}
 				}
 			} else {
 				let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
 				if has_by_month {
-					let absolute_week = if week_change > 0 {
-						week_change
+					let absolute_week = if offset_at_by_rule > 0 {
+						offset_at_by_rule
 					} else {
 						let weeks_in_month: i64 =
 							date.date().month().length(date.year()).div_ceil(7) as i64;
-						weeks_in_month - week_change.abs() + 1
+						weeks_in_month - offset_at_by_rule.abs() + 1
 					};
 
 					new_date = date.replace_day(1).unwrap();
@@ -981,15 +979,11 @@ impl EventFacade {
 						new_date = match new_date.checked_add(Duration::days(1)) {
 							Some(new_date) => new_date,
 							None => {
-								log::error!(
-									"{}",
-									format!(
-										"Failed to add {} days to {}",
-										1,
-										new_date.assume_utc().unix_timestamp()
-									)
-								);
-								return;
+								return Err(ApiCallError::internal(format!(
+									"Failed to add {} days to {}",
+									1,
+									new_date.assume_utc().unix_timestamp()
+								)))
 							},
 						};
 
@@ -999,25 +993,21 @@ impl EventFacade {
 					}
 				} else {
 					// There's a target week day  without byMonth so the occurrenceNumber indicates the week of the year that the event will happen
-					if week_change > 0 {
+					if offset_at_by_rule > 0 {
 						new_date = match date
 							.replace_day(1)
 							.unwrap()
 							.replace_month(Month::January)
 							.unwrap()
-							.checked_add(Duration::weeks(week_change - 1))
+							.checked_add(Duration::weeks(offset_at_by_rule - 1))
 						{
 							Some(date) => date,
 							None => {
-								log::error!(
-									"{}",
-									format!(
-										"Failed to add {} weeks to start of {}",
-										week_change - 1,
-										date.year()
-									)
-								);
-								return;
+								return Err(ApiCallError::internal(format!(
+									"Failed to add {} weeks to start of {}",
+									offset_at_by_rule - 1,
+									date.year()
+								)))
 							},
 						};
 
@@ -1025,15 +1015,11 @@ impl EventFacade {
 							new_date = match new_date.checked_add(Duration::days(1)) {
 								Some(new_date) => new_date,
 								None => {
-									log::error!(
-										"{}",
-										format!(
-											"Failed to add {} days to {}",
-											1,
-											new_date.assume_utc().unix_timestamp()
-										)
-									);
-									return;
+									return Err(ApiCallError::internal(format!(
+										"Failed to add {} days to {}",
+										1,
+										new_date.assume_utc().unix_timestamp()
+									)))
 								},
 							};
 						}
@@ -1043,19 +1029,15 @@ impl EventFacade {
 							.unwrap()
 							.replace_day(31)
 							.unwrap()
-							.checked_sub(Duration::weeks(week_change.abs() - 1))
+							.checked_sub(Duration::weeks(offset_at_by_rule.abs() - 1))
 						{
 							Some(date) => date,
 							None => {
-								log::error!(
-									"{}",
-									format!(
-										"Failed to sub {} weeks to end of {}",
-										week_change.abs() - 1,
-										date.year()
-									)
-								);
-								return;
+								return Err(ApiCallError::internal(format!(
+									"Failed to sub {} weeks to end of {}",
+									offset_at_by_rule.abs() - 1,
+									date.year()
+								)))
 							},
 						};
 
@@ -1063,15 +1045,11 @@ impl EventFacade {
 							new_date = match new_date.checked_sub(Duration::days(1)) {
 								Some(new_date) => new_date,
 								None => {
-									log::error!(
-										"{}",
-										format!(
-											"Failed to sub {} days to {}",
-											1,
-											new_date.assume_utc().unix_timestamp()
-										)
-									);
-									return;
+									return Err(ApiCallError::internal(format!(
+										"Failed to sub {} days to {}",
+										1,
+										new_date.assume_utc().unix_timestamp()
+									)))
 								},
 							};
 						}
@@ -1079,13 +1057,13 @@ impl EventFacade {
 				}
 			}
 
-			new_dates.push(new_date)
+			Self::safe_expand_dates(new_dates, new_date)
 		} else if has_week_no {
 			// There's no week number or occurrenceNumber, so it will happen on all
 			// weekdays that are the same as targetWeekDay
 
 			if target_week_day.is_none() {
-				return;
+				return Ok(());
 			}
 
 			let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
@@ -1098,43 +1076,34 @@ impl EventFacade {
 			);
 
 			let Some(week_ahead) = interval_start.checked_add(Duration::days(7)) else {
-				log::error!(
-					"{}",
-					format!(
-						"Failed to add {} days to {}",
-						7,
-						interval_start.assume_utc().unix_timestamp()
-					)
-				);
-				return;
+				return Err(ApiCallError::internal(format!(
+					"Failed to add {} days to {}",
+					7,
+					interval_start.assume_utc().unix_timestamp()
+				)));
 			};
 
 			if new_date.assume_utc().unix_timestamp() > week_ahead.assume_utc().unix_timestamp()
 				|| new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp()
 			{
+				return Ok(());
 			} else if new_date.assume_utc().unix_timestamp()
 				< interval_start.assume_utc().unix_timestamp()
 			{
-				match interval_start.checked_add(Duration::days(7)) {
-					Some(new_date) => new_dates.push(new_date),
-					None => {
-						log::error!(
-							"{}",
-							format!(
-								"Failed to add {} days to {}",
-								7,
-								interval_start.assume_utc().unix_timestamp()
-							)
-						);
-						return;
-					},
+				return match interval_start.checked_add(Duration::days(7)) {
+					Some(new_date) => Self::safe_expand_dates(new_dates, new_date),
+					None => Err(ApiCallError::internal(format!(
+						"Failed to add {} days to {}",
+						7,
+						interval_start.assume_utc().unix_timestamp()
+					))),
 				};
 			} else {
-				new_dates.push(new_date);
+				return Self::safe_expand_dates(new_dates, new_date);
 			}
 		} else {
 			if target_week_day.is_none() {
-				return;
+				return Ok(());
 			}
 
 			let day_one = date.replace_day(1).unwrap();
@@ -1142,7 +1111,7 @@ impl EventFacade {
 
 			let Ok(stop_date) = Date::from_calendar_date(date.year() + 1, date.month(), date.day())
 			else {
-				return;
+				return Ok(());
 			};
 
 			let stop_condition = date.replace_date(stop_date);
@@ -1157,37 +1126,32 @@ impl EventFacade {
 			current_date = match current_date.checked_add(Duration::days(7)) {
 				Some(new_date) => new_date,
 				None => {
-					log::error!(
-						"{}",
-						format!(
-							"Failed to add {} days to {}",
-							7,
-							current_date.assume_utc().unix_timestamp()
-						)
-					);
-					return;
+					return Err(ApiCallError::internal(format!(
+						"Failed to add {} days to {}",
+						7,
+						current_date.assume_utc().unix_timestamp()
+					)))
 				},
 			};
 
 			while current_date.assume_utc().unix_timestamp()
 				< stop_condition.assume_utc().unix_timestamp()
 			{
-				new_dates.push(current_date);
+				Self::safe_expand_dates(new_dates, current_date)?;
+
 				current_date = match current_date.checked_add(Duration::days(7)) {
 					Some(new_date) => new_date,
 					None => {
-						log::error!(
-							"{}",
-							format!(
-								"Failed to add {} days to {}",
-								7,
-								current_date.assume_utc().unix_timestamp()
-							)
-						);
-						break;
+						return Err(ApiCallError::internal(format!(
+							"Failed to add {} days to {}",
+							7,
+							current_date.assume_utc().unix_timestamp()
+						)))
 					},
 				};
 			}
+
+			Ok(())
 		}
 	}
 
@@ -1199,7 +1163,7 @@ impl EventFacade {
 		date: &PrimitiveDateTime,
 		target_week_day: Option<Match>,
 		leading_value: Option<Match>,
-	) {
+	) -> Result<(), ApiCallError> {
 		let mut allowed_days: Vec<u8> = Vec::new();
 
 		let week_change = leading_value
@@ -1208,15 +1172,11 @@ impl EventFacade {
 
 		let base_date = date.replace_day(1).unwrap();
 		let Some(next_month) = base_date.date().add_month() else {
-			log::error!(
-				"{}",
-				format!(
-					"Failed to add {} months to {}",
-					1,
-					base_date.assume_utc().unix_timestamp()
-				)
-			);
-			return;
+			return Err(ApiCallError::internal(format!(
+				"Failed to add {} months to {}",
+				1,
+				base_date.assume_utc().unix_timestamp()
+			)));
 		};
 		let stop_condition = PrimitiveDateTime::new(next_month, base_date.time());
 
@@ -1264,36 +1224,28 @@ impl EventFacade {
 					new_date = match new_date.checked_sub(Duration::days(1)) {
 						Some(new_date) => new_date,
 						None => {
-							log::error!(
-								"{}",
-								format!(
-									"Failed to sub {} days to {}",
-									1,
-									new_date.assume_utc().unix_timestamp()
-								)
-							);
-							return;
+							return Err(ApiCallError::internal(format!(
+								"Failed to sub {} days to {}",
+								1,
+								new_date.assume_utc().unix_timestamp()
+							)))
 						},
 					};
 				}
 
 				if new_date.month() != base_date.month() {
-					return;
+					return Ok(());
 				}
 			} else {
 				while new_date.weekday() != parsed_weekday {
 					new_date = match new_date.checked_add(Duration::days(1)) {
 						Some(new_date) => new_date,
 						None => {
-							log::error!(
-								"{}",
-								format!(
-									"Failed to add {} days to {}",
-									1,
-									new_date.assume_utc().unix_timestamp()
-								)
-							);
-							return;
+							return Err(ApiCallError::internal(format!(
+								"Failed to add {} days to {}",
+								1,
+								new_date.assume_utc().unix_timestamp()
+							)))
 						},
 					};
 				}
@@ -1303,15 +1255,11 @@ impl EventFacade {
 				{
 					Some(new_date) => new_date,
 					None => {
-						log::error!(
-							"{}",
-							format!(
-								"Failed to add {} weeks to {}",
-								week_change.unsigned_abs() - 1,
-								new_date.assume_utc().unix_timestamp()
-							)
-						);
-						return;
+						return Err(ApiCallError::internal(format!(
+							"Failed to add {} weeks to {}",
+							week_change.unsigned_abs() - 1,
+							new_date.assume_utc().unix_timestamp()
+						)))
 					},
 				}
 			}
@@ -1321,7 +1269,7 @@ impl EventFacade {
 					<= stop_condition.assume_utc().unix_timestamp()
 				&& is_allowed_in_month_day(new_date.day())
 			{
-				new_dates.push(new_date)
+				Self::safe_expand_dates(new_dates, new_date)?
 			}
 		} else {
 			// If there's no week change, just iterate to the target day
@@ -1343,25 +1291,23 @@ impl EventFacade {
 						&& valid_months.contains(&new_date.month().to_number()))
 						|| valid_months.is_empty())
 				{
-					new_dates.push(new_date)
+					Self::safe_expand_dates(new_dates, new_date)?
 				}
 
 				current_date = match new_date.checked_add(Duration::days(7)) {
 					Some(new_date) => new_date,
 					None => {
-						log::error!(
-							"{}",
-							format!(
-								"Failed to add {} days to {}",
-								7,
-								new_date.assume_utc().unix_timestamp()
-							)
-						);
-						return;
+						return Err(ApiCallError::internal(format!(
+							"Failed to add {} days to {}",
+							7,
+							new_date.assume_utc().unix_timestamp()
+						)))
 					},
-				};
+				}
 			}
 		}
+
+		Ok(())
 	}
 
 	fn expand_by_day_rules_for_weekly_events(
@@ -1371,7 +1317,7 @@ impl EventFacade {
 		new_dates: &mut Vec<PrimitiveDateTime>,
 		date: &PrimitiveDateTime,
 		target_week_day: Option<Match>,
-	) {
+	) -> Result<(), ApiCallError> {
 		let parsed_target_week_day = Weekday::from_short(target_week_day.unwrap().as_str());
 
 		// Go back to week start, so we don't miss any events
@@ -1380,15 +1326,11 @@ impl EventFacade {
 			interval_start = match interval_start.checked_sub(Duration::days(1)) {
 				Some(some_date) => some_date,
 				None => {
-					log::error!(
-						"{}",
-						format!(
-							"Failed to sub {} days to {}",
-							1,
-							interval_start.assume_utc().unix_timestamp()
-						)
-					);
-					return;
+					return Err(ApiCallError::internal(format!(
+						"Failed to sub {} days to {}",
+						1,
+						interval_start.assume_utc().unix_timestamp()
+					)))
 				},
 			};
 		}
@@ -1399,15 +1341,11 @@ impl EventFacade {
 			new_date = match new_date.checked_add(Duration::days(1)) {
 				Some(new_date) => new_date,
 				None => {
-					log::error!(
-						"{}",
-						format!(
-							"Failed to add {} days to {}",
-							1,
-							new_date.assume_utc().unix_timestamp()
-						)
-					);
-					return;
+					return Err(ApiCallError::internal(format!(
+						"Failed to add {} days to {}",
+						1,
+						new_date.assume_utc().unix_timestamp()
+					)))
 				},
 			};
 		}
@@ -1416,36 +1354,28 @@ impl EventFacade {
 		let next_event = match date.checked_add(Duration::weeks(1)) {
 			Some(new_date) => new_date.assume_utc().unix_timestamp(),
 			None => {
-				log::error!(
-					"{}",
-					format!(
-						"Failed to add {} weeks to {}",
-						1,
-						date.assume_utc().unix_timestamp()
-					)
-				);
-				return;
+				return Err(ApiCallError::internal(format!(
+					"Failed to add {} weeks to {}",
+					1,
+					date.assume_utc().unix_timestamp()
+				)))
 			},
 		};
 
 		let next_week = match interval_start.checked_add(Duration::weeks(1)) {
 			Some(next_week) => next_week.assume_utc().unix_timestamp(),
 			_ => {
-				log::error!(
-					"{}",
-					format!(
-						"Failed to add {} weeks to {}",
-						1,
-						interval_start.assume_utc().unix_timestamp()
-					)
-				);
-				return;
+				return Err(ApiCallError::internal(format!(
+					"Failed to add {} weeks to {}",
+					1,
+					interval_start.assume_utc().unix_timestamp()
+				)))
 			},
 		};
 
 		if new_date.assume_utc().unix_timestamp() >= next_week {
 			// The event is actually next week, so discard
-			return;
+			return Ok(());
 		}
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
@@ -1454,12 +1384,30 @@ impl EventFacade {
             >= next_week)
 		{
 			// Or we created an event after the first event or within the next week
-			return;
+			return Ok(());
 		}
 
 		if valid_months.is_empty() || valid_months.contains(&new_date.month().to_number()) {
-			new_dates.push(new_date)
+			Self::safe_expand_dates(new_dates, new_date)?
 		}
+
+		Ok(())
+	}
+
+	fn safe_expand_dates(
+		new_dates: &mut Vec<PrimitiveDateTime>,
+		new_date: PrimitiveDateTime,
+	) -> Result<(), ApiCallError> {
+		match new_dates.try_reserve(1) {
+			Ok(_) => new_dates.push(new_date),
+			Err(memory_reserve_error) => {
+				return Err(ApiCallError::internal_with_err(
+					memory_reserve_error,
+					"Unable to expand occurrences vector",
+				))
+			},
+		}
+		Ok(())
 	}
 
 	fn get_valid_days_in_year(&self, year: i32, valid_year_days: &Vec<i16>) -> Vec<u16> {
@@ -2992,20 +2940,22 @@ mod tests {
 		let event_recurrence = EventFacade {};
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "FR".to_string(),
-				}],
-				&RepeatPeriod::Daily,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "FR".to_string(),
+					}],
+					&RepeatPeriod::Daily,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[date]
 		);
 	}
@@ -3021,20 +2971,22 @@ mod tests {
 		let event_recurrence = EventFacade {};
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "FR".to_string(),
-				}],
-				&RepeatPeriod::Daily,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "FR".to_string(),
+					}],
+					&RepeatPeriod::Daily,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -3050,26 +3002,28 @@ mod tests {
 		let event_recurrence = EventFacade {};
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![
-					&ByRule {
-						by_rule: ByRuleType::ByDay,
-						interval: "FR".to_string(),
-					},
-					&ByRule {
-						by_rule: ByRuleType::ByDay,
-						interval: "SA".to_string(),
-					},
-				],
-				&RepeatPeriod::Weekly,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![
+						&ByRule {
+							by_rule: ByRuleType::ByDay,
+							interval: "FR".to_string(),
+						},
+						&ByRule {
+							by_rule: ByRuleType::ByDay,
+							interval: "SA".to_string(),
+						},
+					],
+					&RepeatPeriod::Weekly,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[date.replace_day(10).unwrap(), date.replace_day(11).unwrap()]
 		);
 	}
@@ -3086,20 +3040,22 @@ mod tests {
 		// Can be WEEKDAY + WEEK
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "MO".to_string(),
-				},],
-				&RepeatPeriod::Monthly,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "MO".to_string(),
+					},],
+					&RepeatPeriod::Monthly,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[
 				date,
 				date.replace_day(13).unwrap(),
@@ -3145,17 +3101,19 @@ mod tests {
 			.collect();
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&by_day_rules,
-				&RepeatPeriod::Monthly,
-				vec![],
-				Weekday::Monday,
-				false,
-				valid_month_days,
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&by_day_rules,
+					&RepeatPeriod::Monthly,
+					vec![],
+					Weekday::Monday,
+					false,
+					valid_month_days,
+					vec![],
+					false
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -3172,20 +3130,22 @@ mod tests {
 		// Can be WEEKDAY + WEEK
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "2MO".to_string(),
-				},],
-				&RepeatPeriod::Monthly,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "2MO".to_string(),
+					},],
+					&RepeatPeriod::Monthly,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[date.replace_day(13).unwrap()]
 		);
 	}
@@ -3226,17 +3186,19 @@ mod tests {
 			.collect();
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&by_day_rules,
-				&RepeatPeriod::Monthly,
-				vec![],
-				Weekday::Monday,
-				false,
-				valid_month_days,
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&by_day_rules,
+					&RepeatPeriod::Monthly,
+					vec![],
+					Weekday::Monday,
+					false,
+					valid_month_days,
+					vec![],
+					false
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -3262,20 +3224,22 @@ mod tests {
 		// Can be WEEKDAY + WEEK
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "MO".to_string(),
-				},],
-				&RepeatPeriod::Annually,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "MO".to_string(),
+					},],
+					&RepeatPeriod::Annually,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			expected_dates
 		);
 	}
@@ -3292,20 +3256,22 @@ mod tests {
 		// Can be WEEKDAY + WEEK
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "2MO".to_string(),
-				},],
-				&RepeatPeriod::Annually,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "2MO".to_string(),
+					},],
+					&RepeatPeriod::Annually,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[date.replace_day(13).unwrap(),]
 		);
 	}
@@ -3322,20 +3288,22 @@ mod tests {
 		// Can be WEEKDAY + WEEK
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![&ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "35".to_string(),
-				},],
-				&RepeatPeriod::Annually,
-				vec![],
-				Weekday::Monday,
-				false,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![&ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "35".to_string(),
+					},],
+					&RepeatPeriod::Annually,
+					vec![],
+					Weekday::Monday,
+					false,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[date
 				.replace_month(Month::February)
 				.unwrap()
@@ -3355,66 +3323,34 @@ mod tests {
 		let event_recurrence = EventFacade {};
 
 		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![
-					&ByRule {
-						by_rule: ByRuleType::ByDay,
-						interval: "MO".to_string(),
-					},
-					&ByRule {
-						by_rule: ByRuleType::ByWeekNo,
-						interval: "6".to_string(),
-					},
-				],
-				&RepeatPeriod::Annually,
-				vec![],
-				Weekday::Monday,
-				true,
-				vec![],
-				vec![],
-				false
-			),
+			event_recurrence
+				.apply_day_rules(
+					vec![date],
+					&vec![
+						&ByRule {
+							by_rule: ByRuleType::ByDay,
+							interval: "MO".to_string(),
+						},
+						&ByRule {
+							by_rule: ByRuleType::ByWeekNo,
+							interval: "6".to_string(),
+						},
+					],
+					&RepeatPeriod::Annually,
+					vec![],
+					Weekday::Monday,
+					true,
+					vec![],
+					vec![],
+					false
+				)
+				.unwrap(),
 			[date]
 		);
 	}
 
 	#[test]
-	fn test_parse_by_day_yearly_with_unmatch_weekno() {
-		let time = Time::from_hms(13, 23, 00).unwrap();
-		let date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::January, 10).unwrap(),
-			time,
-		);
-
-		let event_recurrence = EventFacade {};
-
-		assert_eq!(
-			event_recurrence.apply_day_rules(
-				vec![date],
-				&vec![
-					&ByRule {
-						by_rule: ByRuleType::ByDay,
-						interval: "35".to_string(),
-					},
-					&ByRule {
-						by_rule: ByRuleType::ByWeekNo,
-						interval: "7".to_string(),
-					},
-				],
-				&RepeatPeriod::Annually,
-				vec![],
-				Weekday::Monday,
-				true,
-				vec![],
-				vec![],
-				false
-			),
-			[]
-		);
-	}
-
-	#[test]
+	#[should_panic = "Invalid repeat rule, can't use BYWEEKNO with Offset on BYDAY"]
 	fn test_parse_by_day_yearly_with_invalid_rule() {
 		let time = Time::from_hms(13, 23, 00).unwrap();
 		let date = PrimitiveDateTime::new(
@@ -3425,8 +3361,8 @@ mod tests {
 		let event_recurrence = EventFacade {};
 		// Can be WEEKDAY + WEEK
 
-		assert_eq!(
-			event_recurrence.apply_day_rules(
+		event_recurrence
+			.apply_day_rules(
 				vec![date],
 				&vec![
 					&ByRule {
@@ -3444,10 +3380,43 @@ mod tests {
 				true,
 				vec![],
 				vec![],
-				false
-			),
-			[]
+				false,
+			)
+			.unwrap();
+	}
+
+	#[test]
+	fn test_generate_future_instances_yearly_byweekno_byday_on_a_different_week() {
+		let time = Time::from_hms(13, 23, 00).unwrap();
+		let date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::January, 6).unwrap(),
+			time,
 		);
+
+		let expected = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::January, 21).unwrap(),
+			time,
+		);
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Annually,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "TU".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByWeekNo,
+					interval: "4".to_string(),
+				},
+			],
+		};
+
+		let event_facade = EventFacade {};
+		let result = event_facade
+			.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+			.unwrap();
+		assert_eq!(result, [expected.to_date_time()]);
 	}
 
 	#[test]
@@ -3524,35 +3493,39 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_month(Month::January).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_month(Month::January).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_month(Month::January).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_month(Month::January).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.to_date_time()]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_month(Month::February).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_month(Month::February).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_month(Month::February).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_month(Month::February).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[date.replace_month(Month::February).unwrap().to_date_time()]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_month(Month::June).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_month(Month::June).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_month(Month::June).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_month(Month::June).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[date.replace_month(Month::June).unwrap().to_date_time()]
 		);
 	}
@@ -3585,11 +3558,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[]
 		);
 	}
@@ -3626,19 +3597,19 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(14).unwrap().to_date_time()]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_day(13).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_day(13).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_day(13).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_day(13).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -3661,19 +3632,19 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(10).unwrap().to_date_time(),]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_month(Month::January).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_month(Month::January).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_month(Month::January).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_month(Month::January).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -3706,11 +3677,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time()
@@ -3742,11 +3711,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time()
@@ -3781,11 +3748,9 @@ mod tests {
 		};
 
 		let event_recurrence = EventFacade {};
-		let future_instances = event_recurrence.generate_future_instances(
-			date.to_date_time(),
-			&repeat_rule,
-			date.to_date_time(),
-		);
+		let future_instances = event_recurrence
+			.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+			.unwrap();
 		assert_eq!(
 			future_instances,
 			[
@@ -3823,11 +3788,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(13).unwrap().to_date_time(),]
 		);
 	}
@@ -3860,11 +3823,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(7).unwrap().to_date_time(),
 				date.replace_day(13).unwrap().to_date_time(),
@@ -3890,11 +3851,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(14).unwrap().to_date_time(),
 				date.replace_day(21).unwrap().to_date_time(),
@@ -3921,11 +3880,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(14).unwrap().to_date_time(),]
 		);
 	}
@@ -3954,11 +3911,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(21).unwrap().to_date_time(),
 				date.replace_day(28).unwrap().to_date_time(),
@@ -3988,19 +3943,19 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(10).unwrap().to_date_time(),]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date_not_in_range.to_date_time(),
-				&repeat_rule,
-				date_not_in_range.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date_not_in_range.to_date_time(),
+					&repeat_rule,
+					date_not_in_range.to_date_time()
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -4029,11 +3984,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(25).unwrap().to_date_time(),
 				date.replace_day(28).unwrap().to_date_time(),
@@ -4069,11 +4022,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(28).unwrap().to_date_time()]
 		);
 	}
@@ -4106,11 +4057,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time(),
@@ -4165,11 +4114,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			expected_dates
 		);
 	}
@@ -4198,20 +4145,20 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(13).unwrap().to_date_time()]
 		);
 
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_month(Month::March).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_month(Month::March).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_month(Month::March).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_month(Month::March).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -4240,20 +4187,20 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[date.replace_day(20).unwrap().to_date_time()]
 		);
 
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.replace_month(Month::March).unwrap().to_date_time(),
-				&repeat_rule,
-				date.replace_month(Month::March).unwrap().to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					date.replace_month(Month::March).unwrap().to_date_time(),
+					&repeat_rule,
+					date.replace_month(Month::March).unwrap().to_date_time()
+				)
+				.unwrap(),
 			[date
 				.replace_year(2026)
 				.unwrap()
@@ -4291,11 +4238,13 @@ mod tests {
 		let event_recurrence = EventFacade {};
 
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				valid_date.to_date_time(),
-				&repeat_rule,
-				valid_date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(
+					valid_date.to_date_time(),
+					&repeat_rule,
+					valid_date.to_date_time()
+				)
+				.unwrap(),
 			[]
 		);
 	}
@@ -4324,11 +4273,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(18).unwrap().to_date_time(),
 				date.replace_day(19).unwrap().to_date_time(),
@@ -4369,11 +4316,9 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time(),
