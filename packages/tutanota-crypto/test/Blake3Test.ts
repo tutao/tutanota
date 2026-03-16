@@ -21,21 +21,21 @@ o.spec("blake3", function () {
 	})
 	o.spec("mac", function () {
 		o("round trip", function () {
-			const key = aes256RandomKey()
+			const key = keyToUint8Array(aes256RandomKey())
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
 			const tag = blake3Mac(key, data)
 			blake3MacVerify(key, data, tag)
 		})
 		o("throws if data is not the same", async function () {
-			const key = aes256RandomKey()
+			const key = keyToUint8Array(aes256RandomKey())
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
 			const badData = new Uint8Array([6, 5, 4, 3, 2, 1, 0])
 			const tag = blake3Mac(key, data)
 			await assertThrows(CryptoError, async () => blake3MacVerify(key, badData, tag))
 		})
 		o("throws if key is not the same", async function () {
-			const key = aes256RandomKey()
-			const badKey = aes256RandomKey()
+			const key = keyToUint8Array(aes256RandomKey())
+			const badKey = keyToUint8Array(aes256RandomKey())
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
 			const tag = blake3Mac(key, data)
 			await assertThrows(CryptoError, async () => blake3MacVerify(badKey, data, tag))
