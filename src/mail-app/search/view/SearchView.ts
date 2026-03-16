@@ -8,7 +8,7 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { layout_size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -119,6 +119,8 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
+import { ProgressSnackBar, ProgressState } from "../../../common/gui/ProgressSnackBar"
+import { SearchProgressStack } from "./SearchViewIndexingStack"
 
 assertMainOrNode()
 
@@ -647,19 +649,24 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							multicolumnActions: () => actions,
 							primaryAction: () => null,
 						}),
-					columnLayout: m(MultiItemViewer, {
-						selectedEntities: selectedMails,
-						selectNone: () => this.searchViewModel.listModel.selectNone(),
-						loadAll: () => this.searchViewModel.loadAll(),
-						stopLoadAll: () => this.searchViewModel.stopLoadAll(),
-						loadingAll:
-							this.searchViewModel.loadingAllForSearchResult != null
-								? "loading"
-								: this.searchViewModel.listModel.isLoadedCompletely()
-									? "loaded"
-									: "can_load",
-						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
-					}),
+					columnLayout: [
+						m(MultiItemViewer, {
+							selectedEntities: selectedMails,
+							selectNone: () => this.searchViewModel.listModel.selectNone(),
+							loadAll: () => this.searchViewModel.loadAll(),
+							stopLoadAll: () => this.searchViewModel.stopLoadAll(),
+							loadingAll:
+								this.searchViewModel.loadingAllForSearchResult != null
+									? "loading"
+									: this.searchViewModel.listModel.isLoadedCompletely()
+										? "loaded"
+										: "can_load",
+							getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
+						}),
+						m(SearchProgressStack, {
+							searchIndexState: this.searchViewModel.getSearchIndexState(),
+						}),
+					],
 				})
 			} else {
 				const { deleteAction, trashAction } = this.getDeleteAndTrashActions()

@@ -1,6 +1,6 @@
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
-import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
+import { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes.js"
@@ -1140,6 +1140,10 @@ export class SearchViewModel {
 
 	getLabelsForMail(mail: Mail): MailSet[] {
 		return mailLocator.mailModel.getLabelsForMail(mail)
+	}
+
+	getSearchIndexState(): SearchIndexStateInfo {
+		return this.search.indexState()
 	}
 }
 
