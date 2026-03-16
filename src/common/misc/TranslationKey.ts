@@ -2250,3 +2250,4 @@ export type TranslationKeyType =
 	| "approvalMailBody_msg"
 	| "emptyString_msg"
 	| "approvalMailBody_msg"
+	| "settingNotApplicableInIos_msg"
