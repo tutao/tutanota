@@ -26,7 +26,7 @@ public protocol AlarmCalculator {
 
 	/// Calculate upcoming alarm occurences for a single alarm
 	/// - Returns: lazy sequence of alarm occurences. It might be infinite if alarm repeats indefinitely!
-	func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence>
+	func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification, maxFutureOccurrences: Int) -> any Sequence<AlarmOccurence>
 }
 
 /// A helper to magically unbox any Sequence to call prefix() on it because
@@ -46,35 +46,43 @@ public class AlarmModel: AlarmCalculator {
 			result.1.append(alarm)
 		}
 		printLog("Handling \(singleEventAlarms.count) single event alarms and \(repeatingEventAlarms.count) repeating event alarms.")
-		for alarm in singleEventAlarms { occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm) }
+		for alarm in singleEventAlarms { occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: 1) }
 		for alarm in repeatingEventAlarms {
-			occurrences += prefix(self.futureAlarmOccurrencesSequence(ofAlarm: alarm), upToForEach)  // Get the first N future occurences. (N = uptoForEach)
+			occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: upToForEach)  // Get the first N future occurences. (N = uptoForEach)
 		}
 
 		occurrences.sort(by: { $0.eventOccurrenceTime < $1.eventOccurrenceTime })
 		return occurrences.prefix(upToOverall)
 	}
 
-	public func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence> {
+	public func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification, maxFutureOccurrences: Int) -> any Sequence<AlarmOccurence> {
 		if let repeatRule = alarm.repeatRule {
-			return self.futureOccurences(ofAlarm: alarm, withRepeatRule: repeatRule)
+			return self.futureOccurences(ofAlarm: alarm, withRepeatRule: repeatRule, maxFutureOccurrences: maxFutureOccurrences)
 		} else {
 			let singleOcurrence = AlarmOccurence(occurrenceNumber: 0, eventOccurrenceTime: alarm.eventStart, alarm: alarm)
 			if shouldScheduleAlarmAt(ocurrenceTime: singleOcurrence.alarmOccurenceTime()) { return [singleOcurrence] } else { return [] }
 		}
 	}
 
-	private func futureOccurences(ofAlarm alarm: AlarmNotification, withRepeatRule: RepeatRule) -> some Sequence<AlarmOccurence> {
+	private func futureOccurences(ofAlarm alarmNotification: AlarmNotification, withRepeatRule: RepeatRule, maxFutureOccurrences: Int) -> some Sequence<
+		AlarmOccurence
+	> {
 		let occurencesAfterNow = occurencesOfRepeatingEvent(
-			eventStart: alarm.eventStart,
-			eventEnd: alarm.eventEnd,
+			eventStart: alarmNotification.eventStart,
+			eventEnd: alarmNotification.eventEnd,
 			repeatRule: withRepeatRule,
 			localTimeZone: dateProvider.timeZone
 		)
-		.lazy  // trying to optimize it: do not calculate alarm occurence if event occurence itself is in the past
-		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.occurenceDate) }
-		.map { occurrence in AlarmOccurence(occurrenceNumber: occurrence.occurrenceNumber, eventOccurrenceTime: occurrence.occurenceDate, alarm: alarm) }
-		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.alarmOccurenceTime()) }
+		.compactMap({ (occurrence: EventOccurrence) -> AlarmOccurence? in
+			guard self.shouldScheduleAlarmAt(ocurrenceTime: occurrence.occurenceDate) else { return nil }  // Ignore if event occurrence is in the past
+
+			let alarm = AlarmOccurence(occurrenceNumber: occurrence.occurrenceNumber, eventOccurrenceTime: occurrence.occurenceDate, alarm: alarmNotification)
+
+			guard self.shouldScheduleAlarmAt(ocurrenceTime: alarm.alarmOccurenceTime()) else { return nil }  // Ignore if resulting alarm is in the past
+
+			return alarm
+		})
+		.prefix(maxFutureOccurrences)
 		return occurencesAfterNow
 	}
 
@@ -123,6 +131,9 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 	let cal: Calendar
 	let calendarComponent: Calendar.Component
 	let dateProvider: DateProvider
+	fileprivate let eventFacade = EventFacade()
+	fileprivate lazy var byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
+	fileprivate lazy var sdkRepeatRule = EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)
 
 	var expandedEvents: [DateTime] = []
 
@@ -161,14 +172,19 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 					return nil
 				}
 
-				let eventFacade = EventFacade()
-				let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
 				let progenitorTimeInMilis = progenitorTime * 1000
-				let generatedEvents = eventFacade.generateFutureInstances(
-					date: progenitorTimeInMilis,  // To Milliseconds
-					repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules),
-					progenitorDate: UInt64(calcEventStart.timeIntervalSince1970 * 1000)
-				)
+				var generatedEvents: [DateTime] = []
+				do {
+					generatedEvents = try eventFacade.generateFutureInstances(
+						date: progenitorTimeInMilis,  // To Milliseconds
+						repeatRule: sdkRepeatRule,
+						progenitorDate: UInt64(calcEventStart.timeIntervalSince1970 * 1000)
+					)
+				} catch {
+					printLog(
+						"Failed to generate future occurences. Event start: \(calcEventStart.debugDescription) - Repeat rule: \(repeatRule). Original error: \(error)"
+					)
+				}
 				self.expandedEvents.append(contentsOf: generatedEvents)
 				// Handle the event 0
 				if self.intervalNumber == 0 && !self.expandedEvents.contains(progenitorTimeInMilis) { expandedEvents.append(progenitorTimeInMilis) }
@@ -183,7 +199,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 
 				intervalNumber += 1
 
-				if expansionProgenitor.timeIntervalSince1970 > Date().timeIntervalSince1970 { remainingIntervals -= 1 }
+				if expansionProgenitor.timeIntervalSince1970 > dateProvider.now.timeIntervalSince1970 { remainingIntervals -= 1 }
 			}
 
 			if let date = expandedEvents.popLast() {
