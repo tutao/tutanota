@@ -147,7 +147,7 @@ public class AlarmManager {
 
 	private func unschedule(alarm encAlarmNotification: EncryptedAlarmNotification) throws {
 		let alarmNotification = try alarmCryptor.decrypt(alarm: encAlarmNotification)
-		let occurrenceIds = prefix(alarmCalculator.futureAlarmOccurrencesSequence(ofAlarm: alarmNotification), EVENTS_SCHEDULED_AHEAD)
+		let occurrenceIds = alarmCalculator.futureAlarmOccurrencesSequence(ofAlarm: alarmNotification, maxFutureOccurrences: EVENTS_SCHEDULED_AHEAD)
 			.map { ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber) }
 		log("Cancelling all future alarm occurences of \(alarmNotification.identifier)")
 		self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)

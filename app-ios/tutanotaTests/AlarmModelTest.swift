@@ -130,9 +130,10 @@ struct AlarmModelTest {
 				alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .minute, value: 5)),
 				repeatRule: repeatRule,
 				user: "user"
-			)
+			),
+			maxFutureOccurrences: 4
 		)
-		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventOccurrenceTime }
 
 		let expected = [
 			date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 9, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone),
@@ -166,9 +167,10 @@ struct AlarmModelTest {
 				alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .hour, value: 1)),
 				repeatRule: repeatRule,
 				user: "user"
-			)
+			),
+			maxFutureOccurrences: 5
 		)
-		let occurrences = prefix(seq: seq, 5).map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventOccurrenceTime }
 
 		let expected = [
 			date(2025, 2, 2, 12, 0, timeZone), date(2025, 2, 3, 12, 0, timeZone), date(2025, 2, 4, 12, 0, timeZone), date(2025, 2, 10, 12, 0, timeZone),
@@ -203,9 +205,10 @@ struct AlarmModelTest {
 				alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .minute, value: 5)),
 				repeatRule: repeatRule,
 				user: "user"
-			)
+			),
+			maxFutureOccurrences: 4
 		)
-		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventOccurrenceTime }
 
 		let expected = [
 			date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone), date(2019, 6, 30, 12, 0, timeZone),
@@ -240,10 +243,11 @@ struct AlarmModelTest {
 				alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .minute, value: 5)),
 				repeatRule: repeatRule,
 				user: "user"
-			)
+			),
+			maxFutureOccurrences: 4
 		)
 
-		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventOccurrenceTime }
 
 		let expected = [date(2019, 5, 1, 0, 0, timeZone), date(2019, 5, 2, 0, 0, timeZone)]
 		#expect(occurrences == expected)
@@ -278,9 +282,10 @@ struct AlarmModelTest {
 				alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .hour, value: 1)),
 				repeatRule: repeatRule,
 				user: "user"
-			)
+			),
+			maxFutureOccurrences: 5
 		)
-		let occurrences = prefix(seq: seq, 5).map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventOccurrenceTime }
 
 		let expected = [
 			date(2025, 7, 1, 12, 0, timeZone), date(2025, 7, 2, 12, 0, timeZone), date(2025, 7, 7, 12, 0, timeZone), date(2025, 7, 8, 12, 0, timeZone),
