@@ -39,6 +39,7 @@ import {
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
+	SymmetricKeyDeriver,
 	uint8ArrayToKey,
 	verifyHmacSha256,
 	x25519Decapsulate,
@@ -186,7 +187,7 @@ o.spec("CompatibilityTest", function () {
 			random.generateRandomData = (IV_BYTE_LENGTH: number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			const aeadFacade = new AeadFacade()
 			const encryptionKey = uint8ArrayToKey(hexToUint8Array(td.encryptionKey))
-			const authenticationKey = uint8ArrayToKey(hexToUint8Array(td.authenticationKey))
+			const authenticationKey = hexToUint8Array(td.authenticationKey)
 			const keys = { encryptionKey, authenticationKey }
 			const plainText = base64ToUint8Array(td.plainTextBase64)
 			const associatedData = base64ToUint8Array(td.associatedData)
@@ -448,7 +449,7 @@ o.spec("CompatibilityTest", function () {
 
 		o("mac", function () {
 			for (const td of testData.blake3Tests) {
-				const key = uint8ArrayToKey(hexToUint8Array(td.keyHex))
+				const key = hexToUint8Array(td.keyHex)
 				const data = hexToUint8Array(td.dataHex)
 				const tag = hexToUint8Array(td.tagHex) as MacTag
 				o(blake3Mac(key, data)).deepEquals(tag)
@@ -460,6 +461,44 @@ o.spec("CompatibilityTest", function () {
 			for (const td of testData.blake3Tests) {
 				const inputKeyMaterialHex = hexToUint8Array(td.keyHex)
 				o(uint8ArrayToHex(blake3Kdf(inputKeyMaterialHex, td.context, td.lengthInBytes))).equals(td.kdfOutputHex)
+			}
+		})
+	})
+
+	o.spec("AEAD key derivation", function () {
+		o.test("from session key, from group key 256 bits, from group key 128 bits", function () {
+			for (const td of testData.aeadKeyDerivationTests) {
+				const symmetricKeyDeriver = new SymmetricKeyDeriver()
+				const kdfNonce = hexToUint8Array(td.kdfNonceHex)
+				const globalInstanceId = td.globalInstanceTypeId
+				const keysFrom256 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
+					uint8ArrayToKey(hexToUint8Array(td.groupKey256Hex)),
+					kdfNonce,
+					globalInstanceId,
+				)
+				o.check(keysFrom256).deepEquals({
+					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom256Hex)),
+					authenticationKey: hexToUint8Array(td.authenticationKeyFrom256Hex),
+				})
+
+				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
+					uint8ArrayToKey(hexToUint8Array(td.groupKey128Hex)),
+					kdfNonce,
+					globalInstanceId,
+				)
+				o.check(keysFrom128).deepEquals({
+					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom128Hex)),
+					authenticationKey: hexToUint8Array(td.authenticationKeyFrom128Hex),
+				})
+
+				const keysFromSessionKey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(
+					uint8ArrayToKey(hexToUint8Array(td.sessionKeyHex)),
+					globalInstanceId,
+				)
+				o.check(keysFromSessionKey).deepEquals({
+					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFromSessionKeyHex)),
+					authenticationKey: hexToUint8Array(td.authenticationKeyFromSessionKeyHex),
+				})
 			}
 		})
 	})

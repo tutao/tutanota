@@ -48,8 +48,7 @@ export class AeadFacade {
 	}
 
 	private validateKeyLength(key: AeadSubKeys) {
-		// authentication key length is verified when computing the mac
 		getAndVerifyAesKeyLength(key.encryptionKey, [AesKeyLength.Aes256])
-		getAndVerifyAesKeyLength(key.authenticationKey, [AesKeyLength.Aes256])
+		getAndVerifyAesKeyLength(uint8ArrayToBitArray(key.authenticationKey), [AesKeyLength.Aes256])
 	}
 }
