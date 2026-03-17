@@ -297,3 +297,7 @@ export function getSearchEndTimestamp(currentMailIndexTimestamp: number, restric
 		return FULL_INDEXED_TIMESTAMP
 	}
 }
+
+export function getMailIndexTimestampForSearch(mailIndexTimestamp: number): number {
+	return mailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? Date.now() : mailIndexTimestamp
+}

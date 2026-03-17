@@ -32,14 +32,15 @@ import type {
 	SearchRestriction,
 	SearchResult,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import type { TypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import {
 	getIdFromEncSearchIndexEntry,
+	getMailIndexTimestampForSearch,
 	getPerformanceTimestamp,
 	getSearchEndTimestamp,
 	markEnd,
 	markStart,
 	printMeasure,
+	TypeInfo,
 	typeRefToTypeInfo,
 } from "../../../common/api/common/utils/IndexUtils.js"
 import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
@@ -94,7 +95,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			tokens: await this.tokenize(query),
 			restriction,
 			results: [],
-			currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
+			currentIndexTimestamp: getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp),
 			lastReadSearchIndexRow: searchTokens.map((token) => [token, null]),
 			matchWordOrder: searchTokens.length > 1 && query.startsWith('"') && query.endsWith('"'),
 			moreResults: [],
@@ -141,6 +142,21 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		} else {
 			return Promise.resolve(result)
 		}
+	}
+
+	async extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
+		return this.startOrContinueSearch({
+			...result,
+			restriction: {
+				...result.restriction,
+				end: extensionEnd,
+			},
+		}).then(() => {
+			result.restriction.end = extensionEnd
+			result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
+			result.results.sort(compareNewestFirst)
+			return result
+		})
 	}
 
 	private async loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
