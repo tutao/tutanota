@@ -65,14 +65,10 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 
 	const approvalStatus = getCustomerApprovalStatus(customer)
 	const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null ? defaultStatus : approvalStatus
-	if (
-		status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED ||
-		status === ApprovalStatus.DELAYED ||
-		status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
-	) {
+	if (status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED || status === ApprovalStatus.DELAYED || status === ApprovalStatus.UNUSED2_DEPRECATED) {
 		await showApprovalNeededMessageDialog()
 		return false
-	} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
+	} else if (status === ApprovalStatus.UNUSED_DEPRECATED) {
 		if (getAccountAgeInMs(customer) > TWO_DAYS_MS) {
 			await Dialog.message("requestApproval_msg")
 			return true
