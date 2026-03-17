@@ -53,7 +53,7 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	driveViewModel: DriveViewModel
-	showMoveItemDialog: (item: FolderItem, moveItems: MoveItems) => unknown
+	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
 }
@@ -222,12 +222,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				help: "move_action",
 				exec: () => {
 					const selectedItems = this.driveViewModel.listState().selectedItems
-					if (selectedItems.size === 1) {
-						const [selectedItem] = [...selectedItems]
-						vnode.attrs.showMoveItemDialog(selectedItem, (items: readonly FolderItemId[], destination: DriveFolder) =>
-							this.driveViewModel.moveItems(items, destination._id),
-						)
-					}
+
+					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (items: readonly FolderItemId[], destination: DriveFolder) =>
+						this.driveViewModel.moveItems(items, destination._id),
+					)
 				},
 			},
 		]
@@ -264,15 +262,15 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				}),
 				bottomNav: styles.isUsingBottomNavigation()
 					? this.driveViewModel.listState().inMultiselect
-						? this.renderMobileActionBar()
+						? this.renderMobileActionBar(attrs.showMoveItemDialog)
 						: m(BottomNav)
 					: null,
 			}),
 		])
 	}
 
-	private renderMobileActionBar(): Children {
-		const { onCopy, onCut, onDelete, onRestore, onTrash } = this.selectedItemsActions(this.driveViewModel.listState())
+	private renderMobileActionBar(showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
+		const { onCopy, onCut, onDelete, onRestore, onTrash, onMove } = this.selectedItemsActions(this.driveViewModel.listState(), showMoveItemDialog)
 		const actionsAttrs: MobileActionAttrs[] = []
 		if (onRestore) {
 			actionsAttrs.push({
@@ -300,6 +298,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				title: "cut_action",
 				action: onCut,
 				icon: Icons.Cut,
+			})
+		}
+		if (onMove) {
+			actionsAttrs.push({
+				title: "move_action",
+				action: onMove,
+				icon: Icons.Move,
 			})
 		}
 		if (onTrash) {
@@ -409,7 +414,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
 							}),
 						],
-						mobileHeader: () => this.renderMobileHeader(headerAttrs),
+						mobileHeader: () => this.renderMobileHeader(headerAttrs, showMoveItemDialog),
 					})
 				},
 			},
@@ -439,9 +444,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		})
 	}
 
-	private renderMobileHeader(headerAttrs: HeaderAttrs): Children {
+	private renderMobileHeader(headerAttrs: HeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
 		const listState = this.driveViewModel.listState()
-		const actions = this.selectedItemsActions(listState)
+		const actions = this.selectedItemsActions(listState, showMoveItemDialog)
 		const { onPaste } = actions
 
 		if (listState.inMultiselect) {
@@ -476,9 +481,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		}
 	}
 
-	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: (item: FolderItem, moveItems: MoveItems) => unknown): Children {
+	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
 		return m(DriveFolderView, {
-			selectedItemsActions: this.selectedItemsActions(listState),
+			selectedItemsActions: this.selectedItemsActions(listState, showMoveItemDialog),
 			onDropFiles: (files) => {
 				this.driveViewModel.uploadFiles(files)
 			},
@@ -547,7 +552,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				},
 				onRename: (item) => this.onRename(item),
 				onStartMove: (item) => {
-					showMoveItemDialog(item, (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
+					showMoveItemDialog([item], (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
 				},
 			},
 			onMove: (items: FolderItemId[], into: FolderFolderItem) => {
@@ -559,7 +564,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		} satisfies DriveFolderViewAttrs)
 	}
 
-	private selectedItemsActions(listState: ListState<FolderItem>): DriveSelectedItemsActions {
+	private selectedItemsActions(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): DriveSelectedItemsActions {
 		const isListingTrash = this.driveViewModel.currentFolder?.type === DriveFolderType.Trash
 		return {
 			onTrash:
@@ -577,6 +582,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			onCut: !isListingTrash && listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
 			onCopy: !isListingTrash && listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
 			onPaste: !isListingTrash && this.driveViewModel.clipboard ? () => this.onPaste() : null,
+			onMove:
+				!isListingTrash && listState.selectedItems.size > 0
+					? () =>
+							showMoveItemDialog(Array.from(listState.selectedItems), (items, destinationFolder) =>
+								this.driveViewModel.moveItems(items, destinationFolder._id),
+							)
+					: null,
 		}
 	}
 

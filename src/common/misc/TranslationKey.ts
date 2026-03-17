@@ -2260,3 +2260,4 @@ export type TranslationKeyType =
 	| "createNewFolderIn_label"
 	| "driveNotEmpty_msg"
 	| "driveBetaWarning_msg"
+	| "movingItemCount_label"
