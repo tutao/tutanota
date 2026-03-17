@@ -21,15 +21,20 @@ struct TodayCard: View {
 			Card {
 				Header(allDayEvents: allDayEvents, userId: userId)
 				if normalEventsOnDay.isEmpty && !hasAllDayEvents {
-					Text("No events today").font(.system(size: Dimensions.FontSize.font_12)).padding(.bottom, Dimensions.Spacing.SM).padding(.top, -Dimensions.Spacing.MD)
+					Text(translate("TutaoWidgetNoEventsTodayMsg", default: "No events today")).font(.system(size: Dimensions.FontSize.font_12))
+						.padding(.bottom, Dimensions.Spacing.space_8).padding(.top, -Dimensions.Spacing.space_12)
 				} else {
 					VStack(alignment: .leading, spacing: 0) {
-						if hasAllDayEvents { AllDayEventRow(allDayEventsData: allDayEvents).padding(.bottom, Dimensions.Spacing.SM) }
+						if hasAllDayEvents {
+							AllDayEventRow(allDayEventsData: allDayEvents).padding(.bottom, Dimensions.Spacing.space_8)
+								.padding(.trailing, Dimensions.Size.core_48)
+						}
 						if !normalEventsOnDay.isEmpty {
-							EventsList(userId: userId, events: normalEventsOnDay).padding(.bottom, Dimensions.Spacing.SM)
+							EventsList(userId: userId, events: normalEventsOnDay, applyPaddingEndForFirstElement: !hasAllDayEvents)
+								.padding(.bottom, Dimensions.Spacing.space_8)
 						}
 					}
-					.padding(.top, -Dimensions.Spacing.MD).padding(.leading, Dimensions.Spacing.MD)  // moves EventsList up slightly so its alignment overlaps with the HeaderButton
+					.padding(.top, -Dimensions.Spacing.space_12).padding(.leading, Dimensions.Spacing.space_12)  // moves EventsList up slightly so its alignment overlaps with the HeaderButton
 				}
 			}
 		}

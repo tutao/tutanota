@@ -32,10 +32,10 @@ struct EventBody: View {
 				eventId: event?.id
 			)
 		) {
-			HStack(spacing: Dimensions.Spacing.MD) {
+			HStack(spacing: Dimensions.Spacing.space_12) {
 				Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).clipShape(.rect(cornerRadius: 3))
 				VStack(alignment: .leading) {
-					Text(eventTitle).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_14))
+					Text(eventTitle).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_14)).lineLimit(1)
 					if eventTime != nil { Text(eventTime!).font(.system(size: Dimensions.FontSize.font_12)) }
 				}
 				Spacer()

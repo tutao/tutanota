@@ -11,6 +11,7 @@ import WidgetKit
 struct EventsList: View {
 	var userId: String
 	var events: [CalendarEventData]
+	var applyPaddingEndForFirstElement = false
 
 	private let eventTimeFormatter: DateFormatter = {
 		let formatter = DateFormatter()
@@ -35,6 +36,7 @@ struct EventsList: View {
 					eventTime: eventTime,
 					event: event
 				)
+				.padding(.trailing, applyPaddingEndForFirstElement && index == 0 ? Dimensions.Size.core_48 : 0.0)
 			}
 		}
 	}
