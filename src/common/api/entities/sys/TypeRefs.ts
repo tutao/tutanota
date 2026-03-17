@@ -807,6 +807,7 @@ export type EntityUpdate = {
 	operation: NumberString;
 	typeId: NumberString;
 	instance: null | string;
+	blobInstance: null | string;
 
 	patch: null | PatchList;
 }
