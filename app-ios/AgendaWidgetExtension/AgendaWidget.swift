@@ -192,7 +192,7 @@ struct AgendaWidgetEntryView: View {
 	var body: some View {
 
 		let noNormalEvents = normalEvents.allSatisfy({ $0.value.isEmpty })
-		let noAllDayEvents = allDayEventsData.allSatisfy({$0.value.count == 0})
+		let noAllDayEvents = allDayEventsData.allSatisfy({ $0.value.count == 0 })
 
 		GeometryReader { g in
 			VStack {

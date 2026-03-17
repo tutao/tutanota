@@ -43,8 +43,9 @@ struct ErrorBody: View {
 
 		return VStack {
 			if isMedium && error.type != WidgetErrors.missingConfiguration {
-				Button(intent: makeIntent()) { Text(buttonText).fontWeight(.medium).padding([.leading, .trailing], Dimensions.Spacing.LG) }.buttonStyle(.plain)
-					.frame(height: 44).background(Color(.primary)).clipShape(.rect(cornerRadius: Dimensions.Size.XS)).foregroundStyle(Color(.onPrimary))
+				Button(intent: makeIntent()) { Text(buttonText).fontWeight(.medium).padding([.leading, .trailing], Dimensions.Spacing.space_16) }
+					.buttonStyle(.plain).frame(height: 44).background(Color(.primary)).clipShape(.rect(cornerRadius: Dimensions.Size.core_8))
+					.foregroundStyle(Color(.onPrimary))
 			}
 		}
 	}
@@ -61,7 +62,7 @@ struct ErrorBody: View {
 			VStack(alignment: .center) {
 				Image(self.makeErrorImage()).imageScale(.large)
 				Text(error.type.getUserFriendlyErrorMessage()).font(.system(size: 16)).lineLimit(2).multilineTextAlignment(.center)
-					.foregroundStyle(Color(.onSurface)).padding([.top, .bottom], Dimensions.Spacing.SM)
+					.foregroundStyle(Color(.onSurface)).padding([.top, .bottom], Dimensions.Spacing.space_8)
 				ActionButton(isMedium: family == .systemMedium)
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
