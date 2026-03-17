@@ -3,7 +3,13 @@ import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entit
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import type { TypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
-import { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/common/api/worker/search/SearchTypes.js"
+import {
+	ElementDataDbRow,
+	SearchIndexEntry,
+	SearchIndexMetaDataRow,
+	SearchRestriction,
+	SearchResult,
+} from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import {
 	compareOldestFirst,
 	elementIdPart,
@@ -386,5 +392,328 @@ o.spec("IndexedDbSearchFacade", () => {
 			createMailRestriction(),
 			[["listId1", id1]],
 		)
+	})
+	function createMailSearchResult({
+		start,
+		end,
+		query,
+		tokens,
+		lastReadSearchIndexRow,
+		currentIndexTimestamp,
+		results,
+		moreResults,
+	}: Pick<SearchRestriction, "start" | "end"> &
+		Pick<SearchResult, "query" | "tokens" | "lastReadSearchIndexRow" | "currentIndexTimestamp" | "results" | "moreResults">): SearchResult {
+		return {
+			query,
+			tokens,
+			restriction: {
+				type: MailTypeRef,
+				start,
+				end,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			},
+			results,
+			currentIndexTimestamp,
+			lastReadSearchIndexRow,
+			matchWordOrder: false,
+			moreResults,
+			moreResultsEntries: [],
+		}
+	}
+
+	o.test("extending result within mail index range", async () => {
+		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
+		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
+		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
+		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
+
+		createDbContent(
+			transaction,
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]),
+					createMailEntry(id2, 0, [0]),
+					createMailEntry(id3, 0, [0]),
+					createMailEntry(id4, 0, [0]),
+				]),
+			],
+			[
+				["listId1", id1],
+				["listId2", id2],
+				["listId3", id3],
+				["listId4", id4],
+			],
+		)
+
+		const s = createSearchFacade(transaction, new Date(2017, 5, 6).getTime())
+
+		const result = createMailSearchResult({
+			start: null,
+			end: new Date(2017, 5, 12).getTime(),
+			query: "test",
+			tokens: [{ token: "test", exact: false }],
+			lastReadSearchIndexRow: [["test", 0]],
+			results: [
+				["listId4", id4],
+				["listId3", id3],
+			],
+			moreResults: [],
+			currentIndexTimestamp: new Date(2017, 5, 6).getTime(),
+		})
+
+		const extensionEnd = new Date(2017, 5, 8).getTime()
+		const extendedResult = await s.extendSearchResult(result, extensionEnd)
+
+		o.check(extendedResult).deepEquals(
+			createMailSearchResult({
+				start: null,
+				end: extensionEnd,
+				query: "test",
+				tokens: [{ token: "test", exact: false }],
+				lastReadSearchIndexRow: [["test", 0]],
+				results: [
+					["listId4", id4],
+					["listId3", id3],
+					["listId2", id2],
+					["listId1", id1],
+				],
+				moreResults: [],
+				currentIndexTimestamp: new Date(2017, 5, 6).getTime(),
+			}),
+		)
+	})
+
+	o.test("extending result after extending mail index", async () => {
+		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
+		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
+		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
+		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
+
+		createDbContent(
+			transaction,
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]),
+					createMailEntry(id2, 0, [0]),
+					createMailEntry(id3, 0, [0]),
+					createMailEntry(id4, 0, [0]),
+				]),
+			],
+			[
+				["listId1", id1],
+				["listId2", id2],
+				["listId3", id3],
+				["listId4", id4],
+			],
+		)
+
+		const s = createSearchFacade(transaction, new Date(2017, 5, 6).getTime())
+
+		const result = createMailSearchResult({
+			start: new Date(2017, 5, 16).getTime(),
+			end: new Date(2017, 5, 8).getTime(),
+			query: "test",
+			tokens: [{ token: "test", exact: false }],
+			lastReadSearchIndexRow: [["test", 0]],
+			results: [
+				["listId4", id4],
+				["listId3", id3],
+			],
+			moreResults: [],
+			currentIndexTimestamp: new Date(2017, 5, 12).getTime(),
+		})
+
+		const extensionEnd = new Date(2017, 5, 8).getTime()
+		const extendedResult = await s.extendSearchResult(result, extensionEnd)
+
+		o.check(extendedResult).deepEquals(
+			createMailSearchResult({
+				start: new Date(2017, 5, 16).getTime(),
+				end: extensionEnd,
+				query: "test",
+				tokens: [{ token: "test", exact: false }],
+				lastReadSearchIndexRow: [["test", 0]],
+				results: [
+					["listId4", id4],
+					["listId3", id3],
+					["listId2", id2],
+					["listId1", id1],
+				],
+				moreResults: [],
+				currentIndexTimestamp: new Date(2017, 5, 6).getTime(),
+			}),
+		)
+	})
+
+	o.test("extending an empty result", async () => {
+		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
+		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
+		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
+		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
+
+		createDbContent(
+			transaction,
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]),
+					createMailEntry(id2, 0, [0]),
+					createMailEntry(id3, 0, [0]),
+					createMailEntry(id4, 0, [0]),
+				]),
+			],
+			[
+				["listId1", id1],
+				["listId2", id2],
+				["listId3", id3],
+				["listId4", id4],
+			],
+		)
+
+		const s = createSearchFacade(transaction, new Date(2017, 5, 6).getTime())
+
+		const result = createMailSearchResult({
+			start: null,
+			end: new Date(2017, 5, 16).getTime(),
+			query: "test",
+			tokens: [{ token: "test", exact: false }],
+			lastReadSearchIndexRow: [["test", 0]],
+			results: [],
+			moreResults: [],
+			currentIndexTimestamp: new Date(2017, 5, 6).getTime(),
+		})
+
+		const extensionEnd = new Date(2017, 5, 6).getTime()
+		const extendedResult = await s.extendSearchResult(result, extensionEnd)
+
+		o.check(extendedResult).deepEquals(
+			createMailSearchResult({
+				start: null,
+				end: extensionEnd,
+				query: "test",
+				tokens: [{ token: "test", exact: false }],
+				lastReadSearchIndexRow: [["test", 0]],
+				results: [
+					["listId4", id4],
+					["listId3", id3],
+					["listId2", id2],
+					["listId1", id1],
+				],
+				moreResults: [],
+				currentIndexTimestamp: new Date(2017, 5, 6).getTime(),
+			}),
+		)
+	})
+
+	o.test("extended result is empty", async () => {
+		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
+		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
+		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
+		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
+
+		createDbContent(
+			transaction,
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]),
+					createMailEntry(id2, 0, [0]),
+					createMailEntry(id3, 0, [0]),
+					createMailEntry(id4, 0, [0]),
+				]),
+			],
+			[
+				["listId1", id1],
+				["listId2", id2],
+				["listId3", id3],
+				["listId4", id4],
+			],
+		)
+
+		const s = createSearchFacade(transaction, new Date(2017, 5, 4).getTime())
+
+		const result = createMailSearchResult({
+			start: new Date(2017, 5, 12).getTime(),
+			end: new Date(2017, 5, 8).getTime(),
+			query: "test",
+			tokens: [{ token: "test", exact: false }],
+			lastReadSearchIndexRow: [["test", 0]],
+			results: [
+				["listId3", id3],
+				["listId2", id2],
+				["listId1", id1],
+			],
+			moreResults: [],
+			currentIndexTimestamp: new Date(2017, 5, 4).getTime(),
+		})
+
+		const extensionEnd = new Date(2017, 5, 6).getTime()
+		const extendedResult = await s.extendSearchResult(result, extensionEnd)
+
+		o.check(extendedResult).deepEquals(
+			createMailSearchResult({
+				start: new Date(2017, 5, 12).getTime(),
+				end: new Date(2017, 5, 6).getTime(),
+				query: "test",
+				tokens: [{ token: "test", exact: false }],
+				lastReadSearchIndexRow: [["test", 0]],
+				results: [
+					["listId3", id3],
+					["listId2", id2],
+					["listId1", id1],
+				],
+				moreResults: [],
+				currentIndexTimestamp: new Date(2017, 5, 4).getTime(),
+			}),
+		)
+	})
+
+	o.test("extension end is the same as the result end", async () => {
+		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
+		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
+		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
+		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
+
+		createDbContent(
+			transaction,
+			[
+				createKeyToIndexEntries("test", [
+					createMailEntry(id1, 0, [0]),
+					createMailEntry(id2, 0, [0]),
+					createMailEntry(id3, 0, [0]),
+					createMailEntry(id4, 0, [0]),
+				]),
+			],
+			[
+				["listId1", id1],
+				["listId2", id2],
+				["listId3", id3],
+				["listId4", id4],
+			],
+		)
+
+		const s = createSearchFacade(transaction, new Date(2017, 5, 6).getTime())
+
+		const result = createMailSearchResult({
+			start: null,
+			end: new Date(2017, 5, 10).getTime(),
+			query: "test",
+			tokens: [{ token: "test", exact: false }],
+			lastReadSearchIndexRow: [["test", 0]],
+			results: [
+				["listId4", id4],
+				["listId3", id3],
+				["listId2", id2],
+			],
+			moreResults: [],
+			currentIndexTimestamp: new Date(2017, 5, 6).getTime(),
+		})
+
+		const extensionEnd = new Date(2017, 5, 10).getTime()
+		const extendedResult = await s.extendSearchResult(result, extensionEnd)
+
+		o.check(extendedResult).deepEquals(result)
 	})
 })

@@ -1,17 +1,17 @@
 import { SearchFacade } from "./SearchFacade"
-import { MoreResultsIndexEntry, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { MailIndexer } from "./MailIndexer"
-import { getSearchEndTimestamp } from "../../../common/api/common/utils/IndexUtils"
-import { first, isEmpty, isSameTypeRef, splitArrayAt } from "@tutao/tutanota-utils"
+import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
+import { assertNotNull, first, isEmpty, isSameTypeRef, last, splitArrayAt } from "@tutao/tutanota-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
-import { elementIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -35,6 +35,46 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 	}
 
+	extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
+		const resultEndCutoff = Math.max(assertNotNull(result.restriction.end, "null end restriction when extending search"), result.currentIndexTimestamp)
+		const extensionRestriction: SearchRestriction = {
+			...result.restriction,
+			start: resultEndCutoff,
+			end: extensionEnd,
+		}
+
+		return this.search(result.query, extensionRestriction, 0).then((extensionResult) => {
+			let moreResultsEntries: IdTuple[]
+
+			if (isEmpty(extensionResult.results)) {
+				moreResultsEntries = result.moreResultsEntries
+			} else {
+				const lastEntry = last(result.moreResultsEntries) ?? last(result.results) ?? null
+
+				if (lastEntry == null) {
+					// the result being extended is empty
+					moreResultsEntries = extensionResult.results
+				} else {
+					// extension result might include entries from the result being extended. New entries start at index of lastEntry + 1
+					const firstExtensionEntryIndex = extensionResult.results.findIndex((id) => isSameId(id, lastEntry)) + 1
+					if (firstExtensionEntryIndex > 0) {
+						result.moreResultsEntries.push(...extensionResult.results.slice(firstExtensionEntryIndex))
+					} else {
+						// when current result's last entry is not included in extension result, we can assume that extension result only contains new entries
+						result.moreResultsEntries.push(...extensionResult.results)
+					}
+
+					moreResultsEntries = result.moreResultsEntries
+				}
+			}
+
+			extensionResult.restriction.start = result.restriction.start
+			extensionResult.moreResultsEntries = moreResultsEntries
+			extensionResult.results = result.results
+			return extensionResult
+		})
+	}
+
 	private emptySearchResult(query: string, restriction: SearchRestriction, currentIndexTimestamp: number): SearchResult {
 		return {
 			query,
@@ -56,7 +96,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 
 		if (isEmpty(tokens)) {
-			return this.emptySearchResult(originalQuery, restriction, getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction))
+			return this.emptySearchResult(originalQuery, restriction, getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp))
 		} else {
 			// Create our FTS5 query
 			const normalizedQuery = this.normalizeQuery(tokens)
@@ -120,7 +160,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 				restriction,
 				results,
 				moreResults: [],
-				currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
+				currentIndexTimestamp: getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp),
 				lastReadSearchIndexRow: [],
 				matchWordOrder: false,
 				moreResultsEntries,
@@ -132,7 +172,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
 
 		if (isEmpty(tokens)) {
-			return this.emptySearchResult(originalQuery, restriction, getSearchEndTimestamp(indexTimestamp, restriction))
+			return this.emptySearchResult(originalQuery, restriction, getMailIndexTimestampForSearch(indexTimestamp))
 		} else {
 			// Create our FTS5 query
 			const normalizedQuery = this.normalizeQuery(tokens)
@@ -158,7 +198,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 				tokens,
 				restriction,
 				results: resultIds,
-				currentIndexTimestamp: getSearchEndTimestamp(indexTimestamp, restriction),
+				currentIndexTimestamp: getMailIndexTimestampForSearch(indexTimestamp),
 				lastReadSearchIndexRow: [],
 				matchWordOrder: false,
 				moreResults: [],

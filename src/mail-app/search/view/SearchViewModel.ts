@@ -32,6 +32,7 @@ import {
 	getEndOfDay,
 	getStartOfDay,
 	incrementMonth,
+	isEmpty,
 	isSameDayOfDate,
 	isSameTypeRef,
 	mapAndFilterNull,
@@ -42,16 +43,20 @@ import {
 	TypeRef,
 	YEAR_IN_MILLIS,
 } from "@tutao/tutanota-utils"
-import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, SearchModel } from "../model/SearchModel.js"
+import { SearchModel } from "../model/SearchModel.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import {
+	areResultsForTheSameQuery,
+	areResultsForTheSameQueryWithRangeExtended,
 	createRestriction,
 	decodeCalendarSearchKey,
 	encodeCalendarSearchKey,
 	getRestriction,
 	getSearchUrl,
+	hasMoreResults,
+	isSameSearchRestriction,
 	searchCategoryForRestriction,
 	SearchCategoryTypes,
 } from "../model/SearchUtils.js"
@@ -81,10 +86,10 @@ import { client } from "../../../common/misc/ClientDetector"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
-import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { isMailDeletable } from "../../mail/model/MailChecks"
+import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -112,7 +117,7 @@ export class SearchViewModel {
 				return "startafterend"
 			} else if (isSameTypeRef(this.searchedType, MailTypeRef)) {
 				// extending index only applies to mails
-				const currentIndex = this.getCurrentMailIndexDate()
+				const currentIndex = this.getAimedMailIndexDate()
 				if (currentIndex && startDate < currentIndex) {
 					return "extendIndex"
 				}
@@ -136,7 +141,7 @@ export class SearchViewModel {
 	 * yet.
 	 */
 	get searchedType(): TypeRef<Mail | Contact | CalendarEvent> {
-		return (this.searchResult?.restriction ?? this.router.getRestriction()).type
+		return (this.search.result()?.restriction ?? this.router.getRestriction()).type
 	}
 
 	private _conversationViewModel: ConversationViewModel | null = null
@@ -144,9 +149,9 @@ export class SearchViewModel {
 		return this._conversationViewModel
 	}
 
-	private _startDate: Date | null = null // null = current mail index date. this allows us to start the search (and the url) without end date set
+	private _startDate: Date | null = null // null = aimed mail index date. this allows us to start the search (and the url) without end date set
 	get startDate(): Date | null {
-		return this._startDate ?? this.getCurrentMailIndexDate()
+		return this._startDate ?? this.getAimedMailIndexDate()
 	}
 
 	private _endDate: Date | null = null // null = today (mail), end of 2 months in the future (calendar)
@@ -196,25 +201,18 @@ export class SearchViewModel {
 		return this._selectedMailField
 	}
 
-	// Contains load more results even when searchModel doesn't.
-	// Load more should probably be moved to the model to update it's result stream.
-	private _searchResult: SearchResult | null = null
+	private previousResult: SearchResult | null = null
 	private searchResultIdToIndex: Map<Id, number> | null = null
 
-	private set searchResult(what: SearchResult | null) {
-		this._searchResult = what
-		if (this._searchResult == null) {
+	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
+		if (searchResult == null) {
 			this.searchResultIdToIndex = null
 		} else if (isOfflineStorageAvailable()) {
 			this.searchResultIdToIndex = new Map()
-			for (let i = 0; i < this._searchResult.results.length; i++) {
-				this.searchResultIdToIndex.set(elementIdPart(this._searchResult.results[i]), i)
+			for (let i = 0; i < searchResult.results.length; i++) {
+				this.searchResultIdToIndex.set(elementIdPart(searchResult.results[i]), i)
 			}
 		}
-	}
-
-	private get searchResult(): SearchResult | null {
-		return this._searchResult
 	}
 
 	private mailFilterType: ReadonlySet<MailFilterType> = new Set()
@@ -223,6 +221,7 @@ export class SearchViewModel {
 	private mailboxSubscription: Stream<void> | null = null
 	private resultSubscription: Stream<void> | null = null
 	private listStateSubscription: Stream<unknown> | null = null
+	private indexStateSubscription: Stream<unknown> | null = null
 	loadingAllForSearchResult: SearchResult | null = null
 
 	private currentQuery: string = ""
@@ -251,25 +250,8 @@ export class SearchViewModel {
 	}
 
 	async init() {
-		this.resultSubscription = this.search.result.map((result) => {
-			if (!result || !isSameTypeRef(result.restriction.type, MailTypeRef)) {
-				this.mailFilterType = new Set()
-			}
-
-			if (this.searchResult == null || result == null || !areResultsForTheSameQuery(result, this.searchResult)) {
-				this._listModel.cancelLoadAll()
-
-				this.searchResult = result
-
-				this._listModel = this.createList()
-				this.setMailFilter(this.mailFilterType)
-				this.applyMailFilterIfNeeded()
-				this._listModel.loadInitial()
-				this.listStateSubscription?.end(true)
-				this.listStateSubscription = this._listModel.stateStream.map((state) => this.onListStateChange(state))
-			}
-		})
-
+		this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
+		this.indexStateSubscription = this.search.indexState.map((newState) => this.onMailIndexStateChanged(newState))
 		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => {
 			this.onMailboxesChanged(mailboxes)
 		})
@@ -283,6 +265,13 @@ export class SearchViewModel {
 
 	isExportingMailsAllowed(): boolean {
 		return mailLocator.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
+	}
+
+	/**
+	 * We only care about indexingState when searching mails because indexState only reflects mail indexing
+	 */
+	isIndexingMails(): boolean {
+		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().progress > 0
 	}
 
 	private readonly entityEventsListener: EntityEventsListener = {
@@ -311,7 +300,6 @@ export class SearchViewModel {
 		const listModel = this._listModel
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		if (Object.hasOwn(args, "query") && this.search.isNewSearch(query, restriction)) {
-			this.searchResult = null
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
 				.search(
@@ -326,8 +314,6 @@ export class SearchViewModel {
 				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		} else if (lastQuery && this.search.isNewSearch(lastQuery, restriction)) {
-			this.searchResult = null
-
 			// If query is not set for some reason (e.g. switching search type), use the last query value
 			listModel.selectNone()
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
@@ -433,21 +419,24 @@ export class SearchViewModel {
 	}
 
 	async loadAll() {
+		if (this.isIndexingMails()) return
 		if (this.loadingAllForSearchResult != null) return
-		this.loadingAllForSearchResult = this.searchResult ?? null
+
+		const currentResult = this.search.result()
+		this.loadingAllForSearchResult = currentResult ?? null
 		this._listModel.selectAll()
 		try {
 			while (
-				this.searchResult?.restriction &&
+				currentResult?.restriction &&
 				this.loadingAllForSearchResult &&
-				isSameSearchRestriction(this.searchResult?.restriction, this.loadingAllForSearchResult.restriction) &&
+				isSameSearchRestriction(currentResult?.restriction, this.loadingAllForSearchResult.restriction) &&
 				!this._listModel.isLoadedCompletely()
 			) {
 				await this._listModel.loadMore()
 				if (
-					this.searchResult.restriction &&
+					currentResult.restriction &&
 					this.loadingAllForSearchResult.restriction &&
-					isSameSearchRestriction(this.searchResult.restriction, this.loadingAllForSearchResult.restriction)
+					isSameSearchRestriction(currentResult.restriction, this.loadingAllForSearchResult.restriction)
 				) {
 					this._listModel.selectAll()
 				}
@@ -488,32 +477,32 @@ export class SearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
+		this._startDate = startDate
+
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
-		if (
-			startDate &&
-			this.getCategory() === SearchCategoryTypes.mail &&
-			startDate.getTime() < this.search.indexState().currentMailIndexTimestamp &&
-			startDate
-		) {
-			this._startDate = startDate
+		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
+			// the current search result will be extended as the range extends
+			void this.indexerFacade.extendMailIndex(startDate.getTime())
 
-			const searchRestriction = this.getRestriction()
-			this.indexerFacade.extendMailIndex(startDate.getTime()).then(async () => {
-				// don't do anything further if the search parameters were changed
-				if (!isSameSearchRestriction(searchRestriction, this.getRestriction())) {
-					return
+			let onIndexStateUpdate = (_: SearchIndexStateInfo) => {}
+			// separate subscription to indexState so offline range is updated even when the user navigates away from search
+			const dep = this.search.indexState.map((newState) => onIndexStateUpdate(newState))
+			// when subscribing to a mithril stream, the callback is invoked immediately with the stream's current value,
+			// but we only want this to be invoked once indexing starts
+			onIndexStateUpdate = (newState) => {
+				if (newState.progress === 0) {
+					dep.end(true)
 				}
-				this.offlineStorageSettings?.setTimeRange(startDate)
-				this.searchAgain()
-			})
 
-			return PaidFunctionResult.Success
+				if (this.offlineStorageSettings?.available() && this.offlineStorageSettings.getTimeRange().getTime() > newState.currentMailIndexTimestamp) {
+					// Update offline storage range as index extends so we don't lose what's already indexed if the user logs out before indexing is done
+					this.offlineStorageSettings.setTimeRange(new Date(newState.currentMailIndexTimestamp))
+				}
+			}
 		} else {
-			this._startDate = startDate
+			this.searchAgain()
 		}
-
-		this.searchAgain()
 
 		return PaidFunctionResult.Success
 	}
@@ -563,8 +552,10 @@ export class SearchViewModel {
 	/**
 	 * @returns null if the complete mailbox is indexed
 	 */
-	getCurrentMailIndexDate(): Date | null {
-		let timestamp = this.search.indexState().currentMailIndexTimestamp
+	getAimedMailIndexDate(): Date | null {
+		const { currentMailIndexTimestamp, aimedMailIndexTimestamp } = this.search.indexState()
+		// currentMailIndexTimestamp < aimedMailIndexTimestamp when fully indexed
+		let timestamp = Math.min(aimedMailIndexTimestamp, currentMailIndexTimestamp)
 
 		if (timestamp === FULL_INDEXED_TIMESTAMP) {
 			return null
@@ -760,21 +751,7 @@ export class SearchViewModel {
 			return
 		}
 
-		if (isUpdateForTypeRef(MailTypeRef, update) && operation === OperationType.UPDATE) {
-			if (this.searchResult && this.searchResult.results) {
-				const index = this.searchResult?.results.findIndex(
-					(email) => update.instanceId === elementIdPart(email) && update.instanceListId !== listIdPart(email),
-				)
-				if (index >= 0) {
-					const restrictionLength = this.searchResult.restriction.folderIds.length
-					if ((restrictionLength > 0 && this.searchResult.restriction.folderIds.includes(update.instanceListId)) || restrictionLength === 0) {
-						// We need to update the listId of the updated item, since it was moved to another folder.
-						const newIdTuple: IdTuple = [update.instanceListId, update.instanceId]
-						this.searchResult.results[index] = newIdTuple
-					}
-				}
-			}
-		} else if ((isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) || isPossibleABirthdayContactUpdate) {
+		if ((isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) || isPossibleABirthdayContactUpdate) {
 			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
 			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
 			// ready
@@ -803,7 +780,6 @@ export class SearchViewModel {
 			return
 		}
 
-		this._listModel.getUnfilteredAsArray()
 		await this._listModel.entityEventReceived(instanceListId, instanceId, operation)
 		// run the mail or contact update after the update on the list is finished to avoid parallel loading
 		if (operation === OperationType.UPDATE && this._listModel?.isItemSelected(elementIdPart(id))) {
@@ -894,39 +870,33 @@ export class SearchViewModel {
 	}
 
 	getHighlightedStrings(): readonly SearchToken[] {
-		return this.searchResult?.tokens ?? []
+		return this.search.result()?.tokens ?? []
 	}
 
 	private createList(): ListElementListModel<SearchResultListEntry> {
-		// since we recreate the list every time we set a new result object,
-		// we bind the value of result for the lifetime of this list model
-		// at this point
+		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
+
 		return new ListElementListModel<SearchResultListEntry>({
 			fetch: async (lastFetchedEntity: SearchResultListEntry, count: number) => {
 				const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
 
-				const lastResult = this.searchResult
-				if (lastResult !== this.searchResult) {
-					console.warn("got a fetch request for outdated results object, ignoring")
-					// this._searchResults was reassigned, we'll create a new ListElementListModel soon
-					return { items: [], complete: true }
-				}
 				await awaitSearchInitialized(this.search)
 
-				if (!lastResult || (lastResult.results.length === 0 && !hasMoreResults(lastResult))) {
-					return { items: [], complete: true }
+				const updatedResult = await this.search.getMoreSearchResults(count)
+				if (!updatedResult || (isEmpty(updatedResult.results) && !hasMoreResults(updatedResult))) {
+					return { items: [], complete: !this.isIndexingMails() }
 				}
 
-				const { items, newSearchResult } = await this.loadSearchResults(lastResult, startId, count)
+				const { items, newSearchResult } = await this.loadSearchResults(updatedResult, startId)
 				const entries = items.map((instance) => new SearchResultListEntry(instance))
-				const complete = !hasMoreResults(newSearchResult)
+				const complete = !hasMoreResults(newSearchResult) && !this.isIndexingMails()
 
 				return { items: entries, complete }
 			},
 			loadSingle: async (_listId: Id, elementId: Id) => {
-				const lastResult = this.searchResult
+				const lastResult = this.search.result()
 				if (!lastResult) {
 					return null
 				}
@@ -979,81 +949,113 @@ export class SearchViewModel {
 	}
 
 	private isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
-		const result = this.searchResult
+		const result = this.search.result()
 
 		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
-			// The list id must be null/empty, otherwise the user is filtering by list, and it shouldn't be ignored
-
-			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.folderIds.length === 0
-
-			return result.results.some((r) => this.compareItemId(r, id, ignoreList))
+			return result.results.some((r) => isSameId(r, id))
 		}
 
 		return false
 	}
 
-	private compareItemId(id1: IdTuple, id2: IdTuple, ignoreList: boolean) {
-		return ignoreList ? isSameId(elementIdPart(id1), elementIdPart(id2)) : isSameId(id1, id2)
+	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
+		if (
+			newState.progress === 0 &&
+			newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+			isSameTypeRef(MailTypeRef, this.searchedType) &&
+			(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
+		) {
+			// Indexing stopped and _startDate is outside the index range
+			this._startDate = new Date(newState.currentMailIndexTimestamp)
+		}
+
+		const currentResult = this.search.result()
+		if (currentResult != null && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
+			// only extend current result if the index was extended
+			this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
+		}
+	}
+	private onSearchResultChanged(newResult: SearchResult | null): void {
+		if (newResult == null || !isSameTypeRef(MailTypeRef, newResult.restriction.type)) {
+			this.mailFilterType = new Set()
+		}
+
+		this._listModel.cancelLoadAll()
+		this.updateSearchResultIdToIndex(newResult)
+
+		if (
+			this.previousResult != null &&
+			newResult != null &&
+			(areResultsForTheSameQuery(this.previousResult, newResult) || areResultsForTheSameQueryWithRangeExtended(this.previousResult, newResult))
+		) {
+			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
+				this.listModel.updateLoadingStatus(ListLoadingState.Idle)
+			}
+
+			this.applyMailFilterIfNeeded()
+		} else {
+			this._listModel = this.createList()
+			this.applyMailFilterIfNeeded()
+			this._listModel.loadInitial()
+			this.listStateSubscription?.end(true)
+			this.listStateSubscription = this._listModel.stateStream.map((state) => this.onListStateChange(state))
+		}
+
+		this.previousResult = newResult
 	}
 
 	private async loadSearchResults<T extends SearchableTypes>(
-		currentResult: SearchResult,
+		searchResult: SearchResult,
 		startId: Id,
-		count: number,
 	): Promise<{ items: T[]; newSearchResult: SearchResult }> {
-		const updatedResult = hasMoreResults(currentResult) ? await this.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
-
-		// we need to override global reference for other functions
-		this.searchResult = updatedResult
-
 		let items
-		if (isSameTypeRef(currentResult.restriction.type, MailTypeRef)) {
+		if (isSameTypeRef(searchResult.restriction.type, MailTypeRef)) {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
 				if (isOfflineStorageAvailable()) {
 					// offline storage is always sorted correctly
-					startIndex = updatedResult.results.findIndex((id) => id[1] === startId)
+					startIndex = searchResult.results.findIndex((id) => id[1] === startId)
 				} else {
 					// this relies on the results being sorted from newest to oldest ID
-					startIndex = updatedResult.results.findIndex((id) => id[1] <= startId)
+					startIndex = searchResult.results.findIndex((id) => id[1] <= startId)
 				}
 
-				if (elementIdPart(updatedResult.results[startIndex]) === startId) {
+				if (elementIdPart(searchResult.results[startIndex]) === startId) {
 					// the start element is already loaded, so we exclude it from the next load
 					startIndex++
 				} else if (startIndex === -1) {
 					// there is nothing in our result that's not loaded yet, so we
 					// have nothing to do
-					startIndex = Math.max(updatedResult.results.length - 1, 0)
+					startIndex = Math.max(searchResult.results.length - 1, 0)
 				}
 			}
 
 			// Ignore count when slicing here because we would have to modify SearchResult too
-			const toLoad = updatedResult.results.slice(startIndex)
-			items = (await this.loadAndFilterInstances(currentResult.restriction.type, toLoad, updatedResult, startIndex)) as Mail[]
+			const toLoad = searchResult.results.slice(startIndex)
+			items = (await this.loadAndFilterInstances(searchResult.restriction.type, toLoad, searchResult, startIndex)) as Mail[]
 
 			// Restore the original sorting order
 			if (isOfflineStorageAvailable()) {
 				const itemsMapped = collectToMap(items, getElementId)
-				items = mapAndFilterNull(updatedResult.results, (id) => itemsMapped.get(elementIdPart(id)))
+				items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)))
 			}
-		} else if (isSameTypeRef(currentResult.restriction.type, ContactTypeRef)) {
+		} else if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
 			try {
 				// load all contacts to sort them by name afterwards
-				items = await this.loadAndFilterInstances(currentResult.restriction.type, updatedResult.results, updatedResult, 0)
+				items = await this.loadAndFilterInstances(searchResult.restriction.type, searchResult.results, searchResult, 0)
 			} finally {
 				this.updateUi()
 			}
-		} else if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(searchResult.restriction.type, CalendarEventTypeRef)) {
 			try {
-				const { start, end } = currentResult.restriction
+				const { start, end } = searchResult.restriction
 				if (start == null || end == null) {
 					throw new ProgrammingError("invalid search time range for calendar")
 				}
 				items = [
-					...(await this.calendarFacade.reifyCalendarSearchResult(start, end, updatedResult.results)),
-					...(await this.getClientOnlyEventsSeries(start, end, updatedResult.results)),
+					...(await this.calendarFacade.reifyCalendarSearchResult(start, end, searchResult.results)),
+					...(await this.getClientOnlyEventsSeries(start, end, searchResult.results)),
 				]
 			} finally {
 				this.updateUi()
@@ -1063,7 +1065,7 @@ export class SearchViewModel {
 			items = []
 		}
 
-		return { items: items, newSearchResult: updatedResult }
+		return { items: items, newSearchResult: searchResult }
 	}
 
 	private async getClientOnlyEventsSeries(start: number, end: number, events: IdTuple[]) {
@@ -1126,6 +1128,8 @@ export class SearchViewModel {
 		this.mailboxSubscription = null
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = null
+		this.indexStateSubscription?.end(true)
+		this.indexStateSubscription = null
 		this.search.sendCancelSignal()
 		this.eventController.removeEntityListener(this.entityEventsListener)
 	}
