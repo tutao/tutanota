@@ -5,7 +5,7 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
-import { object } from "testdouble"
+import { object, replace } from "testdouble"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
 import { assertNotNull, getTypeString, typedValues } from "@tutao/tutanota-utils"
 import { getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
@@ -23,7 +23,7 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
-import { MoreResultsIndexEntry, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -618,6 +618,169 @@ o.spec("OfflineStorageSearchFacade", () => {
 					0,
 				)
 				o.check(result.results).deepEquals([testMail3.mail._id])
+			})
+		})
+
+		o.spec("extendSearchResult", () => {
+			function createMailSearchResult({
+				start,
+				end,
+				query,
+				tokens,
+				currentIndexTimestamp,
+				results,
+				moreResultsEntries,
+			}: Pick<SearchRestriction, "start" | "end"> &
+				Pick<SearchResult, "query" | "tokens" | "currentIndexTimestamp" | "results" | "moreResultsEntries">): SearchResult {
+				return {
+					query,
+					tokens,
+					restriction: {
+						type: MailTypeRef,
+						start,
+						end,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					results,
+					currentIndexTimestamp,
+					lastReadSearchIndexRow: [],
+					matchWordOrder: false,
+					moreResults: [],
+					moreResultsEntries,
+				}
+			}
+
+			o.test("extending result within mail index range", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+				replace(mailIndexer, "currentIndexTimestamp", 1230)
+
+				const result = createMailSearchResult({
+					start: null,
+					end: 1236,
+					query: "common",
+					tokens: [{ token: "common", exact: false }],
+					results: [testMail3.mail._id, spamMail.mail._id],
+					moreResultsEntries: [],
+					currentIndexTimestamp: 1230,
+				})
+				const extendedResult = await offlineStorageSearchFacade.extendSearchResult(result, 1234)
+
+				o.check(extendedResult).deepEquals(
+					createMailSearchResult({
+						start: null,
+						end: 1234,
+						query: "common",
+						tokens: [{ token: "common", exact: false }],
+						results: [testMail3.mail._id, spamMail.mail._id],
+						moreResultsEntries: [testMail2.mail._id, testMail1.mail._id],
+						currentIndexTimestamp: 1230,
+					}),
+				)
+			})
+
+			o.test("extending result after extending mail index", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+				replace(mailIndexer, "currentIndexTimestamp", 1232)
+
+				const result = createMailSearchResult({
+					start: 1240,
+					end: 1234,
+					query: "common",
+					tokens: [{ token: "common", exact: false }],
+					results: [testMail3.mail._id, spamMail.mail._id],
+					moreResultsEntries: [],
+					currentIndexTimestamp: 1236,
+				})
+				const extendedResult = await offlineStorageSearchFacade.extendSearchResult(result, 1234)
+
+				o.check(extendedResult).deepEquals(
+					createMailSearchResult({
+						start: 1240,
+						end: 1234,
+						query: "common",
+						tokens: [{ token: "common", exact: false }],
+						results: [testMail3.mail._id, spamMail.mail._id],
+						moreResultsEntries: [testMail2.mail._id, testMail1.mail._id],
+						currentIndexTimestamp: 1232,
+					}),
+				)
+			})
+
+			o.test("extending an empty result", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+				replace(mailIndexer, "currentIndexTimestamp", 1230)
+
+				const result = createMailSearchResult({
+					start: null,
+					end: 1238,
+					query: "common",
+					tokens: [{ token: "common", exact: false }],
+					results: [],
+					moreResultsEntries: [],
+					currentIndexTimestamp: 1230,
+				})
+				const extendedResult = await offlineStorageSearchFacade.extendSearchResult(result, 1235)
+
+				o.check(extendedResult).deepEquals(
+					createMailSearchResult({
+						start: null,
+						end: 1235,
+						query: "common",
+						tokens: [{ token: "common", exact: false }],
+						results: [],
+						moreResultsEntries: [testMail3.mail._id, spamMail.mail._id, testMail2.mail._id],
+						currentIndexTimestamp: 1230,
+					}),
+				)
+			})
+
+			o.test("extended result is empty", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+				replace(mailIndexer, "currentIndexTimestamp", 1230)
+
+				const result = createMailSearchResult({
+					start: null,
+					end: 1234,
+					query: "common",
+					tokens: [{ token: "common", exact: false }],
+					results: [testMail3.mail._id],
+					moreResultsEntries: [spamMail.mail._id, testMail2.mail._id, testMail1.mail._id],
+					currentIndexTimestamp: 1230,
+				})
+				const extendedResult = await offlineStorageSearchFacade.extendSearchResult(result, 1230)
+
+				o.check(extendedResult).deepEquals(
+					createMailSearchResult({
+						start: null,
+						end: 1230,
+						query: "common",
+						tokens: [{ token: "common", exact: false }],
+						results: [testMail3.mail._id],
+						moreResultsEntries: [spamMail.mail._id, testMail2.mail._id, testMail1.mail._id],
+						currentIndexTimestamp: 1230,
+					}),
+				)
+			})
+
+			o.test("extension end is the same as the result end", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+				replace(mailIndexer, "currentIndexTimestamp", 1230)
+
+				const result = createMailSearchResult({
+					start: null,
+					end: 1234,
+					query: "common",
+					tokens: [{ token: "common", exact: false }],
+					results: [testMail3.mail._id],
+					moreResultsEntries: [spamMail.mail._id, testMail2.mail._id, testMail1.mail._id],
+					currentIndexTimestamp: 1230,
+				})
+				const extendedResult = await offlineStorageSearchFacade.extendSearchResult(result, 1234)
+
+				o.check(extendedResult).deepEquals(result)
 			})
 		})
 

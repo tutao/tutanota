@@ -14,7 +14,7 @@ assertMainOrNode()
 export type MultiItemViewerAttrs<T> = {
 	selectedEntities: readonly T[]
 	selectNone: () => unknown
-	loadingAll: "can_load" | "loading" | "loaded"
+	loadingAll: "can_load" | "loading" | "none"
 	loadAll: () => unknown
 	stopLoadAll: () => unknown
 	getSelectionMessage: (entities: ReadonlyArray<T>) => MaybeTranslation

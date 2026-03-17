@@ -152,7 +152,7 @@ export const enum IndexingErrorReason {
 }
 
 /**
- * Current state of the Mailindexer
+ * Current state of the MailIndexer
  * aimedMailIndexTimestamp is the timestamp we are currently indexing for (or same as currentMailIndexTimestamp if we are not indexing)
  */
 export type SearchIndexStateInfo = {
