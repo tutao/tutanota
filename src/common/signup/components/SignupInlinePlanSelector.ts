@@ -129,6 +129,9 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 				const isSelected = viewModel.targetPlanType === planConfig.type
 				const isDisabled = !availablePlans.includes(planConfig.type as AvailablePlanType) || currentPlan === planConfig.type
 				const hasCampaign = getHasCampaign(discountDetails?.[planConfig.type], viewModel.options.paymentInterval() === PaymentInterval.Yearly)
+
+				if (isDisabled) return
+
 				return m(
 					`${hasCampaign ? ".mt-24" : ""}`,
 					m(BusinessPlanBox, {
