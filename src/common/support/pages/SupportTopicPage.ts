@@ -1,10 +1,10 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { Thunk } from "@tutao/utils"
+import { Thunk, noOp } from "@tutao/utils"
 import { Card } from "../../gui/base/Card.js"
 import { theme } from "../../gui/theme.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
@@ -18,10 +18,34 @@ type Props = {
 	dialog: Dialog
 	goToContactSupportPage: Thunk
 	goToSolutionWasHelpfulPage: Thunk
+	closeDialog: Thunk
+}
+
+function isSettingsLink(href: string): boolean {
+	return href.startsWith("/settings/") ?? false
 }
 
 export class SupportTopicPage implements Component<Props> {
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+	private closeDialog: Thunk = noOp
+	private clickListener = (event: Event) => {
+		const href = (event.target as Element | null)?.closest("a")?.getAttribute("href") ?? null
+		if (href && isSettingsLink(href)) {
+			const newRoute = href.substring(href.indexOf("/settings/"))
+			m.route.set(newRoute)
+			this.closeDialog()
+			event.preventDefault()
+		}
+	}
+
+	oncreate(vnode: VnodeDOM<Props>) {
+		this.closeDialog = vnode.attrs.closeDialog
+		vnode.dom.addEventListener("click", this.clickListener)
+	}
+
+	onremove(vnode: VnodeDOM<Props>) {
+		vnode.dom.removeEventListener("click", this.clickListener)
+	}
 
 	view({ attrs: { data, goToContactSupportPage, goToSolutionWasHelpfulPage } }: Vnode<Props>): Children {
 		const topic = data.selectedTopic()

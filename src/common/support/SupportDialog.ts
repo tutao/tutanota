@@ -148,6 +148,9 @@ export async function showSupportDialog(logins: LoginController) {
 						navigateToPage("emailSupportBehindPaywall")
 					}
 				},
+				closeDialog: () => {
+					dialog.onClose()
+				},
 			}),
 			title: lang.get("supportMenu_label"),
 			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
