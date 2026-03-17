@@ -20,16 +20,16 @@ struct OtherDayCard: View {
 		Button(intent: WidgetActionsIntent(userId: userId, date: date, action: WidgetActions.agenda)) {
 			Card {
 				if normalEvents.isEmpty {
-					HStack(alignment: .center, spacing: Dimensions.Spacing.MD) {
+					HStack(alignment: .center, spacing: Dimensions.Spacing.space_12) {
 						DayWithWeekday(date: date)
 						AllDayEventRow(allDayEventsData: allDayEventsOnDay)
 					}
-					.padding(.vertical, Dimensions.Spacing.XS)
+					.padding(.vertical, Dimensions.Spacing.space_4)
 				} else {
 					if hasAllDayEvents && !normalEvents.isEmpty { AllDayHeader(allDayEventsData: allDayEventsOnDay) }
 					HStack(alignment: .top) {
-						DayWithWeekday(date: date).padding(.top, Dimensions.Spacing.XS)
-						EventsList(userId: userId, events: normalEvents).padding(.vertical, Dimensions.Spacing.SM)
+						DayWithWeekday(date: date).padding(.top, Dimensions.Spacing.space_4)
+						EventsList(userId: userId, events: normalEvents).padding(.vertical, Dimensions.Spacing.space_8)
 					}
 				}
 			}
