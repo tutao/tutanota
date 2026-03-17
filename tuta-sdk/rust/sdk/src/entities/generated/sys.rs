@@ -1274,6 +1274,8 @@ pub struct EntityUpdate {
 	pub typeId: i64,
 	#[serde(rename = "2617")]
 	pub instance: Option<String>,
+	#[serde(rename = "2701")]
+	pub blobInstance: Option<String>,
 	#[serde(rename = "2618")]
 	pub patch: Option<PatchList>,
 }
