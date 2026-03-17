@@ -21,6 +21,16 @@ export interface SearchFacade {
 	search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult>
 
 	/**
+	 * Extend search result to {@link extensionEnd}.
+	 *
+	 * The returned result its restriction's `end` set to {@link extensionEnd}, and an up-to-date `currentIndexTimestamp`.
+	 *
+	 * @param result search result to extend
+	 * @param extensionEnd restriction end timestamp to which result should be extended
+	 */
+	extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult>
+
+	/**
 	 * Get more search results in case search did not return everything.
 	 *
 	 * @param searchResult search result from search()

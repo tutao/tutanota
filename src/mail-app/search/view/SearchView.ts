@@ -656,8 +656,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						loadingAll:
 							this.searchViewModel.loadingAllForSearchResult != null
 								? "loading"
-								: this.searchViewModel.listModel.isLoadedCompletely()
-									? "loaded"
+								: this.searchViewModel.listModel.isLoadedCompletely() || this.searchViewModel.isIndexingMails()
+									? "none"
 									: "can_load",
 						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
 					}),
