@@ -578,6 +578,7 @@ export default {
 		"draftSaved_msg": "Draft saved.",
 		"dragAndDrop_action": "Drag selected mails to the file system or other applications.",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & drop isn't available for events containing Advanced Repeat Rules",
+		"driveBetaWarning_msg": "While Drive is in beta data loss without prior warning might be possible.",
 		"driveHome_label": "Home",
 		"driveTrash_label": "Trash",
 		"driveView_action": "Drive",
@@ -1816,6 +1817,7 @@ export default {
 		"setDnsRecords_msg": "Please set the following DNS records:",
 		"setPrimaryMailAddress_label": "Set as primary address",
 		"setSenderName_action": "Set sender name",
+		"settingNotApplicableInIos_msg": "This setting does not apply to the iOS app and cannot be changed here. Please log into the web app to change it.",
 		"settings_label": "Settings",
 		"settingsForDevice_label": "Settings for this device",
 		"settingsView_action": "Switch to the settings view",
@@ -2251,7 +2253,5 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
-		"approvalMailBody_msg": "Please write us at approval@tutao.de and replace this text with a short message in English or German asking us to approve your account.",
-		"settingNotApplicableInIos_msg": "This setting does not apply to the iOS app and cannot be changed here. Please log into the web app to change it.",
 	}
 }

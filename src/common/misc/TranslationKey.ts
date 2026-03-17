@@ -2247,7 +2247,7 @@ export type TranslationKeyType =
 	| "contactDeletionMoveToSpam_msg"
 	| "contactDeletionMoveToSpam_title"
 	| "userAlreadyAssignedToAllAvailableGroups_msg"
-	| "approvalMailBody_msg"
+	| "driveBetaWarning_msg"
 	| "emptyString_msg"
 	| "approvalMailBody_msg"
 	| "settingNotApplicableInIos_msg"
