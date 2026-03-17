@@ -13,8 +13,8 @@ struct AllDayHeader: View {
 
 	var body: some View {
 		HStack(alignment: .center) {
-			AllDayEventRow(allDayEventsData: allDayEventsData, textColor: Color(.onSurfaceVariant)).padding(.vertical, Dimensions.Spacing.XS)
-				.padding(.horizontal, Dimensions.Spacing.MD)
+			AllDayEventRow(allDayEventsData: allDayEventsData, textColor: Color(.onSurfaceVariant)).padding(.vertical, Dimensions.Spacing.space_4)
+				.padding(.horizontal, Dimensions.Spacing.space_12)
 		}
 		.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surfaceVariant))
 	}

@@ -24,6 +24,7 @@ struct DayWithWeekday: View {
 				Text(weekday).font(.system(size: Dimensions.FontSize.font_12, weight: .regular)).lineLimit(1)
 			}
 		}
-		.padding(.leading, Dimensions.Spacing.MD)  // left padding must be the same everywhere for vertical alignment
+		.padding(.leading, Dimensions.Spacing.space_12)  // left padding must be the same everywhere for vertical alignment
+		.frame(width: Dimensions.Size.core_40, height: Dimensions.Size.core_40)
 	}
 }

@@ -23,7 +23,7 @@ struct Header: View {
 					Text(day + " " + weekday).lineLimit(1).fontWeight(.bold).font(.system(size: Dimensions.FontSize.font_20))
 				}
 				// padding is necessary because HeaderButton must be flush with card corner, but the text info must not.
-				.padding(.leading, Dimensions.Spacing.SM).padding(.top, Dimensions.Spacing.SM).buttonStyle(.plain)
+				.padding(.leading, Dimensions.Spacing.space_8).padding(.top, Dimensions.Spacing.space_8).buttonStyle(.plain)
 			}
 			Spacer()
 			HeaderButton(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor))
