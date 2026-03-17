@@ -1349,9 +1349,9 @@ class MailLocator implements CommonLocator {
 		return model
 	})
 
-	async showMoveItemDialog(item: FolderItem, moveItems: MoveItems) {
+	async showMoveItemDialog(items: FolderItem[], moveItems: MoveItems) {
 		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
-		showMoveDialog(this.entityClient, this.driveFacade, item, moveItems)
+		showMoveDialog(this.entityClient, this.driveFacade, items, moveItems)
 	}
 }
 

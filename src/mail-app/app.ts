@@ -671,7 +671,7 @@ import("./translations/en.js")
 						driveViewModel,
 						bottomNav,
 						lazySearchBar,
-						showMoveItemDialog: (item, moveItems) => mailLocator.showMoveItemDialog(item, moveItems),
+						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 					}),
 				},
 				mailLocator.logins,

@@ -2251,6 +2251,8 @@ export default {
 		"folderContent_label": "Inhalt",
 		"createNewFolderIn_label": "Neuen Ordner erstellen in {folderName}",
 		"driveNotEmpty_msg": "Ihr Drive enthält noch Dateien oder Ordner. Bitte entfernen Sie diese zuerst.",
-		"driveBetaWarning_msg": "While Drive is in beta there might be instances of the data loss without prior warning"
+		"driveBetaWarning_msg": "While Drive is in beta there might be instances of the data loss without prior warning",
+		"movingItemCount_label":"Moving {count} items"
+
 	}
 }

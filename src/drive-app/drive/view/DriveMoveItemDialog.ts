@@ -33,13 +33,19 @@ export type MoveItems = (items: readonly FolderItemId[], destinationFolder: Driv
  * Shows a dialog for interactively choosing a destination to move an item to.
  * It also enables the user to create a new destination folder.
  */
-export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemToMove: FolderItem, moveItems: MoveItems) {
-	const parentFolderId = itemToMove.type === "file" ? itemToMove.file.folder : assertNotNull(itemToMove.folder.parent)
+export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemsToMove: FolderItem[], moveItems: MoveItems) {
+	const firstItem = assertNotNull(itemsToMove.at(0))
+	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
 	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder._id) // this.driveViewModel.getMoreParents()
+	let itemLabel: string
+	if (itemsToMove.length === 1) {
+		itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
+	} else {
+		itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": itemsToMove.length }).text
+	}
 
-	const itemName = itemToMove.type === "file" ? itemToMove.file.name : itemToMove.folder.name
 	async function loadFolder(folderId: IdTuple): Promise<State> {
 		const currentFolder = await entityClient.load(DriveFolderTypeRef, folderId)
 
@@ -56,7 +62,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 		class DriveMoveDialog implements Component {
 			view(): Children {
 				const { currentFolder, parents, items: currentFolderItems, newFolderName } = state
-				const disabledTargetIds = new Set([getElementId(folderItemEntity(itemToMove))])
+				const disabledTargetIds = new Set(itemsToMove.map(folderItemEntity).map(getElementId))
 				return [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => moveDialog.close(), type: ButtonType.Secondary }],
@@ -65,7 +71,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 							{
 								label: "moveItemHere_action",
 								click: () => {
-									moveItems([folderItemToId(itemToMove)], state.currentFolder)
+									moveItems(itemsToMove.map(folderItemToId), state.currentFolder)
 									moveDialog.close()
 								},
 								type: ButtonType.Secondary,
@@ -86,7 +92,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 										fill: theme.on_surface_variant,
 									},
 								}),
-								m(".b.uppercase.text-ellipsis", { "data-testid": "dialog:movingItem_title" }, itemName),
+								m(".b.uppercase.text-ellipsis", { "data-testid": "dialog:movingItem_title" }, itemLabel),
 							]),
 							m(
 								".border-radius-6.plr-16.pt-12.pb-12",
@@ -113,7 +119,10 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 										items: currentFolderItems,
 										disabledTargetIds,
 										onItemClicked: (item: FolderItem) => {
-											if (item.type === "folder" && !isSameId(item.folder._id, folderItemEntity(itemToMove)._id)) {
+											if (
+												item.type === "folder" &&
+												!itemsToMove.some((itemToMove) => isSameId(item.folder._id, folderItemEntity(itemToMove)._id))
+											) {
 												this.onOpenFolder(item.folder)
 											}
 										},
