@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "en",
 	"keys": {
@@ -133,7 +133,7 @@ export default {
 		"approvalMail_msg": "Approval Mail for {mailAddress}",
 		"approvalMailBody_msg": "Please write us at approval@tutao.de and replace this text with a short message in English or German asking us to approve your account.",
 		"approvalWaitNotice_msg": "Your account was marked for manual approval. This means you are not able to send or receive emails. On working days, the approval usually happens within 24 hours.",
-		"approvalWaitNoticeFastTrack_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 48 hours for automatic approval or send us an email at approval@tutao.de to speed things up.",
+		"approvalWaitNoticeFastTrack_msg": "To keep Tuta spam-free, some new accounts go through a short review. Wait 48 hours for automatic approval or send us a message to speed things up.",
 		"appStoreNotAvailable_msg": "App Store subscriptions are not available at the moment.",
 		"appStoreRenewProblemBody_msg": "Hello,\n      \nYour subscription was due to renew on {expirationDate}.\n       \nUnfortunately, we were unable to receive any payment from the App Store for your subscription, which may be due to a billing failure. Please check that your payment settings on the App Store are correct.\n\nIf we do not receive any payment, your account will be disabled on {finalExpirationDate} for nonpayment. Alternatively, you may choose to cancel your subscription or switch to another payment method.\n   \nStay secure,\nYour Tuta Team",
 		"appStoreRenewProblemSubject_msg": "App Store billing failure",
@@ -183,6 +183,7 @@ export default {
 		"businessUse_action": "Business use",
 		"buy_action": "Buy",
 		"buyGiftCard_label": "Buy a gift card",
+		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
 		"by_label": "by",
 		"calendar_label": "Calendar",
 		"calendarAlarmsTooBigError_msg": "New reminders could not be set up. This is caused by having too many devices with notifications enabled. Please go to Settings -> Notifications to delete old devices from the notification list.",
@@ -1927,7 +1928,7 @@ export default {
 		"subscriptionSettings_label": "Subscription Settings",
 		"sunday_label": "Sunday",
 		"supportBackLostRequest_msg": "Are you sure you want to go back? Your request will be lost.",
-		"supportCloseLostRequest_msg": "Are you sure you want to close the dialog? Your request will be lost",
+		"supportCloseLostRequest_msg": "Are you sure you want to close the dialog? Your request will be lost.",
 		"supportDownloadMailApp_msg": "You can access the response once support has replied in Tuta Mail using your Tuta Calendar credentials.",
 		"supportForm_msg": "Please provide more details (English or German) so we can assist you better.",
 		"supportForm_title": "Let's get to the bottom of this",
@@ -2251,7 +2252,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
+		"zoomOut_action": "Zoom Out"
 	}
 }

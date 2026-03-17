@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "zh-hant",
 	"keys": {
@@ -578,6 +578,7 @@ export default {
 		"draftSaved_msg": "已儲存草稿。",
 		"dragAndDrop_action": "拖放所選郵件到檔案系統或者其他應用程式。",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "拖放功能不可用於包含進階重複規則的活動",
+		"driveBetaWarning_msg": "Drive處於beta測試階段時，數據遺失可能會在未事先警告下發生。",
 		"driveHome_label": "主資料夾",
 		"driveTrash_label": "垃圾桶",
 		"driveView_action": "硬碟",
@@ -1816,6 +1817,7 @@ export default {
 		"setDnsRecords_msg": "請設定以下DNS記錄：",
 		"setPrimaryMailAddress_label": "設定為主要地址",
 		"setSenderName_action": "設定寄件人名稱",
+		"settingNotApplicableInIos_msg": "此設定不適用於iOS版應用程式，無法在此處更改。請登入網頁版應用程式以作更改。",
 		"settings_label": "設定",
 		"settingsForDevice_label": "此裝置的設定",
 		"settingsView_action": "切換至設定檢視模式",

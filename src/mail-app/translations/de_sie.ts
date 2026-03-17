@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "de-sie",
 	"keys": {
@@ -133,7 +133,7 @@ export default {
 		"approvalMail_msg": "Freigabe-Mail für {mailAddress}",
 		"approvalMailBody_msg": "Bitte schreiben Sie uns an approval@tutao.de und ersetzen Sie diesen Text mit einer kurzen Nachricht auf Deutsch oder Englisch, in der Sie uns bitten, Ihr Konto zu bestätigen.",
 		"approvalWaitNotice_msg": "Ihr Konto benötigt eine manuelle Freigabe. Das bedeutet, dass Sie keine E-Mails senden oder empfangen können. Die Freigabe erfolgt an Werktagen in der Regel innerhalb von 24 Stunden.",
-		"approvalWaitNoticeFastTrack_msg": "Um Tuta frei von Spam zu halten, werden manche Konten einer kurzen Überprüfung unterzogen. Warten Sie entweder 48 Stunden um automatisch freigegeben zu werden oder schreiben Sie uns eine E-Mail an approval@tutao.de, um den Vorgang zu beschleunigen",
+		"approvalWaitNoticeFastTrack_msg": "Um Tuta frei von Spam zu halten, werden manche Konten einer kurzen Überprüfung unterzogen. Warten Sie entweder 48 Stunden um automatisch freigegeben zu werden oder schreiben Sie uns eine E-Mail, um den Vorgang zu beschleunigen",
 		"appStoreNotAvailable_msg": "App Store-Abonnements sind derzeit nicht verfügbar.",
 		"appStoreRenewProblemBody_msg": "Hallo,\n    \nIhr Abonnement sollte am {expirationDate} verlängert werden.\n     \nLeider haben wir keine Zahlung vom App Store für Ihr Abonnement erhalten, was möglicherweise auf einen Abrechnungsfehler zurückzuführen ist. Bitte überprüfen Sie, ob Ihre Zahlungseinstellungen im App Store korrekt sind.\n\nWenn wir keine Zahlung erhalten, wird Ihr Konto am {finalExpirationDate} wegen Nichtbezahlung deaktiviert. Alternativ können Sie Ihr Abonnement kündigen oder zu einer anderen Zahlungsmethode wechseln.\n \nViele Grüße,\nIhr Tuta-Team",
 		"appStoreRenewProblemSubject_msg": "App Store Abrechnungsfehler",
@@ -183,6 +183,7 @@ export default {
 		"businessUse_action": "Geschäftliche Nutzung",
 		"buy_action": "Kaufen",
 		"buyGiftCard_label": "Gutschein kaufen",
+		"buyGiftcardWhileCampaignActive_msg": "Gutscheine sind nicht mit Rabattaktionen kombinierbar.",
 		"by_label": "von",
 		"calendar_label": "Kalender",
 		"calendarAlarmsTooBigError_msg": "Neue Erinnerungen konnten nicht eingerichtet werden. Der Grund ist, dass zu viele Geräte mit aktivierten Benachrichtigungen verknüpft sind. Bitte gehen Sie zu Einstellungen -> Benachrichtigungen, um alte Geräte aus der Benachrichtigungsliste zu löschen.",
@@ -1927,7 +1928,7 @@ export default {
 		"subscriptionSettings_label": "Abonnement-Einstellungen",
 		"sunday_label": "Sonntag",
 		"supportBackLostRequest_msg": "Möchten Sie wirklich zurückgehen? Ihre Anfrage wird nicht gespeichert.",
-		"supportCloseLostRequest_msg": "Möchten Sie den Dialog wirklich schließen? Ihre Anfrage wird nicht gespeichert",
+		"supportCloseLostRequest_msg": "Möchten Sie den Dialog wirklich schließen? Ihre Anfrage wird nicht gespeichert.",
 		"supportDownloadMailApp_msg": "Sobald der Support geantwortet hat, können Sie die Antwort in Tuta Mail mit Ihren Tuta-Kalender-Anmeldedaten abrufen.",
 		"supportForm_msg": "Bitte geben Sie uns mehr Details (englisch oder deutsch), damit wir Ihnen besser helfen können.",
 		"supportForm_title": "Gehen wir der Sache auf den Grund",
@@ -2251,7 +2252,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"buyGiftcardWhileCampaignActive_msg": "Gutscheine sind nicht mit Rabattaktionen kombinierbar.",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "fr",
 	"keys": {
@@ -578,6 +578,7 @@ export default {
 		"draftSaved_msg": "Brouillon sauvegardé.",
 		"dragAndDrop_action": "Faites glisser les courriers sélectionnés vers le système de fichiers ou d'autres applications.",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Le glisser-déposer n'est pas disponible pour les événements contenant des règles de répétition avancées.",
+		"driveBetaWarning_msg": "Drive étant en version bêta, une perte de données sans avertissement préalable est possible.",
 		"driveHome_label": "Accueil",
 		"driveTrash_label": "Corbeille",
 		"driveView_action": "Disque",
@@ -1816,6 +1817,7 @@ export default {
 		"setDnsRecords_msg": "Veuillez définir les enregistrements DNS suivants :",
 		"setPrimaryMailAddress_label": "Définir comme adresse principale",
 		"setSenderName_action": "Nom de l'envoyeur",
+		"settingNotApplicableInIos_msg": "Ce paramètre ne s’applique pas à l’application iOS et ne peut pas être modifié ici. Veuillez vous connecter à l’application web pour le modifier.",
 		"settings_label": "Paramètres",
 		"settingsForDevice_label": "Paramètres de cet appareil",
 		"settingsView_action": "Aller à la page des paramètres",

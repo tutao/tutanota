@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "fi",
 	"keys": {
@@ -183,6 +183,7 @@ export default {
 		"businessUse_action": "Yrityskäyttö",
 		"buy_action": "Osta",
 		"buyGiftCard_label": "Osta lahjakortti",
+		"buyGiftcardWhileCampaignActive_msg": "Lahjakortteja ei voi käyttää alennusten kanssa.",
 		"by_label": "- lähettäjä",
 		"calendar_label": "Kalenteri",
 		"calendarAlarmsTooBigError_msg": "Uusia muistutuksia ei voitu ottaa käyttöön. Tämä johtuu siitä, että laitteellasi on liikaa ilmoituksia käytössä. Siirry asetuksiin  -> Ilmoitukset poistaaksesi vanhoja laitteita ilmoituksista.",
@@ -578,6 +579,7 @@ export default {
 		"draftSaved_msg": "Luonnos on tallennettu.",
 		"dragAndDrop_action": "Vedä valitut viestit tiedostonhallintaan tai muihin sovelluksiin.",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Edistyneitä toistosääntöjä käyttäviä tapahtumia ei voi raahata ja pudottaa",
+		"driveBetaWarning_msg": "Drive on vielä beetaversio. Tietoja voi menettää ilman minkäänlaista varoitusta.",
 		"driveHome_label": "Koti",
 		"driveTrash_label": "Poistetut",
 		"driveView_action": "Drive",
@@ -1816,6 +1818,7 @@ export default {
 		"setDnsRecords_msg": "Aseta seuraavat DNS-tietueet:",
 		"setPrimaryMailAddress_label": "Aseta pääasialliseksi osoitteeksi",
 		"setSenderName_action": "Aseta lähettäjän nimi",
+		"settingNotApplicableInIos_msg": "Tämä asetus ei päde iOS-sovellukseen, joten sitä ei voi muuttaa tällä laitteella. Kirjaudu verkkoversioon muuttaaksesi.",
 		"settings_label": "Asetukset",
 		"settingsForDevice_label": "Tämän laitteen asetukset",
 		"settingsView_action": "Siirry asetuksiin",
@@ -1925,6 +1928,7 @@ export default {
 		"subscriptionSettings_label": "Tilausasetukset",
 		"sunday_label": "sunnuntaina",
 		"supportBackLostRequest_msg": "Haluatko varmasti palata takaisin? Pyyntösi menetetään.",
+		"supportCloseLostRequest_msg": "Haluatko varmasti sulkea tämän ikkunan? Menetät pyyntösi.",
 		"supportDownloadMailApp_msg": "Kun tukemme lähettää sinulle vastauksen, voit lukea sen Tuta Mailissa käyttämällä Tuta Calendar -kirjautumistietojasi.",
 		"supportForm_msg": "Muistathan kuvailla ongelmaasi yksityiskohtaisesti (englanniksi tai saksaksi), jotta voisimme auttaa sinua paremmin.",
 		"supportForm_title": "Selvitetään ongelma",
