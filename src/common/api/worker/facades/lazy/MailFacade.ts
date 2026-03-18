@@ -127,7 +127,7 @@ import {
 	promiseFilter,
 	promiseMap,
 	splitInChunks,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
@@ -159,7 +159,7 @@ import {
 	murmurHash,
 	random,
 	sha256Hash,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
 import { CounterService } from "../../../entities/monitor/Services.js"

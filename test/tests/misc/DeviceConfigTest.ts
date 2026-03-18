@@ -11,7 +11,7 @@ import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { CredentialEncryptionMode } from "../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
-import { getDayShifted, getStartOfDay } from "@tutao/tutanota-utils"
+import { getDayShifted, getStartOfDay } from "@tutao/utils"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {

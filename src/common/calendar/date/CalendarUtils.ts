@@ -19,7 +19,7 @@ import {
 	memoized,
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod } from "../../api/common/TutanotaConstants"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {

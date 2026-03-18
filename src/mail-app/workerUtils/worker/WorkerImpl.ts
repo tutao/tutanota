@@ -19,7 +19,7 @@ import { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFa
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
-import { random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/crypto"
 import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
 import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../common/api/worker/rest/RestClient.js"

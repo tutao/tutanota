@@ -13,7 +13,7 @@ import {
 } from "../../common/EntityTypes"
 import { AssociationType } from "../../common/EntityConstants"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
-import { TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { TypeRef, uint8ArrayToBase64 } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
 import { isWebClient } from "../../common/Env"

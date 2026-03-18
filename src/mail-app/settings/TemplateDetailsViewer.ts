@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
-import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/utils"
+import { assertNotNull } from "@tutao/utils"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { getLanguageCode } from "./TemplateEditorModel"

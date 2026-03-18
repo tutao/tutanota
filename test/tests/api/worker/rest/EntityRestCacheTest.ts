@@ -13,7 +13,7 @@ import {
 	listIdPart,
 	stringToCustomId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/utils"
 import {
 	createEntityUpdate,
 	createPatch,

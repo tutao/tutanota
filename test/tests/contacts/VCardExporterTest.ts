@@ -20,7 +20,7 @@ import {
 	_vCardFormatArrayToString,
 	contactsToVCard,
 } from "../../../src/mail-app/contacts/VCardExporter.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 

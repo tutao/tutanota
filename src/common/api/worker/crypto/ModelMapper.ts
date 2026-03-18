@@ -9,13 +9,13 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
 import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../../common/EntityTypes"
 import { assertWorkerOrNode, isWebClient } from "../../common/Env"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
-import { random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/crypto"
 import { InvalidModelError } from "../../common/error/InvalidModelError"
 
 assertWorkerOrNode()

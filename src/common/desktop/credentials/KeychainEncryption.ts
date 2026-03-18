@@ -4,7 +4,7 @@ import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { AppPassHandler } from "./AppPassHandler.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { AesKey } from "@tutao/tutanota-crypto"
+import { AesKey } from "@tutao/crypto"
 
 export class KeychainEncryption {
 	constructor(

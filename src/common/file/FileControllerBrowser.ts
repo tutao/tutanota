@@ -1,7 +1,7 @@
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode } from "../api/common/Env"
 import { FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
-import { sortableTimestamp } from "@tutao/tutanota-utils"
+import { sortableTimestamp } from "@tutao/utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { assertOnlyDataFiles, FileReference } from "../api/common/utils/FileUtils.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"

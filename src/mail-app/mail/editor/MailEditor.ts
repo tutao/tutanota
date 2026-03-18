@@ -65,7 +65,7 @@ import {
 	secondsToMillis,
 	throttle,
 	typedValues,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	createInlineImage,
 	replaceCidsWithInlineImages,

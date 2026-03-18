@@ -11,7 +11,7 @@ import { OperationType } from "../../../src/common/api/common/TutanotaConstants"
 import { elementIdPart, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel"
 import { createTestEntity } from "../TestUtils"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
 
 o.spec("CalendarEventUpdateCoordinatorTest", function () {

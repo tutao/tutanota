@@ -15,7 +15,7 @@ import {
 	PQKeyPairs,
 	RsaKeyPair,
 	rsaPublicKeyToHex,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import {
 	createKeyPair,
 	Group,
@@ -35,7 +35,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { matchers, object, reset, verify, when } from "testdouble"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { freshVersioned, hexToUint8Array, KeyVersion } from "@tutao/tutanota-utils"
+import { freshVersioned, hexToUint8Array, KeyVersion } from "@tutao/utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"

@@ -32,7 +32,7 @@ import {
 	promiseMap,
 	Require,
 	stringToUtf8Uint8Array,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
 import {
@@ -52,7 +52,7 @@ import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToC
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
-import { aes256RandomKey, AesKey, encryptKey, keyToBase64, sha256Hash } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey, encryptKey, keyToBase64, sha256Hash } from "@tutao/crypto"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { AlarmService } from "../../../entities/sys/Services.js"

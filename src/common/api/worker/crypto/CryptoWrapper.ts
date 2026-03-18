@@ -44,8 +44,8 @@ import {
 	X25519KeyPair,
 	X25519PrivateKey,
 	X25519PublicKey,
-} from "@tutao/tutanota-crypto"
-import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
+} from "@tutao/crypto"
+import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { IdentityKeyPair } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"

@@ -4,7 +4,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
-import { isNotNull } from "@tutao/tutanota-utils"
+import { isNotNull } from "@tutao/utils"
 import { theme } from "../../../common/gui/theme"
 import { size } from "../../../common/gui/size"
 

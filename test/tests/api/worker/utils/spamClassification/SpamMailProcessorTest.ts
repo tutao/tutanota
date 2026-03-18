@@ -8,7 +8,7 @@ import {
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { splitArrayAt, splitUint8Array } from "@tutao/tutanota-utils"
+import { splitArrayAt, splitUint8Array } from "@tutao/utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
 import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/common/api/common/TutanotaConstants"
 

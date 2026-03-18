@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import type { SearchBar, SearchBarAttrs } from "./search/SearchBar.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/utils"
 
 /**
  * Lazy wrapper around SearchBar which unfortunately resides in the search chunk right now and cannot be imported from some files.

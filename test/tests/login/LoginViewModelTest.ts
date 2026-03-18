@@ -20,7 +20,7 @@ import { NativePushServiceApp } from "../../../src/common/native/main/NativePush
 import { PersistedCredentials } from "../../../src/common/native/common/generatedipc/PersistedCredentials.js"
 import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
 import { UnencryptedCredentials } from "../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { AppLock } from "../../../src/common/login/AppLock.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 

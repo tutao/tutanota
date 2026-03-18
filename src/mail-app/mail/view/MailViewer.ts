@@ -6,7 +6,7 @@ import { FeatureType, InboxRuleType, Keys, MailSetKind, SpamRuleFieldType, SpamR
 import { File as TutanotaFile, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "@tutao/utils"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"

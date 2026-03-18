@@ -4,7 +4,7 @@ import { createSecondFactorAuthData, SessionTypeRef } from "../../api/entities/s
 import { Dialog } from "../../gui/base/Dialog"
 import { OperationType, SessionState } from "../../api/common/TutanotaConstants"
 import { lang } from "../LanguageViewModel"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { EventController } from "../../api/main/EventController"
 import { isSameId } from "../../api/common/utils/EntityUtils"

@@ -2,7 +2,7 @@ import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeySig
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { parseKeyVersion } from "./KeyLoaderFacade.js"
-import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -16,7 +16,7 @@ import {
 	PQPublicKeys,
 	PublicKey,
 	RsaX25519PublicKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"
 

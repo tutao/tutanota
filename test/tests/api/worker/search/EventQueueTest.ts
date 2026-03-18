@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { defer, delay } from "@tutao/tutanota-utils"
+import { defer, delay } from "@tutao/utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
 import { Mail, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"

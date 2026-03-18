@@ -10,7 +10,7 @@ import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { LockedError } from "../../common/api/common/error/RestError"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { elementIdPart, isSameId } from "../../common/api/common/utils/EntityUtils"

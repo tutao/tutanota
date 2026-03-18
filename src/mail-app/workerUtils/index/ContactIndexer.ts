@@ -1,5 +1,5 @@
 import { ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { lazyMemoized } from "@tutao/tutanota-utils"
+import { lazyMemoized } from "@tutao/utils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"

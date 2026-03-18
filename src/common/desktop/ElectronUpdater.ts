@@ -1,7 +1,7 @@
 import type { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { lang } from "../misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
-import { assertNotNull, delay, downcast, LazyLoaded, neverNull, newPromise } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, LazyLoaded, neverNull, newPromise } from "@tutao/utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import type { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"

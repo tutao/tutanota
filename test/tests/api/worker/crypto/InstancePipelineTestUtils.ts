@@ -1,6 +1,6 @@
 import { Entity, ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 
 export const testTypeModel: TypeModel = {
 	app: "tutanota",

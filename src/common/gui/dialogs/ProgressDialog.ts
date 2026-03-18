@@ -8,7 +8,7 @@ import { progressIcon } from "../base/Icon"
 import { CompletenessIndicator } from "../CompletenessIndicator.js"
 import Stream from "mithril/stream"
 import { TabIndex } from "../../api/common/TutanotaConstants"
-import { delay, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { delay, MaybeLazy, resolveMaybeLazy } from "@tutao/utils"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
 
 assertMainOrNode()

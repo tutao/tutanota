@@ -1,5 +1,5 @@
 import { Message } from "./MessageDispatcher.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 
 export interface Transport<OutgoingCommandType, IncomingCommandType> {
 	/**

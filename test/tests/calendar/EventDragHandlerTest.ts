@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/calendar-app/calendar/view/EventDragHandler.js"
-import { DAY_IN_MILLIS, defer, downcast } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, defer, downcast } from "@tutao/utils"
 import type { DraggedEventContainer } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
 import { makeEvent } from "./CalendarTestUtils.js"
 import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"

@@ -1,7 +1,7 @@
 import m from "mithril"
 import type { Attachment } from "../../../common/mailFunctionality/SendMailModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
-import { debounce, findAllAndRemove, isNotNull, ofClass, remove } from "@tutao/tutanota-utils"
+import { debounce, findAllAndRemove, isNotNull, ofClass, remove } from "@tutao/utils"
 import { Mode } from "../../../common/api/common/Env"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../common/gui/base/Dialog"

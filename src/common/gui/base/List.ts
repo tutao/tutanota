@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { createResizeObserver, debounce, memoized, numberRange } from "@tutao/tutanota-utils"
+import { createResizeObserver, debounce, memoized, numberRange } from "@tutao/utils"
 import { component_size, px, size } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"

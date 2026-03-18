@@ -4,7 +4,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { isAndroidApp, isApp, isBrowser, isDesktop } from "../api/common/Env.js"
 import { Stage } from "@tutao/tutanota-usagetests"
 import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
-import { isEmpty } from "@tutao/tutanota-utils"
+import { isEmpty } from "@tutao/utils"
 import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
 
 export function createEvent(deviceConfig: DeviceConfig): void {

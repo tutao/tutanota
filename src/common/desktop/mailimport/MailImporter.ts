@@ -7,7 +7,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDown
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { MailSet } from "../../api/entities/tutanota/TypeRefs"
 import { IndentedFolder } from "../../api/common/mail/FolderSystem"
-import { repeat } from "@tutao/tutanota-utils"
+import { repeat } from "@tutao/utils"
 
 /**
  * Shows a dialog with the users mailSets that are able to import mails.

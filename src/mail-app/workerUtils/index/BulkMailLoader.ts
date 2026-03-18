@@ -1,16 +1,4 @@
-import {
-	assertNotNull,
-	findLastIndex,
-	groupBy,
-	groupByAndMap,
-	isEmpty,
-	last,
-	lastThrow,
-	neverNull,
-	promiseMap,
-	splitInChunks,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, findLastIndex, groupBy, groupByAndMap, isEmpty, last, lastThrow, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
 	constructMailSetEntryId,

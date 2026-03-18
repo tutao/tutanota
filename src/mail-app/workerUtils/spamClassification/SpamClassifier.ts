@@ -1,4 +1,4 @@
-import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/utils"
 import { SpamClassifierDataDealer, TrainingDataset } from "./SpamClassifierDataDealer"
 import {
 	dense,

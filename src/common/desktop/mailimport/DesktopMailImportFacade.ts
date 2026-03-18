@@ -2,7 +2,7 @@ import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, Mai
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
-import { assertNotNull, clear, defer, DeferredObject } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, defer, DeferredObject } from "@tutao/utils"
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"

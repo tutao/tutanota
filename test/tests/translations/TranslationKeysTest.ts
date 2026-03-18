@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { difference } from "@tutao/tutanota-utils"
+import { difference } from "@tutao/utils"
 import en from "../../../src/mail-app/translations/en.js"
 import de from "../../../src/mail-app/translations/de.js"
 import de_sie from "../../../src/mail-app/translations/de_sie.js"

@@ -1,4 +1,4 @@
-import { noOp, promiseMap, sortableTimestamp } from "@tutao/tutanota-utils"
+import { noOp, promiseMap, sortableTimestamp } from "@tutao/utils"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { downloadMailBundle } from "./Bundler"
 import { isDesktop } from "../../../common/api/common/Env"

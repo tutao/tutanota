@@ -1,5 +1,5 @@
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../common/api/common/TutanotaConstants"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
 import type { Contact } from "../../common/api/entities/tutanota/TypeRefs.js"
 import type { ContactMailAddress } from "../../common/api/entities/tutanota/TypeRefs.js"

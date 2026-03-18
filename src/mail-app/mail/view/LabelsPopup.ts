@@ -14,7 +14,7 @@ import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
 import { AriaRole } from "../../../common/gui/AriaUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
 /**

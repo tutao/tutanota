@@ -3,7 +3,7 @@ import { CredentialsKeySpec, DesktopKeyStoreFacade, DeviceKeySpec } from "../../
 import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import type { SecretStorage } from "../../../src/common/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
-import { aes256RandomKey, keyToBase64 } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { DeviceStorageUnavailableError } from "../../../src/common/api/common/error/DeviceStorageUnavailableError.js"

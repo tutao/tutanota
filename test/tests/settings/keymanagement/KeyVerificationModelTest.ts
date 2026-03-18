@@ -11,7 +11,7 @@ import {
 	PublicKeyIdentifierType,
 } from "../../../../src/common/api/common/TutanotaConstants"
 import { SigningPublicKey } from "../../../../src/common/api/worker/facades/Ed25519Facade"
-import { Versioned } from "@tutao/tutanota-utils"
+import { Versioned } from "@tutao/utils"
 import { PermissionType } from "../../../../src/common/native/common/generatedipc/PermissionType"
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"

@@ -6,7 +6,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 
 import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
-import { Hex } from "@tutao/tutanota-utils"
+import { Hex } from "@tutao/utils"
 import { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { theme } from "../../gui/theme"
 

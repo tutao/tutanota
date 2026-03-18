@@ -15,7 +15,7 @@ import {
 	memoized,
 	millisToDays,
 	noOp,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	DEFAULT_CALENDAR_COLOR,

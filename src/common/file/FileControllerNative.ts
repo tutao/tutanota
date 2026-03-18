@@ -1,7 +1,7 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode, isAndroidApp, isApp, isDesktop, isElectronClient, isIOSApp, isTest } from "../api/common/Env"
-import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
 import { assertOnlyFileReferences, FileReference } from "../api/common/utils/FileUtils"
 import { CancelledError } from "../api/common/error/CancelledError"

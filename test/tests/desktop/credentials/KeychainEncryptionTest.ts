@@ -7,7 +7,7 @@ import { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKey
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey } from "@tutao/crypto"
 
 o.spec("KeychainEncryption", () => {
 	let encryption: KeychainEncryption

@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { app } from "electron"
 import { execSync } from "node:child_process"
-import { last, neverNull } from "@tutao/tutanota-utils"
+import { last, neverNull } from "@tutao/utils"
 import { Logger, replaceNativeLogger } from "../api/common/Logger"
 import { log, rebindDesktopLog } from "./DesktopLog"
 

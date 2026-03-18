@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ClientModelInfo, ServerModelInfo, ServerModels } from "../../../../src/common/api/common/EntityFunctions"
 import { AppName } from "@tutao/tutanota-utils/lib/TypeRef"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { Cardinality, Type, ValueType } from "../../../../src/common/api/common/EntityConstants"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"

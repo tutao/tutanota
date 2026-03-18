@@ -4,7 +4,7 @@ import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { AppType } from "../../../../misc/ClientConstants"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/TutanotaConstants"
 import { sql } from "../Sql"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { untagSqlValue } from "../SqlValue"
 
 /**

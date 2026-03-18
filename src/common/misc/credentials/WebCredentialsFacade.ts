@@ -3,7 +3,7 @@ import { NativeCredentialsFacade } from "../../native/common/generatedipc/Native
 import { DeviceConfig, DeviceConfigCredentials } from "../DeviceConfig.js"
 import { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
-import { base64ToUint8Array, mapNullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, mapNullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 
 /**
  * This is a temporary stub that we will replace soon by some mechanism that will be able to utilize fingerprint/pin on mobile devices

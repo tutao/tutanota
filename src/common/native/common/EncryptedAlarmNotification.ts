@@ -8,7 +8,7 @@ import {
 } from "../../api/entities/sys/TypeRefs"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { isSameId } from "../../api/common/utils/EntityUtils"
-import { assertNotNull, Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, base64ToUint8Array } from "@tutao/utils"
 import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
 
 export class EncryptedAlarmNotification {

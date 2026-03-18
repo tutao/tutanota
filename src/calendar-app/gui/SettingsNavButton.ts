@@ -4,7 +4,7 @@ import { ClickHandler } from "../../common/gui/base/GuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton } from "../../common/gui/base/buttons/BaseButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
-import { lazyStringValue } from "@tutao/tutanota-utils"
+import { lazyStringValue } from "@tutao/utils"
 
 export interface SettingsNavButtonAttrs {
 	icon?: lazyIcon

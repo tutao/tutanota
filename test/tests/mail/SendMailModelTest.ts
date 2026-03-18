@@ -24,7 +24,7 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
-import { downcast, isSameTypeRef } from "@tutao/tutanota-utils"
+import { downcast, isSameTypeRef } from "@tutao/utils"
 import {
 	ChallengeTypeRef,
 	CustomerTypeRef,

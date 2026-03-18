@@ -1,7 +1,7 @@
 import { EntityUpdateData, PrefetchStatus } from "../common/utils/EntityUpdateUtils"
 import { ConversationEntryTypeRef, Mail, MailDetailsBlobTypeRef, MailTypeRef, TutanotaPropertiesTypeRef } from "../entities/tutanota/TypeRefs"
 import { elementIdPart, getElementId, isElementEntity, listIdPart } from "../common/utils/EntityUtils"
-import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
 import { OperationType } from "../common/TutanotaConstants"

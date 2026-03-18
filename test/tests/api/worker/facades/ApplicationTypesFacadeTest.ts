@@ -5,7 +5,7 @@ import { ApplicationTypesService } from "../../../../../src/common/api/entities/
 import { AssociationType, Cardinality, Type } from "../../../../../src/common/api/common/EntityConstants"
 import { HttpMethod, MediaType, ServerModelInfo, ServerModels } from "../../../../../src/common/api/common/EntityFunctions"
 import { Mode } from "../../../../../src/common/api/common/Env"
-import { AppName, AppNameEnum, downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { AppName, AppNameEnum, downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { ModelAssociation, ServerTypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"

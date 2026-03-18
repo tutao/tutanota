@@ -43,7 +43,7 @@ import {
 	verifyHmacSha256,
 	x25519Decapsulate,
 	x25519Encapsulate,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import {
 	base64ToUint8Array,
 	byteArraysToBytes,
@@ -55,7 +55,7 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
 	Versioned,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/common/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"

@@ -1,6 +1,6 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"

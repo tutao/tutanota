@@ -1,5 +1,5 @@
-import { aes256EncryptSearchIndexEntry, aes256EncryptSearchIndexEntryWithIV, Aes256Key, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
-import { Base64, concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { aes256EncryptSearchIndexEntry, aes256EncryptSearchIndexEntryWithIV, Aes256Key, aesDecryptUnauthenticated } from "@tutao/crypto"
+import { Base64, concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import type {
 	DecryptedSearchIndexEntry,
 	EncryptedSearchIndexEntry,

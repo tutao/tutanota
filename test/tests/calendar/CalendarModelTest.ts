@@ -10,7 +10,7 @@ import {
 	ContactTypeRef,
 	EncryptedMailAddressTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/tutanota-utils"
+import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"

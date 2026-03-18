@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, AesKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey } from "@tutao/crypto"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
@@ -11,7 +11,7 @@ import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Entity, ModelValue, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { assertNotNull, downcast, noOp, Nullable, stringToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, noOp, Nullable, stringToBase64 } from "@tutao/utils"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
 import {
 	clientInitializedTypeModelResolver,

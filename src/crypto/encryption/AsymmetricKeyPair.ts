@@ -1,6 +1,6 @@
 import { RsaX25519KeyPair, RsaX25519PublicKey, RsaKeyPair, RsaPublicKey } from "./RsaKeyPair.js"
 import { PQKeyPairs, PQPublicKeys } from "./PQKeyPairs.js"
-import { Versioned } from "@tutao/tutanota-utils"
+import { Versioned } from "@tutao/utils"
 
 export enum KeyPairType {
 	RSA,

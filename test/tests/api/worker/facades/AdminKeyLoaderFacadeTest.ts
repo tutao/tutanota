@@ -5,7 +5,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "..
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
+import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,

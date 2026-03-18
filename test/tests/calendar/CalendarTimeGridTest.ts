@@ -3,7 +3,7 @@ import { CalendarTimeGrid, ColumnLayoutData, EventGridData, RowBounds, TimeRange
 import { Time } from "../../../src/common/calendar/date/Time"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubble"
-import { incrementDate } from "@tutao/tutanota-utils"
+import { incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 
 o.spec("CalendarTimeGrid", function () {

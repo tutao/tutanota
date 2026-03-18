@@ -11,7 +11,7 @@ import { func, instance, matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { maxBy } from "@tutao/tutanota-utils"
+import { maxBy } from "@tutao/utils"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 
 o.spec("OfflineStorageMigrator", function () {

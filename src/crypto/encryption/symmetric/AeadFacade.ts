@@ -1,7 +1,7 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { AeadSubKeys } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
-import { concat } from "@tutao/tutanota-utils"
+import { concat } from "@tutao/utils"
 import { bitArrayToUint8Array, generateIV, IV_BYTE_LENGTH, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify, DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "../../hashes/Blake3.js"

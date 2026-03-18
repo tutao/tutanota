@@ -2,7 +2,7 @@ import { assertWorkerOrNode } from "../../common/Env"
 import { RolloutService } from "../../entities/sys/Services"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { getAsEnumValue, RolloutType } from "../../common/TutanotaConstants"
-import { assertNotNull, LazyLoaded } from "@tutao/tutanota-utils"
+import { assertNotNull, LazyLoaded } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 assertWorkerOrNode()

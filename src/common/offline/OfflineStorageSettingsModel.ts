@@ -1,4 +1,4 @@
-import { assert, DAY_IN_MILLIS, getDayShifted, getStartOfDay } from "@tutao/tutanota-utils"
+import { assert, DAY_IN_MILLIS, getDayShifted, getStartOfDay } from "@tutao/utils"
 import { OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../api/common/TutanotaConstants"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"

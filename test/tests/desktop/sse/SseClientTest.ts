@@ -4,7 +4,7 @@ import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/comm
 import { matchers, object, when } from "testdouble"
 import http from "node:http"
 import { verify } from "@tutao/tutanota-test-utils"
-import { assertNotNull, defer, getFirstOrThrow } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, getFirstOrThrow } from "@tutao/utils"
 import { SchedulerMock } from "../../TestUtils.js"
 import { NotAuthenticatedError, NotAuthorizedError } from "../../../../src/common/api/common/error/RestError.js"
 

@@ -20,7 +20,7 @@ import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtil
 import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
-import { lazy, Versioned } from "@tutao/tutanota-utils"
+import { lazy, Versioned } from "@tutao/utils"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { showInfoSnackbar, showSnackBar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"

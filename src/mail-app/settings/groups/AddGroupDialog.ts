@@ -12,7 +12,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../common/misc/Subscription
 import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/GroupUtils.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import { TextField } from "../../../common/gui/base/TextField.js"
-import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, ofClass } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { assertMainOrNode } from "../../../common/api/common/Env.js"

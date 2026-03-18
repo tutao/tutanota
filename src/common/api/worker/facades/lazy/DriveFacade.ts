@@ -4,9 +4,9 @@ import { IServiceExecutor } from "../../../common/ServiceRequest"
 import { ArchiveDataType, GroupType } from "../../../common/TutanotaConstants"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../UserFacade"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey } from "@tutao/crypto"
 import { CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper"
-import { assertNotNull, first, groupBy, isEmpty, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, first, groupBy, isEmpty, isSameTypeRef, partition, promiseMap, Require } from "@tutao/utils"
 import {
 	createDriveCopyServicePostIn,
 	createDriveFolderServiceDeleteIn,

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { asPaymentInterval, formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/common/subscription/utils/PriceUtils.js"
-import { clone } from "@tutao/tutanota-utils"
+import { clone } from "@tutao/utils"
 import { UpgradePriceType } from "../../../src/common/subscription/FeatureListProvider"
 import { lang } from "../../../src/common/misc/LanguageViewModel"
 import en from "../../../src/mail-app/translations/en"

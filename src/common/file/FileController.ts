@@ -1,7 +1,7 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataFile"
 import { assertMainOrNode, isApp } from "../api/common/Env"
-import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
 import { client } from "../misc/ClientDetector.js"

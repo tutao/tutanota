@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { EmailSignatureType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import { getHtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"

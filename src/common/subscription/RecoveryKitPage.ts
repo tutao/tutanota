@@ -11,7 +11,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { Checkbox } from "../gui/base/Checkbox"
 import { styles } from "../gui/styles"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { RecoverCodeDisplay } from "./RecoverCodeDisplay"
 import { assertMainOrNode } from "../api/common/Env"
 

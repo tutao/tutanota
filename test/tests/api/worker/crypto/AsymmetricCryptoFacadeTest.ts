@@ -26,11 +26,11 @@ import {
 	RsaX25519PublicKey,
 	uint8ArrayToBitArray,
 	X25519KeyPair,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
-import { KeyVersion, Versioned } from "@tutao/tutanota-utils"
+import { KeyVersion, Versioned } from "@tutao/utils"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"

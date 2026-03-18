@@ -1,6 +1,6 @@
 import { GroupType } from "../../common/TutanotaConstants"
-import { Aes256Key, AesKey, decryptKey } from "@tutao/tutanota-crypto"
-import { assertNotNull, KeyVersion } from "@tutao/tutanota-utils"
+import { Aes256Key, AesKey, decryptKey } from "@tutao/crypto"
+import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"

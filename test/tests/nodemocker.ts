@@ -2,7 +2,7 @@
  * @fileoverview This is an old homebrew mocking attempt. This is depreacted. Please use testdouble instead.
  */
 
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { spy } from "@tutao/tutanota-test-utils"
 
 /**

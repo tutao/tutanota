@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { FaqModel } from "../../../src/common/support/FaqModel.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import { spy } from "@tutao/tutanota-test-utils"
 

@@ -1,7 +1,7 @@
 import { TextField } from "../../gui/base/TextField.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { Icons } from "../../gui/base/icons/Icons"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"

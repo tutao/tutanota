@@ -7,7 +7,7 @@ import { ElectronExports, FsExports, PathExports } from "../../../../src/common/
 import { NotFoundError, PreconditionFailedError, TooManyRequestsError } from "../../../../src/common/api/common/error/RestError.js"
 import type fs from "node:fs"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopUtils } from "../../../../src/common/desktop/DesktopUtils.js"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"

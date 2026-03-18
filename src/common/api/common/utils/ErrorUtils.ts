@@ -1,6 +1,6 @@
 // @bundleInto:common
 
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { Entity, ParsedInstance } from "../EntityTypes"
 import {
 	AccessBlockedError,

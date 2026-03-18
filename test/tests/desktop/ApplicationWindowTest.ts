@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import n from "../nodemocker.js"
-import { defer, DeferredObject, delay, downcast } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay, downcast } from "@tutao/utils"
 import { ApplicationWindow } from "../../../src/common/desktop/ApplicationWindow.js"
 import type { BrowserWindow, NativeImage, Rectangle } from "electron"
 import type { Theme, ThemeId } from "../../../src/common/gui/theme.js"

@@ -19,7 +19,7 @@ import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { noOp, ofClass } from "@tutao/utils"
 import { NotFoundError } from "../../common/api/common/error/RestError"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {

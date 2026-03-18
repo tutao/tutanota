@@ -4,7 +4,7 @@ import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTA_MAIL_ADDRES
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
-import { filterInt, getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { filterInt, getFirstOrThrow, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"

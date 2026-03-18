@@ -3,7 +3,7 @@ import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
-import { partition } from "@tutao/tutanota-utils"
+import { partition } from "@tutao/utils"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)

@@ -1,4 +1,4 @@
-import { lazyAsync, LazyLoaded } from "@tutao/tutanota-utils"
+import { lazyAsync, LazyLoaded } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 

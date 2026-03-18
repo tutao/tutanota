@@ -8,7 +8,7 @@ import {
 } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { assertNotNull, clone, downcast, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast, isSameTypeRef, neverNull } from "@tutao/utils"
 import {
 	AlarmInfo,
 	AlarmInfoTypeRef,
@@ -45,7 +45,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { base64ToKey } from "@tutao/tutanota-crypto"
+import { base64ToKey } from "@tutao/crypto"
 import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 

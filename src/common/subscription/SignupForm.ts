@@ -12,7 +12,7 @@ import {
 
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"

@@ -4,7 +4,7 @@ import { alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transfor
 import { ease } from "../../../../src/common/gui/animation/Easing.js"
 import { client } from "../../../../src/common/misc/ClientDetector.js"
 import { DeviceType } from "../../../../src/common/misc/ClientConstants.js"
-import { assertNotNull, downcast } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast } from "@tutao/utils"
 import { spy } from "@tutao/tutanota-test-utils"
 
 client.device = DeviceType.DESKTOP

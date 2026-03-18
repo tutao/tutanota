@@ -13,7 +13,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { showUserError } from "../../common/misc/ErrorHandlerImpl"
 import { UserError } from "../../common/api/main/UserError"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
-import { ofClass } from "@tutao/tutanota-utils"
+import { ofClass } from "@tutao/utils"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 

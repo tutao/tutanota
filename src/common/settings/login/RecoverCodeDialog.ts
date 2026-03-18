@@ -1,7 +1,7 @@
 import type { QRCode } from "jsqr"
 import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { assertNotNull, Hex, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, Hex, newPromise, noOp, ofClass } from "@tutao/utils"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env.js"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"

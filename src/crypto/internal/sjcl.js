@@ -1688,8 +1688,8 @@ sjcl.mode.ctr = {
 	 * @return The encrypted data, an array of bytes.
 	 * @throws {sjcl.exception.invalid} if the IV isn't exactly 128 bits or if any adata is specified.
 	 */
-	encrypt: function(prf, plaintext, iv, adata) {
-		return sjcl.mode.ctr._calculate(prf, plaintext, iv, adata);
+	encrypt: function (prf, plaintext, iv, adata) {
+		return sjcl.mode.ctr._calculate(prf, plaintext, iv, adata)
 	},
 
 	/** Decrypt in CTR mode.
@@ -1701,43 +1701,43 @@ sjcl.mode.ctr = {
 	 * @throws {sjcl.exception.invalid} if the IV isn't exactly 128 bits or if any adata is specified.
 	 * @throws {sjcl.exception.corrupt} if if the message is corrupt.
 	 */
-	decrypt: function(prf, ciphertext, iv, adata) {
-		return sjcl.mode.ctr._calculate(prf, ciphertext, iv, adata);
+	decrypt: function (prf, ciphertext, iv, adata) {
+		return sjcl.mode.ctr._calculate(prf, ciphertext, iv, adata)
 	},
 
-	_calculate: function(prf, data, iv, adata) {
-		var l, bl, res, c, d, e, i;
+	_calculate: function (prf, data, iv, adata) {
+		var l, bl, res, c, d, e, i
 		if (adata && adata.length) {
-			throw new sjcl.exception.invalid("ctr can't authenticate data");
+			throw new sjcl.exception.invalid("ctr can't authenticate data")
 		}
 		if (sjcl.bitArray.bitLength(iv) !== 128) {
-			throw new sjcl.exception.invalid("ctr iv must be 128 bits");
+			throw new sjcl.exception.invalid("ctr iv must be 128 bits")
 		}
 		if (!(l = data.length)) {
-			return [];
+			return []
 		}
-		c = iv.slice(0);
-		d = data.slice(0);
-		bl = sjcl.bitArray.bitLength(d);
-		for (i=0; i<l; i+=4) {
-			e = prf.encrypt(c);
-			d[i] ^= e[0];
-			d[i+1] ^= e[1];
-			d[i+2] ^= e[2];
-			d[i+3] ^= e[3];
-			for(var carry = 3; carry >= 0; carry--) {
+		c = iv.slice(0)
+		d = data.slice(0)
+		bl = sjcl.bitArray.bitLength(d)
+		for (i = 0; i < l; i += 4) {
+			e = prf.encrypt(c)
+			d[i] ^= e[0]
+			d[i + 1] ^= e[1]
+			d[i + 2] ^= e[2]
+			d[i + 3] ^= e[3]
+			for (var carry = 3; carry >= 0; carry--) {
 				// TUTAO: fix handling of counter overflow
 				// javascript numbers can be more than 4 byte
-				if (++c[carry] > 0xffffffff ) {
+				if (++c[carry] > 0xffffffff) {
 					c[carry] = 0
 				} else {
-					break;
+					break
 				}
 			}
 		}
-		return sjcl.bitArray.clamp(d, bl);
-	}
-};
+		return sjcl.bitArray.clamp(d, bl)
+	},
+}
 
 /** @fileOverview CBC mode implementation
  *

@@ -19,7 +19,7 @@ import {
 	noOp,
 	promiseMap,
 	secondsToMillis,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,

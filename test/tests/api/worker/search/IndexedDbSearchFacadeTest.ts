@@ -12,13 +12,13 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import type { Base64 } from "@tutao/tutanota-utils"
-import { groupBy, numberRange, splitInChunks } from "@tutao/tutanota-utils"
+import type { Base64 } from "@tutao/utils"
+import { groupBy, numberRange, splitInChunks } from "@tutao/utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/common/misc/ClientConstants.js"
 import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
-import { aes256RandomKey, FIXED_IV } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"

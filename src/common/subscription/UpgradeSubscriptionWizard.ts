@@ -1,5 +1,5 @@
-import type { Hex } from "@tutao/tutanota-utils"
-import { defer } from "@tutao/tutanota-utils"
+import type { Hex } from "@tutao/utils"
+import { defer } from "@tutao/utils"
 import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import {
 	AvailablePlans,

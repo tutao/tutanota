@@ -13,7 +13,7 @@ import { Card } from "../../../common/gui/base/Card"
 import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
 import { ListModel, selectionAttrsForList } from "../../../common/misc/ListModel"
 import { elementIdPart, isSameId, sortCompareById } from "../../../common/api/common/utils/EntityUtils"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import Stream from "mithril/stream"
 

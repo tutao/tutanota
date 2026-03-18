@@ -16,7 +16,7 @@ import {
 	ofClass,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	ChangeKdfService,
 	ChangePasswordService,
@@ -81,7 +81,7 @@ import {
 	TotpSecret,
 	TotpVerifier,
 	uint8ArrayToKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"

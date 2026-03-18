@@ -13,7 +13,7 @@ import { locator } from "../api/main/CommonLocator"
 import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import { mailLocator } from "../../mail-app/mailLocator.js"
 import { showInfoSnackbar, showSnackBar } from "../gui/base/SnackBar.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/utils"
 import { AffiliateViewModel } from "./AffiliateViewModel.js"
 
 /**

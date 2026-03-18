@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { LOG_SIZE, Logger } from "../../../../../src/common/api/common/Logger.js"
-import { lastThrow } from "@tutao/tutanota-utils"
+import { lastThrow } from "@tutao/utils"
 o.spec("Loger test", function () {
 	let dateProvider
 	let log

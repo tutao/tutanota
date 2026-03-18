@@ -1,5 +1,5 @@
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
-import { assertNotNull, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { assertNotNull, hexToUint8Array, uint8ArrayToHex } from "@tutao/utils"
 import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "./Rsa.js"
 import type { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "./RsaKeyPair.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "./Liboqs/KyberKeyPair.js"

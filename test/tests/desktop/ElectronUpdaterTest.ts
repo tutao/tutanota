@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import type { App } from "electron"
 import type { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { delay, downcast } from "@tutao/tutanota-utils"
+import { delay, downcast } from "@tutao/utils"
 import { ElectronUpdater } from "../../../src/common/desktop/ElectronUpdater.js"
 import type { UpdaterWrapper } from "../../../src/common/desktop/UpdaterWrapper.js"
 import n from "../nodemocker.js"

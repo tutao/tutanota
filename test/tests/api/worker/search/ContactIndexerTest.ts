@@ -8,7 +8,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { ContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/ContactIndexerBackend"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 import { EntityUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { BlobElementEntity, ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
 

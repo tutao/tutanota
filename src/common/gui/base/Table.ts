@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { progressIcon } from "./Icon"
-import { downcast, neverNull } from "@tutao/tutanota-utils"
+import { downcast, neverNull } from "@tutao/utils"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { Icons } from "./icons/Icons"
 import type { ClickHandler } from "./GuiUtils"

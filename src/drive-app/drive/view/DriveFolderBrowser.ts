@@ -5,7 +5,7 @@ import { LoginButton } from "../../../common/gui/base/buttons/LoginButton"
 import { theme } from "../../../common/gui/theme"
 import { LoginTextField } from "../../../common/gui/base/LoginTextField"
 import { FolderItem, folderItemEntity } from "./DriveUtils"
-import { isEmpty } from "@tutao/tutanota-utils"
+import { isEmpty } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveMiniFolderContentAttrs {

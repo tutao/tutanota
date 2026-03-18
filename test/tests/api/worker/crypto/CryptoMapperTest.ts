@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/crypto"
 import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import {
 	ClientModelParsedInstance,
@@ -7,7 +7,7 @@ import {
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 } from "../../../../../src/common/api/common/EntityTypes.js"
-import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { assertThrows } from "@tutao/tutanota-test-utils"

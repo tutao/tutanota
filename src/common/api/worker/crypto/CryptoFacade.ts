@@ -13,7 +13,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 	Versioned,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	AccountType,
 	asCryptoProtoocolVersion,
@@ -76,7 +76,7 @@ import {
 	PublicKey,
 	sha256Hash,
 	X25519PublicKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"

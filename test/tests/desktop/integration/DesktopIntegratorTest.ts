@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { getDesktopIntegratorForPlatform } from "../../../../src/common/desktop/integration/DesktopIntegrator.js"
-import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
+import { downcast, LazyLoaded } from "@tutao/utils"
 import type { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { lang } from "../../../../src/common/misc/LanguageViewModel.js"
 import en from "../../../../src/mail-app/translations/en.js"

@@ -37,7 +37,7 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "..
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import SignupWizardLayout from "./SignupWizardLayout"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 
 assertMainOrNode()
 

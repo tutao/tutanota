@@ -4,7 +4,7 @@ import {
 	ServerModelUntypedInstance,
 	ServerTypeModel,
 } from "../../../../../src/common/api/common/EntityTypes"
-import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, TypeRef } from "@tutao/utils"
 import o from "@tutao/otest"
 import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
 import { assertThrows } from "@tutao/tutanota-test-utils"

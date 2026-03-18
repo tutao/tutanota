@@ -15,7 +15,7 @@ import {
 	LazyLoaded,
 	splitInChunks,
 	symmetricDifference,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
 	CalendarAttendeeStatus,

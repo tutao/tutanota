@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
-import { takeFromMap } from "@tutao/tutanota-utils"
+import { takeFromMap } from "@tutao/utils"
 
 export type ExposedProgressTracker = Pick<
 	ProgressTracker,

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ThemeController } from "../../../src/common/gui/ThemeController.js"
 import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../src/common/misc/WhitelabelCustomizations.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { ThemeFacade } from "../../../src/common/native/common/generatedipc/ThemeFacade"
 import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"

@@ -2,7 +2,7 @@ import type { BookingItemFeatureType } from "../../../common/TutanotaConstants.j
 import { Const } from "../../../common/TutanotaConstants.js"
 import type { PriceData, PriceItemData, PriceServiceReturn } from "../../../entities/sys/TypeRefs.js"
 import { createPriceRequestData, createPriceServiceData } from "../../../entities/sys/TypeRefs.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { PriceService } from "../../../entities/sys/Services.js"

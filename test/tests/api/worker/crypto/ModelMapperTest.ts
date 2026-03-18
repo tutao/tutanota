@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/crypto"
 import {
 	assertAndSupplyCorrectAssociationClientCardinality,
 	assertCorrectValueCardinality,
@@ -10,7 +10,7 @@ import {
 	valueToDefault,
 } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AssociationType, Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { ClientModelParsedInstance, ModelAssociation, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"

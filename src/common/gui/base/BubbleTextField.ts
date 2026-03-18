@@ -3,7 +3,7 @@ import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
 import { MaybeTranslation, Translation } from "../../misc/LanguageViewModel"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
-import { lazy } from "@tutao/tutanota-utils"
+import { lazy } from "@tutao/utils"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 
 export enum BubbleTextFieldClickBehaviour {

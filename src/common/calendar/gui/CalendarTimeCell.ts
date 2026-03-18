@@ -1,4 +1,4 @@
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import m, { ClassComponent, Vnode } from "mithril"
 import { getTimeFromClickInteraction } from "../date/CalendarUtils"
 import { RowBounds } from "./CalendarTimeGrid"

@@ -1,4 +1,4 @@
-import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/tutanota-utils"
+import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/utils"
 import { Aes256Key, uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4

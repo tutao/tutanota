@@ -1,5 +1,5 @@
 import { IProgressMonitor, ProgressListener } from "./ProgressMonitor"
-import { first, last } from "@tutao/tutanota-utils"
+import { first, last } from "@tutao/utils"
 
 const DEFAULT_RATE_PER_SECOND = 0.5
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000

@@ -1,7 +1,7 @@
 import { AesKey, FIXED_IV, generateIV, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
 import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { assert } from "@tutao/tutanota-utils"
+import { assert } from "@tutao/utils"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 
 /**

@@ -15,18 +15,7 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import {
-	assertNotNull,
-	downcast,
-	getDayShifted,
-	getFirstOrThrow,
-	getTypeString,
-	lastThrow,
-	mapNullable,
-	promiseMap,
-	typedKeys,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, getTypeString, lastThrow, mapNullable, promiseMap, typedKeys, TypeRef } from "@tutao/utils"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import {
 	BodyTypeRef,

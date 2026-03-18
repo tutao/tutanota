@@ -17,7 +17,7 @@ import type {
 	ContactSocialId,
 	ContactWebsite,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, downcast, memoized, NBSP, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, memoized, NBSP, noOp } from "@tutao/utils"
 import {
 	getContactAddressTypeLabel,
 	getContactCustomDateTypeToLabel,

@@ -1,4 +1,4 @@
-import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/utils"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "./LanguageViewModel"
 import type { ClickHandler } from "../gui/base/GuiUtils"

@@ -6,7 +6,7 @@
 import { CalendarEvent, createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { assertNotNull, clone, identity, incrementDate, isNotEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, identity, incrementDate, isNotEmpty } from "@tutao/utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,

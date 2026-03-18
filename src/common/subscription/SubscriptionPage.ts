@@ -14,7 +14,7 @@ import { AvailablePlanType, Keys, PlanType, SubscriptionType } from "../api/comm
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { PaymentInterval } from "./utils/PriceUtils.js"
-import { lazy } from "@tutao/tutanota-utils"
+import { lazy } from "@tutao/utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { PlanSelector } from "./PlanSelector.js"

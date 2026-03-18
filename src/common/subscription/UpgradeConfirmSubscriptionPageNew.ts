@@ -7,7 +7,7 @@ import { AccountType, AvailablePlanType, Const, PaymentMethodType, PlanType } fr
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
-import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"

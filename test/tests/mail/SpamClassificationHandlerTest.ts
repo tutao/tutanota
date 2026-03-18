@@ -26,7 +26,7 @@ import {
 	SpamDecision,
 } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
-import { assert, assertNotNull } from "@tutao/tutanota-utils"
+import { assert, assertNotNull } from "@tutao/utils"
 import { createTestEntity } from "../TestUtils"
 import { SERVER_CLASSIFIERS_TO_TRUST, SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"

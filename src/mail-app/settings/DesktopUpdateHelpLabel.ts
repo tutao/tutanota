@@ -2,7 +2,7 @@ import m, { Child, Children, Vnode } from "mithril"
 import { Icon } from "../../common/gui/base/Icon"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
-import { delay } from "@tutao/tutanota-utils"
+import { delay } from "@tutao/utils"
 import Stream from "mithril/stream"
 
 export type UpdateHelpLabelAttrs = {

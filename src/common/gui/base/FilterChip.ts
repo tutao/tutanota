@@ -3,7 +3,7 @@ import { AllIcons, Icon } from "./Icon"
 import { BootIcons } from "./icons/BootIcons"
 import { theme } from "../theme"
 import { ClickHandler } from "./GuiUtils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { lang, Translation } from "../../misc/LanguageViewModel"
 import { component_size, px, size } from "../size"
 

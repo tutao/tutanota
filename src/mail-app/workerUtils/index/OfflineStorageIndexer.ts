@@ -1,6 +1,6 @@
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
-import { assertNotNull, difference } from "@tutao/tutanota-utils"
+import { assertNotNull, difference } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"

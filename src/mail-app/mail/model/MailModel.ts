@@ -14,7 +14,7 @@ import {
 	ofClass,
 	promiseMap,
 	splitInChunks,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	Mail,
 	MailboxGroupRoot,

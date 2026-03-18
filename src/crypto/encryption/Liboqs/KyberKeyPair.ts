@@ -1,4 +1,4 @@
-import { byteArraysToBytes, bytesToByteArrays, concat } from "@tutao/tutanota-utils"
+import { byteArraysToBytes, bytesToByteArrays, concat } from "@tutao/utils"
 import { KYBER_POLYVECBYTES, KYBER_SYMBYTES } from "./Kyber.js"
 
 export type KyberKeyPair = {

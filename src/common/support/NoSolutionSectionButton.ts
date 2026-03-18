@@ -1,4 +1,4 @@
-import { Thunk } from "@tutao/tutanota-utils"
+import { Thunk } from "@tutao/utils"
 import m, { Children, Component, Vnode } from "mithril"
 import { SectionButton } from "../gui/base/buttons/SectionButton.js"
 

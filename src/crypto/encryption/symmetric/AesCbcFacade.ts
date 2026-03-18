@@ -9,7 +9,7 @@ import {
 	uint8ArrayToBitArray,
 } from "./SymmetricCipherUtils.js"
 import { CryptoError } from "../../misc/CryptoError.js"
-import { assertNotNull, concat } from "@tutao/tutanota-utils"
+import { assertNotNull, concat } from "@tutao/utils"
 import sjcl from "../../internal/sjcl.js"
 import { hmacSha256, verifyHmacSha256 } from "../Hmac.js"
 import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"

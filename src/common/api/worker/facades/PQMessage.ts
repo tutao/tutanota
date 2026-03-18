@@ -1,5 +1,5 @@
-import { X25519PublicKey } from "@tutao/tutanota-crypto"
-import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils"
+import { X25519PublicKey } from "@tutao/crypto"
+import { byteArraysToBytes, bytesToByteArrays } from "@tutao/utils"
 
 export type PQMessage = {
 	senderIdentityPubKey: X25519PublicKey

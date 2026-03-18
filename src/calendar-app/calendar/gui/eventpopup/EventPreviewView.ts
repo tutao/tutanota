@@ -19,7 +19,7 @@ import {
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
-import { downcast, memoized } from "@tutao/tutanota-utils"
+import { downcast, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import type { RepeatRule } from "../../../../common/api/entities/sys/TypeRefs.js"
 import { cleanMailAddress, findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"

@@ -60,7 +60,7 @@ import {
 	PQPublicKeys,
 	RsaPublicKey,
 	uint8ArrayToKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
@@ -78,7 +78,7 @@ import {
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { AdminGroupKeyRotationService, GroupKeyRotationService, UserGroupKeyRotationService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/utils"
 import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"

@@ -8,7 +8,7 @@ import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { Icon, IconSize } from "../../../gui/base/Icon"
 
 type VerificationErrorInfoPageAttrs = {

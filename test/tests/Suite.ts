@@ -197,7 +197,7 @@ import "./mail/view/LabelsPopupViewModelTest.js"
 import "./settings/NotificationSettingsViewerModelTest.js"
 
 import * as td from "testdouble"
-import { random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/crypto"
 import { Mode } from "../../src/common/api/common/Env.js"
 
 export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {

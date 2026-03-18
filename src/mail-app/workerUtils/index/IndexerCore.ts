@@ -52,7 +52,7 @@ import {
 	tokenize,
 	TypeRef,
 	uint8ArrayToBase64,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
@@ -83,7 +83,7 @@ import {
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges,
 } from "../../../common/api/worker/search/SearchIndexEncoding.js"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "@tutao/crypto"
 import {
 	ElementDataOS,
 	GroupDataOS,

@@ -19,7 +19,7 @@ import {
 	UsageTestParticipationInTypeRef,
 } from "../../../src/common/api/entities/usage/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
-import { clone } from "@tutao/tutanota-utils"
+import { clone } from "@tutao/utils"
 import { Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import { SuspensionBehavior } from "../../../src/common/api/worker/rest/RestClient.js"
 import { UsageTestAssignmentService, UsageTestParticipationService } from "../../../src/common/api/entities/usage/Services.js"

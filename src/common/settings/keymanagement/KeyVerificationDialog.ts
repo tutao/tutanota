@@ -17,7 +17,7 @@ import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchInfoPage"
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade"
 
 enum KeyVerificationDialogPages {

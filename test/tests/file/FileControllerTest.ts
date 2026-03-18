@@ -4,7 +4,7 @@ import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFaca
 import { NativeFileApp } from "../../../src/common/native/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FileReference } from "../../../src/common/api/common/utils/FileUtils.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { DataFile } from "../../../src/common/api/common/DataFile.js"
 import { BlobTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { FileTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"

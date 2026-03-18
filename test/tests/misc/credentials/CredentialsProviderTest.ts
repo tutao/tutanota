@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { CredentialsProvider } from "../../../../src/common/misc/credentials/CredentialsProvider.js"
-import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"

@@ -2,7 +2,7 @@ import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.j
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { createMailAddressProperties, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { findAndRemove } from "@tutao/tutanota-utils"
+import { findAndRemove } from "@tutao/utils"
 
 /** Name changer for personal mailbox of the currently logged-in user. */
 export class OwnMailAddressNameChanger implements MailAddressNameChanger {

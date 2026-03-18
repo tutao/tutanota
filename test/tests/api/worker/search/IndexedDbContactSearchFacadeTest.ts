@@ -6,7 +6,7 @@ import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/i
 import { clientInitializedTypeModelResolver } from "../../../TestUtils"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { typedValues } from "@tutao/tutanota-utils"
+import { typedValues } from "@tutao/utils"
 
 o.spec("IndexedDbContactSearchFacade", () => {
 	let facade: IndexedDbContactSearchFacade

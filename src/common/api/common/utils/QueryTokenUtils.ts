@@ -1,5 +1,5 @@
 import { escapeRegExp } from "./PlainTextSearch"
-import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty } from "@tutao/utils"
 
 /**
  * A token that was found in {@link splitQuery}

@@ -4,7 +4,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { font_size, px } from "../../../common/gui/size"
 import { keyboardEventToKeyPress, keyHandler } from "../../../common/misc/KeyManager"
 import { theme } from "../../../common/gui/theme"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import Stream from "mithril/stream"
 
 export type TemplateSearchBarAttrs = {

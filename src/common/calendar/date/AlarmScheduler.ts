@@ -1,5 +1,5 @@
-import type { Thunk } from "@tutao/tutanota-utils"
-import { downcast } from "@tutao/tutanota-utils"
+import type { Thunk } from "@tutao/utils"
+import { downcast } from "@tutao/utils"
 import { EndType } from "../../../common/api/common/TutanotaConstants.js"
 import type { AlarmInfo, RepeatRule } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { ScheduledTimeoutId, Scheduler } from "../../../common/api/common/utils/Scheduler.js"

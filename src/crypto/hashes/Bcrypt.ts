@@ -1,7 +1,7 @@
 // @ts-ignore[untyped-import]
 import bCrypt from "../internal/bCrypt.js"
 import { random } from "../random/Randomizer.js"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { KeyLength } from "../misc/Constants.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "./Sha256.js"

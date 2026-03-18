@@ -1,5 +1,5 @@
 import { OfflineDbMeta, OfflineStorage } from "./OfflineStorage.js"
-import { assertNotNull, last } from "@tutao/tutanota-utils"
+import { assertNotNull, last } from "@tutao/utils"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { offline5 } from "./migrations/offline-v5"

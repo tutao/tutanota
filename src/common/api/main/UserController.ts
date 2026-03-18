@@ -1,6 +1,6 @@
 import { AccountType, FeatureType, GroupType, LegacyPlans, OperationType, PlanType } from "../common/TutanotaConstants"
-import type { Base64Url } from "@tutao/tutanota-utils"
-import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/tutanota-utils"
+import type { Base64Url } from "@tutao/utils"
+import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
 import { MediaType } from "../common/EntityFunctions"
 import { assertMainOrNode, getApiBaseUrl, isDesktop } from "../common/Env"
 

@@ -1,7 +1,7 @@
 import { CacheStorage, LastUpdateTime, Range } from "./DefaultEntityRestCache.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../../common/EntityTypes"
-import { Nullable, TypeRef } from "@tutao/tutanota-utils"
+import { Nullable, TypeRef } from "@tutao/utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"

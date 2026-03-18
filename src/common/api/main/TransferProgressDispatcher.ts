@@ -1,4 +1,4 @@
-import { remove } from "@tutao/tutanota-utils"
+import { remove } from "@tutao/utils"
 import { ChunkedDownloadInfo, ChunkedUploadInfo } from "../common/drive/DriveTypes"
 
 export type UploadListener = (info: ChunkedUploadInfo) => unknown

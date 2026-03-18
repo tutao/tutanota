@@ -26,7 +26,7 @@ import {
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { noOp, ofClass } from "@tutao/utils"
 import { showUserError } from "./ErrorHandlerImpl"
 import type { ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import { locator } from "../api/main/CommonLocator"

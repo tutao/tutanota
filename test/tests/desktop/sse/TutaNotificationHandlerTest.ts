@@ -21,8 +21,8 @@ import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { aes256RandomKey } from "@tutao/crypto"
+import { assertNotNull } from "@tutao/utils"
 
 type UndiciFetch = typeof undiciFetch
 

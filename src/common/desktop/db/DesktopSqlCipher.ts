@@ -1,5 +1,5 @@
 import { Database } from "@signalapp/sqlcipher"
-import { mapNullable, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { mapNullable, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"

@@ -16,7 +16,7 @@ import {
 } from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
 import { matchers, object, verify, when } from "testdouble"
-import { downcast, getTypeString, promiseMap } from "@tutao/tutanota-utils"
+import { downcast, getTypeString, promiseMap } from "@tutao/utils"
 import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
 import { CacheMode, EntityRestClient, EntityRestClientLoadOptions } from "../../../../src/common/api/worker/rest/EntityRestClient"
 import { elementIdPart, listIdPart, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils"

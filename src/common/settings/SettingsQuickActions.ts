@@ -1,7 +1,7 @@
 import { lang } from "../misc/LanguageViewModel"
 import { Router } from "../gui/ScopedRouter"
 import { isApp, isBrowser, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
-import { isNotNull } from "@tutao/tutanota-utils"
+import { isNotNull } from "@tutao/utils"
 import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { QuickAction } from "../misc/quickactions/QuickActionsModel"

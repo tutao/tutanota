@@ -9,7 +9,7 @@
  * tutao: heavily stripped down to only take x86hash32, removed types for now.
  * This implementation should handle non-ascii characters.
  */
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 
 function x86fmix32(h: number) {
 	h ^= h >>> 16

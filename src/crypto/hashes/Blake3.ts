@@ -3,7 +3,7 @@ import { Aes256Key, keyToUint8Array } from "../encryption/symmetric/SymmetricCip
 import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { MacTag } from "../misc/Constants.js"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 
 export const DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES = 32
 

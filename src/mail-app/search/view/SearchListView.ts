@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, isSameTypeRef, TypeRef } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"

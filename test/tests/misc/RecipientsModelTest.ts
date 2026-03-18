@@ -10,7 +10,7 @@ import { ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/common/a
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { EncryptionKeyVerificationState, GroupType, PresentableKeyVerificationState } from "../../../src/common/api/common/TutanotaConstants.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
-import { defer, delay } from "@tutao/tutanota-utils"
+import { defer, delay } from "@tutao/utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"

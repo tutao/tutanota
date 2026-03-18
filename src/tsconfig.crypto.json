@@ -1,0 +1,30 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["../types/*.d.ts", "./crypto/encryption", "./crypto/hashes", "./crypto/misc", "./crypto/random"],
+	"files": [
+		"crypto/index.ts",
+		"crypto/error.ts",
+		"crypto/internal/bCrypt.js",
+		"crypto/internal/crypto-jsbn-2012-08-09_1.js",
+		"crypto/internal/sjcl.js",
+		"crypto/internal/noble-curves-1.3.0.js",
+		"crypto/internal/noble-hashes-2.0.1.js"
+	],
+	"compilerOptions": {
+		"outDir": "crypto/dist",
+		"incremental": true,
+		"rootDir": "crypto",
+		"tsBuildInfoFile": "crypto/dist/tsbuildinfo"
+	},
+	"references": [
+		{
+			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "../packages/otest"
+		},
+		{
+			"path": "../packages/tutanota-error"
+		}
+	]
+}

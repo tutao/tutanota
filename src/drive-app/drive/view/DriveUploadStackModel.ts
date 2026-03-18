@@ -1,6 +1,6 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { SECOND_IN_MILLIS } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 
 type DriveTransferType = "upload" | "download"

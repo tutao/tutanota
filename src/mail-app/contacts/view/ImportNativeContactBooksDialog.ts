@@ -2,7 +2,7 @@ import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
 import { ContactBook } from "../../../common/native/common/generatedipc/ContactBook.js"
 import m, { Children } from "mithril"
 import { Checkbox } from "../../../common/gui/base/Checkbox.js"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 /**

@@ -1,6 +1,6 @@
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { LeavingUserSurveyCategoryPage, LeavingUserSurveyPageAttrs } from "./LeavingUserSurveyCategoryPage.js"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { LeavingUserSurveyReasonPage } from "./LeavingUserSurveyReasonPage.js"
 import { DialogType } from "../gui/base/Dialog.js"
 

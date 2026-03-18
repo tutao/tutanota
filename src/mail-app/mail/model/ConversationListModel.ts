@@ -29,7 +29,7 @@ import {
 	lastThrow,
 	mapWithout,
 	memoizedWithHiddenArgument,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"

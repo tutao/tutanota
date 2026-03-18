@@ -1,4 +1,4 @@
-import { identity } from "@tutao/tutanota-utils"
+import { identity } from "@tutao/utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"

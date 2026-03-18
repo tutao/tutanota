@@ -1,5 +1,5 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule, NewsletterBannerRule, OperationType } from "../../../common/TutanotaConstants.js"
 import {
@@ -14,7 +14,7 @@ import {
 	IV_BYTE_LENGTH,
 	random,
 	aesDecryptUnauthenticated,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { UserFacade } from "../UserFacade.js"
 import {
 	EncryptedDbKeyBaseMetaData,

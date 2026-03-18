@@ -15,7 +15,7 @@ import { FULL_INDEXED_TIMESTAMP, Keys } from "../../common/api/common/TutanotaCo
 import { assertMainOrNode, isApp } from "../../common/api/common/Env"
 import { styles } from "../../common/gui/styles"
 import { client } from "../../common/misc/ClientDetector"
-import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/utils"
 import { BrowserType } from "../../common/misc/ClientConstants"
 import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"

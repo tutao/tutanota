@@ -26,6 +26,10 @@
 		"noStrictGenericChecks": false,
 		"strictNullChecks": true,
 		"useUnknownInCatchVariables": false,
-		"types": ["node"]
+		"types": ["node"],
+		"paths": {
+			"@tutao/utils": ["./src/utils"],
+			"@tutao/crypto": ["./src/crypto"]
+		}
 	}
 }

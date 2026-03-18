@@ -1,6 +1,6 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel.js"
-import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
+import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
 import m from "mithril"

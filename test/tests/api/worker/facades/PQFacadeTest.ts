@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, generateX25519KeyPair, keyToUint8Array, pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, generateX25519KeyPair, keyToUint8Array, pqKeyPairsToPublicKeys } from "@tutao/crypto"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"

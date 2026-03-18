@@ -3,7 +3,7 @@ import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewMo
 import { lang } from "../../misc/LanguageViewModel"
 import { theme } from "../theme"
 import { font_size, px, size } from "../size"
-import type { lazy } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/utils"
 
 export type TextDisplayAreaAttrs = {
 	value: string

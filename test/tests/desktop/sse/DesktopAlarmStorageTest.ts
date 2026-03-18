@@ -6,10 +6,10 @@ import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/Deskto
 import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
-import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
-import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,

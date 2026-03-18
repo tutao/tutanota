@@ -1,4 +1,4 @@
-import { startsWith } from "@tutao/tutanota-utils"
+import { startsWith } from "@tutao/utils"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"
 export const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)

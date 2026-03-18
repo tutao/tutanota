@@ -2,16 +2,7 @@ import { SseClient, SseEventHandler } from "./SseClient.js"
 import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
-import {
-	assertNotNull,
-	base64ToBase64Url,
-	downcast,
-	filterInt,
-	neverNull,
-	stringToUtf8Uint8Array,
-	throttleStart,
-	uint8ArrayToBase64,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, throttleStart, uint8ArrayToBase64 } from "@tutao/utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
 import {
 	AlarmNotificationTypeRef,

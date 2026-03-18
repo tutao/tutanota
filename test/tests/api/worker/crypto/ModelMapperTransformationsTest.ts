@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
 import { ClientModelParsedInstance, ClientTypeModel, ServerModelParsedInstance, ServerTypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"

@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { isEmpty } from "@tutao/tutanota-utils"
+import { isEmpty } from "@tutao/utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"

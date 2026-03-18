@@ -18,8 +18,8 @@ import {
 	X25519KeyPair,
 	X25519PublicKey,
 	X25519SharedSecrets,
-} from "@tutao/tutanota-crypto"
-import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+} from "@tutao/crypto"
+import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
 import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
 

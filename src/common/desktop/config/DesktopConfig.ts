@@ -1,5 +1,5 @@
-import type { DeferredObject } from "@tutao/tutanota-utils"
-import { defer, downcast } from "@tutao/tutanota-utils"
+import type { DeferredObject } from "@tutao/utils"
+import { defer, downcast } from "@tutao/utils"
 import type { MigrationKind } from "./migrations/DesktopConfigMigrator"
 import { DesktopConfigMigrator } from "./migrations/DesktopConfigMigrator"
 import type { Config } from "./ConfigCommon"

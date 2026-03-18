@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { QuickAction, QuickActionsModel } from "../../../../src/common/misc/quickactions/QuickActionsModel"
 import { func } from "testdouble"
 import { assertWorkerOrNode } from "../../../../src/common/api/common/Env"
-import { addAll } from "@tutao/tutanota-utils"
+import { addAll } from "@tutao/utils"
 import { verify } from "@tutao/tutanota-test-utils"
 
 type QuickActionExec = QuickAction["exec"]

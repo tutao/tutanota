@@ -1,0 +1,13 @@
+{
+	"extends": "./../tsconfig_common.json",
+	"include": ["./utils/*", "./../types/"],
+	"compilerOptions": {
+		//		"baseUrl": "./",
+		"outDir": "./utils/dist",
+		"rootDir": "./utils",
+		"tsBuildInfoFile": "./utils/dist/tsbuildinfo",
+		"incremental": true,
+		"composite": true
+	},
+	"references": []
+}

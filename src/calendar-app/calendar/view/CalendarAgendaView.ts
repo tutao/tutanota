@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, incrementDate, isToday, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, incrementDate, isToday, stringToBase64 } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
 import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
