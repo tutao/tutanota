@@ -2,9 +2,11 @@ package routes
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 )
@@ -95,8 +97,30 @@ func (p *TutaProxy) StartProxyCleanupJob() {
 
 func (p *TutaProxy) Run(listenAddress string) {
 	loggedMux := loggingMiddleware(p.rootHandler)
-	err := http.ListenAndServe(listenAddress, loggedMux)
-	log.Fatalln("TutaProxy ended: ", err)
+
+	hpSharedKey := os.Getenv("HP_SHARED_KEY")
+	if hpSharedKey != "" {
+		socketPath := "/tmp/exapp.sock"
+		// Clean up stale socket
+		if err := os.RemoveAll(socketPath); err != nil {
+			log.Fatal(err)
+		}
+
+		var listener net.Listener
+		var err error
+		listener, err = net.Listen("unix", socketPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Listening on unix socket:", socketPath)
+		http.Serve(listener, loggedMux)
+	} else {
+		err := http.ListenAndServe(listenAddress, loggedMux)
+		log.Fatalln("TutaProxy ended: ", err)
+
+	}
+
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
