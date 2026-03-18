@@ -21,11 +21,10 @@ import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
-import { Aes256Key, aes256RandomKey, aesEncrypt, FIXED_IV, IV_BYTE_LENGTH, random, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, aesDecryptUnauthenticated, aesEncrypt, FIXED_IV } from "@tutao/tutanota-crypto"
 import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
 import {
 	decryptIndexKey,
@@ -914,32 +913,6 @@ o.spec("IndexerCore", () => {
 			o.check(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 	})
-	o.test("writeIndexUpdate _updateGroupDataBatchId abort in case batch has been indexed already", async function () {
-		let groupId = "my-group"
-
-		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
-
-		const batchId = "last-batch-id"
-		const deferred = defer<void>()
-		let transaction: any = {
-			get: (os, key) => {
-				o.check(os).equals(GroupDataOS)
-				o.check(key).equals(groupId)
-				let groupData: GroupData = {
-					lastBatchIds: ["1", "last-batch-id", "3"],
-				} as any
-				return Promise.resolve(groupData)
-			},
-			aborted: true,
-			abort: () => {
-				deferred.resolve()
-			},
-		}
-		const core = makeCore()
-
-		core._updateGroupDataBatchId(groupId, batchId, transaction)
-		await deferred.promise
-	})
 	o.test("writeIndexUpdate _updateGroupDataBatchId", async function () {
 		let groupId = "my-group"
 
@@ -952,7 +925,7 @@ o.spec("IndexerCore", () => {
 				o.check(os).equals(GroupDataOS)
 				o.check(key).equals(groupId)
 				let groupData: GroupData = {
-					lastBatchIds: ["4", "3", "1"],
+					lastBatchId: "1",
 				} as any
 				return Promise.resolve(groupData)
 			},
@@ -962,7 +935,7 @@ o.spec("IndexerCore", () => {
 				o.check(key).equals(groupId)
 				o.check(JSON.stringify(value)).equals(
 					JSON.stringify({
-						lastBatchIds: ["4", "3", "2", "1"],
+						lastBatchId: "2",
 					}),
 				)
 				deferred.resolve()

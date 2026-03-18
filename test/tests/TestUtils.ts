@@ -8,7 +8,7 @@ import { mock } from "@tutao/tutanota-test-utils"
 import { Aes256Key, aes256RandomKey, FIXED_IV } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
-import { Entity, ModelValue, ParsedInstance, TypeModel } from "../../src/common/api/common/EntityTypes.js"
+import { Entity, ModelValue, TypeModel } from "../../src/common/api/common/EntityTypes.js"
 import { create, generatedIdToTimestamp, timestampToGeneratedId } from "../../src/common/api/common/utils/EntityUtils.js"
 import { ClientModelInfo, ServerModelInfo, ServerModels, TypeModelResolver } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
@@ -18,6 +18,8 @@ import { ModelMapper } from "../../src/common/api/worker/crypto/ModelMapper"
 import { dummyResolver } from "./api/worker/crypto/InstancePipelineTestUtils"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 import { ClientPlatform } from "../../src/common/misc/ClientDetector"
+import { ProgrammingError } from "../../src/common/api/common/error/ProgrammingError"
+import { DateProvider } from "../../src/common/api/common/DateProvider.js"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -370,8 +372,4 @@ export class IdGenerator {
 		this.currentId = incrementId(this.currentId, incrementByMs)
 		return this.currentId
 	}
-}
-
-export function isEven(num: number): boolean {
-	return num % 2 === 0
 }

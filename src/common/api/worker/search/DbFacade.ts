@@ -1,5 +1,5 @@
 import { DbError } from "../../common/error/DbError"
-import { delay, downcast, LazyLoaded, newPromise, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay, downcast, LazyLoaded, newPromise, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { IndexingNotSupportedError } from "../../common/error/IndexingNotSupportedError"
 import { QuotaExceededError } from "../../common/error/QuotaExceededError"
 import { sha256Hash } from "@tutao/tutanota-crypto"
@@ -43,6 +43,7 @@ function extractErrorProperties(e: any): string {
 /** facade to manage a single named indexedDb */
 export class DbFacade {
 	private _id!: string
+	private _initialized: DeferredObject<IDBDatabase> = defer<IDBDatabase>()
 	private _db: LazyLoaded<IDBDatabase>
 	private _activeTransactions: number
 	indexingSupported: boolean = true

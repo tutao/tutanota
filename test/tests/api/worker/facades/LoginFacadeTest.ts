@@ -230,6 +230,7 @@ o.spec("LoginFacadeTest", function () {
 					}),
 				)
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 			o.test("When no database key is provided and session is persistent, a key is generated and we attempt offline db init", async function () {
 				const databaseKey = Uint8Array.from([1, 2, 3, 4])
@@ -245,11 +246,13 @@ o.spec("LoginFacadeTest", function () {
 					}),
 				)
 				verify(databaseKeyFactoryMock.generateKey(), { times: 1 })
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 			o.test("When no database key is provided and session is Login, nothing is passed to the offline storage initialzier", async function () {
 				await facade.createSession(login, passphrase, "client", SessionType.Login, null)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 			o.test("When no database key is provided and session is persistent, valid credentials are returned", async () => {
 				const result = await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
@@ -261,6 +264,7 @@ o.spec("LoginFacadeTest", function () {
 				o(credentials.encryptedPassword).notEquals(null)
 				o(credentials.type).equals(CredentialType.Internal)
 				o(credentials.accessToken).equals(accessToken)
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
 			o.spec("Rollouts are configured", function () {
@@ -274,6 +278,7 @@ o.spec("LoginFacadeTest", function () {
 							argThat((arg) => arg instanceof KeyRotationRolloutAction),
 						),
 					)
+					verify(eventBusClientMock.connect(ConnectMode.Initial))
 				})
 
 				o.test("OtherGroupKeyRotation rollout is configured", async function () {
@@ -286,6 +291,7 @@ o.spec("LoginFacadeTest", function () {
 							argThat((arg) => arg instanceof KeyRotationRolloutAction),
 						),
 					)
+					verify(eventBusClientMock.connect(ConnectMode.Initial))
 				})
 			})
 		})
@@ -372,6 +378,7 @@ o.spec("LoginFacadeTest", function () {
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 
 				o(facade.asyncLoginState).deepEquals({ state: "idle" })("Synchronous login occured, so once resume returns we have already logged in")
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
 			o.test("when resuming a session and the offline initialization has an existing database, we do async login", async function () {
@@ -430,6 +437,7 @@ o.spec("LoginFacadeTest", function () {
 						argThat((credentials: Credentials) => credentials.encryptedPassphraseKey != null),
 					),
 				)
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 		})
 
@@ -595,6 +603,7 @@ o.spec("LoginFacadeTest", function () {
 
 				// just wait for the async login to not bleed into other test cases or to not randomly fail
 				await fullLoginDeferred.promise
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			}
 
 			async function testConnectionFailingAsyncLogin() {
@@ -693,7 +702,6 @@ o.spec("LoginFacadeTest", function () {
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
-				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
 			o("when retrying failed login, userFacade is initialized", async function () {
@@ -733,7 +741,6 @@ o.spec("LoginFacadeTest", function () {
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
-				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 		})
 
@@ -802,7 +809,6 @@ o.spec("LoginFacadeTest", function () {
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
-				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 		})
 
@@ -855,6 +861,7 @@ o.spec("LoginFacadeTest", function () {
 				)
 
 				o(result.type).equals("success")
+				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
 			o("when the salt is outdated, AccessExpiredError is thrown", async function () {

@@ -30,7 +30,7 @@ import {
 } from "../../../../src/common/api/common/utils/EntityUtils"
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
-import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
@@ -42,6 +42,8 @@ import { ProcessInboxHandler } from "../../../../src/mail-app/mail/model/Process
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem"
 import { WebsocketConnectivityModel } from "../../../../src/common/misc/WebsocketConnectivityModel"
 
+import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
+
 o.spec("MailListModel", () => {
 	let model: MailListModel
 
@@ -50,10 +52,6 @@ o.spec("MailListModel", () => {
 		mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 		mailGroup: createTestEntity(GroupTypeRef),
 		mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
-	}
-	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
-		instance: null,
-		patches: null,
 	}
 
 	const mailSetEntriesListId = "entries"
@@ -375,7 +373,6 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			entityUpdateData.operation = OperationType.UPDATE
@@ -397,7 +394,6 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			entityUpdateData.operation = OperationType.DELETE
 
@@ -417,7 +413,6 @@ o.spec("MailListModel", () => {
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			const oldItems = model.items
@@ -452,7 +447,6 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			when(entityClient.load(MailSetEntryTypeRef, newEntry._id)).thenResolve(newEntry)
@@ -508,7 +502,6 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
@@ -528,7 +521,6 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 			entityUpdateData.operation = OperationType.DELETE

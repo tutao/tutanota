@@ -46,7 +46,6 @@ import { ServiceExecutor } from "../../../common/api/worker/rest/ServiceExecutor
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
-import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
@@ -105,7 +104,6 @@ import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
 import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
 import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
-import { EventInstancePrefetcher } from "../../../common/api/worker/EventInstancePrefetcher"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
@@ -118,6 +116,12 @@ import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import {
+	IndexedDbLastProcessedEventBatchStorageFacade,
+	LastProcessedEventBatchStorageFacade,
+	OfflineStorageLastProcessedEventBatchStorageFacade,
+} from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
+import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
 
 assertWorkerOrNode()
 
@@ -205,6 +209,8 @@ export type WorkerLocatorType = {
 
 	// drive
 	driveFacade: lazyAsync<DriveFacade>
+
+	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -296,7 +302,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			const core = await indexerCore()
 			return new MailIndexer(
 				mainInterface.infoMessageHandler,
-				bulkLoaderFactory,
+				locator.bulkMailLoader,
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
@@ -391,11 +397,24 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
 
-	// We don't want to cache within the admin client
+	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
+		if (isOfflineStorageAvailable()) {
+			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
+		} else {
+			return new IndexedDbLastProcessedEventBatchStorageFacade(indexerCore, ephemeralStorageProvider, mailIndexer)
+		}
+	})
 
+	// We don't want to cache within the admin client
 	let cache: DefaultEntityRestCache | null = null
 	if (!isAdminClient()) {
-		cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, locator.patchMerger)
+		cache = new DefaultEntityRestCache(
+			entityRestClient,
+			maybeUninitializedStorage,
+			typeModelResolver,
+			locator.patchMerger,
+			locator.lastProcessedEventBatchStorageFacade,
+		)
 	}
 	locator.cache = cache ?? entityRestClient
 
@@ -410,16 +429,24 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const prepareBulkLoaderFactory = async () => {
 		const { BulkMailLoader } = await import("../index/BulkMailLoader.js")
 		const mailFacade = await locator.mail()
-		return () => {
+		return async () => {
 			// On platforms with offline cache we just use cache as we are not bounded by memory.
 			if (isOfflineStorageAvailable()) {
 				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient, mailFacade)
 			} else {
 				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
 				// We create empty CustomCacheHandlerMap because this cache is separate anyway and user updates don't matter.
-				const cacheStorage = new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, new CustomCacheHandlerMap())
 				return new BulkMailLoader(
-					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage, typeModelResolver, locator.patchMerger), typeModelResolver),
+					new EntityClient(
+						new DefaultEntityRestCache(
+							entityRestClient,
+							await ephemeralStorageProvider(),
+							typeModelResolver,
+							locator.patchMerger,
+							locator.lastProcessedEventBatchStorageFacade,
+						),
+						typeModelResolver,
+					),
 					new EntityClient(entityRestClient, typeModelResolver),
 					mailFacade,
 				)
@@ -612,7 +639,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer and SpamClassifier after log in")
-				fullLoginIndexerInit(worker)
+				await fullLoginIndexerInit(worker)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
@@ -844,20 +871,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.identityKeyCreator,
 		mainInterface.syncTracker,
 	)
-	const prefetcher = new EventInstancePrefetcher(locator.cache)
 	locator.eventBusClient = new EventBusClient(
 		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
 		cache ?? new AdminClientDummyEntityRestCache(),
 		locator.user,
-		locator.cachingEntityClient,
 		locator.instancePipeline,
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
-		mainInterface.progressTracker,
 		typeModelResolver,
 		locator.crypto,
-		prefetcher,
+		locator.lastProcessedEventBatchStorageFacade,
+		serverDateProvider,
+		mainInterface.progressTracker,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

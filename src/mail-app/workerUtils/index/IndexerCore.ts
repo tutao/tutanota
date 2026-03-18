@@ -53,7 +53,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
@@ -134,6 +134,7 @@ export class IndexerCore {
 	private _promiseMapCompat: PromiseMapFn
 	private _needsExplicitIds: boolean
 	private _explicitIdStart: number
+	indexedGroupIds: Array<Id>
 
 	constructor(db: EncryptedDbWrapper, browserData: BrowserData) {
 		this.db = db
@@ -141,6 +142,7 @@ export class IndexerCore {
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 		this._needsExplicitIds = browserData.needsExplicitIDBIds
 		this._explicitIdStart = Date.now()
+		this.indexedGroupIds = []
 	}
 
 	async storeMetadata(key: keyof typeof Metadata, value: unknown): Promise<void> {
@@ -284,13 +286,25 @@ export class IndexerCore {
 		return this._writeIndexUpdate(indexUpdate, noOp)
 	}
 
-	async writeGroupDataBatchId(groupId: Id, batchId: Id) {
+	async putLastBatchIdForGroup(groupId: Id, batchId: Id) {
 		await this._executeOperation({
 			transaction: null,
 			deferred: defer(),
 			isAbortedForBackgroundMode: false,
 			transactionFactory: () => this.db.dbFacade.createTransaction(false, [SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS]),
 			operation: (transaction) => this._updateGroupDataBatchId(groupId, batchId, transaction),
+		})
+	}
+
+	async getLastProcessedEventBatchIdForGroup(groupId: Id): Promise<Id | null> {
+		return await this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
+			return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
+				if (groupData) {
+					return groupData.lastBatchId
+				} else {
+					return null
+				}
+			})
 		})
 	}
 
@@ -921,25 +935,8 @@ export class IndexerCore {
 			if (!groupData) {
 				throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
 			}
-
-			if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId) !== -1) {
-				// concurrent indexing (multiple tabs)
-				console.warn("Abort transaction on updating group data: concurrent access", groupId, batchId)
-				transaction.abort()
-			} else {
-				const newIndex = groupData.lastBatchIds.findIndex((indexedBatchId) => firstBiggerThanSecond(batchId, indexedBatchId))
-
-				if (newIndex !== -1) {
-					groupData.lastBatchIds.splice(newIndex, 0, batchId)
-				} else {
-					groupData.lastBatchIds.push(batchId) // new batch is oldest of all stored batches
-				}
-
-				// We keep the last 1000 batch IDs
-				groupData.lastBatchIds = groupData.lastBatchIds.slice(0, 1000)
-
-				return transaction.put(GroupDataOS, groupId, groupData)
-			}
+			groupData.lastBatchId = batchId
+			return transaction.put(GroupDataOS, groupId, groupData)
 		})
 	}
 

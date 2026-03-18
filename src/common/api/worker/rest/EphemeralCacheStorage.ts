@@ -432,14 +432,6 @@ export class EphemeralCacheStorage implements CacheStorage {
 		this.lastUpdateTime = value
 	}
 
-	async getLastTrainingDataIndexId(): Promise<Id> {
-		return this.lastTrainingDataId
-	}
-
-	async setLastTrainingDataIndexId(id: Id): Promise<void> {
-		this.lastTrainingDataId = id
-	}
-
 	async getLastTrainedFromScratchTime(): Promise<number> {
 		return this.lastTrainedFromScratchTime ?? Date.now()
 	}

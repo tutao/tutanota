@@ -6,12 +6,12 @@ import {
 	OperationType,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import type { EntityUpdate, GroupMembership, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { GroupMembership, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, daysToMillis, defer, downcast, first, isNotNull, last, millisToDays, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { contains, daysToMillis, defer, downcast, isNotNull, isSameTypeRef, millisToDays, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { isSameId, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
@@ -19,7 +19,6 @@ import { ContactIndexer } from "./ContactIndexer.js"
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
-import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { EventQueue } from "../../../common/api/worker/EventQueue.js"
@@ -28,7 +27,7 @@ import { MembershipRemovedError } from "../../../common/api/common/error/Members
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
-import { aes256EncryptSearchIndexEntry, aes256RandomKey, AesKey, decryptKey, IV_BYTE_LENGTH, random, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aes256RandomKey, aesDecryptUnauthenticated, AesKey, decryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import {
 	ElementDataOS,
@@ -44,7 +43,7 @@ import {
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
-import { EntityUpdateData, entityUpdateToUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
@@ -52,6 +51,7 @@ import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
+import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError"
 
 export type InitParams = {
 	user: User
@@ -109,11 +109,6 @@ export interface LoadedGroupData {
 	groupData: GroupData
 }
 
-interface GroupBatches {
-	groupId: Id
-	eventBatchIds: Id[]
-}
-
 /**
  * Top-level orchestrator for search index.
  *  - Allows enabling/disabling mail indexing
@@ -124,23 +119,11 @@ export class IndexedDbIndexer implements Indexer {
 	private initParams!: InitParams
 
 	/**
-	 * Last batch id per group from initial loading.
-	 * In case we get duplicate events from loading and websocket we want to filter them out to avoid processing duplicates.
-	 * */
-	private initiallyLoadedBatchIdsPerGroup: Map<Id, Id>
-
-	/**
 	 * Queue which gets all the websocket events and dispatches them to the other queue. It is paused until we load initial events to avoid
 	 * putting events from websocket before initial events.
 	 * @private visibleForTesting
 	 */
-	_realtimeEventQueue: EventQueue
-	/** @private visibleForTesting */
-	_indexedGroupIds: Array<Id>
-
-	/** @private visibleForTesting */
-	readonly eventQueue = new EventQueue("indexer", (batch) => this._processEntityEvents(batch))
-
+	eventQueue: EventQueue = new EventQueue("indexer_realtime", (batch: QueuedBatch) => this._processEntityEvents(batch))
 	constructor(
 		private readonly serverDateProvider: DateProvider,
 		/** @private visibleForTesting */
@@ -152,24 +135,7 @@ export class IndexedDbIndexer implements Indexer {
 		private readonly contactIndexer: ContactIndexer,
 		private readonly typeModelResolver: ClientTypeModelResolver,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
-	) {
-		// correctly initialized during init()
-		this._indexedGroupIds = []
-		this.initiallyLoadedBatchIdsPerGroup = new Map()
-		this._realtimeEventQueue = new EventQueue("indexer_realtime", (nextElement: QueuedBatch) => {
-			// During initial loading we remember the last batch we loaded
-			// so if we get updates from EventBusClient here for things that are already loaded we discard them
-			const loadedIdForGroup = this.initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
-
-			if (loadedIdForGroup == null || firstBiggerThanSecond(nextElement.batchId, loadedIdForGroup)) {
-				this.eventQueue.addBatches([nextElement])
-			}
-
-			return Promise.resolve()
-		})
-
-		this._realtimeEventQueue.pause()
-	}
+	) {}
 
 	async partialLoginInit() {
 		// no-op: this is not intended to be used offline / partial login
@@ -185,7 +151,8 @@ export class IndexedDbIndexer implements Indexer {
 		this.initDeferred = defer()
 
 		try {
-			await this.db.dbFacade.open(this.getDbId(user))
+			const dbId = this.getDbId(user)
+			await this.db.dbFacade.open(dbId)
 			await this.mailIndexer.init(user)
 			const metaData = await getIndexerMetaData(this.db.dbFacade, MetaDataOS)
 			if (metaData == null) {
@@ -212,12 +179,8 @@ export class IndexedDbIndexer implements Indexer {
 			await this.indexOrLoadContactListIfNeeded()
 			await this.mailIndexer.mailboxIndexingPromise
 
-			// pause event processing until mail indexing is finished
 			this.eventQueue.pause()
-			await this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp)
-			this.eventQueue.resume()
-			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
-			await this._loadAndQueueMissedEntityUpdates(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing()))
+			this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp).then(() => this.eventQueue.resume())
 		} catch (e) {
 			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -269,16 +232,8 @@ export class IndexedDbIndexer implements Indexer {
 		const enabled = await this.mailIndexer.enableMailIndexing()
 		if (enabled) {
 			this.eventQueue.pause()
-			try {
-				await this.mailIndexer.doInitialMailIndexing(this.initParams.user)
-				this.eventQueue.resume()
-			} catch (e) {
-				if (e instanceof CancelledError) {
-					// no-op
-				} else {
-					throw e
-				}
-			}
+			await this.mailIndexer.doInitialMailIndexing(this.initParams.user)
+			this.eventQueue.resume()
 		}
 	}
 
@@ -336,7 +291,15 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
-		this._realtimeEventQueue.addBatches([{ events: updates, batchId, groupId }])
+		try {
+			await this.writeServerTimestamp()
+			await this.throwIfOutOfDate()
+		} catch (e) {
+			if (e instanceof OutOfSyncError) {
+				await this.disableMailIndexing()
+			}
+		}
+		this.eventQueue.addBatches([{ events: updates, batchId, groupId }])
 		// Trigger event queue processing in case it was stopped due to an error
 		// Realtime queue won't be automatically paused and doesn't need a trigger here. It will be resumed when
 		// we loaded all events.
@@ -399,7 +362,7 @@ export class IndexedDbIndexer implements Indexer {
 			this.disableMailIndexing()
 		}
 
-		this._indexedGroupIds = indexedGroupIds
+		this.core.indexedGroupIds = indexedGroupIds
 	}
 
 	/** @private visibleForTesting */
@@ -467,35 +430,30 @@ export class IndexedDbIndexer implements Indexer {
 	 * @private visibleForTesting
 	 */
 	_loadGroupData(user: User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
-		let memberships = filterIndexMemberships(user)
+		let memberships = user.memberships
+		memberships.push(user.userGroup)
+
 		const restrictTo = restrictToTheseGroups // type check
 
 		if (restrictTo) {
 			memberships = memberships.filter((membership) => contains(restrictTo, membership.group))
 		}
 
-		return promiseMap(memberships, (membership: GroupMembership) => {
-			// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
-			return this.entity
-				.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
-				.then((eventBatches) => {
-					return {
-						groupId: membership.group,
-						groupData: {
-							lastBatchIds: eventBatches.map((eventBatch) => eventBatch._id[1]),
-							indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-							groupType: getMembershipGroupType(membership),
-						} as GroupData,
-					}
-				})
-				.catch(
-					ofClass(NotAuthorizedError, () => {
-						console.log("could not download entity updates => lost permission on list")
-						return null
-					}),
-				)
-		}) // sequentially to avoid rate limiting
-			.then((data) => data.filter(isNotNull))
+		return promiseMap(memberships, async (membership: GroupMembership) => {
+			const FIVE_SECONDS_IN_MILLISECONDS = 5000
+			const lastProcessedBatchId =
+				(await this.core.getLastProcessedEventBatchIdForGroup(membership.group)) ??
+				timestampToGeneratedId(this.serverDateProvider.now() - FIVE_SECONDS_IN_MILLISECONDS)
+			this.core.indexedGroupIds.push(membership.group)
+			return {
+				groupId: membership.group,
+				groupData: {
+					lastBatchId: lastProcessedBatchId,
+					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+					groupType: getMembershipGroupType(membership),
+				} as GroupData,
+			}
+		}).then((data) => data.filter(isNotNull))
 	}
 
 	/**
@@ -509,102 +467,17 @@ export class IndexedDbIndexer implements Indexer {
 		return t2.wait()
 	}
 
-	/**
-	 * Load entity events since the last processed event for each group. Add them to the {@link this.eventQueue}.
-	 * It is similar to what {@link EventBusClient} does on reconnect or after login with offline.
-	 * @private visibleForTesting
-	 */
-	async _loadAndQueueMissedEntityUpdates(groupIdToEventBatches: GroupBatches[]): Promise<void> {
-		const batchesOfAllGroups: QueuedBatch[] = []
-		const lastLoadedBatchIdInGroup = new Map<Id, Id>()
-		await this.throwIfOutOfDate()
-
-		for (let { eventBatchIds, groupId } of groupIdToEventBatches) {
-			// We keep the last 1000 eventBatchIds. This was done in the past to detect out of sync situations,
-			// but now it is done based on timestamp (see throwIfOutOfDate()).
-			const startId = first(eventBatchIds)
-			if (startId == null) {
-				continue
-			}
-
-			let eventBatchesOnServer: EntityEventBatch[]
-			try {
-				eventBatchesOnServer = await this.entity.loadAll(EntityEventBatchTypeRef, groupId, startId)
-			} catch (e) {
-				if (e instanceof NotAuthorizedError) {
-					console.log(`could not download entity updates for group ${groupId} => lost permission on list`)
-					continue
-				}
-
-				throw e
-			}
-			const batchesToQueue: QueuedBatch[] = await promiseMap(eventBatchesOnServer, async (entityEventBatch) => {
-				const updatesArray = await promiseMap(entityEventBatch.events, (event) => entityUpdateToUpdateData(event))
-				return {
-					groupId: groupId,
-					batchId: getElementId(entityEventBatch),
-					events: updatesArray,
-				}
-			})
-
-			const lastBatch = last(batchesToQueue)
-			if (lastBatch != null) {
-				lastLoadedBatchIdInGroup.set(groupId, lastBatch.batchId)
-			}
-
-			batchesOfAllGroups.push(...batchesToQueue)
-		}
-
-		// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
-		// Add them directly to the core so that they are added before the realtime batches
-		this.eventQueue.addBatches(batchesOfAllGroups)
-
-		// Add latest batches per group so that we can filter out overlapping realtime updates later
-		this.initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
-
-		this._realtimeEventQueue.resume()
-
-		this._startProcessing()
-		await this.writeServerTimestamp()
-	}
-
-	/**
-	 * @private visibleForTesting
-	 */
-	_loadPersistentGroupData(user: User): Promise<GroupBatches[]> {
-		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
-			return Promise.all(
-				filterIndexMemberships(user).map((membership) => {
-					return t.get(GroupDataOS, membership.group).then((groupData: GroupData | null) => {
-						if (groupData) {
-							return {
-								groupId: membership.group,
-								eventBatchIds: groupData.lastBatchIds,
-							}
-						} else {
-							throw new InvalidDatabaseStateError(
-								"no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","),
-							)
-						}
-					})
-				}),
-			)
-		})
-	}
-
 	/** @private visibleForTesting */
 	async _processEntityEvents(batch: QueuedBatch): Promise<any> {
 		const { groupId, batchId, events } = batch
 		try {
 			await this.initDeferred.promise
-			if (!this._indexedGroupIds.includes(groupId)) {
-				return
-			}
 
+			await this._processUserEntityEvents(events)
 			await this.processMailEntityEvents(events)
 			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
 			await this.contactIndexer.processEntityEvents(events, groupId, batchId)
-			await this.core.writeGroupDataBatchId(groupId, batchId)
+			await this.core.putLastBatchIdForGroup(groupId, batchId)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				// no-op
@@ -659,9 +532,11 @@ export class IndexedDbIndexer implements Indexer {
 	/**
 	 * @private visibleForTesting
 	 */
-	async _processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
+	async _processUserEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
 		for (const event of events) {
-			if (!(event.operation === OperationType.UPDATE && isSameId(this.initParams.user._id, event.instanceId))) {
+			if (
+				!(event.operation === OperationType.UPDATE && isSameTypeRef(UserTypeRef, event.typeRef) && isSameId(this.initParams.user._id, event.instanceId))
+			) {
 				continue
 			}
 			this.initParams.user = await this.entity.load(UserTypeRef, event.instanceId)

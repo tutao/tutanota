@@ -68,7 +68,8 @@ export class MailIndexer {
 		return this._currentIndexTimestamp
 	}
 
-	private _mailIndexingEnabled: boolean
+	/** @private visibleForTesting */
+	_mailIndexingEnabled: boolean
 	private initialized: DeferredObject<void> = defer()
 
 	get mailIndexingEnabled(): boolean {
@@ -84,7 +85,7 @@ export class MailIndexer {
 
 	constructor(
 		private readonly infoMessageHandler: InfoMessageHandler,
-		private readonly bulkLoaderFactory: () => BulkMailLoader,
+		private readonly bulkLoaderFactory: () => Promise<BulkMailLoader>,
 		private readonly entityClient: EntityClient,
 		dateProvider: DateProvider,
 		private readonly mailFacade: MailFacade,
@@ -365,7 +366,7 @@ export class MailIndexer {
 			this.infoMessageHandler.onSearchIndexStateUpdate(update({ progress }))
 		})
 
-		const indexLoader = this.bulkLoaderFactory()
+		const indexLoader = await this.bulkLoaderFactory()
 
 		const mailboxIndexDatas: Array<MboxIndexData> = await promiseMap(mailBoxes, async (mailboxData) => {
 			const mailSetListIds = await this.loadMailFolderListIds(mailboxData.mbox)
@@ -534,7 +535,7 @@ export class MailIndexer {
 	 * after importing lots of mails...
 	 */
 	private async preloadMails(mailIds: IdTuple[]): Promise<MailWithDetailsAndAttachments[]> {
-		const indexLoader = this.bulkLoaderFactory()
+		const indexLoader = await this.bulkLoaderFactory()
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailIds)
 		const mailsWithDetails = await indexLoader.loadMailDetails(mails)
 		const attachments = await indexLoader.loadAttachments(mails)

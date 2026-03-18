@@ -693,23 +693,6 @@ export class OfflineStorage implements CacheStorage {
 		return this.sqlCipherFacade.run(query, params)
 	}
 
-	async getLastBatchIdForGroup(groupId: Id): Promise<Id | null> {
-		const { query, params } = sql`SELECT batchId
-                                    from lastUpdateBatchIdPerGroupId
-                                    WHERE groupId = ${groupId}`
-		const row = (await this.sqlCipherFacade.get(query, params)) as { batchId: TaggedSqlValue } | null
-		return (row?.batchId?.value ?? null) as Id | null
-	}
-
-	async putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {
-		const { query, params } = sql`INSERT
-        OR REPLACE INTO lastUpdateBatchIdPerGroupId VALUES (
-        ${groupId},
-        ${batchId}
-        )`
-		await this.sqlCipherFacade.run(query, params)
-	}
-
 	async getLastUpdateTime(): Promise<LastUpdateTime> {
 		const time = await this.getMetadata("lastUpdateTime")
 		return time ? { type: "recorded", time } : { type: "never" }

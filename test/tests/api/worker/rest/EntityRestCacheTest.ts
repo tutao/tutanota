@@ -57,10 +57,11 @@ import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/co
 import { PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
-import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { collapseId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
+import { LastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 
 const { anything } = matchers
 
@@ -129,6 +130,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		let typeModelResolver: TypeModelResolver
 		let modelMapper: ModelMapper
 		let patchMergerMock: PatchMerger
+		let lastProcessedBatchIdStorageFacadeMock: LastProcessedEventBatchStorageFacade
 
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
@@ -146,7 +148,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			operation: OperationType,
 			instance: Nullable<T>,
 			patches: Nullable<Array<Patch>>,
-			prefetchStatus: PrefetchStatus,
 		): Promise<EntityUpdateData<T>> {
 			const entityUpdate = createEntityUpdate({
 				instanceListId: listId,
@@ -156,30 +157,29 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				application: typeRef.app,
 				patch: patches ? createPatchList({ patches }) : null,
 				instance: null, // will be added by entityUpdateToUpdateData
+				blobInstance: null,
 			})
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
-			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, prefetchStatus)
+			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, null)
 		}
 		let updateDataForCreate = function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			instance: Nullable<T>,
-			prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
 		): Promise<EntityUpdateData<T>> {
-			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [], prefetchStatus)
+			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [])
 		}
 		let updateDataForUpdate = async function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			patches: Nullable<Array<Patch>>,
-			prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
 		): Promise<EntityUpdateData<T>> {
-			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches, prefetchStatus)
+			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches)
 		}
 		let updateDataForDelete = async function <T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
-			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [], PrefetchStatus.NotPrefetched)
+			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [])
 		}
 
 		let createId = function (idText) {
@@ -253,12 +253,15 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o.beforeEach(async function () {
 			userId = "userId"
 			customCacheHandlerMap = object()
+			lastProcessedBatchIdStorageFacadeMock = object<LastProcessedEventBatchStorageFacade>()
 			storage = await getStorage(userId, customCacheHandlerMap)
 			typeModelResolver = clientInitializedTypeModelResolver()
 			modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 			entityRestClient = mockRestClient()
 			patchMergerMock = object<PatchMerger>()
-			cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock)
+			cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 		})
 
 		o.spec("ERC entityEventsReceived", function () {
@@ -270,20 +273,20 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const id4 = "id4"
 
 			o("writes batch meta on entity update", async function () {
-				const contact1 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
-				const contact2 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id2] })
+				const contact1 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1], _ownerGroup: "owner-group" })
+				const contact2 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id2], _ownerGroup: "owner-group" })
 
 				const batch = [
-					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1, PrefetchStatus.NotPrefetched),
-					await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2, PrefetchStatus.NotPrefetched),
+					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1),
+					await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2),
 				]
 
-				const putLastBatchIdForGroup = func<typeof storage.putLastBatchIdForGroup>()
+				const putLastBatchIdForGroup = func<typeof lastProcessedBatchIdStorageFacadeMock.putLastEntityEventBatchForGroup>()
 				when(putLastBatchIdForGroup(groupId, batchId)).thenResolve(undefined)
-				replace(storage, "putLastBatchIdForGroup", putLastBatchIdForGroup)
+				replace(lastProcessedBatchIdStorageFacadeMock, "putLastEntityEventBatchForGroup", putLastBatchIdForGroup)
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
-				await cache.getLastEntityEventBatchForGroup(groupId)
+				await lastProcessedBatchIdStorageFacadeMock.getLastEntityEventBatchForGroup(groupId)
 				verify(putLastBatchIdForGroup(groupId, batchId))
 			})
 
@@ -291,8 +294,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o("create is not in cache range", async function () {
 					const contact = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
 					const batch = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact, PrefetchStatus.NotPrefetched),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
 					]
 					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
@@ -311,9 +314,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					})
 					const thirdContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id3] })
 					const batch: readonly EntityUpdateData[] = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null),
 					]
 					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
 					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new NotFoundError("does not exist"))
@@ -325,19 +328,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					o(await storage.get(ContactTypeRef, firstContactListId, id3)).equals(null)
 					o(filteredUpdates.length).equals(2)
 					o(batch.filter((eud) => eud.instanceId !== id2)).deepEquals([...filteredUpdates])
-				})
-
-				o("create events are not loaded from network if prefetched", async function () {
-					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id2)
-
-					const batch: readonly EntityUpdateData[] = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.Prefetched),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.Prefetched),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.Prefetched),
-					]
-
-					await cache.entityEventsReceived(batch, "batchId", groupId)
-					verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 0 })
 				})
 
 				o("create events are loaded from network if instance is not available on entity update", async function () {
@@ -360,9 +350,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						typeId: ContactTypeRef.typeId.toString(),
 						application: ContactTypeRef.app,
 						patch: null,
-						instance: null, // will be added by entityUpdateToUpdateData
+						instance: null,
+						blobInstance: null,
 					})
-					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, null, PrefetchStatus.NotPrefetched)
+					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, null, null)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id2],
@@ -377,13 +368,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						typeId: ContactTypeRef.typeId.toString(),
 						application: ContactTypeRef.app,
 						patch: null,
-						instance: null, // will be added by entityUpdateToUpdateData
+						instance: null,
+						blobInstance: null,
 					})
-					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, null, PrefetchStatus.NotPrefetched)
+					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, null, null)
 
 					const batch: readonly EntityUpdateData[] = [
 						contact1EntityUpdate,
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2),
 						contact3EntityUpdate,
 					]
 
@@ -415,10 +407,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						application: ContactTypeRef.app,
 						patch: null,
 						instance: null, // will be added by entityUpdateToUpdateData
+						blobInstance: null,
 					})
 					const contact1Parsed = await toStorableInstance(contact1)
 					contact1Parsed._errors = { 12: "some error for contact 1" }
-					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, PrefetchStatus.NotPrefetched)
+					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id2],
@@ -437,14 +430,15 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						application: ContactTypeRef.app,
 						patch: null,
 						instance: null, // will be added by entityUpdateToUpdateData
+						blobInstance: null,
 					})
 					const contact3Parsed = await toStorableInstance(contact3)
 					contact3Parsed._errors = { 12: "some error for contact 3" }
-					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, PrefetchStatus.NotPrefetched)
+					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
 
 					const batch: readonly EntityUpdateData[] = [
 						contact1EntityUpdate,
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2),
 						contact3EntityUpdate,
 					]
 
@@ -453,6 +447,42 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				o("create events are partially in cache range", async function () {
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id1)
+					await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, id4)
+
+					const sampleContact = createTestEntity(ContactTypeRef, {
+						_permissions: "permissions",
+						_ownerGroup: "owner-group",
+					})
+
+					const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
+					const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
+					const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
+					const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
+
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, firstContact._id)).thenResolve(await toStorableInstance(firstContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, secondContact._id)).thenResolve(await toStorableInstance(secondContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, thirdContact._id)).thenResolve(await toStorableInstance(thirdContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, fourthContact._id)).thenResolve(await toStorableInstance(fourthContact))
+
+					const batch = [
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
+						await updateDataForCreate(ContactTypeRef, secondContactListId, id3, null),
+						await updateDataForCreate(ContactTypeRef, secondContactListId, id4, null),
+					]
+					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
+					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
+					o(await storage.get(ContactTypeRef, secondContactListId, id3)).equals(null)
+					o(filteredUpdates.length).equals(batch.length)
+					for (const update of batch) {
+						o(filteredUpdates.includes(update)).equals(true)
+					}
+				})
+
+				o("create events with instances are always cached", async function () {
 					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id1)
 					await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, id4)
 
@@ -473,9 +503,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					]
 					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id2)))).deepEquals(secondContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
 					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
-					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
-					o(await storage.get(ContactTypeRef, secondContactListId, id3)).equals(null)
 					o(filteredUpdates.length).equals(batch.length)
 					for (const update of batch) {
 						o(filteredUpdates.includes(update)).equals(true)
@@ -485,8 +515,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o("update is not in cache range", async function () {
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
 				]
 				const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
@@ -510,9 +540,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
 
 				const batch: readonly EntityUpdateData[] = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new NotFoundError("does not exist"))
@@ -524,19 +554,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id3))).deepEquals(thirdContact)
 				o(filteredUpdates.length).equals(2)
 				o(batch.filter((eud) => eud.instanceId !== id2)).deepEquals([...filteredUpdates])
-			})
-
-			o("update events are not loaded from network if prefetched", async function () {
-				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id2)
-
-				const batch: readonly EntityUpdateData[] = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.Prefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.Prefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.Prefetched),
-				]
-
-				await cache.entityEventsReceived(batch, "batchId", groupId)
-				verify(entityRestClient.loadParsedInstance(anything(), anything(), anything()), { times: 0 })
 			})
 
 			o("update events are loaded from network if patches are null and no instance is on the update", async function () {
@@ -570,11 +587,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				// patch data is null, BUT instance not null does NOT trigger re-load
-				const updateContact1 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched)
+				const updateContact1 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null)
 				updateContact1.instance = parsedInstance1
-				const updateContact2 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched)
+				const updateContact2 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null)
 				updateContact2.instance = parsedInstance2
-				const updateContact3 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched)
+				const updateContact3 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null)
 				updateContact3.instance = parsedInstance3
 				const batch: readonly EntityUpdateData[] = [updateContact1, updateContact2, updateContact3]
 
@@ -615,9 +632,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				// patch data is null trigger re-load
 				const batch: readonly EntityUpdateData[] = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
@@ -657,9 +674,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				const batch: readonly EntityUpdateData[] = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
@@ -710,10 +727,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch], PrefetchStatus.NotPrefetched), // update for item not in cache range
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch], PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, secondContactListId, id3, [firstNamePatch], PrefetchStatus.NotPrefetched), // update for item not in cache range
-					await updateDataForUpdate(ContactTypeRef, secondContactListId, id4, [firstNamePatch], PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch]), // update for item not in cache range
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch]),
+					await updateDataForUpdate(ContactTypeRef, secondContactListId, id3, [firstNamePatch]), // update for item not in cache range
+					await updateDataForUpdate(ContactTypeRef, secondContactListId, id4, [firstNamePatch]),
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenResolve(null)
@@ -773,8 +790,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch], PrefetchStatus.NotPrefetched),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch], PrefetchStatus.NotPrefetched), // update for item not in cache should be skipped
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch]),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch]), // update for item not in cache should be skipped
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenDo(async () => {
@@ -822,15 +839,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o.test("create event should not write to storage if no instance is attached to it", async () => {
 				const blob = createMailDetailsBlobInstance("blobListId", "blobId", "test storage")
-				let blobUpdate = await makeUpdateData(
-					MailDetailsBlobTypeRef,
-					listIdPart(blob._id),
-					elementIdPart(blob._id),
-					OperationType.CREATE,
-					null,
-					[],
-					PrefetchStatus.Prefetched,
-				)
+				let blobUpdate = await makeUpdateData(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), OperationType.CREATE, null, [])
 
 				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId, GENERATED_MIN_ID, GENERATED_MAX_ID)
 				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
@@ -877,7 +886,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await cache.entityEventsReceived(
 					[
 						await updateDataForDelete(MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0])),
-						await updateDataForCreate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), mailSetEntries[0]),
+						await updateDataForCreate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), null),
 					],
 					"batchId",
 					groupId,
@@ -1415,7 +1424,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			async function () {
 				const clientMock = object<EntityRestClient>()
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock)
+
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const listId = "listId"
 
@@ -1462,7 +1474,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			async function () {
 				const clientMock = object<EntityRestClient>()
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const listId = "listId1"
 
@@ -1516,7 +1530,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			async function () {
 				const clientMock = object<EntityRestClient>()
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const listId = "listId1"
 				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
@@ -1554,7 +1570,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			async function () {
 				const clientMock = object<EntityRestClient>()
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const id1 = createId("1")
 				const id2 = createId("2")
@@ -1730,7 +1748,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				return toStorableInstance(contact)
 			})
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 
 			await cache.load(ContactTypeRef, contactId, {
 				queryParams: {
@@ -1751,7 +1771,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 			when(entityRestClient.loadParsedInstance(anything(), anything(), anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 			const firstLoaded = await cache.load(ContactTypeRef, contactId)
 			removeOriginals(firstLoaded)
 			o(firstLoaded).deepEquals(contactOnTheServer)
@@ -1802,7 +1824,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				}),
 			})
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 			await cache.load(PermissionTypeRef, permissionId)
 			await cache.load(PermissionTypeRef, permissionId)
 			// @ts-ignore
@@ -1819,7 +1843,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 			when(client.loadParsedInstance(MailAddressToGroupTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 
 			const loadedEntity = await cache.load(MailAddressToGroupTypeRef, id)
 			await cache.load(MailAddressToGroupTypeRef, id)
@@ -1839,7 +1865,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 			when(client.loadParsedInstance(RootInstanceTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 
 			const loadedEntity = await cache.load(RootInstanceTypeRef, id)
 			await cache.load(RootInstanceTypeRef, id)
@@ -1867,7 +1895,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await toStorableInstance(secondEntity),
 			])
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 
 			const loadedEntity = await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
 			await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
@@ -1903,7 +1933,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				ignoreExtraArgs: true,
 			}).thenResolve([await toStorableInstance(firstEntity), await toStorableInstance(secondEntity)])
 			const patchMergerMock = object<PatchMerger>()
-			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+			)
 
 			const loadedEntity = await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
 			loadedEntity.map(removeOriginals)
@@ -1956,7 +1988,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const client: EntityRestClient = mockRestClient()
 				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				removeOriginals(cacheBypassed1)
@@ -2011,7 +2045,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], anything(), anything()),
 				).thenResolve([await toStorableInstance(contactAOnTheServer), await toStorableInstance(contactBOnTheServer)])
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
@@ -2067,7 +2103,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const client: EntityRestClient = mockRestClient()
 				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const cacheReadonly1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly1)
@@ -2120,7 +2158,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				])
 
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 
 				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.ReadOnly,
@@ -2172,7 +2212,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				])
 
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadOnly })
 				o(cacheReadonly1).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
@@ -2222,7 +2264,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await toStorableInstance(contactBOnTheServer),
 				])
 				const patchMergerMock = object<PatchMerger>()
-				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
+					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
+				)
 				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadOnly })
 				o(cacheReadonly1).deepEquals([contactBOnTheServer])
 				// Fresh cache

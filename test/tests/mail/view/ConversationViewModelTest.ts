@@ -22,7 +22,9 @@ import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions"
-import { EntityEventsListener, EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityEventsListener } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+
+import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -42,10 +44,6 @@ o.spec("ConversationViewModel", function () {
 	let canUseConversationView: boolean
 
 	const listId = "listId"
-	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
-		instance: null,
-		patches: null,
-	}
 
 	const viewModelFactory = async (): Promise<
 		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
@@ -261,7 +259,6 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",
@@ -301,7 +298,6 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: anotherMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",
@@ -330,7 +326,6 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",
@@ -356,7 +351,6 @@ o.spec("ConversationViewModel", function () {
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 						...noPatchesAndInstance,
 					},
 				],
@@ -401,7 +395,6 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: trashDraftMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",

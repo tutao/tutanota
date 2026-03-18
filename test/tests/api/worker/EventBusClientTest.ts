@@ -1,9 +1,7 @@
 import o from "@tutao/otest"
 import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/common/api/worker/EventBusClient.js"
 import { GroupType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
-import type { EntityUpdate } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
-	EntityEventBatchTypeRef,
 	EntityUpdateTypeRef,
 	GroupMembershipTypeRef,
 	User,
@@ -15,58 +13,66 @@ import {
 	WebsocketEntityDataTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
-import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
-import { defer, noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/tutanota-utils"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { EventQueue } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
-import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
-import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
+import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
+import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 
+export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
+	instance: null,
+	patches: null,
+	blobInstance: null,
+}
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
 	let cacheMock: DefaultEntityRestCache
-	let restClient: EntityRestClientMock
 	let userMock: UserFacade
 	let socket: WebSocket
 	let user: User
 	let sleepDetector: SleepDetector
 	let listenerMock: EventBusListener
-	let progressTrackerMock: ExposedProgressTracker
 	let instancePipeline: InstancePipeline
 	let socketFactory: (path: string) => WebSocket
 	let typeModelResolver: TypeModelResolver
-	let entityClient: EntityClient
 	let cryptoFacadeMock: CryptoFacade
-	let eventInstancePrefetcher: EventInstancePrefetcher
 	let connectivityListenerMock: WebsocketConnectivityListener
+	let lastProcessedEventBatchStorageFacade: LastProcessedEventBatchStorageFacade
+	let now = Date.UTC(2026, 3, 25)
 
 	function initEventBus() {
+		const serverDateProvider = {
+			now() {
+				return now
+			},
+			timeZone(): string {
+				throw new ProgrammingError("not supported")
+			},
+		}
 		ebc = new EventBusClient(
 			connectivityListenerMock,
 			listenerMock,
 			cacheMock,
 			userMock,
-			entityClient,
 			instancePipeline,
 			socketFactory,
 			sleepDetector,
-			progressTrackerMock,
 			typeModelResolver,
 			cryptoFacadeMock,
-			eventInstancePrefetcher,
+			() => Promise.resolve(lastProcessedEventBatchStorageFacade),
+			serverDateProvider,
+			object(),
 		)
 	}
 
@@ -86,8 +92,7 @@ o.spec("EventBusClientTest", function () {
 
 	o.beforeEach(async function () {
 		listenerMock = object()
-		progressTrackerMock = object()
-		eventInstancePrefetcher = object()
+		lastProcessedEventBatchStorageFacade = object()
 		cacheMock = object({
 			async entityEventsReceived(events): Promise<ReadonlyArray<EntityUpdateData>> {
 				return events.slice()
@@ -102,7 +107,7 @@ o.spec("EventBusClientTest", function () {
 				return null
 			},
 			async purgeStorage(): Promise<void> {},
-			async setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
+			async putLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
 				return
 			},
 			async isOutOfSync(): Promise<boolean> {
@@ -120,28 +125,16 @@ o.spec("EventBusClientTest", function () {
 		when(userMock.getLoggedInUser()).thenReturn(user)
 		when(userMock.isFullyLoggedIn()).thenReturn(true)
 		when(userMock.createAuthHeaders()).thenReturn({})
-		when(eventInstancePrefetcher.preloadEntities(matchers.anything(), matchers.anything())).thenResolve()
-
-		restClient = new EntityRestClientMock()
 
 		socket = object<WebSocket>()
 		sleepDetector = object()
 		socketFactory = () => socket
 
 		typeModelResolver = clientInitializedTypeModelResolver()
-		entityClient = new EntityClient(restClient, typeModelResolver)
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		cryptoFacadeMock = object()
 		connectivityListenerMock = object()
 		initEventBus()
-	})
-
-	o.spec("notifies listener when sync is done", function () {
-		o("loadMissedEntityEvents", async function () {
-			await ebc.loadMissedEntityEvents(object())
-
-			verify(listenerMock.onSyncDone())
-		})
 	})
 
 	o.spec("initEntityEvents ", function () {
@@ -157,59 +150,23 @@ o.spec("EventBusClientTest", function () {
 		})
 
 		const batchId = "-----------1"
-		o("initial connect: when the cache is clean it downloads one batch and initializes cache", async function () {
-			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
+		o("initial connect: when the cache is clean it initializes cache with GENERATED_MIN_ID", async function () {
+			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
 			when(cacheMock.timeSinceLastSyncMs()).thenResolve(null)
-			const batch = createTestEntity(EntityEventBatchTypeRef, { _id: [mailGroupId, batchId] })
-			restClient.addListInstances(batch)
 
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
 
 			verify(cacheMock.recordSyncTime())
-			// Did not download anything besides single batch
-			verify(restClient.loadRange(EntityEventBatchTypeRef, mailGroupId, matchers.anything(), matchers.not(1), matchers.anything()), { times: 0 })
-			verify(cacheMock.setLastEntityEventBatchForGroup(mailGroupId, getElementId(batch)))
-		})
-
-		o("initial connect: when the cache is initialized, missed events are loaded", async function () {
-			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("------------")
-			when(cacheMock.timeSinceLastSyncMs()).thenResolve(1)
-			const update = createTestEntity(EntityUpdateTypeRef, {
-				typeId: MailTypeRef.typeId.toString(),
-				application: "tutanota",
-				instanceListId: mailGroupId,
-				instanceId: "newBatchId",
-			})
-			const batch = createTestEntity(EntityEventBatchTypeRef, {
-				_id: [mailGroupId, batchId],
-				events: [update],
-			})
-			restClient.addListInstances(batch)
-			const updateData: EntityUpdateData = {
-				typeRef: MailTypeRef,
-				operation: OperationType.CREATE,
-				instanceId: update.instanceId,
-				instanceListId: update.instanceListId as NonEmptyString,
-				instance: null,
-				patches: null,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
-			}
-
-			const eventsReceivedDefer = defer()
-			when(cacheMock.entityEventsReceived([updateData], batchId, mailGroupId)).thenDo(() => eventsReceivedDefer.resolve(undefined))
-
-			await ebc.connect(ConnectMode.Initial)
-			await socket.onopen?.(new Event("open"))
-
-			await eventsReceivedDefer.promise
-
-			verify(cacheMock.purgeStorage(), { times: 0 })
-			verify(cacheMock.recordSyncTime())
+			const FIVE_SECONDS_IN_MILLISECONDS = 5000
+			verify(
+				lastProcessedEventBatchStorageFacade.putLastEntityEventBatchForGroup(mailGroupId, timestampToGeneratedId(now - FIVE_SECONDS_IN_MILLISECONDS)),
+				{ times: 1 },
+			)
 		})
 
 		o("reconnect: when the cache is out of sync with the server, the cache is purged", async function () {
-			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
+			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
 			// Make initial connection to simulate reconnect (populate lastEntityEventIds
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
@@ -226,7 +183,7 @@ o.spec("EventBusClientTest", function () {
 		})
 
 		o("initial connect: when the cache is out of sync with the server, the cache is purged", async function () {
-			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
+			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
 			when(cacheMock.isOutOfSync()).thenResolve(true)
 
 			await ebc.connect(ConnectMode.Reconnect)
@@ -238,16 +195,16 @@ o.spec("EventBusClientTest", function () {
 	})
 
 	o("parallel received event batches are passed sequentially to the entity rest cache", async function () {
-		o.timeout(500)
-		ebc.connect(ConnectMode.Initial)
+		o.timeout(20000)
+		await ebc.connect(ConnectMode.Initial)
 		await socket.onopen?.(new Event("open"))
 
 		const messageData1 = await createEntityMessage(1)
 		const messageData2 = await createEntityMessage(2)
 
-		// Casting ot object here because promise stubber doesn't allow you to just return the promise
-		// We never resolve the promise
-		when(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()) as object).thenReturn(new Promise(noOp))
+		const filteredEvents: EntityUpdateData[] = []
+		when(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(filteredEvents)
+		when(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
 
 		// call twice as if it was received in parallel
 		const p1 = socket.onmessage?.({
@@ -261,38 +218,7 @@ o.spec("EventBusClientTest", function () {
 		await Promise.all([p1, p2])
 
 		// Is waiting for cache to process the first event
-		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
-	})
-
-	o("missed entity events are processed in order", async function () {
-		const membershipGroupId = "membershipGroupId"
-		user.memberships = [
-			createTestEntity(GroupMembershipTypeRef, {
-				group: membershipGroupId,
-			}),
-		]
-		const now = Date.now()
-
-		const batchId1 = timestampToGeneratedId(now - 1)
-		const batchId2 = timestampToGeneratedId(now - 2)
-		const batchId3 = timestampToGeneratedId(now - 3)
-		const batchId4 = timestampToGeneratedId(now - 4)
-		const batches = [
-			createTestEntity(EntityEventBatchTypeRef, { _id: [membershipGroupId, batchId1] }),
-			createTestEntity(EntityEventBatchTypeRef, { _id: [user.userGroup.group, batchId3] }),
-			createTestEntity(EntityEventBatchTypeRef, { _id: [membershipGroupId, batchId4] }),
-			createTestEntity(EntityEventBatchTypeRef, { _id: [user.userGroup.group, batchId2] }),
-		]
-		restClient.addListInstances(...batches)
-		const eventQueue = object<EventQueue>()
-		const addedBatchIds: Id[] = []
-		when(eventQueue.add(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
-			(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>) => addedBatchIds.push(batchId),
-		)
-
-		await ebc.loadMissedEntityEvents(eventQueue)
-
-		o(addedBatchIds).deepEquals([batchId4, batchId3, batchId2, batchId1])
+		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
 	})
 
 	o("on counter update it send message to the main thread", async function () {
@@ -311,7 +237,7 @@ o.spec("EventBusClientTest", function () {
 	})
 
 	o("verify new hash is set when entity updates are processed", async function () {
-		ebc.connect(ConnectMode.Initial)
+		await ebc.connect(ConnectMode.Initial)
 		await socket.onmessage?.({
 			data: await createEntityMessage(1, "newHash"),
 		} as MessageEvent<string>)
@@ -323,14 +249,14 @@ o.spec("EventBusClientTest", function () {
 		o("on connect it starts", async function () {
 			verify(sleepDetector.start(matchers.anything()), { times: 0 })
 
-			ebc.connect(ConnectMode.Initial)
+			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
 
 			verify(sleepDetector.start(matchers.anything()), { times: 1 })
 		})
 
 		o("on disconnect it stops", async function () {
-			ebc.connect(ConnectMode.Initial)
+			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
 
 			await socket.onclose?.(new Event("close") as CloseEvent) // there's no CloseEvent in node
@@ -342,7 +268,7 @@ o.spec("EventBusClientTest", function () {
 			when(sleepDetector.start(matchers.anything())).thenDo((cb) => (passedCb = cb))
 			const firstSocket = socket
 
-			ebc.connect(ConnectMode.Initial)
+			await ebc.connect(ConnectMode.Initial)
 			// @ts-ignore
 			firstSocket.readyState = WebSocket.OPEN
 			await firstSocket.onopen?.(new Event("open"))

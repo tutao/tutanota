@@ -82,7 +82,6 @@ import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHan
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
-import { EventInstancePrefetcher } from "../../../common/api/worker/EventInstancePrefetcher"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
@@ -92,6 +91,14 @@ import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/Ide
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import {
+	CalendarWebLastProcessedEventBatchStorageFacade,
+	LastProcessedEventBatchStorageFacade,
+	OfflineStorageLastProcessedEventBatchStorageFacade,
+} from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
+import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
+import { DateProvider } from "../../../common/api/common/DateProvider"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 assertWorkerOrNode()
 
@@ -166,6 +173,8 @@ export type CalendarWorkerLocatorType = {
 
 	// drive
 	driveFacade: lazyAsync<DriveFacade>
+
+	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>
 }
 export const locator: CalendarWorkerLocatorType = {} as any
 
@@ -273,7 +282,21 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
 
-	locator.cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, locator.patchMerger)
+	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
+		if (isOfflineStorageAvailable()) {
+			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
+		} else {
+			return new CalendarWebLastProcessedEventBatchStorageFacade()
+		}
+	})
+
+	locator.cache = new DefaultEntityRestCache(
+		entityRestClient,
+		maybeUninitializedStorage,
+		typeModelResolver,
+		locator.patchMerger,
+		locator.lastProcessedEventBatchStorageFacade,
+	)
 
 	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
 	const nonCachingEntityClient = new EntityClient(entityRestClient, typeModelResolver)
@@ -597,21 +620,28 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		mainInterface.syncTracker,
 	)
 
-	const eventInstancePrefetcher = new EventInstancePrefetcher(locator.cache)
+	const serverDateProvider: DateProvider = {
+		now(): number {
+			return locator.restClient.getServerTimestampMs()
+		},
+		timeZone(): string {
+			throw new ProgrammingError("Not supported")
+		},
+	}
 
 	locator.eventBusClient = new EventBusClient(
 		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
 		locator.cache as EntityRestCache,
 		locator.user,
-		locator.cachingEntityClient,
 		locator.instancePipeline,
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
-		mainInterface.progressTracker,
 		typeModelResolver,
 		locator.crypto,
-		eventInstancePrefetcher,
+		locator.lastProcessedEventBatchStorageFacade,
+		serverDateProvider,
+		mainInterface.progressTracker,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

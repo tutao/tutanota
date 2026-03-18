@@ -9,8 +9,10 @@ import { ContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/i
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { TypeRef } from "@tutao/tutanota-utils"
-import { EntityUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { BlobElementEntity, ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
+
+import { noPatchesAndInstance } from "../EventBusClientTest"
 
 o.spec("ContactIndexer", () => {
 	let entityClient: EntityClient
@@ -112,8 +114,6 @@ function createUpdate(
 		instanceId: instanceId,
 		instanceListId: instanceListId,
 		typeRef: typeRef,
-		instance: null,
-		patches: null,
-		prefetchStatus: PrefetchStatus.NotPrefetched,
+		...noPatchesAndInstance,
 	}
 }
