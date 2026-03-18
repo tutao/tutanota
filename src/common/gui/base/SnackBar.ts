@@ -14,7 +14,7 @@ import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { Icons } from "./icons/Icons"
-import { displayingFab, fabBottomSpacing } from "../FloatingActionButton"
+import { fabBottomSpacing } from "../FloatingActionButton"
 
 assertMainOrNode()
 

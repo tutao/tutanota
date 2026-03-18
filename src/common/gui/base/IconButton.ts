@@ -20,6 +20,7 @@ export interface IconButtonAttrs {
 	hidden?: boolean
 	disabled?: boolean
 	tabindex?: TabIndex
+	style?: Record<string, string>
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -41,6 +42,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 			class: `icon-button ${attrs.disabled ? "disabled" : "state-bg"} ${IconButton.getSizeClass(attrs.size)}`,
 			disabled: attrs.hidden || attrs.disabled,
 			style: {
+				...attrs.style,
 				visibility: attrs.hidden ? "hidden" : "visible",
 			},
 			tabindex: attrs.tabindex,

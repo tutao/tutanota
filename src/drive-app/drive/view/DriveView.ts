@@ -41,13 +41,12 @@ import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { FloatingActionButton } from "../../../common/gui/FloatingActionButton"
-import { ButtonColor } from "../../../common/gui/base/Button"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader"
 import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar"
 import { DriveSelectedItemsActions } from "./DriveFolderNav"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { MessageBanner } from "../../../common/subscription/components/MessageBanner"
+import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -430,18 +429,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		if (!isMobileDriveLayout()) {
 			return null
 		}
-		return m(FloatingActionButton, {
-			icon: Icons.Add,
-			colors: ButtonColor.Fab,
-			click: createDropdown({
-				lazyButtons: () =>
-					newItemActions({
-						onNewFile: () => this.onNewFile(),
-						onNewFolder: () => this.onNewFolder(),
-					}),
+		return m(FabMenu, {
+			title: lang.getTranslation("newDriveItem_action"),
+			actions: newItemActions({
+				onNewFile: () => this.onNewFile(),
+				onNewFolder: () => this.onNewFolder(),
 			}),
-			title: "newDriveItem_action",
-		})
+		} satisfies FabMenuAttrs)
 	}
 
 	private renderMobileHeader(headerAttrs: HeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
