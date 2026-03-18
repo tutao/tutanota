@@ -1,4 +1,4 @@
-import { DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
+import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
@@ -9,7 +9,7 @@ import { DropType } from "../../../common/gui/base/GuiUtils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
 
-export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownChildAttrs[] {
+export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownButtonAttrs[] {
 	return [
 		{
 			click: (event, dom) => {

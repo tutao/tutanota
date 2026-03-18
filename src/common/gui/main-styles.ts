@@ -2946,9 +2946,10 @@ styles.registerStyle("main", () => {
 		".overflow-auto": {
 			overflow: "auto",
 		},
-		".float-action-button": {
+		".fab-position": {
 			position: "fixed",
-			"border-radius": "25%",
+			right: px(size.spacing_16),
+			bottom: px(size.spacing_16),
 		},
 		".mb-small-line-height": {
 			"margin-bottom": px(font_size.line_height * font_size.small),
