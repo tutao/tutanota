@@ -2,11 +2,10 @@ import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow } from "@tutao/tutanota-utils"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
-import { CalendarTimeColumnData, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
+import { CalendarTimeColumnData, CalendarTimeGrid, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
 import { Time } from "../date/Time"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions } from "./CalendarEventBubble"
-import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "../../../../libs/luxon"
 import { px } from "../../gui/size"
 import { TimeIndicator } from "./TimeIndicator"
@@ -116,7 +115,7 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 		const timeRangeEndAsDate = DateTime.fromJSDate(lastInterval.toDate(baseDate)).plus({ minutes: intervalIncrement }).toJSDate()
 
 		return timeColumnGrid.orderedEvents.map((eventWrapper) => {
-			const evData = timeColumnGrid.grid.get(elementIdPart(eventWrapper.event._id))
+			const evData = timeColumnGrid.grid.get(CalendarTimeGrid.getEventGridId(eventWrapper))
 			if (!evData) {
 				return null
 			}
