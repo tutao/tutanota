@@ -44,7 +44,6 @@
 		"@tensorflow/tfjs-layers": "4.22.0",
 		"@tutao/node-mimimi": "338.260317.1",
 		"@tutao/oxmsg": "0.0.9-beta.0",
-		"@tutao/tuta-wasm-loader": "338.260317.1",
 		"@tutao/tutanota-usagetests": "338.260317.1",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/luxon": "3.6.2",

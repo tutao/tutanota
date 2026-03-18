@@ -30,7 +30,8 @@
 		"paths": {
 			"@tutao/utils": ["./src/utils"],
 			"@tutao/crypto": ["./src/crypto"],
-			"@tutao/error": ["./src/error"]
+			"@tutao/error": ["./src/error"],
+			"@tutao/wasm-loader": ["./src/wasm-loader"]
 		}
 	}
 }
