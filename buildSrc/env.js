@@ -5,12 +5,6 @@
 export function create(params) {
 	const { staticUrl, version, mode, dist, domainConfigs, networkDebugging, clientName, integrationPlatform } = params
 
-	if (integrationPlatform === "Nextcloud") {
-		Object.values(domainConfigs).forEach((domainConfig) => {
-			domainConfig.apiUrl += "/index.php/apps/app_api/proxy/tutamail"
-		})
-	}
-
 	if (version == null || mode == null || dist == null || networkDebugging == null) {
 		throw new Error(`Invalid env parameters: ${JSON.stringify(params)}`)
 	}

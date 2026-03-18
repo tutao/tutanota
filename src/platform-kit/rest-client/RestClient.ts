@@ -99,19 +99,7 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				let origin: string
-				if (isNextCloudPlugin() && options.baseUrl) {
-					origin = getApiBaseUrl(this.domainConfig)
-					options.headers = options.headers ?? {}
-					options.headers["X-Nextcloud-BaseUrl"] = options.baseUrl
-				} else {
-					origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
-				}
-				if (method === HttpMethod.PATCH && isNextCloudPlugin()) {
-					// because nextcloud doesnt support PATCH requests, we send a PUT request to /patch instead
-					method = HttpMethod.PUT
-					path = "/patch" + path
-				}
+				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
 				const resourceURL = new URL(origin)
 				if (resourceURL.pathname === "/") {
 					resourceURL.pathname = path

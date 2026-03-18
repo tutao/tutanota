@@ -1,6 +1,6 @@
 import { Commands, Request, Transport } from "../../../../app-kit/native-bridge/shared/MessageTypes"
 import { WebWorkerTransport } from "../../../../app-kit/native-bridge/common/threading/WebTransport.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, isNextCloudPlugin } from "@tutao/app-env"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
@@ -12,7 +12,6 @@ import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { isNextCloudPlugin } from "@tutao/app-env"
 import { EntropyDataChunk } from "../../../../platform-kit/crypto/random/EntropyDataChunk"
 
 assertMainOrNode()
@@ -42,7 +41,7 @@ export class WorkerClient {
 			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
 			// localhost/path/WorkerBootstrap.js respectively.
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl =  isNextCloudPlugin() ? "/apps-extra/tutamail/js/worker-bootstrap.js" : "/worker-bootstrap.js"
+			const workerUrl = isNextCloudPlugin() ? "/apps/tutamail/js/worker-bootstrap.js" : "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl, { type: "module" })
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)

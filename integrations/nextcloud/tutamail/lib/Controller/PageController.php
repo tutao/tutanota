@@ -11,6 +11,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Http\ContentSecurityPolicy;
 
 /**
  * @psalm-suppress UnusedClass
@@ -21,9 +22,13 @@ class PageController extends Controller {
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	#[FrontpageRoute(verb: 'GET', url: '/{tpath}', requirements: ['tpath' => '.*'], defaults: ['tpath' => ''])]
 	public function index(): TemplateResponse {
-		return new TemplateResponse(
-			Application::APP_ID,
-			'index',
-		);
+	    $response = new TemplateResponse(Application::APP_ID, 'index');
+
+        $csp = new ContentSecurityPolicy();
+        $csp->addAllowedConnectDomain('tuta.com');
+
+        $response->setContentSecurityPolicy($csp);
+
+        return $response;
 	}
 }
