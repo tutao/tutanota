@@ -10,7 +10,7 @@ export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPla
 })
 
 export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
-export const NEXTCLOUD_PREFIX_WITHOUT_FILE: string = "/apps-extra/tutamail/js"
+export const NEXTCLOUD_PREFIX_WITHOUT_FILE: string = "/apps/tutamail/js"
 
 export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
@@ -237,11 +237,6 @@ export class EnvProvider {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
 			return domainConfig.apiUrl.replace(/^http/, "api")
-		} else if (this.isNextCloudPlugin()) {
-			const currentLocation = new URL(location.href)
-			// tutamail is the APP_ID for the nextcloud pluging. It is used for both the App and the ExApp (AppApi)
-			currentLocation.pathname = "/index.php/apps/app_api/proxy/tutamail"
-			return currentLocation.toString()
 		} else {
 			return domainConfig.apiUrl
 		}
