@@ -44,7 +44,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 			m(".flex.gap-16", [
 				m(".flex.col.flex-grow.gap-32", [
 					m(RecoverCodeDisplay, {
-						column: styles.isMobileLayout(),
+						column: styles.bodyWidth < 770,
 						recoverCode: newAccountData!.recoverCode,
 						mailAddress: newAccountData!.mailAddress,
 					}),
