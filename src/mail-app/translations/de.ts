@@ -2248,7 +2248,7 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"exportingEmailsFailure_label": "Failed emails: {count}"
-
+		"exportingEmailsFailure_label": "Failed emails: {count}",
+		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails... Da Sie über 1000 E-Mails importieren, empfehlen wir die Funktion unter Einstellungen -> Export.",
 	}
 }

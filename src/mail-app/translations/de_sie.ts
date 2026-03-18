@@ -2248,6 +2248,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"exportingEmailsFailure_label": "Failed emails: {count}"
+		"exportingEmailsFailure_label": "Failed emails: {count}",
+		"mailExportSuggestAlternative_msg": "We have noticed you're importing more than 1000 mails, please try using settings->Export instead",
 	}
 }

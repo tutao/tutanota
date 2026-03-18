@@ -51,6 +51,8 @@ export type MailViewerMoreActions = {
 	reportPhishingAction?: () => void
 }
 
+const MAX_MAILS_BEFORE_SUGGESTING_SETTINGS_EXPORT = 1000
+
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
 
@@ -193,7 +195,9 @@ export function startExport(actionableMails: () => Promise<readonly IdTuple[]>) 
 					"{total}": "?",
 				})
 			} else {
-				return lang.getTranslation("mailExportProgress_msg", {
+				const exportMessage =
+					numberOfMails > MAX_MAILS_BEFORE_SUGGESTING_SETTINGS_EXPORT ? "mailExportSuggestAlternative_msg" : "mailExportProgress_msg"
+				return lang.getTranslation(exportMessage, {
 					"{current}": Math.round((operation.progress() / 100) * numberOfMails).toFixed(0),
 					"{total}": numberOfMails,
 				})

@@ -2248,6 +2248,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"mailExportSuggestAlternative_msg": "Preparing {current} of {total} emails for export... We have noticed you're importing more than 1000 mails, please try using settings->Export instead",
 	}
 }
