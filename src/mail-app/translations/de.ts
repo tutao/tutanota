@@ -2260,6 +2260,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails...\n\nHinweis: Beim exportieren von mehr als 1000 E-Mails, empfehlen wir die Funktion unter Einstellungen -> Export zu verwenden."
 	}
 }

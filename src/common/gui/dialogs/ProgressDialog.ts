@@ -42,7 +42,7 @@ export async function showProgressDialog<T>(
 						tabindex: TabIndex.Default,
 
 						oncreate(vnode) {
-							// We need to delay so that the eelement is attached to the parent
+							// We need to delay so that the element is attached to the parent
 							setTimeout(() => {
 								;(vnode.dom as HTMLElement).focus()
 							}, 10)
@@ -50,7 +50,7 @@ export async function showProgressDialog<T>(
 					},
 					[
 						m(".flex-center", progressStream ? m(CompletenessIndicator, { percentageCompleted: progressStream() }) : progressIcon()),
-						m("p#dialog-title", lang.getTranslationText(title)),
+						m("p.mt-8.text-preline", lang.getTranslationText(title)),
 					],
 				),
 			])
