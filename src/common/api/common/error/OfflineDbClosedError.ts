@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 
 export class OfflineDbClosedError extends TutanotaError {
 	constructor(msg?: string) {

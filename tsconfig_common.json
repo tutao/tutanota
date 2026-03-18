@@ -29,7 +29,8 @@
 		"types": ["node"],
 		"paths": {
 			"@tutao/utils": ["./src/utils"],
-			"@tutao/crypto": ["./src/crypto"]
+			"@tutao/crypto": ["./src/crypto"],
+			"@tutao/error": ["./src/error"]
 		}
 	}
 }

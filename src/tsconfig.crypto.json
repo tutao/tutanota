@@ -24,7 +24,7 @@
 			"path": "../packages/otest"
 		},
 		{
-			"path": "../packages/tutanota-error"
+			"path": "tsconfig.error.json"
 		}
 	]
 }

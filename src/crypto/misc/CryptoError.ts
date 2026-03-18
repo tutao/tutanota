@@ -1,4 +1,4 @@
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 
 export class CryptoError extends TutanotaError {
 	constructor(message: string, error?: Error) {
