@@ -982,15 +982,6 @@ export class SendMailModel {
 		// You can't rely on resolved recipients here, only after waitForResolvedRecipients() inside asyncSend()!
 		this.onBeforeSend()
 
-		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
-			await this.sendApprovalMail(this.getBody())
-			await this.clearLocalAutosave() // because this approval mail is "sent" in an odd way, it will not clear the local autosave
-			return {
-				success: true,
-				sendJob: null,
-			}
-		}
-
 		if (this.toRecipients().length === 0 && this.ccRecipients().length === 0 && this.bccRecipients().length === 0) {
 			throw new UserError("noRecipients_msg")
 		}
@@ -1009,6 +1000,15 @@ export class SendMailModel {
 		if (this.getSubject().length === 0 && !(await getConfirmation("noSubject_msg"))) {
 			return {
 				success: false,
+				sendJob: null,
+			}
+		}
+
+		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
+			await this.sendApprovalMail(this.getBody())
+			await this.clearLocalAutosave() // because this approval mail is "sent" in an odd way, it will not clear the local autosave
+			return {
+				success: true,
 				sendJob: null,
 			}
 		}

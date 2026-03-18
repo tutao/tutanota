@@ -3,7 +3,7 @@ import { InfoLink, lang } from "./LanguageViewModel.js"
 import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import m from "mithril"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
-import { Keys } from "../api/common/TutanotaConstants.js"
+import { ApprovalStatus, Keys } from "../api/common/TutanotaConstants.js"
 import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
 import { theme } from "../gui/theme"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
@@ -23,7 +23,10 @@ function renderMoreInfoLink(link: InfoLink) {
 	]
 }
 
-export async function showApprovalNeededMessageDialog(): Promise<void> {
+export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalStatus): Promise<void> {
+	if (![ApprovalStatus.DELAYED, ApprovalStatus.REGISTRATION_APPROVAL_NEEDED].includes(approvalStatus)) {
+		return
+	}
 	const closeAction = () => {
 		dialog.close()
 		resolve()
@@ -80,10 +83,14 @@ export async function showApprovalNeededMessageDialog(): Promise<void> {
 							"text-align": "center",
 						},
 					},
-					lang.get("approvalWaitNoticeFastTrack_msg"),
+					lang.getTranslationText(approvalStatus === ApprovalStatus.DELAYED ? "approvalWaitNoticeFastTrack_msg" : "approvalWaitNotice_msg"),
 				),
 				renderMoreInfoLink(InfoLink.AccountApprovalFaq),
-				m(".flex-center.col.gap-8.mt-16", m(BannerButton, buttonAutomaticApproval), m(LoginButton, buttonFastTrack)),
+				m(
+					".flex-center.col.gap-8.mt-16",
+					m(BannerButton, buttonAutomaticApproval),
+					approvalStatus === ApprovalStatus.DELAYED && m(LoginButton, buttonFastTrack),
+				),
 			]),
 		],
 	})
