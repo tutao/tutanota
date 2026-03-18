@@ -35,13 +35,7 @@ export async function showApprovalNeededMessageDialog(): Promise<void> {
 		const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
 		const { newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor")
 		try {
-			const editor = await newMailtoUrlMailEditor(
-				"mailto:?subject=" +
-					lang.getTranslation("approvalMail_msg", { "{mailAddress}": mailAddress }).text +
-					"&body=" +
-					lang.getTranslation("approvalMailBody_msg").text,
-				false,
-			)
+			const editor = await newMailtoUrlMailEditor("mailto:approval@tutao.de?&body=" + lang.getTranslation("approvalMailBody_msg").text, false)
 			editor?.show()
 			dialog.close()
 		} catch (e) {
