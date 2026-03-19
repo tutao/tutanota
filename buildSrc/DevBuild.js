@@ -12,7 +12,6 @@ import { rolldown } from "rolldown"
 import { resolveLibs } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
-import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { sh } from "./sh.js"
 import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "./cryptoPrimitivesUtils.js"
 import { exec } from "node:child_process"
@@ -47,10 +46,6 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 			]),
 		)
 	}
-
-	await runStep("Packages", async () => {
-		await buildRuntimePackages()
-	})
 	if (desktop) {
 		await runStep("Build mimimi", async () => {
 			exec(
