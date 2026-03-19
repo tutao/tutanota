@@ -15,7 +15,7 @@ import { getFeaturePlaceholderReplacement } from "../utils/SubscriptionUtils.js"
 import { PlanBadge } from "./PlanBadge.js"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { boxShadowHigh } from "../../gui/main-styles"
-import { blackFridayTheme, DiscountDetail, getBorderColor, getBorderRadius, getBorderWidth, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
+import { DiscountDetail, getBorderColor, getBorderRadius, getBorderWidth, getCampaignTheme, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import { PlanTypeToName } from "@tutao/typerefs"
 import { PlanType } from "@tutao/app-env"
@@ -75,7 +75,11 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
-		const localTheme = hasCampaign ? blackFridayTheme() : theme
+		const campaignName = priceAndConfigProvider.getRawPricingData().globalCampaignName
+		let localTheme = theme
+		if (hasCampaign) {
+			localTheme = getCampaignTheme(campaignName)
+		}
 		const strikethroughPrice = hasCampaign || isYearly ? referencePrice : undefined
 
 		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider, localTheme)
@@ -116,6 +120,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					planBoxPosition: position,
 					translation: discountDetail!.ribbonTranslation,
 					localTheme,
+					campaignName,
 				}),
 			m(
 				"",

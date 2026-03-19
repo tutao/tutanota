@@ -13,7 +13,7 @@ import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { styles } from "../../gui/styles"
 import { boxShadowHigh, boxShadowLow } from "../../gui/main-styles"
 import { PlanBadge } from "./PlanBadge"
-import { blackFridayTheme, DiscountDetail, getHasCampaign } from "../utils/PlanSelectorUtils"
+import { DiscountDetail, getCampaignTheme, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import Stream from "mithril/stream"
 import { PlanTypeToName } from "@tutao/typerefs"
@@ -87,12 +87,27 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	view({ attrs }: Vnode<BusinessPlanBoxAttrs>): Children {
 		const isMobileLayout = this.isMobileLayout(attrs)
 		const forceExpanded = attrs.forceExpanded === true
-		const { selectedPaymentInterval, planConfig, price, referencePrice, isSelected, isDisabled, isCurrentPlan, onclick, discountDetail, priceHintLabel } =
-			attrs
+		const {
+			selectedPaymentInterval,
+			planConfig,
+			price,
+			referencePrice,
+			isSelected,
+			isDisabled,
+			isCurrentPlan,
+			onclick,
+			discountDetail,
+			priceHintLabel,
+			priceAndConfigProvider,
+		} = attrs
 
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
-		const localTheme = hasCampaign ? blackFridayTheme() : theme
+		const campaignName = priceAndConfigProvider.getRawPricingData().globalCampaignName
+		let localTheme = theme
+		if (hasCampaign) {
+			localTheme = getCampaignTheme(campaignName)
+		}
 		const renderFeature = this.generateRenderFeature(attrs.planConfig.type, attrs.priceAndConfigProvider, localTheme)
 		const canHover = !isDisabled && !isSelected
 		const showHover = canHover && this.isHovered
@@ -131,6 +146,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 					planBoxPosition: "center",
 					translation: attrs.discountDetail!.ribbonTranslation,
 					localTheme,
+					campaignName,
 				}),
 			m(
 				"div.plan-box-surface",
