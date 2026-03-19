@@ -2266,6 +2266,7 @@ export default {
 		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
 		"rebuildSearchIndex_action": "Rebuild search index",
 		"indexingEmails_msg": "Indexing emails",
-		"searchUntil_msg": "Search Until {1}"
+		"searchUntil_msg": "Search Until {1}",
+		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}"
 	}
 }

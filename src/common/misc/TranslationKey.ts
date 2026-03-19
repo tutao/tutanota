@@ -2265,3 +2265,4 @@ export type TranslationKeyType =
 	| "rebuildSearchIndex_action"
 	| "indexingEmails_msg"
 	| "searchUntil_msg"
+	| "manualUpdateNeeded_msg"
