@@ -8,6 +8,7 @@ import { getApplePriceStr, getPriceStr, shouldShowApplePrices } from "../../subs
 import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/PlanSelectorUtils"
 import { PaymentInterval } from "../../subscription/utils/PriceUtils"
 import { px, size } from "../../gui/size"
+import { SignupFlowUsageTestController } from "../../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 type SignupInlinePlanSelectorAttrs = {
 	viewModel: SignupViewModel
@@ -130,7 +131,7 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 				const isDisabled = !availablePlans.includes(planConfig.type as AvailablePlanType) || currentPlan === planConfig.type
 				const hasCampaign = getHasCampaign(discountDetails?.[planConfig.type], viewModel.options.paymentInterval() === PaymentInterval.Yearly)
 
-				if (isDisabled) return
+				if (SignupFlowUsageTestController.getUsageTestVariantName() === "show_only_active_inline_plans" && isDisabled) return
 
 				return m(
 					`${hasCampaign ? ".mt-24" : ""}`,

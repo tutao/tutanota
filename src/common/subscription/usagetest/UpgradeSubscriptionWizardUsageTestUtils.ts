@@ -13,7 +13,7 @@ export enum SignupFlowStage {
 export type ReferralType = "not_referred" | "satisfactiondialog_referral" | "organic_referral"
 
 export abstract class SignupFlowUsageTestController {
-	private static readonly USAGE_TEST_NAME = "signup.flow_2"
+	private static readonly USAGE_TEST_NAME = "signup.flow_3"
 
 	public static invalidateUsageTest() {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
@@ -35,6 +35,11 @@ export abstract class SignupFlowUsageTestController {
 	public static getUsageTestVariant(): number {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 		return usageTest.variant
+	}
+
+	public static getUsageTestVariantName(): string | null {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		return usageTest.variantName
 	}
 
 	public static completeStage(
