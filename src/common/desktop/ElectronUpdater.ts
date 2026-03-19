@@ -1,9 +1,9 @@
 import type { DesktopNotifier } from "./notifications/DesktopNotifier"
-import { lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
 import { assertNotNull, delay, downcast, LazyLoaded, neverNull, newPromise } from "@tutao/tutanota-utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
-import type { App, NativeImage } from "electron"
+import electron, { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
 import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
@@ -282,18 +282,36 @@ export class ElectronUpdater {
 	}
 
 	installUpdate() {
+		// We cannot reliably update on macOS if the app is not in the applications folder (e.g. might be in a DMG)
+		if (process.platform === "darwin" && !this.app.isInApplicationsFolder()) {
+			console.log("Not in the Applications folder on an Apple device. Refusing to automatically update.")
+			this.showUpdateError()
+			return
+		}
+
 		this.logger.debug("installing update")
+
 		//the window manager enables force-quit on the app-quit event,
 		// which is not emitted for quitAndInstall
 		// so we enable force-quit manually with a custom event
 		this.app.emit("enable-force-quit")
 		this._updateInfo = null
+
 		// first argument: isSilent Boolean - windows-only Runs the installer in silent mode. Defaults to false.
 		// second argument: isForceRunAfter Boolean - Run the app after finish even on silent install. Not applicable for macOS.
 		//  Ignored if isSilent is set to false.
 		// https://www.electron.build/auto-update#appupdater-eventemitter
 		// As this is triggered by user we want to restart afterwards and don't mind showing the wizard either.
 		this.updater.electronUpdater.quitAndInstall(false, true)
+	}
+
+	private async showUpdateError(): Promise<void> {
+		await electron.dialog.showMessageBox({
+			type: "error",
+			title: "Tuta Mail",
+			message: lang.getTranslation("manualUpdateNeeded_msg", { "{url}": InfoLink.Download }).text,
+			buttons: [lang.getTranslation("ok_action").text],
+		})
 	}
 
 	private async notifyUpdateError() {

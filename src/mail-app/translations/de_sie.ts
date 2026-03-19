@@ -2253,12 +2253,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"cannotMoveToTrash_msg" : "Objekte können nicht in den Papierkorb verschoben werden",
-		"cannotCopyToTrash_msg": "Objekte können nicht in den Papierkorb kopiert werden",
-		"folderContent_label": "Inhalt",
-		"createNewFolderIn_label": "Neuen Ordner erstellen in {folderName}",
-		"driveNotEmpty_msg": "Ihr Drive enthält noch Dateien oder Ordner. Bitte entfernen Sie diese zuerst.",
-		"movingItemCount_label":"Moving {count} items"
-
+		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}"
 	}
 }
