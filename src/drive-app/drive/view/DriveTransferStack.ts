@@ -12,6 +12,17 @@ export interface DriveTransferStackAttrs {
 	cancelTransfer: (transferId: TransferId) => unknown
 }
 
+// register custom CSS property so that we can animate it.
+// it is relatively new so check the support before using it
+if (typeof CSS.registerProperty === "function") {
+	CSS.registerProperty({
+		name: "--progress-value",
+		syntax: "<integer>",
+		initialValue: "0",
+		inherits: false,
+	})
+}
+
 export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 	view({ attrs: { transfers, cancelTransfer } }: Vnode<DriveTransferStackAttrs>): Children {
 		return m(
