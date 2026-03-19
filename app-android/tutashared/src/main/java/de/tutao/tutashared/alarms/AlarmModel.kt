@@ -170,7 +170,9 @@ object AlarmModel {
 		timeZone: TimeZone?,
 		alarmTrigger: AlarmInterval,
 	): Date {
+
 		val calendar: Calendar = calculateLocalStartTime(eventStart, timeZone)
+		Log.d(TAG, "eventStart for alarmTime: $eventStart")
 		when (alarmTrigger.unit) {
 			AlarmIntervalUnit.MINUTE -> calendar.add(Calendar.MINUTE, -alarmTrigger.value)
 			AlarmIntervalUnit.HOUR -> calendar.add(Calendar.HOUR, -alarmTrigger.value)
