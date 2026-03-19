@@ -2267,3 +2267,4 @@ export type TranslationKeyType =
 	| "waitingForAppStoreConfirmation_msg"
 	| "beginTyping_msg"
 	| "emptyString_msg"
+	| "manualUpdateNeeded_msg"
