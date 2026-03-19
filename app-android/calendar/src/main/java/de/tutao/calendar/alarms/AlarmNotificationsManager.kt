@@ -7,7 +7,6 @@ import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
-import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmModel
@@ -30,8 +29,6 @@ class AlarmNotificationsManager(
 	private val crypto: AndroidNativeCryptoFacade,
 	private val systemAlarmFacade: SystemAlarmFacade,
 	private val localNotificationsFacade: LocalNotificationsFacade,
-	private val dateProvider: DateProvider,
-	private val timeZone: TimeZone
 ) {
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
@@ -129,39 +126,39 @@ class AlarmNotificationsManager(
 			val identifier = alarmNotification.alarmInfo.alarmIdentifier
 			if (alarmNotification.repeatRule == null) {
 				val isAllDayEvent = isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
+				val localTimeZone = TimeZone.getDefault();
 				val localizedEventStartTime = if (isAllDayEvent) {
-					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, timeZone)
+					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, localTimeZone)
 				} else {
 					alarmNotification.eventStart
 				}
 
 				val alarmTime = AlarmModel.calculateAlarmTime(
 					localizedEventStartTime,
-					timeZone,
+					localTimeZone,
 					alarmNotification.alarmInfo.trigger
 				)
 
-				val now = dateProvider.now
+				val now = Date()
 
 				when {
 					occurrenceIsTooFar(alarmTime) -> {
 						Log.d(TAG, "Alarm $identifier is too far in the future, skipping")
 					}
 
-					alarmTime.toInstant().isAfter(now) -> {
+					alarmTime.after(now) -> {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime,
 							0,
 							identifier,
 							alarmNotification.summary,
 							alarmNotification.eventStart,
-							alarmNotification.user,
-							isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
+							alarmNotification.user
 						)
 					}
 
 					else -> {
-						Log.d(TAG, "Alarm $identifier is before ${now.atZone(timeZone.toZoneId())}, skipping")
+						Log.d(TAG, "Alarm $identifier is before $now, skipping")
 					}
 				}
 			} else {
@@ -171,8 +168,7 @@ class AlarmNotificationsManager(
 					} else {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime, occurrence, identifier, alarmNotification.summary, eventStartTime,
-							alarmNotification.user,
-							isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
+							alarmNotification.user
 						)
 					}
 				}
@@ -184,7 +180,7 @@ class AlarmNotificationsManager(
 	}
 
 	private fun occurrenceIsTooFar(alarmTime: Date): Boolean {
-		return alarmTime.time > dateProvider.now.toEpochMilli().plus(TIME_IN_THE_FUTURE_LIMIT_MS)
+		return alarmTime.time > System.currentTimeMillis() + TIME_IN_THE_FUTURE_LIMIT_MS
 	}
 
 	/**
@@ -261,7 +257,7 @@ class AlarmNotificationsManager(
 		callback: AlarmModel.AlarmIterationCallback,
 	) {
 		val repeatRule = alarmNotification.repeatRule!!
-		val eventTimeZone = repeatRule.timeZone
+		val timeZone = repeatRule.timeZone
 		val eventStart = alarmNotification.eventStart
 		val eventEnd = alarmNotification.eventEnd
 		val frequency = repeatRule.frequency
@@ -273,9 +269,9 @@ class AlarmNotificationsManager(
 		val byRules: List<ByRule> = alarmNotification.repeatRule?.advancedRules ?: listOf()
 
 		AlarmModel.iterateAlarmOccurrences(
-			Date.from(dateProvider.now),
-			eventTimeZone, eventStart, eventEnd, frequency, interval, endType,
-			endValue, alarmTrigger, timeZone, excludedDates, byRules, callback
+			Date(),
+			timeZone, eventStart, eventEnd, frequency, interval, endType,
+			endValue, alarmTrigger, TimeZone.getDefault(), excludedDates, byRules, callback
 		)
 	}
 
