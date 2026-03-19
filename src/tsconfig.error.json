@@ -1,12 +1,12 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["error", "../types/"],
+	"exclude": ["error/dist"],
 	"compilerOptions": {
-		"outDir": "error/dist",
-		"composite": true,
 		"rootDir": "error",
+		"outDir": "error/dist",
 		"tsBuildInfoFile": "error/dist/tsbuildinfo",
-		"incremental": true
+		"composite": true
 	},
 	"references": []
 }

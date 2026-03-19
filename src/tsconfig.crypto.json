@@ -1,6 +1,7 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["../types/*.d.ts", "./crypto/encryption", "./crypto/hashes", "./crypto/misc", "./crypto/random"],
+	"exclude": ["crypto/dist"],
 	"files": [
 		"crypto/index.ts",
 		"crypto/error.ts",
@@ -11,10 +12,10 @@
 		"crypto/internal/noble-hashes-2.0.1.js"
 	],
 	"compilerOptions": {
-		"outDir": "crypto/dist",
-		"incremental": true,
 		"rootDir": "crypto",
-		"tsBuildInfoFile": "crypto/dist/tsbuildinfo"
+		"outDir": "crypto/dist",
+		"tsBuildInfoFile": "crypto/dist/tsbuildinfo",
+		"composite": true
 	},
 	"references": [
 		{

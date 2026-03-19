@@ -27,11 +27,13 @@
 		"strictNullChecks": true,
 		"useUnknownInCatchVariables": false,
 		"types": ["node"],
+		"incremental": true,
 		"paths": {
 			"@tutao/utils": ["./src/utils"],
 			"@tutao/crypto": ["./src/crypto"],
 			"@tutao/error": ["./src/error"],
-			"@tutao/wasm-loader": ["./src/wasm-loader"]
+			"@tutao/wasm-loader": ["./src/wasm-loader"],
+			"@tutao/locc": ["./src/licc"]
 		}
 	}
 }

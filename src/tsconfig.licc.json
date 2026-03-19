@@ -1,5 +1,10 @@
 {
-	"exclude": ["./test"],
+	"include": ["./licc"],
+	"exclude": [
+		"./licc/dist",
+		"./licc/test"
+		// TODO: test will not be here anuymore???
+	],
 	"compilerOptions": {
 		/* Visit https://aka.ms/tsconfig.json to read more about this file */
 
@@ -103,9 +108,9 @@
 		/* Completeness */
 		// "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
 		"skipLibCheck": true,
-		"outDir": "dist",
-		"incremental": true,
-		"rootDir": "lib",
-		"tsBuildInfoFile": "dist/tsbuildinfo"
+		"rootDir": "licc",
+		"outDir": "licc/dist",
+		"tsBuildInfoFile": "licc/dist/tsbuildinfo",
+		"incremental": true
 	}
 }
