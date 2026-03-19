@@ -17,7 +17,7 @@ import { theme } from "../gui/theme"
 import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
 import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
-import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
+import { CAMPAIGN_NAME, shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
@@ -333,6 +333,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 										),
 									index <= 2 &&
 										viewModel.planPrices?.getRawPricingData().hasGlobalFirstYearDiscount &&
+										viewModel.planPrices?.getRawPricingData().globalCampaignName === CAMPAIGN_NAME.BIRTHDAY_CAMPAIGN &&
 										m(
 											".abs.z3",
 											{
