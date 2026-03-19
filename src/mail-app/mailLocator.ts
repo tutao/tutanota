@@ -872,6 +872,7 @@ class MailLocator implements CommonLocator {
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
 			mailLocator.search.indexState(state)
+			console.log(`INDEX STATE PROGRESS: ${state.progress}`)
 		})
 		this.autosaveFacade = autosaveFacade
 

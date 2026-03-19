@@ -1142,8 +1142,8 @@ export class SearchViewModel {
 		return mailLocator.mailModel.getLabelsForMail(mail)
 	}
 
-	getSearchIndexState(): SearchIndexStateInfo {
-		return this.search.indexState()
+	getSearchIndexStateStream(): Stream<SearchIndexStateInfo> {
+		return this.search.indexState
 	}
 }
 

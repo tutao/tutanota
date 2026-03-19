@@ -37,10 +37,7 @@ type SearchBarOverlayAttrs = {
 export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	view({ attrs }: Vnode<SearchBarOverlayAttrs>): Children {
 		const { state } = attrs
-		return [
-			this._renderIndexingStatus(state, attrs),
-			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(state, attrs) : null,
-		]
+		return [state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(state, attrs) : null]
 	}
 
 	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
@@ -75,102 +72,6 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					searchInOurAppsElement,
 				),
 		]
-	}
-
-	_renderIndexingStatus(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
-		if (attrs.isFocused || (!attrs.isQuickSearch && client.isDesktopDevice())) {
-			if (state.indexState.failedIndexingUpTo != null) {
-				return this.renderError(state.indexState.failedIndexingUpTo, attrs)
-			} else if (state.indexState.progress !== 0) {
-				return this._renderProgress(state)
-			} else {
-				return null
-			}
-		} else {
-			return null
-		}
-	}
-
-	_renderProgress(state: SearchBarState): Children {
-		return m(".flex.col.rel", [
-			m(
-				".plr-24.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
-				{
-					style: {
-						height: px(52),
-						borderLeft: `${px(size.radius_4)} solid transparent`,
-					},
-				},
-				[
-					m(
-						".flex-space-between.col",
-						m(
-							".flex-space-between",
-							m(
-								"",
-								lang.get("indexedMails_label", {
-									"{count}": state.indexState.indexedMailCount,
-								}),
-							),
-						),
-					),
-					state.indexState.progress !== 100
-						? m(
-								"div",
-								{
-									// avoid closing overlay before the click event can be received
-									onmousedown: (e: MouseEvent) => e.preventDefault(),
-								},
-								m(Button, {
-									label: "cancel_action",
-									click: () => mailLocator.indexerFacade.cancelMailIndexing(),
-									//icon: () => Icons.Cancel
-									type: ButtonType.Secondary,
-								}),
-							)
-						: null, // avoid closing overlay before the click event can be received
-				],
-			),
-			m(".abs", {
-				style: {
-					backgroundColor: theme.primary,
-					height: "2px",
-					width: state.indexState.progress + "%",
-					bottom: 0,
-				},
-			}),
-		])
-	}
-
-	private renderError(failedIndexingUpTo: number, attrs: SearchBarOverlayAttrs): Children {
-		const errorMessageKey = attrs.state.indexState.error === IndexingErrorReason.ConnectionLost ? "indexingFailedConnection_error" : "indexing_error"
-
-		return m(".flex.rel", [
-			m(
-				".plr-24.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
-				{
-					style: {
-						height: px(52),
-						borderLeft: `${px(size.radius_4)} solid transparent`,
-					},
-				},
-				[
-					m(".small", lang.get(errorMessageKey)),
-					m(
-						"div",
-						{
-							// avoid closing overlay before the click event can be received
-							onmousedown: (e: MouseEvent) => e.preventDefault(),
-						},
-						m(Button, {
-							label: "retry_action",
-							click: () => mailLocator.indexerFacade.extendMailIndex(failedIndexingUpTo),
-							type: ButtonType.Secondary,
-						}),
-					),
-				],
-			),
-		])
 	}
 
 	renderResult(state: SearchBarState, result: Entry): Children {

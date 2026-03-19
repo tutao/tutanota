@@ -65,6 +65,8 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 	}
 
 	private renderProgress(percentage: number): Children {
+		console.log(`RENDERING PROGRESS: ${percentage}`)
+
 		return m(
 			".flex.justify-center.items-center.no-shrink",
 			{

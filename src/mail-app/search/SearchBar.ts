@@ -68,7 +68,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
 	private readonly state: Stream<SearchBarState>
 	busy: boolean = false
-	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
@@ -238,9 +237,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				this.doSearch(this.state().query, currentResult.restriction, m.redraw)
 			}
 
-			this.updateState({
-				indexState,
-			})
+			// THIS IS THE FUCKER
+			// this.updateState({
+			// 	indexState,
+			// })
 		})
 
 		this.stateStream = this.state.map((state) => m.redraw())

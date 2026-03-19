@@ -4,14 +4,17 @@ import { ProgressSnackBar, ProgressSnackBarAttrs, ProgressState } from "../../..
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { mailLocator } from "../../mailLocator"
+import Stream from "mithril/stream"
 
 export interface SearchProgressStackAttrs {
-	searchIndexState: SearchIndexStateInfo
+	searchIndexStateStream: Stream<SearchIndexStateInfo>
 }
 
 export class SearchProgressStack implements Component<SearchProgressStackAttrs> {
-	view({ attrs: { searchIndexState } }: Vnode<SearchProgressStackAttrs>): Children {
-		const displayIndexing: boolean = searchIndexState.error != null || searchIndexState.progress !== 0
+	private indexStateStream: Stream<unknown> | null = null
+
+	view({ attrs: { searchIndexStateStream } }: Vnode<SearchProgressStackAttrs>): Children {
+		const displayIndexing: boolean = searchIndexStateStream().error != null || searchIndexStateStream().progress !== 0
 
 		// FIXME: this is copied from DriveTransferStack and there should be a proper component or something but I do not want to deal with it right now
 		return m(
@@ -28,13 +31,23 @@ export class SearchProgressStack implements Component<SearchProgressStackAttrs> 
 				? m(ProgressSnackBar, {
 						//FIXME: translation
 						mainText: "Indexing emails",
-						infoText: this.getIndexingStateText(searchIndexState),
-						progressState: this.getIndexingProgressState(searchIndexState),
-						percentage: Math.trunc(searchIndexState.progress),
+						infoText: this.getIndexingStateText(searchIndexStateStream()),
+						progressState: this.getIndexingProgressState(searchIndexStateStream()),
+						percentage: Math.trunc(searchIndexStateStream().progress),
 						onCancel: () => mailLocator.indexerFacade.cancelMailIndexing(),
 					} satisfies ProgressSnackBarAttrs)
 				: null,
 		)
+	}
+
+	oncreate({ attrs: { searchIndexStateStream } }: Vnode<SearchProgressStackAttrs>) {
+		this.indexStateStream = searchIndexStateStream.map((state) => {
+			m.redraw()
+		})
+	}
+
+	onremove() {
+		this.indexStateStream?.end(true)
 	}
 
 	private getIndexingStateText(searchIndexState: SearchIndexStateInfo): Translation | undefined {
