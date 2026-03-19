@@ -9,7 +9,7 @@ TOTAL_MEMORY=48MB
 
 CC=emcc
 WASM2JS=wasm2js
-TUTA_CRYPTO_LIB=../../packages/tutanota-crypto/lib/encryption/Liboqs
+TUTA_CRYPTO_LIB=../../src/crypto/encryption/Liboqs
 FPRINTF_PATCH=remove-fprintf.patch
 LIBOQS_DIR=liboqs
 INCLUDE_OQS_DIR=include/oqs

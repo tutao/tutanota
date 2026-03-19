@@ -1,14 +1,15 @@
-import { default as initializeEd25519WasmModule, Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519wasm/crypto_primitives.js"
-
-export {
+import {
+	default as initializeEd25519WasmModule,
 	ed25519_generate_keypair as generateEd25519KeyPair,
 	ed25519_sign as signWithEd25519,
 	ed25519_verify as verifyEd25519Signature,
-	Ed25519PrivateKey,
-	Ed25519PublicKey,
-	Ed25519KeyPair,
-	Ed25519Signature,
+	type Ed25519KeyPair,
+	type Ed25519PrivateKey,
+	type Ed25519PublicKey,
+	type Ed25519Signature,
 } from "crypto-primitives"
+
+export { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, Ed25519PrivateKey, Ed25519PublicKey, Ed25519KeyPair, Ed25519Signature }
 
 export async function initEd25519(webAssemblySrc: BufferSource | string): Promise<void> {
 	// the initialization function internally manage wether or not the wasm module has already been
