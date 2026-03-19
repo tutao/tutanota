@@ -1,7 +1,7 @@
 {
 	"extends": "./../tsconfig_common.json",
-	"include": ["./mimimi", "./../types/"],
-	"exclude": ["mimimi/dist"],
+	"include": ["./mimimi/index.ts", "./../types/"],
+	"exclude": ["mimimi/dist", "mimimi/make.ts"],
 	"compilerOptions": {
 		"rootDir": "mimimi",
 		"outDir": "mimimi/dist",

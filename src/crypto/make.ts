@@ -29,5 +29,5 @@ export async function copyCryptoPrimitiveCrateIntoWasmDir(wasmOutputDir: string,
 	}
 	const prefix = pathSourcePrefix || ""
 	const cryptoPrimitivesWasmFile = `${prefix}${WASM_PACK_OUT_DIR}/${CRYPTO_PRIMITIVES_WASM_FILE}`
-	await fs.copyFile(cryptoPrimitivesWasmFile, `${wasmOutputDir}/${CRYPTO_PRIMITIVES_WASM_FILE}`)
+	await fs.copyFile(cryptoPrimitivesWasmFile, `${wasmOutputDir}/${CRYPTO_PRIMITIVES_WASM_FILE}`, () => {})
 }
