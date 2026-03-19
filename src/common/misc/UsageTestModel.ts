@@ -350,7 +350,13 @@ export class UsageTestModel implements PingAdapter {
 
 	private assignmentsToTests(assignments: UsageTestAssignment[]): UsageTest[] {
 		return assignments.map((usageTestAssignment) => {
-			const test = new UsageTest(usageTestAssignment.testId, usageTestAssignment.name, Number(usageTestAssignment.variant), usageTestAssignment.sendPings)
+			const test = new UsageTest(
+				usageTestAssignment.testId,
+				usageTestAssignment.name,
+				Number(usageTestAssignment.variant),
+				usageTestAssignment.sendPings,
+				usageTestAssignment.variantName,
+			)
 
 			for (const [index, stageConfig] of usageTestAssignment.stages.entries()) {
 				const stage = new Stage(index, test, Number(stageConfig.minPings), Number(stageConfig.maxPings))
