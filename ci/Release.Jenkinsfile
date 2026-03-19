@@ -66,13 +66,12 @@ pipeline {
 			steps {
 				sh "npm ci"
 				script { // create release notes
-					def version = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-					def web = params.web ? pregenerateReleaseNotes("web") : null
-					def android = params.android ? pregenerateReleaseNotes("android") : null
-					def ios = params.ios ? pregenerateReleaseNotes("ios") : null
-					def desktop = params.desktop ? pregenerateReleaseNotes("desktop") : null
-
-					releaseNotes = reviewReleaseNotes(web, android, desktop, ios, version)
+                    releaseNotes = [
+                        web: params.web ? pregenerateReleaseNotes("web") : null,
+                        android: params.android ? pregenerateReleaseNotes("android") : null,
+                        ios: params.ios ? pregenerateReleaseNotes("ios") : null,
+                        desktop: params.desktop ? pregenerateReleaseNotes("desktop") : null,
+                    ]
 					echo("${releaseNotes}")
 				} // script
 			} // steps
@@ -262,21 +261,4 @@ platform must be one of the strings ios, android, desktop, web
 def pregenerateReleaseNotes(platform) {
 		def milestone = params.milestone.trim().equals("") ? VERSION : params.milestone
         return sh(returnStdout: true, script: """node buildSrc/releaseNotes.js --platform ${platform} --milestone ${milestone} """)
-}
-
-/**
- all parameters are nullable strings.
-*/
-def reviewReleaseNotes(web, android, desktop, ios, version) {
-	// only display input fields for the clients we're actually building.
-    def parameters = [
-         web ? text(defaultValue: web, description: "Web App:", name: "web") : null,
-         android ? text(defaultValue: android, description: "Android App:", name: "android") : null,
-         desktop ? text(defaultValue: desktop, description: 'Desktop Client:', name: 'desktop') : null,
-         ios ? text(defaultValue: ios, description: 'Ios App:', name: 'ios') : null,
-         booleanParam(defaultValue: true, description: "dummy param so we always get a dict back", name: "dummy"),
-     ].findAll { it != null }
-    // Get the input
-    // https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/
-    return input(id: 'releaseNotesInput', message: 'Release Notes', parameters: parameters)
 }
