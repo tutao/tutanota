@@ -3,19 +3,19 @@ import { usePowerShell } from "zx"
 import { rm } from "node:fs/promises"
 import { NapiCli } from "@napi-rs/cli"
 
-await program
+program
 	.usage("[options] [win|linux|darwin|native]")
 	.addArgument(new Argument("platform").choices(["win", "linux", "darwin", "native"]).default("native").argOptional())
 	.option("-c, --clean", "clean build artifacts")
 	.option("-r, --release", "run a release build")
 	.action(run)
-	.parseAsync(process.argv)
+	.parse(process.argv)
 
 /**
  * @param platform {string}
  * @return {string[]}
  */
-function getTargets(platform) {
+function getTargets(platform: string) {
 	switch (platform) {
 		case "win":
 		case "win32":
@@ -32,8 +32,8 @@ function getTargets(platform) {
 	}
 }
 
-async function run(platform, { clean, release }) {
-	if (clean) {
+async function run(platform: string, options: { clean: boolean; release: boolean }) {
+	if (options.clean) {
 		await rm("./build", { recursive: true, force: true })
 		await rm("./target", { recursive: true, force: true })
 		await rm("./dist", { recursive: true, force: true })
@@ -49,7 +49,7 @@ async function run(platform, { clean, release }) {
 			esm: true,
 			dts: "binding.d.ts",
 			target,
-			release,
+			release: options.release,
 			features: ["javascript"],
 			// Even though it is documented as defaulting to true it doesn't seem to actually be the case
 			// https://github.com/napi-rs/napi-rs/issues/2419

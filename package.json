@@ -42,7 +42,6 @@
 		"@tensorflow/tfjs-backend-webgl": "4.22.0",
 		"@tensorflow/tfjs-core": "4.22.0",
 		"@tensorflow/tfjs-layers": "4.22.0",
-		"@tutao/node-mimimi": "338.260317.1",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/luxon": "3.6.2",

@@ -7,6 +7,26 @@
 		"outDir": "build",
 		"rootDir": "."
 	},
-	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
-	"references": []
+	"files": [],
+	"exclude": ["**/dist"],
+	"references": [
+		{
+			"path": "./src/tsconfig.error.json"
+		},
+		{
+			"path": "./src/tsconfig.crypto.json"
+		},
+		{
+			"path": "./src/tsconfig.utils.json"
+		},
+		{
+			"path": "./src/tsconfig.mimimi.json"
+		},
+		{
+			"path": "./src/tsconfig.wasm.json"
+		},
+		{
+			"path": "./src/tsconfig.usagetests.json"
+		}
+	]
 }

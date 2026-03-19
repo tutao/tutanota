@@ -34,9 +34,10 @@
 			"@tutao/crypto/error": ["./src/crypto/error"],
 			"@tutao/error": ["./src/error"],
 			"@tutao/wasm-loader": ["./src/wasm-loader"],
-			"@tutao/locc": ["./src/licc"],
-			"@tutao/otest": ["./test/otest"],
-			"@tutao/usagetests": ["./src/usagetests"]
+			"@tutao/licc": ["./src/licc"],
+			"@tutao/usagetests": ["./src/usagetests"],
+			"@tutao/mimimi": ["./src/mimimi"],
+			"@tutao/otest": ["./test/otest"]
 		}
 	}
 }

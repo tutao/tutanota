@@ -1,5 +1,5 @@
 {
-	"name": "@tutao/node-mimimi",
+	"name": "@tutao/mimimi",
 	"version": "338.260317.1",
 	"main": "./dist/binding.js",
 	"types": "./dist/binding.d.ts",
@@ -13,8 +13,8 @@
 	},
 	"license": "MIT",
 	"devDependencies": {
-		"@tutao/otest": "338.260317.1",
-		"@napi-rs/cli": "3.0.0-alpha.68",
+		"@tutao/otest": "338.260317.0",
+		"@napi-rs/cli": "3.0.0",
 		"typescript": "5.8.3",
 		"zx": "8.6.1"
 	},
@@ -23,7 +23,7 @@
 	},
 	"type": "module",
 	"scripts": {
-		"build": "node make",
+		"build": "node --experimental-strip-types make.ts",
 		"prepublishOnly": "napi prepublish -t npm",
 		"test": "node make && cargo test",
 		"universal": "napi universal",

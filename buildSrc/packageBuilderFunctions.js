@@ -13,6 +13,7 @@ if (process.platform === "win32") {
  * Build packages that are needed at runtime, the list is taken from tsconfig.json -> references.
  */
 export async function buildRuntimePackages() {
+	return
 	// tsconfig is rather JSON5, if it becomes a problem switch to JSON5 parser here
 	const tsconfig = JSON.parse(await fs.readFile("tsconfig.json", { encoding: "utf-8" }))
 	const packagePaths = tsconfig.references.map((ref) => ref.path)

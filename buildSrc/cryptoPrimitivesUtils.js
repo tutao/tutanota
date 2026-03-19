@@ -10,6 +10,9 @@ export const CRYPTO_PRIMITIVES_WASM_FILE = "crypto_primitives_bg.wasm"
  * @param {{ wasmOutputDir: string, pathSourcePrefix?: string }} options
  */
 export async function copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir, pathSourcePrefix }) {
+	return
+	// we do this copy already in crypto/make.ts
+
 	// prepare output dir that will contain our wasm files
 	// this is necessary anyway because there is a race condition on the wasmloader plugin and the crypto-primitive wasm plugin
 	// one assuming the folder already created by the other

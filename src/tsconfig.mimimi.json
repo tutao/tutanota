@@ -1,0 +1,12 @@
+{
+	"extends": "./../tsconfig_common.json",
+	"include": ["./mimimi", "./../types/"],
+	"exclude": ["mimimi/dist"],
+	"compilerOptions": {
+		"rootDir": "mimimi",
+		"outDir": "mimimi/dist",
+		"tsBuildInfoFile": "mimimi/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": []
+}

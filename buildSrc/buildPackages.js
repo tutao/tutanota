@@ -9,8 +9,6 @@ program.name("buildPackages").description("A script to invoke tsc -b on the righ
 program
 	.addArgument(new Argument("type").choices(["runtime", "all"]))
 	.action(async (type) => {
-		return
-
 		if (type === "runtime") {
 			await buildRuntimePackages()
 		} else if (type === "all") {

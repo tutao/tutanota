@@ -1,6 +1,6 @@
 {
 	"extends": "./../tsconfig_common.json",
-	"include": ["./utils/*", "./../types/"],
+	"include": ["./utils", "./../types/"],
 	"exclude": ["utils/dist"],
 	"compilerOptions": {
 		"rootDir": "utils",

@@ -48,8 +48,8 @@ export {
 	collectToMap,
 	splitArrayAt,
 	splitUint8Array,
-} from "./ArrayUtils.js"
-export { AsyncResult } from "./AsyncResult.js"
+} from "./ArrayUtils"
+export { AsyncResult } from "./AsyncResult"
 export {
 	intersection,
 	trisectingDiff,
@@ -64,7 +64,7 @@ export {
 	setEquals,
 	setMap,
 	setDifference,
-} from "./CollectionUtils.js"
+} from "./CollectionUtils"
 export {
 	YEAR_IN_MILLIS,
 	getStartOfNextDay,
@@ -84,17 +84,18 @@ export {
 	isValidDate,
 	millisToDays,
 	TIMESTAMP_ZERO_YEAR,
-} from "./DateUtils.js"
+} from "./DateUtils"
 export {
 	SECOND_IN_MILLIS,
 	MINUTE_IN_MILLIS,
 	HOUR_IN_MILLIS,
 	DAY_IN_MILLIS,
+	DAY_IN_MINUTES,
 	daysToMillis,
 	secondsToMillis,
 	minutesToMillis,
 	hoursToMillis,
-} from "./TimeUtils.js"
+} from "./TimeUtils"
 export {
 	uint8ArrayToArrayBuffer,
 	hexToBase64,
@@ -116,16 +117,16 @@ export {
 	stringToBase64,
 	byteArraysToBytes,
 	bytesToByteArrays,
-} from "./Encoding.js"
-export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding.js"
-export { LazyLoaded } from "./LazyLoaded.js"
-export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry, mapMap, takeFromMap } from "./MapUtils.js"
-export { pMap } from "./PromiseMap.js"
-export type { Mapper } from "./PromiseMap.js"
-export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils.js"
-export type { PromiseMapFn, $Promisable } from "./PromiseUtils.js"
-export { SortedArray } from "./SortedArray.js"
-export type { CompareFn } from "./SortedArray.js"
+} from "./Encoding"
+export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding"
+export { LazyLoaded } from "./LazyLoaded"
+export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry, mapMap, takeFromMap } from "./MapUtils"
+export { pMap } from "./PromiseMap"
+export type { Mapper } from "./PromiseMap"
+export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils"
+export type { PromiseMapFn, $Promisable } from "./PromiseUtils"
+export { SortedArray } from "./SortedArray"
+export type { CompareFn } from "./SortedArray"
 export {
 	pad,
 	startsWith,
@@ -139,8 +140,8 @@ export {
 	toLowerCase,
 	localeCompare,
 	byteLength,
-} from "./StringUtils.js"
-export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeString, parseTypeString, isSameTypeRefNullable, AppNameEnum, type AppName } from "./TypeRef.js"
+} from "./StringUtils"
+export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeString, parseTypeString, isSameTypeRefNullable, AppNameEnum, type AppName } from "./TypeRef"
 export {
 	defer,
 	deferWithHandler,
@@ -188,7 +189,7 @@ export {
 	createResizeObserver,
 	singleAsync,
 	isAsciiChar,
-} from "./Utils.js"
+} from "./Utils"
 export type {
 	Callback,
 	DeferredObject,
@@ -202,7 +203,7 @@ export type {
 	Versioned,
 	KeyVersion,
 	Nullable,
-} from "./Utils.js"
+} from "./Utils"
 
 export {
 	callWebAssemblyFunctionWithArguments,
@@ -216,13 +217,13 @@ export {
 	secureFree,
 	mutable,
 	WASMExports,
-} from "./WebAssembly.js"
+} from "./WebAssembly"
 
-export { mod, clamp } from "./MathUtils.js"
+export { mod, clamp } from "./MathUtils"
 
-export { renderCsv, renderCsvBody, renderCsvHeader } from "./Csv.js"
+export { renderCsv, renderCsvBody, renderCsvHeader } from "./Csv"
 
-export { tokenize } from "./Tokenizer.js"
-export { memoizedWithHiddenArgument, memoized, deepMemoized, lazyMemoized } from "./memoized.js"
+export { tokenize } from "./Tokenizer"
+export { memoizedWithHiddenArgument, memoized, deepMemoized, lazyMemoized } from "./memoized"
 
-export { parseUrl, getUrlDomain } from "./URLUtils.js"
+export { parseUrl, getUrlDomain } from "./URLUtils"
