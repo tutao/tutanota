@@ -3,7 +3,7 @@
  *
  * We do this to be able to audit changes in the libraries and not rely on npm for checksums.
  */
-import fs from "fs-extra"
+import fs from "node:fs/promises"
 import path, { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { rollup } from "rollup"
@@ -15,15 +15,8 @@ import alias from "@rollup/plugin-alias"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-async function stripCommentsFromTensorflow() {
-	let str = fs.readFileSync("libs/tensorflow.js").toString()
-	str = str.replace(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g, "")
-	fs.writeFileSync("libs/tensorflow-stripped.js", str)
-}
-
 export async function updateLibs() {
 	await copyToLibs(clientDependencies)
-	await stripCommentsFromTensorflow()
 }
 
 /**
@@ -55,36 +48,37 @@ const clientDependencies = [
 	{ src: "../src/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
 ]
 
-async function applyPatch() {
-	// rolldown gets confused when module.exports are used in an expression and wraps everything into a default export
-	// remove the problematic parts
-	console.log("applying a patch to undici")
-	const undiciPath = path.join(__dirname, "../node_modules/undici/index.js")
-	const contents = await fs.readFile(undiciPath, { encoding: "utf-8" })
-	const replaced = contents
-		.replace(
-			`const SqliteCacheStore = require('./lib/cache/sqlite-cache-store')
-module.exports.cacheStores.SqliteCacheStore = SqliteCacheStore`,
-			"",
-		)
-		.replace(
-			`function install () {
-  globalThis.fetch = module.exports.fetch
-  globalThis.Headers = module.exports.Headers
-  globalThis.Response = module.exports.Response
-  globalThis.Request = module.exports.Request
-  globalThis.FormData = module.exports.FormData
-  globalThis.WebSocket = module.exports.WebSocket
-  globalThis.CloseEvent = module.exports.CloseEvent
-  globalThis.ErrorEvent = module.exports.ErrorEvent
-  globalThis.MessageEvent = module.exports.MessageEvent
-  globalThis.EventSource = module.exports.EventSource
+/** Run special patches after bundling */
+async function applyCustomPatches() {
+	await patchUndici()
+	await patchTensorflow()
 }
 
-module.exports.install = install`,
-			"",
-		)
+async function patchUndici() {
+	// Patch undici by looking for every export into the undici namespace and re-adding it as a named export.
+	// This should probably be done via a rollup plugin (in `transform`) instead.
+	console.log("updateLibs: applying a patch to undici")
+	const undiciPath = path.join(__dirname, "../libs/undici.mjs")
+	let replaced = await fs.readFile(undiciPath, { encoding: "utf-8" })
+	replaced += `
+//
+// TUTAO PATCH: esm exports
+//
+`
+	const exports = [...replaced.matchAll(/\s+module\.exports\.([a-zA-Z]+)\s+=/g)].map(([_, exportName]) => {
+		return `const __export_${exportName} = undici.exports.${exportName};
+export { __export_${exportName} as ${exportName} }`
+	})
+
+	replaced += exports.join("\n")
 	await fs.writeFile(undiciPath, replaced, { encoding: "utf-8" })
+}
+
+async function patchTensorflow() {
+	// strip comments
+	let str = await fs.readFile("libs/tensorflow.js", { encoding: "utf-8" })
+	str = str.replace(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g, "")
+	await fs.writeFile("libs/tensorflow-stripped.js", str)
 }
 
 /**
@@ -100,7 +94,7 @@ module.exports.install = install`,
 async function applyGitPatch(patchFile) {
 	if (process.platform === "win32") return
 	const exec = promisify(child_process.exec)
-	console.log(`applying a patch to ${patchFile}`)
+	console.log(`updateLibs: applying a patch to ${patchFile}`)
 	await exec(`git apply ${patchFile}`)
 }
 
@@ -109,12 +103,10 @@ async function applyGitPatch(patchFile) {
  * @return {Promise<void>}
  */
 async function copyToLibs(dependencies) {
-	await applyPatch()
-
 	for (let { bundling, src, target, banner, patch } of dependencies) {
 		switch (bundling) {
 			case "copy":
-				await fs.copy(path.join(__dirname, src), path.join(__dirname, "../libs/", target))
+				await fs.copyFile(path.join(__dirname, src), path.join(__dirname, "../libs/", target))
 				break
 			case "rollupWeb":
 				await rollWebDep(src, target, banner)
@@ -133,6 +125,7 @@ async function copyToLibs(dependencies) {
 			await applyGitPatch(patch)
 		}
 	}
+	await applyCustomPatches()
 }
 
 /**
@@ -216,7 +209,6 @@ async function rollDesktopDep(src, target, banner) {
 			"url",
 			"util",
 			"zlib",
-			/.*sqlite-cache-store$/,
 		],
 		plugins: [
 			nodeResolve({ preferBuiltins: true }),
@@ -234,7 +226,6 @@ async function rollDesktopDep(src, target, banner) {
 	await bundle.write({
 		file: path.join(__dirname, "../libs", target),
 		format: "es",
-		// another ugly hack for better-sqlite
 		banner,
 	})
 }

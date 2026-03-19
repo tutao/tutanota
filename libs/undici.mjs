@@ -2,22 +2,30 @@ import require$$0$2 from 'node:assert';
 import require$$0$3 from 'node:net';
 import require$$2 from 'node:http';
 import require$$0$1 from 'node:stream';
-import require$$0 from 'node:buffer';
-import require$$6 from 'node:querystring';
-import require$$7 from 'node:events';
-import require$$0$5 from 'node:diagnostics_channel';
-import require$$0$4 from 'node:util';
+import require$$5 from 'node:querystring';
+import require$$0 from 'node:events';
+import require$$0$4 from 'node:diagnostics_channel';
+import require$$3 from 'node:util';
 import require$$4 from 'node:tls';
-import require$$1$1 from 'node:zlib';
-import require$$5 from 'node:perf_hooks';
+import require$$0$5 from 'node:buffer';
+import require$$0$6 from 'node:zlib';
+import require$$5$1 from 'node:perf_hooks';
 import require$$8 from 'node:util/types';
+import require$$2$1 from 'node:crypto';
 import require$$1 from 'node:worker_threads';
-import require$$1$2 from 'node:url';
-import require$$1$3 from 'node:async_hooks';
-import require$$1$4 from 'node:console';
+import require$$1$1 from 'node:url';
+import require$$1$2 from 'node:async_hooks';
+import require$$1$3 from 'node:console';
+import require$$0$7 from 'node:fs/promises';
+import require$$1$4 from 'node:path';
+import require$$2$2 from 'node:timers';
 import require$$1$5 from 'node:dns';
 
-var undici = {};
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+var undici = {exports: {}};
 
 var symbols;
 var hasRequiredSymbols;
@@ -88,9 +96,16 @@ function requireSymbols () {
 	  kListeners: Symbol('listeners'),
 	  kHTTPContext: Symbol('http context'),
 	  kMaxConcurrentStreams: Symbol('max concurrent streams'),
+	  kHTTP2InitialWindowSize: Symbol('http2 initial window size'),
+	  kHTTP2ConnectionWindowSize: Symbol('http2 connection window size'),
+	  kEnableConnectProtocol: Symbol('http2session connect protocol'),
+	  kRemoteSettings: Symbol('http2session remote settings'),
+	  kHTTP2Stream: Symbol('http2session client stream'),
+	  kPingInterval: Symbol('ping interval'),
 	  kNoProxyAgent: Symbol('no proxy agent'),
 	  kHttpProxyAgent: Symbol('http proxy agent'),
-	  kHttpsProxyAgent: Symbol('https proxy agent')
+	  kHttpsProxyAgent: Symbol('https proxy agent'),
+	  kSocks5ProxyAgent: Symbol('socks5 proxy agent')
 	};
 	return symbols;
 }
@@ -519,144 +534,259 @@ var timers$2 = {
   kFastTimer
 };
 
-let UndiciError$2 = class UndiciError extends Error {
+const kUndiciError = Symbol.for('undici.error.UND_ERR');
+let UndiciError$4 = class UndiciError extends Error {
   constructor (message, options) {
     super(message, options);
     this.name = 'UndiciError';
     this.code = 'UND_ERR';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kUndiciError] === true
+  }
+
+  get [kUndiciError] () {
+    return true
+  }
 };
 
-let ConnectTimeoutError$1 = class ConnectTimeoutError extends UndiciError$2 {
+const kConnectTimeoutError = Symbol.for('undici.error.UND_ERR_CONNECT_TIMEOUT');
+let ConnectTimeoutError$1 = class ConnectTimeoutError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ConnectTimeoutError';
     this.message = message || 'Connect Timeout Error';
     this.code = 'UND_ERR_CONNECT_TIMEOUT';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kConnectTimeoutError] === true
+  }
+
+  get [kConnectTimeoutError] () {
+    return true
+  }
 };
 
-let HeadersTimeoutError$1 = class HeadersTimeoutError extends UndiciError$2 {
+const kHeadersTimeoutError = Symbol.for('undici.error.UND_ERR_HEADERS_TIMEOUT');
+let HeadersTimeoutError$1 = class HeadersTimeoutError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'HeadersTimeoutError';
     this.message = message || 'Headers Timeout Error';
     this.code = 'UND_ERR_HEADERS_TIMEOUT';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kHeadersTimeoutError] === true
+  }
+
+  get [kHeadersTimeoutError] () {
+    return true
+  }
 };
 
-let HeadersOverflowError$1 = class HeadersOverflowError extends UndiciError$2 {
+const kHeadersOverflowError = Symbol.for('undici.error.UND_ERR_HEADERS_OVERFLOW');
+let HeadersOverflowError$1 = class HeadersOverflowError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'HeadersOverflowError';
     this.message = message || 'Headers Overflow Error';
     this.code = 'UND_ERR_HEADERS_OVERFLOW';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kHeadersOverflowError] === true
+  }
+
+  get [kHeadersOverflowError] () {
+    return true
+  }
 };
 
-let BodyTimeoutError$1 = class BodyTimeoutError extends UndiciError$2 {
+const kBodyTimeoutError = Symbol.for('undici.error.UND_ERR_BODY_TIMEOUT');
+let BodyTimeoutError$1 = class BodyTimeoutError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'BodyTimeoutError';
     this.message = message || 'Body Timeout Error';
     this.code = 'UND_ERR_BODY_TIMEOUT';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kBodyTimeoutError] === true
+  }
+
+  get [kBodyTimeoutError] () {
+    return true
+  }
 };
 
-class ResponseStatusCodeError extends UndiciError$2 {
-  constructor (message, statusCode, headers, body) {
-    super(message);
-    this.name = 'ResponseStatusCodeError';
-    this.message = message || 'Response Status Code Error';
-    this.code = 'UND_ERR_RESPONSE_STATUS_CODE';
-    this.body = body;
-    this.status = statusCode;
-    this.statusCode = statusCode;
-    this.headers = headers;
-  }
-}
-
-let InvalidArgumentError$t = class InvalidArgumentError extends UndiciError$2 {
+const kInvalidArgumentError = Symbol.for('undici.error.UND_ERR_INVALID_ARG');
+let InvalidArgumentError$A = class InvalidArgumentError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'InvalidArgumentError';
     this.message = message || 'Invalid Argument Error';
     this.code = 'UND_ERR_INVALID_ARG';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kInvalidArgumentError] === true
+  }
+
+  get [kInvalidArgumentError] () {
+    return true
+  }
 };
 
-let InvalidReturnValueError$2 = class InvalidReturnValueError extends UndiciError$2 {
+const kInvalidReturnValueError = Symbol.for('undici.error.UND_ERR_INVALID_RETURN_VALUE');
+let InvalidReturnValueError$2 = class InvalidReturnValueError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'InvalidReturnValueError';
     this.message = message || 'Invalid Return Value Error';
     this.code = 'UND_ERR_INVALID_RETURN_VALUE';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kInvalidReturnValueError] === true
+  }
+
+  get [kInvalidReturnValueError] () {
+    return true
+  }
 };
 
-let AbortError$2 = class AbortError extends UndiciError$2 {
+const kAbortError = Symbol.for('undici.error.UND_ERR_ABORT');
+let AbortError$2 = class AbortError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'AbortError';
     this.message = message || 'The operation was aborted';
+    this.code = 'UND_ERR_ABORT';
+  }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kAbortError] === true
+  }
+
+  get [kAbortError] () {
+    return true
   }
 };
 
-let RequestAbortedError$8 = class RequestAbortedError extends AbortError$2 {
+const kRequestAbortedError = Symbol.for('undici.error.UND_ERR_ABORTED');
+let RequestAbortedError$9 = class RequestAbortedError extends AbortError$2 {
   constructor (message) {
     super(message);
     this.name = 'AbortError';
     this.message = message || 'Request aborted';
     this.code = 'UND_ERR_ABORTED';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kRequestAbortedError] === true
+  }
+
+  get [kRequestAbortedError] () {
+    return true
+  }
 };
 
-let InformationalError$4 = class InformationalError extends UndiciError$2 {
+const kInformationalError = Symbol.for('undici.error.UND_ERR_INFO');
+let InformationalError$4 = class InformationalError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'InformationalError';
     this.message = message || 'Request information';
     this.code = 'UND_ERR_INFO';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kInformationalError] === true
+  }
+
+  get [kInformationalError] () {
+    return true
+  }
 };
 
-let RequestContentLengthMismatchError$2 = class RequestContentLengthMismatchError extends UndiciError$2 {
+const kRequestContentLengthMismatchError = Symbol.for('undici.error.UND_ERR_REQ_CONTENT_LENGTH_MISMATCH');
+let RequestContentLengthMismatchError$2 = class RequestContentLengthMismatchError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'RequestContentLengthMismatchError';
     this.message = message || 'Request body length does not match content-length header';
     this.code = 'UND_ERR_REQ_CONTENT_LENGTH_MISMATCH';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kRequestContentLengthMismatchError] === true
+  }
+
+  get [kRequestContentLengthMismatchError] () {
+    return true
+  }
 };
 
-let ResponseContentLengthMismatchError$1 = class ResponseContentLengthMismatchError extends UndiciError$2 {
+const kResponseContentLengthMismatchError = Symbol.for('undici.error.UND_ERR_RES_CONTENT_LENGTH_MISMATCH');
+let ResponseContentLengthMismatchError$1 = class ResponseContentLengthMismatchError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ResponseContentLengthMismatchError';
     this.message = message || 'Response body length does not match content-length header';
     this.code = 'UND_ERR_RES_CONTENT_LENGTH_MISMATCH';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kResponseContentLengthMismatchError] === true
+  }
+
+  get [kResponseContentLengthMismatchError] () {
+    return true
+  }
 };
 
-let ClientDestroyedError$2 = class ClientDestroyedError extends UndiciError$2 {
+const kClientDestroyedError = Symbol.for('undici.error.UND_ERR_DESTROYED');
+let ClientDestroyedError$2 = class ClientDestroyedError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ClientDestroyedError';
     this.message = message || 'The client is destroyed';
     this.code = 'UND_ERR_DESTROYED';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kClientDestroyedError] === true
+  }
+
+  get [kClientDestroyedError] () {
+    return true
+  }
 };
 
-let ClientClosedError$1 = class ClientClosedError extends UndiciError$2 {
+const kClientClosedError = Symbol.for('undici.error.UND_ERR_CLOSED');
+let ClientClosedError$1 = class ClientClosedError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ClientClosedError';
     this.message = message || 'The client is closed';
     this.code = 'UND_ERR_CLOSED';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kClientClosedError] === true
+  }
+
+  get [kClientClosedError] () {
+    return true
+  }
 };
 
-let SocketError$4 = class SocketError extends UndiciError$2 {
+const kSocketError = Symbol.for('undici.error.UND_ERR_SOCKET');
+let SocketError$4 = class SocketError extends UndiciError$4 {
   constructor (message, socket) {
     super(message);
     this.name = 'SocketError';
@@ -664,26 +794,53 @@ let SocketError$4 = class SocketError extends UndiciError$2 {
     this.code = 'UND_ERR_SOCKET';
     this.socket = socket;
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kSocketError] === true
+  }
+
+  get [kSocketError] () {
+    return true
+  }
 };
 
-let NotSupportedError$2 = class NotSupportedError extends UndiciError$2 {
+const kNotSupportedError = Symbol.for('undici.error.UND_ERR_NOT_SUPPORTED');
+let NotSupportedError$2 = class NotSupportedError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'NotSupportedError';
     this.message = message || 'Not supported error';
     this.code = 'UND_ERR_NOT_SUPPORTED';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kNotSupportedError] === true
+  }
+
+  get [kNotSupportedError] () {
+    return true
+  }
 };
 
-let BalancedPoolMissingUpstreamError$1 = class BalancedPoolMissingUpstreamError extends UndiciError$2 {
+const kBalancedPoolMissingUpstreamError = Symbol.for('undici.error.UND_ERR_BPL_MISSING_UPSTREAM');
+let BalancedPoolMissingUpstreamError$1 = class BalancedPoolMissingUpstreamError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'MissingUpstreamError';
     this.message = message || 'No upstream has been added to the BalancedPool';
     this.code = 'UND_ERR_BPL_MISSING_UPSTREAM';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kBalancedPoolMissingUpstreamError] === true
+  }
+
+  get [kBalancedPoolMissingUpstreamError] () {
+    return true
+  }
 };
 
+const kHTTPParserError = Symbol.for('undici.error.UND_ERR_HTTP_PARSER');
 let HTTPParserError$1 = class HTTPParserError extends Error {
   constructor (message, code, data) {
     super(message);
@@ -691,18 +848,36 @@ let HTTPParserError$1 = class HTTPParserError extends Error {
     this.code = code ? `HPE_${code}` : undefined;
     this.data = data ? data.toString() : undefined;
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kHTTPParserError] === true
+  }
+
+  get [kHTTPParserError] () {
+    return true
+  }
 };
 
-let ResponseExceededMaxSizeError$1 = class ResponseExceededMaxSizeError extends UndiciError$2 {
+const kResponseExceededMaxSizeError = Symbol.for('undici.error.UND_ERR_RES_EXCEEDED_MAX_SIZE');
+let ResponseExceededMaxSizeError$1 = class ResponseExceededMaxSizeError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ResponseExceededMaxSizeError';
     this.message = message || 'Response content exceeded max size';
     this.code = 'UND_ERR_RES_EXCEEDED_MAX_SIZE';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kResponseExceededMaxSizeError] === true
+  }
+
+  get [kResponseExceededMaxSizeError] () {
+    return true
+  }
 };
 
-let RequestRetryError$1 = class RequestRetryError extends UndiciError$2 {
+const kRequestRetryError = Symbol.for('undici.error.UND_ERR_REQ_RETRY');
+let RequestRetryError$1 = class RequestRetryError extends UndiciError$4 {
   constructor (message, code, { headers, data }) {
     super(message);
     this.name = 'RequestRetryError';
@@ -712,9 +887,18 @@ let RequestRetryError$1 = class RequestRetryError extends UndiciError$2 {
     this.data = data;
     this.headers = headers;
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kRequestRetryError] === true
+  }
+
+  get [kRequestRetryError] () {
+    return true
+  }
 };
 
-let ResponseError$1 = class ResponseError extends UndiciError$2 {
+const kResponseError = Symbol.for('undici.error.UND_ERR_RESPONSE');
+let ResponseError$1 = class ResponseError extends UndiciError$4 {
   constructor (message, code, { headers, body }) {
     super(message);
     this.name = 'ResponseError';
@@ -724,9 +908,18 @@ let ResponseError$1 = class ResponseError extends UndiciError$2 {
     this.body = body;
     this.headers = headers;
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kResponseError] === true
+  }
+
+  get [kResponseError] () {
+    return true
+  }
 };
 
-let SecureProxyConnectionError$1 = class SecureProxyConnectionError extends UndiciError$2 {
+const kSecureProxyConnectionError = Symbol.for('undici.error.UND_ERR_PRX_TLS');
+let SecureProxyConnectionError$1 = class SecureProxyConnectionError extends UndiciError$4 {
   constructor (cause, message, options = {}) {
     super(message, { cause, ...options });
     this.name = 'SecureProxyConnectionError';
@@ -734,21 +927,73 @@ let SecureProxyConnectionError$1 = class SecureProxyConnectionError extends Undi
     this.code = 'UND_ERR_PRX_TLS';
     this.cause = cause;
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kSecureProxyConnectionError] === true
+  }
+
+  get [kSecureProxyConnectionError] () {
+    return true
+  }
 };
 
-var errors$1 = {
+const kMaxOriginsReachedError = Symbol.for('undici.error.UND_ERR_MAX_ORIGINS_REACHED');
+let MaxOriginsReachedError$1 = class MaxOriginsReachedError extends UndiciError$4 {
+  constructor (message) {
+    super(message);
+    this.name = 'MaxOriginsReachedError';
+    this.message = message || 'Maximum allowed origins reached';
+    this.code = 'UND_ERR_MAX_ORIGINS_REACHED';
+  }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kMaxOriginsReachedError] === true
+  }
+
+  get [kMaxOriginsReachedError] () {
+    return true
+  }
+};
+
+let Socks5ProxyError$1 = class Socks5ProxyError extends UndiciError$4 {
+  constructor (message, code) {
+    super(message);
+    this.name = 'Socks5ProxyError';
+    this.message = message || 'SOCKS5 proxy error';
+    this.code = code || 'UND_ERR_SOCKS5';
+  }
+};
+
+const kMessageSizeExceededError = Symbol.for('undici.error.UND_ERR_WS_MESSAGE_SIZE_EXCEEDED');
+class MessageSizeExceededError extends UndiciError$4 {
+  constructor (message) {
+    super(message);
+    this.name = 'MessageSizeExceededError';
+    this.message = message || 'Max decompressed message size exceeded';
+    this.code = 'UND_ERR_WS_MESSAGE_SIZE_EXCEEDED';
+  }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kMessageSizeExceededError] === true
+  }
+
+  get [kMessageSizeExceededError] () {
+    return true
+  }
+}
+
+var errors = {
   AbortError: AbortError$2,
   HTTPParserError: HTTPParserError$1,
-  UndiciError: UndiciError$2,
+  UndiciError: UndiciError$4,
   HeadersTimeoutError: HeadersTimeoutError$1,
   HeadersOverflowError: HeadersOverflowError$1,
   BodyTimeoutError: BodyTimeoutError$1,
   RequestContentLengthMismatchError: RequestContentLengthMismatchError$2,
   ConnectTimeoutError: ConnectTimeoutError$1,
-  ResponseStatusCodeError,
-  InvalidArgumentError: InvalidArgumentError$t,
+  InvalidArgumentError: InvalidArgumentError$A,
   InvalidReturnValueError: InvalidReturnValueError$2,
-  RequestAbortedError: RequestAbortedError$8,
+  RequestAbortedError: RequestAbortedError$9,
   ClientDestroyedError: ClientDestroyedError$2,
   ClientClosedError: ClientClosedError$1,
   InformationalError: InformationalError$4,
@@ -759,7 +1004,10 @@ var errors$1 = {
   ResponseExceededMaxSizeError: ResponseExceededMaxSizeError$1,
   RequestRetryError: RequestRetryError$1,
   ResponseError: ResponseError$1,
-  SecureProxyConnectionError: SecureProxyConnectionError$1
+  SecureProxyConnectionError: SecureProxyConnectionError$1,
+  MaxOriginsReachedError: MaxOriginsReachedError$1,
+  Socks5ProxyError: Socks5ProxyError$1,
+  MessageSizeExceededError
 };
 
 /**
@@ -974,7 +1222,7 @@ class TstNode {
 
   /**
    * @param {Uint8Array} key
-   * @return {TstNode | null}
+   * @returns {TstNode | null}
    */
   search (key) {
     const keylength = key.length;
@@ -1049,13 +1297,12 @@ var tree_1 = {
 const assert$g = require$$0$2;
 const { kDestroyed: kDestroyed$2, kBodyUsed: kBodyUsed$1, kListeners, kBody: kBody$2 } = requireSymbols();
 const { IncomingMessage } = require$$2;
-const stream$2 = require$$0$1;
-const net$2 = require$$0$3;
-const { Blob: Blob$1 } = require$$0;
-const { stringify } = require$$6;
-const { EventEmitter: EE$1 } = require$$7;
+const stream$1 = require$$0$1;
+const net$4 = require$$0$3;
+const { stringify } = require$$5;
+const { EventEmitter: EE$1 } = require$$0;
 const timers$1 = timers$2;
-const { InvalidArgumentError: InvalidArgumentError$s, ConnectTimeoutError } = errors$1;
+const { InvalidArgumentError: InvalidArgumentError$z, ConnectTimeoutError } = errors;
 const { headerNameLowerCasedRecord: headerNameLowerCasedRecord$1 } = constants$5;
 const { tree } = tree_1;
 
@@ -1105,6 +1352,8 @@ function wrapRequestBody$1 (body) {
     // to determine whether or not it has been disturbed. This is just
     // a workaround.
     return new BodyAsyncIterable$1(body)
+  } else if (body && isFormDataLike$1(body)) {
+    return body
   } else if (
     body &&
     typeof body !== 'string' &&
@@ -1135,7 +1384,7 @@ function isStream$1 (obj) {
 function isBlobLike$1 (object) {
   if (object === null) {
     return false
-  } else if (object instanceof Blob$1) {
+  } else if (object instanceof Blob) {
     return true
   } else if (typeof object !== 'object') {
     return false
@@ -1150,12 +1399,23 @@ function isBlobLike$1 (object) {
 }
 
 /**
+ * @param {string} url The path to check for query strings or fragments.
+ * @returns {boolean} Returns true if the path contains a query string or fragment.
+ */
+function pathHasQueryOrFragment$1 (url) {
+  return (
+    url.includes('?') ||
+    url.includes('#')
+  )
+}
+
+/**
  * @param {string} url The URL to add the query params to
  * @param {import('node:querystring').ParsedUrlQueryInput} queryParams The object to serialize into a URL query string
  * @returns {string} The URL with the query params added
  */
 function serializePathWithQuery$4 (url, queryParams) {
-  if (url.includes('?') || url.includes('#')) {
+  if (pathHasQueryOrFragment$1(url)) {
     throw new Error('Query params cannot be passed when url already contains "?" or "#".')
   }
 
@@ -1216,39 +1476,39 @@ function parseURL (url) {
     url = new URL(url);
 
     if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
-      throw new InvalidArgumentError$s('Invalid URL protocol: the URL must start with `http:` or `https:`.')
+      throw new InvalidArgumentError$z('Invalid URL protocol: the URL must start with `http:` or `https:`.')
     }
 
     return url
   }
 
   if (!url || typeof url !== 'object') {
-    throw new InvalidArgumentError$s('Invalid URL: The URL argument must be a non-null object.')
+    throw new InvalidArgumentError$z('Invalid URL: The URL argument must be a non-null object.')
   }
 
   if (!(url instanceof URL)) {
     if (url.port != null && url.port !== '' && isValidPort(url.port) === false) {
-      throw new InvalidArgumentError$s('Invalid URL: port must be a valid integer or a string representation of an integer.')
+      throw new InvalidArgumentError$z('Invalid URL: port must be a valid integer or a string representation of an integer.')
     }
 
     if (url.path != null && typeof url.path !== 'string') {
-      throw new InvalidArgumentError$s('Invalid URL path: the path must be a string or null/undefined.')
+      throw new InvalidArgumentError$z('Invalid URL path: the path must be a string or null/undefined.')
     }
 
     if (url.pathname != null && typeof url.pathname !== 'string') {
-      throw new InvalidArgumentError$s('Invalid URL pathname: the pathname must be a string or null/undefined.')
+      throw new InvalidArgumentError$z('Invalid URL pathname: the pathname must be a string or null/undefined.')
     }
 
     if (url.hostname != null && typeof url.hostname !== 'string') {
-      throw new InvalidArgumentError$s('Invalid URL hostname: the hostname must be a string or null/undefined.')
+      throw new InvalidArgumentError$z('Invalid URL hostname: the hostname must be a string or null/undefined.')
     }
 
     if (url.origin != null && typeof url.origin !== 'string') {
-      throw new InvalidArgumentError$s('Invalid URL origin: the origin must be a string or null/undefined.')
+      throw new InvalidArgumentError$z('Invalid URL origin: the origin must be a string or null/undefined.')
     }
 
     if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
-      throw new InvalidArgumentError$s('Invalid URL protocol: the URL must start with `http:` or `https:`.')
+      throw new InvalidArgumentError$z('Invalid URL protocol: the URL must start with `http:` or `https:`.')
     }
 
     const port = url.port != null
@@ -1276,7 +1536,7 @@ function parseURL (url) {
   }
 
   if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
-    throw new InvalidArgumentError$s('Invalid URL protocol: the URL must start with `http:` or `https:`.')
+    throw new InvalidArgumentError$z('Invalid URL protocol: the URL must start with `http:` or `https:`.')
   }
 
   return url
@@ -1286,11 +1546,11 @@ function parseURL (url) {
  * @param {string|URL|Record<string, string>} url
  * @returns {URL}
  */
-function parseOrigin$1 (url) {
+function parseOrigin (url) {
   url = parseURL(url);
 
   if (url.pathname !== '/' || url.search || url.hash) {
-    throw new InvalidArgumentError$s('invalid url')
+    throw new InvalidArgumentError$z('invalid url')
   }
 
   return url
@@ -1328,7 +1588,7 @@ function getServerName$1 (host) {
   assert$g(typeof host === 'string');
 
   const servername = getHostname(host);
-  if (net$2.isIP(servername)) {
+  if (net$4.isIP(servername)) {
     return ''
   }
 
@@ -1362,6 +1622,20 @@ function isIterable$1 (obj) {
 }
 
 /**
+ * Checks whether an object has a safe Symbol.iterator — i.e. one that is
+ * either own or inherited from a non-Object.prototype chain.  This prevents
+ * prototype-pollution attacks from injecting a fake iterator on
+ * Object.prototype.
+ * @param {object} obj
+ * @returns {boolean}
+ */
+function hasSafeIterator$3 (obj) {
+  const prototype = Object.getPrototypeOf(obj);
+  const ownIterator = Object.prototype.hasOwnProperty.call(obj, Symbol.iterator);
+  return ownIterator || (prototype != null && prototype !== Object.prototype && typeof obj[Symbol.iterator] === 'function')
+}
+
+/**
  * @param {Blob|Buffer|import ('stream').Stream} body
  * @returns {number|null}
  */
@@ -1387,7 +1661,7 @@ function bodyLength (body) {
  * @returns {boolean}
  */
 function isDestroyed (body) {
-  return body && !!(body.destroyed || body[kDestroyed$2] || (stream$2.isDestroyed?.(body)))
+  return body && !!(body.destroyed || body[kDestroyed$2] || (stream$1.isDestroyed?.(body)))
 }
 
 /**
@@ -1465,20 +1739,15 @@ function parseHeaders$1 (headers, obj) {
         val = [val];
         obj[key] = val;
       }
-      val.push(headers[i + 1].toString('utf8'));
+      val.push(headers[i + 1].toString('latin1'));
     } else {
       const headersValue = headers[i + 1];
       if (typeof headersValue === 'string') {
         obj[key] = headersValue;
       } else {
-        obj[key] = Array.isArray(headersValue) ? headersValue.map(x => x.toString('utf8')) : headersValue.toString('utf8');
+        obj[key] = Array.isArray(headersValue) ? headersValue.map(x => x.toString('latin1')) : headersValue.toString('latin1');
       }
     }
-  }
-
-  // See https://github.com/nodejs/node/pull/46528
-  if ('content-length' in obj && 'content-disposition' in obj) {
-    obj['content-disposition'] = Buffer.from(obj['content-disposition']).toString('latin1');
   }
 
   return obj
@@ -1495,32 +1764,18 @@ function parseRawHeaders (headers) {
    */
   const ret = new Array(headersLength);
 
-  let hasContentLength = false;
-  let contentDispositionIdx = -1;
   let key;
   let val;
-  let kLen = 0;
 
   for (let n = 0; n < headersLength; n += 2) {
     key = headers[n];
     val = headers[n + 1];
 
     typeof key !== 'string' && (key = key.toString());
-    typeof val !== 'string' && (val = val.toString('utf8'));
+    typeof val !== 'string' && (val = val.toString('latin1'));
 
-    kLen = key.length;
-    if (kLen === 14 && key[7] === '-' && (key === 'content-length' || key.toLowerCase() === 'content-length')) {
-      hasContentLength = true;
-    } else if (kLen === 19 && key[7] === '-' && (key === 'content-disposition' || key.toLowerCase() === 'content-disposition')) {
-      contentDispositionIdx = n + 1;
-    }
     ret[n] = key;
     ret[n + 1] = val;
-  }
-
-  // See https://github.com/nodejs/node/pull/46528
-  if (hasContentLength && contentDispositionIdx !== -1) {
-    ret[contentDispositionIdx] = Buffer.from(ret[contentDispositionIdx]).toString('latin1');
   }
 
   return ret
@@ -1556,7 +1811,7 @@ function isBuffer$1 (buffer) {
  */
 function assertRequestHandler$1 (handler, method, upgrade) {
   if (!handler || typeof handler !== 'object') {
-    throw new InvalidArgumentError$s('handler must be an object')
+    throw new InvalidArgumentError$z('handler must be an object')
   }
 
   if (typeof handler.onRequestStart === 'function') {
@@ -1565,32 +1820,32 @@ function assertRequestHandler$1 (handler, method, upgrade) {
   }
 
   if (typeof handler.onConnect !== 'function') {
-    throw new InvalidArgumentError$s('invalid onConnect method')
+    throw new InvalidArgumentError$z('invalid onConnect method')
   }
 
   if (typeof handler.onError !== 'function') {
-    throw new InvalidArgumentError$s('invalid onError method')
+    throw new InvalidArgumentError$z('invalid onError method')
   }
 
   if (typeof handler.onBodySent !== 'function' && handler.onBodySent !== undefined) {
-    throw new InvalidArgumentError$s('invalid onBodySent method')
+    throw new InvalidArgumentError$z('invalid onBodySent method')
   }
 
   if (upgrade || method === 'CONNECT') {
     if (typeof handler.onUpgrade !== 'function') {
-      throw new InvalidArgumentError$s('invalid onUpgrade method')
+      throw new InvalidArgumentError$z('invalid onUpgrade method')
     }
   } else {
     if (typeof handler.onHeaders !== 'function') {
-      throw new InvalidArgumentError$s('invalid onHeaders method')
+      throw new InvalidArgumentError$z('invalid onHeaders method')
     }
 
     if (typeof handler.onData !== 'function') {
-      throw new InvalidArgumentError$s('invalid onData method')
+      throw new InvalidArgumentError$z('invalid onData method')
     }
 
     if (typeof handler.onComplete !== 'function') {
-      throw new InvalidArgumentError$s('invalid onComplete method')
+      throw new InvalidArgumentError$z('invalid onComplete method')
     }
   }
 }
@@ -1603,7 +1858,7 @@ function assertRequestHandler$1 (handler, method, upgrade) {
  */
 function isDisturbed$1 (body) {
   // TODO (fix): Why is body[kBodyUsed] needed?
-  return !!(body && (stream$2.isDisturbed(body) || body[kBodyUsed$1]))
+  return !!(body && (stream$1.isDisturbed(body) || body[kBodyUsed$1]))
 }
 
 /**
@@ -1645,31 +1900,28 @@ function ReadableStreamFrom$1 (iterable) {
   let iterator;
   return new ReadableStream(
     {
-      async start () {
+      start () {
         iterator = iterable[Symbol.asyncIterator]();
       },
       pull (controller) {
-        async function pull () {
-          const { done, value } = await iterator.next();
+        return iterator.next().then(({ done, value }) => {
           if (done) {
-            queueMicrotask(() => {
+            return queueMicrotask(() => {
               controller.close();
               controller.byobRequest?.respond(0);
-            });
+            })
           } else {
             const buf = Buffer.isBuffer(value) ? value : Buffer.from(value);
             if (buf.byteLength) {
-              controller.enqueue(new Uint8Array(buf));
+              return controller.enqueue(new Uint8Array(buf))
             } else {
-              return await pull()
+              return this.pull(controller)
             }
           }
-        }
-
-        return pull()
+        })
       },
-      async cancel () {
-        await iterator.return();
+      cancel () {
+        return iterator.return()
       },
       type: 'bytes'
     }
@@ -1705,48 +1957,46 @@ function addAbortListener$1 (signal, listener) {
   return () => signal.removeListener('abort', listener)
 }
 
+const validTokenChars = new Uint8Array([
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0-15
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16-31
+  0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, // 32-47 (!"#$%&'()*+,-./)
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, // 48-63 (0-9:;<=>?)
+  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64-79 (@A-O)
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, // 80-95 (P-Z[\]^_)
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96-111 (`a-o)
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, // 112-127 (p-z{|}~)
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 128-143
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 144-159
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 160-175
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 176-191
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 192-207
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 208-223
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 224-239
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  // 240-255
+]);
+
 /**
  * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
  * @param {number} c
  * @returns {boolean}
  */
 function isTokenCharCode (c) {
-  switch (c) {
-    case 0x22:
-    case 0x28:
-    case 0x29:
-    case 0x2c:
-    case 0x2f:
-    case 0x3a:
-    case 0x3b:
-    case 0x3c:
-    case 0x3d:
-    case 0x3e:
-    case 0x3f:
-    case 0x40:
-    case 0x5b:
-    case 0x5c:
-    case 0x5d:
-    case 0x7b:
-    case 0x7d:
-      // DQUOTE and "(),/:;<=>?@[\]{}"
-      return false
-    default:
-      // VCHAR %x21-7E
-      return c >= 0x21 && c <= 0x7e
-  }
+  return (validTokenChars[c] === 1)
 }
+
+const tokenRegExp = /^[\^_`a-zA-Z\-0-9!#$%&'*+.|~]+$/;
 
 /**
  * @param {string} characters
  * @returns {boolean}
  */
 function isValidHTTPToken$1 (characters) {
-  if (characters.length === 0) {
-    return false
-  }
-  for (let i = 0; i < characters.length; ++i) {
-    if (!isTokenCharCode(characters.charCodeAt(i))) {
+  if (characters.length >= 12) return tokenRegExp.test(characters)
+  if (characters.length === 0) return false
+
+  for (let i = 0; i < characters.length; i++) {
+    if (validTokenChars[characters.charCodeAt(i)] !== 1) {
       return false
     }
   }
@@ -1915,6 +2165,30 @@ function onConnectTimeout (socket, opts) {
   destroy$1(socket, new ConnectTimeoutError(message));
 }
 
+/**
+ * @param {string} urlString
+ * @returns {string}
+ */
+function getProtocolFromUrlString$1 (urlString) {
+  if (
+    urlString[0] === 'h' &&
+    urlString[1] === 't' &&
+    urlString[2] === 't' &&
+    urlString[3] === 'p'
+  ) {
+    switch (urlString[4]) {
+      case ':':
+        return 'http:'
+      case 's':
+        if (urlString[5] === ':') {
+          return 'https:'
+        }
+    }
+  }
+  // fallback if none of the usual suspects
+  return urlString.slice(0, urlString.indexOf(':') + 1)
+}
+
 const kEnumerableProperty = Object.create(null);
 kEnumerableProperty.enumerable = true;
 
@@ -1943,15 +2217,16 @@ const normalizedMethodRecords$1 = {
 Object.setPrototypeOf(normalizedMethodRecordsBase, null);
 Object.setPrototypeOf(normalizedMethodRecords$1, null);
 
-var util$n = {
+var util$o = {
   kEnumerableProperty,
   isDisturbed: isDisturbed$1,
   isBlobLike: isBlobLike$1,
-  parseOrigin: parseOrigin$1,
+  parseOrigin,
   parseURL,
   getServerName: getServerName$1,
   isStream: isStream$1,
   isIterable: isIterable$1,
+  hasSafeIterator: hasSafeIterator$3,
   isAsyncIterable,
   isDestroyed,
   headerNameToString,
@@ -1971,6 +2246,7 @@ var util$n = {
   assertRequestHandler: assertRequestHandler$1,
   getSocketInfo,
   isFormDataLike: isFormDataLike$1,
+  pathHasQueryOrFragment: pathHasQueryOrFragment$1,
   serializePathWithQuery: serializePathWithQuery$4,
   addAbortListener: addAbortListener$1,
   isValidHTTPToken: isValidHTTPToken$1,
@@ -1985,7 +2261,8 @@ var util$n = {
   nodeMinor,
   safeHTTPMethods: Object.freeze(['GET', 'HEAD', 'OPTIONS', 'TRACE']),
   wrapRequestBody: wrapRequestBody$1,
-  setupConnectTimeout
+  setupConnectTimeout,
+  getProtocolFromUrlString: getProtocolFromUrlString$1
 };
 
 const {
@@ -2019,33 +2296,35 @@ let PoolStats$1 = class PoolStats {
 
 var stats = { ClientStats: ClientStats$1, PoolStats: PoolStats$1 };
 
-const diagnosticsChannel = require$$0$5;
-const util$m = require$$0$4;
+const diagnosticsChannel$1 = require$$0$4;
+const util$n = require$$3;
 
-const undiciDebugLog = util$m.debuglog('undici');
-const fetchDebuglog = util$m.debuglog('fetch');
-const websocketDebuglog = util$m.debuglog('websocket');
+const undiciDebugLog = util$n.debuglog('undici');
+const fetchDebuglog = util$n.debuglog('fetch');
+const websocketDebuglog = util$n.debuglog('websocket');
 
-const channels$4 = {
+const channels$5 = {
   // Client
-  beforeConnect: diagnosticsChannel.channel('undici:client:beforeConnect'),
-  connected: diagnosticsChannel.channel('undici:client:connected'),
-  connectError: diagnosticsChannel.channel('undici:client:connectError'),
-  sendHeaders: diagnosticsChannel.channel('undici:client:sendHeaders'),
+  beforeConnect: diagnosticsChannel$1.channel('undici:client:beforeConnect'),
+  connected: diagnosticsChannel$1.channel('undici:client:connected'),
+  connectError: diagnosticsChannel$1.channel('undici:client:connectError'),
+  sendHeaders: diagnosticsChannel$1.channel('undici:client:sendHeaders'),
   // Request
-  create: diagnosticsChannel.channel('undici:request:create'),
-  bodySent: diagnosticsChannel.channel('undici:request:bodySent'),
-  bodyChunkSent: diagnosticsChannel.channel('undici:request:bodyChunkSent'),
-  bodyChunkReceived: diagnosticsChannel.channel('undici:request:bodyChunkReceived'),
-  headers: diagnosticsChannel.channel('undici:request:headers'),
-  trailers: diagnosticsChannel.channel('undici:request:trailers'),
-  error: diagnosticsChannel.channel('undici:request:error'),
+  create: diagnosticsChannel$1.channel('undici:request:create'),
+  bodySent: diagnosticsChannel$1.channel('undici:request:bodySent'),
+  bodyChunkSent: diagnosticsChannel$1.channel('undici:request:bodyChunkSent'),
+  bodyChunkReceived: diagnosticsChannel$1.channel('undici:request:bodyChunkReceived'),
+  headers: diagnosticsChannel$1.channel('undici:request:headers'),
+  trailers: diagnosticsChannel$1.channel('undici:request:trailers'),
+  error: diagnosticsChannel$1.channel('undici:request:error'),
   // WebSocket
-  open: diagnosticsChannel.channel('undici:websocket:open'),
-  close: diagnosticsChannel.channel('undici:websocket:close'),
-  socketError: diagnosticsChannel.channel('undici:websocket:socket_error'),
-  ping: diagnosticsChannel.channel('undici:websocket:ping'),
-  pong: diagnosticsChannel.channel('undici:websocket:pong')
+  open: diagnosticsChannel$1.channel('undici:websocket:open'),
+  close: diagnosticsChannel$1.channel('undici:websocket:close'),
+  socketError: diagnosticsChannel$1.channel('undici:websocket:socket_error'),
+  ping: diagnosticsChannel$1.channel('undici:websocket:ping'),
+  pong: diagnosticsChannel$1.channel('undici:websocket:pong'),
+  // ProxyAgent
+  proxyConnected: diagnosticsChannel$1.channel('undici:proxy:connected')
 };
 
 let isTrackingClientEvents = false;
@@ -2055,9 +2334,17 @@ function trackClientEvents (debugLog = undiciDebugLog) {
     return
   }
 
+  // Check if any of the channels already have subscribers to prevent duplicate subscriptions
+  // This can happen when both Node.js built-in undici and undici as a dependency are present
+  if (channels$5.beforeConnect.hasSubscribers || channels$5.connected.hasSubscribers ||
+      channels$5.connectError.hasSubscribers || channels$5.sendHeaders.hasSubscribers) {
+    isTrackingClientEvents = true;
+    return
+  }
+
   isTrackingClientEvents = true;
 
-  diagnosticsChannel.subscribe('undici:client:beforeConnect',
+  diagnosticsChannel$1.subscribe('undici:client:beforeConnect',
     evt => {
       const {
         connectParams: { version, protocol, port, host }
@@ -2071,7 +2358,7 @@ function trackClientEvents (debugLog = undiciDebugLog) {
       );
     });
 
-  diagnosticsChannel.subscribe('undici:client:connected',
+  diagnosticsChannel$1.subscribe('undici:client:connected',
     evt => {
       const {
         connectParams: { version, protocol, port, host }
@@ -2085,7 +2372,7 @@ function trackClientEvents (debugLog = undiciDebugLog) {
       );
     });
 
-  diagnosticsChannel.subscribe('undici:client:connectError',
+  diagnosticsChannel$1.subscribe('undici:client:connectError',
     evt => {
       const {
         connectParams: { version, protocol, port, host },
@@ -2101,7 +2388,7 @@ function trackClientEvents (debugLog = undiciDebugLog) {
       );
     });
 
-  diagnosticsChannel.subscribe('undici:client:sendHeaders',
+  diagnosticsChannel$1.subscribe('undici:client:sendHeaders',
     evt => {
       const {
         request: { method, path, origin }
@@ -2117,9 +2404,17 @@ function trackRequestEvents (debugLog = undiciDebugLog) {
     return
   }
 
+  // Check if any of the channels already have subscribers to prevent duplicate subscriptions
+  // This can happen when both Node.js built-in undici and undici as a dependency are present
+  if (channels$5.headers.hasSubscribers || channels$5.trailers.hasSubscribers ||
+      channels$5.error.hasSubscribers) {
+    isTrackingRequestEvents = true;
+    return
+  }
+
   isTrackingRequestEvents = true;
 
-  diagnosticsChannel.subscribe('undici:request:headers',
+  diagnosticsChannel$1.subscribe('undici:request:headers',
     evt => {
       const {
         request: { method, path, origin },
@@ -2134,7 +2429,7 @@ function trackRequestEvents (debugLog = undiciDebugLog) {
       );
     });
 
-  diagnosticsChannel.subscribe('undici:request:trailers',
+  diagnosticsChannel$1.subscribe('undici:request:trailers',
     evt => {
       const {
         request: { method, path, origin }
@@ -2142,7 +2437,7 @@ function trackRequestEvents (debugLog = undiciDebugLog) {
       debugLog('trailers received from %s %s%s', method, origin, path);
     });
 
-  diagnosticsChannel.subscribe('undici:request:error',
+  diagnosticsChannel$1.subscribe('undici:request:error',
     evt => {
       const {
         request: { method, path, origin },
@@ -2165,9 +2460,18 @@ function trackWebSocketEvents (debugLog = websocketDebuglog) {
     return
   }
 
+  // Check if any of the channels already have subscribers to prevent duplicate subscriptions
+  // This can happen when both Node.js built-in undici and undici as a dependency are present
+  if (channels$5.open.hasSubscribers || channels$5.close.hasSubscribers ||
+      channels$5.socketError.hasSubscribers || channels$5.ping.hasSubscribers ||
+      channels$5.pong.hasSubscribers) {
+    isTrackingWebSocketEvents = true;
+    return
+  }
+
   isTrackingWebSocketEvents = true;
 
-  diagnosticsChannel.subscribe('undici:websocket:open',
+  diagnosticsChannel$1.subscribe('undici:websocket:open',
     evt => {
       const {
         address: { address, port }
@@ -2175,7 +2479,7 @@ function trackWebSocketEvents (debugLog = websocketDebuglog) {
       debugLog('connection opened %s%s', address, port ? `:${port}` : '');
     });
 
-  diagnosticsChannel.subscribe('undici:websocket:close',
+  diagnosticsChannel$1.subscribe('undici:websocket:close',
     evt => {
       const { websocket, code, reason } = evt;
       debugLog(
@@ -2186,17 +2490,17 @@ function trackWebSocketEvents (debugLog = websocketDebuglog) {
       );
     });
 
-  diagnosticsChannel.subscribe('undici:websocket:socket_error',
+  diagnosticsChannel$1.subscribe('undici:websocket:socket_error',
     err => {
       debugLog('connection errored - %s', err.message);
     });
 
-  diagnosticsChannel.subscribe('undici:websocket:ping',
+  diagnosticsChannel$1.subscribe('undici:websocket:ping',
     evt => {
       debugLog('ping received');
     });
 
-  diagnosticsChannel.subscribe('undici:websocket:pong',
+  diagnosticsChannel$1.subscribe('undici:websocket:pong',
     evt => {
       debugLog('pong received');
     });
@@ -2213,13 +2517,13 @@ if (websocketDebuglog.enabled) {
 }
 
 var diagnostics = {
-  channels: channels$4
+  channels: channels$5
 };
 
 const {
-  InvalidArgumentError: InvalidArgumentError$r,
+  InvalidArgumentError: InvalidArgumentError$y,
   NotSupportedError: NotSupportedError$1
-} = errors$1;
+} = errors;
 const assert$f = require$$0$2;
 const {
   isValidHTTPToken,
@@ -2229,13 +2533,15 @@ const {
   isBuffer,
   isFormDataLike,
   isIterable,
+  hasSafeIterator: hasSafeIterator$2,
   isBlobLike,
   serializePathWithQuery: serializePathWithQuery$3,
   assertRequestHandler,
   getServerName,
-  normalizedMethodRecords
-} = util$n;
-const { channels: channels$3 } = diagnostics;
+  normalizedMethodRecords,
+  getProtocolFromUrlString
+} = util$o;
+const { channels: channels$4 } = diagnostics;
 const { headerNameLowerCasedRecord } = constants$5;
 
 // Verifies that a given path is valid does not contain control chars \x00 to \x20
@@ -2243,7 +2549,7 @@ const invalidPathRegex = /[^\u0021-\u00ff]/;
 
 const kHandler = Symbol('handler');
 
-let Request$2 = class Request {
+let Request$1 = class Request {
   constructor (origin, {
     path,
     method,
@@ -2258,48 +2564,62 @@ let Request$2 = class Request {
     reset,
     expectContinue,
     servername,
-    throwOnError
+    throwOnError,
+    maxRedirections,
+    typeOfService
   }, handler) {
     if (typeof path !== 'string') {
-      throw new InvalidArgumentError$r('path must be a string')
+      throw new InvalidArgumentError$y('path must be a string')
     } else if (
       path[0] !== '/' &&
       !(path.startsWith('http://') || path.startsWith('https://')) &&
       method !== 'CONNECT'
     ) {
-      throw new InvalidArgumentError$r('path must be an absolute URL or start with a slash')
+      throw new InvalidArgumentError$y('path must be an absolute URL or start with a slash')
     } else if (invalidPathRegex.test(path)) {
-      throw new InvalidArgumentError$r('invalid request path')
+      throw new InvalidArgumentError$y('invalid request path')
     }
 
     if (typeof method !== 'string') {
-      throw new InvalidArgumentError$r('method must be a string')
+      throw new InvalidArgumentError$y('method must be a string')
     } else if (normalizedMethodRecords[method] === undefined && !isValidHTTPToken(method)) {
-      throw new InvalidArgumentError$r('invalid request method')
+      throw new InvalidArgumentError$y('invalid request method')
     }
 
     if (upgrade && typeof upgrade !== 'string') {
-      throw new InvalidArgumentError$r('upgrade must be a string')
+      throw new InvalidArgumentError$y('upgrade must be a string')
+    }
+
+    if (upgrade && !isValidHeaderValue(upgrade)) {
+      throw new InvalidArgumentError$y('invalid upgrade header')
     }
 
     if (headersTimeout != null && (!Number.isFinite(headersTimeout) || headersTimeout < 0)) {
-      throw new InvalidArgumentError$r('invalid headersTimeout')
+      throw new InvalidArgumentError$y('invalid headersTimeout')
     }
 
     if (bodyTimeout != null && (!Number.isFinite(bodyTimeout) || bodyTimeout < 0)) {
-      throw new InvalidArgumentError$r('invalid bodyTimeout')
+      throw new InvalidArgumentError$y('invalid bodyTimeout')
     }
 
     if (reset != null && typeof reset !== 'boolean') {
-      throw new InvalidArgumentError$r('invalid reset')
+      throw new InvalidArgumentError$y('invalid reset')
     }
 
     if (expectContinue != null && typeof expectContinue !== 'boolean') {
-      throw new InvalidArgumentError$r('invalid expectContinue')
+      throw new InvalidArgumentError$y('invalid expectContinue')
     }
 
     if (throwOnError != null) {
-      throw new InvalidArgumentError$r('invalid throwOnError')
+      throw new InvalidArgumentError$y('invalid throwOnError')
+    }
+
+    if (maxRedirections != null && maxRedirections !== 0) {
+      throw new InvalidArgumentError$y('maxRedirections is not supported, use the redirect interceptor')
+    }
+
+    if (typeOfService != null && (!Number.isInteger(typeOfService) || typeOfService < 0 || typeOfService > 255)) {
+      throw new InvalidArgumentError$y('typeOfService must be an integer between 0 and 255')
     }
 
     this.headersTimeout = headersTimeout;
@@ -2307,6 +2627,8 @@ let Request$2 = class Request {
     this.bodyTimeout = bodyTimeout;
 
     this.method = method;
+
+    this.typeOfService = typeOfService ?? 0;
 
     this.abort = null;
 
@@ -2342,7 +2664,7 @@ let Request$2 = class Request {
     } else if (isFormDataLike(body) || isIterable(body) || isBlobLike(body)) {
       this.body = body;
     } else {
-      throw new InvalidArgumentError$r('body must be a string, a Buffer, a Readable stream, an iterable, or an async iterable')
+      throw new InvalidArgumentError$y('body must be a string, a Buffer, a Readable stream, an iterable, or an async iterable')
     }
 
     this.completed = false;
@@ -2352,7 +2674,10 @@ let Request$2 = class Request {
 
     this.path = query ? serializePathWithQuery$3(path, query) : path;
 
+    // TODO: shall we maybe standardize it to an URL object?
     this.origin = origin;
+
+    this.protocol = getProtocolFromUrlString(origin);
 
     this.idempotent = idempotent == null
       ? method === 'HEAD' || method === 'GET'
@@ -2375,16 +2700,16 @@ let Request$2 = class Request {
 
     if (Array.isArray(headers)) {
       if (headers.length % 2 !== 0) {
-        throw new InvalidArgumentError$r('headers array must be even')
+        throw new InvalidArgumentError$y('headers array must be even')
       }
       for (let i = 0; i < headers.length; i += 2) {
         processHeader(this, headers[i], headers[i + 1]);
       }
     } else if (headers && typeof headers === 'object') {
-      if (headers[Symbol.iterator]) {
+      if (hasSafeIterator$2(headers)) {
         for (const header of headers) {
           if (!Array.isArray(header) || header.length !== 2) {
-            throw new InvalidArgumentError$r('headers must be in key-value pair format')
+            throw new InvalidArgumentError$y('headers must be in key-value pair format')
           }
           processHeader(this, header[0], header[1]);
         }
@@ -2395,7 +2720,7 @@ let Request$2 = class Request {
         }
       }
     } else if (headers != null) {
-      throw new InvalidArgumentError$r('headers must be an object or an array')
+      throw new InvalidArgumentError$y('headers must be an object or an array')
     }
 
     assertRequestHandler(handler, method, upgrade);
@@ -2404,14 +2729,14 @@ let Request$2 = class Request {
 
     this[kHandler] = handler;
 
-    if (channels$3.create.hasSubscribers) {
-      channels$3.create.publish({ request: this });
+    if (channels$4.create.hasSubscribers) {
+      channels$4.create.publish({ request: this });
     }
   }
 
   onBodySent (chunk) {
-    if (channels$3.bodyChunkSent.hasSubscribers) {
-      channels$3.bodyChunkSent.publish({ request: this, chunk });
+    if (channels$4.bodyChunkSent.hasSubscribers) {
+      channels$4.bodyChunkSent.publish({ request: this, chunk });
     }
     if (this[kHandler].onBodySent) {
       try {
@@ -2423,8 +2748,8 @@ let Request$2 = class Request {
   }
 
   onRequestSent () {
-    if (channels$3.bodySent.hasSubscribers) {
-      channels$3.bodySent.publish({ request: this });
+    if (channels$4.bodySent.hasSubscribers) {
+      channels$4.bodySent.publish({ request: this });
     }
 
     if (this[kHandler].onRequestSent) {
@@ -2456,8 +2781,8 @@ let Request$2 = class Request {
     assert$f(!this.aborted);
     assert$f(!this.completed);
 
-    if (channels$3.headers.hasSubscribers) {
-      channels$3.headers.publish({ request: this, response: { statusCode, headers, statusText } });
+    if (channels$4.headers.hasSubscribers) {
+      channels$4.headers.publish({ request: this, response: { statusCode, headers, statusText } });
     }
 
     try {
@@ -2471,8 +2796,8 @@ let Request$2 = class Request {
     assert$f(!this.aborted);
     assert$f(!this.completed);
 
-    if (channels$3.bodyChunkReceived.hasSubscribers) {
-      channels$3.bodyChunkReceived.publish({ request: this, chunk });
+    if (channels$4.bodyChunkReceived.hasSubscribers) {
+      channels$4.bodyChunkReceived.publish({ request: this, chunk });
     }
     try {
       return this[kHandler].onData(chunk)
@@ -2496,8 +2821,8 @@ let Request$2 = class Request {
     assert$f(!this.completed);
 
     this.completed = true;
-    if (channels$3.trailers.hasSubscribers) {
-      channels$3.trailers.publish({ request: this, trailers });
+    if (channels$4.trailers.hasSubscribers) {
+      channels$4.trailers.publish({ request: this, trailers });
     }
 
     try {
@@ -2511,8 +2836,8 @@ let Request$2 = class Request {
   onError (error) {
     this.onFinally();
 
-    if (channels$3.error.hasSubscribers) {
-      channels$3.error.publish({ request: this, error });
+    if (channels$4.error.hasSubscribers) {
+      channels$4.error.publish({ request: this, error });
     }
 
     if (this.aborted) {
@@ -2543,7 +2868,7 @@ let Request$2 = class Request {
 
 function processHeader (request, key, val) {
   if (val && (typeof val === 'object' && !Array.isArray(val))) {
-    throw new InvalidArgumentError$r(`invalid ${key} header`)
+    throw new InvalidArgumentError$y(`invalid ${key} header`)
   } else if (val === undefined) {
     return
   }
@@ -2553,7 +2878,7 @@ function processHeader (request, key, val) {
   if (headerName === undefined) {
     headerName = key.toLowerCase();
     if (headerNameLowerCasedRecord[headerName] === undefined && !isValidHTTPToken(headerName)) {
-      throw new InvalidArgumentError$r('invalid header key')
+      throw new InvalidArgumentError$y('invalid header key')
     }
   }
 
@@ -2562,13 +2887,13 @@ function processHeader (request, key, val) {
     for (let i = 0; i < val.length; i++) {
       if (typeof val[i] === 'string') {
         if (!isValidHeaderValue(val[i])) {
-          throw new InvalidArgumentError$r(`invalid ${key} header`)
+          throw new InvalidArgumentError$y(`invalid ${key} header`)
         }
         arr.push(val[i]);
       } else if (val[i] === null) {
         arr.push('');
       } else if (typeof val[i] === 'object') {
-        throw new InvalidArgumentError$r(`invalid ${key} header`)
+        throw new InvalidArgumentError$y(`invalid ${key} header`)
       } else {
         arr.push(`${val[i]}`);
       }
@@ -2576,7 +2901,7 @@ function processHeader (request, key, val) {
     val = arr;
   } else if (typeof val === 'string') {
     if (!isValidHeaderValue(val)) {
-      throw new InvalidArgumentError$r(`invalid ${key} header`)
+      throw new InvalidArgumentError$y(`invalid ${key} header`)
     }
   } else if (val === null) {
     val = '';
@@ -2584,26 +2909,32 @@ function processHeader (request, key, val) {
     val = `${val}`;
   }
 
-  if (request.host === null && headerName === 'host') {
+  if (headerName === 'host') {
+    if (request.host !== null) {
+      throw new InvalidArgumentError$y('duplicate host header')
+    }
     if (typeof val !== 'string') {
-      throw new InvalidArgumentError$r('invalid host header')
+      throw new InvalidArgumentError$y('invalid host header')
     }
     // Consumed by Client
     request.host = val;
-  } else if (request.contentLength === null && headerName === 'content-length') {
+  } else if (headerName === 'content-length') {
+    if (request.contentLength !== null) {
+      throw new InvalidArgumentError$y('duplicate content-length header')
+    }
     request.contentLength = parseInt(val, 10);
     if (!Number.isFinite(request.contentLength)) {
-      throw new InvalidArgumentError$r('invalid content-length header')
+      throw new InvalidArgumentError$y('invalid content-length header')
     }
   } else if (request.contentType === null && headerName === 'content-type') {
     request.contentType = val;
     request.headers.push(key, val);
   } else if (headerName === 'transfer-encoding' || headerName === 'keep-alive' || headerName === 'upgrade') {
-    throw new InvalidArgumentError$r(`invalid ${headerName} header`)
+    throw new InvalidArgumentError$y(`invalid ${headerName} header`)
   } else if (headerName === 'connection') {
     const value = typeof val === 'string' ? val.toLowerCase() : null;
     if (value !== 'close' && value !== 'keep-alive') {
-      throw new InvalidArgumentError$r('invalid connection header')
+      throw new InvalidArgumentError$y('invalid connection header')
     }
 
     if (value === 'close') {
@@ -2616,9 +2947,9 @@ function processHeader (request, key, val) {
   }
 }
 
-var request$3 = Request$2;
+var request$2 = Request$1;
 
-const { InvalidArgumentError: InvalidArgumentError$q } = errors$1;
+const { InvalidArgumentError: InvalidArgumentError$x } = errors;
 
 var wrapHandler = class WrapHandler {
   #handler
@@ -2636,6 +2967,10 @@ var wrapHandler = class WrapHandler {
 
   onConnect (abort, context) {
     return this.#handler.onConnect?.(abort, context)
+  }
+
+  onResponseStarted () {
+    return this.#handler.onResponseStarted?.()
   }
 
   onHeaders (statusCode, rawHeaders, resume, statusMessage) {
@@ -2671,7 +3006,7 @@ var wrapHandler = class WrapHandler {
   onRequestUpgrade (controller, statusCode, headers, socket) {
     const rawHeaders = [];
     for (const [key, val] of Object.entries(headers)) {
-      rawHeaders.push(Buffer.from(key), Array.isArray(val) ? val.map(v => Buffer.from(v)) : Buffer.from(val));
+      rawHeaders.push(Buffer.from(key, 'latin1'), toRawHeaderValue(val));
     }
 
     this.#handler.onUpgrade?.(statusCode, rawHeaders, socket);
@@ -2680,7 +3015,7 @@ var wrapHandler = class WrapHandler {
   onResponseStart (controller, statusCode, headers, statusMessage) {
     const rawHeaders = [];
     for (const [key, val] of Object.entries(headers)) {
-      rawHeaders.push(Buffer.from(key), Array.isArray(val) ? val.map(v => Buffer.from(v)) : Buffer.from(val));
+      rawHeaders.push(Buffer.from(key, 'latin1'), toRawHeaderValue(val));
     }
 
     if (this.#handler.onHeaders?.(statusCode, rawHeaders, () => controller.resume(), statusMessage) === false) {
@@ -2697,7 +3032,7 @@ var wrapHandler = class WrapHandler {
   onResponseEnd (controller, trailers) {
     const rawTrailers = [];
     for (const [key, val] of Object.entries(trailers)) {
-      rawTrailers.push(Buffer.from(key), Array.isArray(val) ? val.map(v => Buffer.from(v)) : Buffer.from(val));
+      rawTrailers.push(Buffer.from(key, 'latin1'), toRawHeaderValue(val));
     }
 
     this.#handler.onComplete?.(rawTrailers);
@@ -2705,19 +3040,25 @@ var wrapHandler = class WrapHandler {
 
   onResponseError (controller, err) {
     if (!this.#handler.onError) {
-      throw new InvalidArgumentError$q('invalid onError method')
+      throw new InvalidArgumentError$x('invalid onError method')
     }
 
     this.#handler.onError?.(err);
   }
 };
 
-const EventEmitter$1 = require$$7;
-const WrapHandler$2 = wrapHandler;
+function toRawHeaderValue (value) {
+  return Array.isArray(value)
+    ? value.map((item) => Buffer.from(item, 'latin1'))
+    : Buffer.from(value, 'latin1')
+}
 
-const wrapInterceptor = (dispatch) => (opts, handler) => dispatch(opts, WrapHandler$2.wrap(handler));
+const EventEmitter$2 = require$$0;
+const WrapHandler$3 = wrapHandler;
 
-let Dispatcher$4 = class Dispatcher extends EventEmitter$1 {
+const wrapInterceptor = (dispatch) => (opts, handler) => dispatch(opts, WrapHandler$3.wrap(handler));
+
+let Dispatcher$3 = class Dispatcher extends EventEmitter$2 {
   dispatch () {
     throw new Error('not implemented')
   }
@@ -2758,10 +3099,10 @@ let Dispatcher$4 = class Dispatcher extends EventEmitter$1 {
   }
 };
 
-var dispatcher = Dispatcher$4;
+var dispatcher = Dispatcher$3;
 
-const { parseHeaders } = util$n;
-const { InvalidArgumentError: InvalidArgumentError$p } = errors$1;
+const { parseHeaders } = util$o;
+const { InvalidArgumentError: InvalidArgumentError$w } = errors;
 
 const kResume$4 = Symbol('resume');
 
@@ -2827,6 +3168,10 @@ var unwrapHandler = class UnwrapHandler {
     this.#handler.onRequestStart?.(this.#controller, context);
   }
 
+  onResponseStarted () {
+    return this.#handler.onResponseStarted?.()
+  }
+
   onUpgrade (statusCode, rawHeaders, socket) {
     this.#handler.onRequestUpgrade?.(this.#controller, statusCode, parseHeaders(rawHeaders), socket);
   }
@@ -2848,39 +3193,44 @@ var unwrapHandler = class UnwrapHandler {
 
   onError (err) {
     if (!this.#handler.onResponseError) {
-      throw new InvalidArgumentError$p('invalid onError method')
+      throw new InvalidArgumentError$w('invalid onError method')
     }
 
     this.#handler.onResponseError?.(this.#controller, err);
   }
 };
 
-const Dispatcher$3 = dispatcher;
+const Dispatcher$2 = dispatcher;
 const UnwrapHandler = unwrapHandler;
 const {
   ClientDestroyedError: ClientDestroyedError$1,
   ClientClosedError,
-  InvalidArgumentError: InvalidArgumentError$o
-} = errors$1;
-const { kDestroy: kDestroy$6, kClose: kClose$8, kClosed: kClosed$3, kDestroyed: kDestroyed$1, kDispatch: kDispatch$5 } = requireSymbols();
+  InvalidArgumentError: InvalidArgumentError$v
+} = errors;
+const { kDestroy: kDestroy$6, kClose: kClose$8, kClosed: kClosed$3, kDestroyed: kDestroyed$1, kDispatch: kDispatch$6 } = requireSymbols();
 
 const kOnDestroyed = Symbol('onDestroyed');
 const kOnClosed = Symbol('onClosed');
 
-let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
-  constructor () {
-    super();
+let DispatcherBase$6 = class DispatcherBase extends Dispatcher$2 {
+  /** @type {boolean} */
+  [kDestroyed$1] = false;
 
-    this[kDestroyed$1] = false;
-    this[kOnDestroyed] = null;
-    this[kClosed$3] = false;
-    this[kOnClosed] = [];
-  }
+  /** @type {Array<Function|null} */
+  [kOnDestroyed] = null;
 
+  /** @type {boolean} */
+  [kClosed$3] = false;
+
+  /** @type {Array<Function>|null} */
+  [kOnClosed] = null
+
+  /** @returns {boolean} */
   get destroyed () {
     return this[kDestroyed$1]
   }
 
+  /** @returns {boolean} */
   get closed () {
     return this[kClosed$3]
   }
@@ -2895,11 +3245,12 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$o('invalid callback')
+      throw new InvalidArgumentError$v('invalid callback')
     }
 
     if (this[kDestroyed$1]) {
-      queueMicrotask(() => callback(new ClientDestroyedError$1(), null));
+      const err = new ClientDestroyedError$1();
+      queueMicrotask(() => callback(err, null));
       return
     }
 
@@ -2913,6 +3264,7 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     }
 
     this[kClosed$3] = true;
+    this[kOnClosed] ??= [];
     this[kOnClosed].push(callback);
 
     const onClosed = () => {
@@ -2926,9 +3278,7 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     // Should not error.
     this[kClose$8]()
       .then(() => this.destroy())
-      .then(() => {
-        queueMicrotask(onClosed);
-      });
+      .then(() => queueMicrotask(onClosed));
   }
 
   destroy (err, callback) {
@@ -2940,13 +3290,13 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     if (callback === undefined) {
       return new Promise((resolve, reject) => {
         this.destroy(err, (err, data) => {
-          return err ? /* istanbul ignore next: should never error */ reject(err) : resolve(data)
+          return err ? reject(err) : resolve(data)
         });
       })
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$o('invalid callback')
+      throw new InvalidArgumentError$v('invalid callback')
     }
 
     if (this[kDestroyed$1]) {
@@ -2963,7 +3313,7 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     }
 
     this[kDestroyed$1] = true;
-    this[kOnDestroyed] = this[kOnDestroyed] || [];
+    this[kOnDestroyed] ??= [];
     this[kOnDestroyed].push(callback);
 
     const onDestroyed = () => {
@@ -2975,21 +3325,20 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     };
 
     // Should not error.
-    this[kDestroy$6](err).then(() => {
-      queueMicrotask(onDestroyed);
-    });
+    this[kDestroy$6](err)
+      .then(() => queueMicrotask(onDestroyed));
   }
 
   dispatch (opts, handler) {
     if (!handler || typeof handler !== 'object') {
-      throw new InvalidArgumentError$o('handler must be an object')
+      throw new InvalidArgumentError$v('handler must be an object')
     }
 
     handler = UnwrapHandler.unwrap(handler);
 
     try {
       if (!opts || typeof opts !== 'object') {
-        throw new InvalidArgumentError$o('opts must be an object.')
+        throw new InvalidArgumentError$v('opts must be an object.')
       }
 
       if (this[kDestroyed$1] || this[kOnDestroyed]) {
@@ -3000,7 +3349,7 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
         throw new ClientClosedError()
       }
 
-      return this[kDispatch$5](opts, handler)
+      return this[kDispatch$6](opts, handler)
     } catch (err) {
       if (typeof handler.onError !== 'function') {
         throw err
@@ -3015,12 +3364,12 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
 
 var dispatcherBase = DispatcherBase$6;
 
-const net$1 = require$$0$3;
+const net$3 = require$$0$3;
 const assert$e = require$$0$2;
-const util$l = util$n;
-const { InvalidArgumentError: InvalidArgumentError$n } = errors$1;
+const util$m = util$o;
+const { InvalidArgumentError: InvalidArgumentError$u } = errors;
 
-let tls; // include tls conditionally since it is not always available
+let tls$1; // include tls conditionally since it is not always available
 
 // TODO: session re-use does not wait for the first
 // connection to resolve the session and might therefore
@@ -3058,9 +3407,9 @@ const SessionCache = class WeakSessionCache {
   }
 };
 
-function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, session: customSession, ...opts }) {
+function buildConnector$5 ({ allowH2, useH2c, maxCachedSessions, socketPath, timeout, session: customSession, ...opts }) {
   if (maxCachedSessions != null && (!Number.isInteger(maxCachedSessions) || maxCachedSessions < 0)) {
-    throw new InvalidArgumentError$n('maxCachedSessions must be a positive integer or zero')
+    throw new InvalidArgumentError$u('maxCachedSessions must be a positive integer or zero')
   }
 
   const options = { path: socketPath, ...opts };
@@ -3070,10 +3419,10 @@ function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, se
   return function connect ({ hostname, host, protocol, port, servername, localAddress, httpSocket }, callback) {
     let socket;
     if (protocol === 'https:') {
-      if (!tls) {
-        tls = require$$4;
+      if (!tls$1) {
+        tls$1 = require$$4;
       }
-      servername = servername || options.servername || util$l.getServerName(host) || null;
+      servername = servername || options.servername || util$m.getServerName(host) || null;
 
       const sessionKey = servername || hostname;
       assert$e(sessionKey);
@@ -3082,7 +3431,7 @@ function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, se
 
       port = port || 443;
 
-      socket = tls.connect({
+      socket = tls$1.connect({
         highWaterMark: 16384, // TLS in node can't have bigger HWM anyway...
         ...options,
         servername,
@@ -3104,13 +3453,16 @@ function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, se
 
       port = port || 80;
 
-      socket = net$1.connect({
+      socket = net$3.connect({
         highWaterMark: 64 * 1024, // Same as nodejs fs streams.
         ...options,
         localAddress,
         port,
         host: hostname
       });
+      if (useH2c === true) {
+        socket.alpnProtocol = 'h2';
+      }
     }
 
     // Set TCP keep alive options on the socket here instead of in connect() for the case of assigning the socket
@@ -3119,7 +3471,7 @@ function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, se
       socket.setKeepAlive(true, keepAliveInitialDelay);
     }
 
-    const clearConnectTimeout = util$l.setupConnectTimeout(new WeakRef(socket), { timeout, hostname, port });
+    const clearConnectTimeout = util$m.setupConnectTimeout(new WeakRef(socket), { timeout, hostname, port });
 
     socket
       .setNoDelay(true)
@@ -3146,25 +3498,23 @@ function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, se
   }
 }
 
-var connect$4 = buildConnector$4;
+var connect$2 = buildConnector$5;
 
 var constants$4 = {};
 
 var utils = {};
 
 Object.defineProperty(utils, "__esModule", { value: true });
-utils.enumToMap = void 0;
+utils.enumToMap = enumToMap;
 function enumToMap(obj, filter = [], exceptions = []) {
-    var _a, _b;
-    const emptyFilter = ((_a = filter === null || filter === void 0 ? void 0 : filter.length) !== null && _a !== void 0 ? _a : 0) === 0;
-    const emptyExceptions = ((_b = exceptions === null || exceptions === void 0 ? void 0 : exceptions.length) !== null && _b !== void 0 ? _b : 0) === 0;
+    const emptyFilter = (filter?.length ?? 0) === 0;
+    const emptyExceptions = (exceptions?.length ?? 0) === 0;
     return Object.fromEntries(Object.entries(obj).filter(([, value]) => {
         return (typeof value === 'number' &&
             (emptyFilter || filter.includes(value)) &&
             (emptyExceptions || !exceptions.includes(value)));
     }));
 }
-utils.enumToMap = enumToMap;
 
 (function (exports) {
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -3208,6 +3558,7 @@ utils.enumToMap = enumToMap;
 	    CB_CHUNK_EXTENSION_NAME_COMPLETE: 34,
 	    CB_CHUNK_EXTENSION_VALUE_COMPLETE: 35,
 	    CB_RESET: 31,
+	    CB_PROTOCOL_COMPLETE: 38,
 	};
 	exports.TYPE = {
 	    BOTH: 0, // default
@@ -3663,7 +4014,39 @@ utils.enumToMap = enumToMap;
 	    'transfer-encoding': exports.HEADER_STATE.TRANSFER_ENCODING,
 	    'upgrade': exports.HEADER_STATE.UPGRADE,
 	};
-	
+	exports.default = {
+	    ERROR: exports.ERROR,
+	    TYPE: exports.TYPE,
+	    FLAGS: exports.FLAGS,
+	    LENIENT_FLAGS: exports.LENIENT_FLAGS,
+	    METHODS: exports.METHODS,
+	    STATUSES: exports.STATUSES,
+	    FINISH: exports.FINISH,
+	    HEADER_STATE: exports.HEADER_STATE,
+	    ALPHA: exports.ALPHA,
+	    NUM_MAP: exports.NUM_MAP,
+	    HEX_MAP: exports.HEX_MAP,
+	    NUM: exports.NUM,
+	    ALPHANUM: exports.ALPHANUM,
+	    MARK: exports.MARK,
+	    USERINFO_CHARS: exports.USERINFO_CHARS,
+	    URL_CHAR: exports.URL_CHAR,
+	    HEX: exports.HEX,
+	    TOKEN: exports.TOKEN,
+	    HEADER_CHARS: exports.HEADER_CHARS,
+	    CONNECTION_TOKEN_CHARS: exports.CONNECTION_TOKEN_CHARS,
+	    QUOTED_STRING: exports.QUOTED_STRING,
+	    HTAB_SP_VCHAR_OBS_TEXT: exports.HTAB_SP_VCHAR_OBS_TEXT,
+	    MAJOR: exports.MAJOR,
+	    MINOR: exports.MINOR,
+	    SPECIAL_HEADERS: exports.SPECIAL_HEADERS,
+	    METHODS_HTTP: exports.METHODS_HTTP,
+	    METHODS_ICE: exports.METHODS_ICE,
+	    METHODS_RTSP: exports.METHODS_RTSP,
+	    METHOD_MAP: exports.METHOD_MAP,
+	    H_METHOD_MAP: exports.H_METHOD_MAP,
+	    STATUSES_HTTP: exports.STATUSES_HTTP,
+	}; 
 } (constants$4));
 
 var llhttpWasm = {exports: {}};
@@ -3677,9 +4060,9 @@ function requireLlhttpWasm () {
 	hasRequiredLlhttpWasm = 1;
 	(function (module) {
 
-		const { Buffer } = require$$0;
+		const { Buffer } = require$$0$5;
 
-		const wasmBase64 = 'AGFzbQEAAAABJwdgAX8Bf2ADf39/AX9gAn9/AGABfwBgBH9/f38Bf2AAAGADf39/AALLAQgDZW52GHdhc21fb25faGVhZGVyc19jb21wbGV0ZQAEA2VudhV3YXNtX29uX21lc3NhZ2VfYmVnaW4AAANlbnYLd2FzbV9vbl91cmwAAQNlbnYOd2FzbV9vbl9zdGF0dXMAAQNlbnYUd2FzbV9vbl9oZWFkZXJfZmllbGQAAQNlbnYUd2FzbV9vbl9oZWFkZXJfdmFsdWUAAQNlbnYMd2FzbV9vbl9ib2R5AAEDZW52GHdhc21fb25fbWVzc2FnZV9jb21wbGV0ZQAAAzQzBQYAAAMAAAAAAAADAQMAAwMDAAACAAAAAAICAgICAgICAgIBAQEBAQEBAQEDAAADAAAABAUBcAESEgUDAQACBggBfwFBgNgECwfFBygGbWVtb3J5AgALX2luaXRpYWxpemUACBlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAQALbGxodHRwX2luaXQACRhsbGh0dHBfc2hvdWxkX2tlZXBfYWxpdmUANgxsbGh0dHBfYWxsb2MACwZtYWxsb2MAOAtsbGh0dHBfZnJlZQAMBGZyZWUADA9sbGh0dHBfZ2V0X3R5cGUADRVsbGh0dHBfZ2V0X2h0dHBfbWFqb3IADhVsbGh0dHBfZ2V0X2h0dHBfbWlub3IADxFsbGh0dHBfZ2V0X21ldGhvZAAQFmxsaHR0cF9nZXRfc3RhdHVzX2NvZGUAERJsbGh0dHBfZ2V0X3VwZ3JhZGUAEgxsbGh0dHBfcmVzZXQAEw5sbGh0dHBfZXhlY3V0ZQAUFGxsaHR0cF9zZXR0aW5nc19pbml0ABUNbGxodHRwX2ZpbmlzaAAWDGxsaHR0cF9wYXVzZQAXDWxsaHR0cF9yZXN1bWUAGBtsbGh0dHBfcmVzdW1lX2FmdGVyX3VwZ3JhZGUAGRBsbGh0dHBfZ2V0X2Vycm5vABoXbGxodHRwX2dldF9lcnJvcl9yZWFzb24AGxdsbGh0dHBfc2V0X2Vycm9yX3JlYXNvbgAcFGxsaHR0cF9nZXRfZXJyb3JfcG9zAB0RbGxodHRwX2Vycm5vX25hbWUAHhJsbGh0dHBfbWV0aG9kX25hbWUAHxJsbGh0dHBfc3RhdHVzX25hbWUAIBpsbGh0dHBf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a0E+aiECCyABIAI2AhwgAUIANwIQIAJBAnRBsNYAaiEAAkBBhNQAKAIAIgNBASACdCIHcUUEQCAAIAE2AgBBhNQAIAMgB3I2AgAgASAANgIYIAEgATYCCCABIAE2AgwMAQsgBEEZIAJBAXZrQQAgAkEfRxt0IQIgACgCACEAAkADQCAAIgMoAgRBeHEgBEYNASACQR12IQAgAkEBdCECIAMgAEEEcWpBEGoiBygCACIADQALIAcgATYCACABIAM2AhggASABNgIMIAEgATYCCAwBCyADKAIIIgAgATYCDCADIAE2AgggAUEANgIYIAEgAzYCDCABIAA2AggLQaDUAEGg1AAoAgBBAWsiAEF/IAAbNgIACwsHACAALQAoCwcAIAAtACoLBwAgAC0AKwsHACAALQApCwcAIAAvATQLBwAgAC0AMAtAAQR/IAAoAhghASAALwEuIQIgAC0AKCEDIAAoAjghBCAAEDcgACAENgI4IAAgAzoAKCAAIAI7AS4gACABNgIYC8X4AQIHfwN+IAEgAmohBAJAIAAiAygCDCIADQAgAygCBARAIAMgATYCBAsjAEEQayIJJAACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAC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AkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAIAMCfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJ/AkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAIAMCfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQCACDtQBAAECAwQFBgcICQoLDA0ODxARFBUWFxgZGhscHR4fICEjJCUnKCmIA4cDhQOEA/wC9QLuAusC6ALmAuMC4ALfAt0C2wLWAtUC1ALTAtICygLJAsgCxwLGAsUCxALDAr0CvAK6ArkCuAK3ArYCtQK0ArICsQKsAqoCqAKnAqYCpQKkAqMCogKhAqACnwKbApoCmQKYApcCkAKIAoQCgwKCAvkB9gH1AfQB8wHyAfEB8AHvAe0B6wHoAeMB4QHgAd8B3gHdAdwB2wHaAdkB2AHX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QEBAQEBAQEBAQEBAAEALQQAhAiADQQA2AhwgA0G3CzYCECADQQI2AgwgAyABQQFqNgIUDIEDCyADQS9qIQIDQCABIARGBEBBISECDIIDCwJAAkACQCABLQAAIgBBCWsOGAIAKioBKioqKioqKioqKioqKioqKioqAigLIAFBAWohASADQS9qLQAAQQFxRQ0LDBkLIAFBAWohAQwYCyABQQFqIQEgAi0AAEECcQ0AC0EAIQIgA0EANgIcIAMgATYCFCADQc4UNgIQIANBDDYCDAyAAwsgAUEBaiEBC0EAIQACQCADKAI4IgJFDQAgAigCVCICRQ0AIAMgAhEAACEACyAADQEM0QILIANCADcDIAw8CyAAQRVGBEAgA0EkNgIcIAMgATYCFCADQYYaNgIQIANBFTYCDEEAIQIM/QILQQAhAiADQQA2AhwgAyABNgIUIANB4g02AhAgA0EUNgIMDPwCCyADKAIEIQBBACECIANBADYCBCADIAAgASAMp2oiARAxIgBFDSsgA0EHNgIcIAMgATYCFCADIAA2AgwM+wILIAMtAC5BwABxRQ0BC0EAIQACQCADKAI4IgJFDQAgAigCUCICRQ0AIAMgAhEAACEACyAARQ0rIABBFUYEQCADQQo2AhwgAyABNgIUIANB8Rg2AhAgA0EVNgIMQQAhAgz6AgtBACECIANBADYCHCADIAE2AhQgA0GLDDYCECADQRM2AgwM+QILQQAhAiADQQA2AhwgAyABNgIUIANBsRQ2AhAgA0ECNgIMDPgCC0EAIQIgA0EANgIcIAMgATYCFCADQYwUNgIQIANBGTYCDAz3AgtBACECIANBADYCHCADIAE2AhQgA0HRHDYCECADQRk2AgwM9gILIABBFUYNPUEAIQIgA0EANgIcIAMgATYCFCADQaIPNgIQIANBIjYCDAz1AgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQMiIARQ0oIANBDTYCHCADIAE2AhQgAyAANgIMDPQCCyAAQRVGDTpBACECIANBADYCHCADIAE2AhQgA0GiDzYCECADQSI2AgwM8wILIAMoAgQhAEEAIQIgA0EANgIEIAMgACABEDIiAEUEQCABQQFqIQEMKAsgA0EONgIcIAMgADYCDCADIAFBAWo2AhQM8gILIABBFUYNN0EAIQIgA0EANgIcIAMgATYCFCADQaIPNgIQIANBIjYCDAzxAgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQMiIARQRAIAFBAWohAQwnCyADQQ82AhwgAyAANgIMIAMgAUEBajYCFAzwAgtBACECIANBADYCHCADIAE2AhQgA0HoFjYCECADQRk2AgwM7wILIABBFUYNM0EAIQIgA0EANgIcIAMgATYCFCADQc4MNgIQIANBIzYCDAzuAgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQMyIARQ0lIANBETYCHCADIAE2AhQgAyAANgIMDO0CCyAAQRVGDTBBACECIANBADYCHCADIAE2AhQgA0HODDYCECADQSM2AgwM7AILIAMoAgQhAEEAIQIgA0EANgIEIAMgACABEDMiAEUEQCABQQFqIQEMJQsgA0ESNgIcIAMgADYCDCADIAFBAWo2AhQM6wILIANBL2otAABBAXFFDQELQRUhAgzPAgtBACECIANBADYCHCADIAE2AhQgA0HoFjYCECADQRk2AgwM6AILIABBO0cNACABQQFqIQEMDAtBACECIANBADYCHCADIAE2AhQgA0GYFzYCECADQQI2AgwM5gILIABBFUYNKEEAIQIgA0EANgIcIAMgATYCFCADQc4MNgIQIANBIzYCDAzlAgsgA0EUNgIcIAMgATYCFCADIAA2AgwM5AILIAMoAgQhAEEAIQIgA0EANgIEIAMgACABEDMiAEUEQCABQQFqIQEM3AILIANBFTYCHCADIAA2AgwgAyABQQFqNgIUDOMCCyADKAIEIQBBACECIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDNoCCyADQRc2AhwgAyAANgIMIAMgAUEBajYCFAziAgsgAEEVRg0jQQAhAiADQQA2AhwgAyABNgIUIANBzgw2AhAgA0EjNgIMDOECCyADKAIEIQBBACECIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDB0LIANBGTYCHCADIAA2AgwgAyABQQFqNgIUDOACCyADKAIEIQBBACECIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDNYCCyADQRo2AhwgAyAANgIMIAMgAUEBajYCFAzfAgsgAEEVRg0fQQAhAiADQQA2AhwgAyABNgIUIANBog82AhAgA0EiNgIMDN4CCyADKAIEIQBBACEC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DLMCCyABIARGBEBB6QEhAgyzAgsgAS0AAEHIAEYNASADQQE6ACgLQbYBIQIMlwILQcoBIQIMlgILIAEgBEcEQCADQQw2AgggAyABNgIEQckBIQIMlgILQegBIQIMrwILIAEgBEYEQEHnASECDK8CCyABLQAAQcgARw0EIAFBAWohAUHIASECDJQCCyABIARGBEBB5gEhAgyuAgsCQAJAIAEtAABBxQBrDhAABQUFBQUFBQUFBQUFBQUBBQsgAUEBaiEBQcYBIQIMlAILIAFBAWohAUHHASECDJMCC0HlASECIAEgBEYNrAIgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABB99MAai0AAEcNAyAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMrQILIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARAtIgBFBEBB1AEhAgyTAgsgA0HkATYCHCADIAE2AhQgAyAANgIMQQAhAgysAgtB4wEhAiABIARGDasCIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQfXTAGotAABHDQIgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADKwCCyADQYEEOwEoIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARAtIgANAwwCCyADQQA2AgALQQAhAiADQQA2AhwgAyABNgIUIANB0B42AhAgA0EINgIMDKkCC0HFASECDI4CCyADQeIBNgIcIAMgATYCFCADIAA2AgxBACECDKcCC0EAIQACQCADKAI4IgJFDQAgAigCOCICRQ0AIAMgAhEAACEACyAARQ1lIABBFUcEQCADQQA2AhwgAyABNgIUIANB1A42AhAgA0EgNgIMQQAhAgynAgsgA0GFATYCHCADIAE2AhQgA0HXGjYCECADQRU2AgxBACECDKYCC0HhASECIAQgASIARg2lAiAEIAFrIAMoAgAiAWohBSAAIAFrQQRqIQYCQANAIAAtAAAgAUHw0wBqLQAARw0BIAFBBEYNAyABQQFqIQEgBCAAQQFqIgBHDQALIAMgBTYCAAymAgsgA0EANgIcIAMgADYCFCADQYQ3NgIQIANBCDYCDCADQQA2AgBBACECDKUCCyABIARHBEAgA0ENNgIIIAMgATYCBEHCASECDIsCC0HgASECDKQCCyADQQA2AgAgBkEBaiEBC0HDASECDIgCCyABIARGBEBB3wEhAgyiAgsgAS0AAEEwayIAQf8BcUEKSQRAIAMgADoAKiABQQFqIQFBwQEhAgyIAgsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDYgCIANB3gE2AhwgAyABNgIUIAMgADYCDEEAIQIMoQILIAEgBEYEQEHdASECDKECCwJAIAEtAABBLkYEQCABQQFqIQEMAQsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDYkCIANB3AE2AhwgAyABNgIUIAMgADYCDEEAIQIMoQILQcABIQIMhgILIAEgBEYEQEHbASECDKACC0EAIQBBASEFQQEhB0EAIQICQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQCABLQAAQTBrDgoKCQABAgMEBQYICwtBAgwGC0EDDAULQQQMBAtBBQwDC0EGDAILQQcMAQtBCAshAkEAIQVBACEHDAILQQkhAkEBIQBBACEFQQAhBwwBC0EAIQVBASECCyADIAI6ACsgAUEBaiEBAkACQCADLQAuQRBxDQACQAJAAkAgAy0AKg4DAQACBAsgB0UNAwwCCyAADQEMAgsgBUUNAQsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDQIgA0HYATYCHCADIAE2AhQgAyAANgIMQQAhAgyiAgsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDYsCIANB2QE2AhwgAyABNgIUIAMgADYCDEEAIQIMoQILIAMoAgQhACADQQA2AgQgAyAAIAEQLiIARQ2JAiADQdoBNgIcIAMgATYCFCADIAA2AgwMoAILQb8BIQIMhQILQQAhAAJAIAMoAjgiAkUNACACKAI8IgJFDQAgAyACEQAAIQALAkAgAARAIABBFUYNASADQQA2AhwgAyABNgIUIANBnA02AhAgA0EhNgIMQQAhAgygAgtBvgEhAgyFAgsgA0HXATYCHCADIAE2AhQgA0HWGTYCECADQRU2AgxBACECDJ4CCyABIARGBEBB1wEhAgyeAgsCQCABLQAAQSBGBEAgA0EAOwE0IAFBAWohAQwBCyADQQA2AhwgAyABNgIUIANB6xA2AhAgA0EJNgIMQQAhAgyeAgtBvQEhAgyDAgsgASAERgRAQdYBIQIM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LgsgAUEBaiEBQZcBIQIM2AELIAFBAWohAUEiDCsLIAEgBEYEQEGvASECDPEBCyABLQAAQdAARw0rIAFBAWohAUGWASECDNYBCyABIARGBEBBrgEhAgzwAQsCQAJAIAEtAABBxgBrDgsALCwsLCwsLCwsASwLIAFBAWohAUGUASECDNYBCyABQQFqIQFBlQEhAgzVAQtBrQEhAiABIARGDe4BIAMoAgAiACAEIAFraiEFIAEgAGtBA2ohBgJAA0AgAS0AACAAQazTAGotAABHDSggAEEDRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADO8BCyADQQA2AgAgBkEBaiEBQQ0MKAtBrAEhAiABIARGDe0BIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQeHTAGotAABHDScgAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADO4BCyADQQA2AgAgBkEBaiEBQQwMJwtBqwEhAiABIARGDewBIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQarTAGotAABHDSYgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADO0BCyADQQA2AgAgBkEBaiEBQQMMJgtBqgEhAiABIARGDesBIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQajTAGotAABHDSUgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADOwBCyADQQA2AgAgBkEBaiEBQSYMJQsgASAERgRAQakBIQIM6wELAkACQCABLQAAQdQAaw4CAAEnCyABQQFqIQFBjwEhAgzRAQsgAUEBaiEBQZABIQIM0AELQagBIQIgASAERg3pASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGm0wBqLQAARw0jIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzqAQsgA0EANgIAIAZBAWohAUEnDCMLQacBIQIgASAERg3oASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGk0wBqLQAARw0iIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzpAQsgA0EANgIAIAZBAWohAUEcDCILQaYBIQIgASAERg3nASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEGe0wBqLQAARw0hIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzoAQsgA0EANgIAIAZBAWohAUEGDCELQaUBIQIgASAERg3mASADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANAIAEtAAAgAEGZ0wBqLQAARw0gIABBBEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAznAQsgA0EANgIAIAZBAWohAUEZDCALIAEgBEYEQEGkASECDOYBCwJAAkACQAJAIAEtAABBLWsOIwAkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJAEkJCQkJAIkJCQDJAsgAUEBaiEBQYQBIQIMzgELIAFBAWohAUGFASECDM0BCyABQQFqIQFBigEhAgzMAQsgAUEBaiEBQYsBIQIMywELQaMBIQIgASAERg3kASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGX0wBqLQAARw0eIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzlAQsgA0EANgIAIAZBAWohAUELDB4LIAEgBEYEQEGiASECDOQBCwJAAkAgAS0AAEHBAGsOAwAgASALIAFBAWohAUGGASECDMoBCyABQQFqIQFBiQEhAgzJAQsgASAERgRAQaEBIQIM4wELAkACQCABLQAAQcEAaw4PAB8fHx8fHx8fHx8fHx8BHwsgAUEBaiEBQYcBIQIMyQELIAFBAWohAUGIASECDMgBCyABIARGBEBBoAEhAgziAQsgAS0AAEHMAEcNHCABQQFqIQFBCgwbC0GfASECIAEgBEYN4AEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABBkdMAai0AAEcNGiAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM4QELIANBADYCACAGQQFqIQFBHgwaC0GeASECIAEgBEYN3wEgAygCACIAIAQgAWtqIQUgASAAa0EGaiEGAkADQCABLQAAIABBitMAai0AAEcNGSAAQQZGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM4AELIANBADYCACAGQQFqIQFBFQwZC0GdASECIAEgBEYN3gEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABBh9MAai0AAEcNGCAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM3wELIANBADYCACAGQQFqIQFBFwwYC0GcASECIAEgBEYN3QEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABBgdMAai0AAEcNFyAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM3gELIANBADYCACAGQQFqIQFBGAwXCyABIARGBEBBmwEhAgzdAQsCQAJAIAEtAABByQBrDgcAGRkZGRkBGQsgAUEBaiEBQYEBIQIMwwELIAFBAWohAUGCASECDMIBC0GaASECIAEgBEYN2wEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABB5tMAai0AAEcNFSAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM3AELIANBADYCACAGQQFqIQFBCQwVC0GZASECIAEgBEYN2gEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABB5NMAai0AAEcNFCAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM2wELIANBADYCACAGQQFqIQFBHwwUC0GYASECIAEgBEYN2QEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABB/tIAai0AAEcNEyAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM2gELIANBADYCACAGQQFqIQFBAgwTC0GXASECIAEgBEYN2AEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGA0AgAS0AACAAQfzSAGotAABHDREgAEEBRg0CIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADNgBCyABIARGBEBBlgEhAgzYAQtBASABLQAAQd8ARw0RGiABQQFqIQFB/QAhAgy9AQsgA0EANgIAIAZBAWohAUH+ACECDLwBC0GVASECIAEgBEYN1QEgAygCACIAIAQgAWtqIQUgASAAa0EIaiEGAkADQCABLQAAIABBxNMAai0AAEcNDyAAQQhGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM1gELIANBADYCACAGQQFqIQFBKQwPC0GUASECIAEgBEYN1AEgAygCACIAIAQgAWtqIQUgASAAa0EDaiEGAkADQCABLQAAIABB+NIAai0AAEcNDiAAQQNGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM1QELIANBADYCACAGQQFqIQFBLQwOCyABIARGBEBBkwEhAgzUAQsgAS0AAEHFAEcNDiABQQFqIQFB+gAhAgy5AQsgASAERgRAQZIBIQIM0wELAkACQCABLQAAQcwAaw4IAA8PDw8PDwEPCyABQQFqIQFB+AAhAgy5AQsgAUEBaiEBQfkAIQIMuAELQZEBIQIgASAERg3RASADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANAIAEtAAAgAEHz0gBqLQAARw0LIABBBEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzSAQsgA0EANgIAIAZBAWohAUEjDAsLQZABIQIgASAERg3QASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEHw0gBqLQAARw0KIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzRAQsgA0EANgIAIAZBAWohAUEADAoLIAEgBEYEQEGPASECDNABCwJAAkAgAS0AAEHIAGsOCAAMDAwMDAwBDAsgAUEBaiEBQfMAIQIMtgELIAFBAWohAUH2ACECDLUBCyABIARGBEBBjgEhAgzPAQsCQAJAIAEtAABBzgBrDgMACwELCyABQQFqIQFB9AAhAgy1AQsgAUEBaiEBQfUAIQIMtAELIAEgBEYEQEGNASECDM4BCyABLQAAQdkARw0IIAFBAWohAUEIDAcLQYwBIQIgASAERg3MASADKAIAIgAgBCABa2ohBSABIABrQQNqIQYCQANAIAEtAAAgAEHs0gBqLQAARw0GIABBA0YNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzNAQsgA0EANgIAIAZBAWohAUEFDAYLQYsBIQIgASAERg3LASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEHm0gBqLQAARw0FIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzMAQsgA0EANgIAIAZBAWohAUEWDAULQYoBIQIgASAERg3KASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEHh0wBqLQAARw0EIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzLAQsgA0EANgIAIAZBAWohAUEQDAQLIAEgBEYEQEGJASECDMoBCwJAAkAgAS0AAEHDAGsODAAGBgYGBgYGBgYGAQYLIAFBAWohAUHvACECDLABCyABQQFqIQFB8AAhAgyvAQtBiAEhAiABIARGDcgBIAMoAgAiACAEIAFraiEFIAEgAGtBBWohBgJAA0AgAS0AACAAQeDSAGotAABHDQIgAEEFRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADMkBCyADQQA2AgAgBkEBaiEBQSQMAgsgA0EANgIADAILIAEgBEYEQEGHASECDMcBCyABLQAAQcwARw0BIAFBAWohAUETCzoAKSADKAIEIQAgA0EANgIEIAMgACABEC0iAA0CDAELQQAhAiADQQA2AhwgAyABNgIUIANB6R42AhAgA0EGNgIMDMQBC0HuACECDKkBCyADQYYBNgIcIAMgATYCFCADIAA2AgxBACECDMIBC0EAIQACQCADKAI4IgJFDQAgAigCOCICRQ0AIAMgAhEAACEACyAARQ0AIABBFUYNASADQQA2AhwgAyABNgIUIANB1A42AhAgA0EgNgIMQQAhAgzBAQtB7QAhAgymAQsgA0GFATYCHCADIAE2AhQgA0HXGjYCECADQRU2AgxBACECDL8BCyABIARGBEBBhQEhAgy/AQsCQCABLQAAQSBGBEAgAUEBaiEBDAELIANBADYCHCADIAE2AhQgA0GGHjYCECADQQY2AgxBACECDL8BC0ECIQIMpAELA0AgAS0AAEEgRw0CIAQgAUEBaiIBRw0AC0GEASECDL0BCyABIARGBEBBgwEhAgy9AQsCQCABLQAAQQlrDgRAAABAAAtB6wAhAgyiAQsgAy0AKUEFRgRAQewAIQIMogELQeoAIQIMoQELIAEgBEYEQEGCASECDLsBCyADQQ82AgggAyABNgIEDAoLIAEgBEYEQEGBASECDLoBCwJAIAEtAABBCWsOBD0AAD0AC0HpACECDJ8BCyABIARHBEAgA0EPNgIIIAMgATYCBEHnACECDJ8BC0GAASECDLgBCwJAIAEgBEcEQANAIAEtAABB4M4Aai0AACIAQQNHBEACQCAAQQFrDgI/AAQLQeYAIQIMoQELIAQgAUEBaiIBRw0AC0H+ACECDLkBC0H+ACECDLgBCyADQQA2AhwgAyABNgIUIANBxh82AhAgA0EHNgIMQQAhAgy3AQsgASAERgRAQf8AIQIMtwELAkACQAJAIAEtAABB4NAAai0AAEEBaw4DPAIAAQtB6AAhAgyeAQsgA0EANgIcIAMgATYCFCADQYYSNgIQIANBBzYCDEEAIQIMtwELQeAAIQIMnAELIAEgBEcEQCABQQFqIQFB5QAhAgycAQtB/QAhAgy1AQsgBCABIgBGBEBB/AAhAgy1AQsgAC0AACIBQS9GBEAgAEEBaiEBQeQAIQIMmwELIAFBCWsiAkEXSw0BIAAhAUEBIAJ0QZuAgARxDTcMAQsgBCABIgBGBEBB+wAhAgy0AQsgAC0AAEEvRw0AIABBAWohAQwDC0EAIQIgA0EANgIcIAMgADYCFCADQcYfNgIQIANBBzYCDAyyAQsCQAJAAkACQAJAA0AgAS0AAEHgzABqLQAAIgBBBUcEQAJAAkAgAEEBaw4IPQUGBwgABAEIC0HhACECDJ8BCyABQQFqIQFB4wAhAgyeAQsgBCABQQFqIgFHDQALQfoAIQIMtgELIAFBAWoMFAsgAygCBCEAIANBADYCBCADIAAgARArIgBFDR4gA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgy0AQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDR4gA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyzAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDR4gA0HwADYCHCADIAE2AhQgAyAANgIMQQAhAgyyAQsgA0EANgIcIAMgATYCFCADQcsPNgIQIANBBzYCDEEAIQIMsQELIAEgBEYEQEH5ACECDLEBCwJAIAEtAABB4MwAai0AAEEBaw4INAQFBgAIAgMHCyABQQFqIQELQQMhAgyVAQsgAUEBagwNC0EAIQIgA0EANgIcIANBoxI2AhAgA0EHNgIMIAMgAUEBajYCFAytAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDRYgA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgysAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDRYgA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyrAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDRYgA0HwADYCHCADIAE2AhQgAyAANgIMQQAhAgyqAQsgA0EANgIcIAMgATYCFCADQcsPNgIQIANBBzYCDEEAIQIMqQELQeIAIQIMjgELIAEgBEYEQEH4ACECDKgBCyABQQFqDAILIAEgBEYEQEH3ACECDKcBCyABQQFqDAELIAEgBEYNASABQQFqCyEBQQQhAgyKAQtB9gAhAgyjAQsDQCABLQAAQeDKAGotAAAiAEECRwRAIABBAUcEQEHfACECDIsBCwwnCyAEIAFBAWoiAUcNAAtB9QAhAgyiAQsgASAERgRAQfQAIQIMogELAkAgAS0AAEEJaw43JQMGJQQGBgYGBgYGBgYGBgYGBgYGBgYFBgYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGAAYLIAFBAWoLIQFBBSECDIYBCyABQQFqDAYLIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ0IIANB2wA2AhwgAyABNgIUIAMgADYCDEEAIQIMngELIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ0IIANB3QA2AhwgAyABNgIUIAMgADYCDEEAIQIMnQELIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ0IIANB8AA2AhwgAyABNgIUIAMgADYCDEEAIQIMnAELIANBADYCHCADIAE2AhQgA0G8EzYCECADQQc2AgxBACECDJsBCwJAAkACQAJAA0AgAS0AAEHgyABqLQAAIgBBBUcEQAJAIABBAWsOBiQDBAUGAAYLQd4AIQIMhgELIAQgAUEBaiIBRw0AC0HzACECDJ4BCyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNByADQdsANgIcIAMgATYCFCADIAA2AgxBACECDJ0BCyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNByADQd0ANgIcIAMgATYCFCADIAA2AgxBACECDJwBCyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNByADQfAANgIcIAMgATYCFCADIAA2AgxBACECDJsBCyADQQA2AhwgAyABNgIUIANB3Ag2AhAgA0EHNgIMQQAhAgyaAQsgASAERg0BIAFBAWoLIQFBBiECDH4LQfIAIQIMlwELAkACQAJAAkADQCABLQAAQeDGAGotAAAiAEEFRwRAIABBAWsOBB8CAwQFCyAEIAFBAWoiAUcNAAtB8QAhAgyaAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDQMgA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgyZAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDQMgA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyYAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDQMgA0HwADYCHCADIAE2AhQgAyAANgIMQQAhAgyXAQsgA0EANgIcIAMgATYCFCADQbQKNgIQIANBBzYCDEEAIQIMlgELQc4AIQIMewtB0AAhAgx6C0HdACECDHkLIAEgBEYEQEHwACECDJMBCwJAIAEtAABBCWsOBBYAABYACyABQQFqIQFB3AAhAgx4CyABIARGBEBB7wAhAgySAQsCQCABLQAAQQlrDgQVAAAVAAtBACEAAkAgAygCOCICRQ0AIAIoAjAiAkUNACADIAIRAAAhAAsgAEUEQEHTASECDHgLIABBFUcEQCADQQA2AhwgAyABNgIUIANBwQ02AhAgA0EaNgIMQQAhAgySAQsgA0HuADYCHCADIAE2AhQgA0HwGTYCECADQRU2AgxBACECDJEBC0HtACECIAEgBEYNkAEgAygCACIAIAQgAWtqIQUgASAAa0EDaiEGAkADQCABLQAAIABB18YAai0AAEcNBCAAQQNGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMkQELIANBADYCACAGQQFqIQEgAy0AKSIAQSNrQQtJDQQCQCAAQQZLDQBBASAAdEHKAHFFDQAMBQtBACECIANBADYCHCADIAE2AhQgA0HlCTYCECADQQg2AgwMkAELQewAIQIgASAERg2PASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEHUxgBqLQAARw0DIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyQAQsgA0EANgIAIAZBAWohASADLQApQSFGDQMgA0EANgIcIAMgATYCFCADQYkKNgIQIANBCDYCDEEAIQIMjwELQesAIQIgASAERg2OASADKAIAIgAgBCABa2ohBSABIABrQQNqIQYCQANAIAEtAAAgAEHQxgBqLQAARw0CIABBA0YNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyPAQsgA0EANgIAIAZBAWohASADLQApIgBBI0kNAiAAQS5GDQIgA0EANgIcIAMgATYCFCADQcEJNgIQIANBCDYCDEEAIQIMjgELIANBADYCAAtBACECIANBADYCHCADIAE2AhQgA0GENzYCECADQQg2AgwMjAELQdgAIQIMcQsgASAERwRAIANBDTYCCCADIAE2AgRB1wAhAgxxC0HqACECDIoBCyABIARGBEBB6QAhAgyKAQsgAS0AAEEwayIAQf8BcUEKSQRAIAMgADoAKiABQQFqIQFB1gAhAgxwCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNdCADQegANgIcIAMgATYCFCADIAA2AgxBACECDIkBCyABIARGBEBB5wAhAgyJAQsCQCABLQAAQS5GBEAgAUEBaiEBDAELIAMoAgQhACADQQA2AgQgAyAAIAEQLiIARQ11IANB5gA2AhwgAyABNgIUIAMgADYCDEEAIQIMiQELQdUAIQIMbgsgASAERgRAQeUAIQIMiAELQQAhAEEBIQVBASEHQQAhAgJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAIAEtAABBMGsOCgoJAAECAwQFBggLC0ECDAYLQQMMBQtBBAwEC0EFDAMLQQYMAgtBBwwBC0EICyECQQAhBUEAIQcMAgtBCSECQQEhAEEAIQVBACEHDAELQQAhBUEBIQILIAMgAjoAKyABQQFqIQECQAJAIAMtAC5BEHENAAJAAkACQCADLQAqDgMBAAIECyAHRQ0DDAILIAANAQwCCyAFRQ0BCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNAiADQeIANgIcIAMgATYCFCADIAA2AgxBACECDIoBCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNdyADQeMANgIcIAMgATYCFCADIAA2AgxBACECDIkBCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNdSADQeQANgIcIAMgATYCFCADIAA2AgwMiAELQdMAIQIMbQsgAy0AKUEiRg2AAUHSACECDGwLQQAhAAJAIAMoAjgiAkUNACACKAI8IgJFDQAgAyACEQAAIQALIABFBEBB1AAhAgxsCyAAQRVHBEAgA0EANgIcIAMgATYCFCADQZwNNgIQIANBITYCDEEAIQIMhgELIANB4QA2AhwgAyABNgIUIANB1hk2AhAgA0EVNgIMQQAhAgyFAQsgASAERgRAQeAAIQIMhQELAkACQAJAAkACQCABLQAAQQprDgQBBAQABAsgAUEBaiEBDAELIAFBAWohASADQS9qLQAAQQFxRQ0BC0HRACECDGwLIANBADYCHCADIAE2AhQgA0GIETYCECADQQk2AgxBACECDIUBCyADQQA2AhwgAyABNgIUIANBiBE2AhAgA0EJNgIMQQAhAgyEAQsgASAERgRAQd8AIQIMhAELIAEtAABBCkYEQCABQQFqIQEMCQsgAy0ALkHAAHENCCADQQA2AhwgAyABNgIUIANBiBE2AhAgA0ECNgIMQQAhAgyDAQsgASAERgRAQd0AIQIMgwELIAEtAAAiAkENRgRAIAFBAWohAUHPACECDGkLIAEhACACQQlrDgQFAQEFAQsgBCABIgBGBEBB3AAhAgyCAQsgAC0AAEEKRw0AIABBAWoMAgtBACECIANBADYCHCADIAA2AhQgA0G1LDYCECADQQc2AgwMgAELIAEgBEYEQEHbACECDIABCwJAIAEtAABBCWsOBAMAAAMACyABQQFqCyEBQc0AIQIMZAsgASAERgRAQdoAIQIMfgsgAS0AAEEJaw4EAAEBAAELQQAhAiADQQA2AhwgA0HsETYCECADQQc2AgwgAyABQQFqNgIUDHwLIANBgBI7ASpBACEAAkAgAygCOCICRQ0AIAIoAjAiAkUNACADIAIRAAAhAAsgAEUNACAAQRVHDQEgA0HZADYCHCADIAE2AhQgA0HwGTYCECADQRU2AgxBACECDHsLQcwAIQIMYAsgA0EANgIcIAMgATYCFCADQcENNgIQIANBGjYCDEEAIQIMeQsgASAERgRAQdkAIQIMeQsgAS0AAEEgRw06IAFBAWohASADLQAuQQFxDTogA0EANgIcIAMgATYCFCADQa0bNgIQIANBHjYCDEEAIQIMeAsgASAERgRAQdgAIQIMeAsCQAJAAkACQAJAIAEtAAAiAEEKaw4EAgMD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AkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQCABLQAAQTBrDjcVFAABAgMEBQYHFhYWFhYWFggJCgsMDRYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWDg8QERITFgtCAiEKDBQLQgMhCgwTC0IEIQoMEgtCBSEKDBELQgYhCgwQC0IHIQoMDwtCCCEKDA4LQgkhCgwNC0IKIQoMDAtCCyEKDAsLQgwhCgwKC0INIQoMCQtCDiEKDAgLQg8hCgwHC0IKIQoMBgtCCyEKDAULQgwhCgwEC0INIQoMAwtCDiEKDAILQg8hCgwBC0IBIQoLIAFBAWohASADKQMgIgtC//////////8PWARAIAMgC0IEhiAKhDcDIAwCC0EAIQIgA0EANgIcIAMgATYCFCADQa0JNgIQIANBDDYCDAwfC0ElIQIMBAtBJiECDAMLIAMgAToALCADQQA2AgAgB0EBaiEBQQwhAgwCCyADQQA2AgAgBkEBaiEBQQohAgwBCyABQQFqIQFBCCECDAALAAtBACECIANBADYCHCADIAE2AhQgA0HVEDYCECADQQk2AgwMGAtBACECIANBADYCHCADIAE2AhQgA0HXCjYCECADQQk2AgwMFwtBACECIANBADYCHCADIAE2AhQgA0G/EDYCECADQQk2AgwMFgtBACECIANBADYCHCADIAE2AhQgA0GkETYCECADQQk2AgwMFQtBACECIANBADYCHCADIAE2AhQgA0HVEDYCECADQQk2AgwMFAtBACECIANBADYCHCADIAE2AhQgA0HXCjYCECADQQk2AgwMEwtBACECIANBADYCHCADIAE2AhQgA0G/EDYCECADQQk2AgwMEgtBACECIANBADYCHCADIAE2AhQgA0GkETYCECADQQk2AgwMEQtBACECIANBADYCHCADIAE2AhQgA0G/FjYCECADQQ82AgwMEAtBACECIANBADYCHCADIAE2AhQgA0G/FjYCECADQQ82AgwMDwtBACECIANBADYCHCADIAE2AhQgA0HIEjYCECADQQs2AgwMDgtBACECIANBADYCHCADIAE2AhQgA0GVCTYCECADQQs2AgwMDQtBACECIANBADYCHCADIAE2AhQgA0HpDzYCECADQQo2AgwMDAtBACECIANBADYCHCADIAE2AhQgA0GDEDYCECADQQo2AgwMCwtBACECIANBADYCHCADIAE2AhQgA0GmHDYCECADQQI2AgwMCgtBACECIANBADYCHCADIAE2AhQgA0HFFTYCECADQQI2AgwMCQtBACECIANBADYCHCADIAE2AhQgA0H/FzYCECADQQI2AgwMCAtBACECIANBADYCHCADIAE2AhQgA0HKFzYCECADQQI2AgwMBwsgA0ECNgIcIAMgATYCFCADQZQdNgIQIANBFjYCDEEAIQIMBgtB3gAhAiABIARGDQUgCUEIaiEHIAMoAgAhBQJAAkAgASAERwRAIAVBxsYAaiEIIAQgBWogAWshBiAFQX9zQQpqIgUgAWohAANAIAEtAAAgCC0AAEcEQEECIQgMAwsgBUUEQEEAIQggACEBDAMLIAVBAWshBSAIQQFqIQggBCABQQFqIgFHDQALIAYhBSAEIQELIAdBATYCACADIAU2AgAMAQsgA0EANgIAIAcgCDYCAAsgByABNgIEIAkoAgwhACAJKAIIDgMBBQIACwALIANBADYCHCADQa0dNgIQIANBFzYCDCADIABBAWo2AhRBACECDAMLIANBADYCHCADIAA2AhQgA0HCHTYCECADQQk2AgxBACECDAILIAEgBEYEQEEoIQIMAgsgA0EJNgIIIAMgATYCBEEnIQIMAQsgASAERgRAQQEhAgwBCwNAAkACQAJAIAEtAABBCmsOBAABAQABCyABQQFqIQEMAQsgAUEBaiEBIAMtAC5BIHENAEEAIQIgA0EANgIcIAMgATYCFCADQYwgNgIQIANBBTYCDAwCC0EBIQIgASAERw0ACwsgCUEQaiQAIAJFBEAgAygCDCEADAELIAMgAjYCHEEAIQAgAygCBCIBRQ0AIAMgASAEIAMoAggRAQAiAUUNACADIAQ2AhQgAyABNgIMIAEhAAsgAAu+AgECfyAAQQA6AAAgAEHcAGoiAUEBa0EAOgAAIABBADoAAiAAQQA6AAEgAUEDa0EAOgAAIAFBAmtBADoAACAAQQA6AAMgAUEEa0EAOgAAQQAgAGtBA3EiASAAaiIAQQA2AgBB3AAgAWtBfHEiAiAAaiIBQQRrQQA2AgACQCACQQlJDQAgAEEANgIIIABBADYCBCABQQhrQQA2AgAgAUEMa0EANgIAIAJBGUkNACAAQQA2AhggAEEANgIUIABBADYC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YXR1cwBJbnZhbGlkIHJlc3BvbnNlIHN0YXR1cwBFeHBlY3RlZCBMRiBhZnRlciBoZWFkZXJzAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMAVXNlciBjYWxsYmFjayBlcnJvcgBgb25fcmVzZXRgIGNhbGxiYWNrIGVycm9yAGBvbl9jaHVua19oZWFkZXJgIGNhbGxiYWNrIGVycm9yAGBvbl9tZXNzYWdlX2JlZ2luYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfZXh0ZW5zaW9uX3ZhbHVlYCBjYWxsYmFjayBlcnJvcgBgb25fc3RhdHVzX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fdmVyc2lvbl9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3VybF9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX2NodW5rX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25faGVhZGVyX3ZhbHVlX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fbWVzc2FnZV9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX21ldGhvZF9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX2hlYWRlcl9maWVsZF9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX2NodW5rX2V4dGVuc2lvbl9uYW1lYCBjYWxsYmFjayBlcnJvcgBVbmV4cGVjdGVkIGNoYXIgaW4gdXJsIHNlcnZlcgBJbnZhbGlkIGhlYWRlciB2YWx1ZSBjaGFyAEludmFsaWQgaGVhZGVyIGZpZWxkIGNoYXIAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl92ZXJzaW9uAEludmFsaWQgbWlub3IgdmVyc2lvbgBJbnZhbGlkIG1ham9yIHZlcnNpb24ARXhwZWN0ZWQgc3BhY2UgYWZ0ZXIgdmVyc2lvbgBFeHBlY3RlZCBDUkxGIGFmdGVyIHZlcnNpb24ASW52YWxpZCBIVFRQIHZlcnNpb24ASW52YWxpZCBoZWFkZXIgdG9rZW4AU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl91cmwASW52YWxpZCBjaGFyYWN0ZXJzIGluIHVybABVbmV4cGVjdGVkIHN0YXJ0IGNoYXIgaW4gdXJsAERvdWJsZSBAIGluIHVybABFbXB0eSBDb250ZW50LUxlbmd0aABJbnZhbGlkIGNoYXJhY3RlciBpbiBDb250ZW50LUxlbmd0aABUcmFuc2Zlci1FbmNvZGluZyBjYW4ndCBiZSBwcmVzZW50IHdpdGggQ29udGVudC1MZW5ndGgARHVwbGljYXRlIENvbnRlbnQtTGVuZ3RoAEludmFsaWQgY2hhciBpbiB1cmwgcGF0aABDb250ZW50LUxlbmd0aCBjYW4ndCBiZSBwcmVzZW50IHdpdGggVHJhbnNmZXItRW5jb2RpbmcATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciBjaHVuayBzaXplAEV4cGVjdGVkIExGIGFmdGVyIGNodW5rIHNpemUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgc2l6ZQBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX2hlYWRlcl92YWx1ZQBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX2NodW5rX2V4dGVuc2lvbl92YWx1ZQBJbnZhbGlkIGNoYXJhY3RlciBpbiBjaHVuayBleHRlbnNpb25zIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgaGVhZGVyIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgTEYgYWZ0ZXIgaGVhZGVyIHZhbHVlAEludmFsaWQgYFRyYW5zZmVyLUVuY29kaW5nYCBoZWFkZXIgdmFsdWUATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciBjaHVuayBleHRlbnNpb24gdmFsdWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyBxdW90ZSB2YWx1ZQBJbnZhbGlkIHF1b3RlZC1wYWlyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGVkIHZhbHVlAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGVkIHZhbHVlAFBhdXNlZCBieSBvbl9oZWFkZXJzX2NvbXBsZXRlAEludmFsaWQgRU9GIHN0YXRlAG9uX3Jlc2V0IHBhdXNlAG9uX2NodW5rX2hlYWRlciBwYXVzZQBvbl9tZXNzYWdlX2JlZ2luIHBhdXNlAG9uX2NodW5rX2V4dGVuc2lvbl92YWx1ZSBwYXVzZQBvbl9zdGF0dXNfY29tcGxldGUgcGF1c2UAb25fdmVyc2lvbl9jb21wbGV0ZSBwYXVzZQBvbl91cmxfY29tcGxldGUgcGF1c2UAb25fY2h1bmtfY29tcGxldGUgcGF1c2UAb25faGVhZGVyX3ZhbHVlX2NvbXBsZXRlIHBhdXNlAG9uX21lc3NhZ2VfY29tcGxldGUgcGF1c2UAb25fbWV0aG9kX2NvbXBsZXRlIHBhdXNlAG9uX2hlYWRlcl9maWVsZF9jb21wbGV0ZSBwYXVzZQBvbl9jaHVua19leHRlbnNpb25fbmFtZSBwYXVzZQBVbmV4cGVjdGVkIHNwYWNlIGFmdGVyIHN0YXJ0IGxpbmUATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciByZXNwb25zZSBsaW5lAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fY2h1bmtfZXh0ZW5zaW9uX25hbWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyBuYW1lAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgZXh0ZW5zaW9uIG5hbWUASW52YWxpZCBzdGF0dXMgY29kZQBQYXVzZSBvbiBDT05ORUNUL1VwZ3JhZGUAUGF1c2Ugb24gUFJJL1VwZ3JhZGUARXhwZWN0ZWQgSFRUUC8yIENvbm5lY3Rpb24gUHJlZmFjZQBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX21ldGhvZABFeHBlY3RlZCBzcGFjZSBhZnRlciBtZXRob2QAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9oZWFkZXJfZmllbGQAUGF1c2VkAEludmFsaWQgd29yZCBlbmNvdW50ZXJlZABJbnZhbGlkIG1ldGhvZCBlbmNvdW50ZXJlZABNaXNzaW5nIGV4cGVjdGVkIENSIGFmdGVyIGNodW5rIGRhdGEARXhwZWN0ZWQgTEYgYWZ0ZXIgY2h1bmsgZGF0YQBVbmV4cGVjdGVkIGNoYXIgaW4gdXJsIHNjaGVtYQBSZXF1ZXN0IGhhcyBpbnZhbGlkIGBUcmFuc2Zlci1FbmNvZGluZ2AARGF0YSBhZnRlciBgQ29ubmVjdGlvbjogY2xvc2VgAFNXSVRDSF9QUk9YWQBVU0VfUFJPWFkATUtBQ1RJVklUWQBVTlBST0NFU1NBQkxFX0VOVElUWQBRVUVSWQBDT1BZAE1PVkVEX1BFUk1BTkVOVExZAFRPT19FQVJMWQBOT1RJRlkARkFJTEVEX0RFUEVOREVOQ1kAQkFEX0dBVEVXQVkAUExBWQBQVVQAQ0hFQ0tPVVQAR0FURVdBWV9USU1FT1VUAFJFUVVFU1RfVElNRU9VVABORVRXT1JLX0NPTk5FQ1RfVElNRU9VVABDT05ORUNUSU9OX1RJTUVPVVQATE9HSU5fVElNRU9VVABORVRXT1JLX1JFQURfVElNRU9VVABQT1NUAE1JU0RJUkVDVEVEX1JFUVVFU1QAQ0xJRU5UX0NMT1NFRF9SRVFVRVNUAENMSUVOVF9DTE9TRURfTE9BRF9CQUxBTkNFRF9SRVFVRVNUAEJBRF9SRVFVRVNUAEhUVFBfUkVRVUVTVF9TRU5UX1RPX0hUVFBTX1BPUlQAUkVQT1JUAElNX0FfVEVBUE9UAFJFU0VUX0NPTlRFTlQATk9fQ09OVEVOVABQQVJUSUFMX0NPTlRFTlQASFBFX0lOVkFMSURfQ09OU1RBTlQASFBFX0NCX1JFU0VUAEdFVABIUEVfU1RSSUNUAENPTkZMSUNUAFRFTVBPUkFSWV9SRURJUkVDVABQRVJNQU5FTlRfUkVESVJFQ1QAQ09OTkVDVABNVUxUSV9TVEFUVVMASFBFX0lOVkFMSURfU1RBVFVTAFRPT19NQU5ZX1JFUVVFU1RTAEVBUkxZX0hJTlRTAFVOQVZBSUxBQkxFX0ZPUl9MRUdBTF9SRUFTT05TAE9QVElPTlMAU1dJVENISU5HX1BST1RPQ09MUwBWQVJJQU5UX0FMU09fTkVHT1RJQVRFUwBNVUxUSVBMRV9DSE9JQ0VTAElOVEVSTkFMX1NFUlZFUl9FUlJPUgBXRUJfU0VSVkVSX1VOS05PV05fRVJST1IAUkFJTEdVTl9FUlJPUgBJREVOVElUWV9QUk9WSURFUl9BVVRIRU5USUNBVElPTl9FUlJPUgBTU0xfQ0VSVElGSUNBVEVfRVJST1IASU5WQUxJRF9YX0ZPUldBUkRFRF9GT1IAU0VUX1BBUkFNRVRFUgBHRVRfUEFSQU1FVEVSAEhQRV9VU0VSAFNFRV9PVEhFUgBIUEVfQ0JfQ0hVTktfSEVBREVSAEV4cGVjdGVkIExGIGFmdGVyIENSAE1LQ0FMRU5EQVIAU0VUVVAAV0VCX1NFUlZFUl9JU19ET1dOAFRFQVJET1dOAEhQRV9DTE9TRURfQ09OTkVDVElPTgBIRVVSSVNUSUNfRVhQSVJBVElPTgBESVNDT05ORUNURURfT1BFUkFUSU9OAE5PTl9BVVRIT1JJVEFUSVZFX0lORk9STUFUSU9OAEhQRV9JTlZBTElEX1ZFUlNJT04ASFBFX0NCX01FU1NBR0VfQkVHSU4AU0lURV9JU19GUk9aRU4ASFBFX0lOVkFMSURfSEVBREVSX1RPS0VOAElOVkFMSURfVE9LRU4ARk9SQklEREVOAEVOSEFOQ0VfWU9VUl9DQUxNAEhQRV9JTlZBTElEX1VSTABCTE9DS0VEX0JZX1BBUkVOVEFMX0NPTlRST0wATUtDT0wAQUNMAEhQRV9JTlRFUk5BTABSRVFVRVNUX0hFQURFUl9GSUVMRFNfVE9PX0xBUkdFX1VOT0ZGSUNJQUwASFBFX09LAFVOTElOSwBVTkxPQ0sAUFJJAFJFVFJZX1dJVEgASFBFX0lOVkFMSURfQ09OVEVOVF9MRU5HVEgASFBFX1VORVhQRUNURURfQ09OVEVOVF9MRU5HVEgARkxVU0gAUFJPUFBBVENIAE0tU0VBUkNIAFVSSV9UT09fTE9ORwBQUk9DRVNTSU5HAE1JU0NFTExBTkVPVVNfUEVSU0lTVEVOVF9XQVJOSU5HAE1JU0NFTExBTkVPVVNfV0FSTklORwBIUEVfSU5WQUxJRF9UUkFOU0ZFUl9FTkNPRElORwBFeHBlY3RlZCBDUkxGAEhQRV9JTlZBTElEX0NIVU5LX1NJWkUATU9WRQBDT05USU5VRQBIUEVfQ0JfU1RBVFVTX0NPTVBMRVRFAEhQRV9DQl9IRUFERVJTX0NPTVBMRVRFAEhQRV9DQl9WRVJTSU9OX0NPTVBMRVRFAEhQRV9DQl9VUkxfQ09NUExFVEUASFBFX0NCX0NIVU5LX0NPTVBMRVRFAEhQRV9DQl9IRUFERVJfVkFMVUVfQ09NUExFVEUASFBFX0NCX0NIVU5LX0VYVEVOU0lPTl9WQUxVRV9DT01QTEVURQBIUEVfQ0JfQ0hVTktfRVhURU5TSU9OX05BTUVfQ09NUExFVEUASFBFX0NCX01FU1NBR0VfQ09NUExFVEUASFBFX0NCX01FVEhPRF9DT01QTEVURQBIUEVfQ0JfSEVBREVSX0ZJRUxEX0NPTVBMRVRFAERFTEVURQBIUEVfSU5WQUxJRF9FT0ZfU1RBVEUASU5WQUxJRF9TU0xfQ0VSVElGSUNBVEUAUEFVU0UATk9fUkVTUE9OU0UAVU5TVVBQT1JURURfTUVESUFfVFlQRQBHT05FAE5PVF9BQ0NFUFRBQkxFAFNFUlZJQ0VfVU5BVkFJTEFCTEUAUkFOR0VfTk9UX1NBVElTRklBQkxFAE9SSUdJTl9JU19VTlJFQUNIQUJMRQBSRVNQT05TRV9JU19TVEFMRQBQVVJHRQBNRVJHRQBSRVFVRVNUX0hFQURFUl9GSUVMRFNfVE9PX0xBUkdFAFJFUVVFU1RfSEVBREVSX1RPT19MQVJHRQBQQVlMT0FEX1RPT19MQVJHRQBJTlNVRkZJQ0lFTlRfU1RPUkFHRQBIUEVfUEFVU0VEX1VQR1JBREUASFBFX1BBVVNFRF9IMl9VUEdSQURFAFNPVVJDRQBBTk5PVU5DRQBUUkFDRQBIUEVfVU5FWFBFQ1RFRF9TUEFDRQBERVNDUklCRQBVTlNVQlNDUklCRQBSRUNPUkQASFBFX0lOVkFMSURfTUVUSE9EAE5PVF9GT1VORABQUk9QRklORABVTkJJTkQAUkVCSU5EAFVOQVVUSE9SSVpFRABNRVRIT0RfTk9UX0FMTE9XRUQASFRUUF9WRVJTSU9OX05PVF9TVVBQT1JURUQAQUxSRUFEWV9SRVBPUlRFRABBQ0NFUFRFRABOT1RfSU1QTEVNRU5URUQATE9PUF9ERVRFQ1RFRABIUEVfQ1JfRVhQRUNURUQASFBFX0xGX0VYUEVDVEVEAENSRUFURUQASU1fVVNFRABIUEVfUEFVU0VEAFRJTUVPVVRfT0NDVVJFRABQQVlNRU5UX1JFUVVJUkVEAFBSRUNPTkRJVElPTl9SRVFVSVJFRABQUk9YWV9BVVRIRU5USUNBVElPTl9SRVFVSVJFRABORVRXT1JLX0FVVEhFTlRJQ0FUSU9OX1JFUVVJUkVEAExFTkdUSF9SRVFVSVJFRABTU0xfQ0VSVElGSUNBVEVfUkVRVUlSRUQAVVBHUkFERV9SRVFVSVJFRABQQUdFX0VYUElSRUQAUFJFQ09ORElUSU9OX0ZBSUxFRABFWFBFQ1RBVElPTl9GQUlMRUQAUkVWQUxJREFUSU9OX0ZBSUxFRABTU0xfSEFORFNIQUtFX0ZBSUxFRABMT0NLRUQAVFJBTlNGT1JNQVRJT05fQVBQTElFRABOT1RfTU9ESUZJRUQATk9UX0VYVEVOREVEAEJBTkRXSURUSF9MSU1JVF9FWENFRURFRABTSVRFX0lTX09WRVJMT0FERUQASEVBRABFeHBlY3RlZCBIVFRQLwAAUhUAABoVAAAPEgAA5BkAAJEVAAAJFAAALRkAAOQUAADpEQAAaRQAAKEUAAB2FQAAQxYAAF4SAACUFwAAFxYAAH0UAAB/FgAAQRcAALMTAADDFgAABBoAAL0YAADQGAAAoBMAANQZAACvFgAAaBYAAHAXAADZFgAA/BgAAP4RAABZFwAAlxYAABwXAAD2FgAAjRcAAAsSAAB/GwAALhEAALMQAABJEgAArRIAAPYYAABoEAAAYhUAABAVAABaFgAAShkAALUVAADBFQAAYBUAAFwZAABaGQAAUxkAABYVAACtEQAAQhAAALcQAABXGAAAvxUAAIkQAAAcGQAAGhkAALkVAABRGAAA3BMAAFsVAABZFQAA5hgAAGcVAAARGQAA7RgAAOcTAACuEAAAwhcAAAAUAACSEwAAhBMAAEASAAAmGQAArxUAAGIQAEHpOQsBAQBBgDoL4AEBAQIBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQBB6jsLBAEAAAIAQYE8C14DBAMDAwMDAAADAwADAwADAwMDAwMDAwMDAAUAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAwADAEHqPQsEAQAAAgBBgT4LXgMAAwMDAwMAAAMDAAMDAAMDAwMDAwMDAwMABAAFAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwADAAMAQeA/Cw1sb3NlZWVwLWFsaXZlAEH5PwsBAQBBkMAAC+ABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAQfnBAAsBAQBBkMIAC+cBAQEBAQEBAQEBAQEBAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQFjaHVua2VkAEGhxAALXgEAAQEBAQEAAAEBAAEBAAEBAQEBAQEBAQEAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQABAAEAQYDGAAshZWN0aW9uZW50LWxlbmd0aG9ucm94eS1jb25uZWN0aW9uAEGwxgALK3JhbnNmZXItZW5jb2RpbmdwZ3JhZGUNCg0KU00NCg0KVFRQL0NFL1RTUC8AQenGAAsFAQIAAQMAQYDHAAtfBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAQenIAAsFAQIAAQMAQYDJAAtfBAUFBgUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAQenKAAsEAQAAAQBBgcsAC14CAgACAgICAgICAgICAgICAgICAgICAgICAgICAgIAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAEHpzAALBQECAAEDAEGAzQALXwQFAAAFBQUFBQUFBQUFBQYFBQUFBQUFBQUFBQUABQAHCAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQAFAAUABQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAAAAFAEHpzgALBQEBAAEBAEGAzwALAQEAQZrPAAtBAgAAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAQenQAAsFAQEAAQEAQYDRAAsBAQBBitEACwYCAAAAAAIAQaHRAAs6AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAAAAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBB4NIAC5oBTk9VTkNFRUNLT1VUTkVDVEVURUNSSUJFTFVTSEVURUFEU0VBUkNIUkdFQ1RJVklUWUxFTkRBUlZFT1RJRllQVElPTlNDSFNFQVlTVEFUQ0hHRVVFUllPUkRJUkVDVE9SVFJDSFBBUkFNRVRFUlVSQ0VCU0NSSUJFQVJET1dOQUNFSU5ETktDS1VCU0NSSUJFSFRUUC9BRFRQLw==';
+		const wasmBase64 = 'AGFzbQEAAAABJwdgAX8Bf2ADf39/AX9gAn9/AGABfwBgBH9/f38Bf2AAAGADf39/AALLAQgDZW52GHdhc21fb25faGVhZGVyc19jb21wbGV0ZQAEA2VudhV3YXNtX29uX21lc3NhZ2VfYmVnaW4AAANlbnYLd2FzbV9vbl91cmwAAQNlbnYOd2FzbV9vbl9zdGF0dXMAAQNlbnYUd2FzbV9vbl9oZWFkZXJfZmllbGQAAQNlbnYUd2FzbV9vbl9oZWFkZXJfdmFsdWUAAQNlbnYMd2FzbV9vbl9ib2R5AAEDZW52GHdhc21fb25fbWVzc2FnZV9jb21wbGV0ZQAAAzU0BQYAAAMAAAAAAAADAQMAAwMDAAACAAAAAAICAgICAgICAgIBAQEBAQEBAQEBAwAAAwAAAAQFAXABExMFAwEAAgYIAX8BQcDZBAsHxQcoBm1lbW9yeQIAC19pbml0aWFsaXplAAgZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQEAC2xsaHR0cF9pbml0AAkYbGxodHRwX3Nob3VsZF9rZWVwX2FsaXZlADcMbGxodHRwX2FsbG9jAAsGbWFsbG9jADkLbGxodHRwX2ZyZWUADARmcmVlAAwPbGxodHRwX2dldF90eXBlAA0VbGxodHRwX2dldF9odHRwX21ham9yAA4VbGxodHRwX2dldF9odHRwX21pbm9yAA8RbGxodHRwX2dldF9tZXRob2QAEBZsbGh0dHBfZ2V0X3N0YXR1c19jb2RlABESbGxodHRwX2dldF91cGdyYWRlABIMbGxodHRwX3Jlc2V0ABMObGxodHRwX2V4ZWN1dGUAFBRsbGh0dHBfc2V0dGluZ3NfaW5pdAAVDWxsaHR0cF9maW5pc2gAFgxsbGh0dHBfcGF1c2UAFw1sbGh0dHBfcmVzdW1lABgbbGxodHRwX3Jlc3VtZV9hZnRlcl91cGdyYWRlABkQbGxodHRwX2dldF9lcnJubwAaF2xsaHR0cF9nZXRfZXJyb3JfcmVhc29uABsXbGxodHRwX3NldF9lcnJvcl9yZWFzb24AHBRsbGh0dHBfZ2V0X2Vycm9yX3BvcwAdEWxsaHR0cF9lcnJub19uYW1lAB4SbGxodHRwX21ldGhvZF9uYW1lAB8SbGxodHRwX3N0YXR1c19uYW1lACAabGxodHRw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AXRrQT5qIQILIAEgAjYCHCABQgA3AhAgAkECdEH01wBqIQACQEHI1QAoAgAiA0EBIAJ0IgdxRQRAIAAgATYCAEHI1QAgAyAHcjYCACABIAA2AhggASABNgIIIAEgATYCDAwBCyAEQRkgAkEBdmtBACACQR9HG3QhAiAAKAIAIQACQANAIAAiAygCBEF4cSAERg0BIAJBHXYhACACQQF0IQIgAyAAQQRxakEQaiIHKAIAIgANAAsgByABNgIAIAEgAzYCGCABIAE2AgwgASABNgIIDAELIAMoAggiACABNgIMIAMgATYCCCABQQA2AhggASADNgIMIAEgADYCCAtB5NUAQeTVACgCAEEBayIAQX8gABs2AgALCwcAIAAtACgLBwAgAC0AKgsHACAALQArCwcAIAAtACkLBwAgAC8BNAsHACAALQAwC0ABBH8gACgCGCEBIAAvAS4hAiAALQAoIQMgACgCOCEEIAAQOCAAIAQ2AjggACADOgAoIAAgAjsBLiAAIAE2AhgL5YUCAgd/A34gASACaiEEAkAgACIDKAIMIgANACADKAIEBEAgAyABNgIECyMAQRBrIgkkAAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAC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C0HjAQwHC0HXAQwGC0HYAQwFC0HZAQwEC0HaAQwDC0HbAQwCC0HdAQwBC0HcAQshAgNAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQCADAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJ/AkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAIAMCfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAg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ogKiAqICogKiAqICogKiAqICogKiAqICogIAogILIAQgAUEBaiIBRw0AC0HJACECDOwCCyABQQFqIQEgA0Evai0AAEEBcQ2lAiADQQA2AhwgAyABNgIUIANBlxA2AhAgA0EKNgIMQQAhAgzrAgsgASAERwRAA0AgAS0AAEEgRw0VIAQgAUEBaiIBRw0AC0H4ACECDOsCC0H4ACECDOoCCyADQQI6ACgMOAtBACECIANBADYCHCADQb8LNgIQIANBAjYCDCADIAFBAWo2AhQM6AILQQAhAgzOAgtBDSECDM0CC0ETIQIMzAILQRUhAgzLAgtBFiECDMoCC0EYIQIMyQILQRkhAgzIAgtBGiECDMcCC0EbIQIMxgILQRwhAgzFAgtBHSECDMQCC0EeIQIMwwILQR8hAgzCAgtBICECDMECC0EiIQIMwAILQSMhAgy/AgtBJSECDL4CC0HlACECDL0CCyADQT02AhwgAyABNgIUIAMgADYCDEEAIQIM1QILIANBGzYCHCADIAE2AhQgA0GkHDYCECADQRU2AgxBACECDNQCCyADQSA2AhwgAyABNgIUIANBmBo2AhAgA0EVNgIMQQAhAgzTAgsgA0ETNgIcIAMgATYCFCADQZgaNgIQIANBFTYCDEEAIQIM0gILIANBCzYCHCADIAE2AhQgA0GYGjYCECADQRU2AgxBACECDNECCyADQRA2AhwgAyABNgIUIANBmBo2AhAgA0EVNgIMQQAhAgzQAgsgA0EgNgIcIAMgATYCFCADQaQcNgIQIANBFTYCDEEAIQIMzwILIANBCzYCHCADIAE2AhQgA0GkHDYCECADQRU2AgxBACECDM4CCyADQQw2AhwgAyABNgIUIANBpBw2AhAgA0EVNgIMQQAhAgzNAgtBACECIANBADYCHCADIAE2AhQgA0HdDjYCECADQRI2AgwMzAILAkADQAJAIAEtAABBCmsOBAACAgACCyAEIAFBAWoiAUcNAAtB/QEhAgzMAgsCQAJAIAMtADZBAUcNAEEAIQACQCADKAI4IgJFDQAgAigCYCICRQ0AIAMgAhEAACEACyAARQ0AIABBFUcNASADQfwBNgIcIAMgATYCFCADQdwZNgIQIANBFTYCDEEAIQIMzQILQdwBIQIMswILIANBADYCHCADIAE2AhQgA0H5CzYCECADQR82AgxBACECDMsCCwJAAkAgAy0AKEEBaw4CBAEAC0HbASECDLICC0HUASECDLECCyADQQI6ADFBACEAAkAgAygCOCICRQ0AIAIoAgAiAkUNACADIAIRAAAhAAsgAEUEQEHdASECDLECCyAAQRVHBEAgA0EANgIcIAMgATYCFCADQbQMNgIQIANBEDYCDEEAIQIMygILIANB+wE2AhwgAyABNgIUIANBgRo2AhAgA0EVNgIMQQAhAgzJAgsgASAERgRAQfoBIQIMyQILIAEtAABByABGDQEgA0EBOgAoC0HAASECDK4CC0HaASECDK0CCyABIARHBEAgA0EMNgIIIAMgATYCBEHZASECDK0CC0H5ASECDMUCCyABIARGBEBB+AEhAgzFAgsgAS0AAEHIAEcNBCABQQFqIQFB2AEhAgyrAgsgASAERgRAQfcBIQIMxAILAkACQCABLQAAQcUAaw4QAAUFBQUFBQUFBQUFBQUFAQULIAFBAWohAUHWASECDKsCCyABQQFqIQFB1wEhAgyqAgtB9gEhAiABIARGDcICIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQbrVAGotAABHDQMgAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADMMCCyADKAIEIQAgA0IANwMAIAMgACAGQQFqIgEQLiIARQRAQeMBIQIMqgILIANB9QE2AhwgAyABNgIUIAMgADYCDEEAIQIMwgILQfQBIQIgASAERg3BAiADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEG41QBqLQAARw0CIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzCAgsgA0GBBDsBKCADKAIEIQAgA0IANwMAIAMgACAGQQFqIgEQLiIADQMMAgsgA0EANgIAC0EAIQIgA0EANgIcIAMgATYCFCADQeUfNgIQIANBCDYCDAy/AgtB1QEhAgylAgsgA0HzATYCHCADIAE2AhQgAyAANgIMQQAhAgy9AgtBACEAAkAgAygCOCICRQ0AIAIoAkAiAkUNACADIAIRAAAhAAsgAEUNbiAAQRVHBEAgA0EANgIcIAMgATYCFCADQYIPNgIQIANBIDYCDEEAIQIMvQILIANBjwE2AhwgAyABNgIUIANB7Bs2AhAgA0EVNgIMQQAhAgy8AgsgASAERwRAIANBDTYCCCADIAE2AgRB0wEhAgyjAgtB8gEhAgy7AgsgASAERgRAQfEBIQIMuwILAkACQAJAIAEtAABByABrDgsAAQgICAgICAgIAggLIAFBAWohAUHQASECDKMCCyABQQFqIQFB0QEhAgyiAgsgAUEBaiEBQdIBIQIMoQILQfABIQIgASAERg25AiADKAIAIgAgBCABa2ohBiABIABrQQJqIQUDQCABLQAAIABBtdUAai0AAEcNBCAAQQJGDQMgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAY2AgAMuQILQe8BIQIgASAERg24AiADKAIAIgAgBCABa2ohBiABIABrQQFqIQUDQCABLQAAIABBs9UAai0AAEcNAyAAQQFGDQIgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAY2AgAMuAILQe4BIQIgASAERg23AiADKAIAIgAgBCABa2ohBiABIABrQQJqIQUDQCABLQAAIABBsNUAai0AAEcNAiAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAY2AgAMtwILIAMoAgQhACADQgA3AwAgAyAAIAVBAWoiARArIgBFDQIgA0HsATYCHCADIAE2AhQgAyAANgIMQQAhAgy2AgsgA0EANgIACyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNnAIgA0HtATYCHCADIAE2AhQgAyAANgIMQQAhAgy0AgtBzwEhAgyaAgtBACEAAkAgAygCOCICRQ0AIAIoAjQiAkUNACADIAIRAAAhAAsCQCAABEAgAEEVRg0BIANBADYCHCADIAE2AhQgA0HqDTYCECADQSY2AgxBACECDLQCC0HOASECDJoCCyADQesBNgIcIAMgATYCFCADQYAbNgIQIANBFTYCDEEAIQIMsgILIAEgBEYEQEHrASECDLICCyABLQAAQS9GBEAgAUEBaiEBDAELIANBADYCHCADIAE2AhQgA0GyODYCECADQQg2AgxBACECDLECC0HNASECDJcCCyABIARHBEAgA0EONgIIIAMgATYCBEHMASECDJcCC0HqASECDK8CCyABIARGBEBB6QEhAgyvAgsgAS0AAEEwayIAQf8BcUEKSQRAIAMgADoAKiABQQFqIQFBywEhAgyWAgsgAygCBCEAIANBADYCBCADIAAgARAvIgBFDZcCIANB6AE2AhwgAyABNgIUIAMgADYCDEEAIQIMrgILIAEgBEYEQEHnASECDK4CCwJAIAEtAABBLkYEQCABQQFqIQEMAQsgAygCBCEAIANBADYCBCADIAAgARAvIgBFDZgCIANB5gE2AhwgAyABNgIUIAMgADYCDEEAIQIMrgILQcoBIQIMlAILIAEgBEYEQEHlASECDK0CC0EAIQBBASEFQQEhB0EAIQICQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQCABLQAAQTBrDgoKCQABAgMEBQYICwtBAgwGC0EDDAULQQQMBAtBBQwDC0EGDAILQQcMAQtBCAshAkEAIQVBACEHDAILQQkhAkEBIQBBACEFQQAhBwwBC0EAIQVBASECCyADIAI6ACsgAUEBaiEBAkACQCADLQAuQRBxDQACQAJAAkAgAy0AKg4DAQACBAsgB0UNAwwCCyAADQEMAgsgBUUNAQsgAygCBCEAIANBADYCBCADIAAgARAvIgBFDQIgA0HiATYCHCADIAE2AhQgAyAANgIMQQAhAgyvAgsgAygCBCEAIANBADYCBCADIAAgARAvIgBFDZoCIANB4wE2AhwgAyABNgIUIAMgADYCDEEAIQIMrgILIAMoAgQhACADQQA2AgQgAyAAIAEQLyIARQ2YAiADQeQBNgIcIAMgATYCFCADIAA2AgwMrQILQckBIQIMkwILQQAhAAJAIAMoAjgiAkUNACACKAJEIgJFDQAgAyACEQAAIQALAkAgAARAIABBFUYNASADQQA2AhwgAyABNgIUIANBpA02AhAgA0EhNgIMQQAhAgytAgtByAEhAgyTAgsgA0HhATYCHCADIAE2AhQgA0HQGjYCECADQRU2AgxBACECDKsCCyABIARGBEBB4QEhAgyrAgsCQCABLQAAQSBGBEAgA0EAOwE0IAFBAWohAQwBCyADQQA2AhwgAyABNgIUIANBmRE2AhAgA0EJNgIMQQAhAgyrAgtBxwEhAgyRAgsgASAERgRAQeABIQIMqgILAkAgAS0AAEEwa0H/AXEiAkEKSQRAIAFBAWohAQJAIAMvATQiAEGZM0sNACADIABBCmwiADsBNCAAQf7/A3EgAkH//wNzSw0AIAMgACACajsBNAwCC0EAIQIgA0EANgIcIAMgATYCFCADQZUeNgIQIANBDTYCDAyrAgsgA0EANgIcIAMgATYCFCADQZUeNgIQIANBDTYCDEEAIQIMqgILQcYBIQIMkAILIAEgBEYEQEHfASECDKkCCwJAIAEtAABBMGtB/wFxIgJBCkkEQCABQQFqIQECQCADLwE0IgBBmTNLDQAgAyAAQQpsIgA7ATQgAEH+/wNxIAJB//8Dc0sNACADIAAgAmo7ATQMAgtBACECIANBADYCHCADIAE2AhQgA0GVHjYCECADQQ02AgwMqgILIANBADYCHCADIAE2AhQgA0GVHjYCECADQQ02AgxBACECDKkCC0HFASECDI8CCyABIARGBEBB3gEhAgyoAgsCQCABLQAAQTBrQf8BcSICQQpJBEAgAUEBaiEBAkAgAy8BNCIAQZkzSw0AIAMgAEEKbCIAOwE0IABB/v8DcSACQf//A3NLDQAgAyAAIAJqOwE0DAILQQAhAiADQQA2AhwgAyABNgIUIANBlR42AhAgA0ENNgIMDKkCCyADQQA2AhwgAyABNgIUIANBlR42AhAgA0ENNgIMQQAhAgyoAgtBxAEhAgyOAgsgASAERgRAQd0BIQIMpwILAkACQAJAAkAgAS0AAEEKaw4XAgMDAAMDAwMDAwMDAwMDAwMDAwMDAwEDCyABQQFqDAULIAFBAWohAUHDASECDI8CCyABQQFqIQEgA0Evai0AAEEBcQ0IIANBADYCHCADIAE2AhQgA0GNCzYCECADQQ02AgxBACECDKcCCyADQQA2AhwgAyABNgIUIANBjQs2AhAgA0ENNgIMQQAhAgymAgsgASAERwRAIANBDzYCCCADIAE2AgRBASECDI0CC0HcASECDKUCCwJAAkADQAJAIAEtAABBCmsOBAIAAAMACyAEIAFBAWoiAUcNAAtB2wEhAgymAgsgAygCBCEAIANBADYCBCADIAAgARAtIgBFBEAgAUEBaiEBDAQLIANB2gE2AhwgAyAANgIMIAMgAUEBajYCFEEAIQIMpQILIAMoAgQhACADQQA2AgQgAyAAIAEQLSIADQEgAUEBagshAUHBASECDIoCCyADQdkBNgIcIAMgADYCDCADIAFBAWo2AhRBACECDKICC0HCASECDIgCCyADQS9qLQAAQQFxDQEgA0EANgIcIAMgATYCFCADQeQcNgIQIANBGTYCDEEAIQIMoAILIAEgBEYEQEHZASEC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IAFBAWohAUGeASECDOQBCyABQQFqIQFBnwEhAgzjAQtBtwEhAiABIARGDfsBIAMoAgAiACAEIAFraiEFIAEgAGtBA2ohBgJAA0AgAS0AACAAQezUAGotAABHDSggAEEDRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADPwBCyADQQA2AgAgBkEBaiEBQQ0MKAtBtgEhAiABIARGDfoBIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQaHVAGotAABHDScgAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADPsBCyADQQA2AgAgBkEBaiEBQQwMJwtBtQEhAiABIARGDfkBIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQerUAGotAABHDSYgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADPoBCyADQQA2AgAgBkEBaiEBQQMMJgtBtAEhAiABIARGDfgBIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQejUAGotAABHDSUgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADPkBCyADQQA2AgAgBkEBaiEBQSYMJQsgASAERgRAQbMBIQIM+AELAkACQCABLQAAQdQAaw4CAAEnCyABQQFqIQFBmQEhAgzfAQsgAUEBaiEBQZoBIQIM3gELQbIBIQIgASAERg32ASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEHm1ABqLQAARw0jIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAz3AQsgA0EANgIAIAZBAWohAUEnDCMLQbEBIQIgASAERg31ASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEHk1ABqLQAARw0iIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAz2AQsgA0EANgIAIAZBAWohAUEcDCILQbABIQIgASAERg30ASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEHe1ABqLQAARw0hIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAz1AQsgA0EANgIAIAZBAWohAUEGDCELQa8BIQIgASAERg3zASADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANAIAEtAAAgAEHZ1ABqLQAARw0gIABBBEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAz0AQsgA0EANgIAIAZBAWohAUEZDCALIAEgBEYEQEGuASECDPMBCwJAAkACQAJAIAEtAABBLWsOIwAkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJAEkJCQkJAIkJCQDJAsgAUEBaiEBQY4BIQIM3AELIAFBAWohAUGPASECDNsBCyABQQFqIQFBlAEhAgzaAQsgAUEBaiEBQZUBIQIM2QELQa0BIQIgASAERg3xASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEHX1ABqLQAARw0eIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzyAQsgA0EANgIAIAZBAWohAUELDB4LIAEgBEYEQEGsASECDPEBCwJAAkAgAS0AAEHBAGsOAwAgASALIAFBAWohAUGQASECDNgBCyABQQFqIQFBkwEhAgzXAQsgASAERgRAQasBIQIM8AELAkACQCABLQAAQcEAaw4PAB8fHx8fHx8fHx8fHx8BHwsgAUEBaiEBQZEBIQIM1wELIAFBAWohAUGSASECDNYBCyABIARGBEBBqgEhAgzvAQsgAS0AAEHMAEcNHCABQQFqIQFBCgwbC0GpASECIAEgBEYN7QEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABB0dQAai0AAEcNGiAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM7gELIANBADYCACAGQQFqIQFBHgwaC0GoASECIAEgBEYN7AEgAygCACIAIAQgAWtqIQUgASAAa0EGaiEGAkADQCABLQAAIABBytQAai0AAEcNGSAAQQZGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM7QELIANBADYCACAGQQFqIQFBFQwZC0GnASECIAEgBEYN6wEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABBx9QAai0AAEcNGCAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM7AELIANBADYCACAGQQFqIQFBFwwYC0GmASECIAEgBEYN6gEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABBwdQAai0AAEcNFyAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM6wELIANBADYCACAGQQFqIQFBGAwXCyABIARGBEBBpQEhAgzqAQsCQAJAIAEtAABByQBrDgcAGRkZGRkBGQsgAUEBaiEBQYsBIQIM0QELIAFBAWohAUGMASECDNABC0GkASECIAEgBEYN6AEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABBptUAai0AAEcNFSAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM6QELIANBADYCACAGQQFqIQFBCQwVC0GjASECIAEgBEYN5wEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABBpNUAai0AAEcNFCAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM6AELIANBADYCACAGQQFqIQFBHwwUC0GiASECIAEgBEYN5gEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABBvtQAai0AAEcNEyAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM5wELIANBADYCACAGQQFqIQFBAgwTC0GhASECIAEgBEYN5QEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGA0AgAS0AACAAQbzUAGotAABHDREgAEEBRg0CIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADOUBCyABIARGBEBBoAEhAgzlAQtBASABLQAAQd8ARw0RGiABQQFqIQFBhwEhAgzLAQsgA0EANgIAIAZBAWohAUGIASECDMoBC0GfASECIAEgBEYN4gEgAygCACIAIAQgAWtqIQUgASAAa0EIaiEGAkADQCABLQAAIABBhNUAai0AAEcNDyAAQQhGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM4wELIANBADYCACAGQQFqIQFBKQwPC0GeASECIAEgBEYN4QEgAygCACIAIAQgAWtqIQUgASAAa0EDaiEGAkADQCABLQAAIABBuNQAai0AAEcNDiAAQQNGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM4gELIANBADYCACAGQQFqIQFBLQwOCyABIARGBEBBnQEhAgzhAQsgAS0AAEHFAEcNDiABQQFqIQFBhAEhAgzHAQsgASAERgRAQZwBIQIM4AELAkACQCABLQAAQcwAaw4IAA8PDw8PDwEPCyABQQFqIQFBggEhAgzHAQsgAUEBaiEBQYMBIQIMxgELQZsBIQIgASAERg3eASADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANAIAEtAAAgAEGz1ABqLQAARw0LIABBBEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzfAQsgA0EANgIAIAZBAWohAUEjDAsLQZoBIQIgASAERg3dASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEGw1ABqLQAARw0KIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzeAQsgA0EANgIAIAZBAWohAUEADAoLIAEgBEYEQEGZASECDN0BCwJAAkAgAS0AAEHIAGsOCAAMDAwMDAwBDAsgAUEBaiEBQf0AIQIMxAELIAFBAWohAUGAASECDMMBCyABIARGBEBBmAEhAgzcAQsCQAJAIAEtAABBzgBrDgMACwELCyABQQFqIQFB/gAhAgzDAQsgAUEBaiEBQf8AIQIMwgELIAEgBEYEQEGXASECDNsBCyABLQAAQdkARw0IIAFBAWohAUEIDAcLQZYBIQIgASAERg3ZASADKAIAIgAgBCABa2ohBSABIABrQQNqIQYCQANAIAEtAAAgAEGs1ABqLQAARw0GIABBA0YNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzaAQsgA0EANgIAIAZBAWohAUEFDAYLQZUBIQIgASAERg3YASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEGm1ABqLQAARw0FIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzZAQsgA0EANgIAIAZBAWohAUEWDAULQZQBIQIgASAERg3XASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEGh1QBqLQAARw0EIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzYAQsgA0EANgIAIAZBAWohAUEQDAQLIAEgBEYEQEGTASECDNcBCwJAAkAgAS0AAEHDAGsODAAGBgYGBgYGBgYGAQYLIAFBAWohAUH5ACECDL4BCyABQQFqIQFB+gAhAgy9AQtBkgEhAiABIARGDdUBIAMoAgAiACAEIAFraiEFIAEgAGtBBWohBgJAA0AgAS0AACAAQaDUAGotAABHDQIgAEEFRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADNYBCyADQQA2AgAgBkEBaiEBQSQMAgsgA0EANgIADAILIAEgBEYEQEGRASECDNQBCyABLQAAQcwARw0BIAFBAWohAUETCzoAKSADKAIEIQAgA0EANgIEIAMgACABEC4iAA0CDAELQQAhAiADQQA2AhwgAyABNgIUIANB/h82AhAgA0EGNgIMDNEBC0H4ACECDLcBCyADQZABNgIcIAMgATYCFCADIAA2AgxBACECDM8BC0EAIQACQCADKAI4IgJFDQAgAigCQCICRQ0AIAMgAhEAACEACyAARQ0AIABBFUYNASADQQA2AhwgAyABNgIUIANBgg82AhAgA0EgNgIMQQAhAgzOAQtB9wAhAgy0AQsgA0GPATYCHCADIAE2AhQgA0HsGzYCECADQRU2AgxBACECDMwBCyABIARGBEBBjwEhAgzMAQsCQCABLQAAQSBGBEAgAUEBaiEBDAELIANBADYCHCADIAE2AhQgA0GbHzYCECADQQY2AgxBACECDMwBC0ECIQIMsgELA0AgAS0AAEEgRw0CIAQgAUEBaiIBRw0AC0GOASECDMoBCyABIARGBEBBjQEhAgzKAQsCQCABLQAAQQlrDgRKAABKAAtB9QAhAgywAQsgAy0AKUEFRgRAQfYAIQIMsAELQfQAIQIMrwELIAEgBEYEQEGMASECDMgBCyADQRA2AgggAyABNgIEDAoLIAEgBEYEQEGLASECDMcBCwJAIAEtAABBCWsOBEcAAEcAC0HzACECDK0BCyABIARHBEAgA0EQNgIIIAMgATYCBEHxACECDK0BC0GKASECDMUBCwJAIAEgBEcEQANAIAEtAABBoNAAai0AACIAQQNHBEACQCAAQQFrDgJJAAQLQfAAIQIMrwELIAQgAUEBaiIBRw0AC0GIASEC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BCABQQFqIgFHDQALQfsAIQIMpwELIAMoAgQhACADQQA2AgQgAyAAIAEQLCIARQ0DIANB2wA2AhwgAyABNgIUIAMgADYCDEEAIQIMpgELIAMoAgQhACADQQA2AgQgAyAAIAEQLCIARQ0DIANB3QA2AhwgAyABNgIUIAMgADYCDEEAIQIMpQELIAMoAgQhACADQQA2AgQgAyAAIAEQLCIARQ0DIANB+gA2AhwgAyABNgIUIAMgADYCDEEAIQIMpAELIANBADYCHCADIAE2AhQgA0G8CjYCECADQQc2AgxBACECDKMBC0HPACECDIkBC0HRACECDIgBC0HnACECDIcBCyABIARGBEBB+gAhAgygAQsCQCABLQAAQQlrDgQgAAAgAAsgAUEBaiEBQeYAIQIMhgELIAEgBEYEQEH5ACECDJ8BCwJAIAEtAABBCWsOBB8AAB8AC0EAIQACQCADKAI4IgJFDQAgAigCOCICRQ0AIAMgAhEAACEACyAARQRAQeIBIQIMhgELIABBFUcEQCADQQA2AhwgAyABNgIUIANByQ02AhAgA0EaNgIMQQAhAgyfAQsgA0H4ADYCHCADIAE2AhQgA0HqGjYCECADQRU2AgxBACECDJ4BCyABIARHBEAgA0ENNgIIIAMgATYCBEHkACECDIUBC0H3ACECDJ0BCyABIARGBEBB9gAhAgydAQsCQAJAAkAgAS0AAEHIAGsOCwABCwsLCwsLCwsCCwsgAUEBaiEBQd0AIQIMhQELIAFBAWohAUHgACECDIQBCyABQQFqIQFB4wAhAgyDAQtB9QAhAiABIARGDZsBIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQbXVAGotAABHDQggAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADJwBCyADKAIEIQAgA0IANwMAIAMgACAGQQFqIgEQKyIABEAgA0H0ADYCHCADIAE2AhQgAyAANgIMQQAhAgycAQtB4gAhAgyCAQtBACEAAkAgAygCOCICRQ0AIAIoAjQiAkUNACADIAIRAAAhAAsCQCAABEAgAEEVRg0BIANBADYCHCADIAE2AhQgA0HqDTYCECADQSY2AgxBACECDJwBC0HhACECDIIBCyADQfMANgIcIAMgATYCFCADQYAbNgIQIANBFTYCDEEAIQIMmgELIAMtACkiAEEja0ELSQ0JAkAgAEEGSw0AQQEgAHRBygBxRQ0ADAoLQQAhAiADQQA2AhwgAyABNgIUIANB7Qk2AhAgA0EINgIMDJkBC0HyACECIAEgBEYNmAEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABBs9UAai0AAEcNBSAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMmQELIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARArIgAEQCADQfEANgIcIAMgATYCFCADIAA2AgxBACECDJkBC0HfACECDH8LQQAhAAJAIAMoAjgiAkUNACACKAI0IgJFDQAgAyACEQAAIQALAkAgAARAIABBFUYNASADQQA2AhwgAyABNgIUIANB6g02AhAgA0EmNgIMQQAhAgyZAQtB3gAhAgx/CyADQfAANgIcIAMgATYCFCADQYAbNgIQIANBFTYCDEEAIQIMlwELIAMtAClBIUYNBiADQQA2AhwgAyABNgIUIANBkQo2AhAgA0EINgIMQQAhAgyWAQtB7wAhAiABIARGDZUBIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQbDVAGotAABHDQIgAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADJYBCyADKAIEIQAgA0IANwMAIAMgACAGQQFqIgEQKyIARQ0CIANB7QA2AhwgAyABNgIUIAMgADYCDEEAIQIMlQELIANBADYCAAsgAygCBCEAIANBADYCBCADIAAgARArIgBFDYABIANB7gA2AhwgAyABNgIUIAMgADYCDEEAIQIMkwELQdwAIQIMeQtBACEAAkAgAygCOCICRQ0AIAIoAjQiAkUNACADIAIRAAAhAAsCQCAABEAgAEEVRg0BIANBADYCHCADIAE2AhQgA0HqDTYCECADQSY2AgxBACECDJMBC0HbACECDHkLIANB7AA2AhwgAyABNgIUIANBgBs2AhAgA0EVNgIMQQAhAgyRAQsgAy0AKSIAQSNJDQAgAEEuRg0AIANBADYCHCADIAE2AhQgA0HJCTYCECADQQg2AgxBACECDJABC0HaACECDHYLIAEgBEYEQEHrACECDI8BCwJAIAEtAABBL0YEQCABQQFqIQEMAQsgA0EANgIcIAMgATYCFCADQbI4NgIQIANBCDYCDEEAIQIMjwELQdkAIQIMdQsgASAERwRAIANBDjYCCCADIAE2AgRB2AAhAgx1C0HqACECDI0BCyABIARGBEBB6QAhAgyNAQsgAS0AAEEwayIAQf8BcUEKSQRAIAMgADoAKiABQQFqIQFB1wAhAgx0CyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNeiADQegANgIcIAMgATYCFCADIAA2AgxBACECDIwBCyABIARGBEBB5wAhAgyMAQsCQCABLQAAQS5GBEAgAUEBaiEBDAELIAMoAgQhACADQQA2AgQgAyAAIAEQLyIARQ17IANB5gA2AhwgAyABNgIUIAMgADYCDEEAIQIMjAELQdYAIQIMcgsgASAERgRAQeUAIQIMiwELQQAhAEEBIQVBASEHQQAhAgJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAIAEtAABBMGsOCgoJAAECAwQFBggLC0ECDAYLQQMMBQtBBAwEC0EFDAMLQQYMAgtBBwwBC0EICyECQQAhBUEAIQcMAgtBCSECQQEhAEEAIQVBACEHDAELQQAhBUEBIQILIAMgAjoAKyABQQFqIQECQAJAIAMtAC5BEHENAAJAAkACQCADLQAqDgMBAAIECyAHRQ0DDAILIAANAQwCCyAFRQ0BCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNAiADQeIANgIcIAMgATYCFCADIAA2AgxBACECDI0BCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNfSADQeMANgIcIAMgATYCFCADIAA2AgxBACECDIwBCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNeyADQeQANgIcIAMgATYCFCADIAA2AgwMiwELQdQAIQIMcQsgAy0AKUEiRg2GAUHTACECDHALQQAhAAJAIAMoAjgiAkUNACACKAJEIgJFDQAgAyACEQAAIQALIABFBEBB1QAhAgxwCyAAQRVHBEAgA0EANgIcIAMgATYCFCADQaQNNgIQIANBITYCDEEAIQIMiQELIANB4QA2AhwgAyABNgIUIANB0Bo2AhAgA0EVNgIMQQAhAgyIAQsgASAERgRAQeAAIQIMiAELAkACQAJAAkACQCABLQAAQQprDgQBBAQABAsgAUEBaiEBDAELIAFBAWohASADQS9qLQAAQQFxRQ0BC0HSACECDHALIANBADYCHCADIAE2AhQgA0G2ETYCECADQQk2AgxBACECDIgBCyADQQA2AhwgAyABNgIUIANBthE2AhAgA0EJNgIMQQAhAgyHAQsgASAERgRAQd8AIQIMhwELIAEtAABBCkYEQCABQQFqIQEMCQsgAy0ALkHAAHENCCADQQA2AhwgAyABNgIUIANBthE2AhAgA0ECNgIMQQAhAgyGAQsgASAERgRAQd0AIQIMhgELIAEtAAAiAkENRgRAIAFBAWohAUHQACECDG0LIAEhACACQQlrDgQFAQEFAQsgBCABIgBGBEBB3AAhAgyFAQsgAC0AAEEKRw0AIABBAWoMAgtBACECIANBADYCHCADIAA2AhQgA0HKLTYCECADQQc2AgwMgwELIAEgBEYEQEHbACECDIMBCwJAIAEtAABBCWsOBAMAAAMACyABQQFqCyEBQc4AIQIMaAsgASAERgRAQdoAIQIMgQELIAEtAABBCWsOBAABAQABC0EAIQIgA0EANgIcIANBmhI2AhAgA0EHNgIMIAMgAUEBajYCFAx/CyADQYASOwEqQQAhAAJAIAMoAjgiAkUNACACKAI4IgJFDQAgAyACEQAAIQALIABFDQAgAEEVRw0BIANB2QA2AhwgAyABNgIUIANB6ho2AhAgA0EVNgIMQQAhAgx+C0HNACECDGQLIANBADYCHCADIAE2AhQgA0HJDTYCECADQRo2AgxBACECDHwLIAEgBEYEQEHZACECDHwLIAEtAABBIEcNPSABQQFqIQEgAy0ALkEBcQ09IANBADYCHCADIAE2AhQgA0HCHDYCECADQR42AgxBACECDHsLIAEgBEYEQEHYACECDHsLAkACQAJAAkACQCABLQAAIgBBCmsOBAIDAwABCyABQQFqIQFBLCECDGULIABBOkcNASADQQA2AhwgAyABNgIUIANB5xE2AhAgA0EKNgIMQQAhAgx9CyABQQFqIQEgA0Evai0AAEEBcUUNcyADLQAyQYABcUUEQCADQTJqIQIgAxA1QQAhAAJAIAMoAjgiBkUNACAGKAIoIgZFDQAgAyAGEQAAIQALAkACQCAADhZNTEsBAQEBAQEBAQEBAQEBAQEBAQEAAQsgA0EpNgIcIAMgATYCFCADQawZNgIQIANBFTYCDEEAIQIMfgsg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c3BvbnNlIHN0YXR1cwBFeHBlY3RlZCBMRiBhZnRlciBoZWFkZXJzAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMAVXNlciBjYWxsYmFjayBlcnJvcgBgb25fcmVzZXRgIGNhbGxiYWNrIGVycm9yAGBvbl9jaHVua19oZWFkZXJgIGNhbGxiYWNrIGVycm9yAGBvbl9tZXNzYWdlX2JlZ2luYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfZXh0ZW5zaW9uX3ZhbHVlYCBjYWxsYmFjayBlcnJvcgBgb25fc3RhdHVzX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fdmVyc2lvbl9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3VybF9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3Byb3RvY29sX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9oZWFkZXJfdmFsdWVfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9tZXNzYWdlX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fbWV0aG9kX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25faGVhZGVyX2ZpZWxkX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfZXh0ZW5zaW9uX25hbWVgIGNhbGxiYWNrIGVycm9yAFVuZXhwZWN0ZWQgY2hhciBpbiB1cmwgc2VydmVyAEludmFsaWQgaGVhZGVyIHZhbHVlIGNoYXIASW52YWxpZCBoZWFkZXIgZmllbGQgY2hhcgBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX3ZlcnNpb24ASW52YWxpZCBtaW5vciB2ZXJzaW9uAEludmFsaWQgbWFqb3IgdmVyc2lvbgBFeHBlY3RlZCBzcGFjZSBhZnRlciB2ZXJzaW9uAEV4cGVjdGVkIENSTEYgYWZ0ZXIgdmVyc2lvbgBJbnZhbGlkIEhUVFAgdmVyc2lvbgBJbnZhbGlkIGhlYWRlciB0b2tlbgBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX3VybABJbnZhbGlkIGNoYXJhY3RlcnMgaW4gdXJsAFVuZXhwZWN0ZWQgc3RhcnQgY2hhciBpbiB1cmwARG91YmxlIEAgaW4gdXJsAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fcHJvdG9jb2wARW1wdHkgQ29udGVudC1MZW5ndGgASW52YWxpZCBjaGFyYWN0ZXIgaW4gQ29udGVudC1MZW5ndGgAVHJhbnNmZXItRW5jb2RpbmcgY2FuJ3QgYmUgcHJlc2VudCB3aXRoIENvbnRlbnQtTGVuZ3RoAER1cGxpY2F0ZSBDb250ZW50LUxlbmd0aABJbnZhbGlkIGNoYXIgaW4gdXJsIHBhdGgAQ29udGVudC1MZW5ndGggY2FuJ3QgYmUgcHJlc2VudCB3aXRoIFRyYW5zZmVyLUVuY29kaW5nAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgc2l6ZQBFeHBlY3RlZCBMRiBhZnRlciBjaHVuayBzaXplAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIHNpemUAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9oZWFkZXJfdmFsdWUAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9jaHVua19leHRlbnNpb25fdmFsdWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyB2YWx1ZQBVbmV4cGVjdGVkIHdoaXRlc3BhY2UgYWZ0ZXIgaGVhZGVyIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgaGVhZGVyIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgTEYgYWZ0ZXIgaGVhZGVyIHZhbHVlAEludmFsaWQgYFRyYW5zZmVyLUVuY29kaW5nYCBoZWFkZXIgdmFsdWUATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciBjaHVuayBleHRlbnNpb24gdmFsdWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyBxdW90ZSB2YWx1ZQBJbnZhbGlkIHF1b3RlZC1wYWlyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGVkIHZhbHVlAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGVkIHZhbHVlAFBhdXNlZCBieSBvbl9oZWFkZXJzX2NvbXBsZXRlAEludmFsaWQgRU9GIHN0YXRlAG9uX3Jlc2V0IHBhdXNlAG9uX2NodW5rX2hlYWRlciBwYXVzZQBvbl9tZXNzYWdlX2JlZ2luIHBhdXNlAG9uX2NodW5rX2V4dGVuc2lvbl92YWx1ZSBwYXVzZQBvbl9zdGF0dXNfY29tcGxldGUgcGF1c2UAb25fdmVyc2lvbl9jb21wbGV0ZSBwYXVzZQBvbl91cmxfY29tcGxldGUgcGF1c2UAb25fcHJvdG9jb2xfY29tcGxldGUgcGF1c2UAb25fY2h1bmtfY29tcGxldGUgcGF1c2UAb25faGVhZGVyX3ZhbHVlX2NvbXBsZXRlIHBhdXNlAG9uX21lc3NhZ2VfY29tcGxldGUgcGF1c2UAb25fbWV0aG9kX2NvbXBsZXRlIHBhdXNlAG9uX2hlYWRlcl9maWVsZF9jb21wbGV0ZSBwYXVzZQBvbl9jaHVua19leHRlbnNpb25fbmFtZSBwYXVzZQBVbmV4cGVjdGVkIHNwYWNlIGFmdGVyIHN0YXJ0IGxpbmUATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciByZXNwb25zZSBsaW5lAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fY2h1bmtfZXh0ZW5zaW9uX25hbWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyBuYW1lAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgZXh0ZW5zaW9uIG5hbWUASW52YWxpZCBzdGF0dXMgY29kZQBQYXVzZSBvbiBDT05ORUNUL1VwZ3JhZGUAUGF1c2Ugb24gUFJJL1VwZ3JhZGUARXhwZWN0ZWQgSFRUUC8yIENvbm5lY3Rpb24gUHJlZmFjZQBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX21ldGhvZABFeHBlY3RlZCBzcGFjZSBhZnRlciBtZXRob2QAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9oZWFkZXJfZmllbGQAUGF1c2VkAEludmFsaWQgd29yZCBlbmNvdW50ZXJlZABJbnZhbGlkIG1ldGhvZCBlbmNvdW50ZXJlZABNaXNzaW5nIGV4cGVjdGVkIENSIGFmdGVyIGNodW5rIGRhdGEARXhwZWN0ZWQgTEYgYWZ0ZXIgY2h1bmsgZGF0YQBVbmV4cGVjdGVkIGNoYXIgaW4gdXJsIHNjaGVtYQBSZXF1ZXN0IGhhcyBpbnZhbGlkIGBUcmFuc2Zlci1FbmNvZGluZ2AARGF0YSBhZnRlciBgQ29ubmVjdGlvbjogY2xvc2VgAFNXSVRDSF9QUk9YWQBVU0VfUFJPWFkATUtBQ1RJVklUWQBVTlBST0NFU1NBQkxFX0VOVElUWQBRVUVSWQBDT1BZAE1PVkVEX1BFUk1BTkVOVExZAFRPT19FQVJMWQBOT1RJRlkARkFJTEVEX0RFUEVOREVOQ1kAQkFEX0dBVEVXQVkAUExBWQBQVVQAQ0hFQ0tPVVQAR0FURVdBWV9USU1FT1VUAFJFUVVFU1RfVElNRU9VVABORVRXT1JLX0NPTk5FQ1RfVElNRU9VVABDT05ORUNUSU9OX1RJTUVPVVQATE9HSU5fVElNRU9VVABORVRXT1JLX1JFQURfVElNRU9VVABQT1NUAE1JU0RJUkVDVEVEX1JFUVVFU1QAQ0xJRU5UX0NMT1NFRF9SRVFVRVNUAENMSUVOVF9DTE9TRURfTE9BRF9CQUxBTkNFRF9SRVFVRVNUAEJBRF9SRVFVRVNUAEhUVFBfUkVRVUVTVF9TRU5UX1RPX0hUVFBTX1BPUlQAUkVQT1JUAElNX0FfVEVBUE9UAFJFU0VUX0NPTlRFTlQATk9fQ09OVEVOVABQQVJUSUFMX0NPTlRFTlQASFBFX0lOVkFMSURfQ09OU1RBTlQASFBFX0NCX1JFU0VUAEdFVABIUEVfU1RSSUNUAENPTkZMSUNUAFRFTVBPUkFSWV9SRURJUkVDVABQRVJNQU5FTlRfUkVESVJFQ1QAQ09OTkVDVABNVUxUSV9TVEFUVVMASFBFX0lOVkFMSURfU1RBVFVTAFRPT19NQU5ZX1JFUVVFU1RTAEVBUkxZX0hJTlRTAFVOQVZBSUxBQkxFX0ZPUl9MRUdBTF9SRUFTT05TAE9QVElPTlMAU1dJVENISU5HX1BST1RPQ09MUwBWQVJJQU5UX0FMU09fTkVHT1RJQVRFUwBNVUxUSVBMRV9DSE9JQ0VTAElOVEVSTkFMX1NFUlZFUl9FUlJPUgBXRUJfU0VSVkVSX1VOS05PV05fRVJST1IAUkFJTEdVTl9FUlJPUgBJREVOVElUWV9QUk9WSURFUl9BVVRIRU5USUNBVElPTl9FUlJPUgBTU0xfQ0VSVElGSUNBVEVfRVJST1IASU5WQUxJRF9YX0ZPUldBUkRFRF9GT1IAU0VUX1BBUkFNRVRFUgBHRVRfUEFSQU1FVEVSAEhQRV9VU0VSAFNFRV9PVEhFUgBIUEVfQ0JfQ0hVTktfSEVBREVSAEV4cGVjdGVkIExGIGFmdGVyIENSAE1LQ0FMRU5EQVIAU0VUVVAAV0VCX1NFUlZFUl9JU19ET1dOAFRFQVJET1dOAEhQRV9DTE9TRURfQ09OTkVDVElPTgBIRVVSSVNUSUNfRVhQSVJBVElPTgBESVNDT05ORUNURURfT1BFUkFUSU9OAE5PTl9BVVRIT1JJVEFUSVZFX0lORk9STUFUSU9OAEhQRV9JTlZBTElEX1ZFUlNJT04ASFBFX0NCX01FU1NBR0VfQkVHSU4AU0lURV9JU19GUk9aRU4ASFBFX0lOVkFMSURfSEVBREVSX1RPS0VOAElOVkFMSURfVE9LRU4ARk9SQklEREVOAEVOSEFOQ0VfWU9VUl9DQUxNAEhQRV9JTlZBTElEX1VSTABCTE9DS0VEX0JZX1BBUkVOVEFMX0NPTlRST0wATUtDT0wAQUNMAEhQRV9JTlRFUk5BTABSRVFVRVNUX0hFQURFUl9GSUVMRFNfVE9PX0xBUkdFX1VOT0ZGSUNJQUwASFBFX09LAFVOTElOSwBVTkxPQ0sAUFJJAFJFVFJZX1dJVEgASFBFX0lOVkFMSURfQ09OVEVOVF9MRU5HVEgASFBFX1VORVhQRUNURURfQ09OVEVOVF9MRU5HVEgARkxVU0gAUFJPUFBBVENIAE0tU0VBUkNIAFVSSV9UT09fTE9ORwBQUk9DRVNTSU5HAE1JU0NFTExBTkVPVVNfUEVSU0lTVEVOVF9XQVJOSU5HAE1JU0NFTExBTkVPVVNfV0FSTklORwBIUEVfSU5WQUxJRF9UUkFOU0ZFUl9FTkNPRElORwBFeHBlY3RlZCBDUkxGAEhQRV9JTlZBTElEX0NIVU5LX1NJWkUATU9WRQBDT05USU5VRQBIUEVfQ0JfU1RBVFVTX0NPTVBMRVRFAEhQRV9DQl9IRUFERVJTX0NPTVBMRVRFAEhQRV9DQl9WRVJTSU9OX0NPTVBMRVRFAEhQRV9DQl9VUkxfQ09NUExFVEUASFBFX0NCX1BST1RPQ09MX0NPTVBMRVRFAEhQRV9DQl9DSFVOS19DT01QTEVURQBIUEVfQ0JfSEVBREVSX1ZBTFVFX0NPTVBMRVRFAEhQRV9DQl9DSFVOS19FWFRFTlNJT05fVkFMVUVfQ09NUExFVEUASFBFX0NCX0NIVU5LX0VYVEVOU0lPTl9OQU1FX0NPTVBMRVRFAEhQRV9DQl9NRVNTQUdFX0NPTVBMRVRFAEhQRV9DQl9NRVRIT0RfQ09NUExFVEUASFBFX0NCX0hFQURFUl9GSUVMRF9DT01QTEVURQBERUxFVEUASFBFX0lOVkFMSURfRU9GX1NUQVRFAElOVkFMSURfU1NMX0NFUlRJRklDQVRFAFBBVVNFAE5PX1JFU1BPTlNFAFVOU1VQUE9SVEVEX01FRElBX1RZUEUAR09ORQBOT1RfQUNDRVBUQUJMRQBTRVJWSUNFX1VOQVZBSUxBQkxFAFJBTkdFX05PVF9TQVRJU0ZJQUJMRQBPUklHSU5fSVNfVU5SRUFDSEFCTEUAUkVTUE9OU0VfSVNfU1RBTEUAUFVSR0UATUVSR0UAUkVRVUVTVF9IRUFERVJfRklFTERTX1RPT19MQVJHRQBSRVFVRVNUX0hFQURFUl9UT09fTEFSR0UAUEFZTE9BRF9UT09fTEFSR0UASU5TVUZGSUNJRU5UX1NUT1JBR0UASFBFX1BBVVNFRF9VUEdSQURFAEhQRV9QQVVTRURfSDJfVVBHUkFERQBTT1VSQ0UAQU5OT1VOQ0UAVFJBQ0UASFBFX1VORVhQRUNURURfU1BBQ0UAREVTQ1JJQkUAVU5TVUJTQ1JJQkUAUkVDT1JEAEhQRV9JTlZBTElEX01FVEhPRABOT1RfRk9VTkQAUFJPUEZJTkQAVU5CSU5EAFJFQklORABVTkFVVEhPUklaRUQATUVUSE9EX05PVF9BTExPV0VEAEhUVFBfVkVSU0lPTl9OT1RfU1VQUE9SVEVEAEFMUkVBRFlfUkVQT1JURUQAQUNDRVBURUQATk9UX0lNUExFTUVOVEVEAExPT1BfREVURUNURUQASFBFX0NSX0VYUEVDVEVEAEhQRV9MRl9FWFBFQ1RFRABDUkVBVEVEAElNX1VTRUQASFBFX1BBVVNFRABUSU1FT1VUX09DQ1VSRUQAUEFZTUVOVF9SRVFVSVJFRABQUkVDT05ESVRJT05fUkVRVUlSRUQAUFJPWFlfQVVUSEVOVElDQVRJT05fUkVRVUlSRUQATkVUV09SS19BVVRIRU5USUNBVElPTl9SRVFVSVJFRABMRU5HVEhfUkVRVUlSRUQAU1NMX0NFUlRJRklDQVRFX1JFUVVJUkVEAFVQR1JBREVfUkVRVUlSRUQAUEFHRV9FWFBJUkVEAFBSRUNPTkRJVElPTl9GQUlMRUQARVhQRUNUQVRJT05fRkFJTEVEAFJFVkFMSURBVElPTl9GQUlMRUQAU1NMX0hBTkRTSEFLRV9GQUlMRUQATE9DS0VEAFRSQU5TRk9STUFUSU9OX0FQUExJRUQATk9UX01PRElGSUVEAE5PVF9FWFRFTkRFRABCQU5EV0lEVEhfTElNSVRfRVhDRUVERUQAU0lURV9JU19PVkVSTE9BREVEAEhFQUQARXhwZWN0ZWQgSFRUUC8sIFJUU1AvIG9yIElDRS8A5xUAAK8VAACkEgAAkhoAACYWAACeFAAA2xkAAHkVAAB+EgAA/hQAADYVAAALFgAA2BYAAPMSAABCGAAArBYAABIVAAAUFwAA7xcAAEgUAABxFwAAshoAAGsZAAB+GQAANRQAAIIaAABEFwAA/RYAAB4YAACHFwAAqhkAAJMSAAAHGAAALBcAAMoXAACkFwAA5xUAAOcVAABYFwAAOxgAAKASAAAtHAAAwxEAAEgRAADeEgAAQhMAAKQZAAD9EAAA9xUAAKUVAADvFgAA+BkAAEoWAABWFgAA9RUAAAoaAAAIGgAAARoAAKsVAABCEgAA1xAAAEwRAAAFGQAAVBYAAB4RAADKGQAAyBkAAE4WAAD/GAAAcRQAAPAVAADuFQAAlBkAAPwVAAC/GQAAmxkAAHwUAABDEQAAcBgAAJUUAAAnFAAAGRQAANUSAADUGQAARBYAAPcQAEG5OwsBAQBB0DsL4AEBAQIBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQBBuj0LBAEAAAIAQdE9C14DBAMDAwMDAAADAwADAwADAwMDAwMDAwMDAAUAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAwADAEG6PwsEAQAAAgBB0T8LXgMAAwMDAwMAAAMDAAMDAAMDAwMDAwMDAwMABAAFAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwADAAMAQbDBAAsNbG9zZWVlcC1hbGl2ZQBBycEACwEBAEHgwQAL4AEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQBBycMACwEBAEHgwwAL5wEBAQEBAQEBAQEBAQECAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAWNodW5rZWQAQfHFAAteAQABAQEBAQAAAQEAAQEAAQEBAQEBAQEBAQAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEAAQBB0McACyFlY3Rpb25lbnQtbGVuZ3Rob25yb3h5LWNvbm5lY3Rpb24AQYDIAAsgcmFuc2Zlci1lbmNvZGluZ3BncmFkZQ0KDQpTTQ0KDQoAQanIAAsFAQIAAQMAQcDIAAtfBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAQanKAAsFAQIAAQMAQcDKAAtfBAUFBgUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAQanMAAsEAQAAAQBBwcwAC14CAgACAgICAgICAgICAgICAgICAgICAgICAgICAgIAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAEGpzgALBQECAAEDAEHAzgALXwQFAAAFBQUFBQUFBQUFBQYFBQUFBQUFBQUFBQUABQAHCAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQAFAAUABQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAAAAFAEGp0AALBQEBAAEBAEHA0AALAQEAQdrQAAtBAgAAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAQanSAAsFAQEAAQEAQcDSAAsBAQBBytIACwYCAAAAAAIAQeHSAAs6AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAAAAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBBoNQAC50BTk9VTkNFRUNLT1VUTkVDVEVURUNSSUJFTFVTSEVURUFEU0VBUkNIUkdFQ1RJVklUWUxFTkRBUlZFT1RJRllQVElPTlNDSFNFQVlTVEFUQ0hHRVVFUllPUkRJUkVDVE9SVFJDSFBBUkFNRVRFUlVSQ0VCU0NSSUJFQVJET1dOQUNFSU5ETktDS1VCU0NSSUJFVFRQQ0VUU1BBRFRQLw==';
 
 		let wasmBuffer;
 
@@ -3705,9 +4088,9 @@ function requireLlhttp_simdWasm () {
 	hasRequiredLlhttp_simdWasm = 1;
 	(function (module) {
 
-		const { Buffer } = require$$0;
+		const { Buffer } = require$$0$5;
 
-		const wasmBase64 = 'AGFzbQEAAAABJwdgAX8Bf2ADf39/AX9gAn9/AGABfwBgBH9/f38Bf2AAAGADf39/AALLAQgDZW52GHdhc21fb25faGVhZGVyc19jb21wbGV0ZQAEA2VudhV3YXNtX29uX21lc3NhZ2VfYmVnaW4AAANlbnYLd2FzbV9vbl91cmwAAQNlbnYOd2FzbV9vbl9zdGF0dXMAAQNlbnYUd2FzbV9vbl9oZWFkZXJfZmllbGQAAQNlbnYUd2FzbV9vbl9oZWFkZXJfdmFsdWUAAQNlbnYMd2FzbV9vbl9ib2R5AAEDZW52GHdhc21fb25fbWVzc2FnZV9jb21wbGV0ZQAAAzQzBQYAAAMAAAAAAAADAQMAAwMDAAACAAAAAAICAgICAgICAgIBAQEBAQEBAQEDAAADAAAABAUBcAESEgUDAQACBggBfwFBgNgECwfFBygGbWVtb3J5AgALX2luaXRpYWxpemUACBlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAQALbGxodHRwX2luaXQACRhsbGh0dHBfc2hvdWxkX2tlZXBfYWxpdmUANgxsbGh0dHBfYWxsb2MACwZtYWxsb2MAOAtsbGh0dHBfZnJlZQAMBGZyZWUADA9sbGh0dHBfZ2V0X3R5cGUADRVsbGh0dHBfZ2V0X2h0dHBfbWFqb3IADhVsbGh0dHBfZ2V0X2h0dHBfbWlub3IADxFsbGh0dHBfZ2V0X21ldGhvZAAQFmxsaHR0cF9nZXRfc3RhdHVzX2NvZGUAERJsbGh0dHBfZ2V0X3VwZ3JhZGUAEgxsbGh0dHBfcmVzZXQAEw5sbGh0dHBfZXhlY3V0ZQAUFGxsaHR0cF9zZXR0aW5nc19pbml0ABUNbGxodHRwX2ZpbmlzaAAWDGxsaHR0cF9wYXVzZQAXDWxsaHR0cF9yZXN1bWUAGBtsbGh0dHBfcmVzdW1lX2FmdGVyX3VwZ3JhZGUAGRBsbGh0dHBfZ2V0X2Vycm5vABoXbGxodHRwX2dldF9lcnJvcl9yZWFzb24AGxdsbGh0dHBfc2V0X2Vycm9yX3JlYXNvbgAcFGxsaHR0cF9nZXRfZXJyb3JfcG9zAB0RbGxodHRwX2Vycm5vX25hbWUAHhJsbGh0dHBfbWV0aG9kX25hbWUAHxJsbGh0dHBfc3RhdHVzX25hbWUAIBpsbGh0dHBf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a0E+aiECCyABIAI2AhwgAUIANwIQIAJBAnRBsNYAaiEAAkBBhNQAKAIAIgNBASACdCIHcUUEQCAAIAE2AgBBhNQAIAMgB3I2AgAgASAANgIYIAEgATYCCCABIAE2AgwMAQsgBEEZIAJBAXZrQQAgAkEfRxt0IQIgACgCACEAAkADQCAAIgMoAgRBeHEgBEYNASACQR12IQAgAkEBdCECIAMgAEEEcWpBEGoiBygCACIADQALIAcgATYCACABIAM2AhggASABNgIMIAEgATYCCAwBCyADKAIIIgAgATYCDCADIAE2AgggAUEANgIYIAEgAzYCDCABIAA2AggLQaDUAEGg1AAoAgBBAWsiAEF/IAAbNgIACwsHACAALQAoCwcAIAAtACoLBwAgAC0AKwsHACAALQApCwcAIAAvATQLBwAgAC0AMAtAAQR/IAAoAhghASAALwEuIQIgAC0AKCEDIAAoAjghBCAAEDcgACAENgI4IAAgAzoAKCAAIAI7AS4gACABNgIYC8X4AQIHfwN+IAEgAmohBAJAIAAiAygCDCIADQAgAygCBARAIAMgATYCBAsjAEEQayIJJAACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAC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AkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAIAMCfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQAJ/AkACQAJAAn8CQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAIAMCfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQCACDtQBAAECAwQFBgcICQoLDA0ODxARFBUWFxgZGhscHR4fICEjJCUnKCmIA4cDhQOEA/wC9QLuAusC6ALmAuMC4ALfAt0C2wLWAtUC1ALTAtICygLJAsgCxwLGAsUCxALDAr0CvAK6ArkCuAK3ArYCtQK0ArICsQKsAqoCqAKnAqYCpQKkAqMCogKhAqACnwKbApoCmQKYApcCkAKIAoQCgwKCAvkB9gH1AfQB8wHyAfEB8AHvAe0B6wHoAeMB4QHgAd8B3gHdAdwB2wHaAdkB2AHX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QEBAQEBAQEBAQEBAAEALQQAhAiADQQA2AhwgA0G3CzYCECADQQI2AgwgAyABQQFqNgIUDIEDCyADQS9qIQIDQCABIARGBEBBISECDIIDCwJAAkACQCABLQAAIgBBCWsOGAIAKioBKioqKioqKioqKioqKioqKioqAigLIAFBAWohASADQS9qLQAAQQFxRQ0LDBkLIAFBAWohAQwYCyABQQFqIQEgAi0AAEECcQ0AC0EAIQIgA0EANgIcIAMgATYCFCADQc4UNgIQIANBDDYCDAyAAwsgAUEBaiEBC0EAIQACQCADKAI4IgJFDQAgAigCVCICRQ0AIAMgAhEAACEACyAADQEM0QILIANCADcDIAw8CyAAQRVGBEAgA0EkNgIcIAMgATYCFCADQYYaNgIQIANBFTYCDEEAIQIM/QILQQAhAiADQQA2AhwgAyABNgIUIANB4g02AhAgA0EUNgIMDPwCCyADKAIEIQBBACECIANBADYCBCADIAAgASAMp2oiARAxIgBFDSsgA0EHNgIcIAMgATYCFCADIAA2AgwM+wILIAMtAC5BwABxRQ0BC0EAIQACQCADKAI4IgJFDQAgAigCUCICRQ0AIAMgAhEAACEACyAARQ0rIABBFUYEQCADQQo2AhwgAyABNgIUIANB8Rg2AhAgA0EVNgIMQQAhAgz6AgtBACECIANBADYCHCADIAE2AhQgA0GLDDYCECADQRM2AgwM+QILQQAhAiADQQA2AhwgAyABNgIUIANBsRQ2AhAgA0ECNgIMDPgCC0EAIQIgA0EANgIcIAMgATYCFCADQYwUNgIQIANBGTYCDAz3AgtBACECIANBADYCHCADIAE2AhQgA0HRHDYCECADQRk2AgwM9gILIABBFUYNPUEAIQIgA0EANgIcIAMgATYCFCADQaIPNgIQIANBIjYCDAz1AgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQMiIARQ0oIANBDTYCHCADIAE2AhQgAyAANgIMDPQCCyAAQRVGDTpBACECIANBADYCHCADIAE2AhQgA0GiDzYCECADQSI2AgwM8wILIAMoAgQhAEEAIQIgA0EANgIEIAMgACABEDIiAEUEQCABQQFqIQEMKAsgA0EONgIcIAMgADYCDCADIAFBAWo2AhQM8gILIABBFUYNN0EAIQIgA0EANgIcIAMgATYCFCADQaIPNgIQIANBIjYCDAzxAgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQMiIARQRAIAFBAWohAQwnCyADQQ82AhwgAyAANgIMIAMgAUEBajYCFAzwAgtBACECIANBADYCHCADIAE2AhQgA0HoFjYCECADQRk2AgwM7wILIABBFUYNM0EAIQIgA0EANgIcIAMgATYCFCADQc4MNgIQIANBIzYCDAzuAgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQMyIARQ0lIANBETYCHCADIAE2AhQgAyAANgIMDO0CCyAAQRVGDTBBACECIANBADYCHCADIAE2AhQgA0HODDYCECADQSM2AgwM7AILIAMoAgQhAEEAIQIgA0EANgIEIAMgACABEDMiAEUEQCABQQFqIQEMJQsgA0ESNgIcIAMgADYCDCADIAFBAWo2AhQM6wILIANBL2otAABBAXFFDQELQRUhAgzPAgtBACECIANBADYCHCADIAE2AhQgA0HoFjYCECADQRk2AgwM6AILIABBO0cNACABQQFqIQEMDAtBACECIANBADYCHCADIAE2AhQgA0GYFzYCECADQQI2AgwM5gILIABBFUYNKEEAIQIgA0EANgIcIAMgATYCFCADQc4MNgIQIANBIzYCDAzlAgsgA0EUNgIcIAMgATYCFCADIAA2AgwM5AILIAMoAgQhAEEAIQIgA0EANgIEIAMgACABEDMiAEUEQCABQQFqIQEM3AILIANBFTYCHCADIAA2AgwgAyABQQFqNgIUDOMCCyADKAIEIQBBACECIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDNoCCyADQRc2AhwgAyAANgIMIAMgAUEBajYCFAziAgsgAEEVRg0jQQAhAiADQQA2AhwgAyABNgIUIANBzgw2AhAgA0EjNgIMDOECCyADKAIEIQBBACECIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDB0LIANBGTYCHCADIAA2AgwgAyABQQFqNgIUDOACCyADKAIEIQBBACECIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDNYCCyADQRo2AhwgAyAANgIMIAMgAUEBajYCFAzfAgsgAEEVRg0fQQAhAiADQQA2AhwgAyABNgIUIANBog82AhAgA0EiNgIMDN4CCyADKAIEIQBBACECIANBADYCBCADIAAgARAyIgBFBEAgAUEBaiEBDBsLIANBHDYCHCADIAA2AgwgAyABQQFqNgIUDN0CCyADKAIEIQBBACECIANBADYCBCADIAAgARAyIgBFBEAgAUEBaiEBDNICCyADQR02AhwgAyAANgIMIAMgAUEBajYCFAzcAgsgAEE7Rw0BIAFBAWohAQtBJCECDMACC0EAIQIgA0EANgIcIAMgATYCFCADQc4UNgIQIANBDDYCDAzZAgsgASAERwRAA0AgAS0AAEEgRw3xASAEIAFBAWoiAUcNAAtBLCECDNkCC0EsIQIM2AILIAEgBEYEQEE0IQIM2AILAkACQANAAkAgAS0AAEEKaw4EAgAAAwALIAQgAUEBaiIBRw0AC0E0IQIM2QILIAMoAgQhACADQQA2AgQgAyAAIAEQMCIARQ2MAiADQTI2AhwgAyABNgIUIAMgADYCDEEAIQIM2AILIAMoAgQhACADQQA2AgQgAyAAIAEQMCIARQRAIAFBAWohAQyMAgsgA0EyNgIcIAMgADYCDCADIAFBAWo2AhRBACECDNcCCyABIARHBEACQANAIAEtAABBMGsiAEH/AXFBCk8EQEE5IQIMwAILIAMpAyAiC0KZs+bMmbPmzBlWDQEgAyALQgp+Igo3AyAgCiAArUL/AYMiC0J/hVYNASADIAogC3w3AyAgBCABQQFqIgFHDQALQcAAIQIM2AILIAMoAgQhACADQQA2AgQgAyAAIAFBAWoiARAwIgANFwzJAgtBwAAhAgzWAgsgASAERgRAQckAIQIM1gILAkADQAJAIAEtAABBCWsOGAACjwKPApMCjwKPAo8CjwKPAo8CjwKPAo8CjwKPAo8CjwKPAo8CjwKPAo8CAI8CCyAEIAFBAWoiAUcNAAtByQAhAgzWAgsgAUEBaiEBIANBL2otAABBAXENjwIgA0EANgIcIAMgATYCFCADQekPNgIQIANBCjYCDEEAIQIM1QILIAEgBEcEQANAIAEtAAAiAEEgRwRAAkACQAJAIABByABrDgsAAc0BzQHNAc0BzQHNAc0BzQECzQELIAFBAWohAUHZACECDL8CCyABQQFqIQFB2gAhAgy+AgsgAUEBaiEBQdsAIQIMvQILIAQgAUEBaiIBRw0AC0HuACECDNUCC0HuACECDNQCCyADQQI6ACgMMAtBACECIANBADYCHCADQbcLNgIQIANBAjYCDCADIAFBAWo2AhQM0gILQQAhAgy3AgtBDSECDLYCC0ERIQIMtQILQRMhAgy0AgtBFCECDLMCC0EWIQIMsgILQRchAgyxAgtBGCECDLACC0EZIQIMrwILQRohAgyuAgtBGyECDK0CC0EcIQIMrAILQR0hAgyrAgtBHiECDKoCC0EgIQIMqQILQSEhAgyoAgtBIyECDKcCC0EnIQIMpgILIANBPTYCHCADIAE2AhQgAyAANgIMQQAhAgy/AgsgA0EbNgIcIAMgATYCFCADQY8bNgIQIANBFTYCDEEAIQIMvgILIANBIDYCHCADIAE2AhQgA0GeGTYCECADQRU2AgxBACECDL0CCyADQRM2AhwgAyABNgIUIANBnhk2AhAgA0EVNgIMQQAhAgy8AgsgA0ELNgIcIAMgATYCFCADQZ4ZNgIQIANBFTYCDEEAIQIMuwILIANBEDYCHCADIAE2AhQgA0GeGTYCECADQRU2AgxBACECDLoCCyADQSA2AhwgAyABNgIUIANBjxs2AhAgA0EVNgIMQQAhAgy5AgsgA0ELNgIcIAMgATYCFCADQY8bNgIQIANBFTYCDEEAIQIMuAILIANBDDYCHCADIAE2AhQgA0GPGzYCECADQRU2AgxBACECDLcCC0EAIQIgA0EANgIcIAMgATYCFCADQa8ONgIQIANBEjYCDAy2AgsCQANAAkAgAS0AAEEKaw4EAAICAAILIAQgAUEBaiIBRw0AC0HsASECDLYCCwJAAkAgAy0ANkEBRw0AQQAhAAJAIAMoAjgiAkUNACACKAJYIgJFDQAgAyACEQAAIQALIABFDQAgAEEVRw0BIANB6wE2AhwgAyABNgIUIANB4hg2AhAgA0EVNgIMQQAhAgy3AgtBzAEhAgycAgsgA0EANgIcIAMgATYCFCADQfELNgIQIANBHzYCDEEAIQIMtQILAkACQCADLQAoQQFrDgIEAQALQcsBIQIMmwILQcQBIQIMmgILIANBAjoAMUEAIQACQCADKAI4IgJFDQAgAigCACICRQ0AIAMgAhEAACEACyAARQRAQc0BIQIMmgILIABBFUcEQCADQQA2AhwgAyABNgIUIANBrAw2AhAgA0EQNgIMQQAhAgy0AgsgA0HqATYCHCADIAE2AhQgA0GHGTYCECADQRU2AgxBACECDLMCCyABIARGBEBB6QEhAgyzAgsgAS0AAEHIAEYNASADQQE6ACgLQbYBIQIMlwILQcoBIQIMlgILIAEgBEcEQCADQQw2AgggAyABNgIEQckBIQIMlgILQegBIQIMrwILIAEgBEYEQEHnASECDK8CCyABLQAAQcgARw0EIAFBAWohAUHIASECDJQCCyABIARGBEBB5gEhAgyuAgsCQAJAIAEtAABBxQBrDhAABQUFBQUFBQUFBQUFBQUBBQsgAUEBaiEBQcYBIQIMlAILIAFBAWohAUHHASECDJMCC0HlASECIAEgBEYNrAIgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABB99MAai0AAEcNAyAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMrQILIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARAtIgBFBEBB1AEhAgyTAgsgA0HkATYCHCADIAE2AhQgAyAANgIMQQAhAgysAgtB4wEhAiABIARGDasCIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQfXTAGotAABHDQIgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADKwCCyADQYEEOwEoIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARAtIgANAwwCCyADQQA2AgALQQAhAiADQQA2AhwgAyABNgIUIANB0B42AhAgA0EINgIMDKkCC0HFASECDI4CCyADQeIBNgIcIAMgATYCFCADIAA2AgxBACECDKcCC0EAIQACQCADKAI4IgJFDQAgAigCOCICRQ0AIAMgAhEAACEACyAARQ1lIABBFUcEQCADQQA2AhwgAyABNgIUIANB1A42AhAgA0EgNgIMQQAhAgynAgsgA0GFATYCHCADIAE2AhQgA0HXGjYCECADQRU2AgxBACECDKYCC0HhASECIAQgASIARg2lAiAEIAFrIAMoAgAiAWohBSAAIAFrQQRqIQYCQANAIAAtAAAgAUHw0wBqLQAARw0BIAFBBEYNAyABQQFqIQEgBCAAQQFqIgBHDQALIAMgBTYCAAymAgsgA0EANgIcIAMgADYCFCADQYQ3NgIQIANBCDYCDCADQQA2AgBBACECDKUCCyABIARHBEAgA0ENNgIIIAMgATYCBEHCASECDIsCC0HgASECDKQCCyADQQA2AgAgBkEBaiEBC0HDASECDIgCCyABIARGBEBB3wEhAgyiAgsgAS0AAEEwayIAQf8BcUEKSQRAIAMgADoAKiABQQFqIQFBwQEhAgyIAgsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDYgCIANB3gE2AhwgAyABNgIUIAMgADYCDEEAIQIMoQILIAEgBEYEQEHdASECDKECCwJAIAEtAABBLkYEQCABQQFqIQEMAQsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDYkCIANB3AE2AhwgAyABNgIUIAMgADYCDEEAIQIMoQILQcABIQIMhgILIAEgBEYEQEHbASECDKACC0EAIQBBASEFQQEhB0EAIQICQAJAAkACQAJAAn8CQAJAAkACQAJAAkACQCABLQAAQTBrDgoKCQABAgMEBQYICwtBAgwGC0EDDAULQQQMBAtBBQwDC0EGDAILQQcMAQtBCAshAkEAIQVBACEHDAILQQkhAkEBIQBBACEFQQAhBwwBC0EAIQVBASECCyADIAI6ACsgAUEBaiEBAkACQCADLQAuQRBxDQACQAJAAkAgAy0AKg4DAQACBAsgB0UNAwwCCyAADQEMAgsgBUUNAQsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDQIgA0HYATYCHCADIAE2AhQgAyAANgIMQQAhAgyiAgsgAygCBCEAIANBADYCBCADIAAgARAuIgBFDYsCIANB2QE2AhwgAyABNgIUIAMgADYCDEEAIQIMoQILIAMoAgQhACADQQA2AgQgAyAAIAEQLiIARQ2JAiADQdoBNgIcIAMgATYCFCADIAA2AgwMoAILQb8BIQIMhQILQQAhAAJAIAMoAjgiAkUNACACKAI8IgJFDQAgAyACEQAAIQALAkAgAARAIABBFUYNASADQQA2AhwgAyABNgIUIANBnA02AhAgA0EhNgIMQQAhAgygAgtBvgEhAgyFAgsgA0HXATYCHCADIAE2AhQgA0HWGTYCECADQRU2AgxBACECDJ4CCyABIARGBEBB1wEhAgyeAgsCQCABLQAAQSBGBEAgA0EAOwE0IAFBAWohAQwBCyADQQA2AhwgAyABNgIUIANB6xA2AhAgA0EJNgIMQQAhAgyeAgtBvQEhAgyDAgsgASAERgRAQdYBIQIM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LgsgAUEBaiEBQZcBIQIM2AELIAFBAWohAUEiDCsLIAEgBEYEQEGvASECDPEBCyABLQAAQdAARw0rIAFBAWohAUGWASECDNYBCyABIARGBEBBrgEhAgzwAQsCQAJAIAEtAABBxgBrDgsALCwsLCwsLCwsASwLIAFBAWohAUGUASECDNYBCyABQQFqIQFBlQEhAgzVAQtBrQEhAiABIARGDe4BIAMoAgAiACAEIAFraiEFIAEgAGtBA2ohBgJAA0AgAS0AACAAQazTAGotAABHDSggAEEDRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADO8BCyADQQA2AgAgBkEBaiEBQQ0MKAtBrAEhAiABIARGDe0BIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQeHTAGotAABHDScgAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADO4BCyADQQA2AgAgBkEBaiEBQQwMJwtBqwEhAiABIARGDewBIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQarTAGotAABHDSYgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADO0BCyADQQA2AgAgBkEBaiEBQQMMJgtBqgEhAiABIARGDesBIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQajTAGotAABHDSUgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADOwBCyADQQA2AgAgBkEBaiEBQSYMJQsgASAERgRAQakBIQIM6wELAkACQCABLQAAQdQAaw4CAAEnCyABQQFqIQFBjwEhAgzRAQsgAUEBaiEBQZABIQIM0AELQagBIQIgASAERg3pASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGm0wBqLQAARw0jIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzqAQsgA0EANgIAIAZBAWohAUEnDCMLQacBIQIgASAERg3oASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGk0wBqLQAARw0iIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzpAQsgA0EANgIAIAZBAWohAUEcDCILQaYBIQIgASAERg3nASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEGe0wBqLQAARw0hIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzoAQsgA0EANgIAIAZBAWohAUEGDCELQaUBIQIgASAERg3mASADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANAIAEtAAAgAEGZ0wBqLQAARw0gIABBBEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAznAQsgA0EANgIAIAZBAWohAUEZDCALIAEgBEYEQEGkASECDOYBCwJAAkACQAJAIAEtAABBLWsOIwAkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJAEkJCQkJAIkJCQDJAsgAUEBaiEBQYQBIQIMzgELIAFBAWohAUGFASECDM0BCyABQQFqIQFBigEhAgzMAQsgAUEBaiEBQYsBIQIMywELQaMBIQIgASAERg3kASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGX0wBqLQAARw0eIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzlAQsgA0EANgIAIAZBAWohAUELDB4LIAEgBEYEQEGiASECDOQBCwJAAkAgAS0AAEHBAGsOAwAgASALIAFBAWohAUGGASECDMoBCyABQQFqIQFBiQEhAgzJAQsgASAERgRAQaEBIQIM4wELAkACQCABLQAAQcEAaw4PAB8fHx8fHx8fHx8fHx8BHwsgAUEBaiEBQYcBIQIMyQELIAFBAWohAUGIASECDMgBCyABIARGBEBBoAEhAgziAQsgAS0AAEHMAEcNHCABQQFqIQFBCgwbC0GfASECIAEgBEYN4AEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABBkdMAai0AAEcNGiAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM4QELIANBADYCACAGQQFqIQFBHgwaC0GeASECIAEgBEYN3wEgAygCACIAIAQgAWtqIQUgASAAa0EGaiEGAkADQCABLQAAIABBitMAai0AAEcNGSAAQQZGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM4AELIANBADYCACAGQQFqIQFBFQwZC0GdASECIAEgBEYN3gEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABBh9MAai0AAEcNGCAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM3wELIANBADYCACAGQQFqIQFBFwwYC0GcASECIAEgBEYN3QEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABBgdMAai0AAEcNFyAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM3gELIANBADYCACAGQQFqIQFBGAwXCyABIARGBEBBmwEhAgzdAQsCQAJAIAEtAABByQBrDgcAGRkZGRkBGQsgAUEBaiEBQYEBIQIMwwELIAFBAWohAUGCASECDMIBC0GaASECIAEgBEYN2wEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABB5tMAai0AAEcNFSAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM3AELIANBADYCACAGQQFqIQFBCQwVC0GZASECIAEgBEYN2gEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGAkADQCABLQAAIABB5NMAai0AAEcNFCAAQQFGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM2wELIANBADYCACAGQQFqIQFBHwwUC0GYASECIAEgBEYN2QEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABB/tIAai0AAEcNEyAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM2gELIANBADYCACAGQQFqIQFBAgwTC0GXASECIAEgBEYN2AEgAygCACIAIAQgAWtqIQUgASAAa0EBaiEGA0AgAS0AACAAQfzSAGotAABHDREgAEEBRg0CIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADNgBCyABIARGBEBBlgEhAgzYAQtBASABLQAAQd8ARw0RGiABQQFqIQFB/QAhAgy9AQsgA0EANgIAIAZBAWohAUH+ACECDLwBC0GVASECIAEgBEYN1QEgAygCACIAIAQgAWtqIQUgASAAa0EIaiEGAkADQCABLQAAIABBxNMAai0AAEcNDyAAQQhGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM1gELIANBADYCACAGQQFqIQFBKQwPC0GUASECIAEgBEYN1AEgAygCACIAIAQgAWtqIQUgASAAa0EDaiEGAkADQCABLQAAIABB+NIAai0AAEcNDiAAQQNGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM1QELIANBADYCACAGQQFqIQFBLQwOCyABIARGBEBBkwEhAgzUAQsgAS0AAEHFAEcNDiABQQFqIQFB+gAhAgy5AQsgASAERgRAQZIBIQIM0wELAkACQCABLQAAQcwAaw4IAA8PDw8PDwEPCyABQQFqIQFB+AAhAgy5AQsgAUEBaiEBQfkAIQIMuAELQZEBIQIgASAERg3RASADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANAIAEtAAAgAEHz0gBqLQAARw0LIABBBEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzSAQsgA0EANgIAIAZBAWohAUEjDAsLQZABIQIgASAERg3QASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEHw0gBqLQAARw0KIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzRAQsgA0EANgIAIAZBAWohAUEADAoLIAEgBEYEQEGPASECDNABCwJAAkAgAS0AAEHIAGsOCAAMDAwMDAwBDAsgAUEBaiEBQfMAIQIMtgELIAFBAWohAUH2ACECDLUBCyABIARGBEBBjgEhAgzPAQsCQAJAIAEtAABBzgBrDgMACwELCyABQQFqIQFB9AAhAgy1AQsgAUEBaiEBQfUAIQIMtAELIAEgBEYEQEGNASECDM4BCyABLQAAQdkARw0IIAFBAWohAUEIDAcLQYwBIQIgASAERg3MASADKAIAIgAgBCABa2ohBSABIABrQQNqIQYCQANAIAEtAAAgAEHs0gBqLQAARw0GIABBA0YNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzNAQsgA0EANgIAIAZBAWohAUEFDAYLQYsBIQIgASAERg3LASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEHm0gBqLQAARw0FIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzMAQsgA0EANgIAIAZBAWohAUEWDAULQYoBIQIgASAERg3KASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEHh0wBqLQAARw0EIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzLAQsgA0EANgIAIAZBAWohAUEQDAQLIAEgBEYEQEGJASECDMoBCwJAAkAgAS0AAEHDAGsODAAGBgYGBgYGBgYGAQYLIAFBAWohAUHvACECDLABCyABQQFqIQFB8AAhAgyvAQtBiAEhAiABIARGDcgBIAMoAgAiACAEIAFraiEFIAEgAGtBBWohBgJAA0AgAS0AACAAQeDSAGotAABHDQIgAEEFRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADMkBCyADQQA2AgAgBkEBaiEBQSQMAgsgA0EANgIADAILIAEgBEYEQEGHASECDMcBCyABLQAAQcwARw0BIAFBAWohAUETCzoAKSADKAIEIQAgA0EANgIEIAMgACABEC0iAA0CDAELQQAhAiADQQA2AhwgAyABNgIUIANB6R42AhAgA0EGNgIMDMQBC0HuACECDKkBCyADQYYBNgIcIAMgATYCFCADIAA2AgxBACECDMIBC0EAIQACQCADKAI4IgJFDQAgAigCOCICRQ0AIAMgAhEAACEACyAARQ0AIABBFUYNASADQQA2AhwgAyABNgIUIANB1A42AhAgA0EgNgIMQQAhAgzBAQtB7QAhAgymAQsgA0GFATYCHCADIAE2AhQgA0HXGjYCECADQRU2AgxBACECDL8BCyABIARGBEBBhQEhAgy/AQsCQCABLQAAQSBGBEAgAUEBaiEBDAELIANBADYCHCADIAE2AhQgA0GGHjYCECADQQY2AgxBACECDL8BC0ECIQIMpAELA0AgAS0AAEEgRw0CIAQgAUEBaiIBRw0AC0GEASECDL0BCyABIARGBEBBgwEhAgy9AQsCQCABLQAAQQlrDgRAAABAAAtB6wAhAgyiAQsgAy0AKUEFRgRAQewAIQIMogELQeoAIQIMoQELIAEgBEYEQEGCASECDLsBCyADQQ82AgggAyABNgIEDAoLIAEgBEYEQEGBASECDLoBCwJAIAEtAABBCWsOBD0AAD0AC0HpACECDJ8BCyABIARHBEAgA0EPNgIIIAMgATYCBEHnACECDJ8BC0GAASECDLgBCwJAIAEgBEcEQANAIAEtAABB4M4Aai0AACIAQQNHBEACQCAAQQFrDgI/AAQLQeYAIQIMoQELIAQgAUEBaiIBRw0AC0H+ACECDLkBC0H+ACECDLgBCyADQQA2AhwgAyABNgIUIANBxh82AhAgA0EHNgIMQQAhAgy3AQsgASAERgRAQf8AIQIMtwELAkACQAJAIAEtAABB4NAAai0AAEEBaw4DPAIAAQtB6AAhAgyeAQsgA0EANgIcIAMgATYCFCADQYYSNgIQIANBBzYCDEEAIQIMtwELQeAAIQIMnAELIAEgBEcEQCABQQFqIQFB5QAhAgycAQtB/QAhAgy1AQsgBCABIgBGBEBB/AAhAgy1AQsgAC0AACIBQS9GBEAgAEEBaiEBQeQAIQIMmwELIAFBCWsiAkEXSw0BIAAhAUEBIAJ0QZuAgARxDTcMAQsgBCABIgBGBEBB+wAhAgy0AQsgAC0AAEEvRw0AIABBAWohAQwDC0EAIQIgA0EANgIcIAMgADYCFCADQcYfNgIQIANBBzYCDAyyAQsCQAJAAkACQAJAA0AgAS0AAEHgzABqLQAAIgBBBUcEQAJAAkAgAEEBaw4IPQUGBwgABAEIC0HhACECDJ8BCyABQQFqIQFB4wAhAgyeAQsgBCABQQFqIgFHDQALQfoAIQIMtgELIAFBAWoMFAsgAygCBCEAIANBADYCBCADIAAgARArIgBFDR4gA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgy0AQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDR4gA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyzAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDR4gA0HwADYCHCADIAE2AhQgAyAANgIMQQAhAgyyAQsgA0EANgIcIAMgATYCFCADQcsPNgIQIANBBzYCDEEAIQIMsQELIAEgBEYEQEH5ACECDLEBCwJAIAEtAABB4MwAai0AAEEBaw4INAQFBgAIAgMHCyABQQFqIQELQQMhAgyVAQsgAUEBagwNC0EAIQIgA0EANgIcIANBoxI2AhAgA0EHNgIMIAMgAUEBajYCFAytAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDRYgA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgysAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDRYgA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyrAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDRYgA0HwADYCHCADIAE2AhQgAyAANgIMQQAhAgyqAQsgA0EANgIcIAMgATYCFCADQcsPNgIQIANBBzYCDEEAIQIMqQELQeIAIQIMjgELIAEgBEYEQEH4ACECDKgBCyABQQFqDAILIAEgBEYEQEH3ACECDKcBCyABQQFqDAELIAEgBEYNASABQQFqCyEBQQQhAgyKAQtB9gAhAgyjAQsDQCABLQAAQeDKAGotAAAiAEECRwRAIABBAUcEQEHfACECDIsBCwwnCyAEIAFBAWoiAUcNAAtB9QAhAgyiAQsgASAERgRAQfQAIQIMogELAkAgAS0AAEEJaw43JQMGJQQGBgYGBgYGBgYGBgYGBgYGBgYFBgYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGAAYLIAFBAWoLIQFBBSECDIYBCyABQQFqDAYLIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ0IIANB2wA2AhwgAyABNgIUIAMgADYCDEEAIQIMngELIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ0IIANB3QA2AhwgAyABNgIUIAMgADYCDEEAIQIMnQELIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ0IIANB8AA2AhwgAyABNgIUIAMgADYCDEEAIQIMnAELIANBADYCHCADIAE2AhQgA0G8EzYCECADQQc2AgxBACECDJsBCwJAAkACQAJAA0AgAS0AAEHgyABqLQAAIgBBBUcEQAJAIABBAWsOBiQDBAUGAAYLQd4AIQIMhgELIAQgAUEBaiIBRw0AC0HzACECDJ4BCyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNByADQdsANgIcIAMgATYCFCADIAA2AgxBACECDJ0BCyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNByADQd0ANgIcIAMgATYCFCADIAA2AgxBACECDJwBCyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNByADQfAANgIcIAMgATYCFCADIAA2AgxBACECDJsBCyADQQA2AhwgAyABNgIUIANB3Ag2AhAgA0EHNgIMQQAhAgyaAQsgASAERg0BIAFBAWoLIQFBBiECDH4LQfIAIQIMlwELAkACQAJAAkADQCABLQAAQeDGAGotAAAiAEEFRwRAIABBAWsOBB8CAwQFCyAEIAFBAWoiAUcNAAtB8QAhAgyaAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDQMgA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgyZAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDQMgA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyYAQsgAygCBCEAIANBADYCBCADIAAgARArIgBFDQMgA0HwADYCHCADIAE2AhQgAyAANgIMQQAhAgyXAQsgA0EANgIcIAMgATYCFCADQbQKNgIQIANBBzYCDEEAIQIMlgELQc4AIQIMewtB0AAhAgx6C0HdACECDHkLIAEgBEYEQEHwACECDJMBCwJAIAEtAABBCWsOBBYAABYACyABQQFqIQFB3AAhAgx4CyABIARGBEBB7wAhAgySAQsCQCABLQAAQQlrDgQVAAAVAAtBACEAAkAgAygCOCICRQ0AIAIoAjAiAkUNACADIAIRAAAhAAsgAEUEQEHTASECDHgLIABBFUcEQCADQQA2AhwgAyABNgIUIANBwQ02AhAgA0EaNgIMQQAhAgySAQsgA0HuADYCHCADIAE2AhQgA0HwGTYCECADQRU2AgxBACECDJEBC0HtACECIAEgBEYNkAEgAygCACIAIAQgAWtqIQUgASAAa0EDaiEGAkADQCABLQAAIABB18YAai0AAEcNBCAAQQNGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMkQELIANBADYCACAGQQFqIQEgAy0AKSIAQSNrQQtJDQQCQCAAQQZLDQBBASAAdEHKAHFFDQAMBQtBACECIANBADYCHCADIAE2AhQgA0HlCTYCECADQQg2AgwMkAELQewAIQIgASAERg2PASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEHUxgBqLQAARw0DIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyQAQsgA0EANgIAIAZBAWohASADLQApQSFGDQMgA0EANgIcIAMgATYCFCADQYkKNgIQIANBCDYCDEEAIQIMjwELQesAIQIgASAERg2OASADKAIAIgAgBCABa2ohBSABIABrQQNqIQYCQANAIAEtAAAgAEHQxgBqLQAARw0CIABBA0YNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyPAQsgA0EANgIAIAZBAWohASADLQApIgBBI0kNAiAAQS5GDQIgA0EANgIcIAMgATYCFCADQcEJNgIQIANBCDYCDEEAIQIMjgELIANBADYCAAtBACECIANBADYCHCADIAE2AhQgA0GENzYCECADQQg2AgwMjAELQdgAIQIMcQsgASAERwRAIANBDTYCCCADIAE2AgRB1wAhAgxxC0HqACECDIoBCyABIARGBEBB6QAhAgyKAQsgAS0AAEEwayIAQf8BcUEKSQRAIAMgADoAKiABQQFqIQFB1gAhAgxwCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNdCADQegANgIcIAMgATYCFCADIAA2AgxBACECDIkBCyABIARGBEBB5wAhAgyJAQsCQCABLQAAQS5GBEAgAUEBaiEBDAELIAMoAgQhACADQQA2AgQgAyAAIAEQLiIARQ11IANB5gA2AhwgAyABNgIUIAMgADYCDEEAIQIMiQELQdUAIQIMbgsgASAERgRAQeUAIQIMiAELQQAhAEEBIQVBASEHQQAhAgJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAIAEtAABBMGsOCgoJAAECAwQFBggLC0ECDAYLQQMMBQtBBAwEC0EFDAMLQQYMAgtBBwwBC0EICyECQQAhBUEAIQcMAgtBCSECQQEhAEEAIQVBACEHDAELQQAhBUEBIQILIAMgAjoAKyABQQFqIQECQAJAIAMtAC5BEHENAAJAAkACQCADLQAqDgMBAAIECyAHRQ0DDAILIAANAQwCCyAFRQ0BCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNAiADQeIANgIcIAMgATYCFCADIAA2AgxBACECDIoBCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNdyADQeMANgIcIAMgATYCFCADIAA2AgxBACECDIkBCyADKAIEIQAgA0EANgIEIAMgACABEC4iAEUNdSADQeQANgIcIAMgATYCFCADIAA2AgwMiAELQdMAIQIMbQsgAy0AKUEiRg2AAUHSACECDGwLQQAhAAJAIAMoAjgiAkUNACACKAI8IgJFDQAgAyACEQAAIQALIABFBEBB1AAhAgxsCyAAQRVHBEAgA0EANgIcIAMgATYCFCADQZwNNgIQIANBITYCDEEAIQIMhgELIANB4QA2AhwgAyABNgIUIANB1hk2AhAgA0EVNgIMQQAhAgyFAQsgASAERgRAQeAAIQIMhQELAkACQAJAAkACQCABLQAAQQprDgQBBAQABAsgAUEBaiEBDAELIAFBAWohASADQS9qLQAAQQFxRQ0BC0HRACECDGwLIANBADYCHCADIAE2AhQgA0GIETYCECADQQk2AgxBACECDIUBCyADQQA2AhwgAyABNgIUIANBiBE2AhAgA0EJNgIMQQAhAgyEAQsgASAERgRAQd8AIQIMhAELIAEtAABBCkYEQCABQQFqIQEMCQsgAy0ALkHAAHENCCADQQA2AhwgAyABNgIUIANBiBE2AhAgA0ECNgIMQQAhAgyDAQsgASAERgRAQd0AIQIMgwELIAEtAAAiAkENRgRAIAFBAWohAUHPACECDGkLIAEhACACQQlrDgQFAQEFAQsgBCABIgBGBEBB3AAhAgyCAQsgAC0AAEEKRw0AIABBAWoMAgtBACECIANBADYCHCADIAA2AhQgA0G1LDYCECADQQc2AgwMgAELIAEgBEYEQEHbACECDIABCwJAIAEtAABBCWsOBAMAAAMACyABQQFqCyEBQc0AIQIMZAsgASAERgRAQdoAIQIMfgsgAS0AAEEJaw4EAAEBAAELQQAhAiADQQA2AhwgA0HsETYCECADQQc2AgwgAyABQQFqNgIUDHwLIANBgBI7ASpBACEAAkAgAygCOCICRQ0AIAIoAjAiAkUNACADIAIRAAAhAAsgAEUNACAAQRVHDQEgA0HZADYCHCADIAE2AhQgA0HwGTYCECADQRU2AgxBACECDHsLQcwAIQIMYAsgA0EANgIcIAMgATYCFCADQcENNgIQIANBGjYCDEEAIQIMeQsgASAERgRAQdkAIQIMeQsgAS0AAEEgRw06IAFBAWohASADLQAuQQFxDTogA0EANgIcIAMgATYCFCADQa0bNgIQIANBHjYCDEEAIQIMeAsgASAERgRAQdgAIQIMeAsCQAJAAkACQAJAIAEtAAAiAEEKaw4EAgMD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AkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQCABLQAAQTBrDjcVFAABAgMEBQYHFhYWFhYWFggJCgsMDRYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWDg8QERITFgtCAiEKDBQLQgMhCgwTC0IEIQoMEgtCBSEKDBELQgYhCgwQC0IHIQoMDwtCCCEKDA4LQgkhCgwNC0IKIQoMDAtCCyEKDAsLQgwhCgwKC0INIQoMCQtCDiEKDAgLQg8hCgwHC0IKIQoMBgtCCyEKDAULQgwhCgwEC0INIQoMAwtCDiEKDAILQg8hCgwBC0IBIQoLIAFBAWohASADKQMgIgtC//////////8PWARAIAMgC0IEhiAKhDcDIAwCC0EAIQIgA0EANgIcIAMgATYCFCADQa0JNgIQIANBDDYCDAwfC0ElIQIMBAtBJiECDAMLIAMgAToALCADQQA2AgAgB0EBaiEBQQwhAgwCCyADQQA2AgAgBkEBaiEBQQohAgwBCyABQQFqIQFBCCECDAALAAtBACECIANBADYCHCADIAE2AhQgA0HVEDYCECADQQk2AgwMGAtBACECIANBADYCHCADIAE2AhQgA0HXCjYCECADQQk2AgwMFwtBACECIANBADYCHCADIAE2AhQgA0G/EDYCECADQQk2AgwMFgtBACECIANBADYCHCADIAE2AhQgA0GkETYCECADQQk2AgwMFQtBACECIANBADYCHCADIAE2AhQgA0HVEDYCECADQQk2AgwMFAtBACECIANBADYCHCADIAE2AhQgA0HXCjYCECADQQk2AgwMEwtBACECIANBADYCHCADIAE2AhQgA0G/EDYCECADQQk2AgwMEgtBACECIANBADYCHCADIAE2AhQgA0GkETYCECADQQk2AgwMEQtBACECIANBADYCHCADIAE2AhQgA0G/FjYCECADQQ82AgwMEAtBACECIANBADYCHCADIAE2AhQgA0G/FjYCECADQQ82AgwMDwtBACECIANBADYCHCADIAE2AhQgA0HIEjYCECADQQs2AgwMDgtBACECIANBADYCHCADIAE2AhQgA0GVCTYCECADQQs2AgwMDQtBACECIANBADYCHCADIAE2AhQgA0HpDzYCECADQQo2AgwMDAtBACECIANBADYCHCADIAE2AhQgA0GDEDYCECADQQo2AgwMCwtBACECIANBADYCHCADIAE2AhQgA0GmHDYCECADQQI2AgwMCgtBACECIANBADYCHCADIAE2AhQgA0HFFTYCECADQQI2AgwMCQtBACECIANBADYCHCADIAE2AhQgA0H/FzYCECADQQI2AgwMCAtBACECIANBADYCHCADIAE2AhQgA0HKFzYCECADQQI2AgwMBwsgA0ECNgIcIAMgATYCFCADQZQdNgIQIANBFjYCDEEAIQIMBgtB3gAhAiABIARGDQUgCUEIaiEHIAMoAgAhBQJAAkAgASAERwRAIAVBxsYAaiEIIAQgBWogAWshBiAFQX9zQQpqIgUgAWohAANAIAEtAAAgCC0AAEcEQEECIQgMAwsgBUUEQEEAIQggACEBDAMLIAVBAWshBSAIQQFqIQggBCABQQFqIgFHDQALIAYhBSAEIQELIAdBATYCACADIAU2AgAMAQsgA0EANgIAIAcgCDYCAAsgByABNgIEIAkoAgwhACAJKAIIDgMBBQIACwALIANBADYCHCADQa0dNgIQIANBFzYCDCADIABBAWo2AhRBACECDAMLIANBADYCHCADIAA2AhQgA0HCHTYCECADQQk2AgxBACECDAILIAEgBEYEQEEoIQIMAgsgA0EJNgIIIAMgATYCBEEnIQIMAQsgASAERgRAQQEhAgwBCwNAAkACQAJAIAEtAABBCmsOBAABAQABCyABQQFqIQEMAQsgAUEBaiEBIAMtAC5BIHENAEEAIQIgA0EANgIcIAMgATYCFCADQYwgNgIQIANBBTYCDAwCC0EBIQIgASAERw0ACwsgCUEQaiQAIAJFBEAgAygCDCEADAELIAMgAjYCHEEAIQAgAygCBCIBRQ0AIAMgASAEIAMoAggRAQAiAUUNACADIAQ2AhQgAyABNgIMIAEhAAsgAAu+AgECfyAAQQA6AAAgAEHcAGoiAUEBa0EAOgAAIABBADoAAiAAQQA6AAEgAUEDa0EAOgAAIAFBAmtBADoAACAAQQA6AAMgAUEEa0EAOgAAQQAgAGtBA3EiASAAaiIAQQA2AgBB3AAgAWtBfHEiAiAAaiIBQQRrQQA2AgACQCACQQlJDQAgAEEANgIIIABBADYCBCABQQhrQQA2AgAgAUEMa0EANgIAIAJBGUkNACAAQQA2AhggAEEANgIUIABBADYC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U3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9zdGF0dXMASW52YWxpZCByZXNwb25zZSBzdGF0dXMARXhwZWN0ZWQgTEYgYWZ0ZXIgaGVhZGVycwBJbnZhbGlkIGNoYXJhY3RlciBpbiBjaHVuayBleHRlbnNpb25zAFVzZXIgY2FsbGJhY2sgZXJyb3IAYG9uX3Jlc2V0YCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfaGVhZGVyYCBjYWxsYmFjayBlcnJvcgBgb25fbWVzc2FnZV9iZWdpbmAgY2FsbGJhY2sgZXJyb3IAYG9uX2NodW5rX2V4dGVuc2lvbl92YWx1ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3N0YXR1c19jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3ZlcnNpb25fY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl91cmxfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9jaHVua19jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX2hlYWRlcl92YWx1ZV9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX21lc3NhZ2VfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9tZXRob2RfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9oZWFkZXJfZmllbGRfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9jaHVua19leHRlbnNpb25fbmFtZWAgY2FsbGJhY2sgZXJyb3IAVW5leHBlY3RlZCBjaGFyIGluIHVybCBzZXJ2ZXIASW52YWxpZCBoZWFkZXIgdmFsdWUgY2hhcgBJbnZhbGlkIGhlYWRlciBmaWVsZCBjaGFyAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fdmVyc2lvbgBJbnZhbGlkIG1pbm9yIHZlcnNpb24ASW52YWxpZCBtYWpvciB2ZXJzaW9uAEV4cGVjdGVkIHNwYWNlIGFmdGVyIHZlcnNpb24ARXhwZWN0ZWQgQ1JMRiBhZnRlciB2ZXJzaW9uAEludmFsaWQgSFRUUCB2ZXJzaW9uAEludmFsaWQgaGVhZGVyIHRva2VuAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fdXJsAEludmFsaWQgY2hhcmFjdGVycyBpbiB1cmwAVW5leHBlY3RlZCBzdGFydCBjaGFyIGluIHVybABEb3VibGUgQCBpbiB1cmwARW1wdHkgQ29udGVudC1MZW5ndGgASW52YWxpZCBjaGFyYWN0ZXIgaW4gQ29udGVudC1MZW5ndGgAVHJhbnNmZXItRW5jb2RpbmcgY2FuJ3QgYmUgcHJlc2VudCB3aXRoIENvbnRlbnQtTGVuZ3RoAER1cGxpY2F0ZSBDb250ZW50LUxlbmd0aABJbnZhbGlkIGNoYXIgaW4gdXJsIHBhdGgAQ29udGVudC1MZW5ndGggY2FuJ3QgYmUgcHJlc2VudCB3aXRoIFRyYW5zZmVyLUVuY29kaW5nAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgc2l6ZQBFeHBlY3RlZCBMRiBhZnRlciBjaHVuayBzaXplAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIHNpemUAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9oZWFkZXJfdmFsdWUAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9jaHVua19leHRlbnNpb25fdmFsdWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyB2YWx1ZQBNaXNzaW5nIGV4cGVjdGVkIENSIGFmdGVyIGhlYWRlciB2YWx1ZQBNaXNzaW5nIGV4cGVjdGVkIExGIGFmdGVyIGhlYWRlciB2YWx1ZQBJbnZhbGlkIGBUcmFuc2Zlci1FbmNvZGluZ2AgaGVhZGVyIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgZXh0ZW5zaW9uIHZhbHVlAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGUgdmFsdWUASW52YWxpZCBxdW90ZWQtcGFpciBpbiBjaHVuayBleHRlbnNpb25zIHF1b3RlZCB2YWx1ZQBJbnZhbGlkIGNoYXJhY3RlciBpbiBjaHVuayBleHRlbnNpb25zIHF1b3RlZCB2YWx1ZQBQYXVzZWQgYnkgb25faGVhZGVyc19jb21wbGV0ZQBJbnZhbGlkIEVPRiBzdGF0ZQBvbl9yZXNldCBwYXVzZQBvbl9jaHVua19oZWFkZXIgcGF1c2UAb25fbWVzc2FnZV9iZWdpbiBwYXVzZQBvbl9jaHVua19leHRlbnNpb25fdmFsdWUgcGF1c2UAb25fc3RhdHVzX2NvbXBsZXRlIHBhdXNlAG9uX3ZlcnNpb25fY29tcGxldGUgcGF1c2UAb25fdXJsX2NvbXBsZXRlIHBhdXNlAG9uX2NodW5rX2NvbXBsZXRlIHBhdXNlAG9uX2hlYWRlcl92YWx1ZV9jb21wbGV0ZSBwYXVzZQBvbl9tZXNzYWdlX2NvbXBsZXRlIHBhdXNlAG9uX21ldGhvZF9jb21wbGV0ZSBwYXVzZQBvbl9oZWFkZXJfZmllbGRfY29tcGxldGUgcGF1c2UAb25fY2h1bmtfZXh0ZW5zaW9uX25hbWUgcGF1c2UAVW5leHBlY3RlZCBzcGFjZSBhZnRlciBzdGFydCBsaW5lAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgcmVzcG9uc2UgbGluZQBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX2NodW5rX2V4dGVuc2lvbl9uYW1lAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMgbmFtZQBNaXNzaW5nIGV4cGVjdGVkIENSIGFmdGVyIGNodW5rIGV4dGVuc2lvbiBuYW1lAEludmFsaWQgc3RhdHVzIGNvZGUAUGF1c2Ugb24gQ09OTkVDVC9VcGdyYWRlAFBhdXNlIG9uIFBSSS9VcGdyYWRlAEV4cGVjdGVkIEhUVFAvMiBDb25uZWN0aW9uIFByZWZhY2UAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9tZXRob2QARXhwZWN0ZWQgc3BhY2UgYWZ0ZXIgbWV0aG9kAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25faGVhZGVyX2ZpZWxkAFBhdXNlZABJbnZhbGlkIHdvcmQgZW5jb3VudGVyZWQASW52YWxpZCBtZXRob2QgZW5jb3VudGVyZWQATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciBjaHVuayBkYXRhAEV4cGVjdGVkIExGIGFmdGVyIGNodW5rIGRhdGEAVW5leHBlY3RlZCBjaGFyIGluIHVybCBzY2hlbWEAUmVxdWVzdCBoYXMgaW52YWxpZCBgVHJhbnNmZXItRW5jb2RpbmdgAERhdGEgYWZ0ZXIgYENvbm5lY3Rpb246IGNsb3NlYABTV0lUQ0hfUFJPWFkAVVNFX1BST1hZAE1LQUNUSVZJVFkAVU5QUk9DRVNTQUJMRV9FTlRJVFkAUVVFUlkAQ09QWQBNT1ZFRF9QRVJNQU5FTlRMWQBUT09fRUFSTFkATk9USUZZAEZBSUxFRF9ERVBFTkRFTkNZAEJBRF9HQVRFV0FZAFBMQVkAUFVUAENIRUNLT1VUAEdBVEVXQVlfVElNRU9VVABSRVFVRVNUX1RJTUVPVVQATkVUV09SS19DT05ORUNUX1RJTUVPVVQAQ09OTkVDVElPTl9USU1FT1VUAExPR0lOX1RJTUVPVVQATkVUV09SS19SRUFEX1RJTUVPVVQAUE9TVABNSVNESVJFQ1RFRF9SRVFVRVNUAENMSUVOVF9DTE9TRURfUkVRVUVTVABDTElFTlRfQ0xPU0VEX0xPQURfQkFMQU5DRURfUkVRVUVTVABCQURfUkVRVUVTVABIVFRQX1JFUVVFU1RfU0VOVF9UT19IVFRQU19QT1JUAFJFUE9SVABJTV9BX1RFQVBPVABSRVNFVF9DT05URU5UAE5PX0NPTlRFTlQAUEFSVElBTF9DT05URU5UAEhQRV9JTlZBTElEX0NPTlNUQU5UAEhQRV9DQl9SRVNFVABHRVQASFBFX1NUUklDVABDT05GTElDVABURU1QT1JBUllfUkVESVJFQ1QAUEVSTUFORU5UX1JFRElSRUNUAENPTk5FQ1QATVVMVElfU1RBVFVTAEhQRV9JTlZBTElEX1NUQVRVUwBUT09fTUFOWV9SRVFVRVNUUwBFQVJMWV9ISU5UUwBVTkFWQUlMQUJMRV9GT1JfTEVHQUxfUkVBU09OUwBPUFRJT05TAFNXSVRDSElOR19QUk9UT0NPTFMAVkFSSUFOVF9BTFNPX05FR09USUFURVMATVVMVElQTEVfQ0hPSUNFUwBJTlRFUk5BTF9TRVJWRVJfRVJST1IAV0VCX1NFUlZFUl9VTktOT1dOX0VSUk9SAFJBSUxHVU5fRVJST1IASURFTlRJVFlfUFJPVklERVJfQVVUSEVOVElDQVRJT05fRVJST1IAU1NMX0NFUlRJRklDQVRFX0VSUk9SAElOVkFMSURfWF9GT1JXQVJERURfRk9SAFNFVF9QQVJBTUVURVIAR0VUX1BBUkFNRVRFUgBIUEVfVVNFUgBTRUVfT1RIRVIASFBFX0NCX0NIVU5LX0hFQURFUgBFeHBlY3RlZCBMRiBhZnRlciBDUgBNS0NBTEVOREFSAFNFVFVQAFdFQl9TRVJWRVJfSVNfRE9XTgBURUFSRE9XTgBIUEVfQ0xPU0VEX0NPTk5FQ1RJT04ASEVVUklTVElDX0VYUElSQVRJT04ARElTQ09OTkVDVEVEX09QRVJBVElPTgBOT05fQVVUSE9SSVRBVElWRV9JTkZPUk1BVElPTgBIUEVfSU5WQUxJRF9WRVJTSU9OAEhQRV9DQl9NRVNTQUdFX0JFR0lOAFNJVEVfSVNfRlJPWkVOAEhQRV9JTlZBTElEX0hFQURFUl9UT0tFTgBJTlZBTElEX1RPS0VOAEZPUkJJRERFTgBFTkhBTkNFX1lPVVJfQ0FMTQBIUEVfSU5WQUxJRF9VUkwAQkxPQ0tFRF9CWV9QQVJFTlRBTF9DT05UUk9MAE1LQ09MAEFDTABIUEVfSU5URVJOQUwAUkVRVUVTVF9IRUFERVJfRklFTERTX1RPT19MQVJHRV9VTk9GRklDSUFMAEhQRV9PSwBVTkxJTksAVU5MT0NLAFBSSQBSRVRSWV9XSVRIAEhQRV9JTlZBTElEX0NPTlRFTlRfTEVOR1RIAEhQRV9VTkVYUEVDVEVEX0NPTlRFTlRfTEVOR1RIAEZMVVNIAFBST1BQQVRDSABNLVNFQVJDSABVUklfVE9PX0xPTkcAUFJPQ0VTU0lORwBNSVNDRUxMQU5FT1VTX1BFUlNJU1RFTlRfV0FSTklORwBNSVNDRUxMQU5FT1VTX1dBUk5JTkcASFBFX0lOVkFMSURfVFJBTlNGRVJfRU5DT0RJTkcARXhwZWN0ZWQgQ1JMRgBIUEVfSU5WQUxJRF9DSFVOS19TSVpFAE1PVkUAQ09OVElOVUUASFBFX0NCX1NUQVRVU19DT01QTEVURQBIUEVfQ0JfSEVBREVSU19DT01QTEVURQBIUEVfQ0JfVkVSU0lPTl9DT01QTEVURQBIUEVfQ0JfVVJMX0NPTVBMRVRFAEhQRV9DQl9DSFVOS19DT01QTEVURQBIUEVfQ0JfSEVBREVSX1ZBTFVFX0NPTVBMRVRFAEhQRV9DQl9DSFVOS19FWFRFTlNJT05fVkFMVUVfQ09NUExFVEUASFBFX0NCX0NIVU5LX0VYVEVOU0lPTl9OQU1FX0NPTVBMRVRFAEhQRV9DQl9NRVNTQUdFX0NPTVBMRVRFAEhQRV9DQl9NRVRIT0RfQ09NUExFVEUASFBFX0NCX0hFQURFUl9GSUVMRF9DT01QTEVURQBERUxFVEUASFBFX0lOVkFMSURfRU9GX1NUQVRFAElOVkFMSURfU1NMX0NFUlRJRklDQVRFAFBBVVNFAE5PX1JFU1BPTlNFAFVOU1VQUE9SVEVEX01FRElBX1RZUEUAR09ORQBOT1RfQUNDRVBUQUJMRQBTRVJWSUNFX1VOQVZBSUxBQkxFAFJBTkdFX05PVF9TQVRJU0ZJQUJMRQBPUklHSU5fSVNfVU5SRUFDSEFCTEUAUkVTUE9OU0VfSVNfU1RBTEUAUFVSR0UATUVSR0UAUkVRVUVTVF9IRUFERVJfRklFTERTX1RPT19MQVJHRQBSRVFVRVNUX0hFQURFUl9UT09fTEFSR0UAUEFZTE9BRF9UT09fTEFSR0UASU5TVUZGSUNJRU5UX1NUT1JBR0UASFBFX1BBVVNFRF9VUEdSQURFAEhQRV9QQVVTRURfSDJfVVBHUkFERQBTT1VSQ0UAQU5OT1VOQ0UAVFJBQ0UASFBFX1VORVhQRUNURURfU1BBQ0UAREVTQ1JJQkUAVU5TVUJTQ1JJQkUAUkVDT1JEAEhQRV9JTlZBTElEX01FVEhPRABOT1RfRk9VTkQAUFJPUEZJTkQAVU5CSU5EAFJFQklORABVTkFVVEhPUklaRUQATUVUSE9EX05PVF9BTExPV0VEAEhUVFBfVkVSU0lPTl9OT1RfU1VQUE9SVEVEAEFMUkVBRFlfUkVQT1JURUQAQUNDRVBURUQATk9UX0lNUExFTUVOVEVEAExPT1BfREVURUNURUQASFBFX0NSX0VYUEVDVEVEAEhQRV9MRl9FWFBFQ1RFRABDUkVBVEVEAElNX1VTRUQASFBFX1BBVVNFRABUSU1FT1VUX09DQ1VSRUQAUEFZTUVOVF9SRVFVSVJFRABQUkVDT05ESVRJT05fUkVRVUlSRUQAUFJPWFlfQVVUSEVOVElDQVRJT05fUkVRVUlSRUQATkVUV09SS19BVVRIRU5USUNBVElPTl9SRVFVSVJFRABMRU5HVEhfUkVRVUlSRUQAU1NMX0NFUlRJRklDQVRFX1JFUVVJUkVEAFVQR1JBREVfUkVRVUlSRUQAUEFHRV9FWFBJUkVEAFBSRUNPTkRJVElPTl9GQUlMRUQARVhQRUNUQVRJT05fRkFJTEVEAFJFVkFMSURBVElPTl9GQUlMRUQAU1NMX0hBTkRTSEFLRV9GQUlMRUQATE9DS0VEAFRSQU5TRk9STUFUSU9OX0FQUExJRUQATk9UX01PRElGSUVEAE5PVF9FWFRFTkRFRABCQU5EV0lEVEhfTElNSVRfRVhDRUVERUQAU0lURV9JU19PVkVSTE9BREVEAEhFQUQARXhwZWN0ZWQgSFRUUC8AAFIVAAAaFQAADxIAAOQZAACRFQAACRQAAC0ZAADkFAAA6REAAGkUAAChFAAAdhUAAEMWAABeEgAAlBcAABcWAAB9FAAAfxYAAEEXAACzEwAAwxYAAAQaAAC9GAAA0BgAAKATAADUGQAArxYAAGgWAABwFwAA2RYAAPwYAAD+EQAAWRcAAJcWAAAcFwAA9hYAAI0XAAALEgAAfxsAAC4RAACzEAAASRIAAK0SAAD2GAAAaBAAAGIVAAAQFQAAWhYAAEoZAAC1FQAAwRUAAGAVAABcGQAAWhkAAFMZAAAWFQAArREAAEIQAAC3EAAAVxgAAL8VAACJEAAAHBkAABoZAAC5FQAAURgAANwTAABbFQAAWRUAAOYYAABnFQAAERkAAO0YAADnEwAArhAAAMIXAAAAFAAAkhMAAIQTAABAEgAAJhkAAK8VAABiEABB6TkLAQEAQYA6C+ABAQECAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAwEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAQeo7CwQBAAACAEGBPAteAwQDAwMDAwAAAwMAAwMAAwMDAwMDAwMDAwAFAAAAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAMAAwBB6j0LBAEAAAIAQYE+C14DAAMDAwMDAAADAwADAwADAwMDAwMDAwMDAAQABQAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAwADAEHgPwsNbG9zZWVlcC1hbGl2ZQBB+T8LAQEAQZDAAAvgAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAEH5wQALAQEAQZDCAAvnAQEBAQEBAQEBAQEBAQIBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBY2h1bmtlZABBocQAC14BAAEBAQEBAAABAQABAQABAQEBAQEBAQEBAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAQABAEGAxgALIWVjdGlvbmVudC1sZW5ndGhvbnJveHktY29ubmVjdGlvbgBBsMYACytyYW5zZmVyLWVuY29kaW5ncGdyYWRlDQoNClNNDQoNClRUUC9DRS9UU1AvAEHpxgALBQECAAEDAEGAxwALXwQFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFAEHpyAALBQECAAEDAEGAyQALXwQFBQYFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFAEHpygALBAEAAAEAQYHLAAteAgIAAgICAgICAgICAgICAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgBB6cwACwUBAgABAwBBgM0AC18EBQAABQUFBQUFBQUFBQUGBQUFBQUFBQUFBQUFAAUABwgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUABQAFAAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFAAAABQBB6c4ACwUBAQABAQBBgM8ACwEBAEGazwALQQIAAAAAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwAAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAEHp0AALBQEBAAEBAEGA0QALAQEAQYrRAAsGAgAAAAACAEGh0QALOgMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAQeDSAAuaAU5PVU5DRUVDS09VVE5FQ1RFVEVDUklCRUxVU0hFVEVBRFNFQVJDSFJHRUNUSVZJVFlMRU5EQVJWRU9USUZZUFRJT05TQ0hTRUFZU1RBVENIR0VVRVJZT1JESVJFQ1RPUlRSQ0hQQVJBTUVURVJVUkNFQlNDUklCRUFSRE9XTkFDRUlORE5LQ0tVQlNDUklCRUhUVFAvQURUUC8=';
+		const wasmBase64 = 'AGFzbQEAAAABJwdgAX8Bf2ADf39/AX9gAn9/AGABfwBgBH9/f38Bf2AAAGADf39/AALLAQgDZW52GHdhc21fb25faGVhZGVyc19jb21wbGV0ZQAEA2VudhV3YXNtX29uX21lc3NhZ2VfYmVnaW4AAANlbnYLd2FzbV9vbl91cmwAAQNlbnYOd2FzbV9vbl9zdGF0dXMAAQNlbnYUd2FzbV9vbl9oZWFkZXJfZmllbGQAAQNlbnYUd2FzbV9vbl9oZWFkZXJfdmFsdWUAAQNlbnYMd2FzbV9vbl9ib2R5AAEDZW52GHdhc21fb25fbWVzc2FnZV9jb21wbGV0ZQAAAzU0BQYAAAMAAAAAAAADAQMAAwMDAAACAAAAAAICAgICAgICAgIBAQEBAQEBAQEBAwAAAwAAAAQFAXABExMFAwEAAgYIAX8BQcDZBAsHxQcoBm1lbW9yeQIAC19pbml0aWFsaXplAAgZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQEAC2xsaHR0cF9pbml0AAkYbGxodHRwX3Nob3VsZF9rZWVwX2FsaXZlADcMbGxodHRwX2FsbG9jAAsGbWFsbG9jADkLbGxodHRwX2ZyZWUADARmcmVlAAwPbGxodHRwX2dldF90eXBlAA0VbGxodHRwX2dldF9odHRwX21ham9yAA4VbGxodHRwX2dldF9odHRwX21pbm9yAA8RbGxodHRwX2dldF9tZXRob2QAEBZsbGh0dHBfZ2V0X3N0YXR1c19jb2RlABESbGxodHRwX2dldF91cGdyYWRlABIMbGxodHRwX3Jlc2V0ABMObGxodHRwX2V4ZWN1dGUAFBRsbGh0dHBfc2V0dGluZ3NfaW5pdAAVDWxsaHR0cF9maW5pc2gAFgxsbGh0dHBfcGF1c2UAFw1sbGh0dHBfcmVzdW1lABgbbGxodHRwX3Jlc3VtZV9hZnRlcl91cGdyYWRlABkQbGxodHRwX2dldF9lcnJubwAaF2xsaHR0cF9nZXRfZXJyb3JfcmVhc29uABsXbGxodHRwX3NldF9lcnJvcl9yZWFzb24AHBRsbGh0dHBfZ2V0X2Vycm9yX3BvcwAdEWxsaHR0cF9lcnJub19uYW1lAB4SbGxodHRwX21ldGhvZF9uYW1lAB8SbGxodHRwX3N0YXR1c19uYW1lACAabGxodHRw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AXRrQT5qIQILIAEgAjYCHCABQgA3AhAgAkECdEH01wBqIQACQEHI1QAoAgAiA0EBIAJ0IgdxRQRAIAAgATYCAEHI1QAgAyAHcjYCACABIAA2AhggASABNgIIIAEgATYCDAwBCyAEQRkgAkEBdmtBACACQR9HG3QhAiAAKAIAIQACQANAIAAiAygCBEF4cSAERg0BIAJBHXYhACACQQF0IQIgAyAAQQRxakEQaiIHKAIAIgANAAsgByABNgIAIAEgAzYCGCABIAE2AgwgASABNgIIDAELIAMoAggiACABNgIMIAMgATYCCCABQQA2AhggASADNgIMIAEgADYCCAtB5NUAQeTVACgCAEEBayIAQX8gABs2AgALCwcAIAAtACgLBwAgAC0AKgsHACAALQArCwcAIAAtACkLBwAgAC8BNAsHACAALQAwC0ABBH8gACgCGCEBIAAvAS4hAiAALQAoIQMgACgCOCEEIAAQOCAAIAQ2AjggACADOgAoIAAgAjsBLiAAIAE2AhgLhocCAwd/A34BeyABIAJqIQQCQCAAIgMoAgwiAA0AIAMoAgQEQCADIAE2AgQLIwBBEGsiCSQAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAC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DAgLQeMBDAcLQdcBDAYLQdgBDAULQdkBDAQLQdoBDAMLQdsBDAILQd0BDAELQdwBCyECA0ACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAIAMCfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAAn8CQAJAAkACfwJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAgAwJ/AkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJ/AkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkACQAJAAkAC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A0EXNgIcIAMgADYCDCADIAFBAWo2AhQM+AILIABBFUYNI0EAIQIgA0EANgIcIAMgATYCFCADQdYMNgIQIANBIzYCDAz3AgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQNCIARQRAIAFBAWohAQwdCyADQRk2AhwgAyAANgIMIAMgAUEBajYCFAz2AgsgAygCBCEAQQAhAiADQQA2AgQgAyAAIAEQNCIARQRAIAFBAWohAQzvAgsgA0EaNgIcIAMgADYCDCADIAFBAWo2AhQM9QILIABBFUYNH0EAIQIgA0EANgIcIAMgATYCFCADQdAPNgIQIANBIjYCDAz0AgsgAygCBCEAIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDBsLIANBHDYCHCADIAA2AgwgAyABQQFqNgIUQQAhAgzzAgsgAygCBCEAIANBADYCBCADIAAgARAzIgBFBEAgAUEBaiEBDOsCCyADQR02AhwgAyAANgIMIAMgAUEBajYCFEEAIQIM8gILIABBO0cNASABQQFqIQELQSYhAgzXAgtBACECIANBADYCHCADIAE2AhQgA0GfFTYCECADQQw2AgwM7wILIAEgBEcEQANAIAEtAABBIEcNhAIgBCABQQFqIgFHDQALQSwhAgzvAgtBLCECDO4CCyABIARGBEBBNCECDO4CCwJAAkADQAJAIAEtAABBCmsOBAIAAAMACyAEIAFBAWoiAUcNAAtBNCECDO8CCyADKAIEIQAgA0EANgIEIAMgACABEDEiAEUNnwIgA0EyNgIcIAMgATYCFCADIAA2AgxBACECDO4CCyADKAIEIQAgA0EANgIEIAMgACABEDEiAEUEQCABQQFqIQEMnwILIANBMjYCHCADIAA2AgwgAyABQQFqNgIUQQAhAgztAgsgASAERwRAAkADQCABLQAAQTBrIgBB/wFxQQpPBEBBOiECDNcCCyADKQMgIgtCmbPmzJmz5swZVg0BIAMgC0IKfiIKNwMgIAogAK1C/wGDIgtCf4VWDQEgAyAKIAt8NwMgIAQgAUEBaiIBRw0AC0HAACECDO4CCyADKAIEIQAgA0EANgIEIAMgACABQQFqIgEQMSIADRcM4gILQcAAIQIM7AILIAEgBEYEQEHJACECDOwCCwJAA0ACQCABLQAAQQlrDhgAAqICogKpAqICogKiAqICogKiAqICogKiAqICogKiAqICogKiAqICogKiAgCiAgsgBCABQQFqIgFHDQALQckAIQIM7AILIAFBAWohASADQS9qLQAAQQFxDaUCIANBADYCHCADIAE2AhQgA0GXEDYCECADQQo2AgxBACECDOsCCyABIARHBEADQCABLQAAQSBHDRUgBCABQQFqIgFHDQALQfgAIQIM6wILQfgAIQIM6gILIANBAjoAKAw4C0EAIQIgA0EANgIcIANBvws2AhAgA0ECNgIMIAMgAUEBajYCFAzoAgtBACECDM4CC0ENIQIMzQILQRMhAgzMAgtBFSECDMsCC0EWIQIMygILQRghAgzJAgtBGSECDMgCC0EaIQIMxwILQRshAgzGAgtBHCECDMUCC0EdIQIMxAILQR4hAgzDAgtBHyECDMICC0EgIQIMwQILQSIhAgzAAgtBIyECDL8CC0ElIQIMvgILQeUAIQIMvQILIANBPTYCHCADIAE2AhQgAyAANgIMQQAhAgzVAgsgA0EbNgIcIAMgATYCFCADQaQcNgIQIANBFTYCDEEAIQIM1AILIANBIDYCHCADIAE2AhQgA0GYGjYCECADQRU2AgxBACECDNMCCyADQRM2AhwgAyABNgIUIANBmBo2AhAgA0EVNgIMQQAhAgzSAgsgA0ELNgIcIAMgATYCFCADQZgaNgIQIANBFTYCDEEAIQIM0QILIANBEDYCHCADIAE2AhQgA0GYGjYCECADQRU2AgxBACECDNACCyADQSA2AhwgAyABNgIUIANBpBw2AhAgA0EVNgIMQQAhAgzPAgsgA0ELNgIcIAMgATYCFCADQaQcNgIQIANBFTYCDEEAIQIMzgILIANBDDYCHCADIAE2AhQgA0GkHDYCECADQRU2AgxBACECDM0CC0EAIQIgA0EANgIcIAMgATYCFCADQd0ONgIQIANBEjYCDAzMAgsCQANAAkAgAS0AAEEKaw4EAAICAAILIAQgAUEBaiIBRw0AC0H9ASECDMwCCwJAAkAgAy0ANkEBRw0AQQAhAAJAIAMoAjgiAkUNACACKAJgIgJFDQAgAyACEQAAIQALIABFDQAgAEEVRw0BIANB/AE2AhwgAyABNgIUIANB3Bk2AhAgA0EVNgIMQQAhAgzNAgtB3AEhAgyzAgsgA0EANgIcIAMgATYCFCADQfkLNgIQIANBHzYCDEEAIQIMywILAkACQCADLQAoQQFrDgIEAQALQdsBIQIMsgILQdQBIQIMsQILIANBAjoAMUEAIQACQCADKAI4IgJFDQAgAigCACICRQ0AIAMgAhEAACEACyAARQRAQd0BIQIMsQILIABBFUcEQCADQQA2AhwgAyABNgIUIANBtAw2AhAgA0EQNgIMQQAhAgzKAgsgA0H7ATYCHCADIAE2AhQgA0GBGjYCECADQRU2AgxBACECDMkCCyABIARGBEBB+gEhAgzJAgsgAS0AAEHIAEYNASADQQE6ACgLQcABIQIMrgILQdoBIQIMrQILIAEgBEcEQCADQQw2AgggAyABNgIEQdkBIQIMrQILQfkBIQIMxQILIAEgBEYEQEH4ASECDMUCCyABLQAAQcgARw0EIAFBAWohAUHYASECDKsCCyABIARGBEBB9wEhAgzEAgsCQAJAIAEtAABBxQBrDhAABQUFBQUFBQUFBQUFBQUBBQsgAUEBaiEBQdYBIQIMqwILIAFBAWohAUHXASECDKoCC0H2ASECIAEgBEYNwgIgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABButUAai0AAEcNAyAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMwwILIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARAuIgBFBEBB4wEhAgyqAgsgA0H1ATYCHCADIAE2AhQgAyAANgIMQQAhAgzCAgtB9AEhAiABIARGDcECIAMoAgAiACAEIAFraiEFIAEgAGtBAWohBgJAA0AgAS0AACAAQbjVAGotAABHDQIgAEEBRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADMICCyADQYEEOwEoIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARAuIgANAwwCCyADQQA2AgALQQAhAiADQQA2AhwgAyABNgIUIANB5R82AhAgA0EINgIMDL8CC0HVASECDKUCCyADQfMBNgIcIAMgATYCFCADIAA2AgxBACECDL0CC0EAIQACQCADKAI4IgJFDQAgAigCQCICRQ0AIAMgAhEAACEACyAARQ1uIABBFUcEQCADQQA2AhwgAyABNgIUIANBgg82AhAgA0EgNgIMQQAhAgy9AgsgA0GPATYCHCADIAE2AhQgA0HsGzYCECADQRU2AgxBACECDLwCCyABIARHBEAgA0ENNgIIIAMgATYCBEHTASECDKMCC0HyASECDLsCCyABIARGBEBB8QEhAgy7AgsCQAJAAkAgAS0AAEHIAGsOCwABCAgICAgICAgCCAsgAUEBaiEBQdABIQIMowILIAFBAWohAUHRASECDKICCyABQQFqIQFB0gEhAgyhAgtB8AEhAiABIARGDbkCIAMoAgAiACAEIAFraiEGIAEgAGtBAmohBQNAIAEtAAAgAEG11QBqLQAARw0EIABBAkYNAyAAQQFqIQAgBCABQQFqIgFHDQALIAMgBjYCAAy5AgtB7wEhAiABIARGDbgCIAMoAgAiACAEIAFraiEGIAEgAGtBAWohBQNAIAEtAAAgAEGz1QBqLQAARw0DIABBAUYNAiAAQQFqIQAgBCABQQFqIgFHDQALIAMgBjYCAAy4AgtB7gEhAiABIARGDbcCIAMoAgAiACAEIAFraiEGIAEgAGtBAmohBQNAIAEtAAAgAEGw1QBqLQAARw0CIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBjYCAAy3AgsgAygCBCEAIANCADcDACADIAAgBUEBaiIBECsiAEUNAiADQewBNgIcIAMgATYCFCADIAA2AgxBACECDLYCCyADQQA2AgALIAMoAgQhACADQQA2AgQgAyAAIAEQKyIARQ2cAiADQe0BNgIcIAMgATYCFCADIAA2AgxBACECDLQCC0HPASECDJoCC0EAIQACQCADKAI4IgJFDQAgAigCNCICRQ0AIAMgAhEAACEACwJAIAAEQCAAQRVGDQEgA0EANgIcIAMgATYCFCADQeoNNgIQIANBJjYCDEEAIQIMtAILQc4BIQIMmgILIANB6wE2AhwgAyABNgIUIANBgBs2AhAgA0EVNgIMQQAhAgyyAgsgASAERgRAQesBIQIMsgILIAEtAABBL0YEQCABQQFqIQEMAQsgA0EANgIcIAMgATYCFCADQbI4NgIQIANBCDYCDEEAIQIMsQILQc0BIQIMlwILIAEgBEcEQCADQQ42AgggAyABNgIEQcwBIQIMlwILQeoBIQIMrwILIAEgBEYEQEHpASECDK8CCyABLQAAQTBrIgBB/wFxQQpJBEAgAyAAOgAqIAFBAWohAUHLASECDJYCCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNlwIgA0HoATYCHCADIAE2AhQgAyAANgIMQQAhAgyuAgsgASAERgRAQecBIQIMrgILAkAgAS0AAEEuRgRAIAFBAWohAQwBCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNmAIgA0HmATYCHCADIAE2AhQgAyAANgIMQQAhAgyuAgtBygEhAgyUAgsgASAERgRAQeUBIQIMrQILQQAhAEEBIQVBASEHQQAhAgJAAkACQAJAAkACfwJAAkACQAJAAkACQAJAIAEtAABBMGsOCgoJAAECAwQFBggLC0ECDAYLQQMMBQtBBAwEC0EFDAMLQQYMAgtBBwwBC0EICyECQQAhBUEAIQcMAgtBCSECQQEhAEEAIQVBACEHDAELQQAhBUEBIQILIAMgAjoAKyABQQFqIQECQAJAIAMtAC5BEHENAAJAAkACQCADLQAqDgMBAAIECyAHRQ0DDAILIAANAQwCCyAFRQ0BCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNAiADQeIBNgIcIAMgATYCFCADIAA2AgxBACECDK8CCyADKAIEIQAgA0EANgIEIAMgACABEC8iAEUNmgIgA0HjATYCHCADIAE2AhQgAyAANgIMQQAhAgyuAgsgAygCBCEAIANBADYCBCADIAAgARAvIgBFDZgCIANB5AE2AhwgAyABNgIUIAMgADYCDAytAgtByQEhAgyTAgtBACEAAkAgAygCOCICRQ0AIAIoAkQiAkUNACADIAIRAAAhAAsCQCAABEAgAEEVRg0BIANBADYCHCADIAE2AhQgA0GkDTYCECADQSE2AgxBACECDK0CC0HIASECDJMCCyADQeEBNgIcIAMgATYCFCADQdAaNgIQIANBFTYCDEEAIQIMqwILIAEgBEYEQEHhASECDKsCCwJAIAEtAABBIEYEQCADQQA7ATQgAUEBaiEBDAELIANBADYCHCADIAE2AhQgA0GZETYCECADQQk2AgxBACECDKsCC0HHASECDJECCyABIARGBEBB4AEhAgyqAgsCQCABLQAAQTBrQf8BcSICQQpJBEAgAUEBaiEBAkAgAy8BNCIAQZkzSw0AIAMgAEEKbCIAOwE0IABB/v8DcSACQf//A3NLDQAgAyAAIAJqOwE0DAILQQAhAiADQQA2AhwgAyABNgIUIANBlR42AhAgA0ENNgIMDKsCCyADQQA2AhwgAyABNgIUIANBlR42AhAgA0ENNgIMQQAhAgyqAgtBxgEhAgyQAgsgASAERgRAQd8BIQIMqQILAkAgAS0AAEEwa0H/AXEiAkEKSQRAIAFBAWohAQJAIAMvATQiAEGZM0sNACADIABBCmwiADsBNCAAQf7/A3EgAkH//wNzSw0AIAMgACACajsBNAwCC0EAIQIgA0EANgIcIAMgATYCFCADQZUeNgIQIANBDTYCDAyqAgsgA0EANgIcIAMgATYCFCADQZUeNgIQIANBDTYCDEEAIQIMqQILQcUBIQIMjwILIAEgBEYEQEHeASECDKgCCwJAIAEtAABBMGtB/wFxIgJBCkkEQCABQQFqIQECQCADLwE0IgBBmTNLDQAgAyAAQQpsIgA7ATQgAEH+/wNxIAJB//8Dc0sNACADIAAgAmo7ATQMAgtBACECIANBADYCHCADIAE2AhQgA0GVHjYCECADQQ02AgwMqQILIANBADYCHCADIAE2AhQgA0GVHjYCECADQQ02AgxBACECDKgCC0HEASECDI4CCyABIARGBEBB3QEhAgynAgsCQAJAAkACQCABLQAAQQprDhcCAwMAAwMDAwMDAwMDAwMDAwMDAwMDAQMLIAFBAWoMBQsgAUEBaiEBQcMBIQIMjwILIAFBAWohASADQS9qLQAAQQFxDQggA0EANgIcIAMgATYCFCADQY0LNgIQIANBDTYCDEEAIQIMpwILIANBADYCHCADIAE2AhQgA0GNCzYCECADQQ02AgxBACECDKYCCyABIARHBEAgA0EPNgIIIAMgATYCBEEBIQIMjQILQdwBIQIMpQILAkACQANAAkAgAS0AAEEKaw4EAgAAAwALIAQgAUEBaiIBRw0AC0HbASECDKYCCyADKAIEIQAgA0EANgIEIAMgACABEC0iAEUEQCABQQFqIQEMBAsgA0HaATYCHCADIAA2AgwgAyABQQFqNgIUQQAhAgylAgsgAygCBCEAIANBADYCBCADIAAgARAtIgANASABQQFqCyEBQcEBIQIMigILIANB2QE2AhwgAyAANgIMIAMgAUEBajYCFEEAIQIMogILQcIBIQIMiAILIANBL2otAABBAXENASADQQA2AhwgAyABNgIUIANB5Bw2AhAgA0EZNgIMQQAhAgygAgsgASAERgRAQdkB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CyADIAU2AgAMkAILIANBADYCACAGQQFqIQFBGgw8C0HKASECIAEgBEYNjgIgAygCACIAIAQgAWtqIQUgASAAa0EDaiEGAkADQCABLQAAIABBjdUAai0AAEcNOyAAQQNGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMjwILIANBADYCACAGQQFqIQFBIQw7CyABIARGBEBByQEhAgyOAgsCQAJAIAEtAABBwQBrDhQAPT09PT09PT09PT09PT09PT09AT0LIAFBAWohAUGtASECDPUBCyABQQFqIQFBsAEhAgz0AQsgASAERgRAQcgBIQIMjQILAkACQCABLQAAQdUAaw4LADw8PDw8PDw8PAE8CyABQQFqIQFBrgEhAgz0AQsgAUEBaiEBQa8BIQIM8wELQccBIQIgASAERg2LAiADKAIAIgAgBCABa2ohBSABIABrQQhqIQYCQANAIAEtAAAgAEGE1QBqLQAARw04IABBCEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyMAgsgA0EANgIAIAZBAWohAUEqDDgLIAEgBEYEQEHGASECDIsCCyABLQAAQdAARw04IAFBAWohAUElDDcLQcUBIQIgASAERg2JAiADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEGB1QBqLQAARw02IABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyKAgsgA0EANgIAIAZBAWohAUEODDYLIAEgBEYEQEHEASECDIkCCyABLQAAQcUARw02IAFBAWohAUGrASECDO8BCyABIARGBEBBwwEhAgyIAgsCQAJAAkACQCABLQAAQcIAaw4PAAECOTk5OTk5OTk5OTkDOQsgAUEBaiEBQacBIQIM8QELIAFBAWohAUGoASECDPABCyABQQFqIQFBqQEhAgzvAQsgAUEBaiEBQaoBIQIM7gELQcIBIQIgASAERg2GAiADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEH+1ABqLQAARw0zIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyHAgsgA0EANgIAIAZBAWohAUEUDDMLQcEBIQIgASAERg2FAiADKAIAIgAgBCABa2ohBSABIABrQQRqIQYCQANA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BTYCAAzsAQsgA0EANgIAIAZBAWohAUEXDBgLQaYBIQIgASAERg3qASADKAIAIgAgBCABa2ohBSABIABrQQVqIQYCQANAIAEtAAAgAEHB1ABqLQAARw0XIABBBUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzrAQsgA0EANgIAIAZBAWohAUEYDBcLIAEgBEYEQEGlASECDOoBCwJAAkAgAS0AAEHJAGsOBwAZGRkZGQEZCyABQQFqIQFBiwEhAgzRAQsgAUEBaiEBQYwBIQIM0AELQaQBIQIgASAERg3oASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGm1QBqLQAARw0VIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzpAQsgA0EANgIAIAZBAWohAUEJDBULQaMBIQIgASAERg3nASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGk1QBqLQAARw0UIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzoAQsgA0EANgIAIAZBAWohAUEfDBQLQaIBIQIgASAERg3mASADKAIAIgAgBCABa2ohBSABIABrQQJqIQYCQANAIAEtAAAgAEG+1ABqLQAARw0TIABBAkYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAznAQsgA0EANgIAIAZBAWohAUECDBMLQaEBIQIgASAERg3lASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYDQCABLQAAIABBvNQAai0AAEcNESAAQQFGDQIgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM5QELIAEgBEYEQEGgASECDOUBC0EBIAEtAABB3wBHDREaIAFBAWohAUGHASECDMsBCyADQQA2AgAgBkEBaiEBQYgBIQIMygELQZ8BIQIgASAERg3iASADKAIAIgAgBCABa2ohBSABIABrQQhqIQYCQANAIAEtAAAgAEGE1QBqLQAARw0PIABBCEYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAzjAQsgA0EANgIAIAZBAWohAUEpDA8LQZ4BIQIgASAERg3hASADKAIAIgAgBCABa2ohBSABIABrQQNqIQYCQANAIAEtAAAgAEG41ABqLQAARw0OIABBA0YNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAziAQsgA0EANgIAIAZBAWohAUEtDA4LIAEgBEYEQEGdASECDOEBCyABLQAAQcUARw0OIAFBAWohAUGEASECDMcBCyABIARGBEBBnAEhAgzgAQsCQAJAIAEtAABBzABrDggADw8PDw8PAQ8LIAFBAWohAUGCASECDMcBCyABQQFqIQFBgwEhAgzGAQtBmwEhAiABIARGDd4BIAMoAgAiACAEIAFraiEFIAEgAGtBBGohBgJAA0AgAS0AACAAQbPUAGotAABHDQsgAEEERg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADN8BCyADQQA2AgAgBkEBaiEBQSMMCwtBmgEhAiABIARGDd0BIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQbDUAGotAABHDQogAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADN4BCyADQQA2AgAgBkEBaiEBQQAMCgsgASAERgRAQZkBIQIM3QELAkACQCABLQAAQcgAaw4IAAwMDAwMDAEMCyABQQFqIQFB/QAhAgzEAQsgAUEBaiEBQYABIQIMwwELIAEgBEYEQEGYASECDNwBCwJAAkAgAS0AAEHOAGsOAwALAQsLIAFBAWohAUH+ACECDMMBCyABQQFqIQFB/wAhAgzCAQsgASAERgRAQZcBIQIM2wELIAEtAABB2QBHDQggAUEBaiEBQQgMBwtBlgEhAiABIARGDdkBIAMoAgAiACAEIAFraiEFIAEgAGtBA2ohBgJAA0AgAS0AACAAQazUAGotAABHDQYgAEEDRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADNoBCyADQQA2AgAgBkEBaiEBQQUMBgtBlQEhAiABIARGDdgBIAMoAgAiACAEIAFraiEFIAEgAGtBBWohBgJAA0AgAS0AACAAQabUAGotAABHDQUgAEEFRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADNkBCyADQQA2AgAgBkEBaiEBQRYMBQtBlAEhAiABIARGDdcBIAMoAgAiACAEIAFraiEFIAEgAGtBAmohBgJAA0AgAS0AACAAQaHVAGotAABHDQQgAEECRg0BIABBAWohACAEIAFBAWoiAUcNAAsgAyAFNgIADNgBCyADQQA2AgAgBkEBaiEBQRAMBAsgASAERgRAQZMBIQIM1wELAkACQCABLQAAQcMAaw4MAAYGBgYGBgYGBgYBBgsgAUEBaiEBQfkAIQIMvgELIAFBAWohAUH6ACECDL0BC0GSASECIAEgBEYN1QEgAygCACIAIAQgAWtqIQUgASAAa0EFaiEGAkADQCABLQAAIABBoNQAai0AAEcNAiAAQQVGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAM1gELIANBADYCACAGQQFqIQFBJAwCCyADQQA2AgAMAgsgASAERgRAQZEBIQIM1AELIAEtAABBzABHDQEgAUEBaiEBQRMLOgApIAMoAgQhACADQQA2AgQgAyAAIAEQLiIADQIMAQtBACECIANBADYCHCADIAE2AhQgA0H+HzYCECADQQY2AgwM0QELQfgAIQIMtwELIANBkAE2AhwgAyABNgIUIAMgADYCDEEAIQIMzwELQQAhAAJAIAMoAjgiAkUNACACKAJAIgJFDQAgAyACEQAAIQALIABFDQAgAEEVRg0BIANBADYCHCADIAE2AhQgA0GCDzYCECADQSA2AgxBACECDM4BC0H3ACECDLQBCyADQY8BNgIcIAMgATYCFCADQewbNgIQIANBFTYCDEEAIQIMzAELIAEgBEYEQEGPASECDMwBCwJAIAEtAABBIEYEQCABQQFqIQEMAQsgA0EANgIcIAMgATYCFCADQZsfNgIQIANBBjYCDEEAIQIMzAELQQIhAgyyAQsDQCABLQAAQSBHDQIgBCABQQFqIgFHDQALQY4BIQIMygELIAEgBEYEQEGNASECDMoBCwJAIAEtAABBCWsOBEoAAEoAC0H1ACECDLABCyADLQApQQVGBEBB9gAhAgywAQtB9AAhAgyvAQsgASAERgRAQYwBIQIMyAELIANBEDYCCCADIAE2AgQMCgsgASAERgRAQYsBIQIMxwELAkAgAS0AAEEJaw4ERwAARwALQfMAIQIMrQELIAEgBEcEQCADQRA2AgggAyABNgIEQfEAIQIMrQELQYoBIQIMxQELAkAgASAERwRAA0AgAS0AAEGg0ABqLQAAIgBBA0cEQAJAIABBAWsOAkkABAtB8AAhAgyvAQsgBCABQQFqIgFHDQALQYgBIQIMxgELQYgBIQIMxQELIANBADYCHCADIAE2AhQgA0HbIDYCECADQQc2AgxBACECDMQBCyABIARGBEBBiQEhAgzEAQsCQAJAAkAgAS0AAEGg0gBqLQAAQQFrDgNGAgABC0HyACECDKwBCyADQQA2AhwgAyABNgIUIANBtBI2AhAgA0EHNgIMQQAhAgzEAQtB6gAhAgyqAQsgASAERwRAIAFBAWohAUHvACECDKoBC0GHASECDMIBCyAEIAEiAEYEQEGGASECDMIBCyAALQAAIgFBL0YEQCAAQQFqIQFB7gAhAgypAQsgAUEJayICQRdLDQEgACEBQQEgAnRBm4CABHENQQwBCyAEIAEiAEYEQEGFASECDMEBCyAALQAAQS9HDQAgAEEBaiEBDAMLQQAhAiADQQA2AhwgAyAANgIUIANB2yA2AhAgA0EHNgIMDL8BCwJAAkACQAJAAkADQCABLQAAQaDOAGotAAAiAEEFRwRAAkACQCAAQQFrDghHBQYHCAAEAQgLQesAIQIMrQELIAFBAWohAUHtACECDKwBCyAEIAFBAWoiAUcNAAtBhAEhAgzDAQsgAUEBagwUCyADKAIEIQAgA0EANgIEIAMgACABECwiAEUNHiADQdsANgIcIAMgATYCFCADIAA2AgxBACECDMEBCyADKAIEIQAgA0EANgIEIAMgACABECwiAEUNHiADQd0ANgIcIAMgATYCFCADIAA2AgxBACECDMABCyADKAIEIQAgA0EANgIEIAMgACABECwiAEUNHiADQfoANgIcIAMgATYCFCADIAA2AgxBACECDL8BCyADQQA2AhwgAyABNgIUIANB+Q82AhAgA0EHNgIMQQAhAgy+AQsgASAERgRAQYMBIQIMvgELAkAgAS0AAEGgzgBqLQAAQQFrDgg+BAUGAAgCAwcLIAFBAWohAQtBAyECDKMBCyABQQFqDA0LQQAhAiADQQA2AhwgA0HREjYCECADQQc2AgwgAyABQQFqNgIUDLoBCyADKAIEIQAgA0EANgIEIAMgACABECwiAEUNFiADQdsANgIcIAMgATYCFCADIAA2AgxBACECDLkBCyADKAIEIQAgA0EANgIEIAMgACABECwiAEUNFiADQd0ANgIcIAMgATYCFCADIAA2AgxBACECDLgBCyADKAIEIQAgA0EANgIEIAMgACABECwiAEUNFiADQfoANgIcIAMgATYCFCADIAA2AgxBACECDLcBCyADQQA2AhwgAyABNgIUIANB+Q82AhAgA0EHNgIMQQAhAgy2AQtB7AAhAgycAQsgASAERgRAQYIBIQIMtQELIAFBAWoMAgsgASAERgRAQYEBIQIMtAELIAFBAWoMAQsgASAERg0BIAFBAWoLIQFBBCECDJgBC0GAASECDLABCwNAIAEtAABBoMwAai0AACIAQQJHBEAgAEEBRwRAQekAIQIMmQELDDELIAQgAUEBaiIBRw0AC0H/ACECDK8BCyABIARGBEBB/gAhAgyvAQsCQCABLQAAQQlrDjcvAwYvBAYGBgYGBgYGBgYGBgYGBgYGBgUGBgIGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYABgsgAUEBagshAUEFIQIMlAELIAFBAWoMBgsgAygCBCEAIANBADYCBCADIAAgARAsIgBFDQggA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgyrAQsgAygCBCEAIANBADYCBCADIAAgARAsIgBFDQggA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgyqAQsgAygCBCEAIANBADYCBCADIAAgARAsIgBFDQggA0H6ADYCHCADIAE2AhQgAyAANgIMQQAhAgypAQsgA0EANgIcIAMgATYCFCADQY0UNgIQIANBBzYCDEEAIQIMqAELAkACQAJAAkADQCABLQAAQaDKAGotAAAiAEEFRwRAAkAgAEEBaw4GLgMEBQYABgtB6AAhAgyUAQsgBCABQQFqIgFHDQALQf0AIQIMqwELIAMoAgQhACADQQA2AgQgAyAAIAEQLCIARQ0HIANB2wA2AhwgAyABNgIUIAMgADYCDEEAIQIMqgELIAMoAgQhACADQQA2AgQgAyAAIAEQLCIARQ0HIANB3QA2AhwgAyABNgIUIAMgADYCDEEAIQIMqQELIAMoAgQhACADQQA2AgQgAyAAIAEQLCIARQ0HIANB+gA2AhwgAyABNgIUIAMgADYCDEEAIQIMqAELIANBADYCHCADIAE2AhQgA0HkCDYCECADQQc2AgxBACECDKcBCyABIARGDQEgAUEBagshAUEGIQIMjAELQfwAIQIMpAELAkACQAJAAkADQCABLQAAQaDIAGotAAAiAEEFRwRAIABBAWsOBCkCAwQFCyAEIAFBAWoiAUcNAAtB+wAhAgynAQsgAygCBCEAIANBADYCBCADIAAgARAsIgBFDQMgA0HbADYCHCADIAE2AhQgAyAANgIMQQAhAgymAQsgAygCBCEAIANBADYCBCADIAAgARAsIgBFDQMgA0HdADYCHCADIAE2AhQgAyAANgIMQQAhAgylAQsgAygCBCEAIANBADYCBCADIAAgARAsIgBFDQMgA0H6ADYCHCADIAE2AhQgAyAANgIMQQAhAgykAQsgA0EANgIcIAMgATYCFCADQbwKNgIQIANBBzYCDEEAIQIMowELQc8AIQIMiQELQdEAIQIMiAELQecAIQIMhwELIAEgBEYEQEH6ACECDKABCwJAIAEtAABBCWsOBCAAACAACyABQQFqIQFB5gAhAgyGAQsgASAERgRAQfkAIQIMnwELAkAgAS0AAEEJaw4EHwAAHwALQQAhAAJAIAMoAjgiAkUNACACKAI4IgJFDQAgAyACEQAAIQALIABFBEBB4gEhAgyGAQsgAEEVRwRAIANBADYCHCADIAE2AhQgA0HJDTYCECADQRo2AgxBACECDJ8BCyADQfgANgIcIAMgATYCFCADQeoaNgIQIANBFTYCDEEAIQIMngELIAEgBEcEQCADQQ02AgggAyABNgIEQeQAIQIMhQELQfcAIQIMnQELIAEgBEYEQEH2ACECDJ0BCwJAAkACQCABLQAAQcgAaw4LAAELCwsLCwsLCwILCyABQQFqIQFB3QAhAgyFAQsgAUEBaiEBQeAAIQIMhAELIAFBAWohAUHjACECDIMBC0H1ACECIAEgBEYNmwEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABBtdUAai0AAEcNCCAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMnAELIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARArIgAEQCADQfQANgIcIAMgATYCFCADIAA2AgxBACECDJwBC0HiACECDIIBC0EAIQACQCADKAI4IgJFDQAgAigCNCICRQ0AIAMgAhEAACEACwJAIAAEQCAAQRVGDQEgA0EANgIcIAMgATYCFCADQeoNNgIQIANBJjYCDEEAIQIMnAELQeEAIQIMggELIANB8wA2AhwgAyABNgIUIANBgBs2AhAgA0EVNgIMQQAhAgyaAQsgAy0AKSIAQSNrQQtJDQkCQCAAQQZLDQBBASAAdEHKAHFFDQAMCgtBACECIANBADYCHCADIAE2AhQgA0HtCTYCECADQQg2AgwMmQELQfIAIQIgASAERg2YASADKAIAIgAgBCABa2ohBSABIABrQQFqIQYCQANAIAEtAAAgAEGz1QBqLQAARw0FIABBAUYNASAAQQFqIQAgBCABQQFqIgFHDQALIAMgBTYCAAyZAQsgAygCBCEAIANCADcDACADIAAgBkEBaiIBECsiAARAIANB8QA2AhwgAyABNgIUIAMgADYCDEEAIQIMmQELQd8AIQIMfwtBACEAAkAgAygCOCICRQ0AIAIoAjQiAkUNACADIAIRAAAhAAsCQCAABEAgAEEVRg0BIANBADYCHCADIAE2AhQgA0HqDTYCECADQSY2AgxBACECDJkBC0HeACECDH8LIANB8AA2AhwgAyABNgIUIANBgBs2AhAgA0EVNgIMQQAhAgyXAQsgAy0AKUEhRg0GIANBADYCHCADIAE2AhQgA0GRCjYCECADQQg2AgxBACECDJYBC0HvACECIAEgBEYNlQEgAygCACIAIAQgAWtqIQUgASAAa0ECaiEGAkADQCABLQAAIABBsNUAai0AAEcNAiAAQQJGDQEgAEEBaiEAIAQgAUEBaiIBRw0ACyADIAU2AgAMlgELIAMoAgQhACADQgA3AwAgAyAAIAZBAWoiARArIgBFDQIgA0HtADYCHCADIAE2AhQgAyAANgIMQQAhAgyVAQsgA0EANgIACyADKAIEIQAgA0EANgIEIAMgACABECsiAEUNgAEgA0HuADYCHCADIAE2AhQgAyAANgIMQQAhAgyTAQtB3AAhAgx5C0EAIQACQCADKAI4IgJFDQAgAigCNCICRQ0AIAMgAhEAACEACwJAIAAEQCAAQRVGDQEgA0EANgIcIAMgATYCFCADQeoNNgIQIANBJjYCDEEAIQIMkwELQdsAIQIMeQsgA0HsADYCHCADIAE2AhQgA0GAGzYCECADQRU2AgxBACECDJEBCyADLQApIgBBI0kNACAAQS5GDQAgA0EANgIcIAMgATYCFCADQckJNgIQIANBCDYCDEEAIQIMkAELQdoAIQIMdgsgASAERgRAQesAIQIMjwELAkAgAS0AAEEvRgRAIAFBAWohAQwBCyAD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ciBIVFRQL3gueCByZXF1ZXN0AEludmFsaWQgbWV0aG9kIGZvciBSVFNQL3gueCByZXF1ZXN0AEV4cGVjdGVkIFNPVVJDRSBtZXRob2QgZm9yIElDRS94LnggcmVxdWVzdABJbnZhbGlkIGNoYXIgaW4gdXJsIGZyYWdtZW50IHN0YXJ0AEV4cGVjdGVkIGRvdABTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX3N0YXR1cwBJbnZhbGlkIHJlc3BvbnNlIHN0YXR1cwBFeHBlY3RlZCBMRiBhZnRlciBoZWFkZXJzAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMAVXNlciBjYWxsYmFjayBlcnJvcgBgb25fcmVzZXRgIGNhbGxiYWNrIGVycm9yAGBvbl9jaHVua19oZWFkZXJgIGNhbGxiYWNrIGVycm9yAGBvbl9tZXNzYWdlX2JlZ2luYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfZXh0ZW5zaW9uX3ZhbHVlYCBjYWxsYmFjayBlcnJvcgBgb25fc3RhdHVzX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fdmVyc2lvbl9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3VybF9jb21wbGV0ZWAgY2FsbGJhY2sgZXJyb3IAYG9uX3Byb3RvY29sX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9oZWFkZXJfdmFsdWVfY29tcGxldGVgIGNhbGxiYWNrIGVycm9yAGBvbl9tZXNzYWdlX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fbWV0aG9kX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25faGVhZGVyX2ZpZWxkX2NvbXBsZXRlYCBjYWxsYmFjayBlcnJvcgBgb25fY2h1bmtfZXh0ZW5zaW9uX25hbWVgIGNhbGxiYWNrIGVycm9yAFVuZXhwZWN0ZWQgY2hhciBpbiB1cmwgc2VydmVyAEludmFsaWQgaGVhZGVyIHZhbHVlIGNoYXIASW52YWxpZCBoZWFkZXIgZmllbGQgY2hhcgBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX3ZlcnNpb24ASW52YWxpZCBtaW5vciB2ZXJzaW9uAEludmFsaWQgbWFqb3IgdmVyc2lvbgBFeHBlY3RlZCBzcGFjZSBhZnRlciB2ZXJzaW9uAEV4cGVjdGVkIENSTEYgYWZ0ZXIgdmVyc2lvbgBJbnZhbGlkIEhUVFAgdmVyc2lvbgBJbnZhbGlkIGhlYWRlciB0b2tlbgBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX3VybABJbnZhbGlkIGNoYXJhY3RlcnMgaW4gdXJsAFVuZXhwZWN0ZWQgc3RhcnQgY2hhciBpbiB1cmwARG91YmxlIEAgaW4gdXJsAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fcHJvdG9jb2wARW1wdHkgQ29udGVudC1MZW5ndGgASW52YWxpZCBjaGFyYWN0ZXIgaW4gQ29udGVudC1MZW5ndGgAVHJhbnNmZXItRW5jb2RpbmcgY2FuJ3QgYmUgcHJlc2VudCB3aXRoIENvbnRlbnQtTGVuZ3RoAER1cGxpY2F0ZSBDb250ZW50LUxlbmd0aABJbnZhbGlkIGNoYXIgaW4gdXJsIHBhdGgAQ29udGVudC1MZW5ndGggY2FuJ3QgYmUgcHJlc2VudCB3aXRoIFRyYW5zZmVyLUVuY29kaW5nAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgc2l6ZQBFeHBlY3RlZCBMRiBhZnRlciBjaHVuayBzaXplAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIHNpemUAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9oZWFkZXJfdmFsdWUAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9jaHVua19leHRlbnNpb25fdmFsdWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyB2YWx1ZQBVbmV4cGVjdGVkIHdoaXRlc3BhY2UgYWZ0ZXIgaGVhZGVyIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgaGVhZGVyIHZhbHVlAE1pc3NpbmcgZXhwZWN0ZWQgTEYgYWZ0ZXIgaGVhZGVyIHZhbHVlAEludmFsaWQgYFRyYW5zZmVyLUVuY29kaW5nYCBoZWFkZXIgdmFsdWUATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciBjaHVuayBleHRlbnNpb24gdmFsdWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyBxdW90ZSB2YWx1ZQBJbnZhbGlkIHF1b3RlZC1wYWlyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGVkIHZhbHVlAEludmFsaWQgY2hhcmFjdGVyIGluIGNodW5rIGV4dGVuc2lvbnMgcXVvdGVkIHZhbHVlAFBhdXNlZCBieSBvbl9oZWFkZXJzX2NvbXBsZXRlAEludmFsaWQgRU9GIHN0YXRlAG9uX3Jlc2V0IHBhdXNlAG9uX2NodW5rX2hlYWRlciBwYXVzZQBvbl9tZXNzYWdlX2JlZ2luIHBhdXNlAG9uX2NodW5rX2V4dGVuc2lvbl92YWx1ZSBwYXVzZQBvbl9zdGF0dXNfY29tcGxldGUgcGF1c2UAb25fdmVyc2lvbl9jb21wbGV0ZSBwYXVzZQBvbl91cmxfY29tcGxldGUgcGF1c2UAb25fcHJvdG9jb2xfY29tcGxldGUgcGF1c2UAb25fY2h1bmtfY29tcGxldGUgcGF1c2UAb25faGVhZGVyX3ZhbHVlX2NvbXBsZXRlIHBhdXNlAG9uX21lc3NhZ2VfY29tcGxldGUgcGF1c2UAb25fbWV0aG9kX2NvbXBsZXRlIHBhdXNlAG9uX2hlYWRlcl9maWVsZF9jb21wbGV0ZSBwYXVzZQBvbl9jaHVua19leHRlbnNpb25fbmFtZSBwYXVzZQBVbmV4cGVjdGVkIHNwYWNlIGFmdGVyIHN0YXJ0IGxpbmUATWlzc2luZyBleHBlY3RlZCBDUiBhZnRlciByZXNwb25zZSBsaW5lAFNwYW4gY2FsbGJhY2sgZXJyb3IgaW4gb25fY2h1bmtfZXh0ZW5zaW9uX25hbWUASW52YWxpZCBjaGFyYWN0ZXIgaW4gY2h1bmsgZXh0ZW5zaW9ucyBuYW1lAE1pc3NpbmcgZXhwZWN0ZWQgQ1IgYWZ0ZXIgY2h1bmsgZXh0ZW5zaW9uIG5hbWUASW52YWxpZCBzdGF0dXMgY29kZQBQYXVzZSBvbiBDT05ORUNUL1VwZ3JhZGUAUGF1c2Ugb24gUFJJL1VwZ3JhZGUARXhwZWN0ZWQgSFRUUC8yIENvbm5lY3Rpb24gUHJlZmFjZQBTcGFuIGNhbGxiYWNrIGVycm9yIGluIG9uX21ldGhvZABFeHBlY3RlZCBzcGFjZSBhZnRlciBtZXRob2QAU3BhbiBjYWxsYmFjayBlcnJvciBpbiBvbl9oZWFkZXJfZmllbGQAUGF1c2VkAEludmFsaWQgd29yZCBlbmNvdW50ZXJlZABJbnZhbGlkIG1ldGhvZCBlbmNvdW50ZXJlZABNaXNzaW5nIGV4cGVjdGVkIENSIGFmdGVyIGNodW5rIGRhdGEARXhwZWN0ZWQgTEYgYWZ0ZXIgY2h1bmsgZGF0YQBVbmV4cGVjdGVkIGNoYXIgaW4gdXJsIHNjaGVtYQBSZXF1ZXN0IGhhcyBpbnZhbGlkIGBUcmFuc2Zlci1FbmNvZGluZ2AARGF0YSBhZnRlciBgQ29ubmVjdGlvbjogY2xvc2VgAFNXSVRDSF9QUk9YWQBVU0VfUFJPWFkATUtBQ1RJVklUWQBVTlBST0NFU1NBQkxFX0VOVElUWQBRVUVSWQBDT1BZAE1PVkVEX1BFUk1BTkVOVExZAFRPT19FQVJMWQBOT1RJRlkARkFJTEVEX0RFUEVOREVOQ1kAQkFEX0dBVEVXQVkAUExBWQBQVVQAQ0hFQ0tPVVQAR0FURVdBWV9USU1FT1VUAFJFUVVFU1RfVElNRU9VVABORVRXT1JLX0NPTk5FQ1RfVElNRU9VVABDT05ORUNUSU9OX1RJTUVPVVQATE9HSU5fVElNRU9VVABORVRXT1JLX1JFQURfVElNRU9VVABQT1NUAE1JU0RJUkVDVEVEX1JFUVVFU1QAQ0xJRU5UX0NMT1NFRF9SRVFVRVNUAENMSUVOVF9DTE9TRURfTE9BRF9CQUxBTkNFRF9SRVFVRVNUAEJBRF9SRVFVRVNUAEhUVFBfUkVRVUVTVF9TRU5UX1RPX0hUVFBTX1BPUlQAUkVQT1JUAElNX0FfVEVBUE9UAFJFU0VUX0NPTlRFTlQATk9fQ09OVEVOVABQQVJUSUFMX0NPTlRFTlQASFBFX0lOVkFMSURfQ09OU1RBTlQASFBFX0NCX1JFU0VUAEdFVABIUEVfU1RSSUNUAENPTkZMSUNUAFRFTVBPUkFSWV9SRURJUkVDVABQRVJNQU5FTlRfUkVESVJFQ1QAQ09OTkVDVABNVUxUSV9TVEFUVVMASFBFX0lOVkFMSURfU1RBVFVTAFRPT19NQU5ZX1JFUVVFU1RTAEVBUkxZX0hJTlRTAFVOQVZBSUxBQkxFX0ZPUl9MRUdBTF9SRUFTT05TAE9QVElPTlMAU1dJVENISU5HX1BST1RPQ09MUwBWQVJJQU5UX0FMU09fTkVHT1RJQVRFUwBNVUxUSVBMRV9DSE9JQ0VTAElOVEVSTkFMX1NFUlZFUl9FUlJPUgBXRUJfU0VSVkVSX1VOS05PV05fRVJST1IAUkFJTEdVTl9FUlJPUgBJREVOVElUWV9QUk9WSURFUl9BVVRIRU5USUNBVElPTl9FUlJPUgBTU0xfQ0VSVElGSUNBVEVfRVJST1IASU5WQUxJRF9YX0ZPUldBUkRFRF9GT1IAU0VUX1BBUkFNRVRFUgBHRVRfUEFSQU1FVEVSAEhQRV9VU0VSAFNFRV9PVEhFUgBIUEVfQ0JfQ0hVTktfSEVBREVSAEV4cGVjdGVkIExGIGFmdGVyIENSAE1LQ0FMRU5EQVIAU0VUVVAAV0VCX1NFUlZFUl9JU19ET1dOAFRFQVJET1dOAEhQRV9DTE9TRURfQ09OTkVDVElPTgBIRVVSSVNUSUNfRVhQSVJBVElPTgBESVNDT05ORUNURURfT1BFUkFUSU9OAE5PTl9BVVRIT1JJVEFUSVZFX0lORk9STUFUSU9OAEhQRV9JTlZBTElEX1ZFUlNJT04ASFBFX0NCX01FU1NBR0VfQkVHSU4AU0lURV9JU19GUk9aRU4ASFBFX0lOVkFMSURfSEVBREVSX1RPS0VOAElOVkFMSURfVE9LRU4ARk9SQklEREVOAEVOSEFOQ0VfWU9VUl9DQUxNAEhQRV9JTlZBTElEX1VSTABCTE9DS0VEX0JZX1BBUkVOVEFMX0NPTlRST0wATUtDT0wAQUNMAEhQRV9JTlRFUk5BTABSRVFVRVNUX0hFQURFUl9GSUVMRFNfVE9PX0xBUkdFX1VOT0ZGSUNJQUwASFBFX09LAFVOTElOSwBVTkxPQ0sAUFJJAFJFVFJZX1dJVEgASFBFX0lOVkFMSURfQ09OVEVOVF9MRU5HVEgASFBFX1VORVhQRUNURURfQ09OVEVOVF9MRU5HVEgARkxVU0gAUFJPUFBBVENIAE0tU0VBUkNIAFVSSV9UT09fTE9ORwBQUk9DRVNTSU5HAE1JU0NFTExBTkVPVVNfUEVSU0lTVEVOVF9XQVJOSU5HAE1JU0NFTExBTkVPVVNfV0FSTklORwBIUEVfSU5WQUxJRF9UUkFOU0ZFUl9FTkNPRElORwBFeHBlY3RlZCBDUkxGAEhQRV9JTlZBTElEX0NIVU5LX1NJWkUATU9WRQBDT05USU5VRQBIUEVfQ0JfU1RBVFVTX0NPTVBMRVRFAEhQRV9DQl9IRUFERVJTX0NPTVBMRVRFAEhQRV9DQl9WRVJTSU9OX0NPTVBMRVRFAEhQRV9DQl9VUkxfQ09NUExFVEUASFBFX0NCX1BST1RPQ09MX0NPTVBMRVRFAEhQRV9DQl9DSFVOS19DT01QTEVURQBIUEVfQ0JfSEVBREVSX1ZBTFVFX0NPTVBMRVRFAEhQRV9DQl9DSFVOS19FWFRFTlNJT05fVkFMVUVfQ09NUExFVEUASFBFX0NCX0NIVU5LX0VYVEVOU0lPTl9OQU1FX0NPTVBMRVRFAEhQRV9DQl9NRVNTQUdFX0NPTVBMRVRFAEhQRV9DQl9NRVRIT0RfQ09NUExFVEUASFBFX0NCX0hFQURFUl9GSUVMRF9DT01QTEVURQBERUxFVEUASFBFX0lOVkFMSURfRU9GX1NUQVRFAElOVkFMSURfU1NMX0NFUlRJRklDQVRFAFBBVVNFAE5PX1JFU1BPTlNFAFVOU1VQUE9SVEVEX01FRElBX1RZUEUAR09ORQBOT1RfQUNDRVBUQUJMRQBTRVJWSUNFX1VOQVZBSUxBQkxFAFJBTkdFX05PVF9TQVRJU0ZJQUJMRQBPUklHSU5fSVNfVU5SRUFDSEFCTEUAUkVTUE9OU0VfSVNfU1RBTEUAUFVSR0UATUVSR0UAUkVRVUVTVF9IRUFERVJfRklFTERTX1RPT19MQVJHRQBSRVFVRVNUX0hFQURFUl9UT09fTEFSR0UAUEFZTE9BRF9UT09fTEFSR0UASU5TVUZGSUNJRU5UX1NUT1JBR0UASFBFX1BBVVNFRF9VUEdSQURFAEhQRV9QQVVTRURfSDJfVVBHUkFERQBTT1VSQ0UAQU5OT1VOQ0UAVFJBQ0UASFBFX1VORVhQRUNURURfU1BBQ0UAREVTQ1JJQkUAVU5TVUJTQ1JJQkUAUkVDT1JEAEhQRV9JTlZBTElEX01FVEhPRABOT1RfRk9VTkQAUFJPUEZJTkQAVU5CSU5EAFJFQklORABVTkFVVEhPUklaRUQATUVUSE9EX05PVF9BTExPV0VEAEhUVFBfVkVSU0lPTl9OT1RfU1VQUE9SVEVEAEFMUkVBRFlfUkVQT1JURUQAQUNDRVBURUQATk9UX0lNUExFTUVOVEVEAExPT1BfREVURUNURUQASFBFX0NSX0VYUEVDVEVEAEhQRV9MRl9FWFBFQ1RFRABDUkVBVEVEAElNX1VTRUQASFBFX1BBVVNFRABUSU1FT1VUX09DQ1VSRUQAUEFZTUVOVF9SRVFVSVJFRABQUkVDT05ESVRJT05fUkVRVUlSRUQAUFJPWFlfQVVUSEVOVElDQVRJT05fUkVRVUlSRUQATkVUV09SS19BVVRIRU5USUNBVElPTl9SRVFVSVJFRABMRU5HVEhfUkVRVUlSRUQAU1NMX0NFUlRJRklDQVRFX1JFUVVJUkVEAFVQR1JBREVfUkVRVUlSRUQAUEFHRV9FWFBJUkVEAFBSRUNPTkRJVElPTl9GQUlMRUQARVhQRUNUQVRJT05fRkFJTEVEAFJFVkFMSURBVElPTl9GQUlMRUQAU1NMX0hBTkRTSEFLRV9GQUlMRUQATE9DS0VEAFRSQU5TRk9STUFUSU9OX0FQUExJRUQATk9UX01PRElGSUVEAE5PVF9FWFRFTkRFRABCQU5EV0lEVEhfTElNSVRfRVhDRUVERUQAU0lURV9JU19PVkVSTE9BREVEAEhFQUQARXhwZWN0ZWQgSFRUUC8sIFJUU1AvIG9yIElDRS8A5xUAAK8VAACkEgAAkhoAACYWAACeFAAA2xkAAHkVAAB+EgAA/hQAADYVAAALFgAA2BYAAPMSAABCGAAArBYAABIVAAAUFwAA7xcAAEgUAABxFwAAshoAAGsZAAB+GQAANRQAAIIaAABEFwAA/RYAAB4YAACHFwAAqhkAAJMSAAAHGAAALBcAAMoXAACkFwAA5xUAAOcVAABYFwAAOxgAAKASAAAtHAAAwxEAAEgRAADeEgAAQhMAAKQZAAD9EAAA9xUAAKUVAADvFgAA+BkAAEoWAABWFgAA9RUAAAoaAAAIGgAAARoAAKsVAABCEgAA1xAAAEwRAAAFGQAAVBYAAB4RAADKGQAAyBkAAE4WAAD/GAAAcRQAAPAVAADuFQAAlBkAAPwVAAC/GQAAmxkAAHwUAABDEQAAcBgAAJUUAAAnFAAAGRQAANUSAADUGQAARBYAAPcQAEG5OwsBAQBB0DsL4AEBAQIBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQBBuj0LBAEAAAIAQdE9C14DBAMDAwMDAAADAwADAwADAwMDAwMDAwMDAAUAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAwADAEG6PwsEAQAAAgBB0T8LXgMAAwMDAwMAAAMDAAMDAAMDAwMDAwMDAwMABAAFAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwADAAMAQbDBAAsNbG9zZWVlcC1hbGl2ZQBBycEACwEBAEHgwQAL4AEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQBBycMACwEBAEHgwwAL5wEBAQEBAQEBAQEBAQECAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAWNodW5rZWQAQfHFAAteAQABAQEBAQAAAQEAAQEAAQEBAQEBAQEBAQAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEAAQBB0McACyFlY3Rpb25lbnQtbGVuZ3Rob25yb3h5LWNvbm5lY3Rpb24AQYDIAAsgcmFuc2Zlci1lbmNvZGluZ3BncmFkZQ0KDQpTTQ0KDQoAQanIAAsFAQIAAQMAQcDIAAtfBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAQanKAAsFAQIAAQMAQcDKAAtfBAUFBgUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAQanMAAsEAQAAAQBBwcwAC14CAgACAgICAgICAgICAgICAgICAgICAgICAgICAgIAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAEGpzgALBQECAAEDAEHAzgALXwQFAAAFBQUFBQUFBQUFBQYFBQUFBQUFBQUFBQUABQAHCAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQAFAAUABQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAAAAFAEGp0AALBQEBAAEBAEHA0AALAQEAQdrQAAtBAgAAAAAAAAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAAAAAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAQanSAAsFAQEAAQEAQcDSAAsBAQBBytIACwYCAAAAAAIAQeHSAAs6AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAAAAAAAADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBBoNQAC50BTk9VTkNFRUNLT1VUTkVDVEVURUNSSUJFTFVTSEVURUFEU0VBUkNIUkdFQ1RJVklUWUxFTkRBUlZFT1RJRllQVElPTlNDSFNFQVlTVEFUQ0hHRVVFUllPUkRJUkVDVE9SVFJDSFBBUkFNRVRFUlVSQ0VCU0NSSUJFQVJET1dOQUNFSU5ETktDS1VCU0NSSUJFVFRQQ0VUU1BBRFRQLw==';
 
 		let wasmBuffer;
 
@@ -3909,6 +4292,284 @@ function requireGlobal () {
 	return global$1;
 }
 
+var encoding;
+var hasRequiredEncoding;
+
+function requireEncoding () {
+	if (hasRequiredEncoding) return encoding;
+	hasRequiredEncoding = 1;
+
+	const textDecoder = new TextDecoder();
+
+	/**
+	 * @see https://encoding.spec.whatwg.org/#utf-8-decode
+	 * @param {Uint8Array} buffer
+	 */
+	function utf8DecodeBytes (buffer) {
+	  if (buffer.length === 0) {
+	    return ''
+	  }
+
+	  // 1. Let buffer be the result of peeking three bytes from
+	  //    ioQueue, converted to a byte sequence.
+
+	  // 2. If buffer is 0xEF 0xBB 0xBF, then read three
+	  //    bytes from ioQueue. (Do nothing with those bytes.)
+	  if (buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+	    buffer = buffer.subarray(3);
+	  }
+
+	  // 3. Process a queue with an instance of UTF-8’s
+	  //    decoder, ioQueue, output, and "replacement".
+	  const output = textDecoder.decode(buffer);
+
+	  // 4. Return output.
+	  return output
+	}
+
+	encoding = {
+	  utf8DecodeBytes
+	};
+	return encoding;
+}
+
+var infra;
+var hasRequiredInfra;
+
+function requireInfra () {
+	if (hasRequiredInfra) return infra;
+	hasRequiredInfra = 1;
+
+	const assert = require$$0$2;
+	const { utf8DecodeBytes } = requireEncoding();
+
+	/**
+	 * @param {(char: string) => boolean} condition
+	 * @param {string} input
+	 * @param {{ position: number }} position
+	 * @returns {string}
+	 *
+	 * @see https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
+	 */
+	function collectASequenceOfCodePoints (condition, input, position) {
+	  // 1. Let result be the empty string.
+	  let result = '';
+
+	  // 2. While position doesn’t point past the end of input and the
+	  // code point at position within input meets the condition condition:
+	  while (position.position < input.length && condition(input[position.position])) {
+	    // 1. Append that code point to the end of result.
+	    result += input[position.position];
+
+	    // 2. Advance position by 1.
+	    position.position++;
+	  }
+
+	  // 3. Return result.
+	  return result
+	}
+
+	/**
+	 * A faster collectASequenceOfCodePoints that only works when comparing a single character.
+	 * @param {string} char
+	 * @param {string} input
+	 * @param {{ position: number }} position
+	 * @returns {string}
+	 *
+	 * @see https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
+	 */
+	function collectASequenceOfCodePointsFast (char, input, position) {
+	  const idx = input.indexOf(char, position.position);
+	  const start = position.position;
+
+	  if (idx === -1) {
+	    position.position = input.length;
+	    return input.slice(start)
+	  }
+
+	  position.position = idx;
+	  return input.slice(start, position.position)
+	}
+
+	const ASCII_WHITESPACE_REPLACE_REGEX = /[\u0009\u000A\u000C\u000D\u0020]/g; // eslint-disable-line no-control-regex
+
+	/**
+	 * @param {string} data
+	 * @returns {Uint8Array | 'failure'}
+	 *
+	 * @see https://infra.spec.whatwg.org/#forgiving-base64-decode
+	 */
+	function forgivingBase64 (data) {
+	  // 1. Remove all ASCII whitespace from data.
+	  data = data.replace(ASCII_WHITESPACE_REPLACE_REGEX, '');
+
+	  let dataLength = data.length;
+	  // 2. If data’s code point length divides by 4 leaving
+	  // no remainder, then:
+	  if (dataLength % 4 === 0) {
+	    // 1. If data ends with one or two U+003D (=) code points,
+	    // then remove them from data.
+	    if (data.charCodeAt(dataLength - 1) === 0x003D) {
+	      --dataLength;
+	      if (data.charCodeAt(dataLength - 1) === 0x003D) {
+	        --dataLength;
+	      }
+	    }
+	  }
+
+	  // 3. If data’s code point length divides by 4 leaving
+	  // a remainder of 1, then return failure.
+	  if (dataLength % 4 === 1) {
+	    return 'failure'
+	  }
+
+	  // 4. If data contains a code point that is not one of
+	  //  U+002B (+)
+	  //  U+002F (/)
+	  //  ASCII alphanumeric
+	  // then return failure.
+	  if (/[^+/0-9A-Za-z]/.test(data.length === dataLength ? data : data.substring(0, dataLength))) {
+	    return 'failure'
+	  }
+
+	  const buffer = Buffer.from(data, 'base64');
+	  return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+	}
+
+	/**
+	 * @param {number} char
+	 * @returns {boolean}
+	 *
+	 * @see https://infra.spec.whatwg.org/#ascii-whitespace
+	 */
+	function isASCIIWhitespace (char) {
+	  return (
+	    char === 0x09 || // \t
+	    char === 0x0a || // \n
+	    char === 0x0c || // \f
+	    char === 0x0d || // \r
+	    char === 0x20    // space
+	  )
+	}
+
+	/**
+	 * @param {Uint8Array} input
+	 * @returns {string}
+	 *
+	 * @see https://infra.spec.whatwg.org/#isomorphic-decode
+	 */
+	function isomorphicDecode (input) {
+	  // 1. To isomorphic decode a byte sequence input, return a string whose code point
+	  //    length is equal to input’s length and whose code points have the same values
+	  //    as the values of input’s bytes, in the same order.
+	  const length = input.length;
+	  if ((2 << 15) - 1 > length) {
+	    return String.fromCharCode.apply(null, input)
+	  }
+	  let result = '';
+	  let i = 0;
+	  let addition = (2 << 15) - 1;
+	  while (i < length) {
+	    if (i + addition > length) {
+	      addition = length - i;
+	    }
+	    result += String.fromCharCode.apply(null, input.subarray(i, i += addition));
+	  }
+	  return result
+	}
+
+	const invalidIsomorphicEncodeValueRegex = /[^\x00-\xFF]/; // eslint-disable-line no-control-regex
+
+	/**
+	 * @param {string} input
+	 * @returns {string}
+	 *
+	 * @see https://infra.spec.whatwg.org/#isomorphic-encode
+	 */
+	function isomorphicEncode (input) {
+	  // 1. Assert: input contains no code points greater than U+00FF.
+	  assert(!invalidIsomorphicEncodeValueRegex.test(input));
+
+	  // 2. Return a byte sequence whose length is equal to input’s code
+	  //    point length and whose bytes have the same values as the
+	  //    values of input’s code points, in the same order
+	  return input
+	}
+
+	/**
+	 * @see https://infra.spec.whatwg.org/#parse-json-bytes-to-a-javascript-value
+	 * @param {Uint8Array} bytes
+	 */
+	function parseJSONFromBytes (bytes) {
+	  return JSON.parse(utf8DecodeBytes(bytes))
+	}
+
+	/**
+	 * @param {string} str
+	 * @param {boolean} [leading=true]
+	 * @param {boolean} [trailing=true]
+	 * @returns {string}
+	 *
+	 * @see https://infra.spec.whatwg.org/#strip-leading-and-trailing-ascii-whitespace
+	 */
+	function removeASCIIWhitespace (str, leading = true, trailing = true) {
+	  return removeChars(str, leading, trailing, isASCIIWhitespace)
+	}
+
+	/**
+	 * @param {string} str
+	 * @param {boolean} leading
+	 * @param {boolean} trailing
+	 * @param {(charCode: number) => boolean} predicate
+	 * @returns {string}
+	 */
+	function removeChars (str, leading, trailing, predicate) {
+	  let lead = 0;
+	  let trail = str.length - 1;
+
+	  if (leading) {
+	    while (lead < str.length && predicate(str.charCodeAt(lead))) lead++;
+	  }
+
+	  if (trailing) {
+	    while (trail > 0 && predicate(str.charCodeAt(trail))) trail--;
+	  }
+
+	  return lead === 0 && trail === str.length - 1 ? str : str.slice(lead, trail + 1)
+	}
+
+	// https://infra.spec.whatwg.org/#serialize-a-javascript-value-to-a-json-string
+	function serializeJavascriptValueToJSONString (value) {
+	  // 1. Let result be ? Call(%JSON.stringify%, undefined, « value »).
+	  const result = JSON.stringify(value);
+
+	  // 2. If result is undefined, then throw a TypeError.
+	  if (result === undefined) {
+	    throw new TypeError('Value is not JSON serializable')
+	  }
+
+	  // 3. Assert: result is a string.
+	  assert(typeof result === 'string');
+
+	  // 4. Return result.
+	  return result
+	}
+
+	infra = {
+	  collectASequenceOfCodePoints,
+	  collectASequenceOfCodePointsFast,
+	  forgivingBase64,
+	  isASCIIWhitespace,
+	  isomorphicDecode,
+	  isomorphicEncode,
+	  parseJSONFromBytes,
+	  removeASCIIWhitespace,
+	  removeChars,
+	  serializeJavascriptValueToJSONString
+	};
+	return infra;
+}
+
 var dataUrl;
 var hasRequiredDataUrl;
 
@@ -3917,19 +4578,20 @@ function requireDataUrl () {
 	hasRequiredDataUrl = 1;
 
 	const assert = require$$0$2;
+	const { forgivingBase64, collectASequenceOfCodePoints, collectASequenceOfCodePointsFast, isomorphicDecode, removeASCIIWhitespace, removeChars } = requireInfra();
 
 	const encoder = new TextEncoder();
 
 	/**
 	 * @see https://mimesniff.spec.whatwg.org/#http-token-code-point
 	 */
-	const HTTP_TOKEN_CODEPOINTS = /^[!#$%&'*+\-.^_|~A-Za-z0-9]+$/;
-	const HTTP_WHITESPACE_REGEX = /[\u000A\u000D\u0009\u0020]/; // eslint-disable-line
-	const ASCII_WHITESPACE_REPLACE_REGEX = /[\u0009\u000A\u000C\u000D\u0020]/g; // eslint-disable-line
+	const HTTP_TOKEN_CODEPOINTS = /^[-!#$%&'*+.^_|~A-Za-z0-9]+$/u;
+	const HTTP_WHITESPACE_REGEX = /[\u000A\u000D\u0009\u0020]/u; // eslint-disable-line
+
 	/**
 	 * @see https://mimesniff.spec.whatwg.org/#http-quoted-string-token-code-point
 	 */
-	const HTTP_QUOTED_STRING_TOKENS = /^[\u0009\u0020-\u007E\u0080-\u00FF]+$/; // eslint-disable-line
+	const HTTP_QUOTED_STRING_TOKENS = /^[\u0009\u0020-\u007E\u0080-\u00FF]+$/u; // eslint-disable-line
 
 	// https://fetch.spec.whatwg.org/#data-url-processor
 	/** @param {URL} dataURL */
@@ -3984,7 +4646,7 @@ function requireDataUrl () {
 	  // 11. If mimeType ends with U+003B (;), followed by
 	  // zero or more U+0020 SPACE, followed by an ASCII
 	  // case-insensitive match for "base64", then:
-	  if (/;(\u0020){0,}base64$/i.test(mimeType)) {
+	  if (/;(?:\u0020*)base64$/ui.test(mimeType)) {
 	    // 1. Let stringBody be the isomorphic decode of body.
 	    const stringBody = isomorphicDecode(body);
 
@@ -4002,7 +4664,7 @@ function requireDataUrl () {
 
 	    // 5. Remove trailing U+0020 SPACE code points from mimeType,
 	    // if any.
-	    mimeType = mimeType.replace(/(\u0020)+$/, '');
+	    mimeType = mimeType.replace(/(\u0020+)$/u, '');
 
 	    // 6. Remove the last U+003B (;) code point from mimeType.
 	    mimeType = mimeType.slice(0, -1);
@@ -4052,49 +4714,6 @@ function requireDataUrl () {
 	  return serialized
 	}
 
-	// https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
-	/**
-	 * @param {(char: string) => boolean} condition
-	 * @param {string} input
-	 * @param {{ position: number }} position
-	 */
-	function collectASequenceOfCodePoints (condition, input, position) {
-	  // 1. Let result be the empty string.
-	  let result = '';
-
-	  // 2. While position doesn’t point past the end of input and the
-	  // code point at position within input meets the condition condition:
-	  while (position.position < input.length && condition(input[position.position])) {
-	    // 1. Append that code point to the end of result.
-	    result += input[position.position];
-
-	    // 2. Advance position by 1.
-	    position.position++;
-	  }
-
-	  // 3. Return result.
-	  return result
-	}
-
-	/**
-	 * A faster collectASequenceOfCodePoints that only works when comparing a single character.
-	 * @param {string} char
-	 * @param {string} input
-	 * @param {{ position: number }} position
-	 */
-	function collectASequenceOfCodePointsFast (char, input, position) {
-	  const idx = input.indexOf(char, position.position);
-	  const start = position.position;
-
-	  if (idx === -1) {
-	    position.position = input.length;
-	    return input.slice(start)
-	  }
-
-	  position.position = idx;
-	  return input.slice(start, position.position)
-	}
-
 	// https://url.spec.whatwg.org/#string-percent-decode
 	/** @param {string} input */
 	function stringPercentDecode (input) {
@@ -4135,8 +4754,9 @@ function requireDataUrl () {
 	  /** @type {Uint8Array} */
 	  const output = new Uint8Array(length);
 	  let j = 0;
+	  let i = 0;
 	  // 2. For each byte byte in input:
-	  for (let i = 0; i < length; ++i) {
+	  while (i < length) {
 	    const byte = input[i];
 
 	    // 1. If byte is not 0x25 (%), then append byte to output.
@@ -4164,6 +4784,7 @@ function requireDataUrl () {
 	      // 3. Skip the next two bytes in input.
 	      i += 2;
 	    }
+	    ++i;
 	  }
 
 	  // 3. Return output.
@@ -4343,45 +4964,6 @@ function requireDataUrl () {
 	  return mimeType
 	}
 
-	// https://infra.spec.whatwg.org/#forgiving-base64-decode
-	/** @param {string} data */
-	function forgivingBase64 (data) {
-	  // 1. Remove all ASCII whitespace from data.
-	  data = data.replace(ASCII_WHITESPACE_REPLACE_REGEX, '');
-
-	  let dataLength = data.length;
-	  // 2. If data’s code point length divides by 4 leaving
-	  // no remainder, then:
-	  if (dataLength % 4 === 0) {
-	    // 1. If data ends with one or two U+003D (=) code points,
-	    // then remove them from data.
-	    if (data.charCodeAt(dataLength - 1) === 0x003D) {
-	      --dataLength;
-	      if (data.charCodeAt(dataLength - 1) === 0x003D) {
-	        --dataLength;
-	      }
-	    }
-	  }
-
-	  // 3. If data’s code point length divides by 4 leaving
-	  // a remainder of 1, then return failure.
-	  if (dataLength % 4 === 1) {
-	    return 'failure'
-	  }
-
-	  // 4. If data contains a code point that is not one of
-	  //  U+002B (+)
-	  //  U+002F (/)
-	  //  ASCII alphanumeric
-	  // then return failure.
-	  if (/[^+/0-9A-Za-z]/.test(data.length === dataLength ? data : data.substring(0, dataLength))) {
-	    return 'failure'
-	  }
-
-	  const buffer = Buffer.from(data, 'base64');
-	  return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
-	}
-
 	// https://fetch.spec.whatwg.org/#collect-an-http-quoted-string
 	// tests: https://fetch.spec.whatwg.org/#example-http-quoted-string
 	/**
@@ -4488,7 +5070,7 @@ function requireDataUrl () {
 	    if (!HTTP_TOKEN_CODEPOINTS.test(value)) {
 	      // 1. Precede each occurrence of U+0022 (") or
 	      //    U+005C (\) in value with U+005C (\).
-	      value = value.replace(/(\\|")/g, '\\$1');
+	      value = value.replace(/[\\"]/ug, '\\$&');
 
 	      // 2. Prepend U+0022 (") to value.
 	      value = '"' + value;
@@ -4522,71 +5104,6 @@ function requireDataUrl () {
 	 */
 	function removeHTTPWhitespace (str, leading = true, trailing = true) {
 	  return removeChars(str, leading, trailing, isHTTPWhiteSpace)
-	}
-
-	/**
-	 * @see https://infra.spec.whatwg.org/#ascii-whitespace
-	 * @param {number} char
-	 */
-	function isASCIIWhitespace (char) {
-	  // "\r\n\t\f "
-	  return char === 0x00d || char === 0x00a || char === 0x009 || char === 0x00c || char === 0x020
-	}
-
-	/**
-	 * @see https://infra.spec.whatwg.org/#strip-leading-and-trailing-ascii-whitespace
-	 * @param {string} str
-	 * @param {boolean} [leading=true]
-	 * @param {boolean} [trailing=true]
-	 */
-	function removeASCIIWhitespace (str, leading = true, trailing = true) {
-	  return removeChars(str, leading, trailing, isASCIIWhitespace)
-	}
-
-	/**
-	 * @param {string} str
-	 * @param {boolean} leading
-	 * @param {boolean} trailing
-	 * @param {(charCode: number) => boolean} predicate
-	 * @returns
-	 */
-	function removeChars (str, leading, trailing, predicate) {
-	  let lead = 0;
-	  let trail = str.length - 1;
-
-	  if (leading) {
-	    while (lead < str.length && predicate(str.charCodeAt(lead))) lead++;
-	  }
-
-	  if (trailing) {
-	    while (trail > 0 && predicate(str.charCodeAt(trail))) trail--;
-	  }
-
-	  return lead === 0 && trail === str.length - 1 ? str : str.slice(lead, trail + 1)
-	}
-
-	/**
-	 * @see https://infra.spec.whatwg.org/#isomorphic-decode
-	 * @param {Uint8Array} input
-	 * @returns {string}
-	 */
-	function isomorphicDecode (input) {
-	  // 1. To isomorphic decode a byte sequence input, return a string whose code point
-	  //    length is equal to input’s length and whose code points have the same values
-	  //    as the values of input’s bytes, in the same order.
-	  const length = input.length;
-	  if ((2 << 15) - 1 > length) {
-	    return String.fromCharCode.apply(null, input)
-	  }
-	  let result = ''; let i = 0;
-	  let addition = (2 << 15) - 1;
-	  while (i < length) {
-	    if (i + addition > length) {
-	      addition = length - i;
-	    }
-	    result += String.fromCharCode.apply(null, input.subarray(i, i += addition));
-	  }
-	  return result
 	}
 
 	/**
@@ -4646,20 +5163,141 @@ function requireDataUrl () {
 	dataUrl = {
 	  dataURLProcessor,
 	  URLSerializer,
-	  collectASequenceOfCodePoints,
-	  collectASequenceOfCodePointsFast,
 	  stringPercentDecode,
 	  parseMIMEType,
 	  collectAnHTTPQuotedString,
 	  serializeAMimeType,
-	  removeChars,
 	  removeHTTPWhitespace,
 	  minimizeSupportedMimeType,
-	  HTTP_TOKEN_CODEPOINTS,
-	  isomorphicDecode
+	  HTTP_TOKEN_CODEPOINTS
 	};
 	return dataUrl;
 }
+
+var runtimeFeatures$2 = {};
+
+/** @typedef {`node:${string}`} NodeModuleName */
+
+/** @type {Record<NodeModuleName, () => any>} */
+const lazyLoaders = {
+  __proto__: null,
+  'node:crypto': () => require$$2$1,
+  'node:sqlite': () => require('node:sqlite'),
+  'node:worker_threads': () => require$$1,
+  'node:zlib': () => require$$0$6
+};
+
+/**
+ * @param {NodeModuleName} moduleName
+ * @returns {boolean}
+ */
+function detectRuntimeFeatureByNodeModule (moduleName) {
+  try {
+    lazyLoaders[moduleName]();
+    return true
+  } catch (err) {
+    if (err.code !== 'ERR_UNKNOWN_BUILTIN_MODULE' && err.code !== 'ERR_NO_CRYPTO') {
+      throw err
+    }
+    return false
+  }
+}
+
+/**
+ * @param {NodeModuleName} moduleName
+ * @param {string} property
+ * @returns {boolean}
+ */
+function detectRuntimeFeatureByExportedProperty (moduleName, property) {
+  const module = lazyLoaders[moduleName]();
+  return typeof module[property] !== 'undefined'
+}
+
+const runtimeFeaturesByExportedProperty = /** @type {const} */ (['markAsUncloneable', 'zstd']);
+
+/** @type {Record<RuntimeFeatureByExportedProperty, [NodeModuleName, string]>} */
+const exportedPropertyLookup = {
+  markAsUncloneable: ['node:worker_threads', 'markAsUncloneable'],
+  zstd: ['node:zlib', 'createZstdDecompress']
+};
+
+/** @typedef {typeof runtimeFeaturesByExportedProperty[number]} RuntimeFeatureByExportedProperty */
+
+const runtimeFeaturesAsNodeModule = /** @type {const} */ (['crypto', 'sqlite']);
+/** @typedef {typeof runtimeFeaturesAsNodeModule[number]} RuntimeFeatureByNodeModule */
+
+const features = /** @type {const} */ ([
+  ...runtimeFeaturesAsNodeModule,
+  ...runtimeFeaturesByExportedProperty
+]);
+
+/** @typedef {typeof features[number]} Feature */
+
+/**
+ * @param {Feature} feature
+ * @returns {boolean}
+ */
+function detectRuntimeFeature (feature) {
+  if (runtimeFeaturesAsNodeModule.includes(/** @type {RuntimeFeatureByNodeModule} */ (feature))) {
+    return detectRuntimeFeatureByNodeModule(`node:${feature}`)
+  } else if (runtimeFeaturesByExportedProperty.includes(/** @type {RuntimeFeatureByExportedProperty} */ (feature))) {
+    const [moduleName, property] = exportedPropertyLookup[feature];
+    return detectRuntimeFeatureByExportedProperty(moduleName, property)
+  }
+  throw new TypeError(`unknown feature: ${feature}`)
+}
+
+/**
+ * @class
+ * @name RuntimeFeatures
+ */
+class RuntimeFeatures {
+  /** @type {Map<Feature, boolean>} */
+  #map = new Map()
+
+  /**
+   * Clears all cached feature detections.
+   */
+  clear () {
+    this.#map.clear();
+  }
+
+  /**
+   * @param {Feature} feature
+   * @returns {boolean}
+   */
+  has (feature) {
+    return (
+      this.#map.get(feature) ?? this.#detectRuntimeFeature(feature)
+    )
+  }
+
+  /**
+   * @param {Feature} feature
+   * @param {boolean} value
+   */
+  set (feature, value) {
+    if (features.includes(feature) === false) {
+      throw new TypeError(`unknown feature: ${feature}`)
+    }
+    this.#map.set(feature, value);
+  }
+
+  /**
+   * @param {Feature} feature
+   * @returns {boolean}
+   */
+  #detectRuntimeFeature (feature) {
+    const result = detectRuntimeFeature(feature);
+    this.#map.set(feature, result);
+    return result
+  }
+}
+
+const instance = new RuntimeFeatures();
+
+runtimeFeatures$2.runtimeFeatures = instance;
+runtimeFeatures$2.default = instance;
 
 var webidl_1;
 var hasRequiredWebidl;
@@ -4668,8 +5306,9 @@ function requireWebidl () {
 	if (hasRequiredWebidl) return webidl_1;
 	hasRequiredWebidl = 1;
 
-	const { types, inspect } = require$$0$4;
-	const { markAsUncloneable } = require$$1;
+	const assert = require$$0$2;
+	const { types, inspect } = require$$3;
+	const { runtimeFeatures } = runtimeFeatures$2;
 
 	const UNDEFINED = 1;
 	const BOOLEAN = 2;
@@ -4825,10 +5464,12 @@ function requireWebidl () {
 	  }
 	};
 
-	webidl.util.markAsUncloneable = markAsUncloneable || (() => {});
+	webidl.util.markAsUncloneable = runtimeFeatures.has('markAsUncloneable')
+	  ? require$$1.markAsUncloneable
+	  : () => {};
 
 	// https://webidl.spec.whatwg.org/#abstract-opdef-converttoint
-	webidl.util.ConvertToInt = function (V, bitLength, signedness, opts) {
+	webidl.util.ConvertToInt = function (V, bitLength, signedness, flags) {
 	  let upperBound;
 	  let lowerBound;
 
@@ -4872,7 +5513,7 @@ function requireWebidl () {
 
 	  // 6. If the conversion is to an IDL type associated
 	  //    with the [EnforceRange] extended attribute, then:
-	  if (opts?.enforceRange === true) {
+	  if (webidl.util.HasFlag(flags, webidl.attributes.EnforceRange)) {
 	    // 1. If x is NaN, +∞, or −∞, then throw a TypeError.
 	    if (
 	      Number.isNaN(x) ||
@@ -4904,7 +5545,7 @@ function requireWebidl () {
 	  // 7. If x is not NaN and the conversion is to an IDL
 	  //    type associated with the [Clamp] extended
 	  //    attribute, then:
-	  if (!Number.isNaN(x) && opts?.clamp === true) {
+	  if (!Number.isNaN(x) && webidl.util.HasFlag(flags, webidl.attributes.Clamp)) {
 	    // 1. Set x to min(max(x, lowerBound), upperBound).
 	    x = Math.min(Math.max(x, lowerBound), upperBound);
 
@@ -4976,6 +5617,25 @@ function requireWebidl () {
 	    default:
 	      return `${V}`
 	  }
+	};
+
+	webidl.util.IsResizableArrayBuffer = function (V) {
+	  if (types.isArrayBuffer(V)) {
+	    return V.resizable
+	  }
+
+	  if (types.isSharedArrayBuffer(V)) {
+	    return V.growable
+	  }
+
+	  throw webidl.errors.exception({
+	    header: 'IsResizableArrayBuffer',
+	    message: `"${webidl.util.Stringify(V)}" is not an array buffer.`
+	  })
+	};
+
+	webidl.util.HasFlag = function (flags, attributes) {
+	  return typeof flags === 'number' && (flags & attributes) === attributes
 	};
 
 	// https://webidl.spec.whatwg.org/#es-sequence
@@ -5098,6 +5758,9 @@ function requireWebidl () {
 	};
 
 	webidl.dictionaryConverter = function (converters) {
+	  // "For each dictionary member member declared on dictionary, in lexicographical order:"
+	  converters.sort((a, b) => (a.key > b.key) - (a.key < b.key));
+
 	  return (dictionary, prefix, argument) => {
 	    const dict = {};
 
@@ -5177,18 +5840,76 @@ function requireWebidl () {
 	webidl.is.ReadableStream = webidl.util.MakeTypeAssertion(ReadableStream);
 	webidl.is.Blob = webidl.util.MakeTypeAssertion(Blob);
 	webidl.is.URLSearchParams = webidl.util.MakeTypeAssertion(URLSearchParams);
-	webidl.is.File = webidl.util.MakeTypeAssertion(globalThis.File ?? require$$0.File);
+	webidl.is.File = webidl.util.MakeTypeAssertion(File);
 	webidl.is.URL = webidl.util.MakeTypeAssertion(URL);
 	webidl.is.AbortSignal = webidl.util.MakeTypeAssertion(AbortSignal);
 	webidl.is.MessagePort = webidl.util.MakeTypeAssertion(MessagePort);
 
+	webidl.is.BufferSource = function (V) {
+	  return types.isArrayBuffer(V) || (
+	    ArrayBuffer.isView(V) &&
+	    types.isArrayBuffer(V.buffer)
+	  )
+	};
+
+	// https://webidl.spec.whatwg.org/#dfn-get-buffer-source-copy
+	webidl.util.getCopyOfBytesHeldByBufferSource = function (bufferSource) {
+	  // 1. Let jsBufferSource be the result of converting bufferSource to a JavaScript value.
+	  const jsBufferSource = bufferSource;
+
+	  // 2. Let jsArrayBuffer be jsBufferSource.
+	  let jsArrayBuffer = jsBufferSource;
+
+	  // 3. Let offset be 0.
+	  let offset = 0;
+
+	  // 4. Let length be 0.
+	  let length = 0;
+
+	  // 5. If jsBufferSource has a [[ViewedArrayBuffer]] internal slot, then:
+	  if (types.isTypedArray(jsBufferSource) || types.isDataView(jsBufferSource)) {
+	    // 5.1. Set jsArrayBuffer to jsBufferSource.[[ViewedArrayBuffer]].
+	    jsArrayBuffer = jsBufferSource.buffer;
+
+	    // 5.2. Set offset to jsBufferSource.[[ByteOffset]].
+	    offset = jsBufferSource.byteOffset;
+
+	    // 5.3. Set length to jsBufferSource.[[ByteLength]].
+	    length = jsBufferSource.byteLength;
+	  } else {
+	    // 6. Otherwise:
+
+	    // 6.1. Assert: jsBufferSource is an ArrayBuffer or SharedArrayBuffer object.
+	    assert(types.isAnyArrayBuffer(jsBufferSource));
+
+	    // 6.2. Set length to jsBufferSource.[[ArrayBufferByteLength]].
+	    length = jsBufferSource.byteLength;
+	  }
+
+	  // 7. If IsDetachedBuffer(jsArrayBuffer) is true, then return the empty byte sequence.
+	  if (jsArrayBuffer.detached) {
+	    return new Uint8Array(0)
+	  }
+
+	  // 8. Let bytes be a new byte sequence of length equal to length.
+	  const bytes = new Uint8Array(length);
+
+	  // 9. For i in the range offset to offset + length − 1, inclusive,
+	  //    set bytes[i − offset] to GetValueFromBuffer(jsArrayBuffer, i, Uint8, true, Unordered).
+	  const view = new Uint8Array(jsArrayBuffer, offset, length);
+	  bytes.set(view);
+
+	  // 10. Return bytes.
+	  return bytes
+	};
+
 	// https://webidl.spec.whatwg.org/#es-DOMString
-	webidl.converters.DOMString = function (V, prefix, argument, opts) {
+	webidl.converters.DOMString = function (V, prefix, argument, flags) {
 	  // 1. If V is null and the conversion is to an IDL type
 	  //    associated with the [LegacyNullToEmptyString]
 	  //    extended attribute, then return the DOMString value
 	  //    that represents the empty string.
-	  if (V === null && opts?.legacyNullToEmptyString) {
+	  if (V === null && webidl.util.HasFlag(flags, webidl.attributes.LegacyNullToEmptyString)) {
 	    return ''
 	  }
 
@@ -5267,7 +5988,7 @@ function requireWebidl () {
 	// https://webidl.spec.whatwg.org/#es-long-long
 	webidl.converters['long long'] = function (V, prefix, argument) {
 	  // 1. Let x be ? ConvertToInt(V, 64, "signed").
-	  const x = webidl.util.ConvertToInt(V, 64, 'signed', undefined, prefix, argument);
+	  const x = webidl.util.ConvertToInt(V, 64, 'signed', 0, prefix, argument);
 
 	  // 2. Return the IDL long long value that represents
 	  //    the same numeric value as x.
@@ -5277,7 +5998,7 @@ function requireWebidl () {
 	// https://webidl.spec.whatwg.org/#es-unsigned-long-long
 	webidl.converters['unsigned long long'] = function (V, prefix, argument) {
 	  // 1. Let x be ? ConvertToInt(V, 64, "unsigned").
-	  const x = webidl.util.ConvertToInt(V, 64, 'unsigned', undefined, prefix, argument);
+	  const x = webidl.util.ConvertToInt(V, 64, 'unsigned', 0, prefix, argument);
 
 	  // 2. Return the IDL unsigned long long value that
 	  //    represents the same numeric value as x.
@@ -5287,7 +6008,7 @@ function requireWebidl () {
 	// https://webidl.spec.whatwg.org/#es-unsigned-long
 	webidl.converters['unsigned long'] = function (V, prefix, argument) {
 	  // 1. Let x be ? ConvertToInt(V, 32, "unsigned").
-	  const x = webidl.util.ConvertToInt(V, 32, 'unsigned', undefined, prefix, argument);
+	  const x = webidl.util.ConvertToInt(V, 32, 'unsigned', 0, prefix, argument);
 
 	  // 2. Return the IDL unsigned long value that
 	  //    represents the same numeric value as x.
@@ -5295,9 +6016,9 @@ function requireWebidl () {
 	};
 
 	// https://webidl.spec.whatwg.org/#es-unsigned-short
-	webidl.converters['unsigned short'] = function (V, prefix, argument, opts) {
+	webidl.converters['unsigned short'] = function (V, prefix, argument, flags) {
 	  // 1. Let x be ? ConvertToInt(V, 16, "unsigned").
-	  const x = webidl.util.ConvertToInt(V, 16, 'unsigned', opts, prefix, argument);
+	  const x = webidl.util.ConvertToInt(V, 16, 'unsigned', flags, prefix, argument);
 
 	  // 2. Return the IDL unsigned short value that represents
 	  //    the same numeric value as x.
@@ -5305,15 +6026,16 @@ function requireWebidl () {
 	};
 
 	// https://webidl.spec.whatwg.org/#idl-ArrayBuffer
-	webidl.converters.ArrayBuffer = function (V, prefix, argument, opts) {
-	  // 1. If Type(V) is not Object, or V does not have an
+	webidl.converters.ArrayBuffer = function (V, prefix, argument, flags) {
+	  // 1. If V is not an Object, or V does not have an
 	  //    [[ArrayBufferData]] internal slot, then throw a
 	  //    TypeError.
+	  // 2. If IsSharedArrayBuffer(V) is true, then throw a
+	  //    TypeError.
 	  // see: https://tc39.es/ecma262/#sec-properties-of-the-arraybuffer-instances
-	  // see: https://tc39.es/ecma262/#sec-properties-of-the-sharedarraybuffer-instances
 	  if (
 	    webidl.util.Type(V) !== OBJECT ||
-	    !types.isAnyArrayBuffer(V)
+	    !types.isArrayBuffer(V)
 	  ) {
 	    throw webidl.errors.conversionFailed({
 	      prefix,
@@ -5322,25 +6044,14 @@ function requireWebidl () {
 	    })
 	  }
 
-	  // 2. If the conversion is not to an IDL type associated
-	  //    with the [AllowShared] extended attribute, and
-	  //    IsSharedArrayBuffer(V) is true, then throw a
-	  //    TypeError.
-	  if (opts?.allowShared === false && types.isSharedArrayBuffer(V)) {
-	    throw webidl.errors.exception({
-	      header: 'ArrayBuffer',
-	      message: 'SharedArrayBuffer is not allowed.'
-	    })
-	  }
-
 	  // 3. If the conversion is not to an IDL type associated
 	  //    with the [AllowResizable] extended attribute, and
 	  //    IsResizableArrayBuffer(V) is true, then throw a
 	  //    TypeError.
-	  if (V.resizable || V.growable) {
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowResizable) && webidl.util.IsResizableArrayBuffer(V)) {
 	    throw webidl.errors.exception({
-	      header: 'ArrayBuffer',
-	      message: 'Received a resizable ArrayBuffer.'
+	      header: prefix,
+	      message: `${argument} cannot be a resizable ArrayBuffer.`
 	    })
 	  }
 
@@ -5349,7 +6060,43 @@ function requireWebidl () {
 	  return V
 	};
 
-	webidl.converters.TypedArray = function (V, T, prefix, name, opts) {
+	// https://webidl.spec.whatwg.org/#idl-SharedArrayBuffer
+	webidl.converters.SharedArrayBuffer = function (V, prefix, argument, flags) {
+	  // 1. If V is not an Object, or V does not have an
+	  //    [[ArrayBufferData]] internal slot, then throw a
+	  //    TypeError.
+	  // 2. If IsSharedArrayBuffer(V) is false, then throw a
+	  //    TypeError.
+	  // see: https://tc39.es/ecma262/#sec-properties-of-the-sharedarraybuffer-instances
+	  if (
+	    webidl.util.Type(V) !== OBJECT ||
+	    !types.isSharedArrayBuffer(V)
+	  ) {
+	    throw webidl.errors.conversionFailed({
+	      prefix,
+	      argument: `${argument} ("${webidl.util.Stringify(V)}")`,
+	      types: ['SharedArrayBuffer']
+	    })
+	  }
+
+	  // 3. If the conversion is not to an IDL type associated
+	  //    with the [AllowResizable] extended attribute, and
+	  //    IsResizableArrayBuffer(V) is true, then throw a
+	  //    TypeError.
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowResizable) && webidl.util.IsResizableArrayBuffer(V)) {
+	    throw webidl.errors.exception({
+	      header: prefix,
+	      message: `${argument} cannot be a resizable SharedArrayBuffer.`
+	    })
+	  }
+
+	  // 4. Return the IDL SharedArrayBuffer value that is a
+	  //    reference to the same object as V.
+	  return V
+	};
+
+	// https://webidl.spec.whatwg.org/#dfn-typed-array-type
+	webidl.converters.TypedArray = function (V, T, prefix, argument, flags) {
 	  // 1. Let T be the IDL type V is being converted to.
 
 	  // 2. If Type(V) is not Object, or V does not have a
@@ -5362,7 +6109,7 @@ function requireWebidl () {
 	  ) {
 	    throw webidl.errors.conversionFailed({
 	      prefix,
-	      argument: `${name} ("${webidl.util.Stringify(V)}")`,
+	      argument: `${argument} ("${webidl.util.Stringify(V)}")`,
 	      types: [T.name]
 	    })
 	  }
@@ -5371,10 +6118,10 @@ function requireWebidl () {
 	  //    with the [AllowShared] extended attribute, and
 	  //    IsSharedArrayBuffer(V.[[ViewedArrayBuffer]]) is
 	  //    true, then throw a TypeError.
-	  if (opts?.allowShared === false && types.isSharedArrayBuffer(V.buffer)) {
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowShared) && types.isSharedArrayBuffer(V.buffer)) {
 	    throw webidl.errors.exception({
-	      header: 'ArrayBuffer',
-	      message: 'SharedArrayBuffer is not allowed.'
+	      header: prefix,
+	      message: `${argument} cannot be a view on a shared array buffer.`
 	    })
 	  }
 
@@ -5382,10 +6129,10 @@ function requireWebidl () {
 	  //    with the [AllowResizable] extended attribute, and
 	  //    IsResizableArrayBuffer(V.[[ViewedArrayBuffer]]) is
 	  //    true, then throw a TypeError.
-	  if (V.buffer.resizable || V.buffer.growable) {
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowResizable) && webidl.util.IsResizableArrayBuffer(V.buffer)) {
 	    throw webidl.errors.exception({
-	      header: 'ArrayBuffer',
-	      message: 'Received a resizable ArrayBuffer.'
+	      header: prefix,
+	      message: `${argument} cannot be a view on a resizable array buffer.`
 	    })
 	  }
 
@@ -5394,13 +6141,15 @@ function requireWebidl () {
 	  return V
 	};
 
-	webidl.converters.DataView = function (V, prefix, name, opts) {
+	// https://webidl.spec.whatwg.org/#idl-DataView
+	webidl.converters.DataView = function (V, prefix, argument, flags) {
 	  // 1. If Type(V) is not Object, or V does not have a
 	  //    [[DataView]] internal slot, then throw a TypeError.
 	  if (webidl.util.Type(V) !== OBJECT || !types.isDataView(V)) {
-	    throw webidl.errors.exception({
-	      header: prefix,
-	      message: `${name} is not a DataView.`
+	    throw webidl.errors.conversionFailed({
+	      prefix,
+	      argument: `${argument} ("${webidl.util.Stringify(V)}")`,
+	      types: ['DataView']
 	    })
 	  }
 
@@ -5408,10 +6157,10 @@ function requireWebidl () {
 	  //    with the [AllowShared] extended attribute, and
 	  //    IsSharedArrayBuffer(V.[[ViewedArrayBuffer]]) is true,
 	  //    then throw a TypeError.
-	  if (opts?.allowShared === false && types.isSharedArrayBuffer(V.buffer)) {
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowShared) && types.isSharedArrayBuffer(V.buffer)) {
 	    throw webidl.errors.exception({
-	      header: 'ArrayBuffer',
-	      message: 'SharedArrayBuffer is not allowed.'
+	      header: prefix,
+	      message: `${argument} cannot be a view on a shared array buffer.`
 	    })
 	  }
 
@@ -5419,16 +6168,95 @@ function requireWebidl () {
 	  //    with the [AllowResizable] extended attribute, and
 	  //    IsResizableArrayBuffer(V.[[ViewedArrayBuffer]]) is
 	  //    true, then throw a TypeError.
-	  if (V.buffer.resizable || V.buffer.growable) {
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowResizable) && webidl.util.IsResizableArrayBuffer(V.buffer)) {
 	    throw webidl.errors.exception({
-	      header: 'ArrayBuffer',
-	      message: 'Received a resizable ArrayBuffer.'
+	      header: prefix,
+	      message: `${argument} cannot be a view on a resizable array buffer.`
 	    })
 	  }
 
 	  // 4. Return the IDL DataView value that is a reference
 	  //    to the same object as V.
 	  return V
+	};
+
+	// https://webidl.spec.whatwg.org/#ArrayBufferView
+	webidl.converters.ArrayBufferView = function (V, prefix, argument, flags) {
+	  if (
+	    webidl.util.Type(V) !== OBJECT ||
+	    !types.isArrayBufferView(V)
+	  ) {
+	    throw webidl.errors.conversionFailed({
+	      prefix,
+	      argument: `${argument} ("${webidl.util.Stringify(V)}")`,
+	      types: ['ArrayBufferView']
+	    })
+	  }
+
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowShared) && types.isSharedArrayBuffer(V.buffer)) {
+	    throw webidl.errors.exception({
+	      header: prefix,
+	      message: `${argument} cannot be a view on a shared array buffer.`
+	    })
+	  }
+
+	  if (!webidl.util.HasFlag(flags, webidl.attributes.AllowResizable) && webidl.util.IsResizableArrayBuffer(V.buffer)) {
+	    throw webidl.errors.exception({
+	      header: prefix,
+	      message: `${argument} cannot be a view on a resizable array buffer.`
+	    })
+	  }
+
+	  return V
+	};
+
+	// https://webidl.spec.whatwg.org/#BufferSource
+	webidl.converters.BufferSource = function (V, prefix, argument, flags) {
+	  if (types.isArrayBuffer(V)) {
+	    return webidl.converters.ArrayBuffer(V, prefix, argument, flags)
+	  }
+
+	  if (types.isArrayBufferView(V)) {
+	    flags &= ~webidl.attributes.AllowShared;
+
+	    return webidl.converters.ArrayBufferView(V, prefix, argument, flags)
+	  }
+
+	  // Make this explicit for easier debugging
+	  if (types.isSharedArrayBuffer(V)) {
+	    throw webidl.errors.exception({
+	      header: prefix,
+	      message: `${argument} cannot be a SharedArrayBuffer.`
+	    })
+	  }
+
+	  throw webidl.errors.conversionFailed({
+	    prefix,
+	    argument: `${argument} ("${webidl.util.Stringify(V)}")`,
+	    types: ['ArrayBuffer', 'ArrayBufferView']
+	  })
+	};
+
+	// https://webidl.spec.whatwg.org/#AllowSharedBufferSource
+	webidl.converters.AllowSharedBufferSource = function (V, prefix, argument, flags) {
+	  if (types.isArrayBuffer(V)) {
+	    return webidl.converters.ArrayBuffer(V, prefix, argument, flags)
+	  }
+
+	  if (types.isSharedArrayBuffer(V)) {
+	    return webidl.converters.SharedArrayBuffer(V, prefix, argument, flags)
+	  }
+
+	  if (types.isArrayBufferView(V)) {
+	    flags |= webidl.attributes.AllowShared;
+	    return webidl.converters.ArrayBufferView(V, prefix, argument, flags)
+	  }
+
+	  throw webidl.errors.conversionFailed({
+	    prefix,
+	    argument: `${argument} ("${webidl.util.Stringify(V)}")`,
+	    types: ['ArrayBuffer', 'SharedArrayBuffer', 'ArrayBufferView']
+	  })
 	};
 
 	webidl.converters['sequence<ByteString>'] = webidl.sequenceConverter(
@@ -5451,43 +6279,58 @@ function requireWebidl () {
 	  'AbortSignal'
 	);
 
+	/**
+	 * [LegacyTreatNonObjectAsNull]
+	 * callback EventHandlerNonNull = any (Event event);
+	 * typedef EventHandlerNonNull? EventHandler;
+	 * @param {*} V
+	 */
+	webidl.converters.EventHandlerNonNull = function (V) {
+	  if (webidl.util.Type(V) !== OBJECT) {
+	    return null
+	  }
+
+	  // [I]f the value is not an object, it will be converted to null, and if the value is not callable,
+	  // it will be converted to a callback function value that does nothing when called.
+	  if (typeof V === 'function') {
+	    return V
+	  }
+
+	  return () => {}
+	};
+
+	webidl.attributes = {
+	  Clamp: 1 << 0,
+	  EnforceRange: 1 << 1,
+	  AllowShared: 1 << 2,
+	  AllowResizable: 1 << 3,
+	  LegacyNullToEmptyString: 1 << 4
+	};
+
 	webidl_1 = {
 	  webidl
 	};
 	return webidl_1;
 }
 
-var util$k;
+var util$l;
 var hasRequiredUtil$4;
 
 function requireUtil$4 () {
-	if (hasRequiredUtil$4) return util$k;
+	if (hasRequiredUtil$4) return util$l;
 	hasRequiredUtil$4 = 1;
 
 	const { Transform } = require$$0$1;
-	const zlib = require$$1$1;
+	const zlib = require$$0$6;
 	const { redirectStatusSet, referrerPolicyTokens, badPortsSet } = requireConstants$2();
 	const { getGlobalOrigin } = requireGlobal();
-	const { collectASequenceOfCodePoints, collectAnHTTPQuotedString, removeChars, parseMIMEType } = requireDataUrl();
-	const { performance } = require$$5;
-	const { ReadableStreamFrom, isValidHTTPToken, normalizedMethodRecordsBase } = util$n;
+	const { collectAnHTTPQuotedString, parseMIMEType } = requireDataUrl();
+	const { performance } = require$$5$1;
+	const { ReadableStreamFrom, isValidHTTPToken, normalizedMethodRecordsBase } = util$o;
 	const assert = require$$0$2;
 	const { isUint8Array } = require$$8;
 	const { webidl } = requireWebidl();
-
-	let supportedHashes = [];
-
-	// https://nodejs.org/api/crypto.html#determining-if-crypto-support-is-unavailable
-	/** @type {import('crypto')} */
-	let crypto;
-	try {
-	  crypto = require('node:crypto');
-	  const possibleRelevantHashes = ['sha256', 'sha384', 'sha512'];
-	  supportedHashes = crypto.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
-	/* c8 ignore next 3 */
-	} catch {
-
-	}
+	const { isomorphicEncode, collectASequenceOfCodePoints, removeChars } = requireInfra();
 
 	function responseURL (response) {
 	  // https://fetch.spec.whatwg.org/#responses
@@ -5979,8 +6822,8 @@ function requireUtil$4 () {
 	      if (isURLPotentiallyTrustworthy(referrerURL) && !isURLPotentiallyTrustworthy(currentURL)) {
 	        return 'no-referrer'
 	      }
-	      // 2. Return referrerOrigin
-	      return referrerOrigin
+	      // 2. Return referrerURL.
+	      return referrerURL
 	    }
 	  }
 	}
@@ -6031,17 +6874,11 @@ function requireUtil$4 () {
 	  return url
 	}
 
-	const potentialleTrustworthyIPv4RegExp = new RegExp('^(?:' +
-	  '(?:127\\.)' +
-	  '(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){2}' +
-	  '(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[1-9])' +
-	')$');
+	const isPotentialleTrustworthyIPv4 = RegExp.prototype.test
+	  .bind(/^127\.(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)\.){2}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)$/);
 
-	const potentialleTrustworthyIPv6RegExp = new RegExp('^(?:' +
-	  '(?:(?:0{1,4}):){7}(?:(?:0{0,3}1))|' +
-	  '(?:(?:0{1,4}):){1,6}(?::(?:0{0,3}1))|' +
-	  '(?:::(?:0{0,3}1))|' +
-	')$');
+	const isPotentiallyTrustworthyIPv6 = RegExp.prototype.test
+	  .bind(/^(?:(?:0{1,4}:){7}|(?:0{1,4}:){1,6}:|::)0{0,3}1$/);
 
 	/**
 	 * Check if host matches one of the CIDR notations 127.0.0.0/8 or ::1/128.
@@ -6056,11 +6893,11 @@ function requireUtil$4 () {
 	    if (origin[0] === '[' && origin[origin.length - 1] === ']') {
 	      origin = origin.slice(1, -1);
 	    }
-	    return potentialleTrustworthyIPv6RegExp.test(origin)
+	    return isPotentiallyTrustworthyIPv6(origin)
 	  }
 
 	  // IPv4
-	  return potentialleTrustworthyIPv4RegExp.test(origin)
+	  return isPotentialleTrustworthyIPv4(origin)
 	}
 
 	/**
@@ -6161,206 +6998,6 @@ function requireUtil$4 () {
 	  return isOriginPotentiallyTrustworthy(url.origin)
 	}
 
-	/**
-	 * @see https://w3c.github.io/webappsec-subresource-integrity/#does-response-match-metadatalist
-	 * @param {Uint8Array} bytes
-	 * @param {string} metadataList
-	 */
-	function bytesMatch (bytes, metadataList) {
-	  // If node is not built with OpenSSL support, we cannot check
-	  // a request's integrity, so allow it by default (the spec will
-	  // allow requests if an invalid hash is given, as precedence).
-	  /* istanbul ignore if: only if node is built with --without-ssl */
-	  if (crypto === undefined) {
-	    return true
-	  }
-
-	  // 1. Let parsedMetadata be the result of parsing metadataList.
-	  const parsedMetadata = parseMetadata(metadataList);
-
-	  // 2. If parsedMetadata is no metadata, return true.
-	  if (parsedMetadata === 'no metadata') {
-	    return true
-	  }
-
-	  // 3. If response is not eligible for integrity validation, return false.
-	  // TODO
-
-	  // 4. If parsedMetadata is the empty set, return true.
-	  if (parsedMetadata.length === 0) {
-	    return true
-	  }
-
-	  // 5. Let metadata be the result of getting the strongest
-	  //    metadata from parsedMetadata.
-	  const strongest = getStrongestMetadata(parsedMetadata);
-	  const metadata = filterMetadataListByAlgorithm(parsedMetadata, strongest);
-
-	  // 6. For each item in metadata:
-	  for (const item of metadata) {
-	    // 1. Let algorithm be the alg component of item.
-	    const algorithm = item.algo;
-
-	    // 2. Let expectedValue be the val component of item.
-	    const expectedValue = item.hash;
-
-	    // See https://github.com/web-platform-tests/wpt/commit/e4c5cc7a5e48093220528dfdd1c4012dc3837a0e
-	    // "be liberal with padding". This is annoying, and it's not even in the spec.
-
-	    // 3. Let actualValue be the result of applying algorithm to bytes.
-	    let actualValue = crypto.createHash(algorithm).update(bytes).digest('base64');
-
-	    if (actualValue[actualValue.length - 1] === '=') {
-	      if (actualValue[actualValue.length - 2] === '=') {
-	        actualValue = actualValue.slice(0, -2);
-	      } else {
-	        actualValue = actualValue.slice(0, -1);
-	      }
-	    }
-
-	    // 4. If actualValue is a case-sensitive match for expectedValue,
-	    //    return true.
-	    if (compareBase64Mixed(actualValue, expectedValue)) {
-	      return true
-	    }
-	  }
-
-	  // 7. Return false.
-	  return false
-	}
-
-	// https://w3c.github.io/webappsec-subresource-integrity/#grammardef-hash-with-options
-	// https://www.w3.org/TR/CSP2/#source-list-syntax
-	// https://www.rfc-editor.org/rfc/rfc5234#appendix-B.1
-	const parseHashWithOptions = /(?<algo>sha256|sha384|sha512)-((?<hash>[A-Za-z0-9+/]+|[A-Za-z0-9_-]+)={0,2}(?:\s|$)( +[!-~]*)?)?/i;
-
-	/**
-	 * @see https://w3c.github.io/webappsec-subresource-integrity/#parse-metadata
-	 * @param {string} metadata
-	 */
-	function parseMetadata (metadata) {
-	  // 1. Let result be the empty set.
-	  /** @type {{ algo: string, hash: string }[]} */
-	  const result = [];
-
-	  // 2. Let empty be equal to true.
-	  let empty = true;
-
-	  // 3. For each token returned by splitting metadata on spaces:
-	  for (const token of metadata.split(' ')) {
-	    // 1. Set empty to false.
-	    empty = false;
-
-	    // 2. Parse token as a hash-with-options.
-	    const parsedToken = parseHashWithOptions.exec(token);
-
-	    // 3. If token does not parse, continue to the next token.
-	    if (
-	      parsedToken === null ||
-	      parsedToken.groups === undefined ||
-	      parsedToken.groups.algo === undefined
-	    ) {
-	      // Note: Chromium blocks the request at this point, but Firefox
-	      // gives a warning that an invalid integrity was given. The
-	      // correct behavior is to ignore these, and subsequently not
-	      // check the integrity of the resource.
-	      continue
-	    }
-
-	    // 4. Let algorithm be the hash-algo component of token.
-	    const algorithm = parsedToken.groups.algo.toLowerCase();
-
-	    // 5. If algorithm is a hash function recognized by the user
-	    //    agent, add the parsed token to result.
-	    if (supportedHashes.includes(algorithm)) {
-	      result.push(parsedToken.groups);
-	    }
-	  }
-
-	  // 4. Return no metadata if empty is true, otherwise return result.
-	  if (empty === true) {
-	    return 'no metadata'
-	  }
-
-	  return result
-	}
-
-	/**
-	 * @param {{ algo: 'sha256' | 'sha384' | 'sha512' }[]} metadataList
-	 */
-	function getStrongestMetadata (metadataList) {
-	  // Let algorithm be the algo component of the first item in metadataList.
-	  // Can be sha256
-	  let algorithm = metadataList[0].algo;
-	  // If the algorithm is sha512, then it is the strongest
-	  // and we can return immediately
-	  if (algorithm[3] === '5') {
-	    return algorithm
-	  }
-
-	  for (let i = 1; i < metadataList.length; ++i) {
-	    const metadata = metadataList[i];
-	    // If the algorithm is sha512, then it is the strongest
-	    // and we can break the loop immediately
-	    if (metadata.algo[3] === '5') {
-	      algorithm = 'sha512';
-	      break
-	    // If the algorithm is sha384, then a potential sha256 or sha384 is ignored
-	    } else if (algorithm[3] === '3') {
-	      continue
-	    // algorithm is sha256, check if algorithm is sha384 and if so, set it as
-	    // the strongest
-	    } else if (metadata.algo[3] === '3') {
-	      algorithm = 'sha384';
-	    }
-	  }
-	  return algorithm
-	}
-
-	function filterMetadataListByAlgorithm (metadataList, algorithm) {
-	  if (metadataList.length === 1) {
-	    return metadataList
-	  }
-
-	  let pos = 0;
-	  for (let i = 0; i < metadataList.length; ++i) {
-	    if (metadataList[i].algo === algorithm) {
-	      metadataList[pos++] = metadataList[i];
-	    }
-	  }
-
-	  metadataList.length = pos;
-
-	  return metadataList
-	}
-
-	/**
-	 * Compares two base64 strings, allowing for base64url
-	 * in the second string.
-	 *
-	* @param {string} actualValue always base64
-	 * @param {string} expectedValue base64 or base64url
-	 * @returns {boolean}
-	 */
-	function compareBase64Mixed (actualValue, expectedValue) {
-	  if (actualValue.length !== expectedValue.length) {
-	    return false
-	  }
-	  for (let i = 0; i < actualValue.length; ++i) {
-	    if (actualValue[i] !== expectedValue[i]) {
-	      if (
-	        (actualValue[i] === '+' && expectedValue[i] === '-') ||
-	        (actualValue[i] === '/' && expectedValue[i] === '_')
-	      ) {
-	        continue
-	      }
-	      return false
-	    }
-	  }
-
-	  return true
-	}
-
 	// https://w3c.github.io/webappsec-upgrade-insecure-requests/#upgrade-request
 	function tryUpgradeRequestToAPotentiallyTrustworthyURL (request) {
 	  // TODO
@@ -6387,17 +7024,6 @@ function requireUtil$4 () {
 	  return false
 	}
 
-	function createDeferredPromise () {
-	  let res;
-	  let rej;
-	  const promise = new Promise((resolve, reject) => {
-	    res = resolve;
-	    rej = reject;
-	  });
-
-	  return { promise, resolve: res, reject: rej }
-	}
-
 	function isAborted (fetchParams) {
 	  return fetchParams.controller.state === 'aborted'
 	}
@@ -6413,23 +7039,6 @@ function requireUtil$4 () {
 	 */
 	function normalizeMethod (method) {
 	  return normalizedMethodRecordsBase[method.toLowerCase()] ?? method
-	}
-
-	// https://infra.spec.whatwg.org/#serialize-a-javascript-value-to-a-json-string
-	function serializeJavascriptValueToJSONString (value) {
-	  // 1. Let result be ? Call(%JSON.stringify%, undefined, « value »).
-	  const result = JSON.stringify(value);
-
-	  // 2. If result is undefined, then throw a TypeError.
-	  if (result === undefined) {
-	    throw new TypeError('Value is not JSON serializable')
-	  }
-
-	  // 3. Assert: result is a string.
-	  assert(typeof result === 'string');
-
-	  // 4. Return result.
-	  return result
 	}
 
 	// https://tc39.es/ecma262/#sec-%25iteratorprototype%25-object
@@ -6640,6 +7249,11 @@ function requireUtil$4 () {
 	}
 
 	/**
+	 * @param {import('./body').ExtractBodyResult} body
+	 * @param {(bytes: Uint8Array) => void} processBody
+	 * @param {(error: Error) => void} processBodyError
+	 * @returns {void}
+	 *
 	 * @see https://fetch.spec.whatwg.org/#body-fully-read
 	 */
 	function fullyReadBody (body, processBody, processBodyError) {
@@ -6654,20 +7268,17 @@ function requireUtil$4 () {
 	  //    with taskDestination.
 	  const errorSteps = processBodyError;
 
+	  try {
 	  // 4. Let reader be the result of getting a reader for body’s stream.
 	  //    If that threw an exception, then run errorSteps with that
 	  //    exception and return.
-	  let reader;
+	    const reader = body.stream.getReader();
 
-	  try {
-	    reader = body.stream.getReader();
+	    // 5. Read all bytes from reader, given successSteps and errorSteps.
+	    readAllBytes(reader, successSteps, errorSteps);
 	  } catch (e) {
 	    errorSteps(e);
-	    return
 	  }
-
-	  // 5. Read all bytes from reader, given successSteps and errorSteps.
-	  readAllBytes(reader, successSteps, errorSteps);
 	}
 
 	/**
@@ -6685,34 +7296,19 @@ function requireUtil$4 () {
 	  }
 	}
 
-	const invalidIsomorphicEncodeValueRegex = /[^\x00-\xFF]/; // eslint-disable-line
-
-	/**
-	 * @see https://infra.spec.whatwg.org/#isomorphic-encode
-	 * @param {string} input
-	 */
-	function isomorphicEncode (input) {
-	  // 1. Assert: input contains no code points greater than U+00FF.
-	  assert(!invalidIsomorphicEncodeValueRegex.test(input));
-
-	  // 2. Return a byte sequence whose length is equal to input’s code
-	  //    point length and whose bytes have the same values as the
-	  //    values of input’s code points, in the same order
-	  return input
-	}
-
 	/**
 	 * @see https://streams.spec.whatwg.org/#readablestreamdefaultreader-read-all-bytes
 	 * @see https://streams.spec.whatwg.org/#read-loop
-	 * @param {ReadableStreamDefaultReader} reader
+	 * @param {ReadableStream<Uint8Array<ArrayBuffer>>} reader
 	 * @param {(bytes: Uint8Array) => void} successSteps
 	 * @param {(error: Error) => void} failureSteps
+	 * @returns {Promise<void>}
 	 */
 	async function readAllBytes (reader, successSteps, failureSteps) {
-	  const bytes = [];
-	  let byteLength = 0;
-
 	  try {
+	    const bytes = [];
+	    let byteLength = 0;
+
 	    do {
 	      const { done, value: chunk } = await reader.read();
 
@@ -6788,9 +7384,16 @@ function requireUtil$4 () {
 	}
 
 	/**
+	 * @typedef {Object} RangeHeaderValue
+	 * @property {number|null} rangeStartValue
+	 * @property {number|null} rangeEndValue
+	 */
+
+	/**
 	 * @see https://fetch.spec.whatwg.org/#simple-range-header-value
 	 * @param {string} value
 	 * @param {boolean} allowWhitespace
+	 * @return {RangeHeaderValue|'failure'}
 	 */
 	function simpleRangeHeaderValue (value, allowWhitespace) {
 	  // 1. Let data be the isomorphic decoding of value.
@@ -7145,32 +7748,26 @@ function requireUtil$4 () {
 	  return gettingDecodingSplitting(value)
 	}
 
-	const textDecoder = new TextDecoder();
+	function hasAuthenticationEntry (request) {
+	  return false
+	}
 
 	/**
-	 * @see https://encoding.spec.whatwg.org/#utf-8-decode
-	 * @param {Buffer} buffer
+	 * @see https://url.spec.whatwg.org/#include-credentials
+	 * @param {URL} url
 	 */
-	function utf8DecodeBytes (buffer) {
-	  if (buffer.length === 0) {
-	    return ''
-	  }
+	function includesCredentials (url) {
+	  // A URL includes credentials if its username or password is not the empty string.
+	  return !!(url.username || url.password)
+	}
 
-	  // 1. Let buffer be the result of peeking three bytes from
-	  //    ioQueue, converted to a byte sequence.
-
-	  // 2. If buffer is 0xEF 0xBB 0xBF, then read three
-	  //    bytes from ioQueue. (Do nothing with those bytes.)
-	  if (buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
-	    buffer = buffer.subarray(3);
-	  }
-
-	  // 3. Process a queue with an instance of UTF-8’s
-	  //    decoder, ioQueue, output, and "replacement".
-	  const output = textDecoder.decode(buffer);
-
-	  // 4. Return output.
-	  return output
+	/**
+	 * @see https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigable
+	 * @param {object|string} navigable
+	 */
+	function isTraversableNavigable (navigable) {
+	  // TODO
+	  return true
 	}
 
 	class EnvironmentSettingsObjectBase {
@@ -7191,11 +7788,10 @@ function requireUtil$4 () {
 
 	const environmentSettingsObject = new EnvironmentSettingsObject();
 
-	util$k = {
+	util$l = {
 	  isAborted,
 	  isCancelled,
 	  isValidEncodedURL,
-	  createDeferredPromise,
 	  ReadableStreamFrom,
 	  tryUpgradeRequestToAPotentiallyTrustworthyURL,
 	  clampAndCoarsenConnectionTimingInfo,
@@ -7219,31 +7815,29 @@ function requireUtil$4 () {
 	  isValidReasonPhrase,
 	  sameOrigin,
 	  normalizeMethod,
-	  serializeJavascriptValueToJSONString,
 	  iteratorMixin,
 	  createIterator,
 	  isValidHeaderName,
 	  isValidHeaderValue,
 	  isErrorLike,
 	  fullyReadBody,
-	  bytesMatch,
 	  readableStreamClose,
-	  isomorphicEncode,
 	  urlIsLocal,
 	  urlHasHttpsScheme,
 	  urlIsHttpHttpsScheme,
 	  readAllBytes,
 	  simpleRangeHeaderValue,
 	  buildContentRange,
-	  parseMetadata,
 	  createInflate,
 	  extractMimeType,
 	  getDecodeSplit,
-	  utf8DecodeBytes,
 	  environmentSettingsObject,
-	  isOriginIPPotentiallyTrustworthy
+	  isOriginIPPotentiallyTrustworthy,
+	  hasAuthenticationEntry,
+	  includesCredentials,
+	  isTraversableNavigable
 	};
-	return util$k;
+	return util$l;
 }
 
 var formdata;
@@ -7254,19 +7848,15 @@ function requireFormdata () {
 	hasRequiredFormdata = 1;
 
 	const { iteratorMixin } = requireUtil$4();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 	const { webidl } = requireWebidl();
-	const { File: NativeFile } = require$$0;
-	const nodeUtil = require$$0$4;
-
-	/** @type {globalThis['File']} */
-	const File = globalThis.File ?? NativeFile;
+	const nodeUtil = require$$3;
 
 	// https://xhr.spec.whatwg.org/#formdata
 	class FormData {
 	  #state = []
 
-	  constructor (form) {
+	  constructor (form = undefined) {
 	    webidl.util.markAsUncloneable(this);
 
 	    if (form !== undefined) {
@@ -7522,20 +8112,16 @@ function requireFormdataParser () {
 	if (hasRequiredFormdataParser) return formdataParser;
 	hasRequiredFormdataParser = 1;
 
-	const { bufferToLowerCasedHeaderName } = util$n;
-	const { utf8DecodeBytes } = requireUtil$4();
-	const { HTTP_TOKEN_CODEPOINTS, isomorphicDecode } = requireDataUrl();
+	const { bufferToLowerCasedHeaderName } = util$o;
+	const { HTTP_TOKEN_CODEPOINTS } = requireDataUrl();
 	const { makeEntry } = requireFormdata();
 	const { webidl } = requireWebidl();
 	const assert = require$$0$2;
-	const { File: NodeFile } = require$$0;
+	const { isomorphicDecode } = requireInfra();
+	const { utf8DecodeBytes } = requireEncoding();
 
-	const File = globalThis.File ?? NodeFile;
-
-	const formDataNameBuffer = Buffer.from('form-data; name="');
-	const filenameBuffer = Buffer.from('filename');
 	const dd = Buffer.from('--');
-	const ddcrlf = Buffer.from('--\r\n');
+	const decoder = new TextDecoder();
 
 	/**
 	 * @param {string} chars
@@ -7609,20 +8195,16 @@ function requireFormdataParser () {
 	  //    the first byte.
 	  const position = { position: 0 };
 
-	  // Note: undici addition, allows leading and trailing CRLFs.
-	  while (input[position.position] === 0x0d && input[position.position + 1] === 0x0a) {
-	    position.position += 2;
+	  // Note: Per RFC 2046 Section 5.1.1, we must ignore anything before the
+	  // first boundary delimiter line (preamble). Search for the first boundary.
+	  const firstBoundaryIndex = input.indexOf(boundary);
+
+	  if (firstBoundaryIndex === -1) {
+	    throw parsingError('no boundary found in multipart body')
 	  }
 
-	  let trailing = input.length;
-
-	  while (input[trailing - 1] === 0x0a && input[trailing - 2] === 0x0d) {
-	    trailing -= 2;
-	  }
-
-	  if (trailing !== input.length) {
-	    input = input.subarray(0, trailing);
-	  }
+	  // Start parsing from the first boundary, ignoring any preamble
+	  position.position = firstBoundaryIndex;
 
 	  // 5. While true:
 	  while (true) {
@@ -7638,11 +8220,11 @@ function requireFormdataParser () {
 
 	    // 5.2. If position points to the sequence of bytes 0x2D 0x2D 0x0D 0x0A
 	    //      (`--` followed by CR LF) followed by the end of input, return entry list.
-	    // Note: a body does NOT need to end with CRLF. It can end with --.
-	    if (
-	      (position.position === input.length - 2 && bufferStartsWith(input, dd, position)) ||
-	      (position.position === input.length - 4 && bufferStartsWith(input, ddcrlf, position))
-	    ) {
+	    // Note: Per RFC 2046 Section 5.1.1, we must ignore anything after the
+	    // final boundary delimiter (epilogue). Check for -- or --CRLF and return
+	    // regardless of what follows.
+	    if (bufferStartsWith(input, dd, position)) {
+	      // Found closing boundary delimiter (--), ignore any epilogue
 	      return entryList
 	    }
 
@@ -7731,6 +8313,113 @@ function requireFormdataParser () {
 	}
 
 	/**
+	 * Parses content-disposition attributes (e.g., name="value" or filename*=utf-8''encoded)
+	 * @param {Buffer} input
+	 * @param {{ position: number }} position
+	 * @returns {{ name: string, value: string }}
+	 */
+	function parseContentDispositionAttribute (input, position) {
+	  // Skip leading semicolon and whitespace
+	  if (input[position.position] === 0x3b /* ; */) {
+	    position.position++;
+	  }
+
+	  // Skip whitespace
+	  collectASequenceOfBytes(
+	    (char) => char === 0x20 || char === 0x09,
+	    input,
+	    position
+	  );
+
+	  // Collect attribute name (token characters)
+	  const attributeName = collectASequenceOfBytes(
+	    (char) => isToken(char) && char !== 0x3d && char !== 0x2a, // not = or *
+	    input,
+	    position
+	  );
+
+	  if (attributeName.length === 0) {
+	    return null
+	  }
+
+	  const attrNameStr = attributeName.toString('ascii').toLowerCase();
+
+	  // Check for extended notation (attribute*)
+	  const isExtended = input[position.position] === 0x2a; /* * */
+	  if (isExtended) {
+	    position.position++; // skip *
+	  }
+
+	  // Expect = sign
+	  if (input[position.position] !== 0x3d /* = */) {
+	    return null
+	  }
+	  position.position++; // skip =
+
+	  // Skip whitespace
+	  collectASequenceOfBytes(
+	    (char) => char === 0x20 || char === 0x09,
+	    input,
+	    position
+	  );
+
+	  let value;
+
+	  if (isExtended) {
+	    // Extended attribute format: charset'language'encoded-value
+	    const headerValue = collectASequenceOfBytes(
+	      (char) => char !== 0x20 && char !== 0x0d && char !== 0x0a && char !== 0x3b, // not space, CRLF, or ;
+	      input,
+	      position
+	    );
+
+	    // Check for utf-8'' prefix (case insensitive)
+	    if (
+	      (headerValue[0] !== 0x75 && headerValue[0] !== 0x55) || // u or U
+	      (headerValue[1] !== 0x74 && headerValue[1] !== 0x54) || // t or T
+	      (headerValue[2] !== 0x66 && headerValue[2] !== 0x46) || // f or F
+	      headerValue[3] !== 0x2d || // -
+	      headerValue[4] !== 0x38 // 8
+	    ) {
+	      throw parsingError('unknown encoding, expected utf-8\'\'')
+	    }
+
+	    // Skip utf-8'' and decode the rest
+	    value = decodeURIComponent(decoder.decode(headerValue.subarray(7)));
+	  } else if (input[position.position] === 0x22 /* " */) {
+	    // Quoted string
+	    position.position++; // skip opening quote
+
+	    const quotedValue = collectASequenceOfBytes(
+	      (char) => char !== 0x0a && char !== 0x0d && char !== 0x22, // not LF, CR, or "
+	      input,
+	      position
+	    );
+
+	    if (input[position.position] !== 0x22) {
+	      throw parsingError('Closing quote not found')
+	    }
+	    position.position++; // skip closing quote
+
+	    value = decoder.decode(quotedValue)
+	      .replace(/%0A/ig, '\n')
+	      .replace(/%0D/ig, '\r')
+	      .replace(/%22/g, '"');
+	  } else {
+	    // Token value (no quotes)
+	    const tokenValue = collectASequenceOfBytes(
+	      (char) => isToken(char) && char !== 0x3b, // not ;
+	      input,
+	      position
+	    );
+
+	    value = decoder.decode(tokenValue);
+	  }
+
+	  return { name: attrNameStr, value }
+	}
+
+	/**
 	 * @see https://andreubotella.github.io/multipart-form-data/#parse-multipart-form-data-headers
 	 * @param {Buffer} input
 	 * @param {{ position: number }} position
@@ -7790,80 +8479,40 @@ function requireFormdataParser () {
 	    // 2.8. Byte-lowercase header name and switch on the result:
 	    switch (bufferToLowerCasedHeaderName(headerName)) {
 	      case 'content-disposition': {
-	        // 1. Set name and filename to null.
 	        name = filename = null;
 
-	        // 2. If position does not point to a sequence of bytes starting with
-	        //    `form-data; name="`, return failure.
-	        if (!bufferStartsWith(input, formDataNameBuffer, position)) {
-	          throw parsingError('expected form-data; name=" for content-disposition header')
+	        // Collect the disposition type (should be "form-data")
+	        const dispositionType = collectASequenceOfBytes(
+	          (char) => isToken(char),
+	          input,
+	          position
+	        );
+
+	        if (dispositionType.toString('ascii').toLowerCase() !== 'form-data') {
+	          throw parsingError('expected form-data for content-disposition header')
 	        }
 
-	        // 3. Advance position so it points at the byte after the next 0x22 (")
-	        //    byte (the one in the sequence of bytes matched above).
-	        position.position += 17;
+	        // Parse attributes recursively until CRLF
+	        while (
+	          position.position < input.length &&
+	          input[position.position] !== 0x0d &&
+	          input[position.position + 1] !== 0x0a
+	        ) {
+	          const attribute = parseContentDispositionAttribute(input, position);
 
-	        // 4. Set name to the result of parsing a multipart/form-data name given
-	        //    input and position, if the result is not failure. Otherwise, return
-	        //    failure.
-	        name = parseMultipartFormDataName(input, position);
-
-	        // 5. If position points to a sequence of bytes starting with `; filename="`:
-	        if (input[position.position] === 0x3b /* ; */ && input[position.position + 1] === 0x20 /* ' ' */) {
-	          const at = { position: position.position + 2 };
-
-	          if (bufferStartsWith(input, filenameBuffer, at)) {
-	            if (input[at.position + 8] === 0x2a /* '*' */) {
-	              at.position += 10; // skip past filename*=
-
-	              // Remove leading http tab and spaces. See RFC for examples.
-	              // https://datatracker.ietf.org/doc/html/rfc6266#section-5
-	              collectASequenceOfBytes(
-	                (char) => char === 0x20 || char === 0x09,
-	                input,
-	                at
-	              );
-
-	              const headerValue = collectASequenceOfBytes(
-	                (char) => char !== 0x20 && char !== 0x0d && char !== 0x0a, // ' ' or CRLF
-	                input,
-	                at
-	              );
-
-	              if (
-	                (headerValue[0] !== 0x75 && headerValue[0] !== 0x55) || // u or U
-	                (headerValue[1] !== 0x74 && headerValue[1] !== 0x54) || // t or T
-	                (headerValue[2] !== 0x66 && headerValue[2] !== 0x46) || // f or F
-	                headerValue[3] !== 0x2d || // -
-	                headerValue[4] !== 0x38 // 8
-	              ) {
-	                throw parsingError('unknown encoding, expected utf-8\'\'')
-	              }
-
-	              // skip utf-8''
-	              filename = decodeURIComponent(new TextDecoder().decode(headerValue.subarray(7)));
-
-	              position.position = at.position;
-	            } else {
-	              // 1. Advance position so it points at the byte after the next 0x22 (") byte
-	              //    (the one in the sequence of bytes matched above).
-	              position.position += 11;
-
-	              // Remove leading http tab and spaces. See RFC for examples.
-	              // https://datatracker.ietf.org/doc/html/rfc6266#section-5
-	              collectASequenceOfBytes(
-	                (char) => char === 0x20 || char === 0x09,
-	                input,
-	                position
-	              );
-
-	              position.position++; // skip past " after removing whitespace
-
-	              // 2. Set filename to the result of parsing a multipart/form-data name given
-	              //    input and position, if the result is not failure. Otherwise, return failure.
-	              filename = parseMultipartFormDataName(input, position);
-	            }
+	          if (!attribute) {
+	            break
 	          }
+
+	          if (attribute.name === 'name') {
+	            name = attribute.value;
+	          } else if (attribute.name === 'filename') {
+	            filename = attribute.value;
+	          }
+	        }
+
+	        if (name === null) {
+	          throw parsingError('name attribute is required in content-disposition header')
 	        }
 
 	        break
@@ -7917,43 +8566,6 @@ function requireFormdataParser () {
 	      position.position += 2;
 	    }
 	  }
-	}
-
-	/**
-	 * @see https://andreubotella.github.io/multipart-form-data/#parse-a-multipart-form-data-name
-	 * @param {Buffer} input
-	 * @param {{ position: number }} position
-	 */
-	function parseMultipartFormDataName (input, position) {
-	  // 1. Assert: The byte at (position - 1) is 0x22 (").
-	  assert(input[position.position - 1] === 0x22);
-
-	  // 2. Let name be the result of collecting a sequence of bytes that are not 0x0A (LF), 0x0D (CR) or 0x22 ("), given position.
-	  /** @type {string | Buffer} */
-	  let name = collectASequenceOfBytes(
-	    (char) => char !== 0x0a && char !== 0x0d && char !== 0x22,
-	    input,
-	    position
-	  );
-
-	  // 3. If the byte at position is not 0x22 ("), return failure. Otherwise, advance position by 1.
-	  if (input[position.position] !== 0x22) {
-	    throw parsingError('expected "')
-	  } else {
-	    position.position++;
-	  }
-
-	  // 4. Replace any occurrence of the following subsequences in name with the given byte:
-	  // - `%0A`: 0x0A (LF)
-	  // - `%0D`: 0x0D (CR)
-	  // - `%22`: 0x22 (")
-	  name = new TextDecoder().decode(name)
-	    .replace(/%0A/ig, '\n')
-	    .replace(/%0D/ig, '\r')
-	    .replace(/%22/g, '"');
-
-	  // 5. Return the UTF-8 decoding without BOM of name.
-	  return name
 	}
 
 	/**
@@ -8017,11 +8629,99 @@ function requireFormdataParser () {
 	  return new TypeError('Failed to parse body as FormData.', { cause: new TypeError(cause) })
 	}
 
+	/**
+	 * CTL            = <any US-ASCII control character
+	 *                  (octets 0 - 31) and DEL (127)>
+	 * @param {number} char
+	 */
+	function isCTL (char) {
+	  return char <= 0x1f || char === 0x7f
+	}
+
+	/**
+	 * tspecials :=  "(" / ")" / "<" / ">" / "@" /
+	 *                "," / ";" / ":" / "\" / <">
+	 *                "/" / "[" / "]" / "?" / "="
+	 *                ; Must be in quoted-string,
+	 *                ; to use within parameter values
+	 * @param {number} char
+	 */
+	function isTSpecial (char) {
+	  return (
+	    char === 0x28 || // (
+	    char === 0x29 || // )
+	    char === 0x3c || // <
+	    char === 0x3e || // >
+	    char === 0x40 || // @
+	    char === 0x2c || // ,
+	    char === 0x3b || // ;
+	    char === 0x3a || // :
+	    char === 0x5c || // \
+	    char === 0x22 || // "
+	    char === 0x2f || // /
+	    char === 0x5b || // [
+	    char === 0x5d || // ]
+	    char === 0x3f || // ?
+	    char === 0x3d    // +
+	  )
+	}
+
+	/**
+	 * token := 1*<any (US-ASCII) CHAR except SPACE, CTLs,
+	 *          or tspecials>
+	 * @param {number} char
+	 */
+	function isToken (char) {
+	  return (
+	    char <= 0x7f &&  // ascii
+	    char !== 0x20 && // space
+	    char !== 0x09 &&
+	    !isCTL(char) &&
+	    !isTSpecial(char)
+	  )
+	}
+
 	formdataParser = {
 	  multipartFormDataParser,
 	  validateBoundary
 	};
 	return formdataParser;
+}
+
+var promise;
+var hasRequiredPromise;
+
+function requirePromise () {
+	if (hasRequiredPromise) return promise;
+	hasRequiredPromise = 1;
+
+	/**
+	 * @template {*} T
+	 * @typedef {Object} DeferredPromise
+	 * @property {Promise<T>} promise
+	 * @property {(value?: T) => void} resolve
+	 * @property {(reason?: any) => void} reject
+	 */
+
+	/**
+	 * @template {*} T
+	 * @returns {DeferredPromise<T>} An object containing a promise and its resolve/reject methods.
+	 */
+	function createDeferredPromise () {
+	  let res;
+	  let rej;
+	  const promise = new Promise((resolve, reject) => {
+	    res = resolve;
+	    rej = reject;
+	  });
+
+	  return { promise, resolve: res, reject: rej }
+	}
+
+	promise = {
+	  createDeferredPromise
+	};
+	return promise;
 }
 
 var body;
@@ -8031,51 +8731,52 @@ function requireBody () {
 	if (hasRequiredBody) return body;
 	hasRequiredBody = 1;
 
-	const util = util$n;
+	const util = util$o;
 	const {
 	  ReadableStreamFrom,
 	  readableStreamClose,
-	  createDeferredPromise,
 	  fullyReadBody,
-	  extractMimeType,
-	  utf8DecodeBytes
+	  extractMimeType
 	} = requireUtil$4();
 	const { FormData, setFormDataState } = requireFormdata();
 	const { webidl } = requireWebidl();
-	const { Blob } = require$$0;
 	const assert = require$$0$2;
 	const { isErrored, isDisturbed } = require$$0$1;
-	const { isArrayBuffer } = require$$8;
+	const { isUint8Array } = require$$8;
 	const { serializeAMimeType } = requireDataUrl();
 	const { multipartFormDataParser } = requireFormdataParser();
-	let random;
+	const { createDeferredPromise } = requirePromise();
+	const { parseJSONFromBytes } = requireInfra();
+	const { utf8DecodeBytes } = requireEncoding();
+	const { runtimeFeatures } = runtimeFeatures$2;
 
-	try {
-	  const crypto = require('node:crypto');
-	  random = (max) => crypto.randomInt(0, max);
-	} catch {
-	  random = (max) => Math.floor(Math.random() * max);
-	}
+	const random = runtimeFeatures.has('crypto')
+	  ? require$$2$1.randomInt
+	  : (max) => Math.floor(Math.random() * max);
 
 	const textEncoder = new TextEncoder();
 	function noop () {}
 
-	const hasFinalizationRegistry = globalThis.FinalizationRegistry;
-	let streamRegistry;
+	const streamRegistry = new FinalizationRegistry((weakRef) => {
+	  const stream = weakRef.deref();
+	  if (stream && !stream.locked && !isDisturbed(stream) && !isErrored(stream)) {
+	    stream.cancel('Response object has been garbage collected').catch(noop);
+	  }
+	});
 
-	if (hasFinalizationRegistry) {
-	  streamRegistry = new FinalizationRegistry((weakRef) => {
-	    const stream = weakRef.deref();
-	    if (stream && !stream.locked && !isDisturbed(stream) && !isErrored(stream)) {
-	      stream.cancel('Response object has been garbage collected').catch(noop);
-	    }
-	  });
-	}
-
-	// https://fetch.spec.whatwg.org/#concept-bodyinit-extract
+	/**
+	 * Extract a body with type from a byte sequence or BodyInit object
+	 *
+	 * @param {import('../../../types').BodyInit} object - The BodyInit object to extract from
+	 * @param {boolean} [keepalive=false] - If true, indicates that the body
+	 * @returns {[{stream: ReadableStream, source: any, length: number | null}, string | null]} - Returns a tuple containing the body and its type
+	 *
+	 * @see https://fetch.spec.whatwg.org/#concept-bodyinit-extract
+	 */
 	function extractBody (object, keepalive = false) {
 	  // 1. Let stream be null.
 	  let stream = null;
+	  let controller = null;
 
 	  // 2. If object is a ReadableStream object, then set stream to object.
 	  if (webidl.is.ReadableStream(object)) {
@@ -8088,16 +8789,11 @@ function requireBody () {
 	    // 4. Otherwise, set stream to a new ReadableStream object, and set
 	    //    up stream with byte reading support.
 	    stream = new ReadableStream({
-	      async pull (controller) {
-	        const buffer = typeof source === 'string' ? textEncoder.encode(source) : source;
-
-	        if (buffer.byteLength) {
-	          controller.enqueue(buffer);
-	        }
-
-	        queueMicrotask(() => readableStreamClose(controller));
+	      pull () {},
+	      start (c) {
+	        controller = c;
 	      },
-	      start () {},
+	      cancel () {},
 	      type: 'bytes'
 	    });
 	  }
@@ -8138,22 +8834,15 @@ function requireBody () {
 
 	    // Set type to `application/x-www-form-urlencoded;charset=UTF-8`.
 	    type = 'application/x-www-form-urlencoded;charset=UTF-8';
-	  } else if (isArrayBuffer(object)) {
-	    // BufferSource/ArrayBuffer
-
+	  } else if (webidl.is.BufferSource(object)) {
 	    // Set source to a copy of the bytes held by object.
-	    source = new Uint8Array(object.slice());
-	  } else if (ArrayBuffer.isView(object)) {
-	    // BufferSource/ArrayBufferView
-
-	    // Set source to a copy of the bytes held by object.
-	    source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength));
+	    source = webidl.util.getCopyOfBytesHeldByBufferSource(object);
 	  } else if (webidl.is.FormData(object)) {
 	    const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`;
 	    const prefix = `--${boundary}\r\nContent-Disposition: form-data`;
 
 	    /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
-	    const escape = (str) =>
+	    const formdataEscape = (str) =>
 	      str.replace(/\n/g, '%0A').replace(/\r/g, '%0D').replace(/"/g, '%22');
 	    const normalizeLinefeeds = (value) => value.replace(/\r?\n|\r/g, '\r\n');
 
@@ -8171,13 +8860,13 @@ function requireBody () {
 	    for (const [name, value] of object) {
 	      if (typeof value === 'string') {
 	        const chunk = textEncoder.encode(prefix +
-	          `; name="${escape(normalizeLinefeeds(name))}"` +
+	          `; name="${formdataEscape(normalizeLinefeeds(name))}"` +
 	          `\r\n\r\n${normalizeLinefeeds(value)}\r\n`);
 	        blobParts.push(chunk);
 	        length += chunk.byteLength;
 	      } else {
-	        const chunk = textEncoder.encode(`${prefix}; name="${escape(normalizeLinefeeds(name))}"` +
-	          (value.name ? `; filename="${escape(value.name)}"` : '') + '\r\n' +
+	        const chunk = textEncoder.encode(`${prefix}; name="${formdataEscape(normalizeLinefeeds(name))}"` +
+	          (value.name ? `; filename="${formdataEscape(value.name)}"` : '') + '\r\n' +
 	          `Content-Type: ${
 	            value.type || 'application/octet-stream'
 	          }\r\n\r\n`);
@@ -8250,44 +8939,36 @@ function requireBody () {
 
 	  // 11. If source is a byte sequence, then set action to a
 	  // step that returns source and length to source’s length.
-	  if (typeof source === 'string' || util.isBuffer(source)) {
-	    length = Buffer.byteLength(source);
+	  if (typeof source === 'string' || isUint8Array(source)) {
+	    action = () => {
+	      length = typeof source === 'string' ? Buffer.byteLength(source) : source.length;
+	      return source
+	    };
 	  }
 
-	  // 12. If action is non-null, then run these steps in in parallel:
+	  // 12. If action is non-null, then run these steps in parallel:
 	  if (action != null) {
-	    // Run action.
-	    let iterator;
-	    stream = new ReadableStream({
-	      async start () {
-	        iterator = action(object)[Symbol.asyncIterator]();
-	      },
-	      async pull (controller) {
-	        const { value, done } = await iterator.next();
-	        if (done) {
-	          // When running action is done, close stream.
-	          queueMicrotask(() => {
-	            controller.close();
-	            controller.byobRequest?.respond(0);
-	          });
-	        } else {
-	          // Whenever one or more bytes are available and stream is not errored,
-	          // enqueue a Uint8Array wrapping an ArrayBuffer containing the available
-	          // bytes into stream.
-	          if (!isErrored(stream)) {
-	            const buffer = new Uint8Array(value);
-	            if (buffer.byteLength) {
-	              controller.enqueue(buffer);
-	            }
+(async () => {
+	      // 1. Run action.
+	      const result = action();
+
+	      // 2. Whenever one or more bytes are available and stream is not errored,
+	      //    enqueue the result of creating a Uint8Array from the available bytes into stream.
+	      const iterator = result?.[Symbol.asyncIterator]?.();
+	      if (iterator) {
+	        for await (const bytes of iterator) {
+	          if (isErrored(stream)) break
+	          if (bytes.length) {
+	            controller.enqueue(new Uint8Array(bytes));
 	          }
 	        }
-	        return controller.desiredSize > 0
-	      },
-	      async cancel (reason) {
-	        await iterator.return();
-	      },
-	      type: 'bytes'
-	    });
+	      } else if (result?.length && !isErrored(stream)) {
+	        controller.enqueue(typeof result === 'string' ? textEncoder.encode(result) : new Uint8Array(result));
+	      }
+
+	      // 3. When running action is done, close stream.
+	      queueMicrotask(() => readableStreamClose(controller));
+	    })();
 	  }
 
 	  // 13. Let body be a body whose stream is stream, source is source,
@@ -8298,7 +8979,22 @@ function requireBody () {
 	  return [body, type]
 	}
 
-	// https://fetch.spec.whatwg.org/#bodyinit-safely-extract
+	/**
+	 * @typedef {object} ExtractBodyResult
+	 * @property {ReadableStream<Uint8Array<ArrayBuffer>>} stream - The ReadableStream containing the body data
+	 * @property {any} source - The original source of the body data
+	 * @property {number | null} length - The length of the body data, or null
+	 */
+
+	/**
+	 * Safely extract a body with type from a byte sequence or BodyInit object.
+	 *
+	 * @param {import('../../../types').BodyInit} object - The BodyInit object to extract from
+	 * @param {boolean} [keepalive=false] - If true, indicates that the body
+	 * @returns {[ExtractBodyResult, string | null]} - Returns a tuple containing the body and its type
+	 *
+	 * @see https://fetch.spec.whatwg.org/#bodyinit-safely-extract
+	 */
 	function safelyExtractBody (object, keepalive = false) {
 	  // To safely extract a body and a `Content-Type` value from
 	  // a byte sequence or BodyInit object object, run these steps:
@@ -8306,9 +9002,7 @@ function requireBody () {
 	  // 1. If object is a ReadableStream object, then:
 	  if (webidl.is.ReadableStream(object)) {
 	    // Assert: object is neither disturbed nor locked.
-	    // istanbul ignore next
 	    assert(!util.isDisturbed(object), 'The body has already been consumed.');
-	    // istanbul ignore next
 	    assert(!object.locked, 'The stream is locked.');
 	  }
 
@@ -8316,17 +9010,13 @@ function requireBody () {
 	  return extractBody(object, keepalive)
 	}
 
-	function cloneBody (instance, body) {
+	function cloneBody (body) {
 	  // To clone a body body, run these steps:
 
 	  // https://fetch.spec.whatwg.org/#concept-body-clone
 
 	  // 1. Let « out1, out2 » be the result of teeing body’s stream.
-	  const [out1, out2] = body.stream.tee();
-
-	  if (hasFinalizationRegistry) {
-	    streamRegistry.register(instance, new WeakRef(out1));
-	  }
+	  const { 0: out1, 1: out2 } = body.stream.tee();
 
 	  // 2. Set body’s stream to out1.
 	  body.stream = out1;
@@ -8336,12 +9026,6 @@ function requireBody () {
 	    stream: out2,
 	    length: body.length,
 	    source: body.source
-	  }
-	}
-
-	function throwIfAborted (state) {
-	  if (state.aborted) {
-	    throw new DOMException('The operation was aborted.', 'AbortError')
 	  }
 	}
 
@@ -8462,24 +9146,26 @@ function requireBody () {
 	 * @param {any} instance
 	 * @param {(target: any) => any} getInternalState
 	 */
-	async function consumeBody (object, convertBytesToJSValue, instance, getInternalState) {
-	  webidl.brandCheck(object, instance);
+	function consumeBody (object, convertBytesToJSValue, instance, getInternalState) {
+	  try {
+	    webidl.brandCheck(object, instance);
+	  } catch (e) {
+	    return Promise.reject(e)
+	  }
 
-	  const state = getInternalState(object);
+	  object = getInternalState(object);
 
 	  // 1. If object is unusable, then return a promise rejected
 	  //    with a TypeError.
-	  if (bodyUnusable(state)) {
-	    throw new TypeError('Body is unusable: Body has already been read')
+	  if (bodyUnusable(object)) {
+	    return Promise.reject(new TypeError('Body is unusable: Body has already been read'))
 	  }
-
-	  throwIfAborted(state);
 
 	  // 2. Let promise be a new promise.
 	  const promise = createDeferredPromise();
 
 	  // 3. Let errorSteps given error be to reject promise with error.
-	  const errorSteps = (error) => promise.reject(error);
+	  const errorSteps = promise.reject;
 
 	  // 4. Let successSteps given a byte sequence data be to resolve
 	  //    promise with the result of running convertBytesToJSValue
@@ -8495,14 +9181,14 @@ function requireBody () {
 
 	  // 5. If object’s body is null, then run successSteps with an
 	  //    empty byte sequence.
-	  if (state.body == null) {
+	  if (object.body == null) {
 	    successSteps(Buffer.allocUnsafe(0));
 	    return promise.promise
 	  }
 
 	  // 6. Otherwise, fully read object’s body given successSteps,
 	  //    errorSteps, and object’s relevant global object.
-	  fullyReadBody(state.body, successSteps, errorSteps);
+	  fullyReadBody(object.body, successSteps, errorSteps);
 
 	  // 7. Return promise.
 	  return promise.promise
@@ -8519,14 +9205,6 @@ function requireBody () {
 	  // said to be unusable if its body is non-null and
 	  // its body’s stream is disturbed or locked.
 	  return body != null && (body.stream.locked || util.isDisturbed(body.stream))
-	}
-
-	/**
-	 * @see https://infra.spec.whatwg.org/#parse-json-bytes-to-a-javascript-value
-	 * @param {Uint8Array} bytes
-	 */
-	function parseJSONFromBytes (bytes) {
-	  return JSON.parse(utf8DecodeBytes(bytes))
 	}
 
 	/**
@@ -8558,7 +9236,6 @@ function requireBody () {
 	  cloneBody,
 	  mixinBody,
 	  streamRegistry,
-	  hasFinalizationRegistry,
 	  bodyUnusable
 	};
 	return body;
@@ -8567,13 +9244,13 @@ function requireBody () {
 /* global WebAssembly */
 
 const assert$d = require$$0$2;
-const util$j = util$n;
-const { channels: channels$2 } = diagnostics;
+const util$k = util$o;
+const { channels: channels$3 } = diagnostics;
 const timers = timers$2;
 const {
   RequestContentLengthMismatchError: RequestContentLengthMismatchError$1,
   ResponseContentLengthMismatchError,
-  RequestAbortedError: RequestAbortedError$7,
+  RequestAbortedError: RequestAbortedError$8,
   HeadersTimeoutError,
   HeadersOverflowError,
   SocketError: SocketError$3,
@@ -8581,9 +9258,9 @@ const {
   BodyTimeoutError,
   HTTPParserError,
   ResponseExceededMaxSizeError
-} = errors$1;
+} = errors;
 const {
-  kUrl: kUrl$6,
+  kUrl: kUrl$7,
   kReset: kReset$1,
   kClient: kClient$3,
   kParser,
@@ -8620,27 +9297,40 @@ const {
 const constants$2 = constants$4;
 const EMPTY_BUF = Buffer.alloc(0);
 const FastBuffer = Buffer[Symbol.species];
-const removeAllListeners = util$j.removeAllListeners;
+const removeAllListeners = util$k.removeAllListeners;
 
 let extractBody$1;
 
-async function lazyllhttp () {
+function lazyllhttp () {
   const llhttpWasmData = process.env.JEST_WORKER_ID ? requireLlhttpWasm() : undefined;
 
   let mod;
-  try {
-    mod = await WebAssembly.compile(requireLlhttp_simdWasm());
-  } catch (e) {
-    /* istanbul ignore next */
 
+  // We disable wasm SIMD on ppc64 as it seems to be broken on Power 9 architectures.
+  let useWasmSIMD = process.arch !== 'ppc64';
+  // The Env Variable UNDICI_NO_WASM_SIMD allows explicitly overriding the default behavior
+  if (process.env.UNDICI_NO_WASM_SIMD === '1') {
+    useWasmSIMD = true;
+  } else if (process.env.UNDICI_NO_WASM_SIMD === '0') {
+    useWasmSIMD = false;
+  }
+
+  if (useWasmSIMD) {
+    try {
+      mod = new WebAssembly.Module(requireLlhttp_simdWasm());
+    } catch {
+    }
+  }
+
+  if (!mod) {
     // We could check if the error was caused by the simd option not
     // being enabled, but the occurring of this other error
     // * https://github.com/emscripten-core/emscripten/issues/11495
     // got me to remove that check to avoid breaking Node 12.
-    mod = await WebAssembly.compile(llhttpWasmData || requireLlhttpWasm());
+    mod = new WebAssembly.Module(llhttpWasmData || requireLlhttpWasm());
   }
 
-  return await WebAssembly.instantiate(mod, {
+  return new WebAssembly.Instance(mod, {
     env: {
       /**
        * @param {number} p
@@ -8649,7 +9339,6 @@ async function lazyllhttp () {
        * @returns {number}
        */
       wasm_on_url: (p, at, len) => {
-        /* istanbul ignore next */
         return 0
       },
       /**
@@ -8729,11 +9418,6 @@ async function lazyllhttp () {
 }
 
 let llhttpInstance = null;
-/**
- * @type {Promise<WebAssembly.Instance>|null}
- */
-let llhttpPromise = lazyllhttp();
-llhttpPromise.catch();
 
 /**
  * @type {Parser|null}
@@ -8819,7 +9503,6 @@ class Parser {
 
       this.timeoutValue = delay;
     } else if (this.timeout) {
-      // istanbul ignore else: only for jest
       if (this.timeout.refresh) {
         this.timeout.refresh();
       }
@@ -8840,7 +9523,6 @@ class Parser {
 
     assert$d(this.timeoutType === TIMEOUT_BODY);
     if (this.timeout) {
-      // istanbul ignore else: only for jest
       if (this.timeout.refresh) {
         this.timeout.refresh();
       }
@@ -8894,10 +9576,6 @@ class Parser {
         currentBufferRef = chunk;
         currentParser = this;
         ret = llhttp.llhttp_execute(this.ptr, currentBufferPtr, chunk.length);
-        /* eslint-disable-next-line no-useless-catch */
-      } catch (err) {
-        /* istanbul ignore next: difficult to make a test case for */
-        throw err
       } finally {
         currentParser = null;
         currentBufferRef = null;
@@ -8914,7 +9592,6 @@ class Parser {
         } else {
           const ptr = llhttp.llhttp_get_error_reason(this.ptr);
           let message = '';
-          /* istanbul ignore else: difficult to make a test case for */
           if (ptr) {
             const len = new Uint8Array(llhttp.memory.buffer, ptr).indexOf(0);
             message =
@@ -8926,7 +9603,7 @@ class Parser {
         }
       }
     } catch (err) {
-      util$j.destroy(socket, err);
+      util$k.destroy(socket, err);
     }
   }
 
@@ -8960,7 +9637,6 @@ class Parser {
   onMessageBegin () {
     const { socket, client } = this;
 
-    /* istanbul ignore next: difficult to make a test case for */
     if (socket.destroyed) {
       return -1
     }
@@ -9008,13 +9684,13 @@ class Parser {
 
     const key = this.headers[len - 2];
     if (key.length === 10) {
-      const headerName = util$j.bufferToLowerCasedHeaderName(key);
+      const headerName = util$k.bufferToLowerCasedHeaderName(key);
       if (headerName === 'keep-alive') {
         this.keepAlive += buf.toString();
       } else if (headerName === 'connection') {
         this.connection += buf.toString();
       }
-    } else if (key.length === 14 && util$j.bufferToLowerCasedHeaderName(key) === 'content-length') {
+    } else if (key.length === 14 && util$k.bufferToLowerCasedHeaderName(key) === 'content-length') {
       this.contentLength += buf.toString();
     }
 
@@ -9029,7 +9705,7 @@ class Parser {
   trackHeader (len) {
     this.headersSize += len;
     if (this.headersSize >= this.headersMaxSize) {
-      util$j.destroy(this.socket, new HeadersOverflowError());
+      util$k.destroy(this.socket, new HeadersOverflowError());
     }
   }
 
@@ -9069,12 +9745,12 @@ class Parser {
     client[kSocket$1] = null;
     client[kHTTPContext$2] = null; // TODO (fix): This is hacky...
     client[kQueue$3][client[kRunningIdx$2]++] = null;
-    client.emit('disconnect', client[kUrl$6], [client], new InformationalError$3('upgrade'));
+    client.emit('disconnect', client[kUrl$7], [client], new InformationalError$3('upgrade'));
 
     try {
       request.onUpgrade(statusCode, headers, socket);
     } catch (err) {
-      util$j.destroy(socket, err);
+      util$k.destroy(socket, err);
     }
 
     client[kResume$3]();
@@ -9089,14 +9765,12 @@ class Parser {
   onHeadersComplete (statusCode, upgrade, shouldKeepAlive) {
     const { client, socket, headers, statusText } = this;
 
-    /* istanbul ignore next: difficult to make a test case for */
     if (socket.destroyed) {
       return -1
     }
 
     const request = client[kQueue$3][client[kRunningIdx$2]];
 
-    /* istanbul ignore next: difficult to make a test case for */
     if (!request) {
       return -1
     }
@@ -9105,13 +9779,13 @@ class Parser {
     assert$d(this.statusCode < 200);
 
     if (statusCode === 100) {
-      util$j.destroy(socket, new SocketError$3('bad response', util$j.getSocketInfo(socket)));
+      util$k.destroy(socket, new SocketError$3('bad response', util$k.getSocketInfo(socket)));
       return -1
     }
 
     /* this can only happen if server is misbehaving */
     if (upgrade && !request.upgrade) {
-      util$j.destroy(socket, new SocketError$3('bad upgrade', util$j.getSocketInfo(socket)));
+      util$k.destroy(socket, new SocketError$3('bad upgrade', util$k.getSocketInfo(socket)));
       return -1
     }
 
@@ -9130,7 +9804,6 @@ class Parser {
         : client[kBodyTimeout$2];
       this.setTimeout(bodyTimeout, TIMEOUT_BODY);
     } else if (this.timeout) {
-      // istanbul ignore else: only for jest
       if (this.timeout.refresh) {
         this.timeout.refresh();
       }
@@ -9153,7 +9826,7 @@ class Parser {
     this.headersSize = 0;
 
     if (this.shouldKeepAlive && client[kPipelining$1]) {
-      const keepAliveTimeout = this.keepAlive ? util$j.parseKeepAliveTimeout(this.keepAlive) : null;
+      const keepAliveTimeout = this.keepAlive ? util$k.parseKeepAliveTimeout(this.keepAlive) : null;
 
       if (keepAliveTimeout != null) {
         const timeout = Math.min(
@@ -9211,7 +9884,6 @@ class Parser {
 
     assert$d(this.timeoutType === TIMEOUT_BODY);
     if (this.timeout) {
-      // istanbul ignore else: only for jest
       if (this.timeout.refresh) {
         this.timeout.refresh();
       }
@@ -9220,7 +9892,7 @@ class Parser {
     assert$d(statusCode >= 200);
 
     if (maxResponseSize > -1 && this.bytesRead + buf.length > maxResponseSize) {
-      util$j.destroy(socket, new ResponseExceededMaxSizeError());
+      util$k.destroy(socket, new ResponseExceededMaxSizeError());
       return -1
     }
 
@@ -9267,9 +9939,8 @@ class Parser {
       return 0
     }
 
-    /* istanbul ignore next: should be handled by llhttp? */
     if (request.method !== 'HEAD' && contentLength && bytesRead !== parseInt(contentLength, 10)) {
-      util$j.destroy(socket, new ResponseContentLengthMismatchError());
+      util$k.destroy(socket, new ResponseContentLengthMismatchError());
       return -1
     }
 
@@ -9280,23 +9951,23 @@ class Parser {
     if (socket[kWriting]) {
       assert$d(client[kRunning$4] === 0);
       // Response completed before request.
-      util$j.destroy(socket, new InformationalError$3('reset'));
+      util$k.destroy(socket, new InformationalError$3('reset'));
       return constants$2.ERROR.PAUSED
     } else if (!shouldKeepAlive) {
-      util$j.destroy(socket, new InformationalError$3('reset'));
+      util$k.destroy(socket, new InformationalError$3('reset'));
       return constants$2.ERROR.PAUSED
     } else if (socket[kReset$1] && client[kRunning$4] === 0) {
       // Destroy socket once all requests have completed.
       // The request at the tail of the pipeline is the one
       // that requested reset and no further requests should
       // have been queued since then.
-      util$j.destroy(socket, new InformationalError$3('reset'));
+      util$k.destroy(socket, new InformationalError$3('reset'));
       return constants$2.ERROR.PAUSED
     } else if (client[kPipelining$1] == null || client[kPipelining$1] === 1) {
       // We must wait a full event loop cycle to reuse this socket to make sure
       // that non-spec compliant servers are not closing the connection even if they
       // said they won't.
-      setImmediate(() => client[kResume$3]());
+      setImmediate(client[kResume$3]);
     } else {
       client[kResume$3]();
     }
@@ -9305,22 +9976,26 @@ class Parser {
   }
 }
 
-function onParserTimeout (parser) {
-  const { socket, timeoutType, client, paused } = parser.deref();
+function onParserTimeout (parserWeakRef) {
+  const parser = parserWeakRef.deref();
+  if (!parser) {
+    return
+  }
 
-  /* istanbul ignore else */
+  const { socket, timeoutType, client, paused } = parser;
+
   if (timeoutType === TIMEOUT_HEADERS) {
     if (!socket[kWriting] || socket.writableNeedDrain || client[kRunning$4] > 1) {
       assert$d(!paused, 'cannot be paused while waiting for headers');
-      util$j.destroy(socket, new HeadersTimeoutError());
+      util$k.destroy(socket, new HeadersTimeoutError());
     }
   } else if (timeoutType === TIMEOUT_BODY) {
     if (!paused) {
-      util$j.destroy(socket, new BodyTimeoutError());
+      util$k.destroy(socket, new BodyTimeoutError());
     }
   } else if (timeoutType === TIMEOUT_KEEP_ALIVE) {
     assert$d(client[kRunning$4] === 0 && client[kKeepAliveTimeoutValue$1]);
-    util$j.destroy(socket, new InformationalError$3('socket idle timeout'));
+    util$k.destroy(socket, new InformationalError$3('socket idle timeout'));
   }
 }
 
@@ -9329,15 +10004,11 @@ function onParserTimeout (parser) {
  * @param {import('net').Socket} socket
  * @returns
  */
-async function connectH1$1 (client, socket) {
+function connectH1$1 (client, socket) {
   client[kSocket$1] = socket;
 
   if (!llhttpInstance) {
-    const noop = () => {};
-    socket.on('error', noop);
-    llhttpInstance = await llhttpPromise;
-    llhttpPromise = null;
-    socket.off('error', noop);
+    llhttpInstance = lazyllhttp();
   }
 
   if (socket.errored) {
@@ -9354,10 +10025,10 @@ async function connectH1$1 (client, socket) {
   socket[kBlocking] = false;
   socket[kParser] = new Parser(client, socket, llhttpInstance);
 
-  util$j.addListener(socket, 'error', onHttpSocketError);
-  util$j.addListener(socket, 'readable', onHttpSocketReadable);
-  util$j.addListener(socket, 'end', onHttpSocketEnd);
-  util$j.addListener(socket, 'close', onHttpSocketClose);
+  util$k.addListener(socket, 'error', onHttpSocketError);
+  util$k.addListener(socket, 'readable', onHttpSocketReadable);
+  util$k.addListener(socket, 'end', onHttpSocketEnd);
+  util$k.addListener(socket, 'close', onHttpSocketClose);
 
   socket[kClosed$2] = false;
   socket.on('close', onSocketClose$1);
@@ -9413,8 +10084,8 @@ async function connectH1$1 (client, socket) {
           return true
         }
 
-        if (client[kRunning$4] > 0 && util$j.bodyLength(request.body) !== 0 &&
-          (util$j.isStream(request.body) || util$j.isAsyncIterable(request.body) || util$j.isFormDataLike(request.body))) {
+        if (client[kRunning$4] > 0 && util$k.bodyLength(request.body) !== 0 &&
+          (util$k.isStream(request.body) || util$k.isAsyncIterable(request.body) || util$k.isFormDataLike(request.body))) {
           // Request with stream or iterator body can error while other requests
           // are inflight and indirectly error those as well.
           // Ensure this doesn't happen by waiting for inflight
@@ -9463,7 +10134,7 @@ function onHttpSocketEnd () {
     return
   }
 
-  util$j.destroy(this, new SocketError$3('other side closed', util$j.getSocketInfo(this)));
+  util$k.destroy(this, new SocketError$3('other side closed', util$k.getSocketInfo(this)));
 }
 
 function onHttpSocketClose () {
@@ -9479,7 +10150,7 @@ function onHttpSocketClose () {
     this[kParser] = null;
   }
 
-  const err = this[kError$2] || new SocketError$3('closed', util$j.getSocketInfo(this));
+  const err = this[kError$2] || new SocketError$3('closed', util$k.getSocketInfo(this));
 
   const client = this[kClient$3];
 
@@ -9493,21 +10164,21 @@ function onHttpSocketClose () {
     const requests = client[kQueue$3].splice(client[kRunningIdx$2]);
     for (let i = 0; i < requests.length; i++) {
       const request = requests[i];
-      util$j.errorRequest(client, request, err);
+      util$k.errorRequest(client, request, err);
     }
   } else if (client[kRunning$4] > 0 && err.code !== 'UND_ERR_INFO') {
     // Fail head of pipeline.
     const request = client[kQueue$3][client[kRunningIdx$2]];
     client[kQueue$3][client[kRunningIdx$2]++] = null;
 
-    util$j.errorRequest(client, request, err);
+    util$k.errorRequest(client, request, err);
   }
 
   client[kPendingIdx$2] = client[kRunningIdx$2];
 
   assert$d(client[kRunning$4] === 0);
 
-  client.emit('disconnect', client[kUrl$6], [client], err);
+  client.emit('disconnect', client[kUrl$7], [client], err);
 
   client[kResume$3]();
 }
@@ -9582,7 +10253,7 @@ function writeH1 (client, request) {
     method === 'PROPPATCH'
   );
 
-  if (util$j.isFormDataLike(body)) {
+  if (util$k.isFormDataLike(body)) {
     if (!extractBody$1) {
       extractBody$1 = requireBody().extractBody;
     }
@@ -9593,7 +10264,7 @@ function writeH1 (client, request) {
     }
     body = bodyStream.stream;
     contentLength = bodyStream.length;
-  } else if (util$j.isBlobLike(body) && request.contentType == null && body.type) {
+  } else if (util$k.isBlobLike(body) && request.contentType == null && body.type) {
     headers.push('content-type', body.type);
   }
 
@@ -9602,7 +10273,7 @@ function writeH1 (client, request) {
     body.read(0);
   }
 
-  const bodyLength = util$j.bodyLength(body);
+  const bodyLength = util$k.bodyLength(body);
 
   contentLength = bodyLength ?? contentLength;
 
@@ -9623,7 +10294,7 @@ function writeH1 (client, request) {
   // A user agent may send a Content-Length header with 0 value, this should be allowed.
   if (shouldSendContentLength$1(method) && contentLength > 0 && request.contentLength !== null && request.contentLength !== contentLength) {
     if (client[kStrictContentLength$2]) {
-      util$j.errorRequest(client, request, new RequestContentLengthMismatchError$1());
+      util$k.errorRequest(client, request, new RequestContentLengthMismatchError$1());
       return false
     }
 
@@ -9641,16 +10312,16 @@ function writeH1 (client, request) {
       return
     }
 
-    util$j.errorRequest(client, request, err || new RequestAbortedError$7());
+    util$k.errorRequest(client, request, err || new RequestAbortedError$8());
 
-    util$j.destroy(body);
-    util$j.destroy(socket, new InformationalError$3('aborted'));
+    util$k.destroy(body);
+    util$k.destroy(socket, new InformationalError$3('aborted'));
   };
 
   try {
     request.onConnect(abort);
   } catch (err) {
-    util$j.errorRequest(client, request, err);
+    util$k.errorRequest(client, request, err);
   }
 
   if (request.aborted) {
@@ -9684,6 +10355,10 @@ function writeH1 (client, request) {
     socket[kBlocking] = true;
   }
 
+  if (socket.setTypeOfService) {
+    socket.setTypeOfService(request.typeOfService);
+  }
+
   let header = `${method} ${path} HTTP/1.1\r\n`;
 
   if (typeof host === 'string') {
@@ -9715,24 +10390,23 @@ function writeH1 (client, request) {
     }
   }
 
-  if (channels$2.sendHeaders.hasSubscribers) {
-    channels$2.sendHeaders.publish({ request, headers: header, socket });
+  if (channels$3.sendHeaders.hasSubscribers) {
+    channels$3.sendHeaders.publish({ request, headers: header, socket });
   }
 
-  /* istanbul ignore else: assertion */
   if (!body || bodyLength === 0) {
     writeBuffer$1(abort, null, client, request, socket, contentLength, header, expectsPayload);
-  } else if (util$j.isBuffer(body)) {
+  } else if (util$k.isBuffer(body)) {
     writeBuffer$1(abort, body, client, request, socket, contentLength, header, expectsPayload);
-  } else if (util$j.isBlobLike(body)) {
+  } else if (util$k.isBlobLike(body)) {
     if (typeof body.stream === 'function') {
       writeIterable$1(abort, body.stream(), client, request, socket, contentLength, header, expectsPayload);
     } else {
       writeBlob$1(abort, body, client, request, socket, contentLength, header, expectsPayload);
     }
-  } else if (util$j.isStream(body)) {
+  } else if (util$k.isStream(body)) {
     writeStream$1(abort, body, client, request, socket, contentLength, header, expectsPayload);
-  } else if (util$j.isIterable(body)) {
+  } else if (util$k.isIterable(body)) {
     writeIterable$1(abort, body, client, request, socket, contentLength, header, expectsPayload);
   } else {
     assert$d(false);
@@ -9772,7 +10446,7 @@ function writeStream$1 (abort, body, client, request, socket, contentLength, hea
         this.pause();
       }
     } catch (err) {
-      util$j.destroy(this, err);
+      util$k.destroy(this, err);
     }
   };
 
@@ -9802,7 +10476,7 @@ function writeStream$1 (abort, body, client, request, socket, contentLength, hea
     });
 
     if (!finished) {
-      const err = new RequestAbortedError$7();
+      const err = new RequestAbortedError$8();
       queueMicrotask(() => onFinished(err));
     }
   };
@@ -9840,9 +10514,9 @@ function writeStream$1 (abort, body, client, request, socket, contentLength, hea
     writer.destroy(err);
 
     if (err && (err.code !== 'UND_ERR_INFO' || err.message !== 'reset')) {
-      util$j.destroy(body, err);
+      util$k.destroy(body, err);
     } else {
-      util$j.destroy(body);
+      util$k.destroy(body);
     }
   };
 
@@ -9861,9 +10535,9 @@ function writeStream$1 (abort, body, client, request, socket, contentLength, hea
     .on('error', onFinished);
 
   if (body.errorEmitted ?? body.errored) {
-    setImmediate(() => onFinished(body.errored));
+    setImmediate(onFinished, body.errored);
   } else if (body.endEmitted ?? body.readableEnded) {
-    setImmediate(() => onFinished(null));
+    setImmediate(onFinished, null);
   }
 
   if (body.closeEmitted ?? body.closed) {
@@ -9898,7 +10572,7 @@ function writeBuffer$1 (abort, body, client, request, socket, contentLength, hea
         assert$d(contentLength === null, 'no body must not have content length');
         socket.write(`${header}\r\n`, 'latin1');
       }
-    } else if (util$j.isBuffer(body)) {
+    } else if (util$k.isBuffer(body)) {
       assert$d(contentLength === body.byteLength, 'buffer body must have content length');
 
       socket.cork();
@@ -10100,7 +10774,6 @@ class AsyncWriter {
 
     if (!ret) {
       if (socket[kParser].timeout && socket[kParser].timeoutType === TIMEOUT_HEADERS) {
-        // istanbul ignore else: only for jest
         if (socket[kParser].timeout.refresh) {
           socket[kParser].timeout.refresh();
         }
@@ -10151,7 +10824,6 @@ class AsyncWriter {
     }
 
     if (socket[kParser].timeout && socket[kParser].timeoutType === TIMEOUT_HEADERS) {
-      // istanbul ignore else: only for jest
       if (socket[kParser].timeout.refresh) {
         socket[kParser].timeout.refresh();
       }
@@ -10180,15 +10852,16 @@ var clientH1 = connectH1$1;
 
 const assert$c = require$$0$2;
 const { pipeline: pipeline$2 } = require$$0$1;
-const util$i = util$n;
+const util$j = util$o;
 const {
   RequestContentLengthMismatchError,
-  RequestAbortedError: RequestAbortedError$6,
+  RequestAbortedError: RequestAbortedError$7,
   SocketError: SocketError$2,
-  InformationalError: InformationalError$2
-} = errors$1;
+  InformationalError: InformationalError$2,
+  InvalidArgumentError: InvalidArgumentError$t
+} = errors;
 const {
-  kUrl: kUrl$5,
+  kUrl: kUrl$6,
   kReset,
   kClient: kClient$2,
   kRunning: kRunning$3,
@@ -10201,14 +10874,21 @@ const {
   kStrictContentLength: kStrictContentLength$1,
   kOnError: kOnError$1,
   kMaxConcurrentStreams: kMaxConcurrentStreams$1,
+  kPingInterval: kPingInterval$1,
   kHTTP2Session,
+  kHTTP2InitialWindowSize: kHTTP2InitialWindowSize$1,
+  kHTTP2ConnectionWindowSize: kHTTP2ConnectionWindowSize$1,
   kResume: kResume$2,
   kSize: kSize$3,
   kHTTPContext: kHTTPContext$1,
   kClosed: kClosed$1,
-  kBodyTimeout: kBodyTimeout$1
+  kBodyTimeout: kBodyTimeout$1,
+  kEnableConnectProtocol,
+  kRemoteSettings,
+  kHTTP2Stream: kHTTP2Stream$1,
+  kHTTP2SessionState
 } = requireSymbols();
-const { channels: channels$1 } = diagnostics;
+const { channels: channels$2 } = diagnostics;
 
 const kOpenStreams = Symbol('open streams');
 
@@ -10231,7 +10911,10 @@ const {
     HTTP2_HEADER_SCHEME,
     HTTP2_HEADER_CONTENT_LENGTH,
     HTTP2_HEADER_EXPECT,
-    HTTP2_HEADER_STATUS
+    HTTP2_HEADER_STATUS,
+    HTTP2_HEADER_PROTOCOL,
+    NGHTTP2_REFUSED_STREAM,
+    NGHTTP2_CANCEL
   }
 } = http2;
 
@@ -10255,37 +10938,60 @@ function parseH2Headers (headers) {
   return result
 }
 
-async function connectH2$1 (client, socket) {
+function connectH2$1 (client, socket) {
   client[kSocket] = socket;
 
-  const session = http2.connect(client[kUrl$5], {
+  const http2InitialWindowSize = client[kHTTP2InitialWindowSize$1];
+  const http2ConnectionWindowSize = client[kHTTP2ConnectionWindowSize$1];
+
+  const session = http2.connect(client[kUrl$6], {
     createConnection: () => socket,
     peerMaxConcurrentStreams: client[kMaxConcurrentStreams$1],
     settings: {
       // TODO(metcoder95): add support for PUSH
-      enablePush: false
+      enablePush: false,
+      ...(http2InitialWindowSize != null ? { initialWindowSize: http2InitialWindowSize } : null)
     }
   });
 
+  client[kSocket] = socket;
   session[kOpenStreams] = 0;
   session[kClient$2] = client;
   session[kSocket] = socket;
-  session[kHTTP2Session] = null;
+  session[kHTTP2SessionState] = {
+    ping: {
+      interval: client[kPingInterval$1] === 0 ? null : setInterval(onHttp2SendPing, client[kPingInterval$1], session).unref()
+    }
+  };
+  // We set it to true by default in a best-effort; however once connected to an H2 server
+  // we will check if extended CONNECT protocol is supported or not
+  // and set this value accordingly.
+  session[kEnableConnectProtocol] = false;
+  // States whether or not we have received the remote settings from the server
+  session[kRemoteSettings] = false;
 
-  util$i.addListener(session, 'error', onHttp2SessionError);
-  util$i.addListener(session, 'frameError', onHttp2FrameError);
-  util$i.addListener(session, 'end', onHttp2SessionEnd);
-  util$i.addListener(session, 'goaway', onHttp2SessionGoAway);
-  util$i.addListener(session, 'close', onHttp2SessionClose);
+  // Apply connection-level flow control once connected (if supported).
+  if (http2ConnectionWindowSize) {
+    util$j.addListener(session, 'connect', applyConnectionWindowSize.bind(session, http2ConnectionWindowSize));
+  }
+
+  util$j.addListener(session, 'error', onHttp2SessionError);
+  util$j.addListener(session, 'frameError', onHttp2FrameError);
+  util$j.addListener(session, 'end', onHttp2SessionEnd);
+  util$j.addListener(session, 'goaway', onHttp2SessionGoAway);
+  util$j.addListener(session, 'close', onHttp2SessionClose);
+  util$j.addListener(session, 'remoteSettings', onHttp2RemoteSettings);
+  // TODO (@metcoder95): implement SETTINGS support
+  // util.addListener(session, 'localSettings', onHttp2RemoteSettings)
 
   session.unref();
 
   client[kHTTP2Session] = session;
   socket[kHTTP2Session] = session;
 
-  util$i.addListener(socket, 'error', onHttp2SocketError);
-  util$i.addListener(socket, 'end', onHttp2SocketEnd);
-  util$i.addListener(socket, 'close', onHttp2SocketClose);
+  util$j.addListener(socket, 'error', onHttp2SocketError);
+  util$j.addListener(socket, 'end', onHttp2SocketEnd);
+  util$j.addListener(socket, 'close', onHttp2SocketClose);
 
   socket[kClosed$1] = false;
   socket.on('close', onSocketClose);
@@ -10293,12 +10999,23 @@ async function connectH2$1 (client, socket) {
   return {
     version: 'h2',
     defaultPipelining: Infinity,
+    /**
+     * @param {import('../core/request.js')} request
+     * @returns {boolean}
+    */
     write (request) {
       return writeH2(client, request)
     },
+    /**
+     * @returns {void}
+     */
     resume () {
       resumeH2(client);
     },
+    /**
+     * @param {Error | null} err
+     * @param {() => void} callback
+     */
     destroy (err, callback) {
       if (socket[kClosed$1]) {
         queueMicrotask(callback);
@@ -10306,10 +11023,43 @@ async function connectH2$1 (client, socket) {
         socket.destroy(err).on('close', callback);
       }
     },
+    /**
+     * @type {boolean}
+     */
     get destroyed () {
       return socket.destroyed
     },
-    busy () {
+    /**
+     * @param {import('../core/request.js')} request
+     * @returns {boolean}
+    */
+    busy (request) {
+      if (request != null) {
+        if (client[kRunning$3] > 0) {
+          // We are already processing requests
+
+          // Non-idempotent request cannot be retried.
+          // Ensure that no other requests are inflight and
+          // could cause failure.
+          if (request.idempotent === false) return true
+          // Don't dispatch an upgrade until all preceding requests have completed.
+          // Possibly, we do not have remote settings confirmed yet.
+          if ((request.upgrade === 'websocket' || request.method === 'CONNECT') && session[kRemoteSettings] === false) return true
+          // Request with stream or iterator body can error while other requests
+          // are inflight and indirectly error those as well.
+          // Ensure this doesn't happen by waiting for inflight
+          // to complete before dispatching.
+
+          // Request with stream or iterator body cannot be retried.
+          // Ensure that no other requests are inflight and
+          // could cause failure.
+          if (util$j.bodyLength(request.body) !== 0 &&
+            (util$j.isStream(request.body) || util$j.isAsyncIterable(request.body) || util$j.isFormDataLike(request.body))) return true
+        } else {
+          return (request.upgrade === 'websocket' || request.method === 'CONNECT') && session[kRemoteSettings] === false
+        }
+      }
+
       return false
     }
   }
@@ -10325,6 +11075,62 @@ function resumeH2 (client) {
     } else {
       socket.ref();
       client[kHTTP2Session].ref();
+    }
+  }
+}
+
+function applyConnectionWindowSize (connectionWindowSize) {
+  try {
+    if (typeof this.setLocalWindowSize === 'function') {
+      this.setLocalWindowSize(connectionWindowSize);
+    }
+  } catch {
+    // Best-effort only.
+  }
+}
+
+function onHttp2RemoteSettings (settings) {
+  // Fallbacks are a safe bet, remote setting will always override
+  this[kClient$2][kMaxConcurrentStreams$1] = settings.maxConcurrentStreams ?? this[kClient$2][kMaxConcurrentStreams$1];
+  /**
+   * From RFC-8441
+   * A sender MUST NOT send a SETTINGS_ENABLE_CONNECT_PROTOCOL parameter
+   * with the value of 0 after previously sending a value of 1.
+   */
+  // Note: Cannot be tested in Node, it does not supports disabling the extended CONNECT protocol once enabled
+  if (this[kRemoteSettings] === true && this[kEnableConnectProtocol] === true && settings.enableConnectProtocol === false) {
+    const err = new InformationalError$2('HTTP/2: Server disabled extended CONNECT protocol against RFC-8441');
+    this[kSocket][kError$1] = err;
+    this[kClient$2][kOnError$1](err);
+    return
+  }
+
+  this[kEnableConnectProtocol] = settings.enableConnectProtocol ?? this[kEnableConnectProtocol];
+  this[kRemoteSettings] = true;
+  this[kClient$2][kResume$2]();
+}
+
+function onHttp2SendPing (session) {
+  const state = session[kHTTP2SessionState];
+  if ((session.closed || session.destroyed) && state.ping.interval != null) {
+    clearInterval(state.ping.interval);
+    state.ping.interval = null;
+    return
+  }
+
+  // If no ping sent, do nothing
+  session.ping(onPing.bind(session));
+
+  function onPing (err, duration) {
+    const client = this[kClient$2];
+    const socket = this[kClient$2];
+
+    if (err != null) {
+      const error = new InformationalError$2(`HTTP/2: "PING" errored - type ${err.message}`);
+      socket[kError$1] = error;
+      client[kOnError$1](error);
+    } else {
+      client.emit('ping', duration);
     }
   }
 }
@@ -10345,9 +11151,9 @@ function onHttp2FrameError (type, code, id) {
 }
 
 function onHttp2SessionEnd () {
-  const err = new SocketError$2('other side closed', util$i.getSocketInfo(this[kSocket]));
+  const err = new SocketError$2('other side closed', util$j.getSocketInfo(this[kSocket]));
   this.destroy(err);
-  util$i.destroy(this[kSocket], err);
+  util$j.destroy(this[kSocket], err);
 }
 
 /**
@@ -10363,7 +11169,7 @@ function onHttp2SessionGoAway (errorCode) {
   // https://datatracker.ietf.org/doc/html/rfc7540#section-6.8
   // Specifically, we do not verify the "valid" stream id.
 
-  const err = this[kError$1] || new SocketError$2(`HTTP/2: "GOAWAY" frame received with code ${errorCode}`, util$i.getSocketInfo(this[kSocket]));
+  const err = this[kError$1] || new SocketError$2(`HTTP/2: "GOAWAY" frame received with code ${errorCode}`, util$j.getSocketInfo(this[kSocket]));
   const client = this[kClient$2];
 
   client[kSocket] = null;
@@ -10373,32 +11179,37 @@ function onHttp2SessionGoAway (errorCode) {
   this.close();
   this[kHTTP2Session] = null;
 
-  util$i.destroy(this[kSocket], err);
+  util$j.destroy(this[kSocket], err);
 
   // Fail head of pipeline.
   if (client[kRunningIdx$1] < client[kQueue$2].length) {
     const request = client[kQueue$2][client[kRunningIdx$1]];
     client[kQueue$2][client[kRunningIdx$1]++] = null;
-    util$i.errorRequest(client, request, err);
+    util$j.errorRequest(client, request, err);
     client[kPendingIdx$1] = client[kRunningIdx$1];
   }
 
   assert$c(client[kRunning$3] === 0);
 
-  client.emit('disconnect', client[kUrl$5], [client], err);
-  client.emit('connectionError', client[kUrl$5], [client], err);
+  client.emit('disconnect', client[kUrl$6], [client], err);
+  client.emit('connectionError', client[kUrl$6], [client], err);
 
   client[kResume$2]();
 }
 
 function onHttp2SessionClose () {
-  const { [kClient$2]: client } = this;
+  const { [kClient$2]: client, [kHTTP2SessionState]: state } = this;
   const { [kSocket]: socket } = client;
 
-  const err = this[kSocket][kError$1] || this[kError$1] || new SocketError$2('closed', util$i.getSocketInfo(socket));
+  const err = this[kSocket][kError$1] || this[kError$1] || new SocketError$2('closed', util$j.getSocketInfo(socket));
 
   client[kSocket] = null;
   client[kHTTPContext$1] = null;
+
+  if (state.ping.interval != null) {
+    clearInterval(state.ping.interval);
+    state.ping.interval = null;
+  }
 
   if (client.destroyed) {
     assert$c(client[kPending$2] === 0);
@@ -10407,13 +11218,13 @@ function onHttp2SessionClose () {
     const requests = client[kQueue$2].splice(client[kRunningIdx$1]);
     for (let i = 0; i < requests.length; i++) {
       const request = requests[i];
-      util$i.errorRequest(client, request, err);
+      util$j.errorRequest(client, request, err);
     }
   }
 }
 
 function onHttp2SocketClose () {
-  const err = this[kError$1] || new SocketError$2('closed', util$i.getSocketInfo(this));
+  const err = this[kError$1] || new SocketError$2('closed', util$j.getSocketInfo(this));
 
   const client = this[kHTTP2Session][kClient$2];
 
@@ -10428,7 +11239,7 @@ function onHttp2SocketClose () {
 
   assert$c(client[kRunning$3] === 0);
 
-  client.emit('disconnect', client[kUrl$5], [client], err);
+  client.emit('disconnect', client[kUrl$6], [client], err);
 
   client[kResume$2]();
 }
@@ -10442,7 +11253,7 @@ function onHttp2SocketError (err) {
 }
 
 function onHttp2SocketEnd () {
-  util$i.destroy(this, new SocketError$2('other side closed', util$i.getSocketInfo(this)));
+  util$j.destroy(this, new SocketError$2('other side closed', util$j.getSocketInfo(this)));
 }
 
 function onSocketClose () {
@@ -10457,11 +11268,11 @@ function shouldSendContentLength (method) {
 function writeH2 (client, request) {
   const requestTimeout = request.bodyTimeout ?? client[kBodyTimeout$1];
   const session = client[kHTTP2Session];
-  const { method, path, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+  const { method, path, host, upgrade, expectContinue, signal, protocol, headers: reqHeaders } = request;
   let { body } = request;
 
-  if (upgrade) {
-    util$i.errorRequest(client, request, new Error('Upgrade not supported for H2'));
+  if (upgrade != null && upgrade !== 'websocket') {
+    util$j.errorRequest(client, request, new InvalidArgumentError$t(`Custom upgrade "${upgrade}" not supported over HTTP/2`));
     return false
   }
 
@@ -10469,6 +11280,16 @@ function writeH2 (client, request) {
   for (let n = 0; n < reqHeaders.length; n += 2) {
     const key = reqHeaders[n + 0];
     const val = reqHeaders[n + 1];
+
+    if (key === 'cookie') {
+      if (headers[key] != null) {
+        headers[key] = Array.isArray(headers[key]) ? (headers[key].push(val), headers[key]) : [headers[key], val];
+      } else {
+        headers[key] = val;
+      }
+
+      continue
+    }
 
     if (Array.isArray(val)) {
       for (let i = 0; i < val.length; i++) {
@@ -10488,7 +11309,7 @@ function writeH2 (client, request) {
   /** @type {import('node:http2').ClientHttp2Stream} */
   let stream = null;
 
-  const { hostname, port } = client[kUrl$5];
+  const { hostname, port } = client[kUrl$6];
 
   headers[HTTP2_HEADER_AUTHORITY] = host || `${hostname}${port ? `:${port}` : ''}`;
   headers[HTTP2_HEADER_METHOD] = method;
@@ -10498,9 +11319,9 @@ function writeH2 (client, request) {
       return
     }
 
-    err = err || new RequestAbortedError$6();
+    err = err || new RequestAbortedError$7();
 
-    util$i.errorRequest(client, request, err);
+    util$j.errorRequest(client, request, err);
 
     if (stream != null) {
       // Some chunks might still come after abort,
@@ -10517,7 +11338,7 @@ function writeH2 (client, request) {
 
     // We do not destroy the socket as we can continue using the session
     // the stream gets destroyed and the session remains to create new streams
-    util$i.destroy(body, err);
+    util$j.destroy(body, err);
   };
 
   try {
@@ -10525,33 +11346,82 @@ function writeH2 (client, request) {
     // We can call on connect, and wait for abort
     request.onConnect(abort);
   } catch (err) {
-    util$i.errorRequest(client, request, err);
+    util$j.errorRequest(client, request, err);
   }
 
   if (request.aborted) {
     return false
   }
 
-  if (method === 'CONNECT') {
+  if (upgrade || method === 'CONNECT') {
     session.ref();
-    // We are already connected, streams are pending, first request
+
+    if (upgrade === 'websocket') {
+      // We cannot upgrade to websocket if extended CONNECT protocol is not supported
+      if (session[kEnableConnectProtocol] === false) {
+        util$j.errorRequest(client, request, new InformationalError$2('HTTP/2: Extended CONNECT protocol not supported by server'));
+        session.unref();
+        return false
+      }
+
+      // We force the method to CONNECT
+      // as per RFC-8441
+      // https://datatracker.ietf.org/doc/html/rfc8441#section-4
+      headers[HTTP2_HEADER_METHOD] = 'CONNECT';
+      headers[HTTP2_HEADER_PROTOCOL] = 'websocket';
+      // :path and :scheme headers must be omitted when sending CONNECT but set if extended-CONNECT
+      headers[HTTP2_HEADER_PATH] = path;
+
+      if (protocol === 'ws:' || protocol === 'wss:') {
+        headers[HTTP2_HEADER_SCHEME] = protocol === 'ws:' ? 'http' : 'https';
+      } else {
+        headers[HTTP2_HEADER_SCHEME] = protocol === 'http:' ? 'http' : 'https';
+      }
+
+      stream = session.request(headers, { endStream: false, signal });
+      stream[kHTTP2Stream$1] = true;
+
+      stream.once('response', (headers, _flags) => {
+        const { [HTTP2_HEADER_STATUS]: statusCode, ...realHeaders } = headers;
+
+        request.onUpgrade(statusCode, parseH2Headers(realHeaders), stream);
+
+        ++session[kOpenStreams];
+        client[kQueue$2][client[kRunningIdx$1]++] = null;
+      });
+
+      stream.on('error', () => {
+        if (stream.rstCode === NGHTTP2_REFUSED_STREAM || stream.rstCode === NGHTTP2_CANCEL) {
+          // NGHTTP2_REFUSED_STREAM (7) or NGHTTP2_CANCEL (8)
+          // We do not treat those as errors as the server might
+          // not support websockets and refuse the stream
+          abort(new InformationalError$2(`HTTP/2: "stream error" received - code ${stream.rstCode}`));
+        }
+      });
+
+      stream.once('close', () => {
+        session[kOpenStreams] -= 1;
+        if (session[kOpenStreams] === 0) session.unref();
+      });
+
+      stream.setTimeout(requestTimeout);
+      return true
+    }
+
+    // TODO: consolidate once we support CONNECT properly
+    // NOTE: We are already connected, streams are pending, first request
     // will create a new stream. We trigger a request to create the stream and wait until
     // `ready` event is triggered
     // We disabled endStream to allow the user to write to the stream
     stream = session.request(headers, { endStream: false, signal });
+    stream[kHTTP2Stream$1] = true;
+    stream.on('response', headers => {
+      const { [HTTP2_HEADER_STATUS]: statusCode, ...realHeaders } = headers;
 
-    if (!stream.pending) {
-      request.onUpgrade(null, null, stream);
+      request.onUpgrade(statusCode, parseH2Headers(realHeaders), stream);
       ++session[kOpenStreams];
       client[kQueue$2][client[kRunningIdx$1]++] = null;
-    } else {
-      stream.once('ready', () => {
-        request.onUpgrade(null, null, stream);
-        ++session[kOpenStreams];
-        client[kQueue$2][client[kRunningIdx$1]++] = null;
-      });
-    }
-
+    });
     stream.once('close', () => {
       session[kOpenStreams] -= 1;
       if (session[kOpenStreams] === 0) session.unref();
@@ -10563,9 +11433,8 @@ function writeH2 (client, request) {
 
   // https://tools.ietf.org/html/rfc7540#section-8.3
   // :path and :scheme headers must be omitted when sending CONNECT
-
   headers[HTTP2_HEADER_PATH] = path;
-  headers[HTTP2_HEADER_SCHEME] = 'https';
+  headers[HTTP2_HEADER_SCHEME] = protocol === 'http:' ? 'http' : 'https';
 
   // https://tools.ietf.org/html/rfc7231#section-4.3.1
   // https://tools.ietf.org/html/rfc7231#section-4.3.2
@@ -10587,9 +11456,9 @@ function writeH2 (client, request) {
     body.read(0);
   }
 
-  let contentLength = util$i.bodyLength(body);
+  let contentLength = util$j.bodyLength(body);
 
-  if (util$i.isFormDataLike(body)) {
+  if (util$j.isFormDataLike(body)) {
     extractBody ??= requireBody().extractBody;
 
     const [bodyStream, contentType] = extractBody(body);
@@ -10603,12 +11472,12 @@ function writeH2 (client, request) {
     contentLength = request.contentLength;
   }
 
-  if (contentLength === 0 || !expectsPayload) {
+  if (!expectsPayload) {
     // https://tools.ietf.org/html/rfc7230#section-3.3.2
     // A user agent SHOULD NOT send a Content-Length header field when
     // the request message does not contain a payload body and the method
     // semantics do not anticipate such a body.
-
+    // And for methods that don't expect a payload, omit Content-Length.
     contentLength = null;
   }
 
@@ -10616,7 +11485,7 @@ function writeH2 (client, request) {
   // A user agent may send a Content-Length header with 0 value, this should be allowed.
   if (shouldSendContentLength(method) && contentLength > 0 && request.contentLength != null && request.contentLength !== contentLength) {
     if (client[kStrictContentLength$1]) {
-      util$i.errorRequest(client, request, new RequestContentLengthMismatchError());
+      util$j.errorRequest(client, request, new RequestContentLengthMismatchError());
       return false
     }
 
@@ -10624,18 +11493,18 @@ function writeH2 (client, request) {
   }
 
   if (contentLength != null) {
-    assert$c(body, 'no body must not have content length');
+    assert$c(body || contentLength === 0, 'no body must not have content length');
     headers[HTTP2_HEADER_CONTENT_LENGTH] = `${contentLength}`;
   }
 
   session.ref();
 
-  if (channels$1.sendHeaders.hasSubscribers) {
+  if (channels$2.sendHeaders.hasSubscribers) {
     let header = '';
     for (const key in headers) {
       header += `${key}: ${headers[key]}\r\n`;
     }
-    channels$1.sendHeaders.publish({ request, headers: header, socket: session[kSocket] });
+    channels$2.sendHeaders.publish({ request, headers: header, socket: session[kSocket] });
   }
 
   // TODO(metcoder95): add support for sending trailers
@@ -10643,6 +11512,7 @@ function writeH2 (client, request) {
   if (expectContinue) {
     headers[HTTP2_HEADER_EXPECT] = '100-continue';
     stream = session.request(headers, { endStream: shouldEndStream, signal });
+    stream[kHTTP2Stream$1] = true;
 
     stream.once('continue', writeBodyH2);
   } else {
@@ -10650,6 +11520,7 @@ function writeH2 (client, request) {
       endStream: shouldEndStream,
       signal
     });
+    stream[kHTTP2Stream$1] = true;
 
     writeBodyH2();
   }
@@ -10658,9 +11529,13 @@ function writeH2 (client, request) {
   ++session[kOpenStreams];
   stream.setTimeout(requestTimeout);
 
+  // Track whether we received a response (headers)
+  let responseReceived = false;
+
   stream.once('response', headers => {
     const { [HTTP2_HEADER_STATUS]: statusCode, ...realHeaders } = headers;
     request.onResponseStarted();
+    responseReceived = true;
 
     // Due to the stream nature, it is possible we face a race condition
     // where the stream has been assigned, but the request has been aborted
@@ -10675,22 +11550,22 @@ function writeH2 (client, request) {
     if (request.onHeaders(Number(statusCode), parseH2Headers(realHeaders), stream.resume.bind(stream), '') === false) {
       stream.pause();
     }
+
+    stream.on('data', (chunk) => {
+      if (request.aborted || request.completed) {
+        return
+      }
+
+      if (request.onData(chunk) === false) {
+        stream.pause();
+      }
+    });
   });
 
-  stream.on('data', (chunk) => {
-    if (request.onData(chunk) === false) {
-      stream.pause();
-    }
-  });
-
-  stream.once('end', (err) => {
+  stream.once('end', () => {
     stream.removeAllListeners('data');
-    // When state is null, it means we haven't consumed body and the stream still do not have
-    // a state.
-    // Present specially when using pipeline or stream
-    if (stream.state?.state == null || stream.state.state < 6) {
-      // Do not complete the request if it was aborted
-      // Not prone to happen for as safety net to avoid race conditions with 'trailers'
+    // If we received a response, this is a normal completion
+    if (responseReceived) {
       if (!request.aborted && !request.completed) {
         request.onComplete({});
       }
@@ -10698,15 +11573,9 @@ function writeH2 (client, request) {
       client[kQueue$2][client[kRunningIdx$1]++] = null;
       client[kResume$2]();
     } else {
-      // Stream is closed or half-closed-remote (6), decrement counter and cleanup
-      // It does not have sense to continue working with the stream as we do not
-      // have yet RST_STREAM support on client-side
-      --session[kOpenStreams];
-      if (session[kOpenStreams] === 0) {
-        session.unref();
-      }
-
-      abort(err ?? new InformationalError$2('HTTP/2: stream half-closed (remote)'));
+      // Stream ended without receiving a response - this is an error
+      // (e.g., server destroyed the stream before sending headers)
+      abort(new InformationalError$2('HTTP/2: stream half-closed (remote)'));
       client[kQueue$2][client[kRunningIdx$1]++] = null;
       client[kPendingIdx$1] = client[kRunningIdx$1];
       client[kResume$2]();
@@ -10752,13 +11621,13 @@ function writeH2 (client, request) {
       return
     }
 
+    stream.removeAllListeners('data');
     request.onComplete(trailers);
   });
 
   return true
 
   function writeBodyH2 () {
-    /* istanbul ignore else: assertion */
     if (!body || contentLength === 0) {
       writeBuffer(
         abort,
@@ -10770,7 +11639,7 @@ function writeH2 (client, request) {
         contentLength,
         expectsPayload
       );
-    } else if (util$i.isBuffer(body)) {
+    } else if (util$j.isBuffer(body)) {
       writeBuffer(
         abort,
         stream,
@@ -10781,7 +11650,7 @@ function writeH2 (client, request) {
         contentLength,
         expectsPayload
       );
-    } else if (util$i.isBlobLike(body)) {
+    } else if (util$j.isBlobLike(body)) {
       if (typeof body.stream === 'function') {
         writeIterable(
           abort,
@@ -10805,7 +11674,7 @@ function writeH2 (client, request) {
           expectsPayload
         );
       }
-    } else if (util$i.isStream(body)) {
+    } else if (util$j.isStream(body)) {
       writeStream(
         abort,
         client[kSocket],
@@ -10816,7 +11685,7 @@ function writeH2 (client, request) {
         request,
         contentLength
       );
-    } else if (util$i.isIterable(body)) {
+    } else if (util$j.isIterable(body)) {
       writeIterable(
         abort,
         stream,
@@ -10835,7 +11704,7 @@ function writeH2 (client, request) {
 
 function writeBuffer (abort, h2stream, body, client, request, socket, contentLength, expectsPayload) {
   try {
-    if (body != null && util$i.isBuffer(body)) {
+    if (body != null && util$j.isBuffer(body)) {
       assert$c(contentLength === body.byteLength, 'buffer body must have content length');
       h2stream.cork();
       h2stream.write(body);
@@ -10865,10 +11734,10 @@ function writeStream (abort, socket, expectsPayload, h2stream, body, client, req
     h2stream,
     (err) => {
       if (err) {
-        util$i.destroy(pipe, err);
+        util$j.destroy(pipe, err);
         abort(err);
       } else {
-        util$i.removeAllListeners(pipe);
+        util$j.removeAllListeners(pipe);
         request.onRequestSent();
 
         if (!expectsPayload) {
@@ -10880,7 +11749,7 @@ function writeStream (abort, socket, expectsPayload, h2stream, body, client, req
     }
   );
 
-  util$i.addListener(pipe, 'data', onPipeData);
+  util$j.addListener(pipe, 'data', onPipeData);
 
   function onPipeData (chunk) {
     request.onBodySent(chunk);
@@ -10976,21 +11845,21 @@ async function writeIterable (abort, h2stream, body, client, request, socket, co
 var clientH2 = connectH2$1;
 
 const assert$b = require$$0$2;
-const net = require$$0$3;
+const net$2 = require$$0$3;
 const http = require$$2;
-const util$h = util$n;
+const util$i = util$o;
 const { ClientStats } = stats;
-const { channels } = diagnostics;
-const Request$1 = request$3;
+const { channels: channels$1 } = diagnostics;
+const Request = request$2;
 const DispatcherBase$5 = dispatcherBase;
 const {
-  InvalidArgumentError: InvalidArgumentError$m,
+  InvalidArgumentError: InvalidArgumentError$s,
   InformationalError: InformationalError$1,
   ClientDestroyedError
-} = errors$1;
-const buildConnector$3 = connect$4;
+} = errors;
+const buildConnector$4 = connect$2;
 const {
-  kUrl: kUrl$4,
+  kUrl: kUrl$5,
   kServerName,
   kClient: kClient$1,
   kBusy: kBusy$1,
@@ -11002,7 +11871,7 @@ const {
   kQueue: kQueue$1,
   kConnected: kConnected$3,
   kConnecting,
-  kNeedDrain: kNeedDrain$3,
+  kNeedDrain: kNeedDrain$4,
   kKeepAliveDefaultTimeout,
   kHostHeader,
   kPendingIdx,
@@ -11021,13 +11890,16 @@ const {
   kCounter,
   kClose: kClose$7,
   kDestroy: kDestroy$5,
-  kDispatch: kDispatch$4,
+  kDispatch: kDispatch$5,
   kLocalAddress,
   kMaxResponseSize,
   kOnError,
   kHTTPContext,
   kMaxConcurrentStreams,
-  kResume: kResume$1
+  kHTTP2InitialWindowSize,
+  kHTTP2ConnectionWindowSize,
+  kResume: kResume$1,
+  kPingInterval
 } = requireSymbols();
 const connectH1 = clientH1;
 const connectH2 = clientH2;
@@ -11039,9 +11911,9 @@ const getDefaultNodeMaxHeaderSize = http &&
   Number.isInteger(http.maxHeaderSize) &&
   http.maxHeaderSize > 0
   ? () => http.maxHeaderSize
-  : () => { throw new InvalidArgumentError$m('http module not available or http.maxHeaderSize invalid') };
+  : () => { throw new InvalidArgumentError$s('http module not available or http.maxHeaderSize invalid') };
 
-const noop$7 = () => {};
+const noop$7 = () => { };
 
 function getPipelining (client) {
   return client[kPipelining] ?? client[kHTTPContext]?.defaultPipelining ?? 1
@@ -11082,31 +11954,35 @@ let Client$6 = class Client extends DispatcherBase$5 {
     autoSelectFamilyAttemptTimeout,
     // h2
     maxConcurrentStreams,
-    allowH2
+    allowH2,
+    useH2c,
+    initialWindowSize,
+    connectionWindowSize,
+    pingInterval
   } = {}) {
     if (keepAlive !== undefined) {
-      throw new InvalidArgumentError$m('unsupported keepAlive, use pipelining=0 instead')
+      throw new InvalidArgumentError$s('unsupported keepAlive, use pipelining=0 instead')
     }
 
     if (socketTimeout !== undefined) {
-      throw new InvalidArgumentError$m('unsupported socketTimeout, use headersTimeout & bodyTimeout instead')
+      throw new InvalidArgumentError$s('unsupported socketTimeout, use headersTimeout & bodyTimeout instead')
     }
 
     if (requestTimeout !== undefined) {
-      throw new InvalidArgumentError$m('unsupported requestTimeout, use headersTimeout & bodyTimeout instead')
+      throw new InvalidArgumentError$s('unsupported requestTimeout, use headersTimeout & bodyTimeout instead')
     }
 
     if (idleTimeout !== undefined) {
-      throw new InvalidArgumentError$m('unsupported idleTimeout, use keepAliveTimeout instead')
+      throw new InvalidArgumentError$s('unsupported idleTimeout, use keepAliveTimeout instead')
     }
 
     if (maxKeepAliveTimeout !== undefined) {
-      throw new InvalidArgumentError$m('unsupported maxKeepAliveTimeout, use keepAliveMaxTimeout instead')
+      throw new InvalidArgumentError$s('unsupported maxKeepAliveTimeout, use keepAliveMaxTimeout instead')
     }
 
     if (maxHeaderSize != null) {
       if (!Number.isInteger(maxHeaderSize) || maxHeaderSize < 1) {
-        throw new InvalidArgumentError$m('invalid maxHeaderSize')
+        throw new InvalidArgumentError$s('invalid maxHeaderSize')
       }
     } else {
       // If maxHeaderSize is not provided, use the default value from the http module
@@ -11115,80 +11991,100 @@ let Client$6 = class Client extends DispatcherBase$5 {
     }
 
     if (socketPath != null && typeof socketPath !== 'string') {
-      throw new InvalidArgumentError$m('invalid socketPath')
+      throw new InvalidArgumentError$s('invalid socketPath')
     }
 
     if (connectTimeout != null && (!Number.isFinite(connectTimeout) || connectTimeout < 0)) {
-      throw new InvalidArgumentError$m('invalid connectTimeout')
+      throw new InvalidArgumentError$s('invalid connectTimeout')
     }
 
     if (keepAliveTimeout != null && (!Number.isFinite(keepAliveTimeout) || keepAliveTimeout <= 0)) {
-      throw new InvalidArgumentError$m('invalid keepAliveTimeout')
+      throw new InvalidArgumentError$s('invalid keepAliveTimeout')
     }
 
     if (keepAliveMaxTimeout != null && (!Number.isFinite(keepAliveMaxTimeout) || keepAliveMaxTimeout <= 0)) {
-      throw new InvalidArgumentError$m('invalid keepAliveMaxTimeout')
+      throw new InvalidArgumentError$s('invalid keepAliveMaxTimeout')
     }
 
     if (keepAliveTimeoutThreshold != null && !Number.isFinite(keepAliveTimeoutThreshold)) {
-      throw new InvalidArgumentError$m('invalid keepAliveTimeoutThreshold')
+      throw new InvalidArgumentError$s('invalid keepAliveTimeoutThreshold')
     }
 
     if (headersTimeout != null && (!Number.isInteger(headersTimeout) || headersTimeout < 0)) {
-      throw new InvalidArgumentError$m('headersTimeout must be a positive integer or zero')
+      throw new InvalidArgumentError$s('headersTimeout must be a positive integer or zero')
     }
 
     if (bodyTimeout != null && (!Number.isInteger(bodyTimeout) || bodyTimeout < 0)) {
-      throw new InvalidArgumentError$m('bodyTimeout must be a positive integer or zero')
+      throw new InvalidArgumentError$s('bodyTimeout must be a positive integer or zero')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$m('connect must be a function or an object')
+      throw new InvalidArgumentError$s('connect must be a function or an object')
     }
 
     if (maxRequestsPerClient != null && (!Number.isInteger(maxRequestsPerClient) || maxRequestsPerClient < 0)) {
-      throw new InvalidArgumentError$m('maxRequestsPerClient must be a positive number')
+      throw new InvalidArgumentError$s('maxRequestsPerClient must be a positive number')
     }
 
-    if (localAddress != null && (typeof localAddress !== 'string' || net.isIP(localAddress) === 0)) {
-      throw new InvalidArgumentError$m('localAddress must be valid string IP address')
+    if (localAddress != null && (typeof localAddress !== 'string' || net$2.isIP(localAddress) === 0)) {
+      throw new InvalidArgumentError$s('localAddress must be valid string IP address')
     }
 
     if (maxResponseSize != null && (!Number.isInteger(maxResponseSize) || maxResponseSize < -1)) {
-      throw new InvalidArgumentError$m('maxResponseSize must be a positive number')
+      throw new InvalidArgumentError$s('maxResponseSize must be a positive number')
     }
 
     if (
       autoSelectFamilyAttemptTimeout != null &&
       (!Number.isInteger(autoSelectFamilyAttemptTimeout) || autoSelectFamilyAttemptTimeout < -1)
     ) {
-      throw new InvalidArgumentError$m('autoSelectFamilyAttemptTimeout must be a positive number')
+      throw new InvalidArgumentError$s('autoSelectFamilyAttemptTimeout must be a positive number')
     }
 
     // h2
     if (allowH2 != null && typeof allowH2 !== 'boolean') {
-      throw new InvalidArgumentError$m('allowH2 must be a valid boolean value')
+      throw new InvalidArgumentError$s('allowH2 must be a valid boolean value')
     }
 
     if (maxConcurrentStreams != null && (typeof maxConcurrentStreams !== 'number' || maxConcurrentStreams < 1)) {
-      throw new InvalidArgumentError$m('maxConcurrentStreams must be a positive integer, greater than 0')
+      throw new InvalidArgumentError$s('maxConcurrentStreams must be a positive integer, greater than 0')
+    }
+
+    if (useH2c != null && typeof useH2c !== 'boolean') {
+      throw new InvalidArgumentError$s('useH2c must be a valid boolean value')
+    }
+
+    if (initialWindowSize != null && (!Number.isInteger(initialWindowSize) || initialWindowSize < 1)) {
+      throw new InvalidArgumentError$s('initialWindowSize must be a positive integer, greater than 0')
+    }
+
+    if (connectionWindowSize != null && (!Number.isInteger(connectionWindowSize) || connectionWindowSize < 1)) {
+      throw new InvalidArgumentError$s('connectionWindowSize must be a positive integer, greater than 0')
+    }
+
+    if (pingInterval != null && (typeof pingInterval !== 'number' || !Number.isInteger(pingInterval) || pingInterval < 0)) {
+      throw new InvalidArgumentError$s('pingInterval must be a positive integer, greater or equal to 0')
     }
 
     super();
 
     if (typeof connect !== 'function') {
-      connect = buildConnector$3({
+      connect = buildConnector$4({
         ...tls,
         maxCachedSessions,
         allowH2,
+        useH2c,
         socketPath,
         timeout: connectTimeout,
         ...(typeof autoSelectFamily === 'boolean' ? { autoSelectFamily, autoSelectFamilyAttemptTimeout } : undefined),
         ...connect
       });
+    } else if (socketPath != null) {
+      const customConnect = connect;
+      connect = (opts, callback) => customConnect({ ...opts, socketPath }, callback);
     }
 
-    this[kUrl$4] = util$h.parseOrigin(url);
+    this[kUrl$5] = util$i.parseOrigin(url);
     this[kConnector$1] = connect;
     this[kPipelining] = pipelining != null ? pipelining : 1;
     this[kMaxHeadersSize] = maxHeaderSize;
@@ -11199,16 +12095,26 @@ let Client$6 = class Client extends DispatcherBase$5 {
     this[kServerName] = null;
     this[kLocalAddress] = localAddress != null ? localAddress : null;
     this[kResuming] = 0; // 0, idle, 1, scheduled, 2 resuming
-    this[kNeedDrain$3] = 0; // 0, idle, 1, scheduled, 2 resuming
-    this[kHostHeader] = `host: ${this[kUrl$4].hostname}${this[kUrl$4].port ? `:${this[kUrl$4].port}` : ''}\r\n`;
+    this[kNeedDrain$4] = 0; // 0, idle, 1, scheduled, 2 resuming
+    this[kHostHeader] = `host: ${this[kUrl$5].hostname}${this[kUrl$5].port ? `:${this[kUrl$5].port}` : ''}\r\n`;
     this[kBodyTimeout] = bodyTimeout != null ? bodyTimeout : 300e3;
     this[kHeadersTimeout] = headersTimeout != null ? headersTimeout : 300e3;
     this[kStrictContentLength] = strictContentLength == null ? true : strictContentLength;
     this[kMaxRequests] = maxRequestsPerClient;
     this[kClosedResolve$1] = null;
     this[kMaxResponseSize] = maxResponseSize > -1 ? maxResponseSize : -1;
-    this[kMaxConcurrentStreams] = maxConcurrentStreams != null ? maxConcurrentStreams : 100; // Max peerConcurrentStreams for a Node h2 server
     this[kHTTPContext] = null;
+    // h2
+    this[kMaxConcurrentStreams] = maxConcurrentStreams != null ? maxConcurrentStreams : 100; // Max peerConcurrentStreams for a Node h2 server
+    // HTTP/2 window sizes are set to higher defaults than Node.js core for better performance:
+    // - initialWindowSize: 262144 (256KB) vs Node.js default 65535 (64KB - 1)
+    //   Allows more data to be sent before requiring acknowledgment, improving throughput
+    //   especially on high-latency networks. This matches common production HTTP/2 servers.
+    // - connectionWindowSize: 524288 (512KB) vs Node.js default (none set)
+    //   Provides better flow control for the entire connection across multiple streams.
+    this[kHTTP2InitialWindowSize] = initialWindowSize != null ? initialWindowSize : 262144;
+    this[kHTTP2ConnectionWindowSize] = connectionWindowSize != null ? connectionWindowSize : 524288;
+    this[kPingInterval] = pingInterval != null ? pingInterval : 60e3; // Default ping interval for h2 - 1 minute
 
     // kQueue is built up of 3 sections separated by
     // the kRunningIdx and kPendingIdx indices.
@@ -11264,18 +12170,16 @@ let Client$6 = class Client extends DispatcherBase$5 {
     )
   }
 
-  /* istanbul ignore: only used for test */
   [kConnect] (cb) {
-    connect$3(this);
+    connect$1(this);
     this.once('connect', cb);
   }
 
-  [kDispatch$4] (opts, handler) {
-    const origin = opts.origin || this[kUrl$4].origin;
-    const request = new Request$1(origin, opts, handler);
+  [kDispatch$5] (opts, handler) {
+    const request = new Request(this[kUrl$5].origin, opts, handler);
 
     this[kQueue$1].push(request);
-    if (this[kResuming]) ; else if (util$h.bodyLength(request.body) == null && util$h.isIterable(request.body)) {
+    if (this[kResuming]) ; else if (util$i.bodyLength(request.body) == null && util$i.isIterable(request.body)) {
       // Wait a tick in case stream/iterator is ended in the same tick.
       this[kResuming] = 1;
       queueMicrotask(() => resume(this));
@@ -11283,14 +12187,14 @@ let Client$6 = class Client extends DispatcherBase$5 {
       this[kResume$1](true);
     }
 
-    if (this[kResuming] && this[kNeedDrain$3] !== 2 && this[kBusy$1]) {
-      this[kNeedDrain$3] = 2;
+    if (this[kResuming] && this[kNeedDrain$4] !== 2 && this[kBusy$1]) {
+      this[kNeedDrain$4] = 2;
     }
 
-    return this[kNeedDrain$3] < 2
+    return this[kNeedDrain$4] < 2
   }
 
-  async [kClose$7] () {
+  [kClose$7] () {
     // TODO: for H2 we need to gracefully flush the remaining enqueued
     // request and close each stream.
     return new Promise((resolve) => {
@@ -11302,12 +12206,12 @@ let Client$6 = class Client extends DispatcherBase$5 {
     })
   }
 
-  async [kDestroy$5] (err) {
+  [kDestroy$5] (err) {
     return new Promise((resolve) => {
       const requests = this[kQueue$1].splice(this[kPendingIdx]);
       for (let i = 0; i < requests.length; i++) {
         const request = requests[i];
-        util$h.errorRequest(this, request, err);
+        util$i.errorRequest(this, request, err);
       }
 
       const callback = () => {
@@ -11346,7 +12250,7 @@ function onError (client, err) {
 
     for (let i = 0; i < requests.length; i++) {
       const request = requests[i];
-      util$h.errorRequest(client, request, err);
+      util$i.errorRequest(client, request, err);
     }
     assert$b(client[kSize$2] === 0);
   }
@@ -11354,13 +12258,13 @@ function onError (client, err) {
 
 /**
  * @param {Client} client
- * @returns
+ * @returns {void}
  */
-async function connect$3 (client) {
+function connect$1 (client) {
   assert$b(!client[kConnecting]);
   assert$b(!client[kHTTPContext]);
 
-  let { host, hostname, protocol, port } = client[kUrl$4];
+  let { host, hostname, protocol, port } = client[kUrl$5];
 
   // Resolve ipv6
   if (hostname[0] === '[') {
@@ -11369,14 +12273,14 @@ async function connect$3 (client) {
     assert$b(idx !== -1);
     const ip = hostname.substring(1, idx);
 
-    assert$b(net.isIPv6(ip));
+    assert$b(net$2.isIPv6(ip));
     hostname = ip;
   }
 
   client[kConnecting] = true;
 
-  if (channels.beforeConnect.hasSubscribers) {
-    channels.beforeConnect.publish({
+  if (channels$1.beforeConnect.hasSubscribers) {
+    channels$1.beforeConnect.publish({
       connectParams: {
         host,
         hostname,
@@ -11390,26 +12294,23 @@ async function connect$3 (client) {
     });
   }
 
-  try {
-    const socket = await new Promise((resolve, reject) => {
-      client[kConnector$1]({
-        host,
-        hostname,
-        protocol,
-        port,
-        servername: client[kServerName],
-        localAddress: client[kLocalAddress]
-      }, (err, socket) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(socket);
-        }
-      });
-    });
+  client[kConnector$1]({
+    host,
+    hostname,
+    protocol,
+    port,
+    servername: client[kServerName],
+    localAddress: client[kLocalAddress]
+  }, (err, socket) => {
+    if (err) {
+      handleConnectError(client, err, { host, hostname, protocol, port });
+      client[kResume$1]();
+      return
+    }
 
     if (client.destroyed) {
-      util$h.destroy(socket.on('error', noop$7), new ClientDestroyedError());
+      util$i.destroy(socket.on('error', noop$7), new ClientDestroyedError());
+      client[kResume$1]();
       return
     }
 
@@ -11417,11 +12318,13 @@ async function connect$3 (client) {
 
     try {
       client[kHTTPContext] = socket.alpnProtocol === 'h2'
-        ? await connectH2(client, socket)
-        : await connectH1(client, socket);
+        ? connectH2(client, socket)
+        : connectH1(client, socket);
     } catch (err) {
       socket.destroy().on('error', noop$7);
-      throw err
+      handleConnectError(client, err, { host, hostname, protocol, port });
+      client[kResume$1]();
+      return
     }
 
     client[kConnecting] = false;
@@ -11431,8 +12334,8 @@ async function connect$3 (client) {
     socket[kClient$1] = client;
     socket[kError] = null;
 
-    if (channels.connected.hasSubscribers) {
-      channels.connected.publish({
+    if (channels$1.connected.hasSubscribers) {
+      channels$1.connected.publish({
         connectParams: {
           host,
           hostname,
@@ -11446,49 +12349,51 @@ async function connect$3 (client) {
         socket
       });
     }
-    client.emit('connect', client[kUrl$4], [client]);
-  } catch (err) {
-    if (client.destroyed) {
-      return
-    }
 
-    client[kConnecting] = false;
+    client.emit('connect', client[kUrl$5], [client]);
+    client[kResume$1]();
+  });
+}
 
-    if (channels.connectError.hasSubscribers) {
-      channels.connectError.publish({
-        connectParams: {
-          host,
-          hostname,
-          protocol,
-          port,
-          version: client[kHTTPContext]?.version,
-          servername: client[kServerName],
-          localAddress: client[kLocalAddress]
-        },
-        connector: client[kConnector$1],
-        error: err
-      });
-    }
-
-    if (err.code === 'ERR_TLS_CERT_ALTNAME_INVALID') {
-      assert$b(client[kRunning$2] === 0);
-      while (client[kPending$1] > 0 && client[kQueue$1][client[kPendingIdx]].servername === client[kServerName]) {
-        const request = client[kQueue$1][client[kPendingIdx]++];
-        util$h.errorRequest(client, request, err);
-      }
-    } else {
-      onError(client, err);
-    }
-
-    client.emit('connectionError', client[kUrl$4], [client], err);
+function handleConnectError (client, err, { host, hostname, protocol, port }) {
+  if (client.destroyed) {
+    return
   }
 
-  client[kResume$1]();
+  client[kConnecting] = false;
+
+  if (channels$1.connectError.hasSubscribers) {
+    channels$1.connectError.publish({
+      connectParams: {
+        host,
+        hostname,
+        protocol,
+        port,
+        version: client[kHTTPContext]?.version,
+        servername: client[kServerName],
+        localAddress: client[kLocalAddress]
+      },
+      connector: client[kConnector$1],
+      error: err
+    });
+  }
+
+  if (err.code === 'ERR_TLS_CERT_ALTNAME_INVALID') {
+    assert$b(client[kRunning$2] === 0);
+    while (client[kPending$1] > 0 && client[kQueue$1][client[kPendingIdx]].servername === client[kServerName]) {
+      const request = client[kQueue$1][client[kPendingIdx]++];
+      util$i.errorRequest(client, request, err);
+    }
+  } else {
+    onError(client, err);
+  }
+
+  client.emit('connectionError', client[kUrl$5], [client], err);
 }
 
 function emitDrain (client) {
-  client[kNeedDrain$3] = 0;
-  client.emit('drain', client[kUrl$4], [client]);
+  client[kNeedDrain$4] = 0;
+  client.emit('drain', client[kUrl$5], [client]);
 }
 
 function resume (client, sync) {
@@ -11526,10 +12431,10 @@ function _resume (client, sync) {
     }
 
     if (client[kBusy$1]) {
-      client[kNeedDrain$3] = 2;
-    } else if (client[kNeedDrain$3] === 2) {
+      client[kNeedDrain$4] = 2;
+    } else if (client[kNeedDrain$4] === 2) {
       if (sync) {
-        client[kNeedDrain$3] = 1;
+        client[kNeedDrain$4] = 1;
         queueMicrotask(() => emitDrain(client));
       } else {
         emitDrain(client);
@@ -11547,7 +12452,11 @@ function _resume (client, sync) {
 
     const request = client[kQueue$1][client[kPendingIdx]];
 
-    if (client[kUrl$4].protocol === 'https:' && client[kServerName] !== request.servername) {
+    if (request === null) {
+      return
+    }
+
+    if (client[kUrl$5].protocol === 'https:' && client[kServerName] !== request.servername) {
       if (client[kRunning$2] > 0) {
         return
       }
@@ -11564,7 +12473,7 @@ function _resume (client, sync) {
     }
 
     if (!client[kHTTPContext]) {
-      connect$3(client);
+      connect$1(client);
       return
     }
 
@@ -11645,35 +12554,21 @@ const kMask = kSize$1 - 1;
  * @template T
  */
 class FixedCircularBuffer {
-  constructor () {
-    /**
-     * @type {number}
-     */
-    this.bottom = 0;
-    /**
-     * @type {number}
-     */
-    this.top = 0;
-    /**
-     * @type {Array<T|undefined>}
-     */
-    this.list = new Array(kSize$1).fill(undefined);
-    /**
-     * @type {T|null}
-     */
-    this.next = null;
-  }
+  /** @type {number} */
+  bottom = 0
+  /** @type {number} */
+  top = 0
+  /** @type {Array<T|undefined>} */
+  list = new Array(kSize$1).fill(undefined)
+  /** @type {T|null} */
+  next = null
 
-  /**
-   * @returns {boolean}
-   */
+  /** @returns {boolean} */
   isEmpty () {
     return this.top === this.bottom
   }
 
-  /**
-   * @returns {boolean}
-   */
+  /** @returns {boolean} */
   isFull () {
     return ((this.top + 1) & kMask) === this.bottom
   }
@@ -11687,9 +12582,7 @@ class FixedCircularBuffer {
     this.top = (this.top + 1) & kMask;
   }
 
-  /**
-   * @returns {T|null}
-   */
+  /** @returns {T|null} */
   shift () {
     const nextItem = this.list[this.bottom];
     if (nextItem === undefined) { return null }
@@ -11704,22 +12597,16 @@ class FixedCircularBuffer {
  */
 var fixedQueue = class FixedQueue {
   constructor () {
-    /**
-     * @type {FixedCircularBuffer<T>}
-     */
+    /** @type {FixedCircularBuffer<T>} */
     this.head = this.tail = new FixedCircularBuffer();
   }
 
-  /**
-   * @returns {boolean}
-   */
+  /** @returns {boolean} */
   isEmpty () {
     return this.head.isEmpty()
   }
 
-  /**
-   * @param {T} data
-   */
+  /** @param {T} data */
   push (data) {
     if (this.head.isFull()) {
       // Head is full: Creates a new queue, sets the old queue's `.next` to it,
@@ -11729,9 +12616,7 @@ var fixedQueue = class FixedQueue {
     this.head.push(data);
   }
 
-  /**
-   * @returns {T|null}
-   */
+  /** @returns {T|null} */
   shift () {
     const tail = this.tail;
     const next = tail.shift();
@@ -11747,86 +12632,98 @@ var fixedQueue = class FixedQueue {
 const { PoolStats } = stats;
 const DispatcherBase$4 = dispatcherBase;
 const FixedQueue = fixedQueue;
-const { kConnected: kConnected$2, kSize, kRunning: kRunning$1, kPending, kQueued, kBusy, kFree, kUrl: kUrl$3, kClose: kClose$6, kDestroy: kDestroy$4, kDispatch: kDispatch$3 } = requireSymbols();
+const { kConnected: kConnected$2, kSize, kRunning: kRunning$1, kPending, kQueued, kBusy, kFree, kUrl: kUrl$4, kClose: kClose$6, kDestroy: kDestroy$4, kDispatch: kDispatch$4 } = requireSymbols();
 
-const kClients$4 = Symbol('clients');
-const kNeedDrain$2 = Symbol('needDrain');
+const kClients$5 = Symbol('clients');
+const kNeedDrain$3 = Symbol('needDrain');
 const kQueue = Symbol('queue');
 const kClosedResolve = Symbol('closed resolve');
 const kOnDrain$1 = Symbol('onDrain');
 const kOnConnect$1 = Symbol('onConnect');
 const kOnDisconnect$1 = Symbol('onDisconnect');
 const kOnConnectionError$1 = Symbol('onConnectionError');
-const kGetDispatcher$2 = Symbol('get dispatcher');
-const kAddClient$2 = Symbol('add client');
-const kRemoveClient$2 = Symbol('remove client');
+const kGetDispatcher$3 = Symbol('get dispatcher');
+const kAddClient$3 = Symbol('add client');
+const kRemoveClient$3 = Symbol('remove client');
 
-let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
-  constructor () {
-    super();
+let PoolBase$3 = class PoolBase extends DispatcherBase$4 {
+  [kQueue] = new FixedQueue();
 
-    this[kQueue] = new FixedQueue();
-    this[kClients$4] = [];
-    this[kQueued] = 0;
+  [kQueued] = 0;
 
-    const pool = this;
+  [kClients$5] = [];
 
-    this[kOnDrain$1] = function onDrain (origin, targets) {
-      const queue = pool[kQueue];
+  [kNeedDrain$3] = false;
 
-      let needDrain = false;
+  [kOnDrain$1] (client, origin, targets) {
+    const queue = this[kQueue];
 
-      while (!needDrain) {
-        const item = queue.shift();
-        if (!item) {
-          break
+    let needDrain = false;
+
+    while (!needDrain) {
+      const item = queue.shift();
+      if (!item) {
+        break
+      }
+      this[kQueued]--;
+      needDrain = !client.dispatch(item.opts, item.handler);
+    }
+
+    client[kNeedDrain$3] = needDrain;
+
+    if (!needDrain && this[kNeedDrain$3]) {
+      this[kNeedDrain$3] = false;
+      this.emit('drain', origin, [this, ...targets]);
+    }
+
+    if (this[kClosedResolve] && queue.isEmpty()) {
+      const closeAll = [];
+      for (let i = 0; i < this[kClients$5].length; i++) {
+        const client = this[kClients$5][i];
+        if (!client.destroyed) {
+          closeAll.push(client.close());
         }
-        pool[kQueued]--;
-        needDrain = !this.dispatch(item.opts, item.handler);
       }
+      return Promise.all(closeAll)
+        .then(this[kClosedResolve])
+    }
+  }
 
-      this[kNeedDrain$2] = needDrain;
+  [kOnConnect$1] = (origin, targets) => {
+    this.emit('connect', origin, [this, ...targets]);
+  };
 
-      if (!this[kNeedDrain$2] && pool[kNeedDrain$2]) {
-        pool[kNeedDrain$2] = false;
-        pool.emit('drain', origin, [pool, ...targets]);
-      }
+  [kOnDisconnect$1] = (origin, targets, err) => {
+    this.emit('disconnect', origin, [this, ...targets], err);
+  };
 
-      if (pool[kClosedResolve] && queue.isEmpty()) {
-        Promise
-          .all(pool[kClients$4].map(c => c.close()))
-          .then(pool[kClosedResolve]);
-      }
-    };
-
-    this[kOnConnect$1] = (origin, targets) => {
-      pool.emit('connect', origin, [pool, ...targets]);
-    };
-
-    this[kOnDisconnect$1] = (origin, targets, err) => {
-      pool.emit('disconnect', origin, [pool, ...targets], err);
-    };
-
-    this[kOnConnectionError$1] = (origin, targets, err) => {
-      pool.emit('connectionError', origin, [pool, ...targets], err);
-    };
+  [kOnConnectionError$1] = (origin, targets, err) => {
+    this.emit('connectionError', origin, [this, ...targets], err);
   }
 
   get [kBusy] () {
-    return this[kNeedDrain$2]
+    return this[kNeedDrain$3]
   }
 
   get [kConnected$2] () {
-    return this[kClients$4].filter(client => client[kConnected$2]).length
+    let ret = 0;
+    for (const { [kConnected$2]: connected } of this[kClients$5]) {
+      ret += connected;
+    }
+    return ret
   }
 
   get [kFree] () {
-    return this[kClients$4].filter(client => client[kConnected$2] && !client[kNeedDrain$2]).length
+    let ret = 0;
+    for (const { [kConnected$2]: connected, [kNeedDrain$3]: needDrain } of this[kClients$5]) {
+      ret += connected && !needDrain;
+    }
+    return ret
   }
 
   get [kPending] () {
     let ret = this[kQueued];
-    for (const { [kPending]: pending } of this[kClients$4]) {
+    for (const { [kPending]: pending } of this[kClients$5]) {
       ret += pending;
     }
     return ret
@@ -11834,7 +12731,7 @@ let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
 
   get [kRunning$1] () {
     let ret = 0;
-    for (const { [kRunning$1]: running } of this[kClients$4]) {
+    for (const { [kRunning$1]: running } of this[kClients$5]) {
       ret += running;
     }
     return ret
@@ -11842,7 +12739,7 @@ let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
 
   get [kSize] () {
     let ret = this[kQueued];
-    for (const { [kSize]: size } of this[kClients$4]) {
+    for (const { [kSize]: size } of this[kClients$5]) {
       ret += size;
     }
     return ret
@@ -11852,17 +12749,24 @@ let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
     return new PoolStats(this)
   }
 
-  async [kClose$6] () {
+  [kClose$6] () {
     if (this[kQueue].isEmpty()) {
-      await Promise.all(this[kClients$4].map(c => c.close()));
+      const closeAll = [];
+      for (let i = 0; i < this[kClients$5].length; i++) {
+        const client = this[kClients$5][i];
+        if (!client.destroyed) {
+          closeAll.push(client.close());
+        }
+      }
+      return Promise.all(closeAll)
     } else {
-      await new Promise((resolve) => {
+      return new Promise((resolve) => {
         this[kClosedResolve] = resolve;
-      });
+      })
     }
   }
 
-  async [kDestroy$4] (err) {
+  [kDestroy$4] (err) {
     while (true) {
       const item = this[kQueue].shift();
       if (!item) {
@@ -11871,37 +12775,41 @@ let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
       item.handler.onError(err);
     }
 
-    await Promise.all(this[kClients$4].map(c => c.destroy(err)));
+    const destroyAll = new Array(this[kClients$5].length);
+    for (let i = 0; i < this[kClients$5].length; i++) {
+      destroyAll[i] = this[kClients$5][i].destroy(err);
+    }
+    return Promise.all(destroyAll)
   }
 
-  [kDispatch$3] (opts, handler) {
-    const dispatcher = this[kGetDispatcher$2]();
+  [kDispatch$4] (opts, handler) {
+    const dispatcher = this[kGetDispatcher$3]();
 
     if (!dispatcher) {
-      this[kNeedDrain$2] = true;
+      this[kNeedDrain$3] = true;
       this[kQueue].push({ opts, handler });
       this[kQueued]++;
     } else if (!dispatcher.dispatch(opts, handler)) {
-      dispatcher[kNeedDrain$2] = true;
-      this[kNeedDrain$2] = !this[kGetDispatcher$2]();
+      dispatcher[kNeedDrain$3] = true;
+      this[kNeedDrain$3] = !this[kGetDispatcher$3]();
     }
 
-    return !this[kNeedDrain$2]
+    return !this[kNeedDrain$3]
   }
 
-  [kAddClient$2] (client) {
+  [kAddClient$3] (client) {
     client
-      .on('drain', this[kOnDrain$1])
+      .on('drain', this[kOnDrain$1].bind(this, client))
       .on('connect', this[kOnConnect$1])
       .on('disconnect', this[kOnDisconnect$1])
       .on('connectionError', this[kOnConnectionError$1]);
 
-    this[kClients$4].push(client);
+    this[kClients$5].push(client);
 
-    if (this[kNeedDrain$2]) {
+    if (this[kNeedDrain$3]) {
       queueMicrotask(() => {
-        if (this[kNeedDrain$2]) {
-          this[kOnDrain$1](client[kUrl$3], [this, client]);
+        if (this[kNeedDrain$3]) {
+          this[kOnDrain$1](client, client[kUrl$4], [client, this]);
         }
       });
     }
@@ -11909,16 +12817,16 @@ let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
     return this
   }
 
-  [kRemoveClient$2] (client) {
+  [kRemoveClient$3] (client) {
     client.close(() => {
-      const idx = this[kClients$4].indexOf(client);
+      const idx = this[kClients$5].indexOf(client);
       if (idx !== -1) {
-        this[kClients$4].splice(idx, 1);
+        this[kClients$5].splice(idx, 1);
       }
     });
 
-    this[kNeedDrain$2] = this[kClients$4].some(dispatcher => (
-      !dispatcher[kNeedDrain$2] &&
+    this[kNeedDrain$3] = this[kClients$5].some(dispatcher => (
+      !dispatcher[kNeedDrain$3] &&
       dispatcher.closed !== true &&
       dispatcher.destroyed !== true
     ));
@@ -11926,42 +12834,42 @@ let PoolBase$2 = class PoolBase extends DispatcherBase$4 {
 };
 
 var poolBase = {
+  PoolBase: PoolBase$3,
+  kClients: kClients$5,
+  kNeedDrain: kNeedDrain$3,
+  kAddClient: kAddClient$3,
+  kRemoveClient: kRemoveClient$3,
+  kGetDispatcher: kGetDispatcher$3
+};
+
+const {
   PoolBase: PoolBase$2,
   kClients: kClients$4,
   kNeedDrain: kNeedDrain$2,
   kAddClient: kAddClient$2,
-  kRemoveClient: kRemoveClient$2,
-  kGetDispatcher: kGetDispatcher$2
-};
-
-const {
-  PoolBase: PoolBase$1,
-  kClients: kClients$3,
-  kNeedDrain: kNeedDrain$1,
-  kAddClient: kAddClient$1,
-  kGetDispatcher: kGetDispatcher$1,
-  kRemoveClient: kRemoveClient$1
+  kGetDispatcher: kGetDispatcher$2,
+  kRemoveClient: kRemoveClient$2
 } = poolBase;
 const Client$5 = client;
 const {
-  InvalidArgumentError: InvalidArgumentError$l
-} = errors$1;
-const util$g = util$n;
-const { kUrl: kUrl$2 } = requireSymbols();
-const buildConnector$2 = connect$4;
+  InvalidArgumentError: InvalidArgumentError$r
+} = errors;
+const util$h = util$o;
+const { kUrl: kUrl$3 } = requireSymbols();
+const buildConnector$3 = connect$2;
 
-const kOptions$3 = Symbol('options');
-const kConnections = Symbol('connections');
-const kFactory$3 = Symbol('factory');
+const kOptions$4 = Symbol('options');
+const kConnections$1 = Symbol('connections');
+const kFactory$4 = Symbol('factory');
 
-function defaultFactory$3 (origin, opts) {
+function defaultFactory$4 (origin, opts) {
   return new Client$5(origin, opts)
 }
 
-let Pool$5 = class Pool extends PoolBase$1 {
+let Pool$5 = class Pool extends PoolBase$2 {
   constructor (origin, {
     connections,
-    factory = defaultFactory$3,
+    factory = defaultFactory$4,
     connect,
     connectTimeout,
     tls,
@@ -11974,21 +12882,19 @@ let Pool$5 = class Pool extends PoolBase$1 {
     ...options
   } = {}) {
     if (connections != null && (!Number.isFinite(connections) || connections < 0)) {
-      throw new InvalidArgumentError$l('invalid connections')
+      throw new InvalidArgumentError$r('invalid connections')
     }
 
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$l('factory must be a function.')
+      throw new InvalidArgumentError$r('factory must be a function.')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$l('connect must be a function or an object')
+      throw new InvalidArgumentError$r('connect must be a function or an object')
     }
 
-    super();
-
     if (typeof connect !== 'function') {
-      connect = buildConnector$2({
+      connect = buildConnector$3({
         ...tls,
         maxCachedSessions,
         allowH2,
@@ -11999,13 +12905,15 @@ let Pool$5 = class Pool extends PoolBase$1 {
       });
     }
 
-    this[kConnections] = connections || null;
-    this[kUrl$2] = util$g.parseOrigin(origin);
-    this[kOptions$3] = { ...util$g.deepClone(options), connect, allowH2, clientTtl };
-    this[kOptions$3].interceptors = options.interceptors
+    super();
+
+    this[kConnections$1] = connections || null;
+    this[kUrl$3] = util$h.parseOrigin(origin);
+    this[kOptions$4] = { ...util$h.deepClone(options), connect, allowH2, clientTtl, socketPath };
+    this[kOptions$4].interceptors = options.interceptors
       ? { ...options.interceptors }
       : undefined;
-    this[kFactory$3] = factory;
+    this[kFactory$4] = factory;
 
     this.on('connect', (origin, targets) => {
       if (clientTtl != null && clientTtl > 0) {
@@ -12022,28 +12930,28 @@ let Pool$5 = class Pool extends PoolBase$1 {
       for (const target of targets) {
         // Do not use kRemoveClient here, as it will close the client,
         // but the client cannot be closed in this state.
-        const idx = this[kClients$3].indexOf(target);
+        const idx = this[kClients$4].indexOf(target);
         if (idx !== -1) {
-          this[kClients$3].splice(idx, 1);
+          this[kClients$4].splice(idx, 1);
         }
       }
     });
   }
 
-  [kGetDispatcher$1] () {
-    const clientTtlOption = this[kOptions$3].clientTtl;
-    for (const client of this[kClients$3]) {
+  [kGetDispatcher$2] () {
+    const clientTtlOption = this[kOptions$4].clientTtl;
+    for (const client of this[kClients$4]) {
       // check ttl of client and if it's stale, remove it from the pool
       if (clientTtlOption != null && clientTtlOption > 0 && client.ttl && ((Date.now() - client.ttl) > clientTtlOption)) {
-        this[kRemoveClient$1](client);
-      } else if (!client[kNeedDrain$1]) {
+        this[kRemoveClient$2](client);
+      } else if (!client[kNeedDrain$2]) {
         return client
       }
     }
 
-    if (!this[kConnections] || this[kClients$3].length < this[kConnections]) {
-      const dispatcher = this[kFactory$3](this[kUrl$2], this[kOptions$3]);
-      this[kAddClient$1](dispatcher);
+    if (!this[kConnections$1] || this[kClients$4].length < this[kConnections$1]) {
+      const dispatcher = this[kFactory$4](this[kUrl$3], this[kOptions$4]);
+      this[kAddClient$2](dispatcher);
       return dispatcher
     }
   }
@@ -12053,25 +12961,25 @@ var pool = Pool$5;
 
 const {
   BalancedPoolMissingUpstreamError,
-  InvalidArgumentError: InvalidArgumentError$k
-} = errors$1;
+  InvalidArgumentError: InvalidArgumentError$q
+} = errors;
 const {
-  PoolBase,
-  kClients: kClients$2,
-  kNeedDrain,
-  kAddClient,
-  kRemoveClient,
-  kGetDispatcher
+  PoolBase: PoolBase$1,
+  kClients: kClients$3,
+  kNeedDrain: kNeedDrain$1,
+  kAddClient: kAddClient$1,
+  kRemoveClient: kRemoveClient$1,
+  kGetDispatcher: kGetDispatcher$1
 } = poolBase;
 const Pool$4 = pool;
-const { kUrl: kUrl$1 } = requireSymbols();
-const { parseOrigin } = util$n;
-const kFactory$2 = Symbol('factory');
+const { kUrl: kUrl$2 } = requireSymbols();
+const util$g = util$o;
+const kFactory$3 = Symbol('factory');
 
-const kOptions$2 = Symbol('options');
+const kOptions$3 = Symbol('options');
 const kGreatestCommonDivisor = Symbol('kGreatestCommonDivisor');
 const kCurrentWeight = Symbol('kCurrentWeight');
-const kIndex = Symbol('kIndex');
+const kIndex$1 = Symbol('kIndex');
 const kWeight = Symbol('kWeight');
 const kMaxWeightPerServer = Symbol('kMaxWeightPerServer');
 const kErrorPenalty = Symbol('kErrorPenalty');
@@ -12095,30 +13003,33 @@ function getGreatestCommonDivisor (a, b) {
   return a
 }
 
-function defaultFactory$2 (origin, opts) {
+function defaultFactory$3 (origin, opts) {
   return new Pool$4(origin, opts)
 }
 
-let BalancedPool$1 = class BalancedPool extends PoolBase {
-  constructor (upstreams = [], { factory = defaultFactory$2, ...opts } = {}) {
+class BalancedPool extends PoolBase$1 {
+  constructor (upstreams = [], { factory = defaultFactory$3, ...opts } = {}) {
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$k('factory must be a function.')
+      throw new InvalidArgumentError$q('factory must be a function.')
     }
 
     super();
 
-    this[kOptions$2] = opts;
-    this[kIndex] = -1;
+    this[kOptions$3] = { ...util$g.deepClone(opts) };
+    this[kOptions$3].interceptors = opts.interceptors
+      ? { ...opts.interceptors }
+      : undefined;
+    this[kIndex$1] = -1;
     this[kCurrentWeight] = 0;
 
-    this[kMaxWeightPerServer] = this[kOptions$2].maxWeightPerServer || 100;
-    this[kErrorPenalty] = this[kOptions$2].errorPenalty || 15;
+    this[kMaxWeightPerServer] = this[kOptions$3].maxWeightPerServer || 100;
+    this[kErrorPenalty] = this[kOptions$3].errorPenalty || 15;
 
     if (!Array.isArray(upstreams)) {
       upstreams = [upstreams];
     }
 
-    this[kFactory$2] = factory;
+    this[kFactory$3] = factory;
 
     for (const upstream of upstreams) {
       this.addUpstream(upstream);
@@ -12127,18 +13038,18 @@ let BalancedPool$1 = class BalancedPool extends PoolBase {
   }
 
   addUpstream (upstream) {
-    const upstreamOrigin = parseOrigin(upstream).origin;
+    const upstreamOrigin = util$g.parseOrigin(upstream).origin;
 
-    if (this[kClients$2].find((pool) => (
-      pool[kUrl$1].origin === upstreamOrigin &&
+    if (this[kClients$3].find((pool) => (
+      pool[kUrl$2].origin === upstreamOrigin &&
       pool.closed !== true &&
       pool.destroyed !== true
     ))) {
       return this
     }
-    const pool = this[kFactory$2](upstreamOrigin, Object.assign({}, this[kOptions$2]));
+    const pool = this[kFactory$3](upstreamOrigin, this[kOptions$3]);
 
-    this[kAddClient](pool);
+    this[kAddClient$1](pool);
     pool.on('connect', () => {
       pool[kWeight] = Math.min(this[kMaxWeightPerServer], pool[kWeight] + this[kErrorPenalty]);
     });
@@ -12157,7 +13068,7 @@ let BalancedPool$1 = class BalancedPool extends PoolBase {
       }
     });
 
-    for (const client of this[kClients$2]) {
+    for (const client of this[kClients$3]) {
       client[kWeight] = this[kMaxWeightPerServer];
     }
 
@@ -12168,45 +13079,55 @@ let BalancedPool$1 = class BalancedPool extends PoolBase {
 
   _updateBalancedPoolStats () {
     let result = 0;
-    for (let i = 0; i < this[kClients$2].length; i++) {
-      result = getGreatestCommonDivisor(this[kClients$2][i][kWeight], result);
+    for (let i = 0; i < this[kClients$3].length; i++) {
+      result = getGreatestCommonDivisor(this[kClients$3][i][kWeight], result);
     }
 
     this[kGreatestCommonDivisor] = result;
   }
 
   removeUpstream (upstream) {
-    const upstreamOrigin = parseOrigin(upstream).origin;
+    const upstreamOrigin = util$g.parseOrigin(upstream).origin;
 
-    const pool = this[kClients$2].find((pool) => (
-      pool[kUrl$1].origin === upstreamOrigin &&
+    const pool = this[kClients$3].find((pool) => (
+      pool[kUrl$2].origin === upstreamOrigin &&
       pool.closed !== true &&
       pool.destroyed !== true
     ));
 
     if (pool) {
-      this[kRemoveClient](pool);
+      this[kRemoveClient$1](pool);
     }
 
     return this
   }
 
-  get upstreams () {
-    return this[kClients$2]
-      .filter(dispatcher => dispatcher.closed !== true && dispatcher.destroyed !== true)
-      .map((p) => p[kUrl$1].origin)
+  getUpstream (upstream) {
+    const upstreamOrigin = util$g.parseOrigin(upstream).origin;
+
+    return this[kClients$3].find((pool) => (
+      pool[kUrl$2].origin === upstreamOrigin &&
+      pool.closed !== true &&
+      pool.destroyed !== true
+    ))
   }
 
-  [kGetDispatcher] () {
+  get upstreams () {
+    return this[kClients$3]
+      .filter(dispatcher => dispatcher.closed !== true && dispatcher.destroyed !== true)
+      .map((p) => p[kUrl$2].origin)
+  }
+
+  [kGetDispatcher$1] () {
     // We validate that pools is greater than 0,
     // otherwise we would have to wait until an upstream
     // is added, which might never happen.
-    if (this[kClients$2].length === 0) {
+    if (this[kClients$3].length === 0) {
       throw new BalancedPoolMissingUpstreamError()
     }
 
-    const dispatcher = this[kClients$2].find(dispatcher => (
-      !dispatcher[kNeedDrain] &&
+    const dispatcher = this[kClients$3].find(dispatcher => (
+      !dispatcher[kNeedDrain$1] &&
       dispatcher.closed !== true &&
       dispatcher.destroyed !== true
     ));
@@ -12215,7 +13136,7 @@ let BalancedPool$1 = class BalancedPool extends PoolBase {
       return
     }
 
-    const allClientsBusy = this[kClients$2].map(pool => pool[kNeedDrain]).reduce((a, b) => a && b, true);
+    const allClientsBusy = this[kClients$3].map(pool => pool[kNeedDrain$1]).reduce((a, b) => a && b, true);
 
     if (allClientsBusy) {
       return
@@ -12223,19 +13144,19 @@ let BalancedPool$1 = class BalancedPool extends PoolBase {
 
     let counter = 0;
 
-    let maxWeightIndex = this[kClients$2].findIndex(pool => !pool[kNeedDrain]);
+    let maxWeightIndex = this[kClients$3].findIndex(pool => !pool[kNeedDrain$1]);
 
-    while (counter++ < this[kClients$2].length) {
-      this[kIndex] = (this[kIndex] + 1) % this[kClients$2].length;
-      const pool = this[kClients$2][this[kIndex]];
+    while (counter++ < this[kClients$3].length) {
+      this[kIndex$1] = (this[kIndex$1] + 1) % this[kClients$3].length;
+      const pool = this[kClients$3][this[kIndex$1]];
 
       // find pool index with the largest weight
-      if (pool[kWeight] > this[kClients$2][maxWeightIndex][kWeight] && !pool[kNeedDrain]) {
-        maxWeightIndex = this[kIndex];
+      if (pool[kWeight] > this[kClients$3][maxWeightIndex][kWeight] && !pool[kNeedDrain$1]) {
+        maxWeightIndex = this[kIndex$1];
       }
 
       // decrease the current weight every `this[kClients].length`.
-      if (this[kIndex] === 0) {
+      if (this[kIndex$1] === 0) {
         // Set the current weight to the next lower weight.
         this[kCurrentWeight] = this[kCurrentWeight] - this[kGreatestCommonDivisor];
 
@@ -12243,25 +13164,161 @@ let BalancedPool$1 = class BalancedPool extends PoolBase {
           this[kCurrentWeight] = this[kMaxWeightPerServer];
         }
       }
-      if (pool[kWeight] >= this[kCurrentWeight] && (!pool[kNeedDrain])) {
+      if (pool[kWeight] >= this[kCurrentWeight] && (!pool[kNeedDrain$1])) {
         return pool
       }
     }
 
-    this[kCurrentWeight] = this[kClients$2][maxWeightIndex][kWeight];
-    this[kIndex] = maxWeightIndex;
-    return this[kClients$2][maxWeightIndex]
+    this[kCurrentWeight] = this[kClients$3][maxWeightIndex][kWeight];
+    this[kIndex$1] = maxWeightIndex;
+    return this[kClients$3][maxWeightIndex]
   }
-};
+}
 
-var balancedPool = BalancedPool$1;
+var balancedPool = BalancedPool;
 
-const { InvalidArgumentError: InvalidArgumentError$j } = errors$1;
-const { kClients: kClients$1, kRunning, kClose: kClose$5, kDestroy: kDestroy$3, kDispatch: kDispatch$2, kUrl } = requireSymbols();
+const {
+  PoolBase,
+  kClients: kClients$2,
+  kNeedDrain,
+  kAddClient,
+  kGetDispatcher,
+  kRemoveClient
+} = poolBase;
+const Client$4 = client;
+const {
+  InvalidArgumentError: InvalidArgumentError$p
+} = errors;
+const util$f = util$o;
+const { kUrl: kUrl$1 } = requireSymbols();
+const buildConnector$2 = connect$2;
+
+const kOptions$2 = Symbol('options');
+const kConnections = Symbol('connections');
+const kFactory$2 = Symbol('factory');
+const kIndex = Symbol('index');
+
+function defaultFactory$2 (origin, opts) {
+  return new Client$4(origin, opts)
+}
+
+class RoundRobinPool extends PoolBase {
+  constructor (origin, {
+    connections,
+    factory = defaultFactory$2,
+    connect,
+    connectTimeout,
+    tls,
+    maxCachedSessions,
+    socketPath,
+    autoSelectFamily,
+    autoSelectFamilyAttemptTimeout,
+    allowH2,
+    clientTtl,
+    ...options
+  } = {}) {
+    if (connections != null && (!Number.isFinite(connections) || connections < 0)) {
+      throw new InvalidArgumentError$p('invalid connections')
+    }
+
+    if (typeof factory !== 'function') {
+      throw new InvalidArgumentError$p('factory must be a function.')
+    }
+
+    if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
+      throw new InvalidArgumentError$p('connect must be a function or an object')
+    }
+
+    if (typeof connect !== 'function') {
+      connect = buildConnector$2({
+        ...tls,
+        maxCachedSessions,
+        allowH2,
+        socketPath,
+        timeout: connectTimeout,
+        ...(typeof autoSelectFamily === 'boolean' ? { autoSelectFamily, autoSelectFamilyAttemptTimeout } : undefined),
+        ...connect
+      });
+    }
+
+    super();
+
+    this[kConnections] = connections || null;
+    this[kUrl$1] = util$f.parseOrigin(origin);
+    this[kOptions$2] = { ...util$f.deepClone(options), connect, allowH2, clientTtl, socketPath };
+    this[kOptions$2].interceptors = options.interceptors
+      ? { ...options.interceptors }
+      : undefined;
+    this[kFactory$2] = factory;
+    this[kIndex] = -1;
+
+    this.on('connect', (origin, targets) => {
+      if (clientTtl != null && clientTtl > 0) {
+        for (const target of targets) {
+          Object.assign(target, { ttl: Date.now() });
+        }
+      }
+    });
+
+    this.on('connectionError', (origin, targets, error) => {
+      for (const target of targets) {
+        const idx = this[kClients$2].indexOf(target);
+        if (idx !== -1) {
+          this[kClients$2].splice(idx, 1);
+        }
+      }
+    });
+  }
+
+  [kGetDispatcher] () {
+    const clientTtlOption = this[kOptions$2].clientTtl;
+    const clientsLength = this[kClients$2].length;
+
+    // If we have no clients yet, create one
+    if (clientsLength === 0) {
+      const dispatcher = this[kFactory$2](this[kUrl$1], this[kOptions$2]);
+      this[kAddClient](dispatcher);
+      return dispatcher
+    }
+
+    // Round-robin through existing clients
+    let checked = 0;
+    while (checked < clientsLength) {
+      this[kIndex] = (this[kIndex] + 1) % clientsLength;
+      const client = this[kClients$2][this[kIndex]];
+
+      // Check if client is stale (TTL expired)
+      if (clientTtlOption != null && clientTtlOption > 0 && client.ttl && ((Date.now() - client.ttl) > clientTtlOption)) {
+        this[kRemoveClient](client);
+        checked++;
+        continue
+      }
+
+      // Return client if it's not draining
+      if (!client[kNeedDrain]) {
+        return client
+      }
+
+      checked++;
+    }
+
+    // All clients are busy, create a new one if we haven't reached the limit
+    if (!this[kConnections] || clientsLength < this[kConnections]) {
+      const dispatcher = this[kFactory$2](this[kUrl$1], this[kOptions$2]);
+      this[kAddClient](dispatcher);
+      return dispatcher
+    }
+  }
+}
+
+var roundRobinPool = RoundRobinPool;
+
+const { InvalidArgumentError: InvalidArgumentError$o, MaxOriginsReachedError } = errors;
+const { kClients: kClients$1, kRunning, kClose: kClose$5, kDestroy: kDestroy$3, kDispatch: kDispatch$3, kUrl } = requireSymbols();
 const DispatcherBase$3 = dispatcherBase;
 const Pool$3 = pool;
-const Client$4 = client;
-const util$f = util$n;
+const Client$3 = client;
+const util$e = util$o;
 
 const kOnConnect = Symbol('onConnect');
 const kOnDisconnect = Symbol('onDisconnect');
@@ -12269,21 +13326,26 @@ const kOnConnectionError = Symbol('onConnectionError');
 const kOnDrain = Symbol('onDrain');
 const kFactory$1 = Symbol('factory');
 const kOptions$1 = Symbol('options');
+const kOrigins = Symbol('origins');
 
 function defaultFactory$1 (origin, opts) {
   return opts && opts.connections === 1
-    ? new Client$4(origin, opts)
+    ? new Client$3(origin, opts)
     : new Pool$3(origin, opts)
 }
 
 let Agent$5 = class Agent extends DispatcherBase$3 {
-  constructor ({ factory = defaultFactory$1, connect, ...options } = {}) {
+  constructor ({ factory = defaultFactory$1, maxOrigins = Infinity, connect, ...options } = {}) {
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$j('factory must be a function.')
+      throw new InvalidArgumentError$o('factory must be a function.')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$j('connect must be a function or an object')
+      throw new InvalidArgumentError$o('connect must be a function or an object')
+    }
+
+    if (typeof maxOrigins !== 'number' || Number.isNaN(maxOrigins) || maxOrigins <= 0) {
+      throw new InvalidArgumentError$o('maxOrigins must be a number greater than 0')
     }
 
     super();
@@ -12292,36 +13354,24 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
       connect = { ...connect };
     }
 
-    this[kOptions$1] = { ...util$f.deepClone(options), connect };
+    this[kOptions$1] = { ...util$e.deepClone(options), maxOrigins, connect };
     this[kFactory$1] = factory;
     this[kClients$1] = new Map();
+    this[kOrigins] = new Set();
 
     this[kOnDrain] = (origin, targets) => {
       this.emit('drain', origin, [this, ...targets]);
     };
 
     this[kOnConnect] = (origin, targets) => {
-      const result = this[kClients$1].get(origin);
-      if (result) {
-        result.count += 1;
-      }
       this.emit('connect', origin, [this, ...targets]);
     };
 
     this[kOnDisconnect] = (origin, targets, err) => {
-      const result = this[kClients$1].get(origin);
-      if (result) {
-        result.count -= 1;
-        if (result.count <= 0) {
-          this[kClients$1].delete(origin);
-          result.dispatcher.destroy();
-        }
-      }
       this.emit('disconnect', origin, [this, ...targets], err);
     };
 
     this[kOnConnectionError] = (origin, targets, err) => {
-      // TODO: should this decrement result.count here?
       this.emit('connectionError', origin, [this, ...targets], err);
     };
   }
@@ -12334,47 +13384,77 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
     return ret
   }
 
-  [kDispatch$2] (opts, handler) {
+  [kDispatch$3] (opts, handler) {
     let key;
     if (opts.origin && (typeof opts.origin === 'string' || opts.origin instanceof URL)) {
       key = String(opts.origin);
     } else {
-      throw new InvalidArgumentError$j('opts.origin must be a non-empty string or URL.')
+      throw new InvalidArgumentError$o('opts.origin must be a non-empty string or URL.')
+    }
+
+    if (this[kOrigins].size >= this[kOptions$1].maxOrigins && !this[kOrigins].has(key)) {
+      throw new MaxOriginsReachedError()
     }
 
     const result = this[kClients$1].get(key);
     let dispatcher = result && result.dispatcher;
     if (!dispatcher) {
+      const closeClientIfUnused = (connected) => {
+        const result = this[kClients$1].get(key);
+        if (result) {
+          if (connected) result.count -= 1;
+          if (result.count <= 0) {
+            this[kClients$1].delete(key);
+            if (!result.dispatcher.destroyed) {
+              result.dispatcher.close();
+            }
+          }
+          this[kOrigins].delete(key);
+        }
+      };
       dispatcher = this[kFactory$1](opts.origin, this[kOptions$1])
         .on('drain', this[kOnDrain])
-        .on('connect', this[kOnConnect])
-        .on('disconnect', this[kOnDisconnect])
-        .on('connectionError', this[kOnConnectionError]);
+        .on('connect', (origin, targets) => {
+          const result = this[kClients$1].get(key);
+          if (result) {
+            result.count += 1;
+          }
+          this[kOnConnect](origin, targets);
+        })
+        .on('disconnect', (origin, targets, err) => {
+          closeClientIfUnused(true);
+          this[kOnDisconnect](origin, targets, err);
+        })
+        .on('connectionError', (origin, targets, err) => {
+          closeClientIfUnused(false);
+          this[kOnConnectionError](origin, targets, err);
+        });
 
       this[kClients$1].set(key, { count: 0, dispatcher });
+      this[kOrigins].add(key);
     }
 
     return dispatcher.dispatch(opts, handler)
   }
 
-  async [kClose$5] () {
+  [kClose$5] () {
     const closePromises = [];
     for (const { dispatcher } of this[kClients$1].values()) {
       closePromises.push(dispatcher.close());
     }
     this[kClients$1].clear();
 
-    await Promise.all(closePromises);
+    return Promise.all(closePromises)
   }
 
-  async [kDestroy$3] (err) {
+  [kDestroy$3] (err) {
     const destroyPromises = [];
     for (const { dispatcher } of this[kClients$1].values()) {
       destroyPromises.push(dispatcher.destroy(err));
     }
     this[kClients$1].clear();
 
-    await Promise.all(destroyPromises);
+    return Promise.all(destroyPromises)
   }
 
   get stats () {
@@ -12390,14 +13470,742 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
 
 var agent = Agent$5;
 
-const { kProxy, kClose: kClose$4, kDestroy: kDestroy$2, kDispatch: kDispatch$1, kConnector } = requireSymbols();
-const { URL: URL$1 } = require$$1$2;
-const Agent$4 = agent;
-const Pool$2 = pool;
+const { Buffer: Buffer$2 } = require$$0$5;
+const net$1 = require$$0$3;
+const { InvalidArgumentError: InvalidArgumentError$n } = errors;
+
+/**
+ * Parse an address and determine its type
+ * @param {string} address - The address to parse
+ * @returns {{type: number, buffer: Buffer}} Address type and buffer
+ */
+function parseAddress$1 (address) {
+  // Check if it's an IPv4 address
+  if (net$1.isIPv4(address)) {
+    const parts = address.split('.').map(Number);
+    return {
+      type: 0x01, // IPv4
+      buffer: Buffer$2.from(parts)
+    }
+  }
+
+  // Check if it's an IPv6 address
+  if (net$1.isIPv6(address)) {
+    return {
+      type: 0x04, // IPv6
+      buffer: parseIPv6(address)
+    }
+  }
+
+  // Otherwise, treat as domain name
+  const domainBuffer = Buffer$2.from(address, 'utf8');
+  if (domainBuffer.length > 255) {
+    throw new InvalidArgumentError$n('Domain name too long (max 255 bytes)')
+  }
+
+  return {
+    type: 0x03, // Domain
+    buffer: Buffer$2.concat([Buffer$2.from([domainBuffer.length]), domainBuffer])
+  }
+}
+
+/**
+ * Parse IPv6 address to buffer
+ * @param {string} address - IPv6 address string
+ * @returns {Buffer} 16-byte buffer
+ */
+function parseIPv6 (address) {
+  const buffer = Buffer$2.alloc(16);
+  const parts = address.split(':');
+  let partIndex = 0;
+  let bufferIndex = 0;
+
+  // Handle compressed notation (::)
+  const doubleColonIndex = address.indexOf('::');
+  if (doubleColonIndex !== -1) {
+    // Count non-empty parts
+    const nonEmptyParts = parts.filter(p => p.length > 0).length;
+    const skipParts = 8 - nonEmptyParts;
+
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === '' && i === doubleColonIndex / 3) {
+        // Skip empty parts for ::
+        bufferIndex += skipParts * 2;
+      } else if (parts[i] !== '') {
+        const value = parseInt(parts[i], 16);
+        buffer.writeUInt16BE(value, bufferIndex);
+        bufferIndex += 2;
+      }
+    }
+  } else {
+    // No compression, parse normally
+    for (const part of parts) {
+      if (part === '') continue
+      const value = parseInt(part, 16);
+      buffer.writeUInt16BE(value, partIndex * 2);
+      partIndex++;
+    }
+  }
+
+  return buffer
+}
+
+var socks5Utils = {
+  parseAddress: parseAddress$1};
+
+const { EventEmitter: EventEmitter$1 } = require$$0;
+const { Buffer: Buffer$1 } = require$$0$5;
+const { InvalidArgumentError: InvalidArgumentError$m, Socks5ProxyError } = errors;
+const { debuglog: debuglog$1 } = require$$3;
+const { parseAddress } = socks5Utils;
+
+const debug$1 = debuglog$1('undici:socks5');
+
+// SOCKS5 constants
+const SOCKS_VERSION = 0x05;
+
+// Authentication methods
+const AUTH_METHODS = {
+  NO_AUTH: 0x00,
+  USERNAME_PASSWORD: 0x02,
+  NO_ACCEPTABLE: 0xFF
+};
+
+// SOCKS5 commands
+const COMMANDS = {
+  CONNECT: 0x01};
+
+// Address types
+const ADDRESS_TYPES = {
+  IPV4: 0x01,
+  DOMAIN: 0x03,
+  IPV6: 0x04
+};
+
+// Reply codes
+const REPLY_CODES = {
+  SUCCEEDED: 0x00,
+  GENERAL_FAILURE: 0x01,
+  CONNECTION_NOT_ALLOWED: 0x02,
+  NETWORK_UNREACHABLE: 0x03,
+  HOST_UNREACHABLE: 0x04,
+  CONNECTION_REFUSED: 0x05,
+  TTL_EXPIRED: 0x06,
+  COMMAND_NOT_SUPPORTED: 0x07,
+  ADDRESS_TYPE_NOT_SUPPORTED: 0x08
+};
+
+// State machine states
+const STATES = {
+  INITIAL: 'initial',
+  HANDSHAKING: 'handshaking',
+  AUTHENTICATING: 'authenticating',
+  CONNECTING: 'connecting',
+  CONNECTED: 'connected',
+  ERROR: 'error',
+  CLOSED: 'closed'
+};
+
+/**
+ * SOCKS5 client implementation
+ * Handles SOCKS5 protocol negotiation and connection establishment
+ */
+let Socks5Client$1 = class Socks5Client extends EventEmitter$1 {
+  constructor (socket, options = {}) {
+    super();
+
+    if (!socket) {
+      throw new InvalidArgumentError$m('socket is required')
+    }
+
+    this.socket = socket;
+    this.options = options;
+    this.state = STATES.INITIAL;
+    this.buffer = Buffer$1.alloc(0);
+
+    // Authentication settings
+    this.authMethods = [];
+    if (options.username && options.password) {
+      this.authMethods.push(AUTH_METHODS.USERNAME_PASSWORD);
+    }
+    this.authMethods.push(AUTH_METHODS.NO_AUTH);
+
+    // Socket event handlers
+    this.socket.on('data', this.onData.bind(this));
+    this.socket.on('error', this.onError.bind(this));
+    this.socket.on('close', this.onClose.bind(this));
+  }
+
+  /**
+   * Handle incoming data from the socket
+   */
+  onData (data) {
+    debug$1('received data', data.length, 'bytes in state', this.state);
+    this.buffer = Buffer$1.concat([this.buffer, data]);
+
+    try {
+      switch (this.state) {
+        case STATES.HANDSHAKING:
+          this.handleHandshakeResponse();
+          break
+        case STATES.AUTHENTICATING:
+          this.handleAuthResponse();
+          break
+        case STATES.CONNECTING:
+          this.handleConnectResponse();
+          break
+      }
+    } catch (err) {
+      this.onError(err);
+    }
+  }
+
+  /**
+   * Handle socket errors
+   */
+  onError (err) {
+    debug$1('socket error', err);
+    this.state = STATES.ERROR;
+    this.emit('error', err);
+    this.destroy();
+  }
+
+  /**
+   * Handle socket close
+   */
+  onClose () {
+    debug$1('socket closed');
+    this.state = STATES.CLOSED;
+    this.emit('close');
+  }
+
+  /**
+   * Destroy the client and underlying socket
+   */
+  destroy () {
+    if (this.socket && !this.socket.destroyed) {
+      this.socket.destroy();
+    }
+  }
+
+  /**
+   * Start the SOCKS5 handshake
+   */
+  handshake () {
+    if (this.state !== STATES.INITIAL) {
+      throw new InvalidArgumentError$m('Handshake already started')
+    }
+
+    debug$1('starting handshake with', this.authMethods.length, 'auth methods');
+    this.state = STATES.HANDSHAKING;
+
+    // Build handshake request
+    // +----+----------+----------+
+    // |VER | NMETHODS | METHODS  |
+    // +----+----------+----------+
+    // | 1  |    1     | 1 to 255 |
+    // +----+----------+----------+
+    const request = Buffer$1.alloc(2 + this.authMethods.length);
+    request[0] = SOCKS_VERSION;
+    request[1] = this.authMethods.length;
+    this.authMethods.forEach((method, i) => {
+      request[2 + i] = method;
+    });
+
+    this.socket.write(request);
+  }
+
+  /**
+   * Handle handshake response from server
+   */
+  handleHandshakeResponse () {
+    if (this.buffer.length < 2) {
+      return // Not enough data yet
+    }
+
+    const version = this.buffer[0];
+    const method = this.buffer[1];
+
+    if (version !== SOCKS_VERSION) {
+      throw new Socks5ProxyError(`Invalid SOCKS version: ${version}`, 'UND_ERR_SOCKS5_VERSION')
+    }
+
+    if (method === AUTH_METHODS.NO_ACCEPTABLE) {
+      throw new Socks5ProxyError('No acceptable authentication method', 'UND_ERR_SOCKS5_AUTH_REJECTED')
+    }
+
+    this.buffer = this.buffer.subarray(2);
+    debug$1('server selected auth method', method);
+
+    if (method === AUTH_METHODS.NO_AUTH) {
+      this.emit('authenticated');
+    } else if (method === AUTH_METHODS.USERNAME_PASSWORD) {
+      this.state = STATES.AUTHENTICATING;
+      this.sendAuthRequest();
+    } else {
+      throw new Socks5ProxyError(`Unsupported authentication method: ${method}`, 'UND_ERR_SOCKS5_AUTH_METHOD')
+    }
+  }
+
+  /**
+   * Send username/password authentication request
+   */
+  sendAuthRequest () {
+    const { username, password } = this.options;
+
+    if (!username || !password) {
+      throw new InvalidArgumentError$m('Username and password required for authentication')
+    }
+
+    debug$1('sending username/password auth');
+
+    // Username/Password authentication request (RFC 1929)
+    // +----+------+----------+------+----------+
+    // |VER | ULEN |  UNAME   | PLEN |  PASSWD  |
+    // +----+------+----------+------+----------+
+    // | 1  |  1   | 1 to 255 |  1   | 1 to 255 |
+    // +----+------+----------+------+----------+
+    const usernameBuffer = Buffer$1.from(username);
+    const passwordBuffer = Buffer$1.from(password);
+
+    if (usernameBuffer.length > 255 || passwordBuffer.length > 255) {
+      throw new InvalidArgumentError$m('Username or password too long')
+    }
+
+    const request = Buffer$1.alloc(3 + usernameBuffer.length + passwordBuffer.length);
+    request[0] = 0x01; // Sub-negotiation version
+    request[1] = usernameBuffer.length;
+    usernameBuffer.copy(request, 2);
+    request[2 + usernameBuffer.length] = passwordBuffer.length;
+    passwordBuffer.copy(request, 3 + usernameBuffer.length);
+
+    this.socket.write(request);
+  }
+
+  /**
+   * Handle authentication response
+   */
+  handleAuthResponse () {
+    if (this.buffer.length < 2) {
+      return // Not enough data yet
+    }
+
+    const version = this.buffer[0];
+    const status = this.buffer[1];
+
+    if (version !== 0x01) {
+      throw new Socks5ProxyError(`Invalid auth sub-negotiation version: ${version}`, 'UND_ERR_SOCKS5_AUTH_VERSION')
+    }
+
+    if (status !== 0x00) {
+      throw new Socks5ProxyError('Authentication failed', 'UND_ERR_SOCKS5_AUTH_FAILED')
+    }
+
+    this.buffer = this.buffer.subarray(2);
+    debug$1('authentication successful');
+    this.emit('authenticated');
+  }
+
+  /**
+   * Send CONNECT command
+   * @param {string} address - Target address (IP or domain)
+   * @param {number} port - Target port
+   */
+  connect (address, port) {
+    if (this.state === STATES.CONNECTED) {
+      throw new InvalidArgumentError$m('Already connected')
+    }
+
+    debug$1('connecting to', address, port);
+    this.state = STATES.CONNECTING;
+
+    const request = this.buildConnectRequest(COMMANDS.CONNECT, address, port);
+    this.socket.write(request);
+  }
+
+  /**
+   * Build a SOCKS5 request
+   */
+  buildConnectRequest (command, address, port) {
+    // Parse address to determine type and buffer
+    const { type: addressType, buffer: addressBuffer } = parseAddress(address);
+
+    // Build request
+    // +----+-----+-------+------+----------+----------+
+    // |VER | CMD |  RSV  | ATYP | DST.ADDR | DST.PORT |
+    // +----+-----+-------+------+----------+----------+
+    // | 1  |  1  | X'00' |  1   | Variable |    2     |
+    // +----+-----+-------+------+----------+----------+
+    const request = Buffer$1.alloc(4 + addressBuffer.length + 2);
+    request[0] = SOCKS_VERSION;
+    request[1] = command;
+    request[2] = 0x00; // Reserved
+    request[3] = addressType;
+    addressBuffer.copy(request, 4);
+    request.writeUInt16BE(port, 4 + addressBuffer.length);
+
+    return request
+  }
+
+  /**
+   * Handle CONNECT response
+   */
+  handleConnectResponse () {
+    if (this.buffer.length < 4) {
+      return // Not enough data for header
+    }
+
+    const version = this.buffer[0];
+    const reply = this.buffer[1];
+    const addressType = this.buffer[3];
+
+    if (version !== SOCKS_VERSION) {
+      throw new Socks5ProxyError(`Invalid SOCKS version in reply: ${version}`, 'UND_ERR_SOCKS5_REPLY_VERSION')
+    }
+
+    // Calculate the expected response length
+    let responseLength = 4; // VER + REP + RSV + ATYP
+    if (addressType === ADDRESS_TYPES.IPV4) {
+      responseLength += 4 + 2; // IPv4 + port
+    } else if (addressType === ADDRESS_TYPES.DOMAIN) {
+      if (this.buffer.length < 5) {
+        return // Need domain length byte
+      }
+      responseLength += 1 + this.buffer[4] + 2; // length byte + domain + port
+    } else if (addressType === ADDRESS_TYPES.IPV6) {
+      responseLength += 16 + 2; // IPv6 + port
+    } else {
+      throw new Socks5ProxyError(`Invalid address type in reply: ${addressType}`, 'UND_ERR_SOCKS5_ADDR_TYPE')
+    }
+
+    if (this.buffer.length < responseLength) {
+      return // Not enough data for full response
+    }
+
+    if (reply !== REPLY_CODES.SUCCEEDED) {
+      const errorMessage = this.getReplyErrorMessage(reply);
+      throw new Socks5ProxyError(`SOCKS5 connection failed: ${errorMessage}`, `UND_ERR_SOCKS5_REPLY_${reply}`)
+    }
+
+    // Parse bound address and port
+    let boundAddress;
+    let offset = 4;
+
+    if (addressType === ADDRESS_TYPES.IPV4) {
+      boundAddress = Array.from(this.buffer.subarray(offset, offset + 4)).join('.');
+      offset += 4;
+    } else if (addressType === ADDRESS_TYPES.DOMAIN) {
+      const domainLength = this.buffer[offset];
+      offset += 1;
+      boundAddress = this.buffer.subarray(offset, offset + domainLength).toString();
+      offset += domainLength;
+    } else if (addressType === ADDRESS_TYPES.IPV6) {
+      // Parse IPv6 address from 16-byte buffer
+      const parts = [];
+      for (let i = 0; i < 8; i++) {
+        const value = this.buffer.readUInt16BE(offset + i * 2);
+        parts.push(value.toString(16));
+      }
+      boundAddress = parts.join(':');
+      offset += 16;
+    }
+
+    const boundPort = this.buffer.readUInt16BE(offset);
+
+    this.buffer = this.buffer.subarray(responseLength);
+    this.state = STATES.CONNECTED;
+
+    debug$1('connected, bound address:', boundAddress, 'port:', boundPort);
+    this.emit('connected', { address: boundAddress, port: boundPort });
+  }
+
+  /**
+   * Get human-readable error message for reply code
+   */
+  getReplyErrorMessage (reply) {
+    switch (reply) {
+      case REPLY_CODES.GENERAL_FAILURE:
+        return 'General SOCKS server failure'
+      case REPLY_CODES.CONNECTION_NOT_ALLOWED:
+        return 'Connection not allowed by ruleset'
+      case REPLY_CODES.NETWORK_UNREACHABLE:
+        return 'Network unreachable'
+      case REPLY_CODES.HOST_UNREACHABLE:
+        return 'Host unreachable'
+      case REPLY_CODES.CONNECTION_REFUSED:
+        return 'Connection refused'
+      case REPLY_CODES.TTL_EXPIRED:
+        return 'TTL expired'
+      case REPLY_CODES.COMMAND_NOT_SUPPORTED:
+        return 'Command not supported'
+      case REPLY_CODES.ADDRESS_TYPE_NOT_SUPPORTED:
+        return 'Address type not supported'
+      default:
+        return `Unknown error code: ${reply}`
+    }
+  }
+};
+
+var socks5Client = {
+  Socks5Client: Socks5Client$1};
+
+const net = require$$0$3;
+const { URL: URL$1 } = require$$1$1;
+
+let tls; // include tls conditionally since it is not always available
 const DispatcherBase$2 = dispatcherBase;
-const { InvalidArgumentError: InvalidArgumentError$i, RequestAbortedError: RequestAbortedError$5, SecureProxyConnectionError } = errors$1;
-const buildConnector$1 = connect$4;
-const Client$3 = client;
+const { InvalidArgumentError: InvalidArgumentError$l } = errors;
+const { Socks5Client } = socks5Client;
+const { kDispatch: kDispatch$2, kClose: kClose$4, kDestroy: kDestroy$2 } = requireSymbols();
+const Pool$2 = pool;
+const buildConnector$1 = connect$2;
+const { debuglog } = require$$3;
+
+const debug = debuglog('undici:socks5-proxy');
+
+const kProxyUrl = Symbol('proxy url');
+const kProxyHeaders$1 = Symbol('proxy headers');
+const kProxyAuth = Symbol('proxy auth');
+const kPool = Symbol('pool');
+const kConnector = Symbol('connector');
+
+// Static flag to ensure warning is only emitted once per process
+let experimentalWarningEmitted = false;
+
+/**
+ * SOCKS5 proxy agent for dispatching requests through a SOCKS5 proxy
+ */
+let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
+  constructor (proxyUrl, options = {}) {
+    super();
+
+    // Emit experimental warning only once
+    if (!experimentalWarningEmitted) {
+      process.emitWarning(
+        'SOCKS5 proxy support is experimental and subject to change',
+        'ExperimentalWarning'
+      );
+      experimentalWarningEmitted = true;
+    }
+
+    if (!proxyUrl) {
+      throw new InvalidArgumentError$l('Proxy URL is mandatory')
+    }
+
+    // Parse proxy URL
+    const url = typeof proxyUrl === 'string' ? new URL$1(proxyUrl) : proxyUrl;
+
+    if (url.protocol !== 'socks5:' && url.protocol !== 'socks:') {
+      throw new InvalidArgumentError$l('Proxy URL must use socks5:// or socks:// protocol')
+    }
+
+    this[kProxyUrl] = url;
+    this[kProxyHeaders$1] = options.headers || {};
+
+    // Extract auth from URL or options
+    this[kProxyAuth] = {
+      username: options.username || (url.username ? decodeURIComponent(url.username) : null),
+      password: options.password || (url.password ? decodeURIComponent(url.password) : null)
+    };
+
+    // Create connector for proxy connection
+    this[kConnector] = options.connect || buildConnector$1({
+      ...options.proxyTls,
+      servername: options.proxyTls?.servername || url.hostname
+    });
+
+    // Pool for the actual HTTP connections (with SOCKS5 tunnel connect function)
+    this[kPool] = null;
+  }
+
+  /**
+   * Create a SOCKS5 connection to the proxy
+   */
+  async createSocks5Connection (targetHost, targetPort) {
+    const proxyHost = this[kProxyUrl].hostname;
+    const proxyPort = parseInt(this[kProxyUrl].port) || 1080;
+
+    debug('creating SOCKS5 connection to', proxyHost, proxyPort);
+
+    // Connect to the SOCKS5 proxy
+    const socket = await new Promise((resolve, reject) => {
+      const onConnect = () => {
+        socket.removeListener('error', onError);
+        resolve(socket);
+      };
+
+      const onError = (err) => {
+        socket.removeListener('connect', onConnect);
+        reject(err);
+      };
+
+      const socket = net.connect({
+        host: proxyHost,
+        port: proxyPort
+      });
+
+      socket.once('connect', onConnect);
+      socket.once('error', onError);
+    });
+
+    // Create SOCKS5 client
+    const socks5Client = new Socks5Client(socket, this[kProxyAuth]);
+
+    // Handle SOCKS5 errors
+    socks5Client.on('error', (err) => {
+      debug('SOCKS5 error:', err);
+      socket.destroy();
+    });
+
+    // Perform SOCKS5 handshake
+    await socks5Client.handshake();
+
+    // Wait for authentication (if required)
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('SOCKS5 authentication timeout'));
+      }, 5000);
+
+      const onAuthenticated = () => {
+        clearTimeout(timeout);
+        socks5Client.removeListener('error', onError);
+        resolve();
+      };
+
+      const onError = (err) => {
+        clearTimeout(timeout);
+        socks5Client.removeListener('authenticated', onAuthenticated);
+        reject(err);
+      };
+
+      // Check if already authenticated (for NO_AUTH method)
+      if (socks5Client.state === 'authenticated') {
+        clearTimeout(timeout);
+        resolve();
+      } else {
+        socks5Client.once('authenticated', onAuthenticated);
+        socks5Client.once('error', onError);
+      }
+    });
+
+    // Send CONNECT command
+    await socks5Client.connect(targetHost, targetPort);
+
+    // Wait for connection
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('SOCKS5 connection timeout'));
+      }, 5000);
+
+      const onConnected = (info) => {
+        debug('SOCKS5 tunnel established to', targetHost, targetPort, 'via', info);
+        clearTimeout(timeout);
+        socks5Client.removeListener('error', onError);
+        resolve();
+      };
+
+      const onError = (err) => {
+        clearTimeout(timeout);
+        socks5Client.removeListener('connected', onConnected);
+        reject(err);
+      };
+
+      socks5Client.once('connected', onConnected);
+      socks5Client.once('error', onError);
+    });
+
+    return socket
+  }
+
+  /**
+   * Dispatch a request through the SOCKS5 proxy
+   */
+  async [kDispatch$2] (opts, handler) {
+    const { origin } = opts;
+
+    debug('dispatching request to', origin, 'via SOCKS5');
+
+    try {
+      // Create Pool with custom connect function if we don't have one yet
+      if (!this[kPool] || this[kPool].destroyed || this[kPool].closed) {
+        this[kPool] = new Pool$2(origin, {
+          pipelining: opts.pipelining,
+          connections: opts.connections,
+          connect: async (connectOpts, callback) => {
+            try {
+              const url = new URL$1(origin);
+              const targetHost = url.hostname;
+              const targetPort = parseInt(url.port) || (url.protocol === 'https:' ? 443 : 80);
+
+              debug('establishing SOCKS5 connection to', targetHost, targetPort);
+
+              // Create SOCKS5 tunnel
+              const socket = await this.createSocks5Connection(targetHost, targetPort);
+
+              // Handle TLS if needed
+              let finalSocket = socket;
+              if (url.protocol === 'https:') {
+                if (!tls) {
+                  tls = require('node:tls');
+                }
+                debug('upgrading to TLS');
+                finalSocket = tls.connect({
+                  socket,
+                  servername: targetHost,
+                  ...connectOpts.tls || {}
+                });
+
+                await new Promise((resolve, reject) => {
+                  finalSocket.once('secureConnect', resolve);
+                  finalSocket.once('error', reject);
+                });
+              }
+
+              callback(null, finalSocket);
+            } catch (err) {
+              debug('SOCKS5 connection error:', err);
+              callback(err);
+            }
+          }
+        });
+      }
+
+      // Dispatch the request through the pool
+      return this[kPool][kDispatch$2](opts, handler)
+    } catch (err) {
+      debug('dispatch error:', err);
+      if (typeof handler.onError === 'function') {
+        handler.onError(err);
+      } else {
+        throw err
+      }
+    }
+  }
+
+  async [kClose$4] () {
+    if (this[kPool]) {
+      await this[kPool].close();
+    }
+  }
+
+  async [kDestroy$2] (err) {
+    if (this[kPool]) {
+      await this[kPool].destroy(err);
+    }
+  }
+};
+
+var socks5ProxyAgent = Socks5ProxyAgent$1;
+
+const { kProxy, kClose: kClose$3, kDestroy: kDestroy$1, kDispatch: kDispatch$1 } = requireSymbols();
+const Agent$4 = agent;
+const Pool$1 = pool;
+const DispatcherBase$1 = dispatcherBase;
+const { InvalidArgumentError: InvalidArgumentError$k, RequestAbortedError: RequestAbortedError$6, SecureProxyConnectionError } = errors;
+const buildConnector = connect$2;
+const Client$2 = client;
+const { channels } = diagnostics;
+const Socks5ProxyAgent = socks5ProxyAgent;
 
 const kAgent$1 = Symbol('proxy agent');
 const kClient = Symbol('proxy client');
@@ -12412,75 +14220,84 @@ function defaultProtocolPort (protocol) {
 }
 
 function defaultFactory (origin, opts) {
-  return new Pool$2(origin, opts)
+  return new Pool$1(origin, opts)
 }
 
 const noop$6 = () => {};
 
-class ProxyClient extends DispatcherBase$2 {
-  #client = null
-  constructor (origin, opts) {
-    if (typeof origin === 'string') {
-      origin = new URL$1(origin);
-    }
+function defaultAgentFactory (origin, opts) {
+  if (opts.connections === 1) {
+    return new Client$2(origin, opts)
+  }
+  return new Pool$1(origin, opts)
+}
 
-    if (origin.protocol !== 'http:' && origin.protocol !== 'https:') {
-      throw new InvalidArgumentError$i('ProxyClient only supports http and https protocols')
+class Http1ProxyWrapper extends DispatcherBase$1 {
+  #client
+
+  constructor (proxyUrl, { headers = {}, connect, factory }) {
+    if (!proxyUrl) {
+      throw new InvalidArgumentError$k('Proxy URL is mandatory')
     }
 
     super();
 
-    this.#client = new Client$3(origin, opts);
+    this[kProxyHeaders] = headers;
+    if (factory) {
+      this.#client = factory(proxyUrl, { connect });
+    } else {
+      this.#client = new Client$2(proxyUrl, { connect });
+    }
   }
 
-  async [kClose$4] () {
-    await this.#client.close();
-  }
-
-  async [kDestroy$2] () {
-    await this.#client.destroy();
-  }
-
-  async [kDispatch$1] (opts, handler) {
-    const { method, origin } = opts;
-    if (method === 'CONNECT') {
-      this.#client[kConnector]({
-        origin,
-        port: opts.port || defaultProtocolPort(opts.protocol),
-        path: opts.host,
-        signal: opts.signal,
-        headers: {
-          ...this[kProxyHeaders],
-          host: opts.host
-        },
-        servername: this[kProxyTls]?.servername || opts.servername
-      },
-      (err, socket) => {
-        if (err) {
-          handler.callback(err);
-        } else {
-          handler.callback(null, { socket, statusCode: 200 });
+  [kDispatch$1] (opts, handler) {
+    const onHeaders = handler.onHeaders;
+    handler.onHeaders = function (statusCode, data, resume) {
+      if (statusCode === 407) {
+        if (typeof handler.onError === 'function') {
+          handler.onError(new InvalidArgumentError$k('Proxy Authentication Required (407)'));
         }
+        return
       }
-      );
-      return
-    }
-    if (typeof origin === 'string') {
-      opts.origin = new URL$1(origin);
-    }
+      if (onHeaders) onHeaders.call(this, statusCode, data, resume);
+    };
 
-    return this.#client.dispatch(opts, handler)
+    // Rewrite request as an HTTP1 Proxy request, without tunneling.
+    const {
+      origin,
+      path = '/',
+      headers = {}
+    } = opts;
+
+    opts.path = origin + path;
+
+    if (!('host' in headers) && !('Host' in headers)) {
+      const { host } = new URL(origin);
+      headers.host = host;
+    }
+    opts.headers = { ...this[kProxyHeaders], ...headers };
+
+    return this.#client[kDispatch$1](opts, handler)
+  }
+
+  [kClose$3] () {
+    return this.#client.close()
+  }
+
+  [kDestroy$1] (err) {
+    return this.#client.destroy(err)
   }
 }
-let ProxyAgent$2 = class ProxyAgent extends DispatcherBase$2 {
+
+let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
   constructor (opts) {
-    if (!opts || (typeof opts === 'object' && !(opts instanceof URL$1) && !opts.uri)) {
-      throw new InvalidArgumentError$i('Proxy uri is mandatory')
+    if (!opts || (typeof opts === 'object' && !(opts instanceof URL) && !opts.uri)) {
+      throw new InvalidArgumentError$k('Proxy uri is mandatory')
     }
 
     const { clientFactory = defaultFactory } = opts;
     if (typeof clientFactory !== 'function') {
-      throw new InvalidArgumentError$i('Proxy opts.clientFactory must be a function.')
+      throw new InvalidArgumentError$k('Proxy opts.clientFactory must be a function.')
     }
 
     const { proxyTunnel = true } = opts;
@@ -12494,9 +14311,10 @@ let ProxyAgent$2 = class ProxyAgent extends DispatcherBase$2 {
     this[kRequestTls] = opts.requestTls;
     this[kProxyTls] = opts.proxyTls;
     this[kProxyHeaders] = opts.headers || {};
+    this[kTunnelProxy] = proxyTunnel;
 
     if (opts.auth && opts.token) {
-      throw new InvalidArgumentError$i('opts.auth cannot be used in combination with opts.token')
+      throw new InvalidArgumentError$k('opts.auth cannot be used in combination with opts.token')
     } else if (opts.auth) {
       /* @deprecated in favour of opts.token */
       this[kProxyHeaders]['proxy-authorization'] = `Basic ${opts.auth}`;
@@ -12506,28 +14324,60 @@ let ProxyAgent$2 = class ProxyAgent extends DispatcherBase$2 {
       this[kProxyHeaders]['proxy-authorization'] = `Basic ${Buffer.from(`${decodeURIComponent(username)}:${decodeURIComponent(password)}`).toString('base64')}`;
     }
 
-    const factory = (!proxyTunnel && protocol === 'http:')
-      ? (origin, options) => {
-          if (origin.protocol === 'http:') {
-            return new ProxyClient(origin, options)
-          }
-          return new Client$3(origin, options)
-        }
-      : undefined;
+    const connect = buildConnector({ ...opts.proxyTls });
+    this[kConnectEndpoint] = buildConnector({ ...opts.requestTls });
 
-    const connect = buildConnector$1({ ...opts.proxyTls });
-    this[kConnectEndpoint] = buildConnector$1({ ...opts.requestTls });
-    this[kClient] = clientFactory(url, { connect, factory });
-    this[kTunnelProxy] = proxyTunnel;
+    const agentFactory = opts.factory || defaultAgentFactory;
+    const factory = (origin, options) => {
+      const { protocol } = new URL(origin);
+
+      // Handle SOCKS5 proxy
+      if (this[kProxy].protocol === 'socks5:' || this[kProxy].protocol === 'socks:') {
+        return new Socks5ProxyAgent(this[kProxy].uri, {
+          headers: this[kProxyHeaders],
+          connect,
+          factory: agentFactory,
+          username: opts.username || username,
+          password: opts.password || password,
+          proxyTls: opts.proxyTls
+        })
+      }
+
+      if (!this[kTunnelProxy] && protocol === 'http:' && this[kProxy].protocol === 'http:') {
+        return new Http1ProxyWrapper(this[kProxy].uri, {
+          headers: this[kProxyHeaders],
+          connect,
+          factory: agentFactory
+        })
+      }
+      return agentFactory(origin, options)
+    };
+
+    // For SOCKS5 proxies, we don't need a client to the proxy itself
+    // The SOCKS5 connection is handled within Socks5ProxyAgent
+    if (protocol === 'socks5:' || protocol === 'socks:') {
+      this[kClient] = null;
+    } else {
+      this[kClient] = clientFactory(url, { connect });
+    }
+
     this[kAgent$1] = new Agent$4({
       ...opts,
+      factory,
       connect: async (opts, callback) => {
+        // SOCKS5 proxies handle their own connections via Socks5ProxyAgent,
+        // so this connect function should never be called for them.
+        if (!this[kClient]) {
+          callback(new InvalidArgumentError$k('Cannot establish tunnel connection without a proxy client'));
+          return
+        }
+
         let requestedPath = opts.host;
         if (!opts.port) {
           requestedPath += `:${defaultProtocolPort(opts.protocol)}`;
         }
         try {
-          const { socket, statusCode } = await this[kClient].connect({
+          const connectParams = {
             origin,
             port,
             path: requestedPath,
@@ -12538,11 +14388,21 @@ let ProxyAgent$2 = class ProxyAgent extends DispatcherBase$2 {
               ...(opts.connections == null || opts.connections > 0 ? { 'proxy-connection': 'keep-alive' } : {})
             },
             servername: this[kProxyTls]?.servername || proxyHostname
-          });
+          };
+          const { socket, statusCode } = await this[kClient].connect(connectParams);
           if (statusCode !== 200) {
             socket.on('error', noop$6).destroy();
-            callback(new RequestAbortedError$5(`Proxy response (${statusCode}) !== 200 when HTTP Tunneling`));
+            callback(new RequestAbortedError$6(`Proxy response (${statusCode}) !== 200 when HTTP Tunneling`));
+            return
           }
+
+          if (channels.proxyConnected.hasSubscribers) {
+            channels.proxyConnected.publish({
+              socket,
+              connectParams
+            });
+          }
+
           if (opts.protocol !== 'https:') {
             callback(null, socket);
             return
@@ -12571,12 +14431,8 @@ let ProxyAgent$2 = class ProxyAgent extends DispatcherBase$2 {
     throwIfProxyAuthIsSent(headers);
 
     if (headers && !('host' in headers) && !('Host' in headers)) {
-      const { host } = new URL$1(opts.origin);
+      const { host } = new URL(opts.origin);
       headers.host = host;
-    }
-
-    if (!this.#shouldConnect(new URL$1(opts.origin))) {
-      opts.path = opts.origin + opts.path;
     }
 
     return this[kAgent$1].dispatch(
@@ -12589,40 +14445,33 @@ let ProxyAgent$2 = class ProxyAgent extends DispatcherBase$2 {
   }
 
   /**
-   * @param {import('../types/proxy-agent').ProxyAgent.Options | string | URL} opts
+   * @param {import('../../types/proxy-agent').ProxyAgent.Options | string | URL} opts
    * @returns {URL}
    */
   #getUrl (opts) {
     if (typeof opts === 'string') {
-      return new URL$1(opts)
-    } else if (opts instanceof URL$1) {
+      return new URL(opts)
+    } else if (opts instanceof URL) {
       return opts
     } else {
-      return new URL$1(opts.uri)
+      return new URL(opts.uri)
     }
   }
 
-  async [kClose$4] () {
-    await this[kAgent$1].close();
-    await this[kClient].close();
+  [kClose$3] () {
+    const promises = [this[kAgent$1].close()];
+    if (this[kClient]) {
+      promises.push(this[kClient].close());
+    }
+    return Promise.all(promises)
   }
 
-  async [kDestroy$2] () {
-    await this[kAgent$1].destroy();
-    await this[kClient].destroy();
-  }
-
-  #shouldConnect (uri) {
-    if (typeof uri === 'string') {
-      uri = new URL$1(uri);
+  [kDestroy$1] () {
+    const promises = [this[kAgent$1].destroy()];
+    if (this[kClient]) {
+      promises.push(this[kClient].destroy());
     }
-    if (this[kTunnelProxy]) {
-      return true
-    }
-    if (uri.protocol !== 'http:' || this[kProxy].protocol !== 'http:') {
-      return true
-    }
-    return false
+    return Promise.all(promises)
   }
 };
 
@@ -12659,15 +14508,15 @@ function throwIfProxyAuthIsSent (headers) {
   const existProxyAuth = headers && Object.keys(headers)
     .find((key) => key.toLowerCase() === 'proxy-authorization');
   if (existProxyAuth) {
-    throw new InvalidArgumentError$i('Proxy-Authorization should be sent in ProxyAgent constructor')
+    throw new InvalidArgumentError$k('Proxy-Authorization should be sent in ProxyAgent constructor')
   }
 }
 
-var proxyAgent = ProxyAgent$2;
+var proxyAgent = ProxyAgent$1;
 
-const DispatcherBase$1 = dispatcherBase;
-const { kClose: kClose$3, kDestroy: kDestroy$1, kClosed, kDestroyed, kDispatch, kNoProxyAgent, kHttpProxyAgent, kHttpsProxyAgent } = requireSymbols();
-const ProxyAgent$1 = proxyAgent;
+const DispatcherBase = dispatcherBase;
+const { kClose: kClose$2, kDestroy, kClosed, kDestroyed, kDispatch, kNoProxyAgent, kHttpProxyAgent, kHttpsProxyAgent } = requireSymbols();
+const ProxyAgent = proxyAgent;
 const Agent$3 = agent;
 
 const DEFAULT_PORTS = {
@@ -12675,7 +14524,7 @@ const DEFAULT_PORTS = {
   'https:': 443
 };
 
-let EnvHttpProxyAgent$1 = class EnvHttpProxyAgent extends DispatcherBase$1 {
+class EnvHttpProxyAgent extends DispatcherBase {
   #noProxyValue = null
   #noProxyEntries = null
   #opts = null
@@ -12690,14 +14539,14 @@ let EnvHttpProxyAgent$1 = class EnvHttpProxyAgent extends DispatcherBase$1 {
 
     const HTTP_PROXY = httpProxy ?? process.env.http_proxy ?? process.env.HTTP_PROXY;
     if (HTTP_PROXY) {
-      this[kHttpProxyAgent] = new ProxyAgent$1({ ...agentOpts, uri: HTTP_PROXY });
+      this[kHttpProxyAgent] = new ProxyAgent({ ...agentOpts, uri: HTTP_PROXY });
     } else {
       this[kHttpProxyAgent] = this[kNoProxyAgent];
     }
 
     const HTTPS_PROXY = httpsProxy ?? process.env.https_proxy ?? process.env.HTTPS_PROXY;
     if (HTTPS_PROXY) {
-      this[kHttpsProxyAgent] = new ProxyAgent$1({ ...agentOpts, uri: HTTPS_PROXY });
+      this[kHttpsProxyAgent] = new ProxyAgent({ ...agentOpts, uri: HTTPS_PROXY });
     } else {
       this[kHttpsProxyAgent] = this[kHttpProxyAgent];
     }
@@ -12711,24 +14560,20 @@ let EnvHttpProxyAgent$1 = class EnvHttpProxyAgent extends DispatcherBase$1 {
     return agent.dispatch(opts, handler)
   }
 
-  async [kClose$3] () {
-    await this[kNoProxyAgent].close();
-    if (!this[kHttpProxyAgent][kClosed]) {
-      await this[kHttpProxyAgent].close();
-    }
-    if (!this[kHttpsProxyAgent][kClosed]) {
-      await this[kHttpsProxyAgent].close();
-    }
+  [kClose$2] () {
+    return Promise.all([
+      this[kNoProxyAgent].close(),
+      !this[kHttpProxyAgent][kClosed] && this[kHttpProxyAgent].close(),
+      !this[kHttpsProxyAgent][kClosed] && this[kHttpsProxyAgent].close()
+    ])
   }
 
-  async [kDestroy$1] (err) {
-    await this[kNoProxyAgent].destroy(err);
-    if (!this[kHttpProxyAgent][kDestroyed]) {
-      await this[kHttpProxyAgent].destroy(err);
-    }
-    if (!this[kHttpsProxyAgent][kDestroyed]) {
-      await this[kHttpsProxyAgent].destroy(err);
-    }
+  [kDestroy] (err) {
+    return Promise.all([
+      this[kNoProxyAgent].destroy(err),
+      !this[kHttpProxyAgent][kDestroyed] && this[kHttpProxyAgent].destroy(err),
+      !this[kHttpsProxyAgent][kDestroyed] && this[kHttpsProxyAgent].destroy(err)
+    ])
   }
 
   #getProxyAgentForUrl (url) {
@@ -12764,16 +14609,14 @@ let EnvHttpProxyAgent$1 = class EnvHttpProxyAgent extends DispatcherBase$1 {
       if (entry.port && entry.port !== port) {
         continue // Skip if ports don't match.
       }
-      if (!/^[.*]/.test(entry.hostname)) {
-        // No wildcards, so don't proxy only if there is not an exact match.
-        if (hostname === entry.hostname) {
-          return false
-        }
-      } else {
-        // Don't proxy if the hostname ends with the no_proxy host.
-        if (hostname.endsWith(entry.hostname.replace(/^\*/, ''))) {
-          return false
-        }
+      // Don't proxy if the hostname is equal with the no_proxy host.
+      if (hostname === entry.hostname) {
+        return false
+      }
+      // Don't proxy if the hostname is the subdomain of the no_proxy host.
+      // Reference - https://github.com/denoland/deno/blob/6fbce91e40cc07fc6da74068e5cc56fdd40f7b4c/ext/fetch/proxy.rs#L485
+      if (hostname.slice(-(entry.hostname.length + 1)) === `.${entry.hostname}`) {
+        return false
       }
     }
 
@@ -12792,7 +14635,8 @@ let EnvHttpProxyAgent$1 = class EnvHttpProxyAgent extends DispatcherBase$1 {
       }
       const parsed = entry.match(/^(.+):(\d+)$/);
       noProxyEntries.push({
-        hostname: (parsed ? parsed[1] : entry).toLowerCase(),
+        // strip leading dot or asterisk with dot
+        hostname: (parsed ? parsed[1] : entry).replace(/^\*?\./, '').toLowerCase(),
         port: parsed ? Number.parseInt(parsed[2], 10) : 0
       });
     }
@@ -12811,27 +14655,27 @@ let EnvHttpProxyAgent$1 = class EnvHttpProxyAgent extends DispatcherBase$1 {
   get #noProxyEnv () {
     return process.env.no_proxy ?? process.env.NO_PROXY ?? ''
   }
-};
+}
 
-var envHttpProxyAgent = EnvHttpProxyAgent$1;
+var envHttpProxyAgent = EnvHttpProxyAgent;
 
 const assert$a = require$$0$2;
 
 const { kRetryHandlerDefaultRetry } = requireSymbols();
-const { RequestRetryError } = errors$1;
-const WrapHandler$1 = wrapHandler;
+const { RequestRetryError } = errors;
+const WrapHandler$2 = wrapHandler;
 const {
   isDisturbed,
   parseRangeHeader,
   wrapRequestBody
-} = util$n;
+} = util$o;
 
 function calculateRetryAfterHeader (retryAfter) {
   const retryTime = new Date(retryAfter).getTime();
   return isNaN(retryTime) ? 0 : retryTime - Date.now()
 }
 
-let RetryHandler$3 = class RetryHandler {
+let RetryHandler$2 = class RetryHandler {
   constructor (opts, { dispatch, handler }) {
     const { retryOptions, ...dispatchOpts } = opts;
     const {
@@ -12851,7 +14695,7 @@ let RetryHandler$3 = class RetryHandler {
 
     this.error = null;
     this.dispatch = dispatch;
-    this.handler = WrapHandler$1.wrap(handler);
+    this.handler = WrapHandler$2.wrap(handler);
     this.opts = { ...dispatchOpts, body: wrapRequestBody(opts.body) };
     this.retryOpts = {
       throwOnError: throwOnError ?? true,
@@ -12908,8 +14752,6 @@ let RetryHandler$3 = class RetryHandler {
 
     function shouldRetry (passedErr) {
       if (passedErr) {
-        this.headersSent = true;
-
         this.headersSent = true;
         this.handler.onResponseStart?.(controller, statusCode, headers, statusMessage);
         controller.resume();
@@ -13209,12 +15051,12 @@ let RetryHandler$3 = class RetryHandler {
   }
 };
 
-var retryHandler = RetryHandler$3;
+var retryHandler = RetryHandler$2;
 
-const Dispatcher$2 = dispatcher;
-const RetryHandler$2 = retryHandler;
+const Dispatcher$1 = dispatcher;
+const RetryHandler$1 = retryHandler;
 
-let RetryAgent$1 = class RetryAgent extends Dispatcher$2 {
+class RetryAgent extends Dispatcher$1 {
   #agent = null
   #options = null
   constructor (agent, options = {}) {
@@ -13224,7 +15066,7 @@ let RetryAgent$1 = class RetryAgent extends Dispatcher$2 {
   }
 
   dispatch (opts, handler) {
-    const retry = new RetryHandler$2({
+    const retry = new RetryHandler$1({
       ...opts,
       retryOptions: this.#options
     }, {
@@ -13241,44 +15083,34 @@ let RetryAgent$1 = class RetryAgent extends Dispatcher$2 {
   destroy () {
     return this.#agent.destroy()
   }
-};
+}
 
-var retryAgent = RetryAgent$1;
+var retryAgent = RetryAgent;
 
-const { connect: connect$2 } = require$$0$3;
+const { InvalidArgumentError: InvalidArgumentError$j } = errors;
+const Client$1 = client;
 
-const { kClose: kClose$2, kDestroy } = requireSymbols();
-const { InvalidArgumentError: InvalidArgumentError$h } = errors$1;
-const util$e = util$n;
-
-const Client$2 = client;
-const DispatcherBase = dispatcherBase;
-
-let H2CClient$1 = class H2CClient extends DispatcherBase {
-  #client = null
-
+class H2CClient extends Client$1 {
   constructor (origin, clientOpts) {
-    super();
-
     if (typeof origin === 'string') {
       origin = new URL(origin);
     }
 
     if (origin.protocol !== 'http:') {
-      throw new InvalidArgumentError$h(
+      throw new InvalidArgumentError$j(
         'h2c-client: Only h2c protocol is supported'
       )
     }
 
     const { connect, maxConcurrentStreams, pipelining, ...opts } =
-      clientOpts ?? {};
+            clientOpts ?? {};
     let defaultMaxConcurrentStreams = 100;
     let defaultPipelining = 100;
 
     if (
       maxConcurrentStreams != null &&
-      Number.isInteger(maxConcurrentStreams) &&
-      maxConcurrentStreams > 0
+            Number.isInteger(maxConcurrentStreams) &&
+            maxConcurrentStreams > 0
     ) {
       defaultMaxConcurrentStreams = maxConcurrentStreams;
     }
@@ -13288,94 +15120,32 @@ let H2CClient$1 = class H2CClient extends DispatcherBase {
     }
 
     if (defaultPipelining > defaultMaxConcurrentStreams) {
-      throw new InvalidArgumentError$h(
+      throw new InvalidArgumentError$j(
         'h2c-client: pipelining cannot be greater than maxConcurrentStreams'
       )
     }
 
-    this.#client = new Client$2(origin, {
+    super(origin, {
       ...opts,
-      connect: this.#buildConnector(connect),
       maxConcurrentStreams: defaultMaxConcurrentStreams,
       pipelining: defaultPipelining,
-      allowH2: true
+      allowH2: true,
+      useH2c: true
     });
   }
+}
 
-  #buildConnector (connectOpts) {
-    return (opts, callback) => {
-      const timeout = connectOpts?.connectOpts ?? 10e3;
-      const { hostname, port, pathname } = opts;
-      const socket = connect$2({
-        ...opts,
-        host: hostname,
-        port,
-        pathname
-      });
+var h2cClient = H2CClient;
 
-      // Set TCP keep alive options on the socket here instead of in connect() for the case of assigning the socket
-      if (opts.keepAlive == null || opts.keepAlive) {
-        const keepAliveInitialDelay =
-          opts.keepAliveInitialDelay == null ? 60e3 : opts.keepAliveInitialDelay;
-        socket.setKeepAlive(true, keepAliveInitialDelay);
-      }
-
-      socket.alpnProtocol = 'h2';
-
-      const clearConnectTimeout = util$e.setupConnectTimeout(
-        new WeakRef(socket),
-        { timeout, hostname, port }
-      );
-
-      socket
-        .setNoDelay(true)
-        .once('connect', function () {
-          queueMicrotask(clearConnectTimeout);
-
-          if (callback) {
-            const cb = callback;
-            callback = null;
-            cb(null, this);
-          }
-        })
-        .on('error', function (err) {
-          queueMicrotask(clearConnectTimeout);
-
-          if (callback) {
-            const cb = callback;
-            callback = null;
-            cb(err);
-          }
-        });
-
-      return socket
-    }
-  }
-
-  dispatch (opts, handler) {
-    return this.#client.dispatch(opts, handler)
-  }
-
-  async [kClose$2] () {
-    await this.#client.close();
-  }
-
-  async [kDestroy] () {
-    await this.#client.destroy();
-  }
-};
-
-var h2cClient = H2CClient$1;
-
-var api$1 = {};
+var api = {};
 
 var apiRequest = {exports: {}};
 
 const assert$9 = require$$0$2;
 const { Readable: Readable$3 } = require$$0$1;
-const { RequestAbortedError: RequestAbortedError$4, NotSupportedError, InvalidArgumentError: InvalidArgumentError$g, AbortError: AbortError$1 } = errors$1;
-const util$d = util$n;
-const { ReadableStreamFrom } = util$n;
+const { RequestAbortedError: RequestAbortedError$5, NotSupportedError, InvalidArgumentError: InvalidArgumentError$i, AbortError: AbortError$1 } = errors;
+const util$d = util$o;
+const { ReadableStreamFrom } = util$o;
 
 const kConsume = Symbol('kConsume');
 const kReading = Symbol('kReading');
@@ -13419,23 +15189,32 @@ class BodyReadable extends Readable$3 {
 
     this[kAbort] = abort;
 
-    /**
-     * @type {Consume | null}
-     */
+    /** @type {Consume | null} */
     this[kConsume] = null;
+
+    /** @type {number} */
     this[kBytesRead] = 0;
-    /**
-     * @type {ReadableStream|null}
-     */
+
+    /** @type {ReadableStream|null} */
     this[kBody$1] = null;
+
+    /** @type {boolean} */
     this[kUsed] = false;
+
+    /** @type {string} */
     this[kContentType] = contentType;
+
+    /** @type {number|null} */
     this[kContentLength$1] = Number.isFinite(contentLength) ? contentLength : null;
 
-    // Is stream being consumed through Readable API?
-    // This is an optimization so that we avoid checking
-    // for 'data' and 'readable' listeners in the hot path
-    // inside push().
+    /**
+     * Is stream being consumed through Readable API?
+     * This is an optimization so that we avoid checking
+     * for 'data' and 'readable' listeners in the hot path
+     * inside push().
+     *
+     * @type {boolean}
+     */
     this[kReading] = false;
   }
 
@@ -13446,7 +15225,7 @@ class BodyReadable extends Readable$3 {
    */
   _destroy (err, callback) {
     if (!err && !this._readableState.endEmitted) {
-      err = new RequestAbortedError$4();
+      err = new RequestAbortedError$5();
     }
 
     if (err) {
@@ -13458,16 +15237,14 @@ class BodyReadable extends Readable$3 {
     // promise (i.e micro tick) for installing an 'error' listener will
     // never get a chance and will always encounter an unhandled exception.
     if (!this[kUsed]) {
-      setImmediate(() => {
-        callback(err);
-      });
+      setImmediate(callback, err);
     } else {
       callback(err);
     }
   }
 
   /**
-   * @param {string} event
+   * @param {string|symbol} event
    * @param {(...args: any[]) => void} listener
    * @returns {this}
    */
@@ -13480,7 +15257,7 @@ class BodyReadable extends Readable$3 {
   }
 
   /**
-   * @param {string} event
+   * @param {string|symbol} event
    * @param {(...args: any[]) => void} listener
    * @returns {this}
    */
@@ -13518,12 +15295,14 @@ class BodyReadable extends Readable$3 {
    * @returns {boolean}
    */
   push (chunk) {
-    this[kBytesRead] += chunk ? chunk.length : 0;
-
-    if (this[kConsume] && chunk !== null) {
-      consumePush(this[kConsume], chunk);
-      return this[kReading] ? super.push(chunk) : true
+    if (chunk) {
+      this[kBytesRead] += chunk.length;
+      if (this[kConsume]) {
+        consumePush(this[kConsume], chunk);
+        return this[kReading] ? super.push(chunk) : true
+      }
     }
+
     return super.push(chunk)
   }
 
@@ -13624,24 +15403,26 @@ class BodyReadable extends Readable$3 {
    * @param {AbortSignal} [opts.signal] An AbortSignal to cancel the dump.
    * @returns {Promise<null>}
    */
-  async dump (opts) {
+  dump (opts) {
     const signal = opts?.signal;
 
     if (signal != null && (typeof signal !== 'object' || !('aborted' in signal))) {
-      throw new InvalidArgumentError$g('signal must be an AbortSignal')
+      return Promise.reject(new InvalidArgumentError$i('signal must be an AbortSignal'))
     }
 
     const limit = opts?.limit && Number.isFinite(opts.limit)
       ? opts.limit
       : 128 * 1024;
 
-    signal?.throwIfAborted();
-
-    if (this._readableState.closeEmitted) {
-      return null
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason ?? new AbortError$1())
     }
 
-    return await new Promise((resolve, reject) => {
+    if (this._readableState.closeEmitted) {
+      return Promise.resolve(null)
+    }
+
+    return new Promise((resolve, reject) => {
       if (
         (this[kContentLength$1] && (this[kContentLength$1] > limit)) ||
         this[kBytesRead] > limit
@@ -13710,8 +15491,22 @@ function isUnusable (bodyReadable) {
 }
 
 /**
+ * @typedef {'text' | 'json' | 'blob' | 'bytes' | 'arrayBuffer'} ConsumeType
+ */
+
+/**
+ * @template {ConsumeType} T
+ * @typedef {T extends 'text' ? string :
+ *           T extends 'json' ? unknown :
+ *           T extends 'blob' ? Blob :
+ *           T extends 'arrayBuffer' ? ArrayBuffer :
+ *           T extends 'bytes' ? Uint8Array :
+ *           never
+ * } ConsumeReturnType
+ */
+/**
  * @typedef {object} Consume
- * @property {string} type
+ * @property {ConsumeType} type
  * @property {BodyReadable} stream
  * @property {((value?: any) => void)} resolve
  * @property {((err: Error) => void)} reject
@@ -13720,9 +15515,10 @@ function isUnusable (bodyReadable) {
  */
 
 /**
+ * @template {ConsumeType} T
  * @param {BodyReadable} stream
- * @param {string} type
- * @returns {Promise<any>}
+ * @param {T} type
+ * @returns {Promise<ConsumeReturnType<T>>}
  */
 function consume (stream, type) {
   assert$9(!stream[kConsume]);
@@ -13732,9 +15528,7 @@ function consume (stream, type) {
       const rState = stream._readableState;
       if (rState.destroyed && rState.closeEmitted === false) {
         stream
-          .on('error', err => {
-            reject(err);
-          })
+          .on('error', reject)
           .on('close', () => {
             reject(new TypeError('unusable'));
           });
@@ -13758,7 +15552,7 @@ function consume (stream, type) {
           })
           .on('close', function () {
             if (this[kConsume].body !== null) {
-              consumeFinish(this[kConsume], new RequestAbortedError$4());
+              consumeFinish(this[kConsume], new RequestAbortedError$5());
             }
           });
 
@@ -13809,7 +15603,7 @@ function consumeStart (consume) {
 /**
  * @param {Buffer[]} chunks
  * @param {number} length
- * @param {BufferEncoding} encoding
+ * @param {BufferEncoding} [encoding='utf8']
  * @returns {string}
  */
 function chunksDecode (chunks, length, encoding) {
@@ -13925,40 +15719,40 @@ var readable = {
   Readable: BodyReadable};
 
 const assert$8 = require$$0$2;
-const { AsyncResource: AsyncResource$4 } = require$$1$3;
+const { AsyncResource: AsyncResource$4 } = require$$1$2;
 const { Readable: Readable$2 } = readable;
-const { InvalidArgumentError: InvalidArgumentError$f, RequestAbortedError: RequestAbortedError$3 } = errors$1;
-const util$c = util$n;
+const { InvalidArgumentError: InvalidArgumentError$h, RequestAbortedError: RequestAbortedError$4 } = errors;
+const util$c = util$o;
 
 function noop$4 () {}
 
 class RequestHandler extends AsyncResource$4 {
   constructor (opts, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$f('invalid opts')
+      throw new InvalidArgumentError$h('invalid opts')
     }
 
     const { signal, method, opaque, body, onInfo, responseHeaders, highWaterMark } = opts;
 
     try {
       if (typeof callback !== 'function') {
-        throw new InvalidArgumentError$f('invalid callback')
+        throw new InvalidArgumentError$h('invalid callback')
       }
 
       if (highWaterMark && (typeof highWaterMark !== 'number' || highWaterMark < 0)) {
-        throw new InvalidArgumentError$f('invalid highWaterMark')
+        throw new InvalidArgumentError$h('invalid highWaterMark')
       }
 
       if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-        throw new InvalidArgumentError$f('signal must be an EventEmitter or EventTarget')
+        throw new InvalidArgumentError$h('signal must be an EventEmitter or EventTarget')
       }
 
       if (method === 'CONNECT') {
-        throw new InvalidArgumentError$f('invalid method')
+        throw new InvalidArgumentError$h('invalid method')
       }
 
       if (onInfo && typeof onInfo !== 'function') {
-        throw new InvalidArgumentError$f('invalid onInfo callback')
+        throw new InvalidArgumentError$h('invalid onInfo callback')
       }
 
       super('UNDICI_REQUEST');
@@ -13984,10 +15778,10 @@ class RequestHandler extends AsyncResource$4 {
     this.removeAbortListener = null;
 
     if (signal?.aborted) {
-      this.reason = signal.reason ?? new RequestAbortedError$3();
+      this.reason = signal.reason ?? new RequestAbortedError$4();
     } else if (signal) {
       this.removeAbortListener = util$c.addAbortListener(signal, () => {
-        this.reason = signal.reason ?? new RequestAbortedError$3();
+        this.reason = signal.reason ?? new RequestAbortedError$4();
         if (this.res) {
           util$c.destroy(this.res.on('error', noop$4), this.reason);
         } else if (this.abort) {
@@ -14042,14 +15836,29 @@ class RequestHandler extends AsyncResource$4 {
     this.callback = null;
     this.res = res;
     if (callback !== null) {
-      this.runInAsyncScope(callback, null, null, {
-        statusCode,
-        headers,
-        trailers: this.trailers,
-        opaque,
-        body: res,
-        context
-      });
+      try {
+        this.runInAsyncScope(callback, null, null, {
+          statusCode,
+          statusText: statusMessage,
+          headers,
+          trailers: this.trailers,
+          opaque,
+          body: res,
+          context
+        });
+      } catch (err) {
+        // If the callback throws synchronously, we need to handle it
+        // Remove reference to res to allow res being garbage collected
+        this.res = null;
+
+        // Destroy the response stream
+        util$c.destroy(res.on('error', noop$4), err);
+
+        // Use queueMicrotask to re-throw the error so it reaches uncaughtException
+        queueMicrotask(() => {
+          throw err
+        });
+      }
     }
   }
 
@@ -14097,10 +15906,10 @@ class RequestHandler extends AsyncResource$4 {
   }
 }
 
-function request$2 (opts, callback) {
+function request$1 (opts, callback) {
   if (callback === undefined) {
     return new Promise((resolve, reject) => {
-      request$2.call(this, opts, (err, data) => {
+      request$1.call(this, opts, (err, data) => {
         return err ? reject(err) : resolve(data)
       });
     })
@@ -14119,13 +15928,13 @@ function request$2 (opts, callback) {
   }
 }
 
-apiRequest.exports = request$2;
+apiRequest.exports = request$1;
 apiRequest.exports.RequestHandler = RequestHandler;
 
 var apiRequestExports = apiRequest.exports;
 
-const { addAbortListener } = util$n;
-const { RequestAbortedError: RequestAbortedError$2 } = errors$1;
+const { addAbortListener } = util$o;
+const { RequestAbortedError: RequestAbortedError$3 } = errors;
 
 const kListener = Symbol('kListener');
 const kSignal = Symbol('kSignal');
@@ -14134,7 +15943,7 @@ function abort (self) {
   if (self.abort) {
     self.abort(self[kSignal]?.reason);
   } else {
-    self.reason = self[kSignal]?.reason ?? new RequestAbortedError$2();
+    self.reason = self[kSignal]?.reason ?? new RequestAbortedError$3();
   }
   removeSignal$4(self);
 }
@@ -14184,9 +15993,9 @@ var abortSignal = {
 
 const assert$7 = require$$0$2;
 const { finished } = require$$0$1;
-const { AsyncResource: AsyncResource$3 } = require$$1$3;
-const { InvalidArgumentError: InvalidArgumentError$e, InvalidReturnValueError: InvalidReturnValueError$1 } = errors$1;
-const util$b = util$n;
+const { AsyncResource: AsyncResource$3 } = require$$1$2;
+const { InvalidArgumentError: InvalidArgumentError$g, InvalidReturnValueError: InvalidReturnValueError$1 } = errors;
+const util$b = util$o;
 const { addSignal: addSignal$3, removeSignal: removeSignal$3 } = abortSignal;
 
 function noop$3 () {}
@@ -14194,30 +16003,30 @@ function noop$3 () {}
 class StreamHandler extends AsyncResource$3 {
   constructor (opts, factory, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$e('invalid opts')
+      throw new InvalidArgumentError$g('invalid opts')
     }
 
     const { signal, method, opaque, body, onInfo, responseHeaders } = opts;
 
     try {
       if (typeof callback !== 'function') {
-        throw new InvalidArgumentError$e('invalid callback')
+        throw new InvalidArgumentError$g('invalid callback')
       }
 
       if (typeof factory !== 'function') {
-        throw new InvalidArgumentError$e('invalid factory')
+        throw new InvalidArgumentError$g('invalid factory')
       }
 
       if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-        throw new InvalidArgumentError$e('signal must be an EventEmitter or EventTarget')
+        throw new InvalidArgumentError$g('signal must be an EventEmitter or EventTarget')
       }
 
       if (method === 'CONNECT') {
-        throw new InvalidArgumentError$e('invalid method')
+        throw new InvalidArgumentError$g('invalid method')
       }
 
       if (onInfo && typeof onInfo !== 'function') {
-        throw new InvalidArgumentError$e('invalid onInfo callback')
+        throw new InvalidArgumentError$g('invalid onInfo callback')
       }
 
       super('UNDICI_STREAM');
@@ -14366,10 +16175,10 @@ class StreamHandler extends AsyncResource$3 {
   }
 }
 
-function stream$1 (opts, factory, callback) {
+function stream (opts, factory, callback) {
   if (callback === undefined) {
     return new Promise((resolve, reject) => {
-      stream$1.call(this, opts, factory, (err, data) => {
+      stream.call(this, opts, factory, (err, data) => {
         return err ? reject(err) : resolve(data)
       });
     })
@@ -14388,7 +16197,7 @@ function stream$1 (opts, factory, callback) {
   }
 }
 
-var apiStream = stream$1;
+var apiStream = stream;
 
 const {
   Readable: Readable$1,
@@ -14396,13 +16205,13 @@ const {
   PassThrough
 } = require$$0$1;
 const assert$6 = require$$0$2;
-const { AsyncResource: AsyncResource$2 } = require$$1$3;
+const { AsyncResource: AsyncResource$2 } = require$$1$2;
 const {
-  InvalidArgumentError: InvalidArgumentError$d,
+  InvalidArgumentError: InvalidArgumentError$f,
   InvalidReturnValueError,
-  RequestAbortedError: RequestAbortedError$1
-} = errors$1;
-const util$a = util$n;
+  RequestAbortedError: RequestAbortedError$2
+} = errors;
+const util$a = util$o;
 const { addSignal: addSignal$2, removeSignal: removeSignal$2 } = abortSignal;
 
 function noop$2 () {}
@@ -14444,7 +16253,7 @@ class PipelineResponse extends Readable$1 {
 
   _destroy (err, callback) {
     if (!err && !this._readableState.endEmitted) {
-      err = new RequestAbortedError$1();
+      err = new RequestAbortedError$2();
     }
 
     callback(err);
@@ -14454,25 +16263,25 @@ class PipelineResponse extends Readable$1 {
 class PipelineHandler extends AsyncResource$2 {
   constructor (opts, handler) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$d('invalid opts')
+      throw new InvalidArgumentError$f('invalid opts')
     }
 
     if (typeof handler !== 'function') {
-      throw new InvalidArgumentError$d('invalid handler')
+      throw new InvalidArgumentError$f('invalid handler')
     }
 
     const { signal, method, opaque, onInfo, responseHeaders } = opts;
 
     if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-      throw new InvalidArgumentError$d('signal must be an EventEmitter or EventTarget')
+      throw new InvalidArgumentError$f('signal must be an EventEmitter or EventTarget')
     }
 
     if (method === 'CONNECT') {
-      throw new InvalidArgumentError$d('invalid method')
+      throw new InvalidArgumentError$f('invalid method')
     }
 
     if (onInfo && typeof onInfo !== 'function') {
-      throw new InvalidArgumentError$d('invalid onInfo callback')
+      throw new InvalidArgumentError$f('invalid onInfo callback')
     }
 
     super('UNDICI_PIPELINE');
@@ -14509,7 +16318,7 @@ class PipelineHandler extends AsyncResource$2 {
         const { body, req, res, ret, abort } = this;
 
         if (!err && !ret._readableState.endEmitted) {
-          err = new RequestAbortedError$1();
+          err = new RequestAbortedError$2();
         }
 
         if (abort && err) {
@@ -14605,7 +16414,7 @@ class PipelineHandler extends AsyncResource$2 {
         const { ret } = this;
 
         if (!ret._readableState.ended) {
-          util$a.destroy(ret, new RequestAbortedError$1());
+          util$a.destroy(ret, new RequestAbortedError$2());
         }
       });
 
@@ -14641,26 +16450,27 @@ function pipeline$1 (opts, handler) {
 
 var apiPipeline = pipeline$1;
 
-const { InvalidArgumentError: InvalidArgumentError$c, SocketError: SocketError$1 } = errors$1;
-const { AsyncResource: AsyncResource$1 } = require$$1$3;
+const { InvalidArgumentError: InvalidArgumentError$e, SocketError: SocketError$1 } = errors;
+const { AsyncResource: AsyncResource$1 } = require$$1$2;
 const assert$5 = require$$0$2;
-const util$9 = util$n;
+const util$9 = util$o;
+const { kHTTP2Stream } = requireSymbols();
 const { addSignal: addSignal$1, removeSignal: removeSignal$1 } = abortSignal;
 
 class UpgradeHandler extends AsyncResource$1 {
   constructor (opts, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$c('invalid opts')
+      throw new InvalidArgumentError$e('invalid opts')
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$c('invalid callback')
+      throw new InvalidArgumentError$e('invalid callback')
     }
 
     const { signal, opaque, responseHeaders } = opts;
 
     if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-      throw new InvalidArgumentError$c('signal must be an EventEmitter or EventTarget')
+      throw new InvalidArgumentError$e('signal must be an EventEmitter or EventTarget')
     }
 
     super('UNDICI_UPGRADE');
@@ -14691,7 +16501,7 @@ class UpgradeHandler extends AsyncResource$1 {
   }
 
   onUpgrade (statusCode, rawHeaders, socket) {
-    assert$5(statusCode === 101);
+    assert$5(socket[kHTTP2Stream] === true ? statusCode === 200 : statusCode === 101);
 
     const { callback, opaque, context } = this;
 
@@ -14721,10 +16531,10 @@ class UpgradeHandler extends AsyncResource$1 {
   }
 }
 
-function upgrade$1 (opts, callback) {
+function upgrade (opts, callback) {
   if (callback === undefined) {
     return new Promise((resolve, reject) => {
-      upgrade$1.call(this, opts, (err, data) => {
+      upgrade.call(this, opts, (err, data) => {
         return err ? reject(err) : resolve(data)
       });
     })
@@ -14748,28 +16558,28 @@ function upgrade$1 (opts, callback) {
   }
 }
 
-var apiUpgrade = upgrade$1;
+var apiUpgrade = upgrade;
 
 const assert$4 = require$$0$2;
-const { AsyncResource } = require$$1$3;
-const { InvalidArgumentError: InvalidArgumentError$b, SocketError } = errors$1;
-const util$8 = util$n;
+const { AsyncResource } = require$$1$2;
+const { InvalidArgumentError: InvalidArgumentError$d, SocketError } = errors;
+const util$8 = util$o;
 const { addSignal, removeSignal } = abortSignal;
 
 class ConnectHandler extends AsyncResource {
   constructor (opts, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$b('invalid opts')
+      throw new InvalidArgumentError$d('invalid opts')
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$b('invalid callback')
+      throw new InvalidArgumentError$d('invalid callback')
     }
 
     const { signal, opaque, responseHeaders } = opts;
 
     if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-      throw new InvalidArgumentError$b('signal must be an EventEmitter or EventTarget')
+      throw new InvalidArgumentError$d('signal must be an EventEmitter or EventTarget')
     }
 
     super('UNDICI_CONNECT');
@@ -14834,10 +16644,10 @@ class ConnectHandler extends AsyncResource {
   }
 }
 
-function connect$1 (opts, callback) {
+function connect (opts, callback) {
   if (callback === undefined) {
     return new Promise((resolve, reject) => {
-      connect$1.call(this, opts, (err, data) => {
+      connect.call(this, opts, (err, data) => {
         return err ? reject(err) : resolve(data)
       });
     })
@@ -14857,29 +16667,39 @@ function connect$1 (opts, callback) {
   }
 }
 
-var apiConnect = connect$1;
+var apiConnect = connect;
 
-api$1.request = apiRequestExports;
-api$1.stream = apiStream;
-api$1.pipeline = apiPipeline;
-api$1.upgrade = apiUpgrade;
-api$1.connect = apiConnect;
+api.request = apiRequestExports;
+api.stream = apiStream;
+api.pipeline = apiPipeline;
+api.upgrade = apiUpgrade;
+api.connect = apiConnect;
 
-const { UndiciError: UndiciError$1 } = errors$1;
+const { UndiciError: UndiciError$3 } = errors;
+
+const kMockNotMatchedError = Symbol.for('undici.error.UND_MOCK_ERR_MOCK_NOT_MATCHED');
 
 /**
  * The request does not match any registered mock dispatches.
  */
-let MockNotMatchedError$1 = class MockNotMatchedError extends UndiciError$1 {
+let MockNotMatchedError$1 = class MockNotMatchedError extends UndiciError$3 {
   constructor (message) {
     super(message);
     this.name = 'MockNotMatchedError';
     this.message = message || 'The request does not match any registered mock dispatches';
     this.code = 'UND_MOCK_ERR_MOCK_NOT_MATCHED';
   }
+
+  static [Symbol.hasInstance] (instance) {
+    return instance && instance[kMockNotMatchedError] === true
+  }
+
+  get [kMockNotMatchedError] () {
+    return true
+  }
 };
 
-var mockErrors$1 = {
+var mockErrors = {
   MockNotMatchedError: MockNotMatchedError$1
 };
 
@@ -14913,7 +16733,7 @@ var mockSymbols = {
   kMockCallHistoryAddLog: Symbol('mock call history add log')
 };
 
-const { MockNotMatchedError } = mockErrors$1;
+const { MockNotMatchedError } = mockErrors;
 const {
   kDispatches: kDispatches$4,
   kMockAgent: kMockAgent$2,
@@ -14921,14 +16741,14 @@ const {
   kOrigin: kOrigin$2,
   kGetNetConnect: kGetNetConnect$1
 } = mockSymbols;
-const { serializePathWithQuery: serializePathWithQuery$2 } = util$n;
+const { serializePathWithQuery: serializePathWithQuery$2 } = util$o;
 const { STATUS_CODES } = require$$2;
 const {
   types: {
     isPromise
   }
-} = require$$0$4;
-const { InvalidArgumentError: InvalidArgumentError$a } = errors$1;
+} = require$$3;
+const { InvalidArgumentError: InvalidArgumentError$c } = errors;
 
 function matchValue$1 (match, value) {
   if (typeof match === 'string') {
@@ -15217,9 +17037,33 @@ function mockDispatch (opts, handler) {
     return true
   }
 
+  // Track whether the request has been aborted
+  let aborted = false;
+  let timer = null;
+
+  function abort (err) {
+    if (aborted) {
+      return
+    }
+    aborted = true;
+
+    // Clear the pending delayed response if any
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+
+    // Notify the handler of the abort
+    handler.onError(err);
+  }
+
+  // Call onConnect to allow the handler to register the abort callback
+  handler.onConnect?.(abort, null);
+
   // Handle the request with a delay if necessary
   if (typeof delay === 'number' && delay > 0) {
-    setTimeout(() => {
+    timer = setTimeout(() => {
+      timer = null;
       handleReply(this[kDispatches$4]);
     }, delay);
   } else {
@@ -15227,6 +17071,11 @@ function mockDispatch (opts, handler) {
   }
 
   function handleReply (mockDispatches, _data = data) {
+    // Don't send response if the request was aborted
+    if (aborted) {
+      return
+    }
+
     // fetch's HeadersList is a 1D string array
     const optsHeaders = Array.isArray(opts.headers)
       ? buildHeadersFromArray(opts.headers)
@@ -15242,7 +17091,11 @@ function mockDispatch (opts, handler) {
       // synchronously throw the error, which breaks some tests.
       // Rather, we wait for the callback to resolve if it is a
       // promise, and then re-run handleReply with the new body.
-      body.then((newData) => handleReply(mockDispatches, newData));
+      return body.then((newData) => handleReply(mockDispatches, newData))
+    }
+
+    // Check again if aborted after async body resolution
+    if (aborted) {
       return
     }
 
@@ -15250,7 +17103,6 @@ function mockDispatch (opts, handler) {
     const responseHeaders = generateKeyValues(headers);
     const responseTrailers = generateKeyValues(trailers);
 
-    handler.onConnect?.(err => handler.onError(err), null);
     handler.onHeaders?.(statusCode, responseHeaders, resume, getStatusText(statusCode));
     handler.onData?.(Buffer.from(responseData));
     handler.onComplete?.(responseTrailers);
@@ -15272,7 +17124,7 @@ function buildMockDispatch$2 () {
       try {
         mockDispatch.call(this, opts, handler);
       } catch (error) {
-        if (error instanceof MockNotMatchedError) {
+        if (error.code === 'UND_MOCK_ERR_MOCK_NOT_MATCHED') {
           const netConnect = agent[kGetNetConnect$1]();
           if (netConnect === false) {
             throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`)
@@ -15302,20 +17154,34 @@ function checkNetConnect (netConnect, origin) {
   return false
 }
 
-function buildAndValidateMockOptions$1 (opts) {
-  if (opts) {
-    const { agent, ...mockOptions } = opts;
-
-    if ('enableCallHistory' in mockOptions && typeof mockOptions.enableCallHistory !== 'boolean') {
-      throw new InvalidArgumentError$a('options.enableCallHistory must to be a boolean')
-    }
-
-    if ('acceptNonStandardSearchParameters' in mockOptions && typeof mockOptions.acceptNonStandardSearchParameters !== 'boolean') {
-      throw new InvalidArgumentError$a('options.acceptNonStandardSearchParameters must to be a boolean')
-    }
-
-    return mockOptions
+function normalizeOrigin$1 (origin) {
+  if (typeof origin !== 'string' && !(origin instanceof URL)) {
+    return origin
   }
+
+  if (origin instanceof URL) {
+    return origin.origin
+  }
+
+  return origin.toLowerCase()
+}
+
+function buildAndValidateMockOptions$1 (opts) {
+  const { agent, ...mockOptions } = opts;
+
+  if ('enableCallHistory' in mockOptions && typeof mockOptions.enableCallHistory !== 'boolean') {
+    throw new InvalidArgumentError$c('options.enableCallHistory must to be a boolean')
+  }
+
+  if ('acceptNonStandardSearchParameters' in mockOptions && typeof mockOptions.acceptNonStandardSearchParameters !== 'boolean') {
+    throw new InvalidArgumentError$c('options.acceptNonStandardSearchParameters must to be a boolean')
+  }
+
+  if ('ignoreTrailingSlash' in mockOptions && typeof mockOptions.ignoreTrailingSlash !== 'boolean') {
+    throw new InvalidArgumentError$c('options.ignoreTrailingSlash must to be a boolean')
+  }
+
+  return mockOptions
 }
 
 var mockUtils = {
@@ -15325,7 +17191,8 @@ var mockUtils = {
   matchValue: matchValue$1,
   buildMockDispatch: buildMockDispatch$2,
   buildAndValidateMockOptions: buildAndValidateMockOptions$1,
-  normalizeSearchParams: normalizeSearchParams$1
+  normalizeSearchParams: normalizeSearchParams$1,
+  normalizeOrigin: normalizeOrigin$1
 };
 
 var mockInterceptor = {};
@@ -15338,10 +17205,10 @@ const {
   kDefaultTrailers,
   kContentLength,
   kMockDispatch,
-  kIgnoreTrailingSlash: kIgnoreTrailingSlash$2
+  kIgnoreTrailingSlash: kIgnoreTrailingSlash$3
 } = mockSymbols;
-const { InvalidArgumentError: InvalidArgumentError$9 } = errors$1;
-const { serializePathWithQuery: serializePathWithQuery$1 } = util$n;
+const { InvalidArgumentError: InvalidArgumentError$b } = errors;
+const { serializePathWithQuery: serializePathWithQuery$1 } = util$o;
 
 /**
  * Defines the scope API for an interceptor reply
@@ -15356,7 +17223,7 @@ class MockScope {
    */
   delay (waitInMs) {
     if (typeof waitInMs !== 'number' || !Number.isInteger(waitInMs) || waitInMs <= 0) {
-      throw new InvalidArgumentError$9('waitInMs must be a valid integer > 0')
+      throw new InvalidArgumentError$b('waitInMs must be a valid integer > 0')
     }
 
     this[kMockDispatch].delay = waitInMs;
@@ -15376,7 +17243,7 @@ class MockScope {
    */
   times (repeatTimes) {
     if (typeof repeatTimes !== 'number' || !Number.isInteger(repeatTimes) || repeatTimes <= 0) {
-      throw new InvalidArgumentError$9('repeatTimes must be a valid integer > 0')
+      throw new InvalidArgumentError$b('repeatTimes must be a valid integer > 0')
     }
 
     this[kMockDispatch].times = repeatTimes;
@@ -15390,10 +17257,10 @@ class MockScope {
 let MockInterceptor$2 = class MockInterceptor {
   constructor (opts, mockDispatches) {
     if (typeof opts !== 'object') {
-      throw new InvalidArgumentError$9('opts must be an object')
+      throw new InvalidArgumentError$b('opts must be an object')
     }
     if (typeof opts.path === 'undefined') {
-      throw new InvalidArgumentError$9('opts.path must be defined')
+      throw new InvalidArgumentError$b('opts.path must be defined')
     }
     if (typeof opts.method === 'undefined') {
       opts.method = 'GET';
@@ -15416,7 +17283,7 @@ let MockInterceptor$2 = class MockInterceptor {
 
     this[kDispatchKey] = buildKey(opts);
     this[kDispatches$3] = mockDispatches;
-    this[kIgnoreTrailingSlash$2] = opts.ignoreTrailingSlash ?? false;
+    this[kIgnoreTrailingSlash$3] = opts.ignoreTrailingSlash ?? false;
     this[kDefaultHeaders] = {};
     this[kDefaultTrailers] = {};
     this[kContentLength] = false;
@@ -15433,10 +17300,10 @@ let MockInterceptor$2 = class MockInterceptor {
 
   validateReplyParameters (replyParameters) {
     if (typeof replyParameters.statusCode === 'undefined') {
-      throw new InvalidArgumentError$9('statusCode must be defined')
+      throw new InvalidArgumentError$b('statusCode must be defined')
     }
     if (typeof replyParameters.responseOptions !== 'object' || replyParameters.responseOptions === null) {
-      throw new InvalidArgumentError$9('responseOptions must be an object')
+      throw new InvalidArgumentError$b('responseOptions must be an object')
     }
   }
 
@@ -15456,7 +17323,7 @@ let MockInterceptor$2 = class MockInterceptor {
 
         // Check if it is in the right format
         if (typeof resolvedData !== 'object' || resolvedData === null) {
-          throw new InvalidArgumentError$9('reply options callback must return an object')
+          throw new InvalidArgumentError$b('reply options callback must return an object')
         }
 
         const replyParameters = { data: '', responseOptions: {}, ...resolvedData };
@@ -15469,7 +17336,7 @@ let MockInterceptor$2 = class MockInterceptor {
       };
 
       // Add usual dispatch data, but this time set the data parameter to function that will eventually provide data.
-      const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], wrappedDefaultsCallback, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$2] });
+      const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], wrappedDefaultsCallback, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$3] });
       return new MockScope(newMockDispatch)
     }
 
@@ -15486,7 +17353,7 @@ let MockInterceptor$2 = class MockInterceptor {
 
     // Send in-already provided data like usual
     const dispatchData = this.createMockScopeDispatchData(replyParameters);
-    const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], dispatchData, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$2] });
+    const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], dispatchData, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$3] });
     return new MockScope(newMockDispatch)
   }
 
@@ -15495,10 +17362,10 @@ let MockInterceptor$2 = class MockInterceptor {
    */
   replyWithError (error) {
     if (typeof error === 'undefined') {
-      throw new InvalidArgumentError$9('error must be defined')
+      throw new InvalidArgumentError$b('error must be defined')
     }
 
-    const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], { error }, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$2] });
+    const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], { error }, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$3] });
     return new MockScope(newMockDispatch)
   }
 
@@ -15507,7 +17374,7 @@ let MockInterceptor$2 = class MockInterceptor {
    */
   defaultReplyHeaders (headers) {
     if (typeof headers === 'undefined') {
-      throw new InvalidArgumentError$9('headers must be defined')
+      throw new InvalidArgumentError$b('headers must be defined')
     }
 
     this[kDefaultHeaders] = headers;
@@ -15519,7 +17386,7 @@ let MockInterceptor$2 = class MockInterceptor {
    */
   defaultReplyTrailers (trailers) {
     if (typeof trailers === 'undefined') {
-      throw new InvalidArgumentError$9('trailers must be defined')
+      throw new InvalidArgumentError$b('trailers must be defined')
     }
 
     this[kDefaultTrailers] = trailers;
@@ -15538,8 +17405,8 @@ let MockInterceptor$2 = class MockInterceptor {
 mockInterceptor.MockInterceptor = MockInterceptor$2;
 mockInterceptor.MockScope = MockScope;
 
-const { promisify: promisify$1 } = require$$0$4;
-const Client$1 = client;
+const { promisify: promisify$1 } = require$$3;
+const Client = client;
 const { buildMockDispatch: buildMockDispatch$1 } = mockUtils;
 const {
   kDispatches: kDispatches$2,
@@ -15549,26 +17416,26 @@ const {
   kOrigin: kOrigin$1,
   kOriginalDispatch: kOriginalDispatch$1,
   kConnected: kConnected$1,
-  kIgnoreTrailingSlash: kIgnoreTrailingSlash$1
+  kIgnoreTrailingSlash: kIgnoreTrailingSlash$2
 } = mockSymbols;
 const { MockInterceptor: MockInterceptor$1 } = mockInterceptor;
 const Symbols$1 = requireSymbols();
-const { InvalidArgumentError: InvalidArgumentError$8 } = errors$1;
+const { InvalidArgumentError: InvalidArgumentError$a } = errors;
 
 /**
  * MockClient provides an API that extends the Client to influence the mockDispatches.
  */
-let MockClient$2 = class MockClient extends Client$1 {
+let MockClient$1 = class MockClient extends Client {
   constructor (origin, opts) {
     if (!opts || !opts.agent || typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError$8('Argument opts.agent must implement Agent')
+      throw new InvalidArgumentError$a('Argument opts.agent must implement Agent')
     }
 
     super(origin, opts);
 
     this[kMockAgent$1] = opts.agent;
     this[kOrigin$1] = origin;
-    this[kIgnoreTrailingSlash$1] = opts.ignoreTrailingSlash ?? false;
+    this[kIgnoreTrailingSlash$2] = opts.ignoreTrailingSlash ?? false;
     this[kDispatches$2] = [];
     this[kConnected$1] = 1;
     this[kOriginalDispatch$1] = this.dispatch;
@@ -15587,7 +17454,7 @@ let MockClient$2 = class MockClient extends Client$1 {
    */
   intercept (opts) {
     return new MockInterceptor$1(
-      opts && { ignoreTrailingSlash: this[kIgnoreTrailingSlash$1], ...opts },
+      opts && { ignoreTrailingSlash: this[kIgnoreTrailingSlash$2], ...opts },
       this[kDispatches$2]
     )
   }
@@ -15603,12 +17470,12 @@ let MockClient$2 = class MockClient extends Client$1 {
   }
 };
 
-var mockClient = MockClient$2;
+var mockClient = MockClient$1;
 
 var mockCallHistory = {};
 
 const { kMockCallHistoryAddLog: kMockCallHistoryAddLog$1 } = mockSymbols;
-const { InvalidArgumentError: InvalidArgumentError$7 } = errors$1;
+const { InvalidArgumentError: InvalidArgumentError$9 } = errors;
 
 function handleFilterCallsWithOptions (criteria, options, handler, store) {
   switch (options.operator) {
@@ -15620,7 +17487,7 @@ function handleFilterCallsWithOptions (criteria, options, handler, store) {
       return handler.call({ logs: store }, criteria)
     default:
       // guard -- should never happens because buildAndValidateFilterCallsOptions is called before
-      throw new InvalidArgumentError$7('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
+      throw new InvalidArgumentError$9('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
   }
 }
 
@@ -15629,7 +17496,7 @@ function buildAndValidateFilterCallsOptions (options = {}) {
 
   if ('operator' in options) {
     if (typeof options.operator !== 'string' || (options.operator.toUpperCase() !== 'OR' && options.operator.toUpperCase() !== 'AND')) {
-      throw new InvalidArgumentError$7('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
+      throw new InvalidArgumentError$9('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
     }
 
     return {
@@ -15654,7 +17521,7 @@ function makeFilterCalls (parameterName) {
       })
     }
 
-    throw new InvalidArgumentError$7(`${parameterName} parameter should be one of string, regexp, undefined or null`)
+    throw new InvalidArgumentError$9(`${parameterName} parameter should be one of string, regexp, undefined or null`)
   }
 }
 function computeUrlWithMaybeSearchParameters (requestInit) {
@@ -15674,11 +17541,11 @@ function computeUrlWithMaybeSearchParameters (requestInit) {
 
     return url
   } catch (error) {
-    throw new InvalidArgumentError$7('An error occurred when computing MockCallHistoryLog.url', { cause: error })
+    throw new InvalidArgumentError$9('An error occurred when computing MockCallHistoryLog.url', { cause: error })
   }
 }
 
-let MockCallHistoryLog$1 = class MockCallHistoryLog {
+class MockCallHistoryLog {
   constructor (requestInit = {}) {
     this.body = requestInit.body;
     this.headers = requestInit.headers;
@@ -15729,9 +17596,9 @@ let MockCallHistoryLog$1 = class MockCallHistoryLog {
     // delete last betweenPairSeparator
     return result.slice(0, -1)
   }
-};
+}
 
-let MockCallHistory$2 = class MockCallHistory {
+let MockCallHistory$1 = class MockCallHistory {
   logs = []
 
   calls () {
@@ -15748,13 +17615,13 @@ let MockCallHistory$2 = class MockCallHistory {
 
   nthCall (number) {
     if (typeof number !== 'number') {
-      throw new InvalidArgumentError$7('nthCall must be called with a number')
+      throw new InvalidArgumentError$9('nthCall must be called with a number')
     }
     if (!Number.isInteger(number)) {
-      throw new InvalidArgumentError$7('nthCall must be called with an integer')
+      throw new InvalidArgumentError$9('nthCall must be called with an integer')
     }
     if (Math.sign(number) !== 1) {
-      throw new InvalidArgumentError$7('nthCall must be called with a positive value. use firstCall or lastCall instead')
+      throw new InvalidArgumentError$9('nthCall must be called with a positive value. use firstCall or lastCall instead')
     }
 
     // non zero based index. this is more human readable
@@ -15813,7 +17680,7 @@ let MockCallHistory$2 = class MockCallHistory {
       return uniqLogsFiltered
     }
 
-    throw new InvalidArgumentError$7('criteria parameter should be one of function, regexp, or object')
+    throw new InvalidArgumentError$9('criteria parameter should be one of function, regexp, or object')
   }
 
   filterCallsByProtocol = makeFilterCalls.call(this, 'protocol')
@@ -15837,7 +17704,7 @@ let MockCallHistory$2 = class MockCallHistory {
   }
 
   [kMockCallHistoryAddLog$1] (requestInit) {
-    const log = new MockCallHistoryLog$1(requestInit);
+    const log = new MockCallHistoryLog(requestInit);
 
     this.logs.push(log);
 
@@ -15851,11 +17718,11 @@ let MockCallHistory$2 = class MockCallHistory {
   }
 };
 
-mockCallHistory.MockCallHistory = MockCallHistory$2;
-mockCallHistory.MockCallHistoryLog = MockCallHistoryLog$1;
+mockCallHistory.MockCallHistory = MockCallHistory$1;
+mockCallHistory.MockCallHistoryLog = MockCallHistoryLog;
 
-const { promisify } = require$$0$4;
-const Pool$1 = pool;
+const { promisify } = require$$3;
+const Pool = pool;
 const { buildMockDispatch } = mockUtils;
 const {
   kDispatches: kDispatches$1,
@@ -15865,26 +17732,26 @@ const {
   kOrigin,
   kOriginalDispatch,
   kConnected,
-  kIgnoreTrailingSlash
+  kIgnoreTrailingSlash: kIgnoreTrailingSlash$1
 } = mockSymbols;
 const { MockInterceptor } = mockInterceptor;
 const Symbols = requireSymbols();
-const { InvalidArgumentError: InvalidArgumentError$6 } = errors$1;
+const { InvalidArgumentError: InvalidArgumentError$8 } = errors;
 
 /**
  * MockPool provides an API that extends the Pool to influence the mockDispatches.
  */
-let MockPool$2 = class MockPool extends Pool$1 {
+let MockPool$1 = class MockPool extends Pool {
   constructor (origin, opts) {
     if (!opts || !opts.agent || typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError$6('Argument opts.agent must implement Agent')
+      throw new InvalidArgumentError$8('Argument opts.agent must implement Agent')
     }
 
     super(origin, opts);
 
     this[kMockAgent] = opts.agent;
     this[kOrigin] = origin;
-    this[kIgnoreTrailingSlash] = opts.ignoreTrailingSlash ?? false;
+    this[kIgnoreTrailingSlash$1] = opts.ignoreTrailingSlash ?? false;
     this[kDispatches$1] = [];
     this[kConnected] = 1;
     this[kOriginalDispatch] = this.dispatch;
@@ -15903,7 +17770,7 @@ let MockPool$2 = class MockPool extends Pool$1 {
    */
   intercept (opts) {
     return new MockInterceptor(
-      opts && { ignoreTrailingSlash: this[kIgnoreTrailingSlash], ...opts },
+      opts && { ignoreTrailingSlash: this[kIgnoreTrailingSlash$1], ...opts },
       this[kDispatches$1]
     )
   }
@@ -15919,10 +17786,10 @@ let MockPool$2 = class MockPool extends Pool$1 {
   }
 };
 
-var mockPool = MockPool$2;
+var mockPool = MockPool$1;
 
 const { Transform } = require$$0$1;
-const { Console } = require$$1$4;
+const { Console } = require$$1$3;
 
 const PERSISTENT = process.versions.icu ? '✅' : 'Y ';
 const NOT_PERSISTENT = process.versions.icu ? '❌' : 'N ';
@@ -15980,30 +17847,32 @@ const {
   kMockAgentAddCallHistoryLog,
   kMockAgentMockCallHistoryInstance,
   kMockAgentAcceptsNonStandardSearchParameters,
-  kMockCallHistoryAddLog
+  kMockCallHistoryAddLog,
+  kIgnoreTrailingSlash
 } = mockSymbols;
-const MockClient$1 = mockClient;
-const MockPool$1 = mockPool;
-const { matchValue, normalizeSearchParams, buildAndValidateMockOptions } = mockUtils;
-const { InvalidArgumentError: InvalidArgumentError$5, UndiciError } = errors$1;
-const Dispatcher$1 = dispatcher;
+const MockClient = mockClient;
+const MockPool = mockPool;
+const { matchValue, normalizeSearchParams, buildAndValidateMockOptions, normalizeOrigin } = mockUtils;
+const { InvalidArgumentError: InvalidArgumentError$7, UndiciError: UndiciError$2 } = errors;
+const Dispatcher = dispatcher;
 const PendingInterceptorsFormatter = pendingInterceptorsFormatter;
-const { MockCallHistory: MockCallHistory$1 } = mockCallHistory;
+const { MockCallHistory } = mockCallHistory;
 
-let MockAgent$1 = class MockAgent extends Dispatcher$1 {
-  constructor (opts) {
+let MockAgent$1 = class MockAgent extends Dispatcher {
+  constructor (opts = {}) {
     super(opts);
 
     const mockOptions = buildAndValidateMockOptions(opts);
 
     this[kNetConnect] = true;
     this[kIsMockActive] = true;
-    this[kMockAgentIsCallHistoryEnabled] = mockOptions?.enableCallHistory ?? false;
-    this[kMockAgentAcceptsNonStandardSearchParameters] = mockOptions?.acceptNonStandardSearchParameters ?? false;
+    this[kMockAgentIsCallHistoryEnabled] = mockOptions.enableCallHistory ?? false;
+    this[kMockAgentAcceptsNonStandardSearchParameters] = mockOptions.acceptNonStandardSearchParameters ?? false;
+    this[kIgnoreTrailingSlash] = mockOptions.ignoreTrailingSlash ?? false;
 
     // Instantiate Agent and encapsulate
     if (opts?.agent && typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError$5('Argument opts.agent must implement Agent')
+      throw new InvalidArgumentError$7('Argument opts.agent must implement Agent')
     }
     const agent = opts?.agent ? opts.agent : new Agent$2(opts);
     this[kAgent] = agent;
@@ -16017,16 +17886,22 @@ let MockAgent$1 = class MockAgent extends Dispatcher$1 {
   }
 
   get (origin) {
-    let dispatcher = this[kMockAgentGet](origin);
+    // Normalize origin to handle URL objects and case-insensitive hostnames
+    const normalizedOrigin = normalizeOrigin(origin);
+    const originKey = this[kIgnoreTrailingSlash] ? normalizedOrigin.replace(/\/$/, '') : normalizedOrigin;
+
+    let dispatcher = this[kMockAgentGet](originKey);
 
     if (!dispatcher) {
-      dispatcher = this[kFactory](origin);
-      this[kMockAgentSet](origin, dispatcher);
+      dispatcher = this[kFactory](originKey);
+      this[kMockAgentSet](originKey, dispatcher);
     }
     return dispatcher
   }
 
   dispatch (opts, handler) {
+    opts.origin = normalizeOrigin(opts.origin);
+
     // Call MockAgent.get to perform additional setup before dispatching as normal
     this.get(opts.origin);
 
@@ -16069,7 +17944,7 @@ let MockAgent$1 = class MockAgent extends Dispatcher$1 {
     } else if (typeof matcher === 'undefined') {
       this[kNetConnect] = true;
     } else {
-      throw new InvalidArgumentError$5('Unsupported matcher. Must be one of String|Function|RegExp.')
+      throw new InvalidArgumentError$7('Unsupported matcher. Must be one of String|Function|RegExp.')
     }
   }
 
@@ -16107,7 +17982,7 @@ let MockAgent$1 = class MockAgent extends Dispatcher$1 {
 
   [kMockAgentRegisterCallHistory] () {
     if (this[kMockAgentMockCallHistoryInstance] === undefined) {
-      this[kMockAgentMockCallHistoryInstance] = new MockCallHistory$1();
+      this[kMockAgentMockCallHistoryInstance] = new MockCallHistory();
     }
   }
 
@@ -16128,8 +18003,8 @@ let MockAgent$1 = class MockAgent extends Dispatcher$1 {
   [kFactory] (origin) {
     const mockOptions = Object.assign({ agent: this }, this[kOptions]);
     return this[kOptions] && this[kOptions].connections === 1
-      ? new MockClient$1(origin, mockOptions)
-      : new MockPool$1(origin, mockOptions)
+      ? new MockClient(origin, mockOptions)
+      : new MockPool(origin, mockOptions)
   }
 
   [kMockAgentGet] (origin) {
@@ -16176,7 +18051,7 @@ let MockAgent$1 = class MockAgent extends Dispatcher$1 {
       return
     }
 
-    throw new UndiciError(
+    throw new UndiciError$2(
       pending.length === 1
         ? `1 interceptor is pending:\n\n${pendingInterceptorsFormatter.format(pending)}`.trim()
         : `${pending.length} interceptors are pending:\n\n${pendingInterceptorsFormatter.format(pending)}`.trim()
@@ -16186,19 +18061,1114 @@ let MockAgent$1 = class MockAgent extends Dispatcher$1 {
 
 var mockAgent = MockAgent$1;
 
+const { InvalidArgumentError: InvalidArgumentError$6 } = errors;
+const { runtimeFeatures: runtimeFeatures$1 } = runtimeFeatures$2;
+
+/**
+ * @typedef {Object} HeaderFilters
+ * @property {Set<string>} ignore - Set of headers to ignore for matching
+ * @property {Set<string>} exclude - Set of headers to exclude from matching
+ * @property {Set<string>} match - Set of headers to match (empty means match
+ */
+
+/**
+ * Creates cached header sets for performance
+ *
+ * @param {import('./snapshot-recorder').SnapshotRecorderMatchOptions} matchOptions - Matching options for headers
+ * @returns {HeaderFilters} - Cached sets for ignore, exclude, and match headers
+ */
+function createHeaderFilters$1 (matchOptions = {}) {
+  const { ignoreHeaders = [], excludeHeaders = [], matchHeaders = [], caseSensitive = false } = matchOptions;
+
+  return {
+    ignore: new Set(ignoreHeaders.map(header => caseSensitive ? header : header.toLowerCase())),
+    exclude: new Set(excludeHeaders.map(header => caseSensitive ? header : header.toLowerCase())),
+    match: new Set(matchHeaders.map(header => caseSensitive ? header : header.toLowerCase()))
+  }
+}
+
+const crypto = runtimeFeatures$1.has('crypto')
+  ? require$$2$1
+  : null;
+
+/**
+ * @callback HashIdFunction
+ * @param {string} value - The value to hash
+ * @returns {string} - The base64url encoded hash of the value
+ */
+
+/**
+ * Generates a hash for a given value
+ * @type {HashIdFunction}
+ */
+const hashId$1 = crypto?.hash
+  ? (value) => crypto.hash('sha256', value, 'base64url')
+  : (value) => Buffer.from(value).toString('base64url');
+
+/**
+ * @typedef {(url: string) => boolean} IsUrlExcluded Checks if a URL matches any of the exclude patterns
+ */
+
+/** @typedef {{[key: Lowercase<string>]: string}} NormalizedHeaders */
+/** @typedef {Array<string>} UndiciHeaders */
+/** @typedef {Record<string, string|string[]>} Headers */
+
+/**
+ * @param {*} headers
+ * @returns {headers is UndiciHeaders}
+ */
+function isUndiciHeaders (headers) {
+  return Array.isArray(headers) && (headers.length & 1) === 0
+}
+
+/**
+ * Factory function to create a URL exclusion checker
+ * @param {Array<string| RegExp>} [excludePatterns=[]] - Array of patterns to exclude
+ * @returns {IsUrlExcluded} - A function that checks if a URL matches any of the exclude patterns
+ */
+function isUrlExcludedFactory$1 (excludePatterns = []) {
+  if (excludePatterns.length === 0) {
+    return () => false
+  }
+
+  return function isUrlExcluded (url) {
+    let urlLowerCased;
+
+    for (const pattern of excludePatterns) {
+      if (typeof pattern === 'string') {
+        if (!urlLowerCased) {
+          // Convert URL to lowercase only once
+          urlLowerCased = url.toLowerCase();
+        }
+        // Simple string match (case-insensitive)
+        if (urlLowerCased.includes(pattern.toLowerCase())) {
+          return true
+        }
+      } else if (pattern instanceof RegExp) {
+        // Regex pattern match
+        if (pattern.test(url)) {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+}
+
+/**
+ * Normalizes headers for consistent comparison
+ *
+ * @param {Object|UndiciHeaders} headers - Headers to normalize
+ * @returns {NormalizedHeaders} - Normalized headers as a lowercase object
+ */
+function normalizeHeaders$5 (headers) {
+  /** @type {NormalizedHeaders} */
+  const normalizedHeaders = {};
+
+  if (!headers) return normalizedHeaders
+
+  // Handle array format (undici internal format: [name, value, name, value, ...])
+  if (isUndiciHeaders(headers)) {
+    for (let i = 0; i < headers.length; i += 2) {
+      const key = headers[i];
+      const value = headers[i + 1];
+      if (key && value !== undefined) {
+        // Convert Buffers to strings if needed
+        const keyStr = Buffer.isBuffer(key) ? key.toString() : key;
+        const valueStr = Buffer.isBuffer(value) ? value.toString() : value;
+        normalizedHeaders[keyStr.toLowerCase()] = valueStr;
+      }
+    }
+    return normalizedHeaders
+  }
+
+  // Handle object format
+  if (headers && typeof headers === 'object') {
+    for (const [key, value] of Object.entries(headers)) {
+      if (key && typeof key === 'string') {
+        normalizedHeaders[key.toLowerCase()] = Array.isArray(value) ? value.join(', ') : String(value);
+      }
+    }
+  }
+
+  return normalizedHeaders
+}
+
+const validSnapshotModes = /** @type {const} */ (['record', 'playback', 'update']);
+
+/** @typedef {typeof validSnapshotModes[number]} SnapshotMode */
+
+/**
+ * @param {*} mode - The snapshot mode to validate
+ * @returns {asserts mode is SnapshotMode}
+ */
+function validateSnapshotMode$1 (mode) {
+  if (!validSnapshotModes.includes(mode)) {
+    throw new InvalidArgumentError$6(`Invalid snapshot mode: ${mode}. Must be one of: ${validSnapshotModes.join(', ')}`)
+  }
+}
+
+var snapshotUtils = {
+  createHeaderFilters: createHeaderFilters$1,
+  hashId: hashId$1,
+  normalizeHeaders: normalizeHeaders$5,
+  isUrlExcludedFactory: isUrlExcludedFactory$1,
+  validateSnapshotMode: validateSnapshotMode$1
+};
+
+const { writeFile, readFile, mkdir } = require$$0$7;
+const { dirname, resolve } = require$$1$4;
+const { setTimeout: setTimeout$1, clearTimeout: clearTimeout$1 } = require$$2$2;
+const { InvalidArgumentError: InvalidArgumentError$5, UndiciError: UndiciError$1 } = errors;
+const { hashId, isUrlExcludedFactory, normalizeHeaders: normalizeHeaders$4, createHeaderFilters } = snapshotUtils;
+
+/**
+ * @typedef {Object} SnapshotRequestOptions
+ * @property {string} method - HTTP method (e.g. 'GET', 'POST', etc.)
+ * @property {string} path - Request path
+ * @property {string} origin - Request origin (base URL)
+ * @property {import('./snapshot-utils').Headers|import('./snapshot-utils').UndiciHeaders} headers - Request headers
+ * @property {import('./snapshot-utils').NormalizedHeaders} _normalizedHeaders - Request headers as a lowercase object
+ * @property {string|Buffer} [body] - Request body (optional)
+ */
+
+/**
+ * @typedef {Object} SnapshotEntryRequest
+ * @property {string} method - HTTP method (e.g. 'GET', 'POST', etc.)
+ * @property {string} url - Full URL of the request
+ * @property {import('./snapshot-utils').NormalizedHeaders} headers - Normalized headers as a lowercase object
+ * @property {string|Buffer} [body] - Request body (optional)
+ */
+
+/**
+ * @typedef {Object} SnapshotEntryResponse
+ * @property {number} statusCode - HTTP status code of the response
+ * @property {import('./snapshot-utils').NormalizedHeaders} headers - Normalized response headers as a lowercase object
+ * @property {string} body - Response body as a base64url encoded string
+ * @property {Object} [trailers] - Optional response trailers
+ */
+
+/**
+ * @typedef {Object} SnapshotEntry
+ * @property {SnapshotEntryRequest} request - The request object
+ * @property {Array<SnapshotEntryResponse>} responses - Array of response objects
+ * @property {number} callCount - Number of times this snapshot has been called
+ * @property {string} timestamp - ISO timestamp of when the snapshot was created
+ */
+
+/**
+ * @typedef {Object} SnapshotRecorderMatchOptions
+ * @property {Array<string>} [matchHeaders=[]] - Headers to match (empty array means match all headers)
+ * @property {Array<string>} [ignoreHeaders=[]] - Headers to ignore for matching
+ * @property {Array<string>} [excludeHeaders=[]] - Headers to exclude from matching
+ * @property {boolean} [matchBody=true] - Whether to match request body
+ * @property {boolean} [matchQuery=true] - Whether to match query properties
+ * @property {boolean} [caseSensitive=false] - Whether header matching is case-sensitive
+ */
+
+/**
+ * @typedef {Object} SnapshotRecorderOptions
+ * @property {string} [snapshotPath] - Path to save/load snapshots
+ * @property {import('./snapshot-utils').SnapshotMode} [mode='record'] - Mode: 'record' or 'playback'
+ * @property {number} [maxSnapshots=Infinity] - Maximum number of snapshots to keep
+ * @property {boolean} [autoFlush=false] - Whether to automatically flush snapshots to disk
+ * @property {number} [flushInterval=30000] - Auto-flush interval in milliseconds (default: 30 seconds)
+ * @property {Array<string|RegExp>} [excludeUrls=[]] - URLs to exclude from recording
+ * @property {function} [shouldRecord=null] - Function to filter requests for recording
+ * @property {function} [shouldPlayback=null] - Function to filter requests
+ */
+
+/**
+ * @typedef {Object} SnapshotFormattedRequest
+ * @property {string} method - HTTP method (e.g. 'GET', 'POST', etc.)
+ * @property {string} url - Full URL of the request (with query parameters if matchQuery is true)
+ * @property {import('./snapshot-utils').NormalizedHeaders} headers - Normalized headers as a lowercase object
+ * @property {string} body - Request body (optional, only if matchBody is true)
+ */
+
+/**
+ * @typedef {Object} SnapshotInfo
+ * @property {string} hash - Hash key for the snapshot
+ * @property {SnapshotEntryRequest} request - The request object
+ * @property {number} responseCount - Number of responses recorded for this request
+ * @property {number} callCount - Number of times this snapshot has been called
+ * @property {string} timestamp - ISO timestamp of when the snapshot was created
+ */
+
+/**
+ * Formats a request for consistent snapshot storage
+ * Caches normalized headers to avoid repeated processing
+ *
+ * @param {SnapshotRequestOptions} opts - Request options
+ * @param {import('./snapshot-utils').HeaderFilters} headerFilters - Cached header sets for performance
+ * @param {SnapshotRecorderMatchOptions} [matchOptions] - Matching options for headers and body
+ * @returns {SnapshotFormattedRequest} - Formatted request object
+ */
+function formatRequestKey (opts, headerFilters, matchOptions = {}) {
+  const url = new URL(opts.path, opts.origin);
+
+  // Cache normalized headers if not already done
+  const normalized = opts._normalizedHeaders || normalizeHeaders$4(opts.headers);
+  if (!opts._normalizedHeaders) {
+    opts._normalizedHeaders = normalized;
+  }
+
+  return {
+    method: opts.method || 'GET',
+    url: matchOptions.matchQuery !== false ? url.toString() : `${url.origin}${url.pathname}`,
+    headers: filterHeadersForMatching(normalized, headerFilters, matchOptions),
+    body: matchOptions.matchBody !== false && opts.body ? String(opts.body) : ''
+  }
+}
+
+/**
+ * Filters headers based on matching configuration
+ *
+ * @param {import('./snapshot-utils').Headers} headers - Headers to filter
+ * @param {import('./snapshot-utils').HeaderFilters} headerFilters - Cached sets for ignore, exclude, and match headers
+ * @param {SnapshotRecorderMatchOptions} [matchOptions] - Matching options for headers
+ */
+function filterHeadersForMatching (headers, headerFilters, matchOptions = {}) {
+  if (!headers || typeof headers !== 'object') return {}
+
+  const {
+    caseSensitive = false
+  } = matchOptions;
+
+  const filtered = {};
+  const { ignore, exclude, match } = headerFilters;
+
+  for (const [key, value] of Object.entries(headers)) {
+    const headerKey = caseSensitive ? key : key.toLowerCase();
+
+    // Skip if in exclude list (for security)
+    if (exclude.has(headerKey)) continue
+
+    // Skip if in ignore list (for matching)
+    if (ignore.has(headerKey)) continue
+
+    // If matchHeaders is specified, only include those headers
+    if (match.size !== 0) {
+      if (!match.has(headerKey)) continue
+    }
+
+    filtered[headerKey] = value;
+  }
+
+  return filtered
+}
+
+/**
+ * Filters headers for storage (only excludes sensitive headers)
+ *
+ * @param {import('./snapshot-utils').Headers} headers - Headers to filter
+ * @param {import('./snapshot-utils').HeaderFilters} headerFilters - Cached sets for ignore, exclude, and match headers
+ * @param {SnapshotRecorderMatchOptions} [matchOptions] - Matching options for headers
+ */
+function filterHeadersForStorage (headers, headerFilters, matchOptions = {}) {
+  if (!headers || typeof headers !== 'object') return {}
+
+  const {
+    caseSensitive = false
+  } = matchOptions;
+
+  const filtered = {};
+  const { exclude: excludeSet } = headerFilters;
+
+  for (const [key, value] of Object.entries(headers)) {
+    const headerKey = caseSensitive ? key : key.toLowerCase();
+
+    // Skip if in exclude list (for security)
+    if (excludeSet.has(headerKey)) continue
+
+    filtered[headerKey] = value;
+  }
+
+  return filtered
+}
+
+/**
+ * Creates a hash key for request matching
+ * Properly orders headers to avoid conflicts and uses crypto hashing when available
+ *
+ * @param {SnapshotFormattedRequest} formattedRequest - Request object
+ * @returns {string} - Base64url encoded hash of the request
+ */
+function createRequestHash (formattedRequest) {
+  const parts = [
+    formattedRequest.method,
+    formattedRequest.url
+  ];
+
+  // Process headers in a deterministic way to avoid conflicts
+  if (formattedRequest.headers && typeof formattedRequest.headers === 'object') {
+    const headerKeys = Object.keys(formattedRequest.headers).sort();
+    for (const key of headerKeys) {
+      const values = Array.isArray(formattedRequest.headers[key])
+        ? formattedRequest.headers[key]
+        : [formattedRequest.headers[key]];
+
+      // Add header name
+      parts.push(key);
+
+      // Add all values for this header, sorted for consistency
+      for (const value of values.sort()) {
+        parts.push(String(value));
+      }
+    }
+  }
+
+  // Add body
+  parts.push(formattedRequest.body);
+
+  const content = parts.join('|');
+
+  return hashId(content)
+}
+
+let SnapshotRecorder$1 = class SnapshotRecorder {
+  /** @type {NodeJS.Timeout | null} */
+  #flushTimeout
+
+  /** @type {import('./snapshot-utils').IsUrlExcluded} */
+  #isUrlExcluded
+
+  /** @type {Map<string, SnapshotEntry>} */
+  #snapshots = new Map()
+
+  /** @type {string|undefined} */
+  #snapshotPath
+
+  /** @type {number} */
+  #maxSnapshots = Infinity
+
+  /** @type {boolean} */
+  #autoFlush = false
+
+  /** @type {import('./snapshot-utils').HeaderFilters} */
+  #headerFilters
+
+  /**
+   * Creates a new SnapshotRecorder instance
+   * @param {SnapshotRecorderOptions&SnapshotRecorderMatchOptions} [options={}] - Configuration options for the recorder
+   */
+  constructor (options = {}) {
+    this.#snapshotPath = options.snapshotPath;
+    this.#maxSnapshots = options.maxSnapshots || Infinity;
+    this.#autoFlush = options.autoFlush || false;
+    this.flushInterval = options.flushInterval || 30000; // 30 seconds default
+    this._flushTimer = null;
+
+    // Matching configuration
+    /** @type {Required<SnapshotRecorderMatchOptions>} */
+    this.matchOptions = {
+      matchHeaders: options.matchHeaders || [], // empty means match all headers
+      ignoreHeaders: options.ignoreHeaders || [],
+      excludeHeaders: options.excludeHeaders || [],
+      matchBody: options.matchBody !== false, // default: true
+      matchQuery: options.matchQuery !== false, // default: true
+      caseSensitive: options.caseSensitive || false
+    };
+
+    // Cache processed header sets to avoid recreating them on every request
+    this.#headerFilters = createHeaderFilters(this.matchOptions);
+
+    // Request filtering callbacks
+    this.shouldRecord = options.shouldRecord || (() => true); // function(requestOpts) -> boolean
+    this.shouldPlayback = options.shouldPlayback || (() => true); // function(requestOpts) -> boolean
+
+    // URL pattern filtering
+    this.#isUrlExcluded = isUrlExcludedFactory(options.excludeUrls); // Array of regex patterns or strings
+
+    // Start auto-flush timer if enabled
+    if (this.#autoFlush && this.#snapshotPath) {
+      this.#startAutoFlush();
+    }
+  }
+
+  /**
+   * Records a request-response interaction
+   * @param {SnapshotRequestOptions} requestOpts - Request options
+   * @param {SnapshotEntryResponse} response - Response data to record
+   * @return {Promise<void>} - Resolves when the recording is complete
+   */
+  async record (requestOpts, response) {
+    // Check if recording should be filtered out
+    if (!this.shouldRecord(requestOpts)) {
+      return // Skip recording
+    }
+
+    // Check URL exclusion patterns
+    if (this.isUrlExcluded(requestOpts)) {
+      return // Skip recording
+    }
+
+    const request = formatRequestKey(requestOpts, this.#headerFilters, this.matchOptions);
+    const hash = createRequestHash(request);
+
+    // Extract response data - always store body as base64
+    const normalizedHeaders = normalizeHeaders$4(response.headers);
+
+    /** @type {SnapshotEntryResponse} */
+    const responseData = {
+      statusCode: response.statusCode,
+      headers: filterHeadersForStorage(normalizedHeaders, this.#headerFilters, this.matchOptions),
+      body: Buffer.isBuffer(response.body)
+        ? response.body.toString('base64')
+        : Buffer.from(String(response.body || '')).toString('base64'),
+      trailers: response.trailers
+    };
+
+    // Remove oldest snapshot if we exceed maxSnapshots limit
+    if (this.#snapshots.size >= this.#maxSnapshots && !this.#snapshots.has(hash)) {
+      const oldestKey = this.#snapshots.keys().next().value;
+      this.#snapshots.delete(oldestKey);
+    }
+
+    // Support sequential responses - if snapshot exists, add to responses array
+    const existingSnapshot = this.#snapshots.get(hash);
+    if (existingSnapshot && existingSnapshot.responses) {
+      existingSnapshot.responses.push(responseData);
+      existingSnapshot.timestamp = new Date().toISOString();
+    } else {
+      this.#snapshots.set(hash, {
+        request,
+        responses: [responseData], // Always store as array for consistency
+        callCount: 0,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Auto-flush if enabled
+    if (this.#autoFlush && this.#snapshotPath) {
+      this.#scheduleFlush();
+    }
+  }
+
+  /**
+   * Checks if a URL should be excluded from recording/playback
+   * @param {SnapshotRequestOptions} requestOpts - Request options to check
+   * @returns {boolean} - True if URL is excluded
+   */
+  isUrlExcluded (requestOpts) {
+    const url = new URL(requestOpts.path, requestOpts.origin).toString();
+    return this.#isUrlExcluded(url)
+  }
+
+  /**
+   * Finds a matching snapshot for the given request
+   * Returns the appropriate response based on call count for sequential responses
+   *
+   * @param {SnapshotRequestOptions} requestOpts - Request options to match
+   * @returns {SnapshotEntry&Record<'response', SnapshotEntryResponse>|undefined} - Matching snapshot response or undefined if not found
+   */
+  findSnapshot (requestOpts) {
+    // Check if playback should be filtered out
+    if (!this.shouldPlayback(requestOpts)) {
+      return undefined // Skip playback
+    }
+
+    // Check URL exclusion patterns
+    if (this.isUrlExcluded(requestOpts)) {
+      return undefined // Skip playback
+    }
+
+    const request = formatRequestKey(requestOpts, this.#headerFilters, this.matchOptions);
+    const hash = createRequestHash(request);
+    const snapshot = this.#snapshots.get(hash);
+
+    if (!snapshot) return undefined
+
+    // Handle sequential responses
+    const currentCallCount = snapshot.callCount || 0;
+    const responseIndex = Math.min(currentCallCount, snapshot.responses.length - 1);
+    snapshot.callCount = currentCallCount + 1;
+
+    return {
+      ...snapshot,
+      response: snapshot.responses[responseIndex]
+    }
+  }
+
+  /**
+   * Loads snapshots from file
+   * @param {string} [filePath] - Optional file path to load snapshots from
+   * @return {Promise<void>} - Resolves when snapshots are loaded
+   */
+  async loadSnapshots (filePath) {
+    const path = filePath || this.#snapshotPath;
+    if (!path) {
+      throw new InvalidArgumentError$5('Snapshot path is required')
+    }
+
+    try {
+      const data = await readFile(resolve(path), 'utf8');
+      const parsed = JSON.parse(data);
+
+      // Convert array format back to Map
+      if (Array.isArray(parsed)) {
+        this.#snapshots.clear();
+        for (const { hash, snapshot } of parsed) {
+          this.#snapshots.set(hash, snapshot);
+        }
+      } else {
+        // Legacy object format
+        this.#snapshots = new Map(Object.entries(parsed));
+      }
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // File doesn't exist yet - that's ok for recording mode
+        this.#snapshots.clear();
+      } else {
+        throw new UndiciError$1(`Failed to load snapshots from ${path}`, { cause: error })
+      }
+    }
+  }
+
+  /**
+   * Saves snapshots to file
+   *
+   * @param {string} [filePath] - Optional file path to save snapshots
+   * @returns {Promise<void>} - Resolves when snapshots are saved
+   */
+  async saveSnapshots (filePath) {
+    const path = filePath || this.#snapshotPath;
+    if (!path) {
+      throw new InvalidArgumentError$5('Snapshot path is required')
+    }
+
+    const resolvedPath = resolve(path);
+
+    // Ensure directory exists
+    await mkdir(dirname(resolvedPath), { recursive: true });
+
+    // Convert Map to serializable format
+    const data = Array.from(this.#snapshots.entries()).map(([hash, snapshot]) => ({
+      hash,
+      snapshot
+    }));
+
+    await writeFile(resolvedPath, JSON.stringify(data, null, 2), { flush: true });
+  }
+
+  /**
+   * Clears all recorded snapshots
+   * @returns {void}
+   */
+  clear () {
+    this.#snapshots.clear();
+  }
+
+  /**
+   * Gets all recorded snapshots
+   * @return {Array<SnapshotEntry>} - Array of all recorded snapshots
+   */
+  getSnapshots () {
+    return Array.from(this.#snapshots.values())
+  }
+
+  /**
+   * Gets snapshot count
+   * @return {number} - Number of recorded snapshots
+   */
+  size () {
+    return this.#snapshots.size
+  }
+
+  /**
+   * Resets call counts for all snapshots (useful for test cleanup)
+   * @returns {void}
+   */
+  resetCallCounts () {
+    for (const snapshot of this.#snapshots.values()) {
+      snapshot.callCount = 0;
+    }
+  }
+
+  /**
+   * Deletes a specific snapshot by request options
+   * @param {SnapshotRequestOptions} requestOpts - Request options to match
+   * @returns {boolean} - True if snapshot was deleted, false if not found
+   */
+  deleteSnapshot (requestOpts) {
+    const request = formatRequestKey(requestOpts, this.#headerFilters, this.matchOptions);
+    const hash = createRequestHash(request);
+    return this.#snapshots.delete(hash)
+  }
+
+  /**
+   * Gets information about a specific snapshot
+   * @param {SnapshotRequestOptions} requestOpts - Request options to match
+   * @returns {SnapshotInfo|null} - Snapshot information or null if not found
+   */
+  getSnapshotInfo (requestOpts) {
+    const request = formatRequestKey(requestOpts, this.#headerFilters, this.matchOptions);
+    const hash = createRequestHash(request);
+    const snapshot = this.#snapshots.get(hash);
+
+    if (!snapshot) return null
+
+    return {
+      hash,
+      request: snapshot.request,
+      responseCount: snapshot.responses ? snapshot.responses.length : (snapshot.response ? 1 : 0), // .response for legacy snapshots
+      callCount: snapshot.callCount || 0,
+      timestamp: snapshot.timestamp
+    }
+  }
+
+  /**
+   * Replaces all snapshots with new data (full replacement)
+   * @param {Array<{hash: string; snapshot: SnapshotEntry}>|Record<string, SnapshotEntry>} snapshotData - New snapshot data to replace existing ones
+   * @returns {void}
+   */
+  replaceSnapshots (snapshotData) {
+    this.#snapshots.clear();
+
+    if (Array.isArray(snapshotData)) {
+      for (const { hash, snapshot } of snapshotData) {
+        this.#snapshots.set(hash, snapshot);
+      }
+    } else if (snapshotData && typeof snapshotData === 'object') {
+      // Legacy object format
+      this.#snapshots = new Map(Object.entries(snapshotData));
+    }
+  }
+
+  /**
+   * Starts the auto-flush timer
+   * @returns {void}
+   */
+  #startAutoFlush () {
+    return this.#scheduleFlush()
+  }
+
+  /**
+   * Stops the auto-flush timer
+   * @returns {void}
+   */
+  #stopAutoFlush () {
+    if (this.#flushTimeout) {
+      clearTimeout$1(this.#flushTimeout);
+      // Ensure any pending flush is completed
+      this.saveSnapshots().catch(() => {
+      // Ignore flush errors
+      });
+      this.#flushTimeout = null;
+    }
+  }
+
+  /**
+   * Schedules a flush (debounced to avoid excessive writes)
+   */
+  #scheduleFlush () {
+    this.#flushTimeout = setTimeout$1(() => {
+      this.saveSnapshots().catch(() => {
+        // Ignore flush errors
+      });
+      if (this.#autoFlush) {
+        this.#flushTimeout?.refresh();
+      } else {
+        this.#flushTimeout = null;
+      }
+    }, 1000); // 1 second debounce
+  }
+
+  /**
+   * Cleanup method to stop timers
+   * @returns {void}
+   */
+  destroy () {
+    this.#stopAutoFlush();
+    if (this.#flushTimeout) {
+      clearTimeout$1(this.#flushTimeout);
+      this.#flushTimeout = null;
+    }
+  }
+
+  /**
+   * Async close method that saves all recordings and performs cleanup
+   * @returns {Promise<void>}
+   */
+  async close () {
+    // Save any pending recordings if we have a snapshot path
+    if (this.#snapshotPath && this.#snapshots.size !== 0) {
+      await this.saveSnapshots();
+    }
+
+    // Perform cleanup
+    this.destroy();
+  }
+};
+
+var snapshotRecorder = { SnapshotRecorder: SnapshotRecorder$1};
+
+const Agent$1 = agent;
+const MockAgent = mockAgent;
+const { SnapshotRecorder } = snapshotRecorder;
+const WrapHandler$1 = wrapHandler;
+const { InvalidArgumentError: InvalidArgumentError$4, UndiciError } = errors;
+const { validateSnapshotMode } = snapshotUtils;
+
+const kSnapshotRecorder = Symbol('kSnapshotRecorder');
+const kSnapshotMode = Symbol('kSnapshotMode');
+const kSnapshotPath = Symbol('kSnapshotPath');
+const kSnapshotLoaded = Symbol('kSnapshotLoaded');
+const kRealAgent = Symbol('kRealAgent');
+
+// Static flag to ensure warning is only emitted once per process
+let warningEmitted$1 = false;
+
+class SnapshotAgent extends MockAgent {
+  constructor (opts = {}) {
+    // Emit experimental warning only once
+    if (!warningEmitted$1) {
+      process.emitWarning(
+        'SnapshotAgent is experimental and subject to change',
+        'ExperimentalWarning'
+      );
+      warningEmitted$1 = true;
+    }
+
+    const {
+      mode = 'record',
+      snapshotPath = null,
+      ...mockAgentOpts
+    } = opts;
+
+    super(mockAgentOpts);
+
+    validateSnapshotMode(mode);
+
+    // Validate snapshotPath is provided when required
+    if ((mode === 'playback' || mode === 'update') && !snapshotPath) {
+      throw new InvalidArgumentError$4(`snapshotPath is required when mode is '${mode}'`)
+    }
+
+    this[kSnapshotMode] = mode;
+    this[kSnapshotPath] = snapshotPath;
+
+    this[kSnapshotRecorder] = new SnapshotRecorder({
+      snapshotPath: this[kSnapshotPath],
+      mode: this[kSnapshotMode],
+      maxSnapshots: opts.maxSnapshots,
+      autoFlush: opts.autoFlush,
+      flushInterval: opts.flushInterval,
+      matchHeaders: opts.matchHeaders,
+      ignoreHeaders: opts.ignoreHeaders,
+      excludeHeaders: opts.excludeHeaders,
+      matchBody: opts.matchBody,
+      matchQuery: opts.matchQuery,
+      caseSensitive: opts.caseSensitive,
+      shouldRecord: opts.shouldRecord,
+      shouldPlayback: opts.shouldPlayback,
+      excludeUrls: opts.excludeUrls
+    });
+    this[kSnapshotLoaded] = false;
+
+    // For recording/update mode, we need a real agent to make actual requests
+    // For playback mode, we need a real agent if there are excluded URLs
+    if (this[kSnapshotMode] === 'record' || this[kSnapshotMode] === 'update' ||
+        (this[kSnapshotMode] === 'playback' && opts.excludeUrls && opts.excludeUrls.length > 0)) {
+      this[kRealAgent] = new Agent$1(opts);
+    }
+
+    // Auto-load snapshots in playback/update mode
+    if ((this[kSnapshotMode] === 'playback' || this[kSnapshotMode] === 'update') && this[kSnapshotPath]) {
+      this.loadSnapshots().catch(() => {
+        // Ignore load errors - file might not exist yet
+      });
+    }
+  }
+
+  dispatch (opts, handler) {
+    handler = WrapHandler$1.wrap(handler);
+    const mode = this[kSnapshotMode];
+
+    // Check if URL should be excluded (pass through without mocking/recording)
+    if (this[kSnapshotRecorder].isUrlExcluded(opts)) {
+      // Real agent is guaranteed by constructor when excludeUrls is configured
+      return this[kRealAgent].dispatch(opts, handler)
+    }
+
+    if (mode === 'playback' || mode === 'update') {
+      // Ensure snapshots are loaded
+      if (!this[kSnapshotLoaded]) {
+        // Need to load asynchronously, delegate to async version
+        return this.#asyncDispatch(opts, handler)
+      }
+
+      // Try to find existing snapshot (synchronous)
+      const snapshot = this[kSnapshotRecorder].findSnapshot(opts);
+
+      if (snapshot) {
+        // Use recorded response (synchronous)
+        return this.#replaySnapshot(snapshot, handler)
+      } else if (mode === 'update') {
+        // Make real request and record it (async required)
+        return this.#recordAndReplay(opts, handler)
+      } else {
+        // Playback mode but no snapshot found
+        const error = new UndiciError(`No snapshot found for ${opts.method || 'GET'} ${opts.path}`);
+        if (handler.onError) {
+          handler.onError(error);
+          return
+        }
+        throw error
+      }
+    } else if (mode === 'record') {
+      // Record mode - make real request and save response (async required)
+      return this.#recordAndReplay(opts, handler)
+    }
+  }
+
+  /**
+   * Async version of dispatch for when we need to load snapshots first
+   */
+  async #asyncDispatch (opts, handler) {
+    await this.loadSnapshots();
+    return this.dispatch(opts, handler)
+  }
+
+  /**
+   * Records a real request and replays the response
+   */
+  #recordAndReplay (opts, handler) {
+    const responseData = {
+      statusCode: null,
+      headers: {},
+      trailers: {},
+      body: []
+    };
+
+    const self = this; // Capture 'this' context for use within nested handler callbacks
+
+    const recordingHandler = {
+      onRequestStart (controller, context) {
+        return handler.onRequestStart(controller, { ...context, history: this.history })
+      },
+
+      onRequestUpgrade (controller, statusCode, headers, socket) {
+        return handler.onRequestUpgrade(controller, statusCode, headers, socket)
+      },
+
+      onResponseStart (controller, statusCode, headers, statusMessage) {
+        responseData.statusCode = statusCode;
+        responseData.headers = headers;
+        return handler.onResponseStart(controller, statusCode, headers, statusMessage)
+      },
+
+      onResponseData (controller, chunk) {
+        responseData.body.push(chunk);
+        return handler.onResponseData(controller, chunk)
+      },
+
+      onResponseEnd (controller, trailers) {
+        responseData.trailers = trailers;
+
+        // Record the interaction using captured 'self' context (fire and forget)
+        const responseBody = Buffer.concat(responseData.body);
+        self[kSnapshotRecorder].record(opts, {
+          statusCode: responseData.statusCode,
+          headers: responseData.headers,
+          body: responseBody,
+          trailers: responseData.trailers
+        })
+          .then(() => handler.onResponseEnd(controller, trailers))
+          .catch((error) => handler.onResponseError(controller, error));
+      }
+    };
+
+    // Use composed agent if available (includes interceptors), otherwise use real agent
+    const agent = this[kRealAgent];
+    return agent.dispatch(opts, recordingHandler)
+  }
+
+  /**
+   * Replays a recorded response
+   *
+   * @param {Object} snapshot - The recorded snapshot to replay.
+   * @param {Object} handler - The handler to call with the response data.
+   * @returns {void}
+   */
+  #replaySnapshot (snapshot, handler) {
+    try {
+      const { response } = snapshot;
+
+      const controller = {
+        pause () { },
+        resume () { },
+        abort (reason) {
+          this.aborted = true;
+          this.reason = reason;
+        },
+
+        aborted: false,
+        paused: false
+      };
+
+      handler.onRequestStart(controller);
+
+      handler.onResponseStart(controller, response.statusCode, response.headers);
+
+      // Body is always stored as base64 string
+      const body = Buffer.from(response.body, 'base64');
+      handler.onResponseData(controller, body);
+
+      handler.onResponseEnd(controller, response.trailers);
+    } catch (error) {
+      handler.onError?.(error);
+    }
+  }
+
+  /**
+   * Loads snapshots from file
+   *
+   * @param {string} [filePath] - Optional file path to load snapshots from.
+   * @returns {Promise<void>} - Resolves when snapshots are loaded.
+   */
+  async loadSnapshots (filePath) {
+    await this[kSnapshotRecorder].loadSnapshots(filePath || this[kSnapshotPath]);
+    this[kSnapshotLoaded] = true;
+
+    // In playback mode, set up MockAgent interceptors for all snapshots
+    if (this[kSnapshotMode] === 'playback') {
+      this.#setupMockInterceptors();
+    }
+  }
+
+  /**
+   * Saves snapshots to file
+   *
+   * @param {string} [filePath] - Optional file path to save snapshots to.
+   * @returns {Promise<void>} - Resolves when snapshots are saved.
+   */
+  async saveSnapshots (filePath) {
+    return this[kSnapshotRecorder].saveSnapshots(filePath || this[kSnapshotPath])
+  }
+
+  /**
+   * Sets up MockAgent interceptors based on recorded snapshots.
+   *
+   * This method creates MockAgent interceptors for each recorded snapshot,
+   * allowing the SnapshotAgent to fall back to MockAgent's standard intercept
+   * mechanism in playback mode. Each interceptor is configured to persist
+   * (remain active for multiple requests) and responds with the recorded
+   * response data.
+   *
+   * Called automatically when loading snapshots in playback mode.
+   *
+   * @returns {void}
+   */
+  #setupMockInterceptors () {
+    for (const snapshot of this[kSnapshotRecorder].getSnapshots()) {
+      const { request, responses, response } = snapshot;
+      const url = new URL(request.url);
+
+      const mockPool = this.get(url.origin);
+
+      // Handle both new format (responses array) and legacy format (response object)
+      const responseData = responses ? responses[0] : response;
+      if (!responseData) continue
+
+      mockPool.intercept({
+        path: url.pathname + url.search,
+        method: request.method,
+        headers: request.headers,
+        body: request.body
+      }).reply(responseData.statusCode, responseData.body, {
+        headers: responseData.headers,
+        trailers: responseData.trailers
+      }).persist();
+    }
+  }
+
+  /**
+   * Gets the snapshot recorder
+   * @return {SnapshotRecorder} - The snapshot recorder instance
+   */
+  getRecorder () {
+    return this[kSnapshotRecorder]
+  }
+
+  /**
+   * Gets the current mode
+   * @return {import('./snapshot-utils').SnapshotMode} - The current snapshot mode
+   */
+  getMode () {
+    return this[kSnapshotMode]
+  }
+
+  /**
+   * Clears all snapshots
+   * @returns {void}
+   */
+  clearSnapshots () {
+    this[kSnapshotRecorder].clear();
+  }
+
+  /**
+   * Resets call counts for all snapshots (useful for test cleanup)
+   * @returns {void}
+   */
+  resetCallCounts () {
+    this[kSnapshotRecorder].resetCallCounts();
+  }
+
+  /**
+   * Deletes a specific snapshot by request options
+   * @param {import('./snapshot-recorder').SnapshotRequestOptions} requestOpts - Request options to identify the snapshot
+   * @return {Promise<boolean>} - Returns true if the snapshot was deleted, false if not found
+   */
+  deleteSnapshot (requestOpts) {
+    return this[kSnapshotRecorder].deleteSnapshot(requestOpts)
+  }
+
+  /**
+   * Gets information about a specific snapshot
+   * @returns {import('./snapshot-recorder').SnapshotInfo|null} - Snapshot information or null if not found
+   */
+  getSnapshotInfo (requestOpts) {
+    return this[kSnapshotRecorder].getSnapshotInfo(requestOpts)
+  }
+
+  /**
+   * Replaces all snapshots with new data (full replacement)
+   * @param {Array<{hash: string; snapshot: import('./snapshot-recorder').SnapshotEntryshotEntry}>|Record<string, import('./snapshot-recorder').SnapshotEntry>} snapshotData - New snapshot data to replace existing snapshots
+   * @returns {void}
+   */
+  replaceSnapshots (snapshotData) {
+    this[kSnapshotRecorder].replaceSnapshots(snapshotData);
+  }
+
+  /**
+   * Closes the agent, saving snapshots and cleaning up resources.
+   *
+   * @returns {Promise<void>}
+   */
+  async close () {
+    await this[kSnapshotRecorder].close();
+    await this[kRealAgent]?.close();
+    await super.close();
+  }
+}
+
+var snapshotAgent = SnapshotAgent;
+
 // We include a version number for the Dispatcher API. In case of breaking changes,
 // this version number must be increased to avoid conflicts.
 const globalDispatcher = Symbol.for('undici.globalDispatcher.1');
-const { InvalidArgumentError: InvalidArgumentError$4 } = errors$1;
-const Agent$1 = agent;
+const { InvalidArgumentError: InvalidArgumentError$3 } = errors;
+const Agent = agent;
 
-if (getGlobalDispatcher$1() === undefined) {
-  setGlobalDispatcher$1(new Agent$1());
+if (getGlobalDispatcher() === undefined) {
+  setGlobalDispatcher(new Agent());
 }
 
-function setGlobalDispatcher$1 (agent) {
+function setGlobalDispatcher (agent) {
   if (!agent || typeof agent.dispatch !== 'function') {
-    throw new InvalidArgumentError$4('Argument agent must implement Agent')
+    throw new InvalidArgumentError$3('Argument agent must implement Agent')
   }
   Object.defineProperty(globalThis, globalDispatcher, {
     value: agent,
@@ -16208,14 +19178,13 @@ function setGlobalDispatcher$1 (agent) {
   });
 }
 
-function getGlobalDispatcher$1 () {
+function getGlobalDispatcher () {
   return globalThis[globalDispatcher]
 }
 
 var global = {
-  setGlobalDispatcher: setGlobalDispatcher$1,
-  getGlobalDispatcher: getGlobalDispatcher$1
-};
+  setGlobalDispatcher,
+  getGlobalDispatcher};
 
 const assert$3 = require$$0$2;
 const WrapHandler = wrapHandler;
@@ -16283,11 +19252,11 @@ var decoratorHandler = class DecoratorHandler {
   onBodySent () {}
 };
 
-const util$7 = util$n;
+const util$7 = util$o;
 const { kBodyUsed } = requireSymbols();
 const assert$2 = require$$0$2;
-const { InvalidArgumentError: InvalidArgumentError$3 } = errors$1;
-const EE = require$$7;
+const { InvalidArgumentError: InvalidArgumentError$2 } = errors;
+const EE = require$$0;
 
 const redirectableStatusCodes = [300, 301, 302, 303, 307, 308];
 
@@ -16308,10 +19277,10 @@ class BodyAsyncIterable {
   }
 }
 
-let RedirectHandler$2 = class RedirectHandler {
+let RedirectHandler$1 = class RedirectHandler {
   static buildDispatch (dispatcher, maxRedirections) {
     if (maxRedirections != null && (!Number.isInteger(maxRedirections) || maxRedirections < 0)) {
-      throw new InvalidArgumentError$3('maxRedirections must be a positive number')
+      throw new InvalidArgumentError$2('maxRedirections must be a positive number')
     }
 
     const dispatch = dispatcher.dispatch.bind(dispatcher);
@@ -16320,12 +19289,13 @@ let RedirectHandler$2 = class RedirectHandler {
 
   constructor (dispatch, maxRedirections, opts, handler) {
     if (maxRedirections != null && (!Number.isInteger(maxRedirections) || maxRedirections < 0)) {
-      throw new InvalidArgumentError$3('maxRedirections must be a positive number')
+      throw new InvalidArgumentError$2('maxRedirections must be a positive number')
     }
 
     this.dispatch = dispatch;
     this.location = null;
-    this.opts = { ...opts, maxRedirections: 0 }; // opts must be a copy
+    const { maxRedirections: _, ...cleanOpts } = opts;
+    this.opts = cleanOpts; // opts must be a copy, exclude maxRedirections
     this.maxRedirections = maxRedirections;
     this.handler = handler;
     this.history = [];
@@ -16415,13 +19385,22 @@ let RedirectHandler$2 = class RedirectHandler {
     const { origin, pathname, search } = util$7.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
     const path = search ? `${pathname}${search}` : pathname;
 
+    // Check for redirect loops by seeing if we've already visited this URL in our history
+    // This catches the case where Client/Pool try to handle cross-origin redirects but fail
+    // and keep redirecting to the same URL in an infinite loop
+    const redirectUrlString = `${origin}${path}`;
+    for (const historyUrl of this.history) {
+      if (historyUrl.toString() === redirectUrlString) {
+        throw new InvalidArgumentError$2(`Redirect loop detected. Cannot redirect to ${origin}. This typically happens when using a Client or Pool with cross-origin redirects. Use an Agent for cross-origin redirects.`)
+      }
+    }
+
     // Remove headers referring to the original URL.
     // By default it is Host only, unless it's a 303 (see below), which removes also all Content-* headers.
     // https://tools.ietf.org/html/rfc7231#section-6.4
     this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
     this.opts.path = path;
     this.opts.origin = origin;
-    this.opts.maxRedirections = 0;
     this.opts.query = null;
   }
 
@@ -16477,7 +19456,8 @@ function cleanRequestHeaders (headers, removeContent, unknownOrigin) {
       }
     }
   } else if (headers && typeof headers === 'object') {
-    const entries = typeof headers[Symbol.iterator] === 'function' ? headers : Object.entries(headers);
+    const entries = util$7.hasSafeIterator(headers) ? headers : Object.entries(headers);
+
     for (const [key, value] of entries) {
       if (!shouldRemoveHeader(key, removeContent, unknownOrigin)) {
         ret.push(key, value);
@@ -16489,9 +19469,9 @@ function cleanRequestHeaders (headers, removeContent, unknownOrigin) {
   return ret
 }
 
-var redirectHandler = RedirectHandler$2;
+var redirectHandler = RedirectHandler$1;
 
-const RedirectHandler$1 = redirectHandler;
+const RedirectHandler = redirectHandler;
 
 function createRedirectInterceptor ({ maxRedirections: defaultMaxRedirections } = {}) {
   return (dispatch) => {
@@ -16502,8 +19482,8 @@ function createRedirectInterceptor ({ maxRedirections: defaultMaxRedirections } 
         return dispatch(opts, handler)
       }
 
-      const dispatchOpts = { ...rest, maxRedirections: 0 }; // Stop sub dispatcher from also redirecting.
-      const redirectHandler = new RedirectHandler$1(dispatch, maxRedirections, dispatchOpts, handler);
+      const dispatchOpts = { ...rest }; // Stop sub dispatcher from also redirecting.
+      const redirectHandler = new RedirectHandler(dispatch, maxRedirections, dispatchOpts, handler);
       return dispatch(dispatchOpts, redirectHandler)
     }
   }
@@ -16513,7 +19493,7 @@ var redirect = createRedirectInterceptor;
 
 // const { parseHeaders } = require('../core/util')
 const DecoratorHandler$3 = decoratorHandler;
-const { ResponseError } = errors$1;
+const { ResponseError } = errors;
 
 class ResponseErrorHandler extends DecoratorHandler$3 {
   #statusCode
@@ -16605,14 +19585,14 @@ var responseError = () => {
   }
 };
 
-const RetryHandler$1 = retryHandler;
+const RetryHandler = retryHandler;
 
 var retry = globalOpts => {
   return dispatch => {
     return function retryInterceptor (opts, handler) {
       return dispatch(
         opts,
-        new RetryHandler$1(
+        new RetryHandler(
           { ...opts, retryOptions: { ...globalOpts, ...opts.retryOptions } },
           {
             handler,
@@ -16624,7 +19604,7 @@ var retry = globalOpts => {
   }
 };
 
-const { InvalidArgumentError: InvalidArgumentError$2, RequestAbortedError } = errors$1;
+const { InvalidArgumentError: InvalidArgumentError$1, RequestAbortedError: RequestAbortedError$1 } = errors;
 const DecoratorHandler$2 = decoratorHandler;
 
 class DumpHandler extends DecoratorHandler$2 {
@@ -16637,7 +19617,7 @@ class DumpHandler extends DecoratorHandler$2 {
 
   constructor ({ maxSize, signal }, handler) {
     if (maxSize != null && (!Number.isFinite(maxSize) || maxSize < 1)) {
-      throw new InvalidArgumentError$2('maxSize must be a number greater than 0')
+      throw new InvalidArgumentError$1('maxSize must be a number greater than 0')
     }
 
     super(handler);
@@ -16662,7 +19642,7 @@ class DumpHandler extends DecoratorHandler$2 {
     const contentLength = headers['content-length'];
 
     if (contentLength != null && contentLength > this.#maxSize) {
-      throw new RequestAbortedError(
+      throw new RequestAbortedError$1(
         `Response size (${contentLength}) larger than maxSize (${
           this.#maxSize
         })`
@@ -16681,7 +19661,8 @@ class DumpHandler extends DecoratorHandler$2 {
       return
     }
 
-    err = this.#controller.reason ?? err;
+    // On network errors before connect, controller will be null
+    err = this.#controller?.reason ?? err;
 
     super.onResponseError(controller, err);
   }
@@ -16737,17 +19718,146 @@ var dump = createDumpInterceptor;
 const { isIP } = require$$0$3;
 const { lookup } = require$$1$5;
 const DecoratorHandler$1 = decoratorHandler;
-const { InvalidArgumentError: InvalidArgumentError$1, InformationalError } = errors$1;
+const { InvalidArgumentError, InformationalError } = errors;
 const maxInt = Math.pow(2, 31) - 1;
+
+function hasSafeIterator$1 (headers) {
+  const prototype = Object.getPrototypeOf(headers);
+  const ownIterator = Object.prototype.hasOwnProperty.call(headers, Symbol.iterator);
+  return ownIterator || (prototype != null && prototype !== Object.prototype && typeof headers[Symbol.iterator] === 'function')
+}
+
+function isHostHeader (key) {
+  return typeof key === 'string' && key.toLowerCase() === 'host'
+}
+
+function normalizeHeaders$3 (headers) {
+  if (headers == null) {
+    return null
+  }
+
+  if (Array.isArray(headers)) {
+    if (headers.length === 0 || !Array.isArray(headers[0])) {
+      return headers
+    }
+
+    const normalized = [];
+    for (const header of headers) {
+      if (Array.isArray(header) && header.length === 2) {
+        normalized.push(header[0], header[1]);
+      } else {
+        normalized.push(header);
+      }
+    }
+
+    return normalized
+  }
+
+  if (typeof headers === 'object' && hasSafeIterator$1(headers)) {
+    const normalized = [];
+    for (const header of headers) {
+      if (Array.isArray(header) && header.length === 2) {
+        normalized.push(header[0], header[1]);
+      } else {
+        normalized.push(header);
+      }
+    }
+
+    return normalized
+  }
+
+  return headers
+}
+
+function hasHostHeader (headers) {
+  if (headers == null) {
+    return false
+  }
+
+  if (Array.isArray(headers)) {
+    if (headers.length === 0) {
+      return false
+    }
+
+    for (let i = 0; i < headers.length; i += 2) {
+      if (isHostHeader(headers[i])) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  if (typeof headers === 'object') {
+    for (const key in headers) {
+      if (isHostHeader(key)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+function withHostHeader (host, headers) {
+  const normalizedHeaders = normalizeHeaders$3(headers);
+
+  if (hasHostHeader(normalizedHeaders)) {
+    return normalizedHeaders
+  }
+
+  if (Array.isArray(normalizedHeaders)) {
+    return ['host', host, ...normalizedHeaders]
+  }
+
+  if (normalizedHeaders && typeof normalizedHeaders === 'object') {
+    return {
+      host,
+      ...normalizedHeaders
+    }
+  }
+
+  return { host }
+}
+
+class DNSStorage {
+  #maxItems = 0
+  #records = new Map()
+
+  constructor (opts) {
+    this.#maxItems = opts.maxItems;
+  }
+
+  get size () {
+    return this.#records.size
+  }
+
+  get (hostname) {
+    return this.#records.get(hostname) ?? null
+  }
+
+  set (hostname, records) {
+    this.#records.set(hostname, records);
+  }
+
+  delete (hostname) {
+    this.#records.delete(hostname);
+  }
+
+  // Delegate to storage decide can we do more lookups or not
+  full () {
+    return this.size >= this.#maxItems
+  }
+}
 
 class DNSInstance {
   #maxTTL = 0
   #maxItems = 0
-  #records = new Map()
   dualStack = true
   affinity = null
   lookup = null
   pick = null
+  storage = null
 
   constructor (opts) {
     this.#maxTTL = opts.maxTTL;
@@ -16756,17 +19866,14 @@ class DNSInstance {
     this.affinity = opts.affinity;
     this.lookup = opts.lookup ?? this.#defaultLookup;
     this.pick = opts.pick ?? this.#defaultPick;
-  }
-
-  get full () {
-    return this.#records.size === this.#maxItems
+    this.storage = opts.storage ?? new DNSStorage(opts);
   }
 
   runLookup (origin, opts, cb) {
-    const ips = this.#records.get(origin.hostname);
+    const ips = this.storage.get(origin.hostname);
 
     // If full, we just return the origin
-    if (ips == null && this.full) {
+    if (ips == null && this.storage.full()) {
       cb(null, origin);
       return
     }
@@ -16790,7 +19897,7 @@ class DNSInstance {
         }
 
         this.setRecords(origin, addresses);
-        const records = this.#records.get(origin.hostname);
+        const records = this.storage.get(origin.hostname);
 
         const ip = this.pick(
           origin,
@@ -16824,7 +19931,7 @@ class DNSInstance {
 
       // If no IPs we lookup - deleting old records
       if (ip == null) {
-        this.#records.delete(origin.hostname);
+        this.storage.delete(origin.hostname);
         this.runLookup(origin, opts, cb);
         return
       }
@@ -16928,7 +20035,7 @@ class DNSInstance {
   }
 
   pickFamily (origin, ipFamily) {
-    const records = this.#records.get(origin.hostname)?.records;
+    const records = this.storage.get(origin.hostname)?.records;
     if (!records) {
       return null
     }
@@ -16962,11 +20069,13 @@ class DNSInstance {
   setRecords (origin, addresses) {
     const timestamp = Date.now();
     const records = { records: { 4: null, 6: null } };
+    let minTTL = this.#maxTTL;
     for (const record of addresses) {
       record.timestamp = timestamp;
       if (typeof record.ttl === 'number') {
         // The record TTL is expected to be in ms
         record.ttl = Math.min(record.ttl, this.#maxTTL);
+        minTTL = Math.min(minTTL, record.ttl);
       } else {
         record.ttl = this.#maxTTL;
       }
@@ -16977,11 +20086,12 @@ class DNSInstance {
       records.records[record.family] = familyRecords;
     }
 
-    this.#records.set(origin.hostname, records);
+    // We provide a default TTL if external storage will be used without TTL per record-level support
+    this.storage.set(origin.hostname, records, { ttl: minTTL });
   }
 
   deleteRecords (origin) {
-    this.#records.delete(origin.hostname);
+    this.storage.delete(origin.hostname);
   }
 
   getHandler (meta, opts) {
@@ -17038,8 +20148,9 @@ class DNSDispatchHandler extends DecoratorHandler$1 {
           const dispatchOpts = {
             ...this.#opts,
             origin: `${this.#origin.protocol}//${
-                ip.family === 6 ? `[${ip.address}]` : ip.address
-              }${port}`
+              ip.family === 6 ? `[${ip.address}]` : ip.address
+            }${port}`,
+            headers: withHostHeader(this.#origin.host, this.#opts.headers)
           };
           this.#dispatch(dispatchOpts, this);
           return
@@ -17065,7 +20176,7 @@ var dns = interceptorOpts => {
     interceptorOpts?.maxTTL != null &&
     (typeof interceptorOpts?.maxTTL !== 'number' || interceptorOpts?.maxTTL < 0)
   ) {
-    throw new InvalidArgumentError$1('Invalid maxTTL. Must be a positive number')
+    throw new InvalidArgumentError('Invalid maxTTL. Must be a positive number')
   }
 
   if (
@@ -17073,7 +20184,7 @@ var dns = interceptorOpts => {
     (typeof interceptorOpts?.maxItems !== 'number' ||
       interceptorOpts?.maxItems < 1)
   ) {
-    throw new InvalidArgumentError$1(
+    throw new InvalidArgumentError(
       'Invalid maxItems. Must be a positive number and greater than zero'
     )
   }
@@ -17083,28 +20194,39 @@ var dns = interceptorOpts => {
     interceptorOpts?.affinity !== 4 &&
     interceptorOpts?.affinity !== 6
   ) {
-    throw new InvalidArgumentError$1('Invalid affinity. Must be either 4 or 6')
+    throw new InvalidArgumentError('Invalid affinity. Must be either 4 or 6')
   }
 
   if (
     interceptorOpts?.dualStack != null &&
     typeof interceptorOpts?.dualStack !== 'boolean'
   ) {
-    throw new InvalidArgumentError$1('Invalid dualStack. Must be a boolean')
+    throw new InvalidArgumentError('Invalid dualStack. Must be a boolean')
   }
 
   if (
     interceptorOpts?.lookup != null &&
     typeof interceptorOpts?.lookup !== 'function'
   ) {
-    throw new InvalidArgumentError$1('Invalid lookup. Must be a function')
+    throw new InvalidArgumentError('Invalid lookup. Must be a function')
   }
 
   if (
     interceptorOpts?.pick != null &&
     typeof interceptorOpts?.pick !== 'function'
   ) {
-    throw new InvalidArgumentError$1('Invalid pick. Must be a function')
+    throw new InvalidArgumentError('Invalid pick. Must be a function')
+  }
+
+  if (
+    interceptorOpts?.storage != null &&
+    (typeof interceptorOpts?.storage?.get !== 'function' ||
+      typeof interceptorOpts?.storage?.set !== 'function' ||
+      typeof interceptorOpts?.storage?.full !== 'function' ||
+      typeof interceptorOpts?.storage?.delete !== 'function'
+    )
+  ) {
+    throw new InvalidArgumentError('Invalid storage. Must be a object with methods: { get, set, full, delete }')
   }
 
   const dualStack = interceptorOpts?.dualStack ?? true;
@@ -17121,7 +20243,8 @@ var dns = interceptorOpts => {
     pick: interceptorOpts?.pick ?? null,
     dualStack,
     affinity,
-    maxItems: interceptorOpts?.maxItems ?? Infinity
+    maxItems: interceptorOpts?.maxItems ?? Infinity,
+    storage: interceptorOpts?.storage
   };
 
   const instance = new DNSInstance(opts);
@@ -17146,10 +20269,7 @@ var dns = interceptorOpts => {
           ...origDispatchOpts,
           servername: origin.hostname, // For SNI on TLS
           origin: newOrigin.origin,
-          headers: {
-            host: origin.host,
-            ...origDispatchOpts.headers
-          }
+          headers: withHostHeader(origin.host, origDispatchOpts.headers)
         };
 
         dispatch(
@@ -17167,25 +20287,25 @@ var dns = interceptorOpts => {
 };
 
 const {
-  safeHTTPMethods
-} = util$n;
+  safeHTTPMethods,
+  pathHasQueryOrFragment,
+  hasSafeIterator
+} = util$o;
 
-const { serializePathWithQuery } = util$n;
+const { serializePathWithQuery } = util$o;
 
 /**
  * @param {import('../../types/dispatcher.d.ts').default.DispatchOptions} opts
  */
-function makeCacheKey$1 (opts) {
+function makeCacheKey$2 (opts) {
   if (!opts.origin) {
     throw new Error('opts.origin is undefined')
   }
 
-  let fullPath;
-  try {
-    fullPath = serializePathWithQuery(opts.path || '/', opts.query);
-  } catch (error) {
-    // If fails (path already has query params), use as-is
-    fullPath = opts.path || '/';
+  let fullPath = opts.path || '/';
+
+  if (opts.query && !pathHasQueryOrFragment(opts.path)) {
+    fullPath = serializePathWithQuery(fullPath, opts.query);
   }
 
   return {
@@ -17198,29 +20318,30 @@ function makeCacheKey$1 (opts) {
 
 /**
  * @param {Record<string, string[] | string>}
- * @return {Record<string, string[] | string>}
+ * @returns {Record<string, string[] | string>}
  */
-function normaliseHeaders$1 (opts) {
+function normalizeHeaders$2 (opts) {
   let headers;
   if (opts.headers == null) {
     headers = {};
-  } else if (typeof opts.headers[Symbol.iterator] === 'function') {
-    headers = {};
-    for (const x of opts.headers) {
-      if (!Array.isArray(x)) {
-        throw new Error('opts.headers is not a valid header map')
-      }
-      const [key, val] = x;
-      if (typeof key !== 'string' || typeof val !== 'string') {
-        throw new Error('opts.headers is not a valid header map')
-      }
-      headers[key.toLowerCase()] = val;
-    }
   } else if (typeof opts.headers === 'object') {
     headers = {};
 
-    for (const key of Object.keys(opts.headers)) {
-      headers[key.toLowerCase()] = opts.headers[key];
+    if (hasSafeIterator(opts.headers)) {
+      for (const x of opts.headers) {
+        if (!Array.isArray(x)) {
+          throw new Error('opts.headers is not a valid header map')
+        }
+        const [key, val] = x;
+        if (typeof key !== 'string' || typeof val !== 'string') {
+          throw new Error('opts.headers is not a valid header map')
+        }
+        headers[key.toLowerCase()] = val;
+      }
+    } else {
+      for (const key of Object.keys(opts.headers)) {
+        headers[key.toLowerCase()] = opts.headers[key];
+      }
     }
   } else {
     throw new Error('opts.headers is not an object')
@@ -17232,7 +20353,7 @@ function normaliseHeaders$1 (opts) {
 /**
  * @param {any} key
  */
-function assertCacheKey$1 (key) {
+function assertCacheKey$2 (key) {
   if (typeof key !== 'object') {
     throw new TypeError(`expected key to be object, got ${typeof key}`)
   }
@@ -17251,7 +20372,7 @@ function assertCacheKey$1 (key) {
 /**
  * @param {any} value
  */
-function assertCacheValue$1 (value) {
+function assertCacheValue$2 (value) {
   if (typeof value !== 'object') {
     throw new TypeError(`expected value to be object, got ${typeof value}`)
   }
@@ -17400,7 +20521,7 @@ function parseCacheControlHeader$2 (header) {
               }
             }
           } else {
-            // Something like `no-cache=some-header`
+            // Something like `no-cache="some-header"`
             if (key in output) {
               output[key] = output[key].concat(value);
             } else {
@@ -17531,45 +20652,61 @@ function assertCacheMethods$1 (methods, name = 'CacheMethods') {
   }
 }
 
+/**
+ * Creates a string key for request deduplication purposes.
+ * This key is used to identify in-flight requests that can be shared.
+ * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} cacheKey
+ * @param {Set<string>} [excludeHeaders] Set of lowercase header names to exclude from the key
+ * @returns {string}
+ */
+function makeDeduplicationKey$1 (cacheKey, excludeHeaders) {
+  // Create a deterministic string key from the cache key
+  // Include origin, method, path, and sorted headers
+  let key = `${cacheKey.origin}:${cacheKey.method}:${cacheKey.path}`;
+
+  if (cacheKey.headers) {
+    const sortedHeaders = Object.keys(cacheKey.headers).sort();
+    for (const header of sortedHeaders) {
+      // Skip excluded headers
+      if (excludeHeaders?.has(header.toLowerCase())) {
+        continue
+      }
+      const value = cacheKey.headers[header];
+      key += `:${header}=${Array.isArray(value) ? value.join(',') : value}`;
+    }
+  }
+
+  return key
+}
+
 var cache$2 = {
-  makeCacheKey: makeCacheKey$1,
-  normaliseHeaders: normaliseHeaders$1,
-  assertCacheKey: assertCacheKey$1,
-  assertCacheValue: assertCacheValue$1,
+  makeCacheKey: makeCacheKey$2,
+  normalizeHeaders: normalizeHeaders$2,
+  assertCacheKey: assertCacheKey$2,
+  assertCacheValue: assertCacheValue$2,
   parseCacheControlHeader: parseCacheControlHeader$2,
   parseVaryHeader: parseVaryHeader$1,
   isEtagUsable: isEtagUsable$1,
   assertCacheMethods: assertCacheMethods$1,
-  assertCacheStore: assertCacheStore$1
+  assertCacheStore: assertCacheStore$1,
+  makeDeduplicationKey: makeDeduplicationKey$1
 };
-
-const IMF_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-const IMF_SPACES = [4, 7, 11, 16, 25];
-const IMF_MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-const IMF_COLONS = [19, 22];
-
-const ASCTIME_SPACES = [3, 7, 10, 19];
-
-const RFC850_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 /**
  * @see https://www.rfc-editor.org/rfc/rfc9110.html#name-date-time-formats
  *
  * @param {string} date
- * @param {Date} [now]
  * @returns {Date | undefined}
  */
-function parseHttpDate$1 (date, now) {
+function parseHttpDate$1 (date) {
   // Sun, 06 Nov 1994 08:49:37 GMT    ; IMF-fixdate
   // Sun Nov  6 08:49:37 1994         ; ANSI C's asctime() format
   // Sunday, 06-Nov-94 08:49:37 GMT   ; obsolete RFC 850 format
 
-  date = date.toLowerCase();
-
   switch (date[3]) {
     case ',': return parseImfDate(date)
     case ' ': return parseAscTimeDate(date)
-    default: return parseRfc850Date(date, now)
+    default: return parseRfc850Date(date)
   }
 }
 
@@ -17580,69 +20717,207 @@ function parseHttpDate$1 (date, now) {
  * @returns {Date | undefined}
  */
 function parseImfDate (date) {
-  if (date.length !== 29) {
+  if (
+    date.length !== 29 ||
+    date[4] !== ' ' ||
+    date[7] !== ' ' ||
+    date[11] !== ' ' ||
+    date[16] !== ' ' ||
+    date[19] !== ':' ||
+    date[22] !== ':' ||
+    date[25] !== ' ' ||
+    date[26] !== 'G' ||
+    date[27] !== 'M' ||
+    date[28] !== 'T'
+  ) {
     return undefined
   }
 
-  if (!date.endsWith('gmt')) {
-    // Unsupported timezone
-    return undefined
+  let weekday = -1;
+  if (date[0] === 'S' && date[1] === 'u' && date[2] === 'n') { // Sunday
+    weekday = 0;
+  } else if (date[0] === 'M' && date[1] === 'o' && date[2] === 'n') { // Monday
+    weekday = 1;
+  } else if (date[0] === 'T' && date[1] === 'u' && date[2] === 'e') { // Tuesday
+    weekday = 2;
+  } else if (date[0] === 'W' && date[1] === 'e' && date[2] === 'd') { // Wednesday
+    weekday = 3;
+  } else if (date[0] === 'T' && date[1] === 'h' && date[2] === 'u') { // Thursday
+    weekday = 4;
+  } else if (date[0] === 'F' && date[1] === 'r' && date[2] === 'i') { // Friday
+    weekday = 5;
+  } else if (date[0] === 'S' && date[1] === 'a' && date[2] === 't') { // Saturday
+    weekday = 6;
+  } else {
+    return undefined // Not a valid day of the week
   }
 
-  for (const spaceInx of IMF_SPACES) {
-    if (date[spaceInx] !== ' ') {
-      return undefined
+  let day = 0;
+  if (date[5] === '0') {
+    // Single digit day, e.g. "Sun Nov 6 08:49:37 1994"
+    const code = date.charCodeAt(6);
+    if (code < 49 || code > 57) {
+      return undefined // Not a digit
     }
-  }
-
-  for (const colonIdx of IMF_COLONS) {
-    if (date[colonIdx] !== ':') {
-      return undefined
+    day = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(5);
+    if (code1 < 49 || code1 > 51) {
+      return undefined // Not a digit between 1 and 3
     }
+    const code2 = date.charCodeAt(6);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    day = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const dayName = date.substring(0, 3);
-  if (!IMF_DAYS.includes(dayName)) {
+  let monthIdx = -1;
+  if (
+    (date[8] === 'J' && date[9] === 'a' && date[10] === 'n')
+  ) {
+    monthIdx = 0; // Jan
+  } else if (
+    (date[8] === 'F' && date[9] === 'e' && date[10] === 'b')
+  ) {
+    monthIdx = 1; // Feb
+  } else if (
+    (date[8] === 'M' && date[9] === 'a')
+  ) {
+    if (date[10] === 'r') {
+      monthIdx = 2; // Mar
+    } else if (date[10] === 'y') {
+      monthIdx = 4; // May
+    } else {
+      return undefined // Invalid month
+    }
+  } else if (
+    (date[8] === 'J')
+  ) {
+    if (date[9] === 'a' && date[10] === 'n') {
+      monthIdx = 0; // Jan
+    } else if (date[9] === 'u') {
+      if (date[10] === 'n') {
+        monthIdx = 5; // Jun
+      } else if (date[10] === 'l') {
+        monthIdx = 6; // Jul
+      } else {
+        return undefined // Invalid month
+      }
+    } else {
+      return undefined // Invalid month
+    }
+  } else if (
+    (date[8] === 'A')
+  ) {
+    if (date[9] === 'p' && date[10] === 'r') {
+      monthIdx = 3; // Apr
+    } else if (date[9] === 'u' && date[10] === 'g') {
+      monthIdx = 7; // Aug
+    } else {
+      return undefined // Invalid month
+    }
+  } else if (
+    (date[8] === 'S' && date[9] === 'e' && date[10] === 'p')
+  ) {
+    monthIdx = 8; // Sep
+  } else if (
+    (date[8] === 'O' && date[9] === 'c' && date[10] === 't')
+  ) {
+    monthIdx = 9; // Oct
+  } else if (
+    (date[8] === 'N' && date[9] === 'o' && date[10] === 'v')
+  ) {
+    monthIdx = 10; // Nov
+  } else if (
+    (date[8] === 'D' && date[9] === 'e' && date[10] === 'c')
+  ) {
+    monthIdx = 11; // Dec
+  } else {
+    // Not a valid month
     return undefined
   }
 
-  const dayString = date.substring(5, 7);
-  const day = Number.parseInt(dayString);
-  if (isNaN(day) || (day < 10 && dayString[0] !== '0')) {
-    // Not a number, 0, or it's less than 10 and didn't start with a 0
-    return undefined
+  const yearDigit1 = date.charCodeAt(12);
+  if (yearDigit1 < 48 || yearDigit1 > 57) {
+    return undefined // Not a digit
+  }
+  const yearDigit2 = date.charCodeAt(13);
+  if (yearDigit2 < 48 || yearDigit2 > 57) {
+    return undefined // Not a digit
+  }
+  const yearDigit3 = date.charCodeAt(14);
+  if (yearDigit3 < 48 || yearDigit3 > 57) {
+    return undefined // Not a digit
+  }
+  const yearDigit4 = date.charCodeAt(15);
+  if (yearDigit4 < 48 || yearDigit4 > 57) {
+    return undefined // Not a digit
+  }
+  const year = (yearDigit1 - 48) * 1000 + (yearDigit2 - 48) * 100 + (yearDigit3 - 48) * 10 + (yearDigit4 - 48);
+
+  let hour = 0;
+  if (date[17] === '0') {
+    const code = date.charCodeAt(18);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    hour = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(17);
+    if (code1 < 48 || code1 > 50) {
+      return undefined // Not a digit between 0 and 2
+    }
+    const code2 = date.charCodeAt(18);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    if (code1 === 50 && code2 > 51) {
+      return undefined // Hour cannot be greater than 23
+    }
+    hour = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const month = date.substring(8, 11);
-  const monthIdx = IMF_MONTHS.indexOf(month);
-  if (monthIdx === -1) {
-    return undefined
+  let minute = 0;
+  if (date[20] === '0') {
+    const code = date.charCodeAt(21);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    minute = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(20);
+    if (code1 < 48 || code1 > 53) {
+      return undefined // Not a digit between 0 and 5
+    }
+    const code2 = date.charCodeAt(21);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    minute = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const year = Number.parseInt(date.substring(12, 16));
-  if (isNaN(year)) {
-    return undefined
+  let second = 0;
+  if (date[23] === '0') {
+    const code = date.charCodeAt(24);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    second = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(23);
+    if (code1 < 48 || code1 > 53) {
+      return undefined // Not a digit between 0 and 5
+    }
+    const code2 = date.charCodeAt(24);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    second = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const hourString = date.substring(17, 19);
-  const hour = Number.parseInt(hourString);
-  if (isNaN(hour) || (hour < 10 && hourString[0] !== '0')) {
-    return undefined
-  }
-
-  const minuteString = date.substring(20, 22);
-  const minute = Number.parseInt(minuteString);
-  if (isNaN(minute) || (minute < 10 && minuteString[0] !== '0')) {
-    return undefined
-  }
-
-  const secondString = date.substring(23, 25);
-  const second = Number.parseInt(secondString);
-  if (isNaN(second) || (second < 10 && secondString[0] !== '0')) {
-    return undefined
-  }
-
-  return new Date(Date.UTC(year, monthIdx, day, hour, minute, second))
+  const result = new Date(Date.UTC(year, monthIdx, day, hour, minute, second));
+  return result.getUTCDay() === weekday ? result : undefined
 }
 
 /**
@@ -17654,154 +20929,422 @@ function parseImfDate (date) {
 function parseAscTimeDate (date) {
   // This is assumed to be in UTC
 
-  if (date.length !== 24) {
+  if (
+    date.length !== 24 ||
+    date[7] !== ' ' ||
+    date[10] !== ' ' ||
+    date[19] !== ' '
+  ) {
     return undefined
   }
 
-  for (const spaceIdx of ASCTIME_SPACES) {
-    if (date[spaceIdx] !== ' ') {
-      return undefined
+  let weekday = -1;
+  if (date[0] === 'S' && date[1] === 'u' && date[2] === 'n') { // Sunday
+    weekday = 0;
+  } else if (date[0] === 'M' && date[1] === 'o' && date[2] === 'n') { // Monday
+    weekday = 1;
+  } else if (date[0] === 'T' && date[1] === 'u' && date[2] === 'e') { // Tuesday
+    weekday = 2;
+  } else if (date[0] === 'W' && date[1] === 'e' && date[2] === 'd') { // Wednesday
+    weekday = 3;
+  } else if (date[0] === 'T' && date[1] === 'h' && date[2] === 'u') { // Thursday
+    weekday = 4;
+  } else if (date[0] === 'F' && date[1] === 'r' && date[2] === 'i') { // Friday
+    weekday = 5;
+  } else if (date[0] === 'S' && date[1] === 'a' && date[2] === 't') { // Saturday
+    weekday = 6;
+  } else {
+    return undefined // Not a valid day of the week
+  }
+
+  let monthIdx = -1;
+  if (
+    (date[4] === 'J' && date[5] === 'a' && date[6] === 'n')
+  ) {
+    monthIdx = 0; // Jan
+  } else if (
+    (date[4] === 'F' && date[5] === 'e' && date[6] === 'b')
+  ) {
+    monthIdx = 1; // Feb
+  } else if (
+    (date[4] === 'M' && date[5] === 'a')
+  ) {
+    if (date[6] === 'r') {
+      monthIdx = 2; // Mar
+    } else if (date[6] === 'y') {
+      monthIdx = 4; // May
+    } else {
+      return undefined // Invalid month
     }
-  }
-
-  const dayName = date.substring(0, 3);
-  if (!IMF_DAYS.includes(dayName)) {
+  } else if (
+    (date[4] === 'J')
+  ) {
+    if (date[5] === 'a' && date[6] === 'n') {
+      monthIdx = 0; // Jan
+    } else if (date[5] === 'u') {
+      if (date[6] === 'n') {
+        monthIdx = 5; // Jun
+      } else if (date[6] === 'l') {
+        monthIdx = 6; // Jul
+      } else {
+        return undefined // Invalid month
+      }
+    } else {
+      return undefined // Invalid month
+    }
+  } else if (
+    (date[4] === 'A')
+  ) {
+    if (date[5] === 'p' && date[6] === 'r') {
+      monthIdx = 3; // Apr
+    } else if (date[5] === 'u' && date[6] === 'g') {
+      monthIdx = 7; // Aug
+    } else {
+      return undefined // Invalid month
+    }
+  } else if (
+    (date[4] === 'S' && date[5] === 'e' && date[6] === 'p')
+  ) {
+    monthIdx = 8; // Sep
+  } else if (
+    (date[4] === 'O' && date[5] === 'c' && date[6] === 't')
+  ) {
+    monthIdx = 9; // Oct
+  } else if (
+    (date[4] === 'N' && date[5] === 'o' && date[6] === 'v')
+  ) {
+    monthIdx = 10; // Nov
+  } else if (
+    (date[4] === 'D' && date[5] === 'e' && date[6] === 'c')
+  ) {
+    monthIdx = 11; // Dec
+  } else {
+    // Not a valid month
     return undefined
   }
 
-  const month = date.substring(4, 7);
-  const monthIdx = IMF_MONTHS.indexOf(month);
-  if (monthIdx === -1) {
-    return undefined
+  let day = 0;
+  if (date[8] === ' ') {
+    // Single digit day, e.g. "Sun Nov 6 08:49:37 1994"
+    const code = date.charCodeAt(9);
+    if (code < 49 || code > 57) {
+      return undefined // Not a digit
+    }
+    day = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(8);
+    if (code1 < 49 || code1 > 51) {
+      return undefined // Not a digit between 1 and 3
+    }
+    const code2 = date.charCodeAt(9);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    day = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const dayString = date.substring(8, 10);
-  const day = Number.parseInt(dayString);
-  if (isNaN(day) || (day < 10 && dayString[0] !== ' ')) {
-    return undefined
+  let hour = 0;
+  if (date[11] === '0') {
+    const code = date.charCodeAt(12);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    hour = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(11);
+    if (code1 < 48 || code1 > 50) {
+      return undefined // Not a digit between 0 and 2
+    }
+    const code2 = date.charCodeAt(12);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    if (code1 === 50 && code2 > 51) {
+      return undefined // Hour cannot be greater than 23
+    }
+    hour = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const hourString = date.substring(11, 13);
-  const hour = Number.parseInt(hourString);
-  if (isNaN(hour) || (hour < 10 && hourString[0] !== '0')) {
-    return undefined
+  let minute = 0;
+  if (date[14] === '0') {
+    const code = date.charCodeAt(15);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    minute = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(14);
+    if (code1 < 48 || code1 > 53) {
+      return undefined // Not a digit between 0 and 5
+    }
+    const code2 = date.charCodeAt(15);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    minute = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const minuteString = date.substring(14, 16);
-  const minute = Number.parseInt(minuteString);
-  if (isNaN(minute) || (minute < 10 && minuteString[0] !== '0')) {
-    return undefined
+  let second = 0;
+  if (date[17] === '0') {
+    const code = date.charCodeAt(18);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    second = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(17);
+    if (code1 < 48 || code1 > 53) {
+      return undefined // Not a digit between 0 and 5
+    }
+    const code2 = date.charCodeAt(18);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    second = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const secondString = date.substring(17, 19);
-  const second = Number.parseInt(secondString);
-  if (isNaN(second) || (second < 10 && secondString[0] !== '0')) {
-    return undefined
+  const yearDigit1 = date.charCodeAt(20);
+  if (yearDigit1 < 48 || yearDigit1 > 57) {
+    return undefined // Not a digit
   }
-
-  const year = Number.parseInt(date.substring(20, 24));
-  if (isNaN(year)) {
-    return undefined
+  const yearDigit2 = date.charCodeAt(21);
+  if (yearDigit2 < 48 || yearDigit2 > 57) {
+    return undefined // Not a digit
   }
+  const yearDigit3 = date.charCodeAt(22);
+  if (yearDigit3 < 48 || yearDigit3 > 57) {
+    return undefined // Not a digit
+  }
+  const yearDigit4 = date.charCodeAt(23);
+  if (yearDigit4 < 48 || yearDigit4 > 57) {
+    return undefined // Not a digit
+  }
+  const year = (yearDigit1 - 48) * 1000 + (yearDigit2 - 48) * 100 + (yearDigit3 - 48) * 10 + (yearDigit4 - 48);
 
-  return new Date(Date.UTC(year, monthIdx, day, hour, minute, second))
+  const result = new Date(Date.UTC(year, monthIdx, day, hour, minute, second));
+  return result.getUTCDay() === weekday ? result : undefined
 }
 
 /**
  * @see https://httpwg.org/specs/rfc9110.html#obsolete.date.formats
  *
  * @param {string} date
- * @param {Date} [now]
  * @returns {Date | undefined}
  */
-function parseRfc850Date (date, now = new Date()) {
-  if (!date.endsWith('gmt')) {
-    // Unsupported timezone
-    return undefined
-  }
+function parseRfc850Date (date) {
+  let commaIndex = -1;
 
-  const commaIndex = date.indexOf(',');
-  if (commaIndex === -1) {
-    return undefined
-  }
-
-  if ((date.length - commaIndex - 1) !== 23) {
-    return undefined
-  }
-
-  const dayName = date.substring(0, commaIndex);
-  if (!RFC850_DAYS.includes(dayName)) {
+  let weekday = -1;
+  if (date[0] === 'S') {
+    if (date[1] === 'u' && date[2] === 'n' && date[3] === 'd' && date[4] === 'a' && date[5] === 'y') {
+      weekday = 0; // Sunday
+      commaIndex = 6;
+    } else if (date[1] === 'a' && date[2] === 't' && date[3] === 'u' && date[4] === 'r' && date[5] === 'd' && date[6] === 'a' && date[7] === 'y') {
+      weekday = 6; // Saturday
+      commaIndex = 8;
+    }
+  } else if (date[0] === 'M' && date[1] === 'o' && date[2] === 'n' && date[3] === 'd' && date[4] === 'a' && date[5] === 'y') {
+    weekday = 1; // Monday
+    commaIndex = 6;
+  } else if (date[0] === 'T') {
+    if (date[1] === 'u' && date[2] === 'e' && date[3] === 's' && date[4] === 'd' && date[5] === 'a' && date[6] === 'y') {
+      weekday = 2; // Tuesday
+      commaIndex = 7;
+    } else if (date[1] === 'h' && date[2] === 'u' && date[3] === 'r' && date[4] === 's' && date[5] === 'd' && date[6] === 'a' && date[7] === 'y') {
+      weekday = 4; // Thursday
+      commaIndex = 8;
+    }
+  } else if (date[0] === 'W' && date[1] === 'e' && date[2] === 'd' && date[3] === 'n' && date[4] === 'e' && date[5] === 's' && date[6] === 'd' && date[7] === 'a' && date[8] === 'y') {
+    weekday = 3; // Wednesday
+    commaIndex = 9;
+  } else if (date[0] === 'F' && date[1] === 'r' && date[2] === 'i' && date[3] === 'd' && date[4] === 'a' && date[5] === 'y') {
+    weekday = 5; // Friday
+    commaIndex = 6;
+  } else {
+    // Not a valid day name
     return undefined
   }
 
   if (
+    date[commaIndex] !== ',' ||
+    (date.length - commaIndex - 1) !== 23 ||
     date[commaIndex + 1] !== ' ' ||
     date[commaIndex + 4] !== '-' ||
     date[commaIndex + 8] !== '-' ||
     date[commaIndex + 11] !== ' ' ||
     date[commaIndex + 14] !== ':' ||
     date[commaIndex + 17] !== ':' ||
-    date[commaIndex + 20] !== ' '
+    date[commaIndex + 20] !== ' ' ||
+    date[commaIndex + 21] !== 'G' ||
+    date[commaIndex + 22] !== 'M' ||
+    date[commaIndex + 23] !== 'T'
   ) {
     return undefined
   }
 
-  const dayString = date.substring(commaIndex + 2, commaIndex + 4);
-  const day = Number.parseInt(dayString);
-  if (isNaN(day) || (day < 10 && dayString[0] !== '0')) {
-    // Not a number, or it's less than 10 and didn't start with a 0
-    return undefined
-  }
-
-  const month = date.substring(commaIndex + 5, commaIndex + 8);
-  const monthIdx = IMF_MONTHS.indexOf(month);
-  if (monthIdx === -1) {
-    return undefined
-  }
-
-  // As of this point year is just the decade (i.e. 94)
-  let year = Number.parseInt(date.substring(commaIndex + 9, commaIndex + 11));
-  if (isNaN(year)) {
-    return undefined
-  }
-
-  const currentYear = now.getUTCFullYear();
-  const currentDecade = currentYear % 100;
-  const currentCentury = Math.floor(currentYear / 100);
-
-  if (year > currentDecade && year - currentDecade >= 50) {
-    // Over 50 years in future, go to previous century
-    year += (currentCentury - 1) * 100;
+  let day = 0;
+  if (date[commaIndex + 2] === '0') {
+    // Single digit day, e.g. "Sun Nov 6 08:49:37 1994"
+    const code = date.charCodeAt(commaIndex + 3);
+    if (code < 49 || code > 57) {
+      return undefined // Not a digit
+    }
+    day = code - 48; // Convert ASCII code to number
   } else {
-    year += currentCentury * 100;
+    const code1 = date.charCodeAt(commaIndex + 2);
+    if (code1 < 49 || code1 > 51) {
+      return undefined // Not a digit between 1 and 3
+    }
+    const code2 = date.charCodeAt(commaIndex + 3);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    day = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  const hourString = date.substring(commaIndex + 12, commaIndex + 14);
-  const hour = Number.parseInt(hourString);
-  if (isNaN(hour) || (hour < 10 && hourString[0] !== '0')) {
+  let monthIdx = -1;
+  if (
+    (date[commaIndex + 5] === 'J' && date[commaIndex + 6] === 'a' && date[commaIndex + 7] === 'n')
+  ) {
+    monthIdx = 0; // Jan
+  } else if (
+    (date[commaIndex + 5] === 'F' && date[commaIndex + 6] === 'e' && date[commaIndex + 7] === 'b')
+  ) {
+    monthIdx = 1; // Feb
+  } else if (
+    (date[commaIndex + 5] === 'M' && date[commaIndex + 6] === 'a' && date[commaIndex + 7] === 'r')
+  ) {
+    monthIdx = 2; // Mar
+  } else if (
+    (date[commaIndex + 5] === 'A' && date[commaIndex + 6] === 'p' && date[commaIndex + 7] === 'r')
+  ) {
+    monthIdx = 3; // Apr
+  } else if (
+    (date[commaIndex + 5] === 'M' && date[commaIndex + 6] === 'a' && date[commaIndex + 7] === 'y')
+  ) {
+    monthIdx = 4; // May
+  } else if (
+    (date[commaIndex + 5] === 'J' && date[commaIndex + 6] === 'u' && date[commaIndex + 7] === 'n')
+  ) {
+    monthIdx = 5; // Jun
+  } else if (
+    (date[commaIndex + 5] === 'J' && date[commaIndex + 6] === 'u' && date[commaIndex + 7] === 'l')
+  ) {
+    monthIdx = 6; // Jul
+  } else if (
+    (date[commaIndex + 5] === 'A' && date[commaIndex + 6] === 'u' && date[commaIndex + 7] === 'g')
+  ) {
+    monthIdx = 7; // Aug
+  } else if (
+    (date[commaIndex + 5] === 'S' && date[commaIndex + 6] === 'e' && date[commaIndex + 7] === 'p')
+  ) {
+    monthIdx = 8; // Sep
+  } else if (
+    (date[commaIndex + 5] === 'O' && date[commaIndex + 6] === 'c' && date[commaIndex + 7] === 't')
+  ) {
+    monthIdx = 9; // Oct
+  } else if (
+    (date[commaIndex + 5] === 'N' && date[commaIndex + 6] === 'o' && date[commaIndex + 7] === 'v')
+  ) {
+    monthIdx = 10; // Nov
+  } else if (
+    (date[commaIndex + 5] === 'D' && date[commaIndex + 6] === 'e' && date[commaIndex + 7] === 'c')
+  ) {
+    monthIdx = 11; // Dec
+  } else {
+    // Not a valid month
     return undefined
   }
 
-  const minuteString = date.substring(commaIndex + 15, commaIndex + 17);
-  const minute = Number.parseInt(minuteString);
-  if (isNaN(minute) || (minute < 10 && minuteString[0] !== '0')) {
-    return undefined
+  const yearDigit1 = date.charCodeAt(commaIndex + 9);
+  if (yearDigit1 < 48 || yearDigit1 > 57) {
+    return undefined // Not a digit
+  }
+  const yearDigit2 = date.charCodeAt(commaIndex + 10);
+  if (yearDigit2 < 48 || yearDigit2 > 57) {
+    return undefined // Not a digit
   }
 
-  const secondString = date.substring(commaIndex + 18, commaIndex + 20);
-  const second = Number.parseInt(secondString);
-  if (isNaN(second) || (second < 10 && secondString[0] !== '0')) {
-    return undefined
+  let year = (yearDigit1 - 48) * 10 + (yearDigit2 - 48); // Convert ASCII codes to number
+
+  // RFC 6265 states that the year is in the range 1970-2069.
+  // @see https://datatracker.ietf.org/doc/html/rfc6265#section-5.1.1
+  //
+  // 3. If the year-value is greater than or equal to 70 and less than or
+  //    equal to 99, increment the year-value by 1900.
+  // 4. If the year-value is greater than or equal to 0 and less than or
+  //    equal to 69, increment the year-value by 2000.
+  year += year < 70 ? 2000 : 1900;
+
+  let hour = 0;
+  if (date[commaIndex + 12] === '0') {
+    const code = date.charCodeAt(commaIndex + 13);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    hour = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(commaIndex + 12);
+    if (code1 < 48 || code1 > 50) {
+      return undefined // Not a digit between 0 and 2
+    }
+    const code2 = date.charCodeAt(commaIndex + 13);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    if (code1 === 50 && code2 > 51) {
+      return undefined // Hour cannot be greater than 23
+    }
+    hour = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
   }
 
-  return new Date(Date.UTC(year, monthIdx, day, hour, minute, second))
+  let minute = 0;
+  if (date[commaIndex + 15] === '0') {
+    const code = date.charCodeAt(commaIndex + 16);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    minute = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(commaIndex + 15);
+    if (code1 < 48 || code1 > 53) {
+      return undefined // Not a digit between 0 and 5
+    }
+    const code2 = date.charCodeAt(commaIndex + 16);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    minute = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
+  }
+
+  let second = 0;
+  if (date[commaIndex + 18] === '0') {
+    const code = date.charCodeAt(commaIndex + 19);
+    if (code < 48 || code > 57) {
+      return undefined // Not a digit
+    }
+    second = code - 48; // Convert ASCII code to number
+  } else {
+    const code1 = date.charCodeAt(commaIndex + 18);
+    if (code1 < 48 || code1 > 53) {
+      return undefined // Not a digit between 0 and 5
+    }
+    const code2 = date.charCodeAt(commaIndex + 19);
+    if (code2 < 48 || code2 > 57) {
+      return undefined // Not a digit
+    }
+    second = (code1 - 48) * 10 + (code2 - 48); // Convert ASCII codes to number
+  }
+
+  const result = new Date(Date.UTC(year, monthIdx, day, hour, minute, second));
+  return result.getUTCDay() === weekday ? result : undefined
 }
 
 var date = {
   parseHttpDate: parseHttpDate$1
 };
 
-const util$6 = util$n;
+const util$6 = util$o;
 const {
   parseCacheControlHeader: parseCacheControlHeader$1,
   parseVaryHeader,
@@ -17814,6 +21357,15 @@ function noop () {}
 // Status codes that we can use some heuristics on to cache
 const HEURISTICALLY_CACHEABLE_STATUS_CODES = [
   200, 203, 204, 206, 300, 301, 308, 404, 405, 410, 414, 501
+];
+
+// Status codes which semantic is not handled by the cache
+// https://datatracker.ietf.org/doc/html/rfc9111#section-3
+// This list should not grow beyond 206 unless the RFC is updated
+// by a newer one including more. Please introduce another list if
+// implementing caching of responses with the 'must-understand' directive.
+const NOT_UNDERSTOOD_STATUS_CODES = [
+  206
 ];
 
 const MAX_RESPONSE_AGE = 2147483647000;
@@ -17896,6 +21448,7 @@ let CacheHandler$1 = class CacheHandler {
         resHeaders,
         statusMessage
       );
+    const handler = this;
 
     if (
       !util$6.safeHTTPMethods.includes(this.#cacheKey.method) &&
@@ -17981,36 +21534,127 @@ let CacheHandler$1 = class CacheHandler {
       deleteAt
     };
 
-    if (typeof resHeaders.etag === 'string' && isEtagUsable(resHeaders.etag)) {
-      value.etag = resHeaders.etag;
-    }
-
-    this.#writeStream = this.#store.createWriteStream(this.#cacheKey, value);
-    if (!this.#writeStream) {
-      return downstreamOnHeaders()
-    }
-
-    const handler = this;
-    this.#writeStream
-      .on('drain', () => controller.resume())
-      .on('error', function () {
-        // TODO (fix): Make error somehow observable?
-        handler.#writeStream = undefined;
-
-        // Delete the value in case the cache store is holding onto state from
-        //  the call to createWriteStream
-        handler.#store.delete(handler.#cacheKey);
-      })
-      .on('close', function () {
-        if (handler.#writeStream === this) {
-          handler.#writeStream = undefined;
+    // Not modified, re-use the cached value
+    // https://www.rfc-editor.org/rfc/rfc9111.html#name-handling-304-not-modified
+    if (statusCode === 304) {
+      const handle304 = (cachedValue) => {
+        if (!cachedValue) {
+          // Do not create a new cache entry, as a 304 won't have a body - so cannot be cached.
+          return downstreamOnHeaders()
         }
 
-        // TODO (fix): Should we resume even if was paused downstream?
-        controller.resume();
-      });
+        // Re-use the cached value: statuscode, statusmessage, headers and body
+        value.statusCode = cachedValue.statusCode;
+        value.statusMessage = cachedValue.statusMessage;
+        value.etag = cachedValue.etag;
+        value.headers = { ...cachedValue.headers, ...strippedHeaders };
 
-    return downstreamOnHeaders()
+        downstreamOnHeaders();
+
+        this.#writeStream = this.#store.createWriteStream(this.#cacheKey, value);
+
+        if (!this.#writeStream || !cachedValue?.body) {
+          return
+        }
+
+        if (typeof cachedValue.body.values === 'function') {
+          const bodyIterator = cachedValue.body.values();
+
+          const streamCachedBody = () => {
+            for (const chunk of bodyIterator) {
+              const full = this.#writeStream.write(chunk) === false;
+              this.#handler.onResponseData?.(controller, chunk);
+              // when stream is full stop writing until we get a 'drain' event
+              if (full) {
+                break
+              }
+            }
+          };
+
+          this.#writeStream
+            .on('error', function () {
+              handler.#writeStream = undefined;
+              handler.#store.delete(handler.#cacheKey);
+            })
+            .on('drain', () => {
+              streamCachedBody();
+            })
+            .on('close', function () {
+              if (handler.#writeStream === this) {
+                handler.#writeStream = undefined;
+              }
+            });
+
+          streamCachedBody();
+        } else if (typeof cachedValue.body.on === 'function') {
+          // Readable stream body (e.g. from async/remote cache stores)
+          cachedValue.body
+            .on('data', (chunk) => {
+              this.#writeStream.write(chunk);
+              this.#handler.onResponseData?.(controller, chunk);
+            })
+            .on('end', () => {
+              this.#writeStream.end();
+            })
+            .on('error', () => {
+              this.#writeStream = undefined;
+              this.#store.delete(this.#cacheKey);
+            });
+
+          this.#writeStream
+            .on('error', function () {
+              handler.#writeStream = undefined;
+              handler.#store.delete(handler.#cacheKey);
+            })
+            .on('close', function () {
+              if (handler.#writeStream === this) {
+                handler.#writeStream = undefined;
+              }
+            });
+        }
+      };
+
+      /**
+       * @type {import('../../types/cache-interceptor.d.ts').default.CacheValue}
+       */
+      const result = this.#store.get(this.#cacheKey);
+      if (result && typeof result.then === 'function') {
+        result.then(handle304);
+      } else {
+        handle304(result);
+      }
+    } else {
+      if (typeof resHeaders.etag === 'string' && isEtagUsable(resHeaders.etag)) {
+        value.etag = resHeaders.etag;
+      }
+
+      this.#writeStream = this.#store.createWriteStream(this.#cacheKey, value);
+
+      if (!this.#writeStream) {
+        return downstreamOnHeaders()
+      }
+
+      this.#writeStream
+        .on('drain', () => controller.resume())
+        .on('error', function () {
+          // TODO (fix): Make error somehow observable?
+          handler.#writeStream = undefined;
+
+          // Delete the value in case the cache store is holding onto state from
+          //  the call to createWriteStream
+          handler.#store.delete(handler.#cacheKey);
+        })
+        .on('close', function () {
+          if (handler.#writeStream === this) {
+            handler.#writeStream = undefined;
+          }
+
+          // TODO (fix): Should we resume even if was paused downstream?
+          controller.resume();
+        });
+
+      downstreamOnHeaders();
+    }
   }
 
   onResponseData (controller, chunk) {
@@ -18042,7 +21686,19 @@ let CacheHandler$1 = class CacheHandler {
  * @param {import('../../types/cache-interceptor.d.ts').default.CacheControlDirectives} cacheControlDirectives
  */
 function canCacheResponse (cacheType, statusCode, resHeaders, cacheControlDirectives) {
-  if (statusCode !== 200 && statusCode !== 307) {
+  // Status code must be final and understood.
+  if (statusCode < 200 || NOT_UNDERSTOOD_STATUS_CODES.includes(statusCode)) {
+    return false
+  }
+  // Responses with neither status codes that are heuristically cacheable, nor "explicit enough" caching
+  // directives, are not cacheable. "Explicit enough": see https://www.rfc-editor.org/rfc/rfc9111.html#section-3
+  if (!HEURISTICALLY_CACHEABLE_STATUS_CODES.includes(statusCode) && !resHeaders['expires'] &&
+    !cacheControlDirectives.public &&
+    cacheControlDirectives['max-age'] === undefined &&
+    // RFC 9111: a private response directive, if the cache is not shared
+    !(cacheControlDirectives.private && cacheType === 'private') &&
+    !(cacheControlDirectives['s-maxage'] !== undefined && cacheType === 'shared')
+  ) {
     return false
   }
 
@@ -18248,9 +21904,9 @@ function isValidDate (date) {
 
 var cacheHandler = CacheHandler$1;
 
-const { Writable } = require$$0$1;
-const { EventEmitter } = require$$7;
-const { assertCacheKey, assertCacheValue } = cache$2;
+const { Writable: Writable$1 } = require$$0$1;
+const { EventEmitter } = require$$0;
+const { assertCacheKey: assertCacheKey$1, assertCacheValue: assertCacheValue$1 } = cache$2;
 
 /**
  * @typedef {import('../../types/cache-interceptor.d.ts').default.CacheKey} CacheKey
@@ -18339,7 +21995,7 @@ let MemoryCacheStore$1 = class MemoryCacheStore extends EventEmitter {
    * @returns {import('../../types/cache-interceptor.d.ts').default.GetResult | undefined}
    */
   get (key) {
-    assertCacheKey(key);
+    assertCacheKey$1(key);
 
     const topLevelKey = `${key.origin}:${key.path}`;
 
@@ -18370,15 +22026,15 @@ let MemoryCacheStore$1 = class MemoryCacheStore extends EventEmitter {
    * @returns {Writable | undefined}
    */
   createWriteStream (key, val) {
-    assertCacheKey(key);
-    assertCacheValue(val);
+    assertCacheKey$1(key);
+    assertCacheValue$1(val);
 
     const topLevelKey = `${key.origin}:${key.path}`;
 
     const store = this;
     const entry = { ...key, ...val, body: [], size: 0 };
 
-    return new Writable({
+    return new Writable$1({
       write (chunk, encoding, callback) {
         if (typeof chunk === 'string') {
           chunk = Buffer.from(chunk, encoding);
@@ -18606,12 +22262,31 @@ var cacheRevalidationHandler = CacheRevalidationHandler$1;
 
 const assert = require$$0$2;
 const { Readable } = require$$0$1;
-const util$5 = util$n;
+const util$5 = util$o;
 const CacheHandler = cacheHandler;
 const MemoryCacheStore = memoryCacheStore;
 const CacheRevalidationHandler = cacheRevalidationHandler;
-const { assertCacheStore, assertCacheMethods, makeCacheKey, normaliseHeaders, parseCacheControlHeader } = cache$2;
-const { AbortError } = errors$1;
+const { assertCacheStore, assertCacheMethods, makeCacheKey: makeCacheKey$1, normalizeHeaders: normalizeHeaders$1, parseCacheControlHeader } = cache$2;
+const { AbortError } = errors;
+
+/**
+ * @param {(string | RegExp)[] | undefined} origins
+ * @param {string} name
+ */
+function assertCacheOrigins (origins, name) {
+  if (origins === undefined) return
+  if (!Array.isArray(origins)) {
+    throw new TypeError(`expected ${name} to be an array or undefined, got ${typeof origins}`)
+  }
+  for (let i = 0; i < origins.length; i++) {
+    const origin = origins[i];
+    if (typeof origin !== 'string' && !(origin instanceof RegExp)) {
+      throw new TypeError(`expected ${name}[${i}] to be a string or RegExp, got ${typeof origin}`)
+    }
+  }
+}
+
+const nop = () => {};
 
 /**
  * @typedef {(options: import('../../types/dispatcher.d.ts').default.DispatchOptions, handler: import('../../types/dispatcher.d.ts').default.DispatchHandler) => void} DispatchFn
@@ -18620,19 +22295,34 @@ const { AbortError } = errors$1;
 /**
  * @param {import('../../types/cache-interceptor.d.ts').default.GetResult} result
  * @param {import('../../types/cache-interceptor.d.ts').default.CacheControlDirectives | undefined} cacheControlDirectives
+ * @param {import('../../types/dispatcher.d.ts').default.RequestOptions} opts
  * @returns {boolean}
  */
-function needsRevalidation (result, cacheControlDirectives) {
+function needsRevalidation (result, cacheControlDirectives, { headers = {} }) {
+  // Always revalidate requests with the no-cache request directive.
   if (cacheControlDirectives?.['no-cache']) {
-    // Always revalidate requests with the no-cache request directive
     return true
   }
 
+  // Always revalidate requests with unqualified no-cache response directive.
   if (result.cacheControlDirectives?.['no-cache'] && !Array.isArray(result.cacheControlDirectives['no-cache'])) {
-    // Always revalidate requests with unqualified no-cache response directive
     return true
   }
 
+  // Always revalidate requests with conditional headers.
+  if (headers['if-modified-since'] || headers['if-none-match']) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * @param {import('../../types/cache-interceptor.d.ts').default.GetResult} result
+ * @param {import('../../types/cache-interceptor.d.ts').default.CacheControlDirectives | undefined} cacheControlDirectives
+ * @returns {boolean}
+ */
+function isStale (result, cacheControlDirectives) {
   const now = Date.now();
   if (now > result.staleAt) {
     // Response is stale
@@ -18658,6 +22348,22 @@ function needsRevalidation (result, cacheControlDirectives) {
   }
 
   return false
+}
+
+/**
+ * Check if we're within the stale-while-revalidate window for a stale response
+ * @param {import('../../types/cache-interceptor.d.ts').default.GetResult} result
+ * @returns {boolean}
+ */
+function withinStaleWhileRevalidateWindow (result) {
+  const staleWhileRevalidate = result.cacheControlDirectives?.['stale-while-revalidate'];
+  if (!staleWhileRevalidate) {
+    return false
+  }
+
+  const now = Date.now();
+  const staleWhileRevalidateExpiry = result.staleAt + (staleWhileRevalidate * 1000);
+  return now <= staleWhileRevalidateExpiry
 }
 
 /**
@@ -18690,7 +22396,7 @@ function handleUncachedResponse (
       }
 
       if (typeof handler.onHeaders === 'function') {
-        handler.onHeaders(504, [], () => {}, 'Gateway Timeout');
+        handler.onHeaders(504, [], nop, 'Gateway Timeout');
         if (aborted) {
           return
         }
@@ -18827,12 +22533,61 @@ function handleResult (
     return dispatch(opts, handler)
   }
 
+  const stale = isStale(result, reqCacheControl);
+  const revalidate = needsRevalidation(result, reqCacheControl, opts);
+
   // Check if the response is stale
-  if (needsRevalidation(result, reqCacheControl)) {
+  if (stale || revalidate) {
     if (util$5.isStream(opts.body) && util$5.bodyLength(opts.body) !== 0) {
       // If body is a stream we can't revalidate...
       // TODO (fix): This could be less strict...
       return dispatch(opts, new CacheHandler(globalOpts, cacheKey, handler))
+    }
+
+    // RFC 5861: If we're within stale-while-revalidate window, serve stale immediately
+    // and revalidate in background, unless immediate revalidation is necessary
+    if (!revalidate && withinStaleWhileRevalidateWindow(result)) {
+      // Serve stale response immediately
+      sendCachedValue(handler, opts, result, age, null, true);
+
+      // Start background revalidation (fire-and-forget)
+      queueMicrotask(() => {
+        const headers = {
+          ...opts.headers,
+          'if-modified-since': new Date(result.cachedAt).toUTCString()
+        };
+
+        if (result.etag) {
+          headers['if-none-match'] = result.etag;
+        }
+
+        if (result.vary) {
+          for (const key in result.vary) {
+            if (result.vary[key] != null) {
+              headers[key] = result.vary[key];
+            }
+          }
+        }
+
+        // Background revalidation - update cache if we get new data
+        dispatch(
+          {
+            ...opts,
+            headers
+          },
+          new CacheHandler(globalOpts, cacheKey, {
+            // Silent handler that just updates the cache
+            onRequestStart () {},
+            onRequestUpgrade () {},
+            onResponseStart () {},
+            onResponseData () {},
+            onResponseEnd () {},
+            onResponseError () {}
+          })
+        );
+      });
+
+      return true
     }
 
     let withinStaleIfErrorThreshold = false;
@@ -18841,7 +22596,7 @@ function handleResult (
       withinStaleIfErrorThreshold = now < (result.staleAt + (staleIfErrorExpiry * 1000));
     }
 
-    let headers = {
+    const headers = {
       ...opts.headers,
       'if-modified-since': new Date(result.cachedAt).toUTCString()
     };
@@ -18851,10 +22606,11 @@ function handleResult (
     }
 
     if (result.vary) {
-      headers = {
-        ...headers,
-        ...result.vary
-      };
+      for (const key in result.vary) {
+        if (result.vary[key] != null) {
+          headers[key] = result.vary[key];
+        }
+      }
     }
 
     // We need to revalidate the response
@@ -18866,9 +22622,10 @@ function handleResult (
       new CacheRevalidationHandler(
         (success, context) => {
           if (success) {
-            sendCachedValue(handler, opts, result, age, context, true);
+            // TODO: successful revalidation should be considered fresh (not give stale warning).
+            sendCachedValue(handler, opts, result, age, context, stale);
           } else if (util$5.isStream(result.body)) {
-            result.body.on('error', () => {}).destroy();
+            result.body.on('error', nop).destroy();
           }
         },
         new CacheHandler(globalOpts, cacheKey, handler),
@@ -18879,7 +22636,7 @@ function handleResult (
 
   // Dump request body.
   if (util$5.isStream(opts.body)) {
-    opts.body.on('error', () => {}).destroy();
+    opts.body.on('error', nop).destroy();
   }
 
   sendCachedValue(handler, opts, result, age, null, false);
@@ -18894,7 +22651,8 @@ var cache$1 = (opts = {}) => {
     store = new MemoryCacheStore(),
     methods = ['GET'],
     cacheByDefault = undefined,
-    type = 'shared'
+    type = 'shared',
+    origins = undefined
   } = opts;
 
   if (typeof opts !== 'object' || opts === null) {
@@ -18903,13 +22661,14 @@ var cache$1 = (opts = {}) => {
 
   assertCacheStore(store, 'opts.store');
   assertCacheMethods(methods, 'opts.methods');
+  assertCacheOrigins(origins, 'opts.origins');
 
   if (typeof cacheByDefault !== 'undefined' && typeof cacheByDefault !== 'number') {
-    throw new TypeError(`exepcted opts.cacheByDefault to be number or undefined, got ${typeof cacheByDefault}`)
+    throw new TypeError(`expected opts.cacheByDefault to be number or undefined, got ${typeof cacheByDefault}`)
   }
 
   if (typeof type !== 'undefined' && type !== 'shared' && type !== 'private') {
-    throw new TypeError(`exepcted opts.type to be shared, private, or undefined, got ${typeof type}`)
+    throw new TypeError(`expected opts.type to be shared, private, or undefined, got ${typeof type}`)
   }
 
   const globalOpts = {
@@ -18928,9 +22687,32 @@ var cache$1 = (opts = {}) => {
         return dispatch(opts, handler)
       }
 
+      // Check if origin is in whitelist
+      if (origins !== undefined) {
+        const requestOrigin = opts.origin.toString().toLowerCase();
+        let isAllowed = false;
+
+        for (let i = 0; i < origins.length; i++) {
+          const allowed = origins[i];
+          if (typeof allowed === 'string') {
+            if (allowed.toLowerCase() === requestOrigin) {
+              isAllowed = true;
+              break
+            }
+          } else if (allowed.test(requestOrigin)) {
+            isAllowed = true;
+            break
+          }
+        }
+
+        if (!isAllowed) {
+          return dispatch(opts, handler)
+        }
+      }
+
       opts = {
         ...opts,
-        headers: normaliseHeaders(opts)
+        headers: normalizeHeaders$1(opts)
       };
 
       const reqCacheControl = opts.headers?.['cache-control']
@@ -18944,22 +22726,21 @@ var cache$1 = (opts = {}) => {
       /**
        * @type {import('../../types/cache-interceptor.d.ts').default.CacheKey}
        */
-      const cacheKey = makeCacheKey(opts);
+      const cacheKey = makeCacheKey$1(opts);
       const result = store.get(cacheKey);
 
       if (result && typeof result.then === 'function') {
-        result.then(result => {
-          handleResult(dispatch,
+        return result
+          .then(result => handleResult(dispatch,
             globalOpts,
             cacheKey,
             handler,
             opts,
             reqCacheControl,
             result
-          );
-        });
+          ))
       } else {
-        handleResult(
+        return handleResult(
           dispatch,
           globalOpts,
           cacheKey,
@@ -18967,13 +22748,1304 @@ var cache$1 = (opts = {}) => {
           opts,
           reqCacheControl,
           result
-        );
+        )
       }
-
-      return true
     }
   }
 };
+
+const { createInflate, createGunzip, createBrotliDecompress, createZstdDecompress } = require$$0$6;
+const { pipeline } = require$$0$1;
+const DecoratorHandler = decoratorHandler;
+const { runtimeFeatures } = runtimeFeatures$2;
+
+/** @typedef {import('node:stream').Transform} Transform */
+/** @typedef {import('node:stream').Transform} Controller */
+/** @typedef {Transform&import('node:zlib').Zlib} DecompressorStream */
+
+/** @type {Record<string, () => DecompressorStream>} */
+const supportedEncodings = {
+  gzip: createGunzip,
+  'x-gzip': createGunzip,
+  br: createBrotliDecompress,
+  deflate: createInflate,
+  compress: createInflate,
+  'x-compress': createInflate,
+  ...(runtimeFeatures.has('zstd') ? { zstd: createZstdDecompress } : {})
+};
+
+const defaultSkipStatusCodes = /** @type {const} */ ([204, 304]);
+
+let warningEmitted = /** @type {boolean} */ (false);
+
+/**
+ * @typedef {Object} DecompressHandlerOptions
+ * @property {number[]|Readonly<number[]>} [skipStatusCodes=[204, 304]] - List of status codes to skip decompression for
+ * @property {boolean} [skipErrorResponses] - Whether to skip decompression for error responses (status codes >= 400)
+ */
+
+class DecompressHandler extends DecoratorHandler {
+  /** @type {Transform[]} */
+  #decompressors = []
+  /** @type {Readonly<number[]>} */
+  #skipStatusCodes
+  /** @type {boolean} */
+  #skipErrorResponses
+
+  constructor (handler, { skipStatusCodes = defaultSkipStatusCodes, skipErrorResponses = true } = {}) {
+    super(handler);
+    this.#skipStatusCodes = skipStatusCodes;
+    this.#skipErrorResponses = skipErrorResponses;
+  }
+
+  /**
+   * Determines if decompression should be skipped based on encoding and status code
+   * @param {string} contentEncoding - Content-Encoding header value
+   * @param {number} statusCode - HTTP status code of the response
+   * @returns {boolean} - True if decompression should be skipped
+   */
+  #shouldSkipDecompression (contentEncoding, statusCode) {
+    if (!contentEncoding || statusCode < 200) return true
+    if (this.#skipStatusCodes.includes(statusCode)) return true
+    if (this.#skipErrorResponses && statusCode >= 400) return true
+    return false
+  }
+
+  /**
+   * Creates a chain of decompressors for multiple content encodings
+   *
+   * @param {string} encodings - Comma-separated list of content encodings
+   * @returns {Array<DecompressorStream>} - Array of decompressor streams
+   * @throws {Error} - If the number of content-encodings exceeds the maximum allowed
+   */
+  #createDecompressionChain (encodings) {
+    const parts = encodings.split(',');
+
+    // Limit the number of content-encodings to prevent resource exhaustion.
+    // CVE fix similar to urllib3 (GHSA-gm62-xv2j-4w53) and curl (CVE-2022-32206).
+    const maxContentEncodings = 5;
+    if (parts.length > maxContentEncodings) {
+      throw new Error(`too many content-encodings in response: ${parts.length}, maximum allowed is ${maxContentEncodings}`)
+    }
+
+    /** @type {DecompressorStream[]} */
+    const decompressors = [];
+
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const encoding = parts[i].trim();
+      if (!encoding) continue
+
+      if (!supportedEncodings[encoding]) {
+        decompressors.length = 0; // Clear if unsupported encoding
+        return decompressors // Unsupported encoding
+      }
+
+      decompressors.push(supportedEncodings[encoding]());
+    }
+
+    return decompressors
+  }
+
+  /**
+   * Sets up event handlers for a decompressor stream using readable events
+   * @param {DecompressorStream} decompressor - The decompressor stream
+   * @param {Controller} controller - The controller to coordinate with
+   * @returns {void}
+   */
+  #setupDecompressorEvents (decompressor, controller) {
+    decompressor.on('readable', () => {
+      let chunk;
+      while ((chunk = decompressor.read()) !== null) {
+        const result = super.onResponseData(controller, chunk);
+        if (result === false) {
+          break
+        }
+      }
+    });
+
+    decompressor.on('error', (error) => {
+      super.onResponseError(controller, error);
+    });
+  }
+
+  /**
+   * Sets up event handling for a single decompressor
+   * @param {Controller} controller - The controller to handle events
+   * @returns {void}
+   */
+  #setupSingleDecompressor (controller) {
+    const decompressor = this.#decompressors[0];
+    this.#setupDecompressorEvents(decompressor, controller);
+
+    decompressor.on('end', () => {
+      super.onResponseEnd(controller, {});
+    });
+  }
+
+  /**
+   * Sets up event handling for multiple chained decompressors using pipeline
+   * @param {Controller} controller - The controller to handle events
+   * @returns {void}
+   */
+  #setupMultipleDecompressors (controller) {
+    const lastDecompressor = this.#decompressors[this.#decompressors.length - 1];
+    this.#setupDecompressorEvents(lastDecompressor, controller);
+
+    pipeline(this.#decompressors, (err) => {
+      if (err) {
+        super.onResponseError(controller, err);
+        return
+      }
+      super.onResponseEnd(controller, {});
+    });
+  }
+
+  /**
+   * Cleans up decompressor references to prevent memory leaks
+   * @returns {void}
+   */
+  #cleanupDecompressors () {
+    this.#decompressors.length = 0;
+  }
+
+  /**
+   * @param {Controller} controller
+   * @param {number} statusCode
+   * @param {Record<string, string | string[] | undefined>} headers
+   * @param {string} statusMessage
+   * @returns {void}
+   */
+  onResponseStart (controller, statusCode, headers, statusMessage) {
+    const contentEncoding = headers['content-encoding'];
+
+    // If content encoding is not supported or status code is in skip list
+    if (this.#shouldSkipDecompression(contentEncoding, statusCode)) {
+      return super.onResponseStart(controller, statusCode, headers, statusMessage)
+    }
+
+    const decompressors = this.#createDecompressionChain(contentEncoding.toLowerCase());
+
+    if (decompressors.length === 0) {
+      this.#cleanupDecompressors();
+      return super.onResponseStart(controller, statusCode, headers, statusMessage)
+    }
+
+    this.#decompressors = decompressors;
+
+    // Remove compression headers since we're decompressing
+    const { 'content-encoding': _, 'content-length': __, ...newHeaders } = headers;
+
+    if (this.#decompressors.length === 1) {
+      this.#setupSingleDecompressor(controller);
+    } else {
+      this.#setupMultipleDecompressors(controller);
+    }
+
+    return super.onResponseStart(controller, statusCode, newHeaders, statusMessage)
+  }
+
+  /**
+   * @param {Controller} controller
+   * @param {Buffer} chunk
+   * @returns {void}
+   */
+  onResponseData (controller, chunk) {
+    if (this.#decompressors.length > 0) {
+      this.#decompressors[0].write(chunk);
+      return
+    }
+    super.onResponseData(controller, chunk);
+  }
+
+  /**
+   * @param {Controller} controller
+   * @param {Record<string, string | string[]> | undefined} trailers
+   * @returns {void}
+   */
+  onResponseEnd (controller, trailers) {
+    if (this.#decompressors.length > 0) {
+      this.#decompressors[0].end();
+      this.#cleanupDecompressors();
+      return
+    }
+    super.onResponseEnd(controller, trailers);
+  }
+
+  /**
+   * @param {Controller} controller
+   * @param {Error} err
+   * @returns {void}
+   */
+  onResponseError (controller, err) {
+    if (this.#decompressors.length > 0) {
+      for (const decompressor of this.#decompressors) {
+        decompressor.destroy(err);
+      }
+      this.#cleanupDecompressors();
+    }
+    super.onResponseError(controller, err);
+  }
+}
+
+/**
+ * Creates a decompression interceptor for HTTP responses
+ * @param {DecompressHandlerOptions} [options] - Options for the interceptor
+ * @returns {Function} - Interceptor function
+ */
+function createDecompressInterceptor (options = {}) {
+  // Emit experimental warning only once
+  if (!warningEmitted) {
+    process.emitWarning(
+      'DecompressInterceptor is experimental and subject to change',
+      'ExperimentalWarning'
+    );
+    warningEmitted = true;
+  }
+
+  return (dispatch) => {
+    return (opts, handler) => {
+      const decompressHandler = new DecompressHandler(handler, options);
+      return dispatch(opts, decompressHandler)
+    }
+  }
+}
+
+var decompress = createDecompressInterceptor;
+
+const { RequestAbortedError } = errors;
+
+/**
+ * @typedef {import('../../types/dispatcher.d.ts').default.DispatchHandler} DispatchHandler
+ */
+
+const DEFAULT_MAX_BUFFER_SIZE = 5 * 1024 * 1024;
+
+/**
+ * @typedef {Object} WaitingHandler
+ * @property {DispatchHandler} handler
+ * @property {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+ * @property {Buffer[]} bufferedChunks
+ * @property {number} bufferedBytes
+ * @property {object | null} pendingTrailers
+ * @property {boolean} done
+ */
+
+/**
+ * Handler that forwards response events to multiple waiting handlers.
+ * Used for request deduplication.
+ *
+ * @implements {DispatchHandler}
+ */
+let DeduplicationHandler$1 = class DeduplicationHandler {
+  /**
+   * @type {DispatchHandler}
+   */
+  #primaryHandler
+
+  /**
+   * @type {WaitingHandler[]}
+   */
+  #waitingHandlers = []
+
+  /**
+   * @type {number}
+   */
+  #maxBufferSize = DEFAULT_MAX_BUFFER_SIZE
+
+  /**
+   * @type {number}
+   */
+  #statusCode = 0
+
+  /**
+   * @type {Record<string, string | string[]>}
+   */
+  #headers = {}
+
+  /**
+   * @type {string}
+   */
+  #statusMessage = ''
+
+  /**
+   * @type {boolean}
+   */
+  #aborted = false
+
+  /**
+   * @type {boolean}
+   */
+  #responseStarted = false
+
+  /**
+   * @type {boolean}
+   */
+  #responseDataStarted = false
+
+  /**
+   * @type {boolean}
+   */
+  #completed = false
+
+  /**
+   * @type {import('../../types/dispatcher.d.ts').default.DispatchController | null}
+   */
+  #controller = null
+
+  /**
+   * @type {(() => void) | null}
+   */
+  #onComplete = null
+
+  /**
+   * @param {DispatchHandler} primaryHandler The primary handler
+   * @param {() => void} onComplete Callback when request completes
+   * @param {number} [maxBufferSize] Maximum paused buffer size per waiting handler
+   */
+  constructor (primaryHandler, onComplete, maxBufferSize = DEFAULT_MAX_BUFFER_SIZE) {
+    this.#primaryHandler = primaryHandler;
+    this.#onComplete = onComplete;
+    this.#maxBufferSize = maxBufferSize;
+  }
+
+  /**
+   * Add a waiting handler that will receive response events.
+   * Returns false if deduplication can no longer safely attach this handler.
+   *
+   * @param {DispatchHandler} handler
+   * @returns {boolean}
+   */
+  addWaitingHandler (handler) {
+    if (this.#completed || this.#responseDataStarted) {
+      return false
+    }
+
+    const waitingHandler = this.#createWaitingHandler(handler);
+    const waitingController = waitingHandler.controller;
+
+    try {
+      handler.onRequestStart?.(waitingController, null);
+
+      if (waitingController.aborted) {
+        waitingHandler.done = true;
+        return true
+      }
+
+      if (this.#responseStarted) {
+        handler.onResponseStart?.(
+          waitingController,
+          this.#statusCode,
+          this.#headers,
+          this.#statusMessage
+        );
+      }
+    } catch {
+      // Ignore errors from waiting handlers
+      waitingHandler.done = true;
+      return true
+    }
+
+    if (!waitingController.aborted) {
+      this.#waitingHandlers.push(waitingHandler);
+    }
+
+    return true
+  }
+
+  /**
+   * @param {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+   * @param {any} context
+   */
+  onRequestStart (controller, context) {
+    this.#controller = controller;
+    this.#primaryHandler.onRequestStart?.(controller, context);
+  }
+
+  /**
+   * @param {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+   * @param {number} statusCode
+   * @param {import('../../types/header.d.ts').IncomingHttpHeaders} headers
+   * @param {Socket} socket
+   */
+  onRequestUpgrade (controller, statusCode, headers, socket) {
+    this.#primaryHandler.onRequestUpgrade?.(controller, statusCode, headers, socket);
+  }
+
+  /**
+   * @param {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+   * @param {number} statusCode
+   * @param {Record<string, string | string[]>} headers
+   * @param {string} statusMessage
+   */
+  onResponseStart (controller, statusCode, headers, statusMessage) {
+    this.#responseStarted = true;
+    this.#statusCode = statusCode;
+    this.#headers = headers;
+    this.#statusMessage = statusMessage;
+
+    this.#primaryHandler.onResponseStart?.(controller, statusCode, headers, statusMessage);
+
+    for (const waitingHandler of this.#waitingHandlers) {
+      const { handler, controller: waitingController } = waitingHandler;
+
+      if (waitingHandler.done || waitingController.aborted) {
+        waitingHandler.done = true;
+        continue
+      }
+
+      try {
+        handler.onResponseStart?.(
+          waitingController,
+          statusCode,
+          headers,
+          statusMessage
+        );
+      } catch {
+        // Ignore errors from waiting handlers
+      }
+
+      if (waitingController.aborted) {
+        waitingHandler.done = true;
+      }
+    }
+
+    this.#pruneDoneWaitingHandlers();
+  }
+
+  /**
+   * @param {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+   * @param {Buffer} chunk
+   */
+  onResponseData (controller, chunk) {
+    if (this.#aborted || this.#completed) {
+      return
+    }
+
+    this.#responseDataStarted = true;
+
+    this.#primaryHandler.onResponseData?.(controller, chunk);
+
+    for (const waitingHandler of this.#waitingHandlers) {
+      const { handler, controller: waitingController } = waitingHandler;
+
+      if (waitingHandler.done || waitingController.aborted) {
+        waitingHandler.done = true;
+        continue
+      }
+
+      if (waitingController.paused) {
+        this.#bufferWaitingChunk(waitingHandler, chunk);
+        continue
+      }
+
+      try {
+        handler.onResponseData?.(waitingController, chunk);
+      } catch {
+        // Ignore errors from waiting handlers
+      }
+
+      if (waitingController.aborted) {
+        waitingHandler.done = true;
+        waitingHandler.bufferedChunks = [];
+        waitingHandler.bufferedBytes = 0;
+      }
+    }
+
+    this.#pruneDoneWaitingHandlers();
+  }
+
+  /**
+   * @param {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+   * @param {object} trailers
+   */
+  onResponseEnd (controller, trailers) {
+    if (this.#aborted || this.#completed) {
+      return
+    }
+
+    this.#completed = true;
+    this.#primaryHandler.onResponseEnd?.(controller, trailers);
+
+    for (const waitingHandler of this.#waitingHandlers) {
+      if (waitingHandler.done || waitingHandler.controller.aborted) {
+        waitingHandler.done = true;
+        continue
+      }
+
+      this.#flushWaitingHandler(waitingHandler);
+
+      if (waitingHandler.done || waitingHandler.controller.aborted) {
+        waitingHandler.done = true;
+        continue
+      }
+
+      if (waitingHandler.controller.paused && waitingHandler.bufferedChunks.length > 0) {
+        waitingHandler.pendingTrailers = trailers;
+        continue
+      }
+
+      try {
+        waitingHandler.handler.onResponseEnd?.(waitingHandler.controller, trailers);
+      } catch {
+        // Ignore errors from waiting handlers
+      }
+
+      waitingHandler.done = true;
+    }
+
+    this.#pruneDoneWaitingHandlers();
+    this.#onComplete?.();
+  }
+
+  /**
+   * @param {import('../../types/dispatcher.d.ts').default.DispatchController} controller
+   * @param {Error} err
+   */
+  onResponseError (controller, err) {
+    if (this.#completed) {
+      return
+    }
+
+    this.#aborted = true;
+    this.#completed = true;
+
+    this.#primaryHandler.onResponseError?.(controller, err);
+
+    for (const waitingHandler of this.#waitingHandlers) {
+      this.#errorWaitingHandler(waitingHandler, err);
+    }
+
+    this.#waitingHandlers = [];
+    this.#onComplete?.();
+  }
+
+  /**
+   * @param {DispatchHandler} handler
+   * @returns {WaitingHandler}
+   */
+  #createWaitingHandler (handler) {
+    /** @type {WaitingHandler} */
+    const waitingHandler = {
+      handler,
+      controller: null,
+      bufferedChunks: [],
+      bufferedBytes: 0,
+      pendingTrailers: null,
+      done: false
+    };
+
+    const state = {
+      aborted: false,
+      paused: false,
+      reason: null
+    };
+
+    waitingHandler.controller = {
+      resume: () => {
+        if (state.aborted) {
+          return
+        }
+
+        state.paused = false;
+        this.#flushWaitingHandler(waitingHandler);
+
+        if (
+          this.#completed &&
+          waitingHandler.pendingTrailers &&
+          waitingHandler.bufferedChunks.length === 0 &&
+          !state.paused &&
+          !state.aborted
+        ) {
+          try {
+            waitingHandler.handler.onResponseEnd?.(waitingHandler.controller, waitingHandler.pendingTrailers);
+          } catch {
+            // Ignore errors from waiting handlers
+          }
+
+          waitingHandler.pendingTrailers = null;
+          waitingHandler.done = true;
+        }
+
+        this.#pruneDoneWaitingHandlers();
+      },
+      pause: () => {
+        if (!state.aborted) {
+          state.paused = true;
+        }
+      },
+      get paused () { return state.paused },
+      get aborted () { return state.aborted },
+      get reason () { return state.reason },
+      abort: (reason) => {
+        state.aborted = true;
+        state.reason = reason ?? null;
+        waitingHandler.done = true;
+        waitingHandler.pendingTrailers = null;
+        waitingHandler.bufferedChunks = [];
+        waitingHandler.bufferedBytes = 0;
+      }
+    };
+
+    return waitingHandler
+  }
+
+  /**
+   * @param {WaitingHandler} waitingHandler
+   * @param {Buffer} chunk
+   */
+  #bufferWaitingChunk (waitingHandler, chunk) {
+    if (waitingHandler.done || waitingHandler.controller.aborted) {
+      waitingHandler.done = true;
+      waitingHandler.bufferedChunks = [];
+      waitingHandler.bufferedBytes = 0;
+      return
+    }
+
+    const bufferedChunk = Buffer.from(chunk);
+    waitingHandler.bufferedChunks.push(bufferedChunk);
+    waitingHandler.bufferedBytes += bufferedChunk.length;
+
+    if (waitingHandler.bufferedBytes > this.#maxBufferSize) {
+      const err = new RequestAbortedError(`Deduplicated waiting handler exceeded maxBufferSize (${this.#maxBufferSize} bytes) while paused`);
+      this.#errorWaitingHandler(waitingHandler, err);
+    }
+  }
+
+  /**
+   * @param {WaitingHandler} waitingHandler
+   */
+  #flushWaitingHandler (waitingHandler) {
+    const { handler, controller } = waitingHandler;
+
+    while (
+      !waitingHandler.done &&
+      !controller.aborted &&
+      !controller.paused &&
+      waitingHandler.bufferedChunks.length > 0
+    ) {
+      const bufferedChunk = waitingHandler.bufferedChunks.shift();
+      waitingHandler.bufferedBytes -= bufferedChunk.length;
+
+      try {
+        handler.onResponseData?.(controller, bufferedChunk);
+      } catch {
+        // Ignore errors from waiting handlers
+      }
+
+      if (controller.aborted) {
+        waitingHandler.done = true;
+        waitingHandler.pendingTrailers = null;
+        waitingHandler.bufferedChunks = [];
+        waitingHandler.bufferedBytes = 0;
+        break
+      }
+    }
+  }
+
+  /**
+   * @param {WaitingHandler} waitingHandler
+   * @param {Error} err
+   */
+  #errorWaitingHandler (waitingHandler, err) {
+    if (waitingHandler.done) {
+      return
+    }
+
+    waitingHandler.done = true;
+    waitingHandler.pendingTrailers = null;
+    waitingHandler.bufferedChunks = [];
+    waitingHandler.bufferedBytes = 0;
+
+    try {
+      waitingHandler.controller.abort(err);
+      waitingHandler.handler.onResponseError?.(waitingHandler.controller, err);
+    } catch {
+      // Ignore errors from waiting handlers
+    }
+  }
+
+  #pruneDoneWaitingHandlers () {
+    this.#waitingHandlers = this.#waitingHandlers.filter(waitingHandler => waitingHandler.done === false);
+  }
+};
+
+var deduplicationHandler = DeduplicationHandler$1;
+
+const diagnosticsChannel = require$$0$4;
+const util$4 = util$o;
+const DeduplicationHandler = deduplicationHandler;
+const { normalizeHeaders, makeCacheKey, makeDeduplicationKey } = cache$2;
+
+const pendingRequestsChannel = diagnosticsChannel.channel('undici:request:pending-requests');
+
+/**
+ * @param {import('../../types/interceptors.d.ts').default.DeduplicateInterceptorOpts} [opts]
+ * @returns {import('../../types/dispatcher.d.ts').default.DispatcherComposeInterceptor}
+ */
+var deduplicate = (opts = {}) => {
+  const {
+    methods = ['GET'],
+    skipHeaderNames = [],
+    excludeHeaderNames = [],
+    maxBufferSize = 5 * 1024 * 1024
+  } = opts;
+
+  if (typeof opts !== 'object' || opts === null) {
+    throw new TypeError(`expected type of opts to be an Object, got ${opts === null ? 'null' : typeof opts}`)
+  }
+
+  if (!Array.isArray(methods)) {
+    throw new TypeError(`expected opts.methods to be an array, got ${typeof methods}`)
+  }
+
+  for (const method of methods) {
+    if (!util$4.safeHTTPMethods.includes(method)) {
+      throw new TypeError(`expected opts.methods to only contain safe HTTP methods, got ${method}`)
+    }
+  }
+
+  if (!Array.isArray(skipHeaderNames)) {
+    throw new TypeError(`expected opts.skipHeaderNames to be an array, got ${typeof skipHeaderNames}`)
+  }
+
+  if (!Array.isArray(excludeHeaderNames)) {
+    throw new TypeError(`expected opts.excludeHeaderNames to be an array, got ${typeof excludeHeaderNames}`)
+  }
+
+  if (!Number.isFinite(maxBufferSize) || maxBufferSize <= 0) {
+    throw new TypeError(`expected opts.maxBufferSize to be a positive finite number, got ${maxBufferSize}`)
+  }
+
+  // Convert to lowercase Set for case-insensitive header matching
+  const skipHeaderNamesSet = new Set(skipHeaderNames.map(name => name.toLowerCase()));
+
+  // Convert to lowercase Set for case-insensitive header exclusion from deduplication key
+  const excludeHeaderNamesSet = new Set(excludeHeaderNames.map(name => name.toLowerCase()));
+
+  /**
+   * Map of pending requests for deduplication
+   * @type {Map<string, DeduplicationHandler>}
+   */
+  const pendingRequests = new Map();
+
+  return dispatch => {
+    return (opts, handler) => {
+      if (!opts.origin || methods.includes(opts.method) === false) {
+        return dispatch(opts, handler)
+      }
+
+      opts = {
+        ...opts,
+        headers: normalizeHeaders(opts)
+      };
+
+      // Skip deduplication if request contains any of the specified headers
+      if (skipHeaderNamesSet.size > 0) {
+        for (const headerName of Object.keys(opts.headers)) {
+          if (skipHeaderNamesSet.has(headerName.toLowerCase())) {
+            return dispatch(opts, handler)
+          }
+        }
+      }
+
+      const cacheKey = makeCacheKey(opts);
+      const dedupeKey = makeDeduplicationKey(cacheKey, excludeHeaderNamesSet);
+
+      // Check if there's already a pending request for this key
+      const pendingHandler = pendingRequests.get(dedupeKey);
+      if (pendingHandler) {
+        // Add this handler to the waiting list when safe.
+        // If body streaming has already started, this request must be sent independently.
+        if (pendingHandler.addWaitingHandler(handler)) {
+          return true
+        }
+
+        return dispatch(opts, handler)
+      }
+
+      // Create a new deduplication handler
+      const deduplicationHandler = new DeduplicationHandler(
+        handler,
+        () => {
+          // Clean up when request completes
+          pendingRequests.delete(dedupeKey);
+          if (pendingRequestsChannel.hasSubscribers) {
+            pendingRequestsChannel.publish({ size: pendingRequests.size, key: dedupeKey, type: 'removed' });
+          }
+        },
+        maxBufferSize
+      );
+
+      // Register the pending request
+      pendingRequests.set(dedupeKey, deduplicationHandler);
+      if (pendingRequestsChannel.hasSubscribers) {
+        pendingRequestsChannel.publish({ size: pendingRequests.size, key: dedupeKey, type: 'added' });
+      }
+
+      return dispatch(opts, deduplicationHandler)
+    }
+  }
+};
+
+const { Writable } = require$$0$1;
+const { assertCacheKey, assertCacheValue } = cache$2;
+
+let DatabaseSync;
+
+const VERSION = 3;
+
+// 2gb
+const MAX_ENTRY_SIZE = 2 * 1000 * 1000 * 1000;
+
+/**
+ * @typedef {import('../../types/cache-interceptor.d.ts').default.CacheStore} CacheStore
+ * @implements {CacheStore}
+ *
+ * @typedef {{
+ *  id: Readonly<number>,
+ *  body?: Uint8Array
+ *  statusCode: number
+ *  statusMessage: string
+ *  headers?: string
+ *  vary?: string
+ *  etag?: string
+ *  cacheControlDirectives?: string
+ *  cachedAt: number
+ *  staleAt: number
+ *  deleteAt: number
+ * }} SqliteStoreValue
+ */
+var sqliteCacheStore = class SqliteCacheStore {
+  #maxEntrySize = MAX_ENTRY_SIZE
+  #maxCount = Infinity
+
+  /**
+   * @type {import('node:sqlite').DatabaseSync}
+   */
+  #db
+
+  /**
+   * @type {import('node:sqlite').StatementSync}
+   */
+  #getValuesQuery
+
+  /**
+   * @type {import('node:sqlite').StatementSync}
+   */
+  #updateValueQuery
+
+  /**
+   * @type {import('node:sqlite').StatementSync}
+   */
+  #insertValueQuery
+
+  /**
+   * @type {import('node:sqlite').StatementSync}
+   */
+  #deleteExpiredValuesQuery
+
+  /**
+   * @type {import('node:sqlite').StatementSync}
+   */
+  #deleteByUrlQuery
+
+  /**
+   * @type {import('node:sqlite').StatementSync}
+   */
+  #countEntriesQuery
+
+  /**
+   * @type {import('node:sqlite').StatementSync | null}
+   */
+  #deleteOldValuesQuery
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.SqliteCacheStoreOpts | undefined} opts
+   */
+  constructor (opts) {
+    if (opts) {
+      if (typeof opts !== 'object') {
+        throw new TypeError('SqliteCacheStore options must be an object')
+      }
+
+      if (opts.maxEntrySize !== undefined) {
+        if (
+          typeof opts.maxEntrySize !== 'number' ||
+          !Number.isInteger(opts.maxEntrySize) ||
+          opts.maxEntrySize < 0
+        ) {
+          throw new TypeError('SqliteCacheStore options.maxEntrySize must be a non-negative integer')
+        }
+
+        if (opts.maxEntrySize > MAX_ENTRY_SIZE) {
+          throw new TypeError('SqliteCacheStore options.maxEntrySize must be less than 2gb')
+        }
+
+        this.#maxEntrySize = opts.maxEntrySize;
+      }
+
+      if (opts.maxCount !== undefined) {
+        if (
+          typeof opts.maxCount !== 'number' ||
+          !Number.isInteger(opts.maxCount) ||
+          opts.maxCount < 0
+        ) {
+          throw new TypeError('SqliteCacheStore options.maxCount must be a non-negative integer')
+        }
+        this.#maxCount = opts.maxCount;
+      }
+    }
+
+    if (!DatabaseSync) {
+      DatabaseSync = require('node:sqlite').DatabaseSync;
+    }
+    this.#db = new DatabaseSync(opts?.location ?? ':memory:');
+
+    this.#db.exec(`
+      PRAGMA journal_mode = WAL;
+      PRAGMA synchronous = NORMAL;
+      PRAGMA temp_store = memory;
+      PRAGMA optimize;
+
+      CREATE TABLE IF NOT EXISTS cacheInterceptorV${VERSION} (
+        -- Data specific to us
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        url TEXT NOT NULL,
+        method TEXT NOT NULL,
+
+        -- Data returned to the interceptor
+        body BUF NULL,
+        deleteAt INTEGER NOT NULL,
+        statusCode INTEGER NOT NULL,
+        statusMessage TEXT NOT NULL,
+        headers TEXT NULL,
+        cacheControlDirectives TEXT NULL,
+        etag TEXT NULL,
+        vary TEXT NULL,
+        cachedAt INTEGER NOT NULL,
+        staleAt INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_cacheInterceptorV${VERSION}_getValuesQuery ON cacheInterceptorV${VERSION}(url, method, deleteAt);
+      CREATE INDEX IF NOT EXISTS idx_cacheInterceptorV${VERSION}_deleteByUrlQuery ON cacheInterceptorV${VERSION}(deleteAt);
+    `);
+
+    this.#getValuesQuery = this.#db.prepare(`
+      SELECT
+        id,
+        body,
+        deleteAt,
+        statusCode,
+        statusMessage,
+        headers,
+        etag,
+        cacheControlDirectives,
+        vary,
+        cachedAt,
+        staleAt
+      FROM cacheInterceptorV${VERSION}
+      WHERE
+        url = ?
+        AND method = ?
+      ORDER BY
+        deleteAt ASC
+    `);
+
+    this.#updateValueQuery = this.#db.prepare(`
+      UPDATE cacheInterceptorV${VERSION} SET
+        body = ?,
+        deleteAt = ?,
+        statusCode = ?,
+        statusMessage = ?,
+        headers = ?,
+        etag = ?,
+        cacheControlDirectives = ?,
+        cachedAt = ?,
+        staleAt = ?
+      WHERE
+        id = ?
+    `);
+
+    this.#insertValueQuery = this.#db.prepare(`
+      INSERT INTO cacheInterceptorV${VERSION} (
+        url,
+        method,
+        body,
+        deleteAt,
+        statusCode,
+        statusMessage,
+        headers,
+        etag,
+        cacheControlDirectives,
+        vary,
+        cachedAt,
+        staleAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    this.#deleteByUrlQuery = this.#db.prepare(
+      `DELETE FROM cacheInterceptorV${VERSION} WHERE url = ?`
+    );
+
+    this.#countEntriesQuery = this.#db.prepare(
+      `SELECT COUNT(*) AS total FROM cacheInterceptorV${VERSION}`
+    );
+
+    this.#deleteExpiredValuesQuery = this.#db.prepare(
+      `DELETE FROM cacheInterceptorV${VERSION} WHERE deleteAt <= ?`
+    );
+
+    this.#deleteOldValuesQuery = this.#maxCount === Infinity
+      ? null
+      : this.#db.prepare(`
+        DELETE FROM cacheInterceptorV${VERSION}
+        WHERE id IN (
+          SELECT
+            id
+          FROM cacheInterceptorV${VERSION}
+          ORDER BY cachedAt DESC
+          LIMIT ?
+        )
+      `);
+  }
+
+  close () {
+    this.#db.close();
+  }
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
+   * @returns {(import('../../types/cache-interceptor.d.ts').default.GetResult & { body?: Buffer }) | undefined}
+   */
+  get (key) {
+    assertCacheKey(key);
+
+    const value = this.#findValue(key);
+    return value
+      ? {
+          body: value.body ? Buffer.from(value.body.buffer, value.body.byteOffset, value.body.byteLength) : undefined,
+          statusCode: value.statusCode,
+          statusMessage: value.statusMessage,
+          headers: value.headers ? JSON.parse(value.headers) : undefined,
+          etag: value.etag ? value.etag : undefined,
+          vary: value.vary ? JSON.parse(value.vary) : undefined,
+          cacheControlDirectives: value.cacheControlDirectives
+            ? JSON.parse(value.cacheControlDirectives)
+            : undefined,
+          cachedAt: value.cachedAt,
+          staleAt: value.staleAt,
+          deleteAt: value.deleteAt
+        }
+      : undefined
+  }
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheValue & { body: null | Buffer | Array<Buffer>}} value
+   */
+  set (key, value) {
+    assertCacheKey(key);
+
+    const url = this.#makeValueUrl(key);
+    const body = Array.isArray(value.body) ? Buffer.concat(value.body) : value.body;
+    const size = body?.byteLength;
+
+    if (size && size > this.#maxEntrySize) {
+      return
+    }
+
+    const existingValue = this.#findValue(key, true);
+    if (existingValue) {
+      // Updating an existing response, let's overwrite it
+      this.#updateValueQuery.run(
+        body,
+        value.deleteAt,
+        value.statusCode,
+        value.statusMessage,
+        value.headers ? JSON.stringify(value.headers) : null,
+        value.etag ? value.etag : null,
+        value.cacheControlDirectives ? JSON.stringify(value.cacheControlDirectives) : null,
+        value.cachedAt,
+        value.staleAt,
+        existingValue.id
+      );
+    } else {
+      this.#prune();
+      // New response, let's insert it
+      this.#insertValueQuery.run(
+        url,
+        key.method,
+        body,
+        value.deleteAt,
+        value.statusCode,
+        value.statusMessage,
+        value.headers ? JSON.stringify(value.headers) : null,
+        value.etag ? value.etag : null,
+        value.cacheControlDirectives ? JSON.stringify(value.cacheControlDirectives) : null,
+        value.vary ? JSON.stringify(value.vary) : null,
+        value.cachedAt,
+        value.staleAt
+      );
+    }
+  }
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheValue} value
+   * @returns {Writable | undefined}
+   */
+  createWriteStream (key, value) {
+    assertCacheKey(key);
+    assertCacheValue(value);
+
+    let size = 0;
+    /**
+     * @type {Buffer[] | null}
+     */
+    const body = [];
+    const store = this;
+
+    return new Writable({
+      decodeStrings: true,
+      write (chunk, encoding, callback) {
+        size += chunk.byteLength;
+
+        if (size < store.#maxEntrySize) {
+          body.push(chunk);
+        } else {
+          this.destroy();
+        }
+
+        callback();
+      },
+      final (callback) {
+        store.set(key, { ...value, body });
+        callback();
+      }
+    })
+  }
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
+   */
+  delete (key) {
+    if (typeof key !== 'object') {
+      throw new TypeError(`expected key to be object, got ${typeof key}`)
+    }
+
+    this.#deleteByUrlQuery.run(this.#makeValueUrl(key));
+  }
+
+  #prune () {
+    if (Number.isFinite(this.#maxCount) && this.size <= this.#maxCount) {
+      return 0
+    }
+
+    {
+      const removed = this.#deleteExpiredValuesQuery.run(Date.now()).changes;
+      if (removed) {
+        return removed
+      }
+    }
+
+    {
+      const removed = this.#deleteOldValuesQuery?.run(Math.max(Math.floor(this.#maxCount * 0.1), 1)).changes;
+      if (removed) {
+        return removed
+      }
+    }
+
+    return 0
+  }
+
+  /**
+   * Counts the number of rows in the cache
+   * @returns {Number}
+   */
+  get size () {
+    const { total } = this.#countEntriesQuery.get();
+    return total
+  }
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
+   * @returns {string}
+   */
+  #makeValueUrl (key) {
+    return `${key.origin}/${key.path}`
+  }
+
+  /**
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
+   * @param {boolean} [canBeExpired=false]
+   * @returns {SqliteStoreValue | undefined}
+   */
+  #findValue (key, canBeExpired = false) {
+    const url = this.#makeValueUrl(key);
+    const { headers, method } = key;
+
+    /**
+     * @type {SqliteStoreValue[]}
+     */
+    const values = this.#getValuesQuery.all(url, method);
+
+    if (values.length === 0) {
+      return undefined
+    }
+
+    const now = Date.now();
+    for (const value of values) {
+      if (now >= value.deleteAt && !canBeExpired) {
+        return undefined
+      }
+
+      let matches = true;
+
+      if (value.vary) {
+        const vary = JSON.parse(value.vary);
+
+        for (const header in vary) {
+          if (!headerValueEquals(headers[header], vary[header])) {
+            matches = false;
+            break
+          }
+        }
+      }
+
+      if (matches) {
+        return value
+      }
+    }
+
+    return undefined
+  }
+};
+
+/**
+ * @param {string|string[]|null|undefined} lhs
+ * @param {string|string[]|null|undefined} rhs
+ * @returns {boolean}
+ */
+function headerValueEquals (lhs, rhs) {
+  if (lhs == null && rhs == null) {
+    return true
+  }
+
+  if ((lhs == null && rhs != null) ||
+      (lhs != null && rhs == null)) {
+    return false
+  }
+
+  if (Array.isArray(lhs) && Array.isArray(rhs)) {
+    if (lhs.length !== rhs.length) {
+      return false
+    }
+
+    return lhs.every((x, i) => x === rhs[i])
+  }
+
+  return lhs === rhs
+}
 
 var headers;
 var hasRequiredHeaders;
@@ -18983,7 +24055,7 @@ function requireHeaders () {
 	hasRequiredHeaders = 1;
 
 	const { kConstruct } = requireSymbols();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 	const {
 	  iteratorMixin,
 	  isValidHeaderName,
@@ -18991,7 +24063,7 @@ function requireHeaders () {
 	} = requireUtil$4();
 	const { webidl } = requireWebidl();
 	const assert = require$$0$2;
-	const util = require$$0$4;
+	const util = require$$3;
 
 	/**
 	 * @param {number} code
@@ -19708,17 +24780,15 @@ function requireResponse () {
 	hasRequiredResponse = 1;
 
 	const { Headers, HeadersList, fill, getHeadersGuard, setHeadersGuard, setHeadersList } = requireHeaders();
-	const { extractBody, cloneBody, mixinBody, hasFinalizationRegistry, streamRegistry, bodyUnusable } = requireBody();
-	const util = util$n;
-	const nodeUtil = require$$0$4;
+	const { extractBody, cloneBody, mixinBody, streamRegistry, bodyUnusable } = requireBody();
+	const util = util$o;
+	const nodeUtil = require$$3;
 	const { kEnumerableProperty } = util;
 	const {
 	  isValidReasonPhrase,
 	  isCancelled,
 	  isAborted,
-	  serializeJavascriptValueToJSONString,
 	  isErrorLike,
-	  isomorphicEncode,
 	  environmentSettingsObject: relevantRealm
 	} = requireUtil$4();
 	const {
@@ -19729,7 +24799,7 @@ function requireResponse () {
 	const { URLSerializer } = requireDataUrl();
 	const { kConstruct } = requireSymbols();
 	const assert = require$$0$2;
-	const { types } = require$$0$4;
+	const { isomorphicEncode, serializeJavascriptValueToJSONString } = requireInfra();
 
 	const textEncoder = new TextEncoder('utf-8');
 
@@ -19826,7 +24896,7 @@ function requireResponse () {
 	    }
 
 	    if (body !== null) {
-	      body = webidl.converters.BodyInit(body);
+	      body = webidl.converters.BodyInit(body, 'Response', 'body');
 	    }
 
 	    init = webidl.converters.ResponseInit(init);
@@ -19950,6 +25020,12 @@ function requireResponse () {
 	    // 2. Let clonedResponse be the result of cloning this’s response.
 	    const clonedResponse = cloneResponse(this.#state);
 
+	    // Note: To re-register because of a new stream.
+	    // Don't set finalizers other than for fetch responses.
+	    if (this.#state.urlList.length !== 0 && this.#state.body?.stream) {
+	      streamRegistry.register(this, new WeakRef(this.#state.body.stream));
+	    }
+
 	    // 3. Return the result of creating a Response object, given
 	    // clonedResponse, this’s headers’s guard, and this’s relevant Realm.
 	    return fromInnerResponse(clonedResponse, getHeadersGuard(this.#headers))
@@ -20059,7 +25135,7 @@ function requireResponse () {
 	  // 3. If response’s body is non-null, then set newResponse’s body to the
 	  // result of cloning response’s body.
 	  if (response.body != null) {
-	    newResponse.body = cloneBody(newResponse, response.body);
+	    newResponse.body = cloneBody(response.body);
 	  }
 
 	  // 4. Return newResponse.
@@ -20157,7 +25233,7 @@ function requireResponse () {
 
 	    return makeFilteredResponse(response, {
 	      type: 'opaque',
-	      urlList: Object.freeze([]),
+	      urlList: [],
 	      status: 0,
 	      statusText: '',
 	      body: null
@@ -20259,7 +25335,8 @@ function requireResponse () {
 	  setHeadersList(headers, innerResponse.headersList);
 	  setHeadersGuard(headers, guard);
 
-	  if (hasFinalizationRegistry && innerResponse.body?.stream) {
+	  // Note: If innerResponse's urlList contains a URL, it is a fetch response.
+	  if (innerResponse.urlList.length !== 0 && innerResponse.body?.stream) {
 	    // If the target (response) is reclaimed, the cleanup callback may be called at some point with
 	    // the held value provided for it (innerResponse.body.stream). The held value can be any value:
 	    // a primitive or an object, even undefined. If the held value is an object, the registry keeps
@@ -20281,7 +25358,7 @@ function requireResponse () {
 	    return V
 	  }
 
-	  if (ArrayBuffer.isView(V) || types.isArrayBuffer(V)) {
+	  if (webidl.is.BufferSource(V)) {
 	    return V
 	  }
 
@@ -20344,33 +25421,19 @@ function requireResponse () {
 	return response;
 }
 
-var dispatcherWeakref;
-var hasRequiredDispatcherWeakref;
-
-function requireDispatcherWeakref () {
-	if (hasRequiredDispatcherWeakref) return dispatcherWeakref;
-	hasRequiredDispatcherWeakref = 1;
-
-	dispatcherWeakref = function () {
-	  return { WeakRef, FinalizationRegistry }
-	};
-	return dispatcherWeakref;
-}
-
 /* globals AbortController */
 
-var request$1;
+var request;
 var hasRequiredRequest;
 
 function requireRequest () {
-	if (hasRequiredRequest) return request$1;
+	if (hasRequiredRequest) return request;
 	hasRequiredRequest = 1;
 
 	const { extractBody, mixinBody, cloneBody, bodyUnusable } = requireBody();
 	const { Headers, fill: fillHeaders, HeadersList, setHeadersGuard, getHeadersGuard, setHeadersList, getHeadersList } = requireHeaders();
-	const { FinalizationRegistry } = requireDispatcherWeakref()();
-	const util = util$n;
-	const nodeUtil = require$$0$4;
+	const util = util$o;
+	const nodeUtil = require$$3;
 	const {
 	  isValidHTTPToken,
 	  sameOrigin,
@@ -20391,7 +25454,7 @@ function requireRequest () {
 	const { URLSerializer } = requireDataUrl();
 	const { kConstruct } = requireSymbols();
 	const assert = require$$0$2;
-	const { getMaxListeners, setMaxListeners, defaultMaxListeners } = require$$7;
+	const { getMaxListeners, setMaxListeners, defaultMaxListeners } = require$$0;
 
 	const kAbortController = Symbol('abortController');
 
@@ -20473,8 +25536,8 @@ function requireRequest () {
 	    const prefix = 'Request constructor';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
 
-	    input = webidl.converters.RequestInfo(input, prefix, 'input');
-	    init = webidl.converters.RequestInit(init, prefix, 'init');
+	    input = webidl.converters.RequestInfo(input);
+	    init = webidl.converters.RequestInit(init);
 
 	    // 1. Let request be null.
 	    let request = null;
@@ -21283,6 +26346,8 @@ function requireRequest () {
 	    preventNoCacheCacheControlHeaderModification: init.preventNoCacheCacheControlHeaderModification ?? false,
 	    done: init.done ?? false,
 	    timingAllowFailed: init.timingAllowFailed ?? false,
+	    useURLCredentials: init.useURLCredentials ?? undefined,
+	    traversableForUserPrompts: init.traversableForUserPrompts ?? 'client',
 	    urlList: init.urlList,
 	    url: init.urlList[0],
 	    headersList: init.headersList
@@ -21301,7 +26366,7 @@ function requireRequest () {
 	  // 2. If request’s body is non-null, set newRequest’s body to the
 	  // result of cloning request’s body.
 	  if (request.body != null) {
-	    newRequest.body = cloneBody(newRequest, request.body);
+	    newRequest.body = cloneBody(request.body);
 	  }
 
 	  // 3. Return newRequest.
@@ -21357,8 +26422,13 @@ function requireRequest () {
 
 	webidl.is.Request = webidl.util.MakeTypeAssertion(Request);
 
-	// https://fetch.spec.whatwg.org/#requestinfo
-	webidl.converters.RequestInfo = function (V, prefix, argument) {
+	/**
+	 * @param {*} V
+	 * @returns {import('../../../types/fetch').Request|string}
+	 *
+	 * @see https://fetch.spec.whatwg.org/#requestinfo
+	 */
+	webidl.converters.RequestInfo = function (V) {
 	  if (typeof V === 'string') {
 	    return webidl.converters.USVString(V)
 	  }
@@ -21370,7 +26440,11 @@ function requireRequest () {
 	  return webidl.converters.USVString(V)
 	};
 
-	// https://fetch.spec.whatwg.org/#requestinit
+	/**
+	 * @param {*} V
+	 * @returns {import('../../../types/fetch').RequestInit}
+	 * @see https://fetch.spec.whatwg.org/#requestinit
+	 */
 	webidl.converters.RequestInit = webidl.dictionaryConverter([
 	  {
 	    key: 'method',
@@ -21450,10 +26524,16 @@ function requireRequest () {
 	  {
 	    key: 'dispatcher', // undici specific option
 	    converter: webidl.converters.any
+	  },
+	  {
+	    key: 'priority',
+	    converter: webidl.converters.DOMString,
+	    allowedValues: ['high', 'low', 'auto'],
+	    defaultValue: () => 'auto'
 	  }
 	]);
 
-	request$1 = {
+	request = {
 	  Request,
 	  makeRequest,
 	  fromInnerRequest,
@@ -21461,7 +26541,322 @@ function requireRequest () {
 	  getRequestDispatcher,
 	  getRequestState
 	};
-	return request$1;
+	return request;
+}
+
+var subresourceIntegrity;
+var hasRequiredSubresourceIntegrity;
+
+function requireSubresourceIntegrity () {
+	if (hasRequiredSubresourceIntegrity) return subresourceIntegrity;
+	hasRequiredSubresourceIntegrity = 1;
+
+	const assert = require$$0$2;
+	const { runtimeFeatures } = runtimeFeatures$2;
+
+	/**
+	 * @typedef {object} Metadata
+	 * @property {SRIHashAlgorithm} alg - The algorithm used for the hash.
+	 * @property {string} val - The base64-encoded hash value.
+	 */
+
+	/**
+	 * @typedef {Metadata[]} MetadataList
+	 */
+
+	/**
+	 * @typedef {('sha256' | 'sha384' | 'sha512')} SRIHashAlgorithm
+	 */
+
+	/**
+	 * @type {Map<SRIHashAlgorithm, number>}
+	 *
+	 * The valid SRI hash algorithm token set is the ordered set « "sha256",
+	 * "sha384", "sha512" » (corresponding to SHA-256, SHA-384, and SHA-512
+	 * respectively). The ordering of this set is meaningful, with stronger
+	 * algorithms appearing later in the set.
+	 *
+	 * @see https://w3c.github.io/webappsec-subresource-integrity/#valid-sri-hash-algorithm-token-set
+	 */
+	const validSRIHashAlgorithmTokenSet = new Map([['sha256', 0], ['sha384', 1], ['sha512', 2]]);
+
+	// https://nodejs.org/api/crypto.html#determining-if-crypto-support-is-unavailable
+	/** @type {import('node:crypto')} */
+	let crypto;
+
+	if (runtimeFeatures.has('crypto')) {
+	  crypto = require$$2$1;
+	  const cryptoHashes = crypto.getHashes();
+
+	  // If no hashes are available, we cannot support SRI.
+	  if (cryptoHashes.length === 0) {
+	    validSRIHashAlgorithmTokenSet.clear();
+	  }
+
+	  for (const algorithm of validSRIHashAlgorithmTokenSet.keys()) {
+	    // If the algorithm is not supported, remove it from the list.
+	    if (cryptoHashes.includes(algorithm) === false) {
+	      validSRIHashAlgorithmTokenSet.delete(algorithm);
+	    }
+	  }
+	} else {
+	  // If crypto is not available, we cannot support SRI.
+	  validSRIHashAlgorithmTokenSet.clear();
+	}
+
+	/**
+	 * @typedef GetSRIHashAlgorithmIndex
+	 * @type {(algorithm: SRIHashAlgorithm) => number}
+	 * @param {SRIHashAlgorithm} algorithm
+	 * @returns {number} The index of the algorithm in the valid SRI hash algorithm
+	 * token set.
+	 */
+
+	const getSRIHashAlgorithmIndex = /** @type {GetSRIHashAlgorithmIndex} */ (Map.prototype.get.bind(
+	  validSRIHashAlgorithmTokenSet));
+
+	/**
+	 * @typedef IsValidSRIHashAlgorithm
+	 * @type {(algorithm: string) => algorithm is SRIHashAlgorithm}
+	 * @param {*} algorithm
+	 * @returns {algorithm is SRIHashAlgorithm}
+	 */
+
+	const isValidSRIHashAlgorithm = /** @type {IsValidSRIHashAlgorithm} */ (
+	  Map.prototype.has.bind(validSRIHashAlgorithmTokenSet)
+	);
+
+	/**
+	 * @param {Uint8Array} bytes
+	 * @param {string} metadataList
+	 * @returns {boolean}
+	 *
+	 * @see https://w3c.github.io/webappsec-subresource-integrity/#does-response-match-metadatalist
+	 */
+	const bytesMatch = runtimeFeatures.has('crypto') === false || validSRIHashAlgorithmTokenSet.size === 0
+	  // If node is not built with OpenSSL support, we cannot check
+	  // a request's integrity, so allow it by default (the spec will
+	  // allow requests if an invalid hash is given, as precedence).
+	  ? () => true
+	  : (bytes, metadataList) => {
+	    // 1. Let parsedMetadata be the result of parsing metadataList.
+	      const parsedMetadata = parseMetadata(metadataList);
+
+	      // 2. If parsedMetadata is empty set, return true.
+	      if (parsedMetadata.length === 0) {
+	        return true
+	      }
+
+	      // 3. Let metadata be the result of getting the strongest
+	      //    metadata from parsedMetadata.
+	      const metadata = getStrongestMetadata(parsedMetadata);
+
+	      // 4. For each item in metadata:
+	      for (const item of metadata) {
+	      // 1. Let algorithm be the item["alg"].
+	        const algorithm = item.alg;
+
+	        // 2. Let expectedValue be the item["val"].
+	        const expectedValue = item.val;
+
+	        // See https://github.com/web-platform-tests/wpt/commit/e4c5cc7a5e48093220528dfdd1c4012dc3837a0e
+	        // "be liberal with padding". This is annoying, and it's not even in the spec.
+
+	        // 3. Let actualValue be the result of applying algorithm to bytes .
+	        const actualValue = applyAlgorithmToBytes(algorithm, bytes);
+
+	        // 4. If actualValue is a case-sensitive match for expectedValue,
+	        //    return true.
+	        if (caseSensitiveMatch(actualValue, expectedValue)) {
+	          return true
+	        }
+	      }
+
+	      // 5. Return false.
+	      return false
+	    };
+
+	/**
+	 * @param {MetadataList} metadataList
+	 * @returns {MetadataList} The strongest hash algorithm from the metadata list.
+	 */
+	function getStrongestMetadata (metadataList) {
+	  // 1. Let result be the empty set and strongest be the empty string.
+	  const result = [];
+	  /** @type {Metadata|null} */
+	  let strongest = null;
+
+	  // 2. For each item in set:
+	  for (const item of metadataList) {
+	    // 1. Assert: item["alg"] is a valid SRI hash algorithm token.
+	    assert(isValidSRIHashAlgorithm(item.alg), 'Invalid SRI hash algorithm token');
+
+	    // 2. If result is the empty set, then:
+	    if (result.length === 0) {
+	      // 1. Append item to result.
+	      result.push(item);
+
+	      // 2. Set strongest to item.
+	      strongest = item;
+
+	      // 3. Continue.
+	      continue
+	    }
+
+	    // 3. Let currentAlgorithm be strongest["alg"], and currentAlgorithmIndex be
+	    // the index of currentAlgorithm in the valid SRI hash algorithm token set.
+	    const currentAlgorithm = /** @type {Metadata} */ (strongest).alg;
+	    const currentAlgorithmIndex = getSRIHashAlgorithmIndex(currentAlgorithm);
+
+	    // 4. Let newAlgorithm be the item["alg"], and newAlgorithmIndex be the
+	    // index of newAlgorithm in the valid SRI hash algorithm token set.
+	    const newAlgorithm = item.alg;
+	    const newAlgorithmIndex = getSRIHashAlgorithmIndex(newAlgorithm);
+
+	    // 5. If newAlgorithmIndex is less than currentAlgorithmIndex, then continue.
+	    if (newAlgorithmIndex < currentAlgorithmIndex) {
+	      continue
+
+	    // 6. Otherwise, if newAlgorithmIndex is greater than
+	    // currentAlgorithmIndex:
+	    } else if (newAlgorithmIndex > currentAlgorithmIndex) {
+	      // 1. Set strongest to item.
+	      strongest = item;
+
+	      // 2. Set result to « item ».
+	      result[0] = item;
+	      result.length = 1;
+
+	    // 7. Otherwise, newAlgorithmIndex and currentAlgorithmIndex are the same
+	    // value. Append item to result.
+	    } else {
+	      result.push(item);
+	    }
+	  }
+
+	  // 3. Return result.
+	  return result
+	}
+
+	/**
+	 * @param {string} metadata
+	 * @returns {MetadataList}
+	 *
+	 * @see https://w3c.github.io/webappsec-subresource-integrity/#parse-metadata
+	 */
+	function parseMetadata (metadata) {
+	  // 1. Let result be the empty set.
+	  /** @type {MetadataList} */
+	  const result = [];
+
+	  // 2. For each item returned by splitting metadata on spaces:
+	  for (const item of metadata.split(' ')) {
+	    // 1. Let expression-and-options be the result of splitting item on U+003F (?).
+	    const expressionAndOptions = item.split('?', 1);
+
+	    // 2. Let algorithm-expression be expression-and-options[0].
+	    const algorithmExpression = expressionAndOptions[0];
+
+	    // 3. Let base64-value be the empty string.
+	    let base64Value = '';
+
+	    // 4. Let algorithm-and-value be the result of splitting algorithm-expression on U+002D (-).
+	    const algorithmAndValue = [algorithmExpression.slice(0, 6), algorithmExpression.slice(7)];
+
+	    // 5. Let algorithm be algorithm-and-value[0].
+	    const algorithm = algorithmAndValue[0];
+
+	    // 6. If algorithm is not a valid SRI hash algorithm token, then continue.
+	    if (!isValidSRIHashAlgorithm(algorithm)) {
+	      continue
+	    }
+
+	    // 7. If algorithm-and-value[1] exists, set base64-value to
+	    // algorithm-and-value[1].
+	    if (algorithmAndValue[1]) {
+	      base64Value = algorithmAndValue[1];
+	    }
+
+	    // 8. Let metadata be the ordered map
+	    // «["alg" → algorithm, "val" → base64-value]».
+	    const metadata = {
+	      alg: algorithm,
+	      val: base64Value
+	    };
+
+	    // 9. Append metadata to result.
+	    result.push(metadata);
+	  }
+
+	  // 3. Return result.
+	  return result
+	}
+
+	/**
+	 * Applies the specified hash algorithm to the given bytes
+	 *
+	 * @typedef {(algorithm: SRIHashAlgorithm, bytes: Uint8Array) => string} ApplyAlgorithmToBytes
+	 * @param {SRIHashAlgorithm} algorithm
+	 * @param {Uint8Array} bytes
+	 * @returns {string}
+	 */
+	const applyAlgorithmToBytes = (algorithm, bytes) => {
+	  return crypto.hash(algorithm, bytes, 'base64')
+	};
+
+	/**
+	 * Compares two base64 strings, allowing for base64url
+	 * in the second string.
+	 *
+	 * @param {string} actualValue base64 encoded string
+	 * @param {string} expectedValue base64 or base64url encoded string
+	 * @returns {boolean}
+	 */
+	function caseSensitiveMatch (actualValue, expectedValue) {
+	  // Ignore padding characters from the end of the strings by
+	  // decreasing the length by 1 or 2 if the last characters are `=`.
+	  let actualValueLength = actualValue.length;
+	  if (actualValueLength !== 0 && actualValue[actualValueLength - 1] === '=') {
+	    actualValueLength -= 1;
+	  }
+	  if (actualValueLength !== 0 && actualValue[actualValueLength - 1] === '=') {
+	    actualValueLength -= 1;
+	  }
+	  let expectedValueLength = expectedValue.length;
+	  if (expectedValueLength !== 0 && expectedValue[expectedValueLength - 1] === '=') {
+	    expectedValueLength -= 1;
+	  }
+	  if (expectedValueLength !== 0 && expectedValue[expectedValueLength - 1] === '=') {
+	    expectedValueLength -= 1;
+	  }
+
+	  if (actualValueLength !== expectedValueLength) {
+	    return false
+	  }
+
+	  for (let i = 0; i < actualValueLength; ++i) {
+	    if (
+	      actualValue[i] === expectedValue[i] ||
+	      (actualValue[i] === '+' && expectedValue[i] === '-') ||
+	      (actualValue[i] === '/' && expectedValue[i] === '_')
+	    ) {
+	      continue
+	    }
+	    return false
+	  }
+
+	  return true
+	}
+
+	subresourceIntegrity = {
+	  applyAlgorithmToBytes,
+	  bytesMatch,
+	  caseSensitiveMatch,
+	  isValidSRIHashAlgorithm,
+	  getStrongestMetadata,
+	  parseMetadata
+	};
+	return subresourceIntegrity;
 }
 
 var fetch_1;
@@ -21481,9 +26876,8 @@ function requireFetch () {
 	} = requireResponse();
 	const { HeadersList } = requireHeaders();
 	const { Request, cloneRequest, getRequestDispatcher, getRequestState } = requireRequest();
-	const zlib = require$$1$1;
+	const zlib = require$$0$6;
 	const {
-	  bytesMatch,
 	  makePolicyContainer,
 	  clonePolicyContainer,
 	  requestBadPort,
@@ -21499,14 +26893,12 @@ function requireFetch () {
 	  crossOriginResourcePolicyCheck,
 	  determineRequestsReferrer,
 	  coarsenedSharedCurrentTime,
-	  createDeferredPromise,
 	  sameOrigin,
 	  isCancelled,
 	  isAborted,
 	  isErrorLike,
 	  fullyReadBody,
 	  readableStreamClose,
-	  isomorphicEncode,
 	  urlIsLocal,
 	  urlIsHttpHttpsScheme,
 	  urlHasHttpsScheme,
@@ -21514,7 +26906,10 @@ function requireFetch () {
 	  simpleRangeHeaderValue,
 	  buildContentRange,
 	  createInflate,
-	  extractMimeType
+	  extractMimeType,
+	  hasAuthenticationEntry,
+	  includesCredentials,
+	  isTraversableNavigable
 	} = requireUtil$4();
 	const assert = require$$0$2;
 	const { safelyExtractBody, extractBody } = requireBody();
@@ -21525,13 +26920,21 @@ function requireFetch () {
 	  requestBodyHeader,
 	  subresourceSet
 	} = requireConstants$2();
-	const EE = require$$7;
+	const EE = require$$0;
 	const { Readable, pipeline, finished, isErrored, isReadable } = require$$0$1;
-	const { addAbortListener, bufferToLowerCasedHeaderName } = util$n;
+	const { addAbortListener, bufferToLowerCasedHeaderName } = util$o;
 	const { dataURLProcessor, serializeAMimeType, minimizeSupportedMimeType } = requireDataUrl();
 	const { getGlobalDispatcher } = global;
 	const { webidl } = requireWebidl();
 	const { STATUS_CODES } = require$$2;
+	const { bytesMatch } = requireSubresourceIntegrity();
+	const { createDeferredPromise } = requirePromise();
+	const { isomorphicEncode } = requireInfra();
+	const { runtimeFeatures } = runtimeFeatures$2;
+
+	// Node.js v23.8.0+ and v22.15.0+ supports Zstandard
+	const hasZstd = runtimeFeatures.has('zstd');
+
 	const GET_OR_HEAD = ['GET', 'HEAD'];
 
 	const defaultUserAgent = typeof __UNDICI_IS_NODE__ !== 'undefined' || typeof esbuildDetection !== 'undefined'
@@ -21618,7 +27021,7 @@ function requireFetch () {
 	  if (requestObject.signal.aborted) {
 	    // 1. Abort the fetch() call with p, request, null, and
 	    //    requestObject’s signal’s abort reason.
-	    abortFetch(p, request, null, requestObject.signal.reason);
+	    abortFetch(p, request, null, requestObject.signal.reason, null);
 
 	    // 2. Return p.
 	    return p.promise
@@ -21661,7 +27064,7 @@ function requireFetch () {
 
 	      // 4. Abort the fetch() call with p, request, responseObject,
 	      //    and requestObject’s signal’s abort reason.
-	      abortFetch(p, request, realResponse, requestObject.signal.reason);
+	      abortFetch(p, request, realResponse, requestObject.signal.reason, controller.controller);
 	    }
 	  );
 
@@ -21688,7 +27091,7 @@ function requireFetch () {
 	      // 2. Abort the fetch() call with p, request, responseObject, and
 	      //    deserializedError.
 
-	      abortFetch(p, request, responseObject, controller.serializedAbortReason);
+	      abortFetch(p, request, responseObject, controller.serializedAbortReason, controller.controller);
 	      return
 	    }
 
@@ -21712,7 +27115,10 @@ function requireFetch () {
 	    request,
 	    processResponseEndOfBody: handleFetchDone,
 	    processResponse,
-	    dispatcher: getRequestDispatcher(requestObject) // undici
+	    dispatcher: getRequestDispatcher(requestObject), // undici
+	    // Keep requestObject alive to prevent its AbortController from being GC'd
+	    // See https://github.com/nodejs/undici/issues/4627
+	    requestObject
 	  });
 
 	  // 14. Return p.
@@ -21788,7 +27194,7 @@ function requireFetch () {
 	const markResourceTiming = performance.markResourceTiming;
 
 	// https://fetch.spec.whatwg.org/#abort-fetch
-	function abortFetch (p, request, responseObject, error) {
+	function abortFetch (p, request, responseObject, error, controller /* undici-specific */) {
 	  // 1. Reject promise with error.
 	  if (p) {
 	    // We might have already resolved the promise at this stage
@@ -21818,13 +27224,7 @@ function requireFetch () {
 	  // 5. If response’s body is not null and is readable, then error response’s
 	  // body with error.
 	  if (response.body?.stream != null && isReadable(response.body.stream)) {
-	    response.body.stream.cancel(error).catch((err) => {
-	      if (err.code === 'ERR_INVALID_STATE') {
-	        // Node bug?
-	        return
-	      }
-	      throw err
-	    });
+	    controller.error(error);
 	  }
 	}
 
@@ -21837,7 +27237,8 @@ function requireFetch () {
 	  processResponseEndOfBody,
 	  processResponseConsumeBody,
 	  useParallelQueue = false,
-	  dispatcher = getGlobalDispatcher() // undici
+	  dispatcher = getGlobalDispatcher(), // undici
+	  requestObject = null // Keep alive to prevent AbortController GC, see #4627
 	}) {
 	  // Ensure that the dispatcher is set accordingly
 	  assert(dispatcher);
@@ -21891,7 +27292,9 @@ function requireFetch () {
 	    processResponseConsumeBody,
 	    processResponseEndOfBody,
 	    taskDestination,
-	    crossOriginIsolatedCapability
+	    crossOriginIsolatedCapability,
+	    // Keep requestObject alive to prevent its AbortController from being GC'd
+	    requestObject
 	  };
 
 	  // 7. If request’s body is a byte sequence, then set request’s body to
@@ -21972,246 +27375,258 @@ function requireFetch () {
 	  if (subresourceSet.has(request.destination)) ;
 
 	  // 16. Run main fetch given fetchParams.
-	  mainFetch(fetchParams)
-	    .catch(err => {
-	      fetchParams.controller.terminate(err);
-	    });
+	  mainFetch(fetchParams, false);
 
 	  // 17. Return fetchParam's controller
 	  return fetchParams.controller
 	}
 
 	// https://fetch.spec.whatwg.org/#concept-main-fetch
-	async function mainFetch (fetchParams, recursive = false) {
-	  // 1. Let request be fetchParams’s request.
-	  const request = fetchParams.request;
+	async function mainFetch (fetchParams, recursive) {
+	  try {
+	    // 1. Let request be fetchParams’s request.
+	    const request = fetchParams.request;
 
-	  // 2. Let response be null.
-	  let response = null;
+	    // 2. Let response be null.
+	    let response = null;
 
-	  // 3. If request’s local-URLs-only flag is set and request’s current URL is
-	  // not local, then set response to a network error.
-	  if (request.localURLsOnly && !urlIsLocal(requestCurrentURL(request))) {
-	    response = makeNetworkError('local URLs only');
-	  }
+	    // 3. If request’s local-URLs-only flag is set and request’s current URL is
+	    // not local, then set response to a network error.
+	    if (request.localURLsOnly && !urlIsLocal(requestCurrentURL(request))) {
+	      response = makeNetworkError('local URLs only');
+	    }
 
-	  // 4. Run report Content Security Policy violations for request.
-	  // TODO
+	    // 4. Run report Content Security Policy violations for request.
+	    // TODO
 
-	  // 5. Upgrade request to a potentially trustworthy URL, if appropriate.
-	  tryUpgradeRequestToAPotentiallyTrustworthyURL(request);
+	    // 5. Upgrade request to a potentially trustworthy URL, if appropriate.
+	    tryUpgradeRequestToAPotentiallyTrustworthyURL(request);
 
-	  // 6. If should request be blocked due to a bad port, should fetching request
-	  // be blocked as mixed content, or should request be blocked by Content
-	  // Security Policy returns blocked, then set response to a network error.
-	  if (requestBadPort(request) === 'blocked') {
-	    response = makeNetworkError('bad port');
-	  }
-	  // TODO: should fetching request be blocked as mixed content?
-	  // TODO: should request be blocked by Content Security Policy?
+	    // 6. If should request be blocked due to a bad port, should fetching request
+	    // be blocked as mixed content, or should request be blocked by Content
+	    // Security Policy returns blocked, then set response to a network error.
+	    if (requestBadPort(request) === 'blocked') {
+	      response = makeNetworkError('bad port');
+	    }
+	    // TODO: should fetching request be blocked as mixed content?
+	    // TODO: should request be blocked by Content Security Policy?
 
-	  // 7. If request’s referrer policy is the empty string, then set request’s
-	  // referrer policy to request’s policy container’s referrer policy.
-	  if (request.referrerPolicy === '') {
-	    request.referrerPolicy = request.policyContainer.referrerPolicy;
-	  }
+	    // 7. If request’s referrer policy is the empty string, then set request’s
+	    // referrer policy to request’s policy container’s referrer policy.
+	    if (request.referrerPolicy === '') {
+	      request.referrerPolicy = request.policyContainer.referrerPolicy;
+	    }
 
-	  // 8. If request’s referrer is not "no-referrer", then set request’s
-	  // referrer to the result of invoking determine request’s referrer.
-	  if (request.referrer !== 'no-referrer') {
-	    request.referrer = determineRequestsReferrer(request);
-	  }
+	    // 8. If request’s referrer is not "no-referrer", then set request’s
+	    // referrer to the result of invoking determine request’s referrer.
+	    if (request.referrer !== 'no-referrer') {
+	      request.referrer = determineRequestsReferrer(request);
+	    }
 
-	  // 9. Set request’s current URL’s scheme to "https" if all of the following
-	  // conditions are true:
-	  // - request’s current URL’s scheme is "http"
-	  // - request’s current URL’s host is a domain
-	  // - Matching request’s current URL’s host per Known HSTS Host Domain Name
-	  //   Matching results in either a superdomain match with an asserted
-	  //   includeSubDomains directive or a congruent match (with or without an
-	  //   asserted includeSubDomains directive). [HSTS]
-	  // TODO
+	    // 9. Set request’s current URL’s scheme to "https" if all of the following
+	    // conditions are true:
+	    // - request’s current URL’s scheme is "http"
+	    // - request’s current URL’s host is a domain
+	    // - Matching request’s current URL’s host per Known HSTS Host Domain Name
+	    //   Matching results in either a superdomain match with an asserted
+	    //   includeSubDomains directive or a congruent match (with or without an
+	    //   asserted includeSubDomains directive). [HSTS]
+	    // TODO
 
-	  // 10. If recursive is false, then run the remaining steps in parallel.
-	  // TODO
+	    // 10. If recursive is false, then run the remaining steps in parallel.
+	    // TODO
 
-	  // 11. If response is null, then set response to the result of running
-	  // the steps corresponding to the first matching statement:
-	  if (response === null) {
-	    const currentURL = requestCurrentURL(request);
-	    if (
-	      // - request’s current URL’s origin is same origin with request’s origin,
-	      //   and request’s response tainting is "basic"
-	      (sameOrigin(currentURL, request.url) && request.responseTainting === 'basic') ||
-	      // request’s current URL’s scheme is "data"
-	      (currentURL.protocol === 'data:') ||
-	      // - request’s mode is "navigate" or "websocket"
-	      (request.mode === 'navigate' || request.mode === 'websocket')
-	    ) {
-	      // 1. Set request’s response tainting to "basic".
-	      request.responseTainting = 'basic';
+	    // 11. If response is null, then set response to the result of running
+	    // the steps corresponding to the first matching statement:
+	    if (response === null) {
+	      const currentURL = requestCurrentURL(request);
+	      if (
+	        // - request’s current URL’s origin is same origin with request’s origin,
+	        //   and request’s response tainting is "basic"
+	        (sameOrigin(currentURL, request.url) && request.responseTainting === 'basic') ||
+	        // request’s current URL’s scheme is "data"
+	        (currentURL.protocol === 'data:') ||
+	        // - request’s mode is "navigate" or "websocket"
+	        (request.mode === 'navigate' || request.mode === 'websocket')
+	      ) {
+	        // 1. Set request’s response tainting to "basic".
+	        request.responseTainting = 'basic';
 
-	      // 2. Return the result of running scheme fetch given fetchParams.
-	      response = await schemeFetch(fetchParams);
-
-	    // request’s mode is "same-origin"
-	    } else if (request.mode === 'same-origin') {
-	      // 1. Return a network error.
-	      response = makeNetworkError('request mode cannot be "same-origin"');
-
-	    // request’s mode is "no-cors"
-	    } else if (request.mode === 'no-cors') {
-	      // 1. If request’s redirect mode is not "follow", then return a network
-	      // error.
-	      if (request.redirect !== 'follow') {
-	        response = makeNetworkError(
-	          'redirect mode cannot be "follow" for "no-cors" request'
-	        );
-	      } else {
-	        // 2. Set request’s response tainting to "opaque".
-	        request.responseTainting = 'opaque';
-
-	        // 3. Return the result of running scheme fetch given fetchParams.
+	        // 2. Return the result of running scheme fetch given fetchParams.
 	        response = await schemeFetch(fetchParams);
+
+	      // request’s mode is "same-origin"
+	      } else if (request.mode === 'same-origin') {
+	        // 1. Return a network error.
+	        response = makeNetworkError('request mode cannot be "same-origin"');
+
+	      // request’s mode is "no-cors"
+	      } else if (request.mode === 'no-cors') {
+	        // 1. If request’s redirect mode is not "follow", then return a network
+	        // error.
+	        if (request.redirect !== 'follow') {
+	          response = makeNetworkError(
+	            'redirect mode cannot be "follow" for "no-cors" request'
+	          );
+	        } else {
+	          // 2. Set request’s response tainting to "opaque".
+	          request.responseTainting = 'opaque';
+
+	          // 3. Return the result of running scheme fetch given fetchParams.
+	          response = await schemeFetch(fetchParams);
+	        }
+	      // request’s current URL’s scheme is not an HTTP(S) scheme
+	      } else if (!urlIsHttpHttpsScheme(requestCurrentURL(request))) {
+	        // Return a network error.
+	        response = makeNetworkError('URL scheme must be a HTTP(S) scheme');
+
+	        // - request’s use-CORS-preflight flag is set
+	        // - request’s unsafe-request flag is set and either request’s method is
+	        //   not a CORS-safelisted method or CORS-unsafe request-header names with
+	        //   request’s header list is not empty
+	        //    1. Set request’s response tainting to "cors".
+	        //    2. Let corsWithPreflightResponse be the result of running HTTP fetch
+	        //    given fetchParams and true.
+	        //    3. If corsWithPreflightResponse is a network error, then clear cache
+	        //    entries using request.
+	        //    4. Return corsWithPreflightResponse.
+	        // TODO
+
+	      // Otherwise
+	      } else {
+	        //    1. Set request’s response tainting to "cors".
+	        request.responseTainting = 'cors';
+
+	        //    2. Return the result of running HTTP fetch given fetchParams.
+	        response = await httpFetch(fetchParams);
 	      }
-	    // request’s current URL’s scheme is not an HTTP(S) scheme
-	    } else if (!urlIsHttpHttpsScheme(requestCurrentURL(request))) {
-	      // Return a network error.
-	      response = makeNetworkError('URL scheme must be a HTTP(S) scheme');
-
-	      // - request’s use-CORS-preflight flag is set
-	      // - request’s unsafe-request flag is set and either request’s method is
-	      //   not a CORS-safelisted method or CORS-unsafe request-header names with
-	      //   request’s header list is not empty
-	      //    1. Set request’s response tainting to "cors".
-	      //    2. Let corsWithPreflightResponse be the result of running HTTP fetch
-	      //    given fetchParams and true.
-	      //    3. If corsWithPreflightResponse is a network error, then clear cache
-	      //    entries using request.
-	      //    4. Return corsWithPreflightResponse.
-	      // TODO
-
-	    // Otherwise
-	    } else {
-	      //    1. Set request’s response tainting to "cors".
-	      request.responseTainting = 'cors';
-
-	      //    2. Return the result of running HTTP fetch given fetchParams.
-	      response = await httpFetch(fetchParams);
-	    }
-	  }
-
-	  // 12. If recursive is true, then return response.
-	  if (recursive) {
-	    return response
-	  }
-
-	  // 13. If response is not a network error and response is not a filtered
-	  // response, then:
-	  if (response.status !== 0 && !response.internalResponse) {
-	    // If request’s response tainting is "cors", then:
-	    if (request.responseTainting === 'cors') ;
-
-	    // Set response to the following filtered response with response as its
-	    // internal response, depending on request’s response tainting:
-	    if (request.responseTainting === 'basic') {
-	      response = filterResponse(response, 'basic');
-	    } else if (request.responseTainting === 'cors') {
-	      response = filterResponse(response, 'cors');
-	    } else if (request.responseTainting === 'opaque') {
-	      response = filterResponse(response, 'opaque');
-	    } else {
-	      assert(false);
-	    }
-	  }
-
-	  // 14. Let internalResponse be response, if response is a network error,
-	  // and response’s internal response otherwise.
-	  let internalResponse =
-	    response.status === 0 ? response : response.internalResponse;
-
-	  // 15. If internalResponse’s URL list is empty, then set it to a clone of
-	  // request’s URL list.
-	  if (internalResponse.urlList.length === 0) {
-	    internalResponse.urlList.push(...request.urlList);
-	  }
-
-	  // 16. If request’s timing allow failed flag is unset, then set
-	  // internalResponse’s timing allow passed flag.
-	  if (!request.timingAllowFailed) {
-	    response.timingAllowPassed = true;
-	  }
-
-	  // 17. If response is not a network error and any of the following returns
-	  // blocked
-	  // - should internalResponse to request be blocked as mixed content
-	  // - should internalResponse to request be blocked by Content Security Policy
-	  // - should internalResponse to request be blocked due to its MIME type
-	  // - should internalResponse to request be blocked due to nosniff
-	  // TODO
-
-	  // 18. If response’s type is "opaque", internalResponse’s status is 206,
-	  // internalResponse’s range-requested flag is set, and request’s header
-	  // list does not contain `Range`, then set response and internalResponse
-	  // to a network error.
-	  if (
-	    response.type === 'opaque' &&
-	    internalResponse.status === 206 &&
-	    internalResponse.rangeRequested &&
-	    !request.headers.contains('range', true)
-	  ) {
-	    response = internalResponse = makeNetworkError();
-	  }
-
-	  // 19. If response is not a network error and either request’s method is
-	  // `HEAD` or `CONNECT`, or internalResponse’s status is a null body status,
-	  // set internalResponse’s body to null and disregard any enqueuing toward
-	  // it (if any).
-	  if (
-	    response.status !== 0 &&
-	    (request.method === 'HEAD' ||
-	      request.method === 'CONNECT' ||
-	      nullBodyStatus.includes(internalResponse.status))
-	  ) {
-	    internalResponse.body = null;
-	    fetchParams.controller.dump = true;
-	  }
-
-	  // 20. If request’s integrity metadata is not the empty string, then:
-	  if (request.integrity) {
-	    // 1. Let processBodyError be this step: run fetch finale given fetchParams
-	    // and a network error.
-	    const processBodyError = (reason) =>
-	      fetchFinale(fetchParams, makeNetworkError(reason));
-
-	    // 2. If request’s response tainting is "opaque", or response’s body is null,
-	    // then run processBodyError and abort these steps.
-	    if (request.responseTainting === 'opaque' || response.body == null) {
-	      processBodyError(response.error);
-	      return
 	    }
 
-	    // 3. Let processBody given bytes be these steps:
-	    const processBody = (bytes) => {
-	      // 1. If bytes do not match request’s integrity metadata,
-	      // then run processBodyError and abort these steps. [SRI]
-	      if (!bytesMatch(bytes, request.integrity)) {
-	        processBodyError('integrity mismatch');
+	    // 12. If recursive is true, then return response.
+	    if (recursive) {
+	      return response
+	    }
+
+	    // 13. If response is not a network error and response is not a filtered
+	    // response, then:
+	    if (response.status !== 0 && !response.internalResponse) {
+	      // If request’s response tainting is "cors", then:
+	      if (request.responseTainting === 'cors') {
+	        // 1. Let headerNames be the result of extracting header list values
+	        // given `Access-Control-Expose-Headers` and response’s header list.
+	        // TODO
+	        // 2. If request’s credentials mode is not "include" and headerNames
+	        // contains `*`, then set response’s CORS-exposed header-name list to
+	        // all unique header names in response’s header list.
+	        // TODO
+	        // 3. Otherwise, if headerNames is not null or failure, then set
+	        // response’s CORS-exposed header-name list to headerNames.
+	        // TODO
+	      }
+
+	      // Set response to the following filtered response with response as its
+	      // internal response, depending on request’s response tainting:
+	      if (request.responseTainting === 'basic') {
+	        response = filterResponse(response, 'basic');
+	      } else if (request.responseTainting === 'cors') {
+	        response = filterResponse(response, 'cors');
+	      } else if (request.responseTainting === 'opaque') {
+	        response = filterResponse(response, 'opaque');
+	      } else {
+	        assert(false);
+	      }
+	    }
+
+	    // 14. Let internalResponse be response, if response is a network error,
+	    // and response’s internal response otherwise.
+	    let internalResponse =
+	      response.status === 0 ? response : response.internalResponse;
+
+	    // 15. If internalResponse’s URL list is empty, then set it to a clone of
+	    // request’s URL list.
+	    if (internalResponse.urlList.length === 0) {
+	      internalResponse.urlList.push(...request.urlList);
+	    }
+
+	    // 16. If request’s timing allow failed flag is unset, then set
+	    // internalResponse’s timing allow passed flag.
+	    if (!request.timingAllowFailed) {
+	      response.timingAllowPassed = true;
+	    }
+
+	    // 17. If response is not a network error and any of the following returns
+	    // blocked
+	    // - should internalResponse to request be blocked as mixed content
+	    // - should internalResponse to request be blocked by Content Security Policy
+	    // - should internalResponse to request be blocked due to its MIME type
+	    // - should internalResponse to request be blocked due to nosniff
+	    // TODO
+
+	    // 18. If response’s type is "opaque", internalResponse’s status is 206,
+	    // internalResponse’s range-requested flag is set, and request’s header
+	    // list does not contain `Range`, then set response and internalResponse
+	    // to a network error.
+	    if (
+	      response.type === 'opaque' &&
+	      internalResponse.status === 206 &&
+	      internalResponse.rangeRequested &&
+	      !request.headers.contains('range', true)
+	    ) {
+	      response = internalResponse = makeNetworkError();
+	    }
+
+	    // 19. If response is not a network error and either request’s method is
+	    // `HEAD` or `CONNECT`, or internalResponse’s status is a null body status,
+	    // set internalResponse’s body to null and disregard any enqueuing toward
+	    // it (if any).
+	    if (
+	      response.status !== 0 &&
+	      (request.method === 'HEAD' ||
+	        request.method === 'CONNECT' ||
+	        nullBodyStatus.includes(internalResponse.status))
+	    ) {
+	      internalResponse.body = null;
+	      fetchParams.controller.dump = true;
+	    }
+
+	    // 20. If request’s integrity metadata is not the empty string, then:
+	    if (request.integrity) {
+	      // 1. Let processBodyError be this step: run fetch finale given fetchParams
+	      // and a network error.
+	      const processBodyError = (reason) =>
+	        fetchFinale(fetchParams, makeNetworkError(reason));
+
+	      // 2. If request’s response tainting is "opaque", or response’s body is null,
+	      // then run processBodyError and abort these steps.
+	      if (request.responseTainting === 'opaque' || response.body == null) {
+	        processBodyError(response.error);
 	        return
 	      }
 
-	      // 2. Set response’s body to bytes as a body.
-	      response.body = safelyExtractBody(bytes)[0];
+	      // 3. Let processBody given bytes be these steps:
+	      const processBody = (bytes) => {
+	        // 1. If bytes do not match request’s integrity metadata,
+	        // then run processBodyError and abort these steps. [SRI]
+	        if (!bytesMatch(bytes, request.integrity)) {
+	          processBodyError('integrity mismatch');
+	          return
+	        }
 
-	      // 3. Run fetch finale given fetchParams and response.
+	        // 2. Set response’s body to bytes as a body.
+	        response.body = safelyExtractBody(bytes)[0];
+
+	        // 3. Run fetch finale given fetchParams and response.
+	        fetchFinale(fetchParams, response);
+	      };
+
+	      // 4. Fully read response’s body given processBody and processBodyError.
+	      fullyReadBody(response.body, processBody, processBodyError);
+	    } else {
+	      // 21. Otherwise, run fetch finale given fetchParams and response.
 	      fetchFinale(fetchParams, response);
-	    };
-
-	    // 4. Fully read response’s body given processBody and processBodyError.
-	    await fullyReadBody(response.body, processBody, processBodyError);
-	  } else {
-	    // 21. Otherwise, run fetch finale given fetchParams and response.
-	    fetchFinale(fetchParams, response);
+	    }
+	  } catch (err) {
+	    fetchParams.controller.terminate(err);
 	  }
 	}
 
@@ -22243,7 +27658,7 @@ function requireFetch () {
 	    }
 	    case 'blob:': {
 	      if (!resolveObjectURL) {
-	        resolveObjectURL = require$$0.resolveObjectURL;
+	        resolveObjectURL = require$$0$5.resolveObjectURL;
 	      }
 
 	      // 1. Let blobURLEntry be request’s current URL’s blob URL entry.
@@ -22337,7 +27752,7 @@ function requireFetch () {
 
 	        // 8. Let slicedBlob be the result of invoking slice blob given blob, rangeStart,
 	        //    rangeEnd + 1, and type.
-	        const slicedBlob = blob.slice(rangeStart, rangeEnd, type);
+	        const slicedBlob = blob.slice(rangeStart, rangeEnd + 1, type);
 
 	        // 9. Let slicedBodyWithType be the result of safely extracting slicedBlob.
 	        // Note: same reason as mentioned above as to why we use extractBody
@@ -22764,8 +28179,8 @@ function requireFetch () {
 	    request.headersList.delete('host', true);
 	  }
 
-	  // 14. If request’s body is non-null, then set request’s body to the first return
-	  // value of safely extracting request’s body’s source.
+	  // 14. If request's body is non-null, then set request's body to the first return
+	  // value of safely extracting request's body's source.
 	  if (request.body != null) {
 	    assert(request.body.source != null);
 	    request.body = safelyExtractBody(request.body.source)[0];
@@ -22959,6 +28374,39 @@ function requireFetch () {
 
 	  httpRequest.headersList.delete('host', true);
 
+	  //    21. If includeCredentials is true, then:
+	  if (includeCredentials) {
+	    // 1. If the user agent is not configured to block cookies for httpRequest
+	    // (see section 7 of [COOKIES]), then:
+	    // TODO: credentials
+
+	    // 2. If httpRequest’s header list does not contain `Authorization`, then:
+	    if (!httpRequest.headersList.contains('authorization', true)) {
+	      // 1. Let authorizationValue be null.
+	      let authorizationValue = null;
+
+	      // 2. If there’s an authentication entry for httpRequest and either
+	      //    httpRequest’s use-URL-credentials flag is unset or httpRequest’s
+	      //    current URL does not include credentials, then set
+	      //    authorizationValue to authentication entry.
+	      if (hasAuthenticationEntry(httpRequest) && (
+	        httpRequest.useURLCredentials === undefined || !includesCredentials(requestCurrentURL(httpRequest))
+	      )) ; else if (includesCredentials(requestCurrentURL(httpRequest)) && isAuthenticationFetch) {
+	        // 3. Otherwise, if httpRequest’s current URL does include credentials
+	        //    and isAuthenticationFetch is true, set authorizationValue to
+	        //    httpRequest’s current URL, converted to an `Authorization` value
+	        const { username, password } = requestCurrentURL(httpRequest);
+	        authorizationValue = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
+	      }
+
+	      // 4. If authorizationValue is non-null, then append (`Authorization`,
+	      //    authorizationValue) to httpRequest’s header list.
+	      if (authorizationValue !== null) {
+	        httpRequest.headersList.append('Authorization', authorizationValue, false);
+	      }
+	    }
+	  }
+
 	  //    21. If there’s a proxy-authentication entry, use it as appropriate.
 	  //    TODO: proxy-authentication
 
@@ -23028,10 +28476,53 @@ function requireFetch () {
 	  // 13. Set response’s request-includes-credentials to includeCredentials.
 	  response.requestIncludesCredentials = includeCredentials;
 
-	  // 14. If response’s status is 401, httpRequest’s response tainting is not
-	  // "cors", includeCredentials is true, and request’s window is an environment
-	  // settings object, then:
-	  // TODO
+	  // 14. If response’s status is 401, httpRequest’s response tainting is not "cors",
+	  //     includeCredentials is true, and request’s traversable for user prompts is
+	  //     a traversable navigable:
+	  if (response.status === 401 && httpRequest.responseTainting !== 'cors' && includeCredentials && isTraversableNavigable(request.traversableForUserPrompts)) {
+	    // 2. If request’s body is non-null, then:
+	    if (request.body != null) {
+	      // 1. If request’s body’s source is null, then return a network error.
+	      if (request.body.source == null) {
+	        return makeNetworkError('expected non-null body source')
+	      }
+
+	      // 2. Set request’s body to the body of the result of safely extracting
+	      //    request’s body’s source.
+	      request.body = safelyExtractBody(request.body.source)[0];
+	    }
+
+	    // 3. If request’s use-URL-credentials flag is unset or isAuthenticationFetch is
+	    //    true, then:
+	    if (request.useURLCredentials === undefined || isAuthenticationFetch) {
+	      // 1. If fetchParams is canceled, then return the appropriate network error
+	      //    for fetchParams.
+	      if (isCancelled(fetchParams)) {
+	        return makeAppropriateNetworkError(fetchParams)
+	      }
+
+	      // 2. Let username and password be the result of prompting the end user for a
+	      //    username and password, respectively, in request’s traversable for user prompts.
+	      // TODO
+
+	      // 3. Set the username given request’s current URL and username.
+	      // requestCurrentURL(request).username = TODO
+
+	      // 4. Set the password given request’s current URL and password.
+	      // requestCurrentURL(request).password = TODO
+
+	      // In browsers, the user will be prompted to enter a username/password before the request
+	      // is re-sent. To prevent an infinite 401 loop, return the response for now.
+	      // https://github.com/nodejs/undici/pull/4756
+	      return response
+	    }
+
+	    // 4. Set response to the result of running HTTP-network-or-cache fetch given
+	    //    fetchParams and true.
+	    fetchParams.controller.connection.destroy();
+
+	    response = await httpNetworkOrCacheFetch(fetchParams, true);
+	  }
 
 	  // 15. If response’s status is 407, then:
 	  if (response.status === 407) {
@@ -23304,15 +28795,11 @@ function requireFetch () {
 	  //     cancelAlgorithm set to cancelAlgorithm.
 	  const stream = new ReadableStream(
 	    {
-	      async start (controller) {
+	      start (controller) {
 	        fetchParams.controller.controller = controller;
 	      },
-	      async pull (controller) {
-	        await pullAlgorithm();
-	      },
-	      async cancel (reason) {
-	        await cancelAlgorithm(reason);
-	      },
+	      pull: pullAlgorithm,
+	      cancel: cancelAlgorithm,
 	      type: 'bytes'
 	    }
 	  );
@@ -23450,12 +28937,15 @@ function requireFetch () {
 
 	  function dispatch ({ body }) {
 	    const url = requestCurrentURL(request);
-	    /** @type {import('../..').Agent} */
+	    /** @type {import('../../..').Agent} */
 	    const agent = fetchParams.controller.dispatcher;
+
+	    const path = url.pathname + url.search;
+	    const hasTrailingQuestionMark = url.search.length === 0 && url.href[url.href.length - url.hash.length - 1] === '?';
 
 	    return new Promise((resolve, reject) => agent.dispatch(
 	      {
-	        path: url.pathname + url.search,
+	        path: hasTrailingQuestionMark ? `${path}?` : path,
 	        origin: url.origin,
 	        method: request.method,
 	        body: agent.isMockActive ? request.body && (request.body.source || request.body.stream) : body,
@@ -23499,37 +28989,41 @@ function requireFetch () {
 
 	        onHeaders (status, rawHeaders, resume, statusText) {
 	          if (status < 200) {
-	            return
+	            return false
 	          }
-
-	          /** @type {string[]} */
-	          let codings = [];
-	          let location = '';
 
 	          const headersList = new HeadersList();
 
 	          for (let i = 0; i < rawHeaders.length; i += 2) {
 	            headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString('latin1'), true);
 	          }
-	          const contentEncoding = headersList.get('content-encoding', true);
-	          if (contentEncoding) {
-	            // https://www.rfc-editor.org/rfc/rfc7231#section-3.1.2.1
-	            // "All content-coding values are case-insensitive..."
-	            codings = contentEncoding.toLowerCase().split(',').map((x) => x.trim());
-	          }
-	          location = headersList.get('location', true);
+	          const location = headersList.get('location', true);
 
 	          this.body = new Readable({ read: resume });
-
-	          const decoders = [];
 
 	          const willFollow = location && request.redirect === 'follow' &&
 	            redirectStatusSet.has(status);
 
+	          const decoders = [];
+
 	          // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
-	          if (codings.length !== 0 && request.method !== 'HEAD' && request.method !== 'CONNECT' && !nullBodyStatus.includes(status) && !willFollow) {
+	          if (request.method !== 'HEAD' && request.method !== 'CONNECT' && !nullBodyStatus.includes(status) && !willFollow) {
+	            // https://www.rfc-editor.org/rfc/rfc7231#section-3.1.2.1
+	            const contentEncoding = headersList.get('content-encoding', true);
+	            // "All content-coding values are case-insensitive..."
+	            /** @type {string[]} */
+	            const codings = contentEncoding ? contentEncoding.toLowerCase().split(',') : [];
+
+	            // Limit the number of content-encodings to prevent resource exhaustion.
+	            // CVE fix similar to urllib3 (GHSA-gm62-xv2j-4w53) and curl (CVE-2022-32206).
+	            const maxContentEncodings = 5;
+	            if (codings.length > maxContentEncodings) {
+	              reject(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
+	              return true
+	            }
+
 	            for (let i = codings.length - 1; i >= 0; --i) {
-	              const coding = codings[i];
+	              const coding = codings[i].trim();
 	              // https://www.rfc-editor.org/rfc/rfc9112.html#section-7.2
 	              if (coding === 'x-gzip' || coding === 'gzip') {
 	                decoders.push(zlib.createGunzip({
@@ -23550,8 +29044,7 @@ function requireFetch () {
 	                  flush: zlib.constants.BROTLI_OPERATION_FLUSH,
 	                  finishFlush: zlib.constants.BROTLI_OPERATION_FLUSH
 	                }));
-	              } else if (coding === 'zstd' && typeof zlib.createZstdDecompress === 'function') {
-	                // Node.js v23.8.0+ and v22.15.0+ supports Zstandard
+	              } else if (coding === 'zstd' && hasZstd) {
 	                decoders.push(zlib.createZstdDecompress({
 	                  flush: zlib.constants.ZSTD_e_continue,
 	                  finishFlush: zlib.constants.ZSTD_e_end
@@ -23626,9 +29119,46 @@ function requireFetch () {
 	          reject(error);
 	        },
 
+	        onRequestUpgrade (_controller, status, headers, socket) {
+	          // We need to support 200 for websocket over h2 as per RFC-8441
+	          // Absence of session means H1
+	          if ((socket.session != null && status !== 200) || (socket.session == null && status !== 101)) {
+	            return false
+	          }
+
+	          const headersList = new HeadersList();
+
+	          for (const [name, value] of Object.entries(headers)) {
+	            if (value == null) {
+	              continue
+	            }
+
+	            const headerName = name.toLowerCase();
+
+	            if (Array.isArray(value)) {
+	              for (const entry of value) {
+	                headersList.append(headerName, String(entry), true);
+	              }
+	            } else {
+	              headersList.append(headerName, String(value), true);
+	            }
+	          }
+
+	          resolve({
+	            status,
+	            statusText: STATUS_CODES[status],
+	            headersList,
+	            socket
+	          });
+
+	          return true
+	        },
+
 	        onUpgrade (status, rawHeaders, socket) {
-	          if (status !== 101) {
-	            return
+	          // We need to support 200 for websocket over h2 as per RFC-8441
+	          // Absence of session means H1
+	          if ((socket.session != null && status !== 200) || (socket.session == null && status !== 101)) {
+	            return false
 	          }
 
 	          const headersList = new HeadersList();
@@ -23660,11 +29190,11 @@ function requireFetch () {
 	return fetch_1;
 }
 
-var util$4;
+var util$3;
 var hasRequiredUtil$3;
 
 function requireUtil$3 () {
-	if (hasRequiredUtil$3) return util$4;
+	if (hasRequiredUtil$3) return util$3;
 	hasRequiredUtil$3 = 1;
 
 	const assert = require$$0$2;
@@ -23706,11 +29236,11 @@ function requireUtil$3 () {
 	  return values
 	}
 
-	util$4 = {
+	util$3 = {
 	  urlEquals,
 	  getFieldValues
 	};
-	return util$4;
+	return util$3;
 }
 
 var cache;
@@ -23720,15 +29250,17 @@ function requireCache () {
 	if (hasRequiredCache) return cache;
 	hasRequiredCache = 1;
 
+	const assert = require$$0$2;
+
 	const { kConstruct } = requireSymbols();
 	const { urlEquals, getFieldValues } = requireUtil$3();
-	const { kEnumerableProperty, isDisturbed } = util$n;
+	const { kEnumerableProperty, isDisturbed } = util$o;
 	const { webidl } = requireWebidl();
 	const { cloneResponse, fromInnerResponse, getResponseState } = requireResponse();
 	const { Request, fromInnerRequest, getRequestState } = requireRequest();
 	const { fetching } = requireFetch();
-	const { urlIsHttpHttpsScheme, createDeferredPromise, readAllBytes } = requireUtil$4();
-	const assert = require$$0$2;
+	const { urlIsHttpHttpsScheme, readAllBytes } = requireUtil$4();
+	const { createDeferredPromise } = requirePromise();
 
 	/**
 	 * @see https://w3c.github.io/ServiceWorker/#dfn-cache-batch-operation
@@ -23736,7 +29268,7 @@ function requireCache () {
 	 * @property {'delete' | 'put'} type
 	 * @property {any} request
 	 * @property {any} response
-	 * @property {import('../../types/cache').CacheQueryOptions} options
+	 * @property {import('../../../types/cache').CacheQueryOptions} options
 	 */
 
 	/**
@@ -23766,7 +29298,7 @@ function requireCache () {
 	    const prefix = 'Cache.match';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
 
-	    request = webidl.converters.RequestInfo(request, prefix, 'request');
+	    request = webidl.converters.RequestInfo(request);
 	    options = webidl.converters.CacheQueryOptions(options, prefix, 'options');
 
 	    const p = this.#internalMatchAll(request, options, 1);
@@ -23782,7 +29314,7 @@ function requireCache () {
 	    webidl.brandCheck(this, Cache);
 
 	    const prefix = 'Cache.matchAll';
-	    if (request !== undefined) request = webidl.converters.RequestInfo(request, prefix, 'request');
+	    if (request !== undefined) request = webidl.converters.RequestInfo(request);
 	    options = webidl.converters.CacheQueryOptions(options, prefix, 'options');
 
 	    return this.#internalMatchAll(request, options)
@@ -23794,7 +29326,7 @@ function requireCache () {
 	    const prefix = 'Cache.add';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
 
-	    request = webidl.converters.RequestInfo(request, prefix, 'request');
+	    request = webidl.converters.RequestInfo(request);
 
 	    // 1.
 	    const requests = [request];
@@ -23982,7 +29514,7 @@ function requireCache () {
 	    const prefix = 'Cache.put';
 	    webidl.argumentLengthCheck(arguments, 2, prefix);
 
-	    request = webidl.converters.RequestInfo(request, prefix, 'request');
+	    request = webidl.converters.RequestInfo(request);
 	    response = webidl.converters.Response(response, prefix, 'response');
 
 	    // 1.
@@ -24113,7 +29645,7 @@ function requireCache () {
 	    const prefix = 'Cache.delete';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
 
-	    request = webidl.converters.RequestInfo(request, prefix, 'request');
+	    request = webidl.converters.RequestInfo(request);
 	    options = webidl.converters.CacheQueryOptions(options, prefix, 'options');
 
 	    /**
@@ -24170,7 +29702,7 @@ function requireCache () {
 	  /**
 	   * @see https://w3c.github.io/ServiceWorker/#dom-cache-keys
 	   * @param {any} request
-	   * @param {import('../../types/cache').CacheQueryOptions} options
+	   * @param {import('../../../types/cache').CacheQueryOptions} options
 	   * @returns {Promise<readonly Request[]>}
 	   */
 	  async keys (request = undefined, options = {}) {
@@ -24178,7 +29710,7 @@ function requireCache () {
 
 	    const prefix = 'Cache.keys';
 
-	    if (request !== undefined) request = webidl.converters.RequestInfo(request, prefix, 'request');
+	    if (request !== undefined) request = webidl.converters.RequestInfo(request);
 	    options = webidl.converters.CacheQueryOptions(options, prefix, 'options');
 
 	    // 1.
@@ -24388,7 +29920,7 @@ function requireCache () {
 	  /**
 	   * @see https://w3c.github.io/ServiceWorker/#query-cache
 	   * @param {any} requestQuery
-	   * @param {import('../../types/cache').CacheQueryOptions} options
+	   * @param {import('../../../types/cache').CacheQueryOptions} options
 	   * @param {requestResponseList} targetStorage
 	   * @returns {requestResponseList}
 	   */
@@ -24413,7 +29945,7 @@ function requireCache () {
 	   * @param {any} requestQuery
 	   * @param {any} request
 	   * @param {any | null} response
-	   * @param {import('../../types/cache').CacheQueryOptions | undefined} options
+	   * @param {import('../../../types/cache').CacheQueryOptions | undefined} options
 	   * @returns {boolean}
 	   */
 	  #requestMatchesCachedItem (requestQuery, request, response = null, options) {
@@ -24512,9 +30044,9 @@ function requireCache () {
 	    // 5.5.2
 	    for (const response of responses) {
 	      // 5.5.2.1
-	      const responseObject = fromInnerResponse(response, 'immutable');
+	      const responseObject = fromInnerResponse(cloneResponse(response), 'immutable');
 
-	      responseList.push(responseObject.clone());
+	      responseList.push(responseObject);
 
 	      if (responseList.length >= maxResponses) {
 	        break
@@ -24592,7 +30124,7 @@ function requireCachestorage () {
 
 	const { Cache } = requireCache();
 	const { webidl } = requireWebidl();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 	const { kConstruct } = requireSymbols();
 
 	class CacheStorage {
@@ -24763,11 +30295,11 @@ function requireConstants$1 () {
 	return constants$1;
 }
 
-var util$3;
+var util$2;
 var hasRequiredUtil$2;
 
 function requireUtil$2 () {
-	if (hasRequiredUtil$2) return util$3;
+	if (hasRequiredUtil$2) return util$2;
 	hasRequiredUtil$2 = 1;
 
 	/**
@@ -25042,7 +30574,7 @@ function requireUtil$2 () {
 	  return out.join('; ')
 	}
 
-	util$3 = {
+	util$2 = {
 	  isCTLExcludingHtab,
 	  validateCookieName,
 	  validateCookiePath,
@@ -25050,7 +30582,7 @@ function requireUtil$2 () {
 	  toIMFDate,
 	  stringify
 	};
-	return util$3;
+	return util$2;
 }
 
 var parse;
@@ -25060,11 +30592,11 @@ function requireParse () {
 	if (hasRequiredParse) return parse;
 	hasRequiredParse = 1;
 
+	const { collectASequenceOfCodePointsFast } = requireInfra();
 	const { maxNameValuePairSize, maxAttributeValueSize } = requireConstants$1();
 	const { isCTLExcludingHtab } = requireUtil$2();
-	const { collectASequenceOfCodePointsFast } = requireDataUrl();
 	const assert = require$$0$2;
-	const { unescape } = require$$6;
+	const { unescape: qsUnescape } = require$$5;
 
 	/**
 	 * @description Parses the field-value attributes of a set-cookie header string.
@@ -25142,7 +30674,7 @@ function requireParse () {
 	  // store arbitrary data in a cookie-value SHOULD encode that data, for
 	  // example, using Base64 [RFC4648].
 	  return {
-	    name, value: unescape(value), ...parseUnparsedAttributes(unparsedAttributes)
+	    name, value: qsUnescape(value), ...parseUnparsedAttributes(unparsedAttributes)
 	  }
 	}
 
@@ -25576,7 +31108,7 @@ function requireCookies () {
 	  {
 	    converter: webidl.sequenceConverter(webidl.converters.DOMString),
 	    key: 'unparsed',
-	    defaultValue: () => new Array(0)
+	    defaultValue: () => []
 	  }
 	]);
 
@@ -25598,7 +31130,7 @@ function requireEvents () {
 	hasRequiredEvents = 1;
 
 	const { webidl } = requireWebidl();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 	const { kConstruct } = requireSymbols();
 
 	/**
@@ -25869,7 +31401,7 @@ function requireEvents () {
 	  {
 	    key: 'ports',
 	    converter: webidl.converters['sequence<MessagePort>'],
-	    defaultValue: () => new Array(0)
+	    defaultValue: () => []
 	  }
 	]);
 
@@ -26063,16 +31595,17 @@ function requireConstants () {
 	return constants;
 }
 
-var util$2;
+var util$1;
 var hasRequiredUtil$1;
 
 function requireUtil$1 () {
-	if (hasRequiredUtil$1) return util$2;
+	if (hasRequiredUtil$1) return util$1;
 	hasRequiredUtil$1 = 1;
 
 	const { states, opcodes } = requireConstants();
-	const { isUtf8 } = require$$0;
-	const { collectASequenceOfCodePointsFast, removeHTTPWhitespace } = requireDataUrl();
+	const { isUtf8 } = require$$0$5;
+	const { removeHTTPWhitespace } = requireDataUrl();
+	const { collectASequenceOfCodePointsFast } = requireInfra();
 
 	/**
 	 * @param {number} readyState
@@ -26296,6 +31829,12 @@ function requireUtil$1 () {
 	 * @returns {boolean}
 	 */
 	function isValidClientWindowBits (value) {
+	  // Must have at least one character
+	  if (value.length === 0) {
+	    return false
+	  }
+
+	  // Check all characters are ASCII digits
 	  for (let i = 0; i < value.length; i++) {
 	    const byte = value.charCodeAt(i);
 
@@ -26304,7 +31843,9 @@ function requireUtil$1 () {
 	    }
 	  }
 
-	  return true
+	  // Check numeric range: zlib requires windowBits in range 8-15
+	  const num = Number.parseInt(value, 10);
+	  return num >= 8 && num <= 15
 	}
 
 	/**
@@ -26386,7 +31927,7 @@ function requireUtil$1 () {
 	  }
 	})();
 
-	util$2 = {
+	util$1 = {
 	  isConnecting,
 	  isEstablished,
 	  isClosing,
@@ -26406,7 +31947,7 @@ function requireUtil$1 () {
 	  getURLRecord,
 	  validateCloseCodeAndReason
 	};
-	return util$2;
+	return util$1;
 }
 
 var frame;
@@ -26416,34 +31957,28 @@ function requireFrame () {
 	if (hasRequiredFrame) return frame;
 	hasRequiredFrame = 1;
 
+	const { runtimeFeatures } = runtimeFeatures$2;
 	const { maxUnsigned16Bit, opcodes } = requireConstants();
 
 	const BUFFER_SIZE = 8 * 1024;
 
-	/** @type {import('crypto')} */
-	let crypto;
 	let buffer = null;
 	let bufIdx = BUFFER_SIZE;
 
-	try {
-	  crypto = require('node:crypto');
-	/* c8 ignore next 3 */
-	} catch {
-	  crypto = {
-	    // not full compatibility, but minimum.
-	    randomFillSync: function randomFillSync (buffer, _offset, _size) {
-	      for (let i = 0; i < buffer.length; ++i) {
-	        buffer[i] = Math.random() * 255 | 0;
-	      }
-	      return buffer
+	const randomFillSync = runtimeFeatures.has('crypto')
+	  ? require$$2$1.randomFillSync
+	  // not full compatibility, but minimum.
+	  : function randomFillSync (buffer, _offset, _size) {
+	    for (let i = 0; i < buffer.length; ++i) {
+	      buffer[i] = Math.random() * 255 | 0;
 	    }
+	    return buffer
 	  };
-	}
 
 	function generateMask () {
 	  if (bufIdx === BUFFER_SIZE) {
 	    bufIdx = 0;
-	    crypto.randomFillSync((buffer ??= Buffer.allocUnsafeSlow(BUFFER_SIZE)), 0, BUFFER_SIZE);
+	    randomFillSync((buffer ??= Buffer.allocUnsafeSlow(BUFFER_SIZE)), 0, BUFFER_SIZE);
 	  }
 	  return [buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++]]
 	}
@@ -26564,23 +32099,20 @@ function requireConnection () {
 	hasRequiredConnection = 1;
 
 	const { uid, states, sentCloseFrameState, emptyBuffer, opcodes } = requireConstants();
-	const { parseExtensions, isClosed, isClosing, isEstablished, validateCloseCodeAndReason } = requireUtil$1();
-	const { channels } = diagnostics;
+	const { parseExtensions, isClosed, isClosing, isEstablished, isConnecting, validateCloseCodeAndReason } = requireUtil$1();
 	const { makeRequest } = requireRequest();
 	const { fetching } = requireFetch();
 	const { Headers, getHeadersList } = requireHeaders();
 	const { getDecodeSplit } = requireUtil$4();
 	const { WebsocketFrameSend } = requireFrame();
 	const assert = require$$0$2;
+	const { runtimeFeatures } = runtimeFeatures$2;
 
-	/** @type {import('crypto')} */
-	let crypto;
-	try {
-	  crypto = require('node:crypto');
-	/* c8 ignore next 3 */
-	} catch {
+	const crypto = runtimeFeatures.has('crypto')
+	  ? require$$2$1
+	  : null;
 
-	}
+	let warningEmitted = false;
 
 	/**
 	 * @see https://websockets.spec.whatwg.org/#concept-websocket-establish
@@ -26599,7 +32131,7 @@ function requireConnection () {
 	  // 2. Let request be a new request, whose URL is requestURL, client is client,
 	  //    service-workers mode is "none", referrer is "no-referrer", mode is
 	  //    "websocket", credentials mode is "include", cache mode is "no-store" ,
-	  //    and redirect mode is "error".
+	  //    redirect mode is "error", and use-URL-credentials flag is set.
 	  const request = makeRequest({
 	    urlList: [requestURL],
 	    client,
@@ -26608,7 +32140,8 @@ function requireConnection () {
 	    mode: 'websocket',
 	    credentials: 'include',
 	    cache: 'no-store',
-	    redirect: 'error'
+	    redirect: 'error',
+	    useURLCredentials: true
 	  });
 
 	  // Note: undici extension, allow setting custom headers.
@@ -26659,17 +32192,27 @@ function requireConnection () {
 	    useParallelQueue: true,
 	    dispatcher: options.dispatcher,
 	    processResponse (response) {
-	      if (response.type === 'error') {
-	        // If the WebSocket connection could not be established, it is also said
-	        // that _The WebSocket Connection is Closed_, but not _cleanly_.
-	        handler.readyState = states.CLOSED;
-	      }
-
 	      // 1. If response is a network error or its status is not 101,
 	      //    fail the WebSocket connection.
+	      // if (response.type === 'error' || ((response.socket?.session != null && response.status !== 200) && response.status !== 101)) {
 	      if (response.type === 'error' || response.status !== 101) {
-	        failWebsocketConnection(handler, 1002, 'Received network error or non-101 status code.', response.error);
-	        return
+	        // The presence of a session property on the socket indicates HTTP2
+	        // HTTP1
+	        if (response.socket?.session == null) {
+	          failWebsocketConnection(handler, 1002, 'Received network error or non-101 status code.', response.error);
+	          return
+	        }
+
+	        // HTTP2
+	        if (response.status !== 200) {
+	          failWebsocketConnection(handler, 1002, 'Received network error or non-200 status code.', response.error);
+	          return
+	        }
+	      }
+
+	      if (warningEmitted === false && response.socket?.session != null) {
+	        process.emitWarning('WebSocket over HTTP2 is experimental, and subject to change.', 'ExperimentalWarning');
+	        warningEmitted = true;
 	      }
 
 	      // 2. If protocols is not the empty list and extracting header
@@ -26691,7 +32234,8 @@ function requireConnection () {
 	      //    header field contains a value that is not an ASCII case-
 	      //    insensitive match for the value "websocket", the client MUST
 	      //    _Fail the WebSocket Connection_.
-	      if (response.headersList.get('Upgrade')?.toLowerCase() !== 'websocket') {
+	      //    For H2, no upgrade header is expected.
+	      if (response.socket.session == null && response.headersList.get('Upgrade')?.toLowerCase() !== 'websocket') {
 	        failWebsocketConnection(handler, 1002, 'Server did not set Upgrade header to "websocket".');
 	        return
 	      }
@@ -26700,7 +32244,8 @@ function requireConnection () {
 	      //    |Connection| header field doesn't contain a token that is an
 	      //    ASCII case-insensitive match for the value "Upgrade", the client
 	      //    MUST _Fail the WebSocket Connection_.
-	      if (response.headersList.get('Connection')?.toLowerCase() !== 'upgrade') {
+	      //    For H2, no connection header is expected.
+	      if (response.socket.session == null && response.headersList.get('Connection')?.toLowerCase() !== 'upgrade') {
 	        failWebsocketConnection(handler, 1002, 'Server did not set Connection header to "upgrade".');
 	        return
 	      }
@@ -26713,7 +32258,7 @@ function requireConnection () {
 	      //    trailing whitespace, the client MUST _Fail the WebSocket
 	      //    Connection_.
 	      const secWSAccept = response.headersList.get('Sec-WebSocket-Accept');
-	      const digest = crypto.createHash('sha1').update(keyValue + uid).digest('base64');
+	      const digest = crypto.hash('sha1', keyValue + uid, 'base64');
 	      if (secWSAccept !== digest) {
 	        failWebsocketConnection(handler, 1002, 'Incorrect hash received in Sec-WebSocket-Accept header.');
 	        return
@@ -26762,14 +32307,6 @@ function requireConnection () {
 	      response.socket.on('data', handler.onSocketData);
 	      response.socket.on('close', handler.onSocketClose);
 	      response.socket.on('error', handler.onSocketError);
-
-	      if (channels.open.hasSubscribers) {
-	        channels.open.publish({
-	          address: response.socket.address(),
-	          protocol: secProtocol,
-	          extensions: secExtension
-	        });
-	      }
 
 	      handler.wasEverConnected = true;
 	      handler.onConnectionEstablished(response, extensions);
@@ -26873,11 +32410,12 @@ function requireConnection () {
 
 	  handler.controller.abort();
 
-	  if (handler.socket?.destroyed === false) {
+	  if (isConnecting(handler.readyState)) {
+	    // If the connection was not established, we must still emit an 'error' and 'close' events
+	    handler.onSocketClose();
+	  } else if (handler.socket?.destroyed === false) {
 	    handler.socket.destroy();
 	  }
-
-	  handler.onFail(code, reason, cause);
 	}
 
 	connection = {
@@ -26895,12 +32433,16 @@ function requirePermessageDeflate () {
 	if (hasRequiredPermessageDeflate) return permessageDeflate;
 	hasRequiredPermessageDeflate = 1;
 
-	const { createInflateRaw, Z_DEFAULT_WINDOWBITS } = require$$1$1;
+	const { createInflateRaw, Z_DEFAULT_WINDOWBITS } = require$$0$6;
 	const { isValidClientWindowBits } = requireUtil$1();
+	const { MessageSizeExceededError } = errors;
 
 	const tail = Buffer.from([0x00, 0x00, 0xff, 0xff]);
 	const kBuffer = Symbol('kBuffer');
 	const kLength = Symbol('kLength');
+
+	// Default maximum decompressed message size: 4 MB
+	const kDefaultMaxDecompressedSize = 4 * 1024 * 1024;
 
 	class PerMessageDeflate {
 	  /** @type {import('node:zlib').InflateRaw} */
@@ -26908,6 +32450,15 @@ function requirePermessageDeflate () {
 
 	  #options = {}
 
+	  /** @type {boolean} */
+	  #aborted = false
+
+	  /** @type {Function|null} */
+	  #currentCallback = null
+
+	  /**
+	   * @param {Map<string, string>} extensions
+	   */
 	  constructor (extensions) {
 	    this.#options.serverNoContextTakeover = extensions.has('server_no_context_takeover');
 	    this.#options.serverMaxWindowBits = extensions.get('server_max_window_bits');
@@ -26918,6 +32469,11 @@ function requirePermessageDeflate () {
 	    // 1.  Append 4 octets of 0x00 0x00 0xff 0xff to the tail end of the
 	    //     payload of the message.
 	    // 2.  Decompress the resulting data using DEFLATE.
+
+	    if (this.#aborted) {
+	      callback(new MessageSizeExceededError());
+	      return
+	    }
 
 	    if (!this.#inflate) {
 	      let windowBits = Z_DEFAULT_WINDOWBITS;
@@ -26931,13 +32487,37 @@ function requirePermessageDeflate () {
 	        windowBits = Number.parseInt(this.#options.serverMaxWindowBits);
 	      }
 
-	      this.#inflate = createInflateRaw({ windowBits });
+	      try {
+	        this.#inflate = createInflateRaw({ windowBits });
+	      } catch (err) {
+	        callback(err);
+	        return
+	      }
 	      this.#inflate[kBuffer] = [];
 	      this.#inflate[kLength] = 0;
 
 	      this.#inflate.on('data', (data) => {
-	        this.#inflate[kBuffer].push(data);
+	        if (this.#aborted) {
+	          return
+	        }
+
 	        this.#inflate[kLength] += data.length;
+
+	        if (this.#inflate[kLength] > kDefaultMaxDecompressedSize) {
+	          this.#aborted = true;
+	          this.#inflate.removeAllListeners();
+	          this.#inflate.destroy();
+	          this.#inflate = null;
+
+	          if (this.#currentCallback) {
+	            const cb = this.#currentCallback;
+	            this.#currentCallback = null;
+	            cb(new MessageSizeExceededError());
+	          }
+	          return
+	        }
+
+	        this.#inflate[kBuffer].push(data);
 	      });
 
 	      this.#inflate.on('error', (err) => {
@@ -26946,16 +32526,22 @@ function requirePermessageDeflate () {
 	      });
 	    }
 
+	    this.#currentCallback = callback;
 	    this.#inflate.write(chunk);
 	    if (fin) {
 	      this.#inflate.write(tail);
 	    }
 
 	    this.#inflate.flush(() => {
+	      if (this.#aborted || !this.#inflate) {
+	        return
+	      }
+
 	      const full = Buffer.concat(this.#inflate[kBuffer], this.#inflate[kLength]);
 
 	      this.#inflate[kBuffer].length = 0;
 	      this.#inflate[kLength] = 0;
+	      this.#currentCallback = null;
 
 	      callback(null, full);
 	    });
@@ -26976,7 +32562,6 @@ function requireReceiver () {
 	const { Writable } = require$$0$1;
 	const assert = require$$0$2;
 	const { parserStates, opcodes, states, emptyBuffer, sentCloseFrameState } = requireConstants();
-	const { channels } = diagnostics;
 	const {
 	  isValidStatusCode,
 	  isValidOpcode,
@@ -26989,6 +32574,7 @@ function requireReceiver () {
 	const { failWebsocketConnection } = requireConnection();
 	const { WebsocketFrameSend } = requireFrame();
 	const { PerMessageDeflate } = requirePermessageDeflate();
+	const { MessageSizeExceededError } = errors;
 
 	// This code was influenced by ws released under the MIT license.
 	// Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
@@ -27012,6 +32598,10 @@ function requireReceiver () {
 	  /** @type {import('./websocket').Handler} */
 	  #handler
 
+	  /**
+	   * @param {import('./websocket').Handler} handler
+	   * @param {Map<string, string>|null} extensions
+	   */
 	  constructor (handler, extensions) {
 	    super();
 
@@ -27154,6 +32744,7 @@ function requireReceiver () {
 
 	        const buffer = this.consume(8);
 	        const upper = buffer.readUInt32BE(0);
+	        const lower = buffer.readUInt32BE(4);
 
 	        // 2^31 is the maximum bytes an arraybuffer can contain
 	        // on 32-bit systems. Although, on 64-bit systems, this is
@@ -27161,14 +32752,12 @@ function requireReceiver () {
 	        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Invalid_array_length
 	        // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/common/globals.h;drc=1946212ac0100668f14eb9e2843bdd846e510a1e;bpv=1;bpt=1;l=1275
 	        // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-array-buffer.h;l=34;drc=1946212ac0100668f14eb9e2843bdd846e510a1e
-	        if (upper > 2 ** 31 - 1) {
+	        if (upper !== 0 || lower > 2 ** 31 - 1) {
 	          failWebsocketConnection(this.#handler, 1009, 'Received payload length > 2^31 bytes.');
 	          return
 	        }
 
-	        const lower = buffer.readUInt32BE(4);
-
-	        this.#info.payloadLength = (upper << 8) + lower;
+	        this.#info.payloadLength = lower;
 	        this.#state = parserStates.READ_DATA;
 	      } else if (this.#state === parserStates.READ_DATA) {
 	        if (this.#byteOffset < this.#info.payloadLength) {
@@ -27196,7 +32785,9 @@ function requireReceiver () {
 	          } else {
 	            this.#extensions.get('permessage-deflate').decompress(body, this.#info.fin, (error, data) => {
 	              if (error) {
-	                failWebsocketConnection(this.#handler, 1007, error.message);
+	                // Use 1009 (Message Too Big) for decompression size limit errors
+	                const code = error instanceof MessageSizeExceededError ? 1009 : 1007;
+	                failWebsocketConnection(this.#handler, code, error.message);
 	                return
 	              }
 
@@ -27396,22 +32987,13 @@ function requireReceiver () {
 
 	        this.#handler.socket.write(frame.createFrame(opcodes.PONG));
 
-	        if (channels.ping.hasSubscribers) {
-	          channels.ping.publish({
-	            payload: body
-	          });
-	        }
+	        this.#handler.onPing(body);
 	      }
 	    } else if (opcode === opcodes.PONG) {
 	      // A Pong frame MAY be sent unsolicited.  This serves as a
 	      // unidirectional heartbeat.  A response to an unsolicited Pong frame is
 	      // not expected.
-
-	      if (channels.pong.hasSubscribers) {
-	        channels.pong.publish({
-	          payload: body
-	        });
-	      }
+	      this.#handler.onPong(body);
 	    }
 
 	    return true
@@ -27552,6 +33134,7 @@ function requireWebsocket () {
 	if (hasRequiredWebsocket) return websocket;
 	hasRequiredWebsocket = 1;
 
+	const { isArrayBuffer } = require$$8;
 	const { webidl } = requireWebidl();
 	const { URLSerializer } = requireDataUrl();
 	const { environmentSettingsObject } = requireUtil$4();
@@ -27560,6 +33143,7 @@ function requireWebsocket () {
 	  isConnecting,
 	  isEstablished,
 	  isClosing,
+	  isClosed,
 	  isValidSubprotocol,
 	  fireEvent,
 	  utf8Decode,
@@ -27568,23 +33152,24 @@ function requireWebsocket () {
 	} = requireUtil$1();
 	const { establishWebSocketConnection, closeWebSocketConnection, failWebsocketConnection } = requireConnection();
 	const { ByteParser } = requireReceiver();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 	const { getGlobalDispatcher } = global;
-	const { types } = require$$0$4;
 	const { ErrorEvent, CloseEvent, createFastMessageEvent } = requireEvents();
 	const { SendQueue } = requireSender();
+	const { WebsocketFrameSend } = requireFrame();
 	const { channels } = diagnostics;
 
 	/**
 	 * @typedef {object} Handler
 	 * @property {(response: any, extensions?: string[]) => void} onConnectionEstablished
-	 * @property {(code: number, reason: any) => void} onFail
 	 * @property {(opcode: number, data: Buffer) => void} onMessage
 	 * @property {(error: Error) => void} onParserError
 	 * @property {() => void} onParserDrain
 	 * @property {(chunk: Buffer) => void} onSocketData
 	 * @property {(err: Error) => void} onSocketError
 	 * @property {() => void} onSocketClose
+	 * @property {(body: Buffer) => void} onPing
+	 * @property {(body: Buffer) => void} onPong
 	 *
 	 * @property {number} readyState
 	 * @property {import('stream').Duplex} socket
@@ -27612,7 +33197,6 @@ function requireWebsocket () {
 	  /** @type {Handler} */
 	  #handler = {
 	    onConnectionEstablished: (response, extensions) => this.#onConnectionEstablished(response, extensions),
-	    onFail: (code, reason, cause) => this.#onFail(code, reason, cause),
 	    onMessage: (opcode, data) => this.#onMessage(opcode, data),
 	    onParserError: (err) => failWebsocketConnection(this.#handler, null, err.message),
 	    onParserDrain: () => this.#onParserDrain(),
@@ -27631,6 +33215,22 @@ function requireWebsocket () {
 	      this.#handler.socket.destroy();
 	    },
 	    onSocketClose: () => this.#onSocketClose(),
+	    onPing: (body) => {
+	      if (channels.ping.hasSubscribers) {
+	        channels.ping.publish({
+	          payload: body,
+	          websocket: this
+	        });
+	      }
+	    },
+	    onPong: (body) => {
+	      if (channels.pong.hasSubscribers) {
+	        channels.pong.publish({
+	          payload: body,
+	          websocket: this
+	        });
+	      }
+	    },
 
 	    readyState: states.CONNECTING,
 	    socket: null,
@@ -27727,7 +33327,7 @@ function requireWebsocket () {
 	    const prefix = 'WebSocket.close';
 
 	    if (code !== undefined) {
-	      code = webidl.converters['unsigned short'](code, prefix, 'code', { clamp: true });
+	      code = webidl.converters['unsigned short'](code, prefix, 'code', webidl.attributes.Clamp);
 	    }
 
 	    if (reason !== undefined) {
@@ -27789,7 +33389,7 @@ function requireWebsocket () {
 	      this.#sendQueue.add(buffer, () => {
 	        this.#bufferedAmount -= buffer.byteLength;
 	      }, sendHints.text);
-	    } else if (types.isArrayBuffer(data)) {
+	    } else if (isArrayBuffer(data)) {
 	      // If the WebSocket connection is established, and the WebSocket
 	      // closing handshake has not yet started, then the user agent must
 	      // send a WebSocket Message comprised of data using a binary frame
@@ -27887,9 +33487,11 @@ function requireWebsocket () {
 	      this.removeEventListener('open', this.#events.open);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('open', listener);
 	      this.#events.open = fn;
-	      this.addEventListener('open', fn);
 	    } else {
 	      this.#events.open = null;
 	    }
@@ -27908,9 +33510,11 @@ function requireWebsocket () {
 	      this.removeEventListener('error', this.#events.error);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('error', listener);
 	      this.#events.error = fn;
-	      this.addEventListener('error', fn);
 	    } else {
 	      this.#events.error = null;
 	    }
@@ -27929,9 +33533,11 @@ function requireWebsocket () {
 	      this.removeEventListener('close', this.#events.close);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('close', listener);
 	      this.#events.close = fn;
-	      this.addEventListener('close', fn);
 	    } else {
 	      this.#events.close = null;
 	    }
@@ -27950,9 +33556,11 @@ function requireWebsocket () {
 	      this.removeEventListener('message', this.#events.message);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('message', listener);
 	      this.#events.message = fn;
-	      this.addEventListener('message', fn);
 	    } else {
 	      this.#events.message = null;
 	    }
@@ -27978,7 +33586,7 @@ function requireWebsocket () {
 	   * @see https://websockets.spec.whatwg.org/#feedback-from-the-protocol
 	   */
 	  #onConnectionEstablished (response, parsedExtensions) {
-	    // processResponse is called when the "response’s header list has been received and initialized."
+	    // processResponse is called when the "response's header list has been received and initialized."
 	    // once this happens, the connection is open
 	    this.#handler.socket = response.socket;
 
@@ -28012,24 +33620,20 @@ function requireWebsocket () {
 
 	    // 4. Fire an event named open at the WebSocket object.
 	    fireEvent('open', this);
-	  }
 
-	  #onFail (code, reason, cause) {
-	    if (reason) {
-	      // TODO: process.nextTick
-	      fireEvent('error', this, (type, init) => new ErrorEvent(type, init), {
-	        error: new Error(reason, cause ? { cause } : undefined),
-	        message: reason
-	      });
-	    }
-
-	    if (!this.#handler.wasEverConnected) {
-	      this.#handler.readyState = states.CLOSED;
-
-	      // If the WebSocket connection could not be established, it is also said
-	      // that _The WebSocket Connection is Closed_, but not _cleanly_.
-	      fireEvent('close', this, (type, init) => new CloseEvent(type, init), {
-	        wasClean: false, code, reason
+	    if (channels.open.hasSubscribers) {
+	      // Convert headers to a plain object for the event
+	      const headers = response.headersList.entries;
+	      channels.open.publish({
+	        address: response.socket.address(),
+	        protocol: this.#protocol,
+	        extensions: this.#extensions,
+	        websocket: this,
+	        handshakeResponse: {
+	          status: response.status,
+	          statusText: response.statusText,
+	          headers
+	        }
 	      });
 	    }
 	  }
@@ -28094,18 +33698,11 @@ function requireWebsocket () {
 	    let code = 1005;
 	    let reason = '';
 
-	    const result = this.#parser.closingInfo;
+	    const result = this.#parser?.closingInfo;
 
 	    if (result && !result.error) {
 	      code = result.code ?? 1005;
 	      reason = result.reason;
-	    } else if (!this.#handler.closeState.has(sentCloseFrameState.RECEIVED)) {
-	      // If _The WebSocket
-	      // Connection is Closed_ and no Close control frame was received by the
-	      // endpoint (such as could occur if the underlying transport connection
-	      // is lost), _The WebSocket Connection Close Code_ is considered to be
-	      // 1006.
-	      code = 1006;
 	    }
 
 	    // 1. Change the ready state to CLOSED (3).
@@ -28115,7 +33712,18 @@ function requireWebsocket () {
 	    //    connection, or if the WebSocket connection was closed
 	    //    after being flagged as full, fire an event named error
 	    //    at the WebSocket object.
-	    // TODO
+	    if (!this.#handler.closeState.has(sentCloseFrameState.RECEIVED)) {
+	      // If _The WebSocket
+	      // Connection is Closed_ and no Close control frame was received by the
+	      // endpoint (such as could occur if the underlying transport connection
+	      // is lost), _The WebSocket Connection Close Code_ is considered to be
+	      // 1006.
+	      code = 1006;
+
+	      fireEvent('error', this, (type, init) => new ErrorEvent(type, init), {
+	        error: new TypeError(reason)
+	      });
+	    }
 
 	    // 3. Fire an event named close at the WebSocket object,
 	    //    using CloseEvent, with the wasClean attribute
@@ -28138,7 +33746,33 @@ function requireWebsocket () {
 	      });
 	    }
 	  }
+
+	  /**
+	   * @param {WebSocket} ws
+	   * @param {Buffer|undefined} buffer
+	   */
+	  static ping (ws, buffer) {
+	    if (Buffer.isBuffer(buffer)) {
+	      if (buffer.length > 125) {
+	        throw new TypeError('A PING frame cannot have a body larger than 125 bytes.')
+	      }
+	    } else if (buffer !== undefined) {
+	      throw new TypeError('Expected buffer payload')
+	    }
+
+	    // An endpoint MAY send a Ping frame any time after the connection is
+	    // established and before the connection is closed.
+	    const readyState = ws.#handler.readyState;
+
+	    if (isEstablished(readyState) && !isClosing(readyState) && !isClosed(readyState)) {
+	      const frame = new WebsocketFrameSend(buffer);
+	      ws.#handler.socket.write(frame.createFrame(opcodes.PING));
+	    }
+	  }
 	}
+
+	const { ping } = WebSocket;
+	Reflect.deleteProperty(WebSocket, 'ping');
 
 	// https://websockets.spec.whatwg.org/#dom-websocket-connecting
 	WebSocket.CONNECTING = WebSocket.prototype.CONNECTING = states.CONNECTING;
@@ -28198,7 +33832,7 @@ function requireWebsocket () {
 	  {
 	    key: 'protocols',
 	    converter: webidl.converters['DOMString or sequence<DOMString>'],
-	    defaultValue: () => new Array(0)
+	    defaultValue: () => []
 	  },
 	  {
 	    key: 'dispatcher',
@@ -28225,7 +33859,7 @@ function requireWebsocket () {
 	      return V
 	    }
 
-	    if (ArrayBuffer.isView(V) || types.isArrayBuffer(V)) {
+	    if (webidl.is.BufferSource(V)) {
 	      return V
 	    }
 	  }
@@ -28234,7 +33868,8 @@ function requireWebsocket () {
 	};
 
 	websocket = {
-	  WebSocket
+	  WebSocket,
+	  ping
 	};
 	return websocket;
 }
@@ -28249,9 +33884,30 @@ function requireWebsocketerror () {
 	const { webidl } = requireWebidl();
 	const { validateCloseCodeAndReason } = requireUtil$1();
 	const { kConstruct } = requireSymbols();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 
-	class WebSocketError extends DOMException {
+	function createInheritableDOMException () {
+	  // https://github.com/nodejs/node/issues/59677
+	  class Test extends DOMException {
+	    get reason () {
+	      return ''
+	    }
+	  }
+
+	  if (new Test().reason !== undefined) {
+	    return DOMException
+	  }
+
+	  return new Proxy(DOMException, {
+	    construct (target, args, newTarget) {
+	      const instance = Reflect.construct(target, args, target);
+	      Object.setPrototypeOf(instance, newTarget.prototype);
+	      return instance
+	    }
+	  })
+	}
+
+	class WebSocketError extends createInheritableDOMException() {
 	  #closeCode
 	  #reason
 
@@ -28337,18 +33993,18 @@ function requireWebsocketstream () {
 	if (hasRequiredWebsocketstream) return websocketstream;
 	hasRequiredWebsocketstream = 1;
 
-	const { createDeferredPromise, environmentSettingsObject } = requireUtil$4();
+	const { createDeferredPromise } = requirePromise();
+	const { environmentSettingsObject } = requireUtil$4();
 	const { states, opcodes, sentCloseFrameState } = requireConstants();
 	const { webidl } = requireWebidl();
 	const { getURLRecord, isValidSubprotocol, isEstablished, utf8Decode } = requireUtil$1();
 	const { establishWebSocketConnection, failWebsocketConnection, closeWebSocketConnection } = requireConnection();
-	const { types } = require$$0$4;
 	const { channels } = diagnostics;
 	const { WebsocketFrameSend } = requireFrame();
 	const { ByteParser } = requireReceiver();
 	const { WebSocketError, createUnvalidatedWebSocketError } = requireWebsocketerror();
-	const { utf8DecodeBytes } = requireUtil$4();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
+	const { utf8DecodeBytes } = requireEncoding();
 
 	let emittedExperimentalWarning = false;
 
@@ -28358,11 +34014,11 @@ function requireWebsocketstream () {
 	  #url
 
 	  // Each WebSocketStream object has an associated opened promise , which is a promise.
-	  /** @type {ReturnType<typeof createDeferredPromise>} */
+	  /** @type {import('../../../util/promise').DeferredPromise} */
 	  #openedPromise
 
 	  // Each WebSocketStream object has an associated closed promise , which is a promise.
-	  /** @type {ReturnType<typeof createDeferredPromise>} */
+	  /** @type {import('../../../util/promise').DeferredPromise} */
 	  #closedPromise
 
 	  // Each WebSocketStream object has an associated readable stream , which is a ReadableStream .
@@ -28382,7 +34038,6 @@ function requireWebsocketstream () {
 	  #handler = {
 	    // https://whatpr.org/websockets/48/7b748d3...d5570f3.html#feedback-to-websocket-stream-from-the-protocol
 	    onConnectionEstablished: (response, extensions) => this.#onConnectionEstablished(response, extensions),
-	    onFail: (_code, _reason) => {},
 	    onMessage: (opcode, data) => this.#onMessage(opcode, data),
 	    onParserError: (err) => failWebsocketConnection(this.#handler, null, err.message),
 	    onParserDrain: () => this.#handler.socket.resume(),
@@ -28401,6 +34056,8 @@ function requireWebsocketstream () {
 	      this.#handler.socket.destroy();
 	    },
 	    onSocketClose: () => this.#onSocketClose(),
+	    onPing: () => {},
+	    onPong: () => {},
 
 	    readyState: states.CONNECTING,
 	    socket: null,
@@ -28534,6 +34191,9 @@ function requireWebsocketstream () {
 	  }
 
 	  #write (chunk) {
+	    // See /websockets/stream/tentative/write.any.html
+	    chunk = webidl.converters.WebSocketStreamWrite(chunk);
+
 	    // 1. Let promise be a new promise created in stream ’s relevant realm .
 	    const promise = createDeferredPromise();
 
@@ -28544,9 +34204,9 @@ function requireWebsocketstream () {
 	    let opcode = null;
 
 	    // 4. If chunk is a BufferSource ,
-	    if (ArrayBuffer.isView(chunk) || types.isArrayBuffer(chunk)) {
+	    if (webidl.is.BufferSource(chunk)) {
 	      // 4.1. Set data to a copy of the bytes given chunk .
-	      data = new Uint8Array(ArrayBuffer.isView(chunk) ? new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength) : chunk);
+	      data = new Uint8Array(ArrayBuffer.isView(chunk) ? new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength) : chunk.slice());
 
 	      // 4.2. Set opcode to a binary frame opcode.
 	      opcode = opcodes.BINARY;
@@ -28561,7 +34221,7 @@ function requireWebsocketstream () {
 	        string = webidl.converters.DOMString(chunk);
 	      } catch (e) {
 	        promise.reject(e);
-	        return
+	        return promise.promise
 	      }
 
 	      // 5.2. Set data to the result of UTF-8 encoding string .
@@ -28584,7 +34244,7 @@ function requireWebsocketstream () {
 	    }
 
 	    // 6.3. Queue a global task on the WebSocket task source given stream ’s relevant global object to resolve promise with undefined.
-	    return promise
+	    return promise.promise
 	  }
 
 	  /** @type {import('../websocket').Handler['onConnectionEstablished']} */
@@ -28703,7 +34363,7 @@ function requireWebsocketstream () {
 	      this.#openedPromise.reject(new WebSocketError('Socket never opened'));
 	    }
 
-	    const result = this.#parser.closingInfo;
+	    const result = this.#parser?.closingInfo;
 
 	    // 4. Let code be the WebSocket connection close code .
 	    // https://datatracker.ietf.org/doc/html/rfc6455#section-7.1.5
@@ -28725,7 +34385,7 @@ function requireWebsocketstream () {
 	    // 6. If the connection was closed cleanly ,
 	    if (wasClean) {
 	      // 6.1. Close stream ’s readable stream .
-	      this.#readableStream.cancel().catch(() => {});
+	      this.#readableStreamController.close();
 
 	      // 6.2. Error stream ’s writable stream with an " InvalidStateError " DOMException indicating that a closed WebSocketStream cannot be written to.
 	      if (!this.#writableStream.locked) {
@@ -28744,10 +34404,10 @@ function requireWebsocketstream () {
 	      const error = createUnvalidatedWebSocketError('unclean close', code, reason);
 
 	      // 7.2. Error stream ’s readable stream with error .
-	      this.#readableStreamController.error(error);
+	      this.#readableStreamController?.error(error);
 
 	      // 7.3. Error stream ’s writable stream with error .
-	      this.#writableStream.abort(error);
+	      this.#writableStream?.abort(error);
 
 	      // 7.4. Reject stream ’s closed promise with error .
 	      this.#closedPromise.reject(error);
@@ -28810,7 +34470,7 @@ function requireWebsocketstream () {
 	webidl.converters.WebSocketCloseInfo = webidl.dictionaryConverter([
 	  {
 	    key: 'closeCode',
-	    converter: (V) => webidl.converters['unsigned short'](V, { enforceRange: true })
+	    converter: (V) => webidl.converters['unsigned short'](V, webidl.attributes.EnforceRange)
 	  },
 	  {
 	    key: 'reason',
@@ -28819,15 +34479,23 @@ function requireWebsocketstream () {
 	  }
 	]);
 
+	webidl.converters.WebSocketStreamWrite = function (V) {
+	  if (typeof V === 'string') {
+	    return webidl.converters.USVString(V)
+	  }
+
+	  return webidl.converters.BufferSource(V)
+	};
+
 	websocketstream = { WebSocketStream };
 	return websocketstream;
 }
 
-var util$1;
+var util;
 var hasRequiredUtil;
 
 function requireUtil () {
-	if (hasRequiredUtil) return util$1;
+	if (hasRequiredUtil) return util;
 	hasRequiredUtil = 1;
 
 	/**
@@ -28853,19 +34521,11 @@ function requireUtil () {
 	  return true
 	}
 
-	// https://github.com/nodejs/undici/issues/2664
-	function delay (ms) {
-	  return new Promise((resolve) => {
-	    setTimeout(resolve, ms);
-	  })
-	}
-
-	util$1 = {
+	util = {
 	  isValidLastEventId,
-	  isASCIINumber,
-	  delay
+	  isASCIINumber
 	};
-	return util$1;
+	return util;
 }
 
 var eventsourceStream;
@@ -29111,7 +34771,7 @@ function requireEventsourceStream () {
 	          this.buffer = this.buffer.subarray(this.pos + 1);
 	          this.pos = 0;
 	          if (
-	            this.event.data !== undefined || this.event.event || this.event.id || this.event.retry) {
+	            this.event.data !== undefined || this.event.event || this.event.id !== undefined || this.event.retry) {
 	            this.processEvent(this.event);
 	          }
 	          this.clearEvent();
@@ -29242,7 +34902,7 @@ function requireEventsourceStream () {
 	      this.state.reconnectionTime = parseInt(event.retry, 10);
 	    }
 
-	    if (event.id && isValidLastEventId(event.id)) {
+	    if (event.id !== undefined && isValidLastEventId(event.id)) {
 	      this.state.lastEventId = event.id;
 	    }
 
@@ -29290,8 +34950,7 @@ function requireEventsource () {
 	const { parseMIMEType } = requireDataUrl();
 	const { createFastMessageEvent } = requireEvents();
 	const { isNetworkError } = requireResponse();
-	const { delay } = requireUtil();
-	const { kEnumerableProperty } = util$n;
+	const { kEnumerableProperty } = util$o;
 	const { environmentSettingsObject } = requireUtil$4();
 
 	let experimentalWarned = false;
@@ -29406,10 +35065,10 @@ function requireEventsource () {
 	    url = webidl.converters.USVString(url);
 	    eventSourceInitDict = webidl.converters.EventSourceInitDict(eventSourceInitDict, prefix, 'eventSourceInitDict');
 
-	    this.#dispatcher = eventSourceInitDict.dispatcher;
+	    this.#dispatcher = eventSourceInitDict.node.dispatcher || eventSourceInitDict.dispatcher;
 	    this.#state = {
 	      lastEventId: '',
-	      reconnectionTime: defaultReconnectionTime
+	      reconnectionTime: eventSourceInitDict.node.reconnectionTime
 	    };
 
 	    // 2. Let settings be ev's relevant settings object.
@@ -29600,9 +35259,9 @@ function requireEventsource () {
 
 	  /**
 	   * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#sse-processing-model
-	   * @returns {Promise<void>}
+	   * @returns {void}
 	   */
-	  async #reconnect () {
+	  #reconnect () {
 	    // When a user agent is to reestablish the connection, the user agent must
 	    // run the following steps. These steps are run in parallel, not as part of
 	    // a task. (The tasks that it queues, of course, are run like normal tasks
@@ -29620,27 +35279,27 @@ function requireEventsource () {
 	    this.dispatchEvent(new Event('error'));
 
 	    // 2. Wait a delay equal to the reconnection time of the event source.
-	    await delay(this.#state.reconnectionTime);
+	    setTimeout(() => {
+	      // 5. Queue a task to run the following steps:
 
-	    // 5. Queue a task to run the following steps:
+	      //   1. If the EventSource object's readyState attribute is not set to
+	      //      CONNECTING, then return.
+	      if (this.#readyState !== CONNECTING) return
 
-	    //   1. If the EventSource object's readyState attribute is not set to
-	    //      CONNECTING, then return.
-	    if (this.#readyState !== CONNECTING) return
+	      //   2. Let request be the EventSource object's request.
+	      //   3. If the EventSource object's last event ID string is not the empty
+	      //      string, then:
+	      //      1. Let lastEventIDValue be the EventSource object's last event ID
+	      //         string, encoded as UTF-8.
+	      //      2. Set (`Last-Event-ID`, lastEventIDValue) in request's header
+	      //         list.
+	      if (this.#state.lastEventId.length) {
+	        this.#request.headersList.set('last-event-id', this.#state.lastEventId, true);
+	      }
 
-	    //   2. Let request be the EventSource object's request.
-	    //   3. If the EventSource object's last event ID string is not the empty
-	    //      string, then:
-	    //      1. Let lastEventIDValue be the EventSource object's last event ID
-	    //         string, encoded as UTF-8.
-	    //      2. Set (`Last-Event-ID`, lastEventIDValue) in request's header
-	    //         list.
-	    if (this.#state.lastEventId.length) {
-	      this.#request.headersList.set('last-event-id', this.#state.lastEventId, true);
-	    }
-
-	    //   4. Fetch request and process the response obtained in this fashion, if any, as described earlier in this section.
-	    this.#connect();
+	      //   4. Fetch request and process the response obtained in this fashion, if any, as described earlier in this section.
+	      this.#connect();
+	    }, this.#state.reconnectionTime)?.unref();
 	  }
 
 	  /**
@@ -29665,9 +35324,11 @@ function requireEventsource () {
 	      this.removeEventListener('open', this.#events.open);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('open', listener);
 	      this.#events.open = fn;
-	      this.addEventListener('open', fn);
 	    } else {
 	      this.#events.open = null;
 	    }
@@ -29682,9 +35343,11 @@ function requireEventsource () {
 	      this.removeEventListener('message', this.#events.message);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('message', listener);
 	      this.#events.message = fn;
-	      this.addEventListener('message', fn);
 	    } else {
 	      this.#events.message = null;
 	    }
@@ -29699,9 +35362,11 @@ function requireEventsource () {
 	      this.removeEventListener('error', this.#events.error);
 	    }
 
-	    if (typeof fn === 'function') {
+	    const listener = webidl.converters.EventHandlerNonNull(fn);
+
+	    if (listener !== null) {
+	      this.addEventListener('error', listener);
 	      this.#events.error = fn;
-	      this.addEventListener('error', fn);
 	    } else {
 	      this.#events.error = null;
 	    }
@@ -29754,6 +35419,21 @@ function requireEventsource () {
 	  {
 	    key: 'dispatcher', // undici only
 	    converter: webidl.converters.any
+	  },
+	  {
+	    key: 'node', // undici only
+	    converter: webidl.dictionaryConverter([
+	      {
+	        key: 'reconnectionTime',
+	        converter: webidl.converters['unsigned long'],
+	        defaultValue: () => defaultReconnectionTime
+	      },
+	      {
+	        key: 'dispatcher',
+	        converter: webidl.converters.any
+	      }
+	    ]),
+	    defaultValue: () => ({})
 	  }
 	]);
 
@@ -29764,185 +35444,359 @@ function requireEventsource () {
 	return eventsource;
 }
 
-const Client = client;
-const Dispatcher = dispatcher;
-const Pool = pool;
-const BalancedPool = balancedPool;
-const Agent = agent;
-const ProxyAgent = proxyAgent;
-const EnvHttpProxyAgent = envHttpProxyAgent;
-const RetryAgent = retryAgent;
-const H2CClient = h2cClient;
-const errors = errors$1;
-const util = util$n;
-const { InvalidArgumentError } = errors;
-const api = api$1;
-const buildConnector = connect$4;
-const MockClient = mockClient;
-const { MockCallHistory, MockCallHistoryLog } = mockCallHistory;
-const MockAgent = mockAgent;
-const MockPool = mockPool;
-const mockErrors = mockErrors$1;
-const RetryHandler = retryHandler;
-const { getGlobalDispatcher, setGlobalDispatcher } = global;
-const DecoratorHandler = decoratorHandler;
-const RedirectHandler = redirectHandler;
+undici.exports;
 
-Object.assign(Dispatcher.prototype, api);
+(function (module) {
 
-var Dispatcher_1 = undici.Dispatcher = Dispatcher;
-var Client_1 = undici.Client = Client;
-var Pool_1 = undici.Pool = Pool;
-var BalancedPool_1 = undici.BalancedPool = BalancedPool;
-var Agent_1 = undici.Agent = Agent;
-var ProxyAgent_1 = undici.ProxyAgent = ProxyAgent;
-var EnvHttpProxyAgent_1 = undici.EnvHttpProxyAgent = EnvHttpProxyAgent;
-var RetryAgent_1 = undici.RetryAgent = RetryAgent;
-var H2CClient_1 = undici.H2CClient = H2CClient;
-var RetryHandler_1 = undici.RetryHandler = RetryHandler;
+	const Client = client;
+	const Dispatcher = dispatcher;
+	const Pool = pool;
+	const BalancedPool = balancedPool;
+	const RoundRobinPool = roundRobinPool;
+	const Agent = agent;
+	const ProxyAgent = proxyAgent;
+	const Socks5ProxyAgent = socks5ProxyAgent;
+	const EnvHttpProxyAgent = envHttpProxyAgent;
+	const RetryAgent = retryAgent;
+	const H2CClient = h2cClient;
+	const errors$1 = errors;
+	const util = util$o;
+	const { InvalidArgumentError } = errors$1;
+	const api$1 = api;
+	const buildConnector = connect$2;
+	const MockClient = mockClient;
+	const { MockCallHistory, MockCallHistoryLog } = mockCallHistory;
+	const MockAgent = mockAgent;
+	const MockPool = mockPool;
+	const SnapshotAgent = snapshotAgent;
+	const mockErrors$1 = mockErrors;
+	const RetryHandler = retryHandler;
+	const { getGlobalDispatcher, setGlobalDispatcher } = global;
+	const DecoratorHandler = decoratorHandler;
+	const RedirectHandler = redirectHandler;
 
-var DecoratorHandler_1 = undici.DecoratorHandler = DecoratorHandler;
-var RedirectHandler_1 = undici.RedirectHandler = RedirectHandler;
-var interceptors = undici.interceptors = {
-  redirect: redirect,
-  responseError: responseError,
-  retry: retry,
-  dump: dump,
-  dns: dns,
-  cache: cache$1
-};
+	Object.assign(Dispatcher.prototype, api$1);
 
-var cacheStores = undici.cacheStores = {
-  MemoryCacheStore: memoryCacheStore
-};
+	module.exports.Dispatcher = Dispatcher;
+	module.exports.Client = Client;
+	module.exports.Pool = Pool;
+	module.exports.BalancedPool = BalancedPool;
+	module.exports.RoundRobinPool = RoundRobinPool;
+	module.exports.Agent = Agent;
+	module.exports.ProxyAgent = ProxyAgent;
+	module.exports.Socks5ProxyAgent = Socks5ProxyAgent;
+	module.exports.EnvHttpProxyAgent = EnvHttpProxyAgent;
+	module.exports.RetryAgent = RetryAgent;
+	module.exports.H2CClient = H2CClient;
+	module.exports.RetryHandler = RetryHandler;
 
+	module.exports.DecoratorHandler = DecoratorHandler;
+	module.exports.RedirectHandler = RedirectHandler;
+	module.exports.interceptors = {
+	  redirect: redirect,
+	  responseError: responseError,
+	  retry: retry,
+	  dump: dump,
+	  dns: dns,
+	  cache: cache$1,
+	  decompress: decompress,
+	  deduplicate: deduplicate
+	};
 
+	module.exports.cacheStores = {
+	  MemoryCacheStore: memoryCacheStore
+	};
 
-var buildConnector_1 = undici.buildConnector = buildConnector;
-var errors_1 = undici.errors = errors;
-var util_1 = undici.util = {
-  parseHeaders: util.parseHeaders,
-  headerNameToString: util.headerNameToString
-};
+	const SqliteCacheStore = sqliteCacheStore;
+	module.exports.cacheStores.SqliteCacheStore = SqliteCacheStore;
 
-function makeDispatcher (fn) {
-  return (url, opts, handler) => {
-    if (typeof opts === 'function') {
-      handler = opts;
-      opts = null;
-    }
+	module.exports.buildConnector = buildConnector;
+	module.exports.errors = errors$1;
+	module.exports.util = {
+	  parseHeaders: util.parseHeaders,
+	  headerNameToString: util.headerNameToString
+	};
 
-    if (!url || (typeof url !== 'string' && typeof url !== 'object' && !(url instanceof URL))) {
-      throw new InvalidArgumentError('invalid url')
-    }
+	function makeDispatcher (fn) {
+	  return (url, opts, handler) => {
+	    if (typeof opts === 'function') {
+	      handler = opts;
+	      opts = null;
+	    }
 
-    if (opts != null && typeof opts !== 'object') {
-      throw new InvalidArgumentError('invalid opts')
-    }
+	    if (!url || (typeof url !== 'string' && typeof url !== 'object' && !(url instanceof URL))) {
+	      throw new InvalidArgumentError('invalid url')
+	    }
 
-    if (opts && opts.path != null) {
-      if (typeof opts.path !== 'string') {
-        throw new InvalidArgumentError('invalid opts.path')
-      }
+	    if (opts != null && typeof opts !== 'object') {
+	      throw new InvalidArgumentError('invalid opts')
+	    }
 
-      let path = opts.path;
-      if (!opts.path.startsWith('/')) {
-        path = `/${path}`;
-      }
+	    if (opts && opts.path != null) {
+	      if (typeof opts.path !== 'string') {
+	        throw new InvalidArgumentError('invalid opts.path')
+	      }
 
-      url = new URL(util.parseOrigin(url).origin + path);
-    } else {
-      if (!opts) {
-        opts = typeof url === 'object' ? url : {};
-      }
+	      let path = opts.path;
+	      if (!opts.path.startsWith('/')) {
+	        path = `/${path}`;
+	      }
 
-      url = util.parseURL(url);
-    }
+	      url = new URL(util.parseOrigin(url).origin + path);
+	    } else {
+	      if (!opts) {
+	        opts = typeof url === 'object' ? url : {};
+	      }
 
-    const { agent, dispatcher = getGlobalDispatcher() } = opts;
+	      url = util.parseURL(url);
+	    }
 
-    if (agent) {
-      throw new InvalidArgumentError('unsupported opts.agent. Did you mean opts.client?')
-    }
+	    const { agent, dispatcher = getGlobalDispatcher() } = opts;
 
-    return fn.call(dispatcher, {
-      ...opts,
-      origin: url.origin,
-      path: url.search ? `${url.pathname}${url.search}` : url.pathname,
-      method: opts.method || (opts.body ? 'PUT' : 'GET')
-    }, handler)
-  }
-}
+	    if (agent) {
+	      throw new InvalidArgumentError('unsupported opts.agent. Did you mean opts.client?')
+	    }
 
-var setGlobalDispatcher_1 = undici.setGlobalDispatcher = setGlobalDispatcher;
-var getGlobalDispatcher_1 = undici.getGlobalDispatcher = getGlobalDispatcher;
+	    return fn.call(dispatcher, {
+	      ...opts,
+	      origin: url.origin,
+	      path: url.search ? `${url.pathname}${url.search}` : url.pathname,
+	      method: opts.method || (opts.body ? 'PUT' : 'GET')
+	    }, handler)
+	  }
+	}
 
-const fetchImpl = requireFetch().fetch;
-var fetch = undici.fetch = async function fetch (init, options = undefined) {
-  try {
-    return await fetchImpl(init, options)
-  } catch (err) {
-    if (err && typeof err === 'object') {
-      Error.captureStackTrace(err);
-    }
+	module.exports.setGlobalDispatcher = setGlobalDispatcher;
+	module.exports.getGlobalDispatcher = getGlobalDispatcher;
 
-    throw err
-  }
-};
-var Headers = undici.Headers = requireHeaders().Headers;
-var Response = undici.Response = requireResponse().Response;
-var Request = undici.Request = requireRequest().Request;
-var FormData = undici.FormData = requireFormdata().FormData;
+	const fetchImpl = requireFetch().fetch;
 
-const { setGlobalOrigin, getGlobalOrigin } = requireGlobal();
+	// Capture __filename at module load time for stack trace augmentation.
+	// This may be undefined when bundled in environments like Node.js internals.
+	const currentFilename = typeof __filename !== 'undefined' ? __filename : undefined;
 
-var setGlobalOrigin_1 = undici.setGlobalOrigin = setGlobalOrigin;
-var getGlobalOrigin_1 = undici.getGlobalOrigin = getGlobalOrigin;
+	function appendFetchStackTrace (err, filename) {
+	  if (!err || typeof err !== 'object') {
+	    return
+	  }
 
-const { CacheStorage } = requireCachestorage();
-const { kConstruct } = requireSymbols();
+	  const stack = typeof err.stack === 'string' ? err.stack : '';
+	  const normalizedFilename = filename.replace(/\\/g, '/');
 
-// Cache & CacheStorage are tightly coupled with fetch. Even if it may run
-// in an older version of Node, it doesn't have any use without fetch.
-var caches = undici.caches = new CacheStorage(kConstruct);
+	  if (stack && (stack.includes(filename) || stack.includes(normalizedFilename))) {
+	    return
+	  }
 
-const { deleteCookie, getCookies, getSetCookies, setCookie, parseCookie } = requireCookies();
+	  const capture = {};
+	  Error.captureStackTrace(capture, appendFetchStackTrace);
 
-var deleteCookie_1 = undici.deleteCookie = deleteCookie;
-var getCookies_1 = undici.getCookies = getCookies;
-var getSetCookies_1 = undici.getSetCookies = getSetCookies;
-var setCookie_1 = undici.setCookie = setCookie;
-var parseCookie_1 = undici.parseCookie = parseCookie;
+	  if (!capture.stack) {
+	    return
+	  }
 
-const { parseMIMEType, serializeAMimeType } = requireDataUrl();
+	  const captureLines = capture.stack.split('\n').slice(1).join('\n');
 
-var parseMIMEType_1 = undici.parseMIMEType = parseMIMEType;
-var serializeAMimeType_1 = undici.serializeAMimeType = serializeAMimeType;
+	  err.stack = stack ? `${stack}\n${captureLines}` : capture.stack;
+	}
 
-const { CloseEvent, ErrorEvent, MessageEvent } = requireEvents();
-var WebSocket = undici.WebSocket = requireWebsocket().WebSocket;
-var CloseEvent_1 = undici.CloseEvent = CloseEvent;
-var ErrorEvent_1 = undici.ErrorEvent = ErrorEvent;
-var MessageEvent_1 = undici.MessageEvent = MessageEvent;
+	module.exports.fetch = function fetch (init, options = undefined) {
+	  return fetchImpl(init, options).catch(err => {
+	    if (currentFilename) {
+	      appendFetchStackTrace(err, currentFilename);
+	    } else if (err && typeof err === 'object') {
+	      Error.captureStackTrace(err, module.exports.fetch);
+	    }
+	    throw err
+	  })
+	};
+	module.exports.Headers = requireHeaders().Headers;
+	module.exports.Response = requireResponse().Response;
+	module.exports.Request = requireRequest().Request;
+	module.exports.FormData = requireFormdata().FormData;
 
-var WebSocketStream = undici.WebSocketStream = requireWebsocketstream().WebSocketStream;
-var WebSocketError = undici.WebSocketError = requireWebsocketerror().WebSocketError;
+	const { setGlobalOrigin, getGlobalOrigin } = requireGlobal();
 
-var request = undici.request = makeDispatcher(api.request);
-var stream = undici.stream = makeDispatcher(api.stream);
-var pipeline = undici.pipeline = makeDispatcher(api.pipeline);
-var connect = undici.connect = makeDispatcher(api.connect);
-var upgrade = undici.upgrade = makeDispatcher(api.upgrade);
+	module.exports.setGlobalOrigin = setGlobalOrigin;
+	module.exports.getGlobalOrigin = getGlobalOrigin;
 
-var MockClient_1 = undici.MockClient = MockClient;
-var MockCallHistory_1 = undici.MockCallHistory = MockCallHistory;
-var MockCallHistoryLog_1 = undici.MockCallHistoryLog = MockCallHistoryLog;
-var MockPool_1 = undici.MockPool = MockPool;
-var MockAgent_1 = undici.MockAgent = MockAgent;
-var mockErrors_1 = undici.mockErrors = mockErrors;
+	const { CacheStorage } = requireCachestorage();
+	const { kConstruct } = requireSymbols();
 
-const { EventSource } = requireEventsource();
+	module.exports.caches = new CacheStorage(kConstruct);
 
-var EventSource_1 = undici.EventSource = EventSource;
+	const { deleteCookie, getCookies, getSetCookies, setCookie, parseCookie } = requireCookies();
 
-export { Agent_1 as Agent, BalancedPool_1 as BalancedPool, Client_1 as Client, CloseEvent_1 as CloseEvent, DecoratorHandler_1 as DecoratorHandler, Dispatcher_1 as Dispatcher, EnvHttpProxyAgent_1 as EnvHttpProxyAgent, ErrorEvent_1 as ErrorEvent, EventSource_1 as EventSource, FormData, H2CClient_1 as H2CClient, Headers, MessageEvent_1 as MessageEvent, MockAgent_1 as MockAgent, MockCallHistory_1 as MockCallHistory, MockCallHistoryLog_1 as MockCallHistoryLog, MockClient_1 as MockClient, MockPool_1 as MockPool, Pool_1 as Pool, ProxyAgent_1 as ProxyAgent, RedirectHandler_1 as RedirectHandler, Request, Response, RetryAgent_1 as RetryAgent, RetryHandler_1 as RetryHandler, WebSocket, WebSocketError, WebSocketStream, buildConnector_1 as buildConnector, cacheStores, caches, connect, undici as default, deleteCookie_1 as deleteCookie, errors_1 as errors, fetch, getCookies_1 as getCookies, getGlobalDispatcher_1 as getGlobalDispatcher, getGlobalOrigin_1 as getGlobalOrigin, getSetCookies_1 as getSetCookies, interceptors, mockErrors_1 as mockErrors, parseCookie_1 as parseCookie, parseMIMEType_1 as parseMIMEType, pipeline, request, serializeAMimeType_1 as serializeAMimeType, setCookie_1 as setCookie, setGlobalDispatcher_1 as setGlobalDispatcher, setGlobalOrigin_1 as setGlobalOrigin, stream, upgrade, util_1 as util };
+	module.exports.deleteCookie = deleteCookie;
+	module.exports.getCookies = getCookies;
+	module.exports.getSetCookies = getSetCookies;
+	module.exports.setCookie = setCookie;
+	module.exports.parseCookie = parseCookie;
+
+	const { parseMIMEType, serializeAMimeType } = requireDataUrl();
+
+	module.exports.parseMIMEType = parseMIMEType;
+	module.exports.serializeAMimeType = serializeAMimeType;
+
+	const { CloseEvent, ErrorEvent, MessageEvent } = requireEvents();
+	const { WebSocket, ping } = requireWebsocket();
+	module.exports.WebSocket = WebSocket;
+	module.exports.CloseEvent = CloseEvent;
+	module.exports.ErrorEvent = ErrorEvent;
+	module.exports.MessageEvent = MessageEvent;
+	module.exports.ping = ping;
+
+	module.exports.WebSocketStream = requireWebsocketstream().WebSocketStream;
+	module.exports.WebSocketError = requireWebsocketerror().WebSocketError;
+
+	module.exports.request = makeDispatcher(api$1.request);
+	module.exports.stream = makeDispatcher(api$1.stream);
+	module.exports.pipeline = makeDispatcher(api$1.pipeline);
+	module.exports.connect = makeDispatcher(api$1.connect);
+	module.exports.upgrade = makeDispatcher(api$1.upgrade);
+
+	module.exports.MockClient = MockClient;
+	module.exports.MockCallHistory = MockCallHistory;
+	module.exports.MockCallHistoryLog = MockCallHistoryLog;
+	module.exports.MockPool = MockPool;
+	module.exports.MockAgent = MockAgent;
+	module.exports.SnapshotAgent = SnapshotAgent;
+	module.exports.mockErrors = mockErrors$1;
+
+	const { EventSource } = requireEventsource();
+
+	module.exports.EventSource = EventSource;
+
+	function install () {
+	  globalThis.fetch = module.exports.fetch;
+	  globalThis.Headers = module.exports.Headers;
+	  globalThis.Response = module.exports.Response;
+	  globalThis.Request = module.exports.Request;
+	  globalThis.FormData = module.exports.FormData;
+	  globalThis.WebSocket = module.exports.WebSocket;
+	  globalThis.CloseEvent = module.exports.CloseEvent;
+	  globalThis.ErrorEvent = module.exports.ErrorEvent;
+	  globalThis.MessageEvent = module.exports.MessageEvent;
+	  globalThis.EventSource = module.exports.EventSource;
+	}
+
+	module.exports.install = install; 
+} (undici));
+
+var undiciExports = undici.exports;
+var index = /*@__PURE__*/getDefaultExportFromCjs(undiciExports);
+
+export { index as default };
+
+//
+// TUTAO PATCH: esm exports
+//
+const __export_Dispatcher = undici.exports.Dispatcher;
+export { __export_Dispatcher as Dispatcher }
+const __export_Client = undici.exports.Client;
+export { __export_Client as Client }
+const __export_Pool = undici.exports.Pool;
+export { __export_Pool as Pool }
+const __export_BalancedPool = undici.exports.BalancedPool;
+export { __export_BalancedPool as BalancedPool }
+const __export_RoundRobinPool = undici.exports.RoundRobinPool;
+export { __export_RoundRobinPool as RoundRobinPool }
+const __export_Agent = undici.exports.Agent;
+export { __export_Agent as Agent }
+const __export_ProxyAgent = undici.exports.ProxyAgent;
+export { __export_ProxyAgent as ProxyAgent }
+const __export_EnvHttpProxyAgent = undici.exports.EnvHttpProxyAgent;
+export { __export_EnvHttpProxyAgent as EnvHttpProxyAgent }
+const __export_RetryAgent = undici.exports.RetryAgent;
+export { __export_RetryAgent as RetryAgent }
+const __export_RetryHandler = undici.exports.RetryHandler;
+export { __export_RetryHandler as RetryHandler }
+const __export_DecoratorHandler = undici.exports.DecoratorHandler;
+export { __export_DecoratorHandler as DecoratorHandler }
+const __export_RedirectHandler = undici.exports.RedirectHandler;
+export { __export_RedirectHandler as RedirectHandler }
+const __export_interceptors = undici.exports.interceptors;
+export { __export_interceptors as interceptors }
+const __export_cacheStores = undici.exports.cacheStores;
+export { __export_cacheStores as cacheStores }
+const __export_buildConnector = undici.exports.buildConnector;
+export { __export_buildConnector as buildConnector }
+const __export_errors = undici.exports.errors;
+export { __export_errors as errors }
+const __export_util = undici.exports.util;
+export { __export_util as util }
+const __export_setGlobalDispatcher = undici.exports.setGlobalDispatcher;
+export { __export_setGlobalDispatcher as setGlobalDispatcher }
+const __export_getGlobalDispatcher = undici.exports.getGlobalDispatcher;
+export { __export_getGlobalDispatcher as getGlobalDispatcher }
+const __export_fetch = undici.exports.fetch;
+export { __export_fetch as fetch }
+const __export_Headers = undici.exports.Headers;
+export { __export_Headers as Headers }
+const __export_Response = undici.exports.Response;
+export { __export_Response as Response }
+const __export_Request = undici.exports.Request;
+export { __export_Request as Request }
+const __export_FormData = undici.exports.FormData;
+export { __export_FormData as FormData }
+const __export_setGlobalOrigin = undici.exports.setGlobalOrigin;
+export { __export_setGlobalOrigin as setGlobalOrigin }
+const __export_getGlobalOrigin = undici.exports.getGlobalOrigin;
+export { __export_getGlobalOrigin as getGlobalOrigin }
+const __export_caches = undici.exports.caches;
+export { __export_caches as caches }
+const __export_deleteCookie = undici.exports.deleteCookie;
+export { __export_deleteCookie as deleteCookie }
+const __export_getCookies = undici.exports.getCookies;
+export { __export_getCookies as getCookies }
+const __export_getSetCookies = undici.exports.getSetCookies;
+export { __export_getSetCookies as getSetCookies }
+const __export_setCookie = undici.exports.setCookie;
+export { __export_setCookie as setCookie }
+const __export_parseCookie = undici.exports.parseCookie;
+export { __export_parseCookie as parseCookie }
+const __export_parseMIMEType = undici.exports.parseMIMEType;
+export { __export_parseMIMEType as parseMIMEType }
+const __export_serializeAMimeType = undici.exports.serializeAMimeType;
+export { __export_serializeAMimeType as serializeAMimeType }
+const __export_WebSocket = undici.exports.WebSocket;
+export { __export_WebSocket as WebSocket }
+const __export_CloseEvent = undici.exports.CloseEvent;
+export { __export_CloseEvent as CloseEvent }
+const __export_ErrorEvent = undici.exports.ErrorEvent;
+export { __export_ErrorEvent as ErrorEvent }
+const __export_MessageEvent = undici.exports.MessageEvent;
+export { __export_MessageEvent as MessageEvent }
+const __export_ping = undici.exports.ping;
+export { __export_ping as ping }
+const __export_WebSocketStream = undici.exports.WebSocketStream;
+export { __export_WebSocketStream as WebSocketStream }
+const __export_WebSocketError = undici.exports.WebSocketError;
+export { __export_WebSocketError as WebSocketError }
+const __export_request = undici.exports.request;
+export { __export_request as request }
+const __export_stream = undici.exports.stream;
+export { __export_stream as stream }
+const __export_pipeline = undici.exports.pipeline;
+export { __export_pipeline as pipeline }
+const __export_connect = undici.exports.connect;
+export { __export_connect as connect }
+const __export_upgrade = undici.exports.upgrade;
+export { __export_upgrade as upgrade }
+const __export_MockClient = undici.exports.MockClient;
+export { __export_MockClient as MockClient }
+const __export_MockCallHistory = undici.exports.MockCallHistory;
+export { __export_MockCallHistory as MockCallHistory }
+const __export_MockCallHistoryLog = undici.exports.MockCallHistoryLog;
+export { __export_MockCallHistoryLog as MockCallHistoryLog }
+const __export_MockPool = undici.exports.MockPool;
+export { __export_MockPool as MockPool }
+const __export_MockAgent = undici.exports.MockAgent;
+export { __export_MockAgent as MockAgent }
+const __export_SnapshotAgent = undici.exports.SnapshotAgent;
+export { __export_SnapshotAgent as SnapshotAgent }
+const __export_mockErrors = undici.exports.mockErrors;
+export { __export_mockErrors as mockErrors }
+const __export_EventSource = undici.exports.EventSource;
+export { __export_EventSource as EventSource }
+const __export_install = undici.exports.install;
+export { __export_install as install }
