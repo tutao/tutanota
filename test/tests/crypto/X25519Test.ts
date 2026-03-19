@@ -1,7 +1,6 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { deriveX25519PublicKey, generateX25519KeyPair, hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, X25519KeyPair } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
-import { assertThrows } from "@tutao/otest"
 
 const originalRandom = random.generateRandomData
 o.spec("X25519Test", function () {

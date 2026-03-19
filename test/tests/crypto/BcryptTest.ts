@@ -1,8 +1,5 @@
 import o from "@tutao/otest"
-import { generateKeyFromPassphraseBcrypt, generateRandomSalt } from "@tutao/crypto"
-import { KeyLength } from "@tutao/crypto"
-
-import { keyToUint8Array } from "@tutao/crypto"
+import { generateKeyFromPassphraseBcrypt, generateRandomSalt, KeyLength, keyToUint8Array } from "@tutao/crypto"
 
 o.spec("Bcrypt", function () {
 	o("GenerateRandomSalt", function () {

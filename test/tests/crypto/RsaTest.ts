@@ -16,10 +16,10 @@ import {
 	rsaEncrypt,
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
-} from "@tutao/crypto"
-import { SecureRandom } from "@tutao/crypto"
+} from "@tutao/crypto/rsa"
+import { SecureRandom } from "@tutao/crypto/random"
 import { CryptoError } from "@tutao/crypto/error"
-import { parseBigInt } from "../../../src/crypto/internal/crypto-jsbn-2012-08-09_1.js"
+import { parseBigInt } from "@tutao/crypto/jsbn"
 
 const originalRandom = random.generateRandomData
 

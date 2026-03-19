@@ -1,12 +1,25 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, concat } from "@tutao/utils"
-import { aes256DecryptWithRecoveryKey, decryptKey, decryptKeyUnauthenticatedWithDeviceKeyChain, decryptRsaKey, encryptKey, encryptRsaKey } from "@tutao/crypto"
-import { hexToRsaPrivateKey } from "@tutao/crypto"
+import {
+	aes256DecryptWithRecoveryKey,
+	Aes256Key,
+	aes256RandomKey,
+	AesKey,
+	bitArrayToUint8Array,
+	decryptKey,
+	decryptKeyUnauthenticatedWithDeviceKeyChain,
+	decryptRsaKey,
+	encryptKey,
+	encryptRsaKey,
+	FIXED_IV,
+	hexToRsaPrivateKey,
+	keyToUint8Array,
+	uint8ArrayToBitArray,
+} from "@tutao/crypto"
+import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"
-import { Aes256Key, aes256RandomKey, AesKey, bitArrayToUint8Array, FIXED_IV, keyToUint8Array, uint8ArrayToBitArray } from "@tutao/crypto"
-import sjcl from "../../../src/crypto/internal/sjcl.js"
-import { SymmetricKeyDeriver } from "@tutao/crypto"
-import { SymmetricCipherVersion } from "@tutao/crypto"
+import sjcl from "@tutao/crypto/sjcl"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =

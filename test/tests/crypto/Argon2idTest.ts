@@ -1,9 +1,8 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "@tutao/crypto"
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import * as fs from "node:fs"
-import { assertThrows } from "@tutao/otest"
 
 o.spec("Argon2id", function () {
 	o.before(async () => {

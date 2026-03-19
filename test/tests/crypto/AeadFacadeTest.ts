@@ -1,12 +1,11 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { AeadFacade } from "@tutao/crypto"
-import { AeadSubKeys } from "@tutao/crypto"
-import { aes256RandomKey, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto"
+import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
+import { aes256RandomKey, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { _aes128RandomKey } from "./AesTest.js"
-import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
 import { concat } from "@tutao/utils"
-import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto"
+import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
 
 o.spec("AeadFacadeTest", function () {
 	let aeadFacade: AeadFacade

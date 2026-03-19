@@ -1,13 +1,8 @@
 import o from "@tutao/otest"
-import {
-	aes256RandomKey,
-	AesCbcFacade,
-	FIXED_IV,
-	keyToUint8Array,
-	SymmetricCipherFacade,
-	SymmetricCipherVersion,
-	symmetricCipherVersionToUint8Array,
-} from "@tutao/crypto"
+import { aes256RandomKey, FIXED_IV, keyToUint8Array } from "@tutao/crypto"
+import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
+import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
+import { SymmetricCipherFacade } from "@tutao/crypto/symmetric-cipher-facade"
 import { matchers, object, verify, when } from "testdouble"
 import { _aes128RandomKey } from "./AesTest.js"
 import { concat } from "@tutao/utils"

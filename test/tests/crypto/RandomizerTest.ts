@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { random } from "@tutao/crypto"
-import sjcl from "../../../src/crypto/internal/sjcl.js"
+import sjcl from "@tutao/crypto/sjcl"
 import { CryptoError } from "@tutao/crypto/error"
 import { assertThrows } from "@tutao/otest"
 
