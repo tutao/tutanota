@@ -2260,6 +2260,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}"
 	}
 }

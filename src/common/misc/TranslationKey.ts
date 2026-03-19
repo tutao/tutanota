@@ -2259,3 +2259,4 @@ export type TranslationKeyType =
 	| "movingItemCount_label"
 	| "widgetNoEventsToday_msg"
 	| "emptyString_msg"
+	| "manualUpdateNeeded_msg"
