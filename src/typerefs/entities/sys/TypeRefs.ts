@@ -2216,6 +2216,7 @@ export type UpgradePriceServiceReturn = {
 	bonusMonthsForYearlyPlan: NumberString;
 	firstMonthForFreeForYearlyPlan: boolean;
 	hasGlobalFirstYearDiscount: boolean;
+	globalCampaignName: null | string;
 
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
