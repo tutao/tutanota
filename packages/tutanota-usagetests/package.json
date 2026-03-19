@@ -25,7 +25,6 @@
 	],
 	"devDependencies": {
 		"@types/node-forge": "1.0.0",
-		"typescript": "5.8.3",
-		"@tutao/otest": "338.260317.1"
+		"typescript": "5.8.3"
 	}
 }

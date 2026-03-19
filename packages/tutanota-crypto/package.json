@@ -30,7 +30,6 @@
 	},
 	"devDependencies": {
 		"typescript": "5.8.3",
-		"@tutao/otest": "338.260317.1",
 		"fs-extra": "11.3.0",
 		"zx": "8.1.5"
 	}

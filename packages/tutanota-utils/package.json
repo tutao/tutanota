@@ -22,7 +22,6 @@
 		"tsconfig.json"
 	],
 	"devDependencies": {
-		"typescript": "5.8.3",
-		"@tutao/otest": "338.260317.1"
+		"typescript": "5.8.3"
 	}
 }

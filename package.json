@@ -78,8 +78,6 @@
 		"@rollup/plugin-replace": "^6.0.2",
 		"@rollup/plugin-terser": "0.4.4",
 		"@rollup/plugin-typescript": "12.1.2",
-		"@tutao/otest": "338.260317.1",
-		"@tutao/tutanota-test-utils": "338.260317.1",
 		"@types/express": "5.0.3",
 		"@types/pako": "^2.0.3",
 		"body-parser": "2.2.0",
