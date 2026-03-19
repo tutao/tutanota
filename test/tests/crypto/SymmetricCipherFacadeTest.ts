@@ -1,11 +1,16 @@
 import o from "@tutao/otest"
-import { SymmetricCipherFacade } from "../lib/encryption/symmetric/SymmetricCipherFacade.js"
-import { AesCbcFacade } from "../lib/encryption/symmetric/AesCbcFacade.js"
+import {
+	aes256RandomKey,
+	AesCbcFacade,
+	FIXED_IV,
+	keyToUint8Array,
+	SymmetricCipherFacade,
+	SymmetricCipherVersion,
+	symmetricCipherVersionToUint8Array,
+} from "@tutao/crypto"
 import { matchers, object, verify, when } from "testdouble"
-import { aes256RandomKey, FIXED_IV, keyToUint8Array } from "../lib/index.js"
 import { _aes128RandomKey } from "./AesTest.js"
-import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
-import { concat } from "@tutao/tutanota-utils"
+import { concat } from "@tutao/utils"
 
 o.spec("SymmetricCipherFacade", function () {
 	const customIv = object<Uint8Array>()

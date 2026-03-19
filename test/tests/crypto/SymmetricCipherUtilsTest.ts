@@ -9,7 +9,7 @@ import {
 	keyToUint8Array,
 	uint8ArrayToBitArray,
 	uint8ArrayToKey,
-} from "../lib/index.js"
+} from "@tutao/crypto"
 
 o.spec("SymmetricCipherUtilsTest", function () {
 	o.spec("Key conversion", function () {

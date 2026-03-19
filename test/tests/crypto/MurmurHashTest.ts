@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { murmurHash } from "../lib/hashes/MurmurHash.js"
+import { murmurHash } from "@tutao/crypto"
 
 o.spec("murmur hash", function () {
 	o("32bitHash", function () {

@@ -126,7 +126,7 @@ export {
 } from "./encryption/AsymmetricKeyPair.js"
 export { PQKeyPairs, PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
-export { sha256Hash } from "./hashes/Sha256.js"
+export { sha256Hash, SHA256_HASH_LENGTH_BYTES } from "./hashes/Sha256.js"
 export { sha512Hash } from "./hashes/Sha512.js"
 export { TotpVerifier } from "./misc/TotpVerifier.js"
 export { TotpSecret } from "./misc/TotpVerifier.js"
@@ -148,8 +148,16 @@ export {
 	Aes128Key,
 	Aes256Key,
 	IV_BYTE_LENGTH,
+	BLOCK_SIZE_BYTES,
+	SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
+	SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES,
 	FIXED_IV,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { AeadFacade } from "./encryption/symmetric/AeadFacade.js"
+export { AeadSubKeys, SymmetricKeyDeriver } from "./encryption/symmetric/SymmetricKeyDeriver"
+export { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./encryption/symmetric/SymmetricCipherVersion"
+export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade"
+export { SecureRandom } from "./random/SecureRandom"
+export { SymmetricCipherFacade } from "./encryption/symmetric/SymmetricCipherFacade"

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { sha256Hash } from "../lib/hashes/Sha256.js"
-import sjcl from "../lib/internal/sjcl.js"
+import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/utils"
+import { sha256Hash } from "@tutao/crypto"
+import sjcl from "../../../src/crypto/internal/sjcl.js"
 
 o.spec("Sha256", function () {
 	o("hash", function () {

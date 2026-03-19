@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { deriveX25519PublicKey, generateX25519KeyPair, hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, X25519KeyPair } from "../lib/index.js"
-import { CryptoError } from "../lib/error.js"
+import { deriveX25519PublicKey, generateX25519KeyPair, hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, X25519KeyPair } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 
 const originalRandom = random.generateRandomData

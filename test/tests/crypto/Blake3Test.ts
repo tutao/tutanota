@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array } from "../lib/index.js"
+import { aes256RandomKey, blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array } from "@tutao/crypto"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "../lib/misc/CryptoError.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 o.spec("blake3", function () {
 	o.spec("hash", function () {

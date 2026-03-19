@@ -1,4 +1,4 @@
-import { random } from "../lib/random/Randomizer.js"
+import { random } from "@tutao/crypto"
 
 export async function bootstrapTests() {
 	await random.addEntropy([

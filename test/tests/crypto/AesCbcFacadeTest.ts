@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
-import { AesCbcFacade } from "../lib/encryption/symmetric/AesCbcFacade.js"
-import { SymmetricKeyDeriver } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
-import { aes256RandomKey, FIXED_IV } from "../lib/index.js"
+import { AesCbcFacade } from "@tutao/crypto"
+import { SymmetricKeyDeriver } from "@tutao/crypto"
+import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
 import { object, when } from "testdouble"
-import { SymmetricCipherVersion } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
+import { SymmetricCipherVersion } from "@tutao/crypto"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { BLOCK_SIZE_BYTES, SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
-import { CryptoError } from "../lib/misc/CryptoError.js"
+import { BLOCK_SIZE_BYTES, SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 
 o.spec("AesCbcFacadeTest", function () {
 	let aesCbcFacade: AesCbcFacade

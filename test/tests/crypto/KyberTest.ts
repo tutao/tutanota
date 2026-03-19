@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { decapsulate, encapsulate, generateKeyPair, LibOQSExports } from "../lib/encryption/Liboqs/Kyber.js"
-import { extractKyberPublicKeyFromKyberPrivateKey, random } from "../lib/index.js"
+import { decapsulateKyber, encapsulateKyber, generateKeyPairKyber, LibOQSExports } from "@tutao/crypto"
+import { extractKyberPublicKeyFromKyberPrivateKey, random } from "@tutao/crypto"
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import fs from "node:fs"
@@ -34,15 +34,15 @@ o.spec("Kyber", function () {
 	o("encryption roundtrip", async function () {
 		const liboqs = (await loadWasmModuleFromFile("./liboqs.wasm")) as LibOQSExports
 
-		const keyPair = generateKeyPair(liboqs, random)
+		const keyPair = generateKeyPairKyber(liboqs, random)
 		o(keyPair.privateKey.raw.length).equals(3168)
 		o(keyPair.publicKey.raw.length).equals(1568)
 
-		const encapsulation = encapsulate(liboqs, keyPair.publicKey, random)
+		const encapsulation = encapsulateKyber(liboqs, keyPair.publicKey, random)
 		o(encapsulation.sharedSecret.length).equals(32)
 		o(encapsulation.ciphertext.length).equals(1568)
 
-		const decapsulatedSecret = decapsulate(liboqs, keyPair.privateKey, encapsulation.ciphertext)
+		const decapsulatedSecret = decapsulateKyber(liboqs, keyPair.privateKey, encapsulation.ciphertext)
 
 		o(encapsulation.sharedSecret).deepEquals(decapsulatedSecret)
 	})
@@ -53,7 +53,7 @@ o.spec("Kyber", function () {
 
 	o("extract public key", async function () {
 		const liboqs = (await loadWasmModuleFromFile("./liboqs.wasm")) as LibOQSExports
-		const keyPair = generateKeyPair(liboqs, random)
+		const keyPair = generateKeyPairKyber(liboqs, random)
 		const extractedPublicKey = extractKyberPublicKeyFromKyberPrivateKey(keyPair.privateKey)
 
 		o(extractedPublicKey).deepEquals(keyPair.publicKey)

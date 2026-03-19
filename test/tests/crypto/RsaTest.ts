@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { extractRawPublicRsaKeyFromPrivateRsaKey, KeyPairType, random, RsaKeyPair } from "../lib/index.js"
+import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/utils"
+import { extractRawPublicRsaKeyFromPrivateRsaKey, KeyPairType, random, RsaKeyPair } from "@tutao/crypto"
 import {
 	_getPSBlock,
 	_keyArrayToHex,
@@ -16,10 +16,10 @@ import {
 	rsaEncrypt,
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
-} from "../lib/encryption/Rsa.js"
-import { SecureRandom } from "../lib/random/SecureRandom.js"
-import { CryptoError } from "../lib/error.js"
-import { parseBigInt } from "../lib/internal/crypto-jsbn-2012-08-09_1.js"
+} from "@tutao/crypto"
+import { SecureRandom } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
+import { parseBigInt } from "../../../src/crypto/internal/crypto-jsbn-2012-08-09_1.js"
 
 const originalRandom = random.generateRandomData
 

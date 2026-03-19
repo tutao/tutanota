@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { random } from "../lib/random/Randomizer.js"
-import sjcl from "../lib/internal/sjcl.js"
-import { CryptoError } from "../lib/misc/CryptoError.js"
+import { random } from "@tutao/crypto"
+import sjcl from "../../../src/crypto/internal/sjcl.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 
 o.spec("Randomizer", function () {

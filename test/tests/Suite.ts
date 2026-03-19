@@ -195,6 +195,7 @@ import "./calendar/CalendarTimeGridTest"
 import "./calendar/AllDaySectionTest"
 import "./mail/view/LabelsPopupViewModelTest.js"
 import "./settings/NotificationSettingsViewerModelTest.js"
+import "./crypto/Suite"
 
 import * as td from "testdouble"
 import { random } from "@tutao/crypto"

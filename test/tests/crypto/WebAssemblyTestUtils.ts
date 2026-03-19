@@ -1,4 +1,4 @@
-import { WASMExports } from "@tutao/tutanota-utils"
+import { WASMExports } from "@tutao/utils"
 
 /**
  * Helper function to load a wasm module from file for testing.

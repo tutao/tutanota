@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { hkdf } from "../lib/hashes/HKDF.js"
-import { SHA256_HASH_LENGTH_BYTES } from "../lib/hashes/Sha256.js"
+import { hkdf } from "@tutao/crypto"
+import { SHA256_HASH_LENGTH_BYTES } from "@tutao/crypto"
 
 o.spec("HKDF", function () {
 	o("hkdf salt is null", function () {

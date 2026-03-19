@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { SymmetricKeyDeriver } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
-import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
-import { SymmetricCipherVersion } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
+import { SymmetricKeyDeriver } from "@tutao/crypto"
+import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
+import { SymmetricCipherVersion } from "@tutao/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
-import { AesKeyLength, getKeyLengthInBytes, sha256Hash, sha512Hash } from "../lib/index.js"
+import { AesKeyLength, getKeyLengthInBytes, sha256Hash, sha512Hash } from "@tutao/crypto"
 
 o.spec("SymmetricKeyDeriverTest", function () {
 	const symmetricKeyDeriver: SymmetricKeyDeriver = new SymmetricKeyDeriver()

@@ -1,19 +1,25 @@
 import o from "@tutao/otest"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import {
+	Aes128Key,
 	aes256EncryptSearchIndexEntry,
 	aes256EncryptSearchIndexEntryWithIV,
+	aes256RandomKey,
 	aesDecrypt,
 	aesDecryptUnauthenticated,
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
-} from "../lib/encryption/Aes.js"
-import { CryptoError } from "../lib/misc/CryptoError.js"
-import { random } from "../lib/random/Randomizer.js"
+	AesKey,
+	AesKeyLength,
+	base64ToKey,
+	BLOCK_SIZE_BYTES,
+	getKeyLengthInBytes,
+	keyToBase64,
+	random,
+	uint8ArrayToBitArray,
+} from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 import { assertThrows, throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
-import { Aes128Key, aes256RandomKey, AesKey, AesKeyLength, base64ToKey, keyToBase64 } from "../lib/index.js"
-import { BLOCK_SIZE_BYTES, uint8ArrayToBitArray } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
-import { getKeyLengthInBytes } from "../lib/encryption/symmetric/AesKeyLength.js"
 
 o.spec("aes", function () {
 	const iv = new Uint8Array([233, 159, 225, 105, 170, 223, 70, 218, 139, 107, 71, 91, 179, 231, 239, 102])

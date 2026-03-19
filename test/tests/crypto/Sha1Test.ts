@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { sha1Hash } from "../lib/hashes/Sha1.js"
+import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/utils"
+import { sha1Hash } from "@tutao/crypto"
 o.spec("Sha1", function () {
 	o("hash", function () {
 		o(Array.from(sha1Hash(new Uint8Array(0)))).deepEquals(Array.from(hexToUint8Array("da39a3ee5e6b4b0d3255bfef95601890afd80709")))

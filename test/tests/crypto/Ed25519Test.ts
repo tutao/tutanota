@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "../lib/index.js"
+import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "@tutao/crypto"
 import fs from "node:fs"
 import { matchers, object, verify } from "testdouble"
 

@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
-import { Argon2IDExports, generateRandomSalt, keyToUint8Array } from "../lib/index.js"
-import { generateKeyFromPassphrase } from "../lib/hashes/Argon2id/Argon2id.js"
+import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "@tutao/crypto"
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import * as fs from "node:fs"
@@ -33,10 +32,10 @@ o.spec("Argon2id", function () {
 
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()
-		let key0 = await generateKeyFromPassphrase(argon2, "hello", salt1)
-		let key1 = await generateKeyFromPassphrase(argon2, "hello", salt1)
-		let key2 = await generateKeyFromPassphrase(argon2, "hello", salt2)
-		let key3 = await generateKeyFromPassphrase(argon2, "hellohello", salt1)
+		let key0 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
+		let key1 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
+		let key2 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt2)
+		let key3 = await generateKeyFromPassphraseArgon2id(argon2, "hellohello", salt1)
 		o(key1).deepEquals(key0)
 		// make sure a different password or different key result in different keys
 		o(key2).notDeepEquals(key0)

@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { generateKeyFromPassphrase, generateRandomSalt } from "../lib/hashes/Bcrypt.js"
-import { KeyLength } from "../lib/misc/Constants.js"
+import { generateKeyFromPassphraseBcrypt, generateRandomSalt } from "@tutao/crypto"
+import { KeyLength } from "@tutao/crypto"
 
-import { keyToUint8Array } from "../lib/index.js"
+import { keyToUint8Array } from "@tutao/crypto"
 
 o.spec("Bcrypt", function () {
 	o("GenerateRandomSalt", function () {
@@ -17,10 +17,10 @@ o.spec("Bcrypt", function () {
 	o("CreateKeyFromPassphrase 128", function () {
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()
-		let key0 = generateKeyFromPassphrase("hello", salt1, KeyLength.b128)
-		let key1 = generateKeyFromPassphrase("hello", salt1, KeyLength.b128)
-		let key2 = generateKeyFromPassphrase("hello", salt2, KeyLength.b128)
-		let key3 = generateKeyFromPassphrase("hellohello", salt1, KeyLength.b128)
+		let key0 = generateKeyFromPassphraseBcrypt("hello", salt1, KeyLength.b128)
+		let key1 = generateKeyFromPassphraseBcrypt("hello", salt1, KeyLength.b128)
+		let key2 = generateKeyFromPassphraseBcrypt("hello", salt2, KeyLength.b128)
+		let key3 = generateKeyFromPassphraseBcrypt("hellohello", salt1, KeyLength.b128)
 		o(key1).deepEquals(key0)
 		// make sure a different password or different key result in different keys
 		o(key2).notDeepEquals(key0)
@@ -33,10 +33,10 @@ o.spec("Bcrypt", function () {
 	o("CreateKeyFromPassphrase 256", function () {
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()
-		let key0 = generateKeyFromPassphrase("hello", salt1, KeyLength.b256)
-		let key1 = generateKeyFromPassphrase("hello", salt1, KeyLength.b256)
-		let key2 = generateKeyFromPassphrase("hello", salt2, KeyLength.b256)
-		let key3 = generateKeyFromPassphrase("hellohello", salt1, KeyLength.b256)
+		let key0 = generateKeyFromPassphraseBcrypt("hello", salt1, KeyLength.b256)
+		let key1 = generateKeyFromPassphraseBcrypt("hello", salt1, KeyLength.b256)
+		let key2 = generateKeyFromPassphraseBcrypt("hello", salt2, KeyLength.b256)
+		let key3 = generateKeyFromPassphraseBcrypt("hellohello", salt1, KeyLength.b256)
 		o(key1).deepEquals(key0)
 		// make sure a different password or different key result in different keys
 		o(key2).notDeepEquals(key0)
