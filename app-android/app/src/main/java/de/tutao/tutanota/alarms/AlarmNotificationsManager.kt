@@ -16,6 +16,7 @@ import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.decrypt
 import de.tutao.tutashared.alarms.toEntity
 import de.tutao.tutashared.base64ToBytes
+import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
@@ -138,12 +139,22 @@ class AlarmNotificationsManager(
 			}
 
 			if (alarmNotification.repeatRule == null) {
+				val isAllDayEvent = isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
+				val localTimeZone = TimeZone.getDefault();
+				val localizedEventStartTime = if (isAllDayEvent) {
+					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, localTimeZone)
+				} else {
+					alarmNotification.eventStart
+				}
+
 				val alarmTime = AlarmModel.calculateAlarmTime(
-					alarmNotification.eventStart,
-					null,
+					localizedEventStartTime,
+					localTimeZone,
 					alarmNotification.alarmInfo.trigger
 				)
+
 				val now = Date()
+
 				when {
 					occurrenceIsTooFar(alarmTime) -> {
 						Log.d(TAG, "Alarm $identifier is too far in the future, skipping")
