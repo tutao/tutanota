@@ -17,7 +17,7 @@ import { theme } from "../gui/theme"
 import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
 import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
-import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
+import { CAMPAIGN_NAME, shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
@@ -92,7 +92,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	private infoItems: InfoBoxItem[] = this.planSelectorInfoItems
 	private transitionIllustrationName: string | null = null
 	private transitionTimer: number | null = null
-	private readonly stepIllustrations = [
+	private stepIllustrations = [
 		"signup-before-click.svg",
 		"signup-before-click.svg",
 		"signup-before-click.svg",
@@ -112,7 +112,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 
 	onTransition(viewModel: SignupViewModel, _from: number, to: number) {
 		if (!this.isInlinePlanSelectorToggleEnabled(viewModel, to)) viewModel.inlinePlanSelectorOpen(false)
-		this.startIllustrationTransition()
+		this.startIllustrationTransition(viewModel)
 		this.updateInfoItems(viewModel, to)
 	}
 
@@ -128,7 +128,17 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		return true
 	}
 
-	oncreate() {
+	oncreate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
+		const campaignName = (vnode.attrs.ctx.viewModel as SignupViewModel).planPrices?.getRawPricingData().globalCampaignName
+		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
+			this.stepIllustrations = [
+				"signup-before-click-birthday.svg",
+				"signup-before-click-birthday.svg",
+				"signup-before-click-birthday.svg",
+				"signup-before-click-birthday.svg",
+				"signup-key-birthday.svg",
+			]
+		}
 		this.handleResize()
 		windowFacade.addResizeListener(this.handleResize)
 	}
@@ -143,7 +153,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		const { showProgress, progressState, backButton, ctx } = vnode.attrs
 		const { controller, index } = ctx
 		const viewModel = ctx.viewModel as SignupViewModel
-		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
+		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index, viewModel.globalCampaignName)
 		const showIllustration = styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !viewModel.options.businessUse()
 		const canTogglePlanSelector = showIllustration && this.isInlinePlanSelectorToggleEnabled(viewModel, index)
 		const showPlanSelector = canTogglePlanSelector && viewModel.inlinePlanSelectorOpen()
@@ -333,6 +343,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 										),
 									index <= 2 &&
 										viewModel.planPrices?.getRawPricingData().hasGlobalFirstYearDiscount &&
+										viewModel.planPrices?.getRawPricingData().globalCampaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN &&
 										m(
 											".abs.z3",
 											{
@@ -372,8 +383,20 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		return infoBoxes[step] ?? infoBoxes[0] ?? this.planSelectorInfoItems
 	}
 
-	private getStepIllustrationName(step: number): string {
-		return this.stepIllustrations[step] ?? this.stepIllustrations[0] ?? "signup-before-click.svg"
+	private getStepIllustrationName(step: number, campaignName: string | undefined | null): string {
+		let campaignIllustration = "signup-before-click.svg"
+		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
+			campaignIllustration = "signup-before-click-birthday.svg"
+		}
+		return this.stepIllustrations[step] ?? this.stepIllustrations[0] ?? campaignIllustration
+	}
+
+	private getTransitionIllustrationName(campaignName: string | undefined | null): string {
+		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
+			return "signup-click-birthday.svg"
+		} else {
+			return "signup-click.svg"
+		}
 	}
 
 	private getIllustrationPath(name: string): string {
@@ -385,9 +408,9 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		return enabledSteps.includes(step)
 	}
 
-	private startIllustrationTransition() {
+	private startIllustrationTransition(viewModel: SignupViewModel) {
 		this.clearIllustrationTimer()
-		this.transitionIllustrationName = "signup-click.svg"
+		this.transitionIllustrationName = this.getTransitionIllustrationName(viewModel.globalCampaignName)
 		this.transitionTimer = window.setTimeout(() => {
 			this.transitionIllustrationName = null
 			this.transitionTimer = null
