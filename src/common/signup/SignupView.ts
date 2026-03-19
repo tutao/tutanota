@@ -81,6 +81,7 @@ export class SignupViewModel {
 	public inlinePlanSelectorOpen: Stream<boolean>
 	public inlinePlanSelectorToggleSteps: number[]
 	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
+	public globalCampaignName: string | null
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
 
@@ -124,6 +125,7 @@ export class SignupViewModel {
 		this.isCalledBySatisfactionDialog = false
 		this.inlinePlanSelectorOpen = stream(false)
 		this.inlinePlanSelectorToggleSteps = [1, 2, 3]
+		this.globalCampaignName = null
 	}
 
 	private cleanupCalled = false
@@ -163,6 +165,7 @@ export class SignupViewModel {
 			this.referralData?.code ?? null,
 		)
 		const prices = priceDataProvider.getRawPricingData()
+		this.globalCampaignName = prices.globalCampaignName
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 		let message: MaybeTranslation | null = null
