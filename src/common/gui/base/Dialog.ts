@@ -983,7 +983,7 @@ export class Dialog implements ModalComponent {
 					value: result,
 					type: textFieldType,
 					leadingIcon: {
-						icon: Icons.Edit,
+						icon: Icons.PenFilled,
 						color: theme.on_surface_variant,
 					},
 					onReturnKeyPressed: wrappedOkAction,

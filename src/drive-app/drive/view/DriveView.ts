@@ -275,28 +275,28 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			actionsAttrs.push({
 				title: "restoreFromTrash_action",
 				action: onRestore,
-				icon: Icons.Reply,
+				icon: Icons.ArrowBackFilled,
 			})
 		}
 		if (onDelete) {
 			actionsAttrs.push({
 				title: "delete_action",
 				action: onDelete,
-				icon: Icons.DeleteForever,
+				icon: Icons.TrashCrossFilled,
 			})
 		}
 		if (onCopy) {
 			actionsAttrs.push({
 				title: "copy_action",
 				action: onCopy,
-				icon: Icons.Copy,
+				icon: Icons.CopyFilled,
 			})
 		}
 		if (onCut) {
 			actionsAttrs.push({
 				title: "cut_action",
 				action: onCut,
-				icon: Icons.Cut,
+				icon: Icons.ScissorsFilled,
 			})
 		}
 		if (onMove) {
@@ -310,7 +310,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			actionsAttrs.push({
 				title: "trash_action",
 				action: onTrash,
-				icon: Icons.Trash,
+				icon: Icons.TrashFilled,
 			})
 		}
 		return m(MobileActionBar, {
@@ -460,7 +460,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					onPaste
 						? m(IconButton, {
 								title: "paste_action",
-								icon: Icons.Clipboard,
+								icon: Icons.ClipboardFilled,
 								click: () => onPaste(),
 							})
 						: null,

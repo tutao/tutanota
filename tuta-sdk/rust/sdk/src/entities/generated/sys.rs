@@ -651,6 +651,8 @@ pub struct AccountingInfo {
 	pub _modified: DateTime,
 	#[serde(rename = "2223")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2690")]
+	pub lastUsedOffer: Option<String>,
 	#[serde(rename = "771")]
 	pub invoiceInfo: Option<GeneratedId>,
 	#[serde(rename = "2424")]
@@ -718,6 +720,8 @@ pub struct CustomerInfo {
 	pub plan: i64,
 	#[serde(rename = "2682")]
 	pub promotionId: Option<String>,
+	#[serde(rename = "2691")]
+	pub confirmedHuman: bool,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
@@ -3411,6 +3415,8 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub language: String,
 	#[serde(rename = "2640")]
 	pub isAutomatedBrowser: bool,
+	#[serde(rename = "2689")]
+	pub adAttribution: Option<AdAttribution>,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
@@ -4941,7 +4947,7 @@ pub struct PlanConfiguration {
 	pub maxLabels: i64,
 	#[serde(rename = "2662")]
 	pub scheduledMails: bool,
-	#[serde(rename = "2692")]
+	#[serde(rename = "2700")]
 	pub drive: bool,
 }
 
@@ -6272,20 +6278,40 @@ impl Entity for PartnerManagedCustomer {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct OperationStatusUpdate {
+pub struct AdAttribution {
 	#[serde(rename = "2685")]
-	pub _format: i64,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "2686")]
-	pub applicationVersionSum: i64,
+	pub attributionId: String,
 	#[serde(rename = "2687")]
+	pub attributionType: i64,
+}
+
+impl Entity for AdAttribution {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2684),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct OperationStatusUpdate {
+	#[serde(rename = "2693")]
+	pub _format: i64,
+	#[serde(rename = "2694")]
+	pub applicationVersionSum: i64,
+	#[serde(rename = "2695")]
 	pub applicationTypesHash: String,
-	#[serde(rename = "2688")]
+	#[serde(rename = "2696")]
 	pub operationId: GeneratedId,
-	#[serde(rename = "2689")]
+	#[serde(rename = "2697")]
 	pub status: i64,
-	#[serde(rename = "2690")]
+	#[serde(rename = "2698")]
 	pub statusCode: Option<i64>,
-	#[serde(rename = "2691")]
+	#[serde(rename = "2699")]
 	pub reason: Option<String>,
 }
 
@@ -6293,7 +6319,7 @@ impl Entity for OperationStatusUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2684),
+			type_id: TypeId::from(2692),
 		}
 	}
 }

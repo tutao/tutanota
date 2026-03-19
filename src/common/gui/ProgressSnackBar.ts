@@ -50,7 +50,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 					attrs.progressState === ProgressState.running
 						? m(IconButton, {
 								click: () => attrs.onCancel(),
-								icon: Icons.Cancel,
+								icon: Icons.X,
 								title: lang.makeTranslation("cancel", () => "cancel"),
 							})
 						: m("", {
@@ -87,7 +87,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 	}
 
 	private renderTerminateStateIcon(state: ProgressState): Children {
-		const [color, icon] = state === ProgressState.done ? [theme.success, Icons.CheckCircleFilled] : [theme.error, Icons.CloseCircleFilled]
+		const [color, icon] = state === ProgressState.done ? [theme.success, Icons.SuccessFilled] : [theme.error, Icons.FailureFilled]
 
 		return m(
 			".flex.justify-center.items-center",

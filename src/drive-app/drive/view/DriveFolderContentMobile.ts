@@ -87,7 +87,7 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 			[
 				m(".flex.flex-grow.items-center.pl-12.pr-12.gap-12.overflow-hidden", {}, [
 					m(Icon, {
-						icon: Icons.Folder,
+						icon: Icons.FolderFilled,
 						size: IconSize.PX24,
 						oncreate: (vnode) => {
 							this.iconDom = vnode.dom as HTMLElement
@@ -139,7 +139,7 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 		this.filenameDom.innerText = item.type === "file" ? item.file.name : item.folder.name
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
 		this.dateDom.innerText = formatDateTime(updatedDate)
-		const icon = item.type === "file" ? iconPerMimeType(item.file.mimeType) : Icons.Folder
+		const icon = item.type === "file" ? iconPerMimeType(item.file.mimeType) : Icons.FolderFilled
 		// SAFETY: we only use our sanitized icons
 		this.iconDom.innerHTML = IconsSvg[icon]
 		this.selectionSetter(selected, multiselect)

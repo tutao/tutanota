@@ -2256,7 +2256,6 @@ export default {
 		"folderContent_label": "Content",
 		"createNewFolderIn_label": "Create a new folder in {folderName}",
 		"driveNotEmpty_msg": "There are still files or folders left in your Drive. Please remove them first.",
-		"driveBetaWarning_msg": "While Drive is in beta there might be instances of the data loss without prior warning",
 		"movingItemCount_label":"Moving {count} items"
 	}
 }

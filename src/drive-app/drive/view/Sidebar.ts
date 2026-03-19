@@ -35,7 +35,7 @@ export const DriveSidebar = pureComponent(
 			[
 				m(DriveFolderRow, {
 					label: lang.getTranslation("driveHome_label"),
-				icon: Icons.HouseFilled,
+					icon: Icons.HouseFilled,
 					href: `/drive/${listIdPart(rootFolderId)}/${elementIdPart(rootFolderId)}`,
 					folderType: DriveFolderType.Root,
 					click: onFolderClick,
@@ -47,7 +47,7 @@ export const DriveSidebar = pureComponent(
 				}),
 				m(DriveFolderRow, {
 					label: lang.getTranslation("driveTrash_label"),
-				icon: Icons.TrashFilled,
+					icon: Icons.TrashFilled,
 					href: `/drive/${listIdPart(trashFolderId)}/${elementIdPart(trashFolderId)}`,
 					folderType: DriveFolderType.Trash,
 					click: onFolderClick,

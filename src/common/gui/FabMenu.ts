@@ -73,7 +73,7 @@ export class FabMenu implements Component<FabMenuAttrs> {
 				m(
 					"fab.accent-bg.fab-shadow.fit-content.border-radius",
 					m(IconButton, {
-						icon: Icons.Add,
+						icon: Icons.Plus,
 						colors: ButtonColor.Fab,
 						oncreate: ({ dom }) => {
 							this.iconDom = dom.querySelector(".icon") as HTMLElement
