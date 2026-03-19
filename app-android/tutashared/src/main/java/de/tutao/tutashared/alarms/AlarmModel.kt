@@ -37,6 +37,7 @@ object AlarmModel {
 		byRules: List<ByRule>,
 		callback: AlarmIterationCallback
 	) {
+
 		val isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
 		val calcEventStart = if (isAllDayEvent) {
 			getAllDayDateLocal(eventStart, localTimeZone)
@@ -169,7 +170,9 @@ object AlarmModel {
 		timeZone: TimeZone?,
 		alarmTrigger: AlarmInterval,
 	): Date {
+
 		val calendar: Calendar = calculateLocalStartTime(eventStart, timeZone)
+		Log.d(TAG, "eventStart for alarmTime: $eventStart")
 		when (alarmTrigger.unit) {
 			AlarmIntervalUnit.MINUTE -> calendar.add(Calendar.MINUTE, -alarmTrigger.value)
 			AlarmIntervalUnit.HOUR -> calendar.add(Calendar.HOUR, -alarmTrigger.value)
@@ -204,7 +207,8 @@ object AlarmModel {
 		return utcCalendar.time
 	}
 
-	private fun getAllDayDateLocal(utcDate: Date, localTimeZone: TimeZone): Date {
+	@JvmStatic
+	fun getAllDayDateLocal(utcDate: Date, localTimeZone: TimeZone): Date {
 		val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 		utcCalendar.time = utcDate
 		val calendar = Calendar.getInstance(localTimeZone)
