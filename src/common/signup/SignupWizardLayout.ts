@@ -92,13 +92,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	private infoItems: InfoBoxItem[] = this.planSelectorInfoItems
 	private transitionIllustrationName: string | null = null
 	private transitionTimer: number | null = null
-	private readonly stepIllustrations = [
-		"signup-before-click.svg",
-		"signup-before-click.svg",
-		"signup-before-click.svg",
-		"signup-before-click.svg",
-		"signup-key.svg",
-	]
+	private stepIllustrations = ["signup-before-click.svg", "signup-before-click.svg", "signup-before-click.svg", "signup-before-click.svg", "signup-key.svg"]
 	private readonly stepInfoBoxItems = (planType: PlanType): InfoBoxItem[][] => {
 		return [this.planSelectorInfoItems, this.formPageInfoItems[planType as AvailablePlanType], this.paymentInfoItems]
 	}
@@ -128,7 +122,17 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		return true
 	}
 
-	oncreate() {
+	oncreate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
+		const campaignName = (vnode.attrs.ctx.viewModel as SignupViewModel).planPrices?.getRawPricingData().globalCampaignName
+		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_CAMPAIGN) {
+			this.stepIllustrations = [
+				"signup-before-click-birthday.svg",
+				"signup-before-click-birthday.svg",
+				"signup-before-click-birthday.svg",
+				"signup-before-click-birthday.svg",
+				"signup-key-birthday.svg",
+			]
+		}
 		this.handleResize()
 		windowFacade.addResizeListener(this.handleResize)
 	}
@@ -143,7 +147,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		const { showProgress, progressState, backButton, ctx } = vnode.attrs
 		const { controller, index } = ctx
 		const viewModel = ctx.viewModel as SignupViewModel
-		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index)
+		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index, viewModel.globalCampaignName)
 		const showIllustration = styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !viewModel.options.businessUse()
 		const canTogglePlanSelector = showIllustration && this.isInlinePlanSelectorToggleEnabled(viewModel, index)
 		const showPlanSelector = canTogglePlanSelector && viewModel.inlinePlanSelectorOpen()
@@ -373,8 +377,12 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		return infoBoxes[step] ?? infoBoxes[0] ?? this.planSelectorInfoItems
 	}
 
-	private getStepIllustrationName(step: number): string {
-		return this.stepIllustrations[step] ?? this.stepIllustrations[0] ?? "signup-before-click.svg"
+	private getStepIllustrationName(step: number, campaignName: string | undefined | null): string {
+		let campaignIllustration = "signup-before-click.svg"
+		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_CAMPAIGN) {
+			campaignIllustration = "signup-before-click-birthday.svg"
+		}
+		return this.stepIllustrations[step] ?? this.stepIllustrations[0] ?? campaignIllustration
 	}
 
 	private getIllustrationPath(name: string): string {
@@ -388,7 +396,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 
 	private startIllustrationTransition() {
 		this.clearIllustrationTimer()
-		this.transitionIllustrationName = "signup-click.svg"
+		this.transitionIllustrationName = "signup-click-birthday.svg"
 		this.transitionTimer = window.setTimeout(() => {
 			this.transitionIllustrationName = null
 			this.transitionTimer = null
