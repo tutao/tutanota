@@ -16,6 +16,7 @@ import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.decrypt
 import de.tutao.tutashared.alarms.toEntity
 import de.tutao.tutashared.base64ToBytes
+import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
@@ -138,9 +139,21 @@ class AlarmNotificationsManager(
 			}
 
 			if (alarmNotification.repeatRule == null) {
+				val isAllDayEvent = isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
+				Log.d(TAG, "isAllDayEvent?: $isAllDayEvent")
+
+				val localTimeZone = TimeZone.getDefault();
+				val localizedEventStartTime = if (isAllDayEvent) {
+					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, localTimeZone)
+				} else {
+					alarmNotification.eventStart
+				}
+
+				Log.d(TAG, "localizedEventStartTime: $localizedEventStartTime")
+				Log.d(TAG, "localTimeZone: $localTimeZone")
 				val alarmTime = AlarmModel.calculateAlarmTime(
-					alarmNotification.eventStart,
-					null,
+					localizedEventStartTime,
+					localTimeZone,
 					alarmNotification.alarmInfo.trigger
 				)
 				val now = Date()
