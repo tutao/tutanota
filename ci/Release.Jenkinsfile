@@ -193,14 +193,12 @@ pipeline {
 											 build job: 'tutanota-3-ios-publish', parameters: params.target.equals("publishToProd") ? [
 												 booleanParam(name: "STAGING", value: false),
 												 booleanParam(name: "PROD", value: true),
-												 booleanParam(name: "APP_STORE_NOTES", value: true),
 												 booleanParam(name: "GITHUB_RELEASE", value: true),
 												 text(name: "releaseNotes", value: releaseNotes.ios),
 											     string(name: "branch", value: params.branch)
 											 ] : [
 												 booleanParam(name: "STAGING", value: true),
 												 booleanParam(name: "PROD", value: false),
-												 booleanParam(name: "APP_STORE_NOTES", value: false),
 												 booleanParam(name: "GITHUB_RELEASE", value: false),
     											 string(name: "branch", value: params.branch)
 											 ]

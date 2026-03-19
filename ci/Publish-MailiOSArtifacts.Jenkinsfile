@@ -14,11 +14,6 @@ pipeline {
 			defaultValue: false
 		)
 		booleanParam(
-	        name: 'APP_STORE_NOTES',
-	        defaultValue: false,
-	        description: "Publish iOS release notes to the Apple App Store"
-		)
-		booleanParam(
 	        name: 'GITHUB_RELEASE',
 	        defaultValue: false,
 	        description: "Publish iOS release notes to Github"
@@ -104,26 +99,10 @@ pipeline {
 				} // stage staging
 				stage("Production") {
 					when { expression { return params.PROD } }
-					environment {
-						RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
-					}
 					steps {
 						unstash "ipa-prod"
 
 						script {
-							if (params.APP_STORE_NOTES) {
-								// need to run npm ci to install dependencies of releaseNotes.js
-								sh "npm ci"
-
-								writeFile file: "notes.txt", text: params.releaseNotes
-								sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
-																				   --tag 'tutanota-ios-release-${VERSION}'\
-																				   --notes notes.txt \
-																				   --toFile ${RELEASE_NOTES_PATH}"""
-								sh "rm notes.txt"
-								sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
-							}
-
 							def util = load "ci/jenkins-lib/util.groovy"
 							util.runFastlane("de.tutao.tutanota", "publish_mail_prod file:${WORKSPACE}/${FILE_PATH_PROD}")
 						}
