@@ -1,9 +1,9 @@
 import m, { Component, Vnode, VnodeDOM } from "mithril"
-import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
-import { theme } from "../../gui/theme"
+import { AllIcons, Icon, IconSize } from "./Icon"
+import { theme } from "../theme"
 import { Translation } from "../../misc/LanguageViewModel"
-import { px } from "../../gui/size"
-import { Icons } from "../../gui/base/icons/Icons"
+import { px } from "../size"
+import { Icons } from "./icons/Icons"
 
 type MessageBannerType = "success" | "warning" | "error" | "base"
 const COLUMN_THRESHOLD = 120

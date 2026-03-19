@@ -11,7 +11,7 @@ import { getAsLazy } from "@tutao/tutanota-utils"
 import { lang } from "../misc/LanguageViewModel"
 import { px } from "../gui/size"
 import { styles } from "../gui/styles"
-import { MessageBanner } from "../subscription/components/MessageBanner"
+import { MessageBanner } from "../gui/base/MessageBanner"
 import { Icons } from "../gui/base/icons/Icons"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {

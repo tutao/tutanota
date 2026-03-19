@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IconButton } from "./base/IconButton.js"
-import { Icons } from "./base/icons/Icons.js"
-import { ButtonColor } from "./base/Button.js"
-import type { MaybeTranslation } from "../misc/LanguageViewModel.js"
-import { ButtonSize } from "./base/ButtonSize.js"
-import { ClickHandler } from "./base/GuiUtils"
-import { component_size, size } from "./size"
+import { IconButton } from "./IconButton.js"
+import { Icons } from "./icons/Icons.js"
+import { ButtonColor } from "./Button.js"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel.js"
+import { ButtonSize } from "./ButtonSize.js"
+import { ClickHandler } from "./GuiUtils"
+import { component_size, size } from "../size"
 
 export type FloatingActionButtonAttrs = {
 	title: MaybeTranslation

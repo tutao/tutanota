@@ -11,7 +11,6 @@ import { ClickHandler, DriveDropData } from "../../../common/gui/base/GuiUtils"
 import { DriveFolderType } from "./DriveViewModel"
 import { FolderItemId } from "./DriveUtils"
 import { parseDragItems } from "./DriveGuiUtils"
-import { MessageBanner } from "../../../common/subscription/components/MessageBanner"
 
 export interface RootFolderIds {
 	rootFolderId: IdTuple

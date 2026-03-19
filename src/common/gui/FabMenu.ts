@@ -12,7 +12,7 @@ import { AllIcons, Icon, IconSize } from "./base/Icon"
 import { ClickHandler } from "./base/GuiUtils"
 import { BaseButtonClasses } from "./base/buttons/ButtonStyles"
 import { px, size } from "./size"
-import { DisplayState, onFabShown } from "./FloatingActionButton"
+import { DisplayState, onFabShown } from "./base/FloatingActionButton"
 
 export interface FabMenuAttrs {
 	actions: DropdownButtonAttrs[]

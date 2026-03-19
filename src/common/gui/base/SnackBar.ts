@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { component_size, layout_size, px, size } from "../size"
+import { layout_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay, PositionRect } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
@@ -14,7 +14,7 @@ import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { Icons } from "./icons/Icons"
-import { fabBottomSpacing } from "../FloatingActionButton"
+import { fabBottomSpacing } from "./FloatingActionButton"
 
 assertMainOrNode()
 

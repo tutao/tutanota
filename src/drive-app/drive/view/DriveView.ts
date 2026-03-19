@@ -45,7 +45,7 @@ import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHe
 import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar"
 import { DriveSelectedItemsActions } from "./DriveFolderNav"
 import { IconButton } from "../../../common/gui/base/IconButton"
-import { MessageBanner } from "../../../common/subscription/components/MessageBanner"
+import { MessageBanner } from "../../../common/gui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 
 export interface DriveViewAttrs extends TopLevelAttrs {

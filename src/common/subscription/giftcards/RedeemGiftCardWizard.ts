@@ -37,7 +37,7 @@ import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
 import { signup } from "../utils/PaymentUtils"
-import { MessageBanner } from "../components/MessageBanner"
+import { MessageBanner } from "../../gui/base/MessageBanner"
 
 const enum GetCredentialsMethod {
 	Login,

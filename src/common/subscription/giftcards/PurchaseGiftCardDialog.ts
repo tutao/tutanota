@@ -26,7 +26,7 @@ import { px } from "../../gui/size"
 import { Icon, IconSize } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { MessageBanner } from "../components/MessageBanner"
+import { MessageBanner } from "../../gui/base/MessageBanner"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")

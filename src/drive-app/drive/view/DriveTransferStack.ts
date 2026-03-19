@@ -4,7 +4,7 @@ import { px, size } from "../../../common/gui/size"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 import { ProgressSnackBar, ProgressSnackBarAttrs, ProgressState } from "../../../common/gui/ProgressSnackBar"
 import { TranslationKeyType } from "../../../common/misc/TranslationKey"
-import { fabBottomSpacing } from "../../../common/gui/FloatingActionButton"
+import { fabBottomSpacing } from "../../../common/gui/base/FloatingActionButton"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveTransferStackAttrs {
