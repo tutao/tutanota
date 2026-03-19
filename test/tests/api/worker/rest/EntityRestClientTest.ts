@@ -6,7 +6,7 @@ import {
 	NotAuthorizedError,
 	PayloadTooLargeError,
 } from "../../../../../src/common/api/common/error/RestError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import {

@@ -8,7 +8,7 @@ import { WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../src/common/misc/Wh
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { themes } from "../../../../src/common/gui/builtinThemes.js"
 import type { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils.js"
 import { WhitelabelThemeGenerator } from "../../../../src/common/gui/WhitelabelThemeGenerator"
 import { matchers, object, when } from "testdouble"

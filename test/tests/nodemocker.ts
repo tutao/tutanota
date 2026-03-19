@@ -3,7 +3,7 @@
  */
 
 import { downcast } from "@tutao/utils"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 
 /**
  * you need to call .get() on the return value to actually register the replacer to spyify its functions.

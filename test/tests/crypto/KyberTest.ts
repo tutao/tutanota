@@ -4,7 +4,7 @@ import { extractKyberPublicKeyFromKyberPrivateKey, random } from "@tutao/crypto"
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import fs from "node:fs"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 
 o.spec("Kyber", function () {
 	// We need to generate the webassembly stuff during tests

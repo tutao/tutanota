@@ -4,7 +4,7 @@ import { OperationType } from "../../../../../src/common/api/common/TutanotaCons
 import { defer, delay } from "@tutao/utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
 import { Mail, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 o.spec("EventQueueTest", function () {

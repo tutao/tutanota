@@ -12,7 +12,7 @@ import { clone, noOp } from "@tutao/utils"
 import { PlanType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UpgradeRequiredError } from "../../../../src/common/api/main/UpgradeRequiredError.js"
 import { UserError } from "../../../../src/common/api/main/UserError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("MailAddressTableModel", function () {

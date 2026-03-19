@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { random } from "@tutao/crypto"
 import sjcl from "../../../src/crypto/internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 
 o.spec("Randomizer", function () {
 	o.beforeEach(function () {

@@ -5,7 +5,7 @@ import type { SecretStorage } from "../../../src/common/desktop/sse/SecretStorag
 import { spyify } from "../nodemocker.js"
 import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { DeviceStorageUnavailableError } from "../../../src/common/api/common/error/DeviceStorageUnavailableError.js"
 
 function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): DesktopKeyStoreFacade {

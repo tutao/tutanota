@@ -7,7 +7,7 @@ import { KeyPermanentlyInvalidatedError } from "../../../src/common/api/common/e
 import { CredentialAuthenticationError } from "../../../src/common/api/common/error/CredentialAuthenticationError.js"
 import { Credentials, credentialsToUnencrypted } from "../../../src/common/misc/credentials/Credentials.js"
 import { SecondFactorHandler } from "../../../src/common/misc/2fa/SecondFactorHandler"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { CredentialsProvider } from "../../../src/common/misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../src/common/api/common/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"

@@ -3,7 +3,7 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,

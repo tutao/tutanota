@@ -28,7 +28,7 @@ import { MailExportFacade } from "../../../../src/common/api/worker/facades/lazy
 import { BlobServerUrlTypeRef } from "../../../../src/common/api/entities/storage/TypeRefs"
 import { ExportError, ExportErrorReason } from "../../../../src/common/api/common/error/ExportError"
 import { MailboxExportState } from "../../../../src/common/desktop/export/MailboxExportPersistence"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { SuspensionError } from "../../../../src/common/api/common/error/SuspensionError"
 
 o.spec("MailExportController", function () {

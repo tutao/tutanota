@@ -51,7 +51,7 @@ import {
 	User,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import {

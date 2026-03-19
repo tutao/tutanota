@@ -11,7 +11,7 @@ import { FileTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.
 import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
 import { FileControllerBrowser } from "../../../src/common/file/FileControllerBrowser.js"
 import { ConnectionError } from "../../../src/common/api/common/error/RestError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { Mode } from "../../../src/common/api/common/Env.js"
 import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
 

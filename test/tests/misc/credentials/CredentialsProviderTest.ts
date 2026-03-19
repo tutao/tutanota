@@ -3,7 +3,7 @@ import { CredentialsProvider } from "../../../../src/common/misc/credentials/Cre
 import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { object, when } from "testdouble"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { PersistedCredentials } from "../../../../src/common/native/common/generatedipc/PersistedCredentials.js"

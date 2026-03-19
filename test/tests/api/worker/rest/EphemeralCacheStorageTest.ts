@@ -17,7 +17,7 @@ import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFu
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { object, when } from "testdouble"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"

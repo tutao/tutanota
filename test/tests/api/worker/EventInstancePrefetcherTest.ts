@@ -21,7 +21,7 @@ import { EventInstancePrefetcher } from "../../../../src/common/api/worker/Event
 import { CacheMode, EntityRestClient, EntityRestClientLoadOptions } from "../../../../src/common/api/worker/rest/EntityRestClient"
 import { elementIdPart, listIdPart, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils"
 import { Entity, ServerModelParsedInstance } from "../../../../src/common/api/common/EntityTypes"
-import { mapToObject } from "@tutao/tutanota-test-utils"
+import { mapToObject } from "@tutao/otest"
 import { ProgressMonitorDelegate } from "../../../../src/common/api/worker/ProgressMonitorDelegate"
 
 o.spec("EventInstancePrefetcherTest", function () {

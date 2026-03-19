@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { aes256RandomKey, hmacSha256, verifyHmacSha256 } from "@tutao/crypto"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
 
 o.spec("hmac", function () {

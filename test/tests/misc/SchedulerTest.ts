@@ -5,7 +5,7 @@ import type { Thunk } from "@tutao/utils"
 import { assertNotNull, downcast } from "@tutao/utils"
 import { DateTime, Duration } from "luxon"
 import { DateProvider } from "../../../src/common/api/common/DateProvider.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 
 o.spec("Scheduler", function () {
 	let dateProvider: DateProvider

@@ -7,7 +7,7 @@ import { DeleteService, GetService, PostService, PutService } from "../../../../
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { HttpMethod, MediaType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { deepEqual, downcast } from "@tutao/utils"
-import { assertThrows, verify } from "@tutao/tutanota-test-utils"
+import { assertThrows, verify } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"

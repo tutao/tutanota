@@ -36,7 +36,7 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { assertThrows, verify } from "@tutao/tutanota-test-utils"
+import { assertThrows, verify } from "@tutao/otest"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
 import {
 	BucketKeyTypeRef,
@@ -737,7 +737,10 @@ o.spec("MailFacade test", function () {
 				mailAddressAliases: [
 					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "user@tutanota.de", enabled: true }),
 					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "deactivated-alias@tutanota.de", enabled: false }),
-					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "activated-alias-alias@tutanota.de", enabled: true }),
+					createTestEntity(MailAddressAliasTypeRef, {
+						mailAddress: "activated-alias-alias@tutanota.de",
+						enabled: true,
+					}),
 				],
 			})
 

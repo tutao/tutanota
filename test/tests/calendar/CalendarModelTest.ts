@@ -42,7 +42,7 @@ import {
 	CalendarEventUidIndexEntry,
 	CalendarFacade,
 } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 import { FileController } from "../../../src/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { IProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"

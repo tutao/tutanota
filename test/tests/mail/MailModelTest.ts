@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
-import { mock, Spy, spy, verify } from "@tutao/tutanota-test-utils"
+import { mock, Spy, spy, verify } from "@tutao/otest"
 import { MailSetKind, OperationType, ProcessingState } from "../../../src/common/api/common/TutanotaConstants.js"
 import {
 	BodyTypeRef,

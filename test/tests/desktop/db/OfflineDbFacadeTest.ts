@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { object, when } from "testdouble"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 import { OfflineDbFactory } from "../../../../src/common/desktop/db/PerWindowSqlCipherFacade.js"
 import { delay } from "@tutao/utils"
 import { DesktopSqlCipher } from "../../../../src/common/desktop/db/DesktopSqlCipher.js"

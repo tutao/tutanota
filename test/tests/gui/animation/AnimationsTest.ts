@@ -5,7 +5,7 @@ import { ease } from "../../../../src/common/gui/animation/Easing.js"
 import { client } from "../../../../src/common/misc/ClientDetector.js"
 import { DeviceType } from "../../../../src/common/misc/ClientConstants.js"
 import { assertNotNull, downcast } from "@tutao/utils"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 
 client.device = DeviceType.DESKTOP
 

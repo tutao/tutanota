@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 import { OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { instance, matchers, object, when } from "testdouble"
 import {

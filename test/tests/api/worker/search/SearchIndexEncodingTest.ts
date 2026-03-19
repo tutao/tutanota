@@ -9,7 +9,7 @@ import {
 	numberOfBytes,
 	removeBinaryBlockRanges,
 } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
-import { spy as makeSpy } from "@tutao/tutanota-test-utils"
+import { spy as makeSpy } from "@tutao/otest"
 import { concat } from "@tutao/utils"
 
 o.spec("SearchIndexEncoding test", function () {

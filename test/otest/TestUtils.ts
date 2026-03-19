@@ -1,6 +1,6 @@
-import otest from "@tutao/otest"
+import otest from "./index"
 import * as td from "testdouble"
-import { lastThrow, mapObject } from "@tutao/tutanota-utils"
+import { lastThrow, mapObject } from "@tutao/utils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.

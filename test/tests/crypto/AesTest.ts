@@ -19,7 +19,7 @@ import {
 	uint8ArrayToBitArray,
 } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
-import { assertThrows, throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
+import { assertThrows, throwsErrorWithMessage } from "@tutao/otest"
 
 o.spec("aes", function () {
 	const iv = new Uint8Array([233, 159, 225, 105, 170, 223, 70, 218, 139, 107, 71, 91, 179, 231, 239, 102])
@@ -32,6 +32,7 @@ o.spec("aes", function () {
 		arrayRoundtrip(aes256EncryptSearchIndexEntryWithIV, aesDecryptUnauthenticated, aes256RandomKey(), iv),
 	)
 	o("encrypted roundtrip 256 ConfigurationDatabaseItem", () => arrayRoundtrip(aesEncryptConfigurationDatabaseItem, aesDecrypt, aes256RandomKey(), iv))
+
 	async function arrayRoundtrip(encrypt, decrypt, key, iv?: Uint8Array) {
 		function runArrayRoundtrip(key: AesKey, plainText) {
 			let encrypted = encrypt(key, plainText, iv)

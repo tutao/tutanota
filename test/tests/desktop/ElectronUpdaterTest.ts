@@ -11,7 +11,7 @@ import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import en from "../../../src/mail-app/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FsExports } from "../../../src/common/desktop/ElectronExportTypes.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 
 lang.init(en)
 

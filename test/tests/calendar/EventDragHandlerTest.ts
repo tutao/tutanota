@@ -5,7 +5,7 @@ import type { DraggedEventContainer } from "../../../src/calendar-app/calendar/v
 import { makeEvent } from "./CalendarTestUtils.js"
 import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/common/calendar/date/CalendarUtils.js"
 
 const INIT_MOUSE_POS = {

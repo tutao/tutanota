@@ -17,7 +17,7 @@ import {
 	PublicKeySignatureTypeRef,
 	SystemKeysReturn,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import testData from "../crypto/CompatibilityTestData.json"
 import { bytesToKyberPublicKey, EncryptedPqKeyPairs, hexToRsaPublicKey, KeyPairType, PQPublicKeys, RsaPublicKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"

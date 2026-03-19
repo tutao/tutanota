@@ -3,7 +3,7 @@ import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt,
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import * as fs from "node:fs"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 
 o.spec("Argon2id", function () {
 	o.before(async () => {

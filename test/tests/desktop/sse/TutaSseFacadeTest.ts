@@ -41,7 +41,7 @@ import { ServerModelUntypedInstance, UntypedInstance } from "../../../../src/com
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/common/native/common/EncryptedMissedNotification"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
 import { AttributeModel } from "../../../../src/common/api/common/AttributeModel"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"

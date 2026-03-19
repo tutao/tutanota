@@ -4,7 +4,7 @@ import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
 import { assertNotNull, clone, deepEqual, defer, isNotNull, Thunk, typedEntries, TypeRef } from "@tutao/utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { mock } from "@tutao/tutanota-test-utils"
+import { mock } from "@tutao/otest"
 import { Aes256Key, aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"

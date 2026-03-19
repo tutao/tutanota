@@ -9,7 +9,7 @@ import { Recipient, RecipientType } from "../../../src/common/api/common/recipie
 import { ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { EncryptionKeyVerificationState, GroupType, PresentableKeyVerificationState } from "../../../src/common/api/common/TutanotaConstants.js"
-import { assertThrows, verify } from "@tutao/tutanota-test-utils"
+import { assertThrows, verify } from "@tutao/otest"
 import { defer, delay } from "@tutao/utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"

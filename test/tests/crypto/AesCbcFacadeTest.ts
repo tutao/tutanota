@@ -5,7 +5,7 @@ import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
 import { object, when } from "testdouble"
 import { SymmetricCipherVersion } from "@tutao/crypto"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { BLOCK_SIZE_BYTES, SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 

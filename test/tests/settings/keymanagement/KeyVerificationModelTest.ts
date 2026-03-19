@@ -16,7 +16,7 @@ import { PermissionType } from "../../../../src/common/native/common/generatedip
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { TrustDBEntry } from "../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 import { DesktopSystemFacade } from "../../../../src/common/native/common/generatedipc/DesktopSystemFacade"
 import { withOverriddenEnv } from "../../TestUtils"

@@ -4,7 +4,7 @@ import { AssociationType, Cardinality, Type, ValueType } from "../../../../../sr
 import { TypeRef } from "@tutao/utils"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
 import { ClientModelParsedInstance, ClientTypeModel, ServerModelParsedInstance, ServerTypeModel } from "../../../../../src/common/api/common/EntityTypes"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { removeOriginals } from "../../../TestUtils"

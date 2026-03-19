@@ -7,7 +7,7 @@ import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/
 import { downcast } from "@tutao/utils"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"

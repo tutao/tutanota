@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { assertThrows, spy } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/otest"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/utils"
 import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
