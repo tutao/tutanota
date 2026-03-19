@@ -74,13 +74,7 @@ pipeline {
 									googleCredentialsId: 'android-app-publisher-credentials',
 									apkFilesPattern: filePath,
 									trackName: 'internal',
-									rolloutPercentage: '100%',
-									recentChangeList: [
-											[
-													language: "en-US",
-													text    : "see: ${GITHUB_RELEASE_PAGE}"
-											]
-									]
+									rolloutPercentage: '100%'
 							) // androidApkUpload
 						} // script
 					} // steps
@@ -97,13 +91,7 @@ pipeline {
 									trackName: 'production',
 									// Don't publish the app to users directly
 									// It will require manual intervention at play.google.com/console
-									rolloutPercentage: '0%',
-									recentChangeList: [
-											[
-													language: "en-US",
-													text    : "see: ${GITHUB_RELEASE_PAGE}"
-											]
-									]
+									rolloutPercentage: '0%'
 							)
 						} // script
 					} // steps
