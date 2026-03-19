@@ -30,4 +30,4 @@ DerivedData/
 tuta-sdk/rust/out
 tuta-sdk/android
 import-trace.json
-src/crypto/encryption/ed25519wasm
+src/crypto-primitives

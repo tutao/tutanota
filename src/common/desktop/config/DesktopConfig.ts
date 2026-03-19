@@ -10,7 +10,7 @@ import { log } from "../DesktopLog"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import type { ConfigFileType } from "./ConfigFile"
 import { ConfigFile } from "./ConfigFile"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 

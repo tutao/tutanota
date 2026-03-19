@@ -123,7 +123,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
 
 	await runStep("Web: Rolldown", async () => {
-		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js") // FIXME: this have to already exists? and is there bettr way to import
 		const bundle = await rolldown({
 			input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
 			transform: {

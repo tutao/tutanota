@@ -40,7 +40,7 @@ import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
 
 o.spec("KeyLoaderFacadeTest", function () {

@@ -5,7 +5,7 @@ import { parseKeyVersion } from "./KeyLoaderFacade.js"
 import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { InvalidDataError } from "../../common/error/RestError.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import {
 	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,

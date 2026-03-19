@@ -42,7 +42,7 @@ import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopA
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/common/native/common/EncryptedMissedNotification"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { AttributeModel } from "../../../../src/common/api/common/AttributeModel"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 

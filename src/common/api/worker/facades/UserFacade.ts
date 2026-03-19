@@ -7,7 +7,7 @@ import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 import { isSameId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { checkKeyVersionConstraints, parseKeyVersion } from "./KeyLoaderFacade.js"
 
 export interface AuthDataProvider {

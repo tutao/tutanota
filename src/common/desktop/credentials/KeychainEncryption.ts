@@ -3,7 +3,7 @@ import { assertSupportedEncryptionMode, DesktopCredentialsMode } from "./Credent
 import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { AppPassHandler } from "./AppPassHandler.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { AesKey } from "@tutao/crypto"
 
 export class KeychainEncryption {

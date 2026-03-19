@@ -8,7 +8,7 @@ export {
 	Ed25519PublicKey,
 	Ed25519KeyPair,
 	Ed25519Signature,
-} from "./ed25519wasm/crypto_primitives.js"
+} from "crypto-primitives"
 
 export async function initEd25519(webAssemblySrc: BufferSource | string): Promise<void> {
 	// the initialization function internally manage wether or not the wasm module has already been

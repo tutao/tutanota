@@ -31,7 +31,7 @@ import { AesKey } from "@tutao/crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 export class PatchMerger {
 	constructor(

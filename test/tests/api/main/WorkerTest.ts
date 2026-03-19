@@ -6,7 +6,7 @@ import { ProgrammingError } from "../../../../src/common/api/common/error/Progra
 import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SessionType } from "../../../../src/common/api/common/SessionType.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { mailLocator } from "../../../../src/mail-app/mailLocator.js"
 
 o.spec(

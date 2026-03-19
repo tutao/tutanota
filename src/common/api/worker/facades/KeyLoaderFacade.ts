@@ -8,7 +8,7 @@ import { customIdToString, getElementId, isSameId, stringToCustomId } from "../.
 import { KeyCache } from "./KeyCache.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { TypeId } from "../../common/EntityTypes"
 import { GroupType } from "../../common/TutanotaConstants"

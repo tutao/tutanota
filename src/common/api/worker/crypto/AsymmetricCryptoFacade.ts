@@ -18,7 +18,7 @@ import {
 } from "@tutao/crypto"
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import {
 	asCryptoProtoocolVersion,
 	CryptoProtocolVersion,

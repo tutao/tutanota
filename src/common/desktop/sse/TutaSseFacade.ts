@@ -23,7 +23,7 @@ import { EncryptedMissedNotification } from "../../native/common/EncryptedMissed
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { AttributeModel } from "../../api/common/AttributeModel"

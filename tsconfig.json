@@ -5,32 +5,8 @@
 		"declaration": false,
 		"noEmit": true,
 		"outDir": "build",
-		"incremental": true,
 		"rootDir": "."
 	},
 	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
-	"exclude": ["src/calendar-app.ts"],
-	"references": [
-		{
-			"path": "./packages/tutanota-utils"
-		},
-		{
-			"path": "./packages/tutanota-crypto"
-		},
-		{
-			"path": "./packages/tutanota-test-utils"
-		},
-		{
-			"path": "./packages/tutanota-error"
-		},
-		{
-			"path": "./packages/tuta-wasm-loader"
-		},
-		{
-			"path": "./packages/node-mimimi"
-		},
-		{
-			"path": "./packages/tutanota-usagetests"
-		}
-	]
+	"references": []
 }

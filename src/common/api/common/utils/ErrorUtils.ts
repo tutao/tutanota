@@ -29,7 +29,7 @@ import {
 } from "../error/RestError.js"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { SessionKeyNotFoundError } from "../error/SessionKeyNotFoundError.js"
 import { SseError } from "../error/SseError.js"
 import { ProgrammingError } from "../error/ProgrammingError.js"

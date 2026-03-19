@@ -20,7 +20,7 @@ import {
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import testData from "../crypto/CompatibilityTestData.json"
 import { bytesToKyberPublicKey, EncryptedPqKeyPairs, hexToRsaPublicKey, KeyPairType, PQPublicKeys, RsaPublicKey } from "@tutao/crypto"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"

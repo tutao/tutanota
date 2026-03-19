@@ -2,7 +2,7 @@ import { program } from "commander"
 import { $, usePowerShell } from "zx"
 
 const CRYPTO_PRIMITIVES_CRATE = "../../tuta-sdk/rust/crypto-primitives"
-const WASM_PACK_OUT_DIR = "../../../src/crypto/encryption/ed25519wasm"
+const WASM_PACK_OUT_DIR = "../../../src/crypto-primitives"
 
 async function run() {
 	if (process.platform === "win32") {

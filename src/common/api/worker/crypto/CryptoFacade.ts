@@ -84,7 +84,7 @@ import { UpdatePermissionKeyService, UpdateSessionKeysService } from "../../enti
 import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"

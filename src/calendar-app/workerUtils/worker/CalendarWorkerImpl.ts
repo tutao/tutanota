@@ -10,7 +10,7 @@ import { random } from "@tutao/crypto"
 import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
 import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
-import { CryptoError } from "@tutao/crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 assertWorkerOrNode()
 

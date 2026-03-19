@@ -8,7 +8,7 @@ import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache

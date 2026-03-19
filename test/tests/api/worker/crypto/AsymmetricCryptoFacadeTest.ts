@@ -11,7 +11,7 @@ import {
 	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
 	aes256RandomKey,

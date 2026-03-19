@@ -20,7 +20,7 @@
 		"test:app": "cd test && node --enable-source-maps test",
 		"types": "tsc --incremental true --noEmit true",
 		"prebuild": "node buildSrc/prebuild.js",
-		"preinstall": "git config core.hooksPath githooks || true",
+		"preinstall": "node buildSrc/preinstall.js",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
 		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema && npm run style:fix",
@@ -68,6 +68,7 @@
 		"dmg-license": "^1.0.11"
 	},
 	"devDependencies": {
+		"crypto-primitives": "file:./src/crypto-primitives",
 		"@electron/notarize": "3.0.1",
 		"@eslint/js": "9.29.0",
 		"@octokit/auth-token": "6.0.0",

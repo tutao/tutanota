@@ -3,7 +3,7 @@ import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/Crypt
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest"
 import { generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "@tutao/crypto"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade"
 import { loadLibOQSWASM } from "../WASMTestUtils"
 

@@ -10,7 +10,7 @@ import {
 } from "../../common/EntityTypes"
 import { Base64, base64ToUint8Array, Nullable, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { aesDecrypt, aesEncrypt, AesKey } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"

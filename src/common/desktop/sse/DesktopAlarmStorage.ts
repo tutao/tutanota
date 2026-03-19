@@ -10,7 +10,7 @@ import { ClientModelUntypedInstance, ServerModelUntypedInstance, UntypedInstance
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "../../api/entities/sys/TypeRefs"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { hasError } from "../../api/common/utils/ErrorUtils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
