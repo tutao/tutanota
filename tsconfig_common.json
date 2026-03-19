@@ -34,7 +34,8 @@
 			"@tutao/crypto/error": ["./src/crypto/error"],
 			"@tutao/error": ["./src/error"],
 			"@tutao/wasm-loader": ["./src/wasm-loader"],
-			"@tutao/locc": ["./src/licc"]
+			"@tutao/locc": ["./src/licc"],
+			"@tutao/otest": ["./test/otest"]
 		}
 	}
 }

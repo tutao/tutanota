@@ -19,6 +19,6 @@ change. Rough TODO list:
 
 ## API
 
-See [otest.ts](lib/otest.ts)
+See [otest.ts](otest.ts)
 
 See [Assertion.ts](lib/assertion.ts)

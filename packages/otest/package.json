@@ -18,7 +18,7 @@
 	"files": [
 		"dist/*.ts",
 		"dist/*.js",
-		"README.md",
+		"../../test/otest/README.md",
 		"LICENSE.txt",
 		"tsconfig.json"
 	],
