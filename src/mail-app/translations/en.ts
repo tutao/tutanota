@@ -2248,6 +2248,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+
+		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}"
 	}
 }
