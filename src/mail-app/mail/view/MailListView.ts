@@ -367,6 +367,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					: m(List, {
 							state: listModel.stateStream(),
 							renderConfig: this.renderConfig,
+							rightMargin: this.mailViewModel.getNoMailViewerMode(),
 							onLoadMore() {
 								listModel.loadMore()
 							},

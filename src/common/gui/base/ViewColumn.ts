@@ -5,7 +5,7 @@ import { lazy, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { TabIndex } from "../../api/common/TutanotaConstants"
-import { layout_size, px, size } from "../size"
+import { layout_size, px } from "../size"
 import { styles } from "../styles"
 
 assertMainOrNode()

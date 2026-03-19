@@ -946,6 +946,10 @@ export class MailViewModel {
 	getMoveMode(folder: MailSet): MoveMode {
 		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
 	}
+
+	getNoMailViewerMode(): boolean {
+		return this.conversationPrefProvider.getNoMailViewerMode()
+	}
 }
 
 /**

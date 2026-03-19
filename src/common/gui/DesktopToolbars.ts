@@ -4,19 +4,24 @@ import { component_size, px, size } from "./size.js"
 import { responsiveCardHMargin } from "./cards.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 
+type DesktopListToolbarAttrs = { listOnly: boolean }
 /** Toolbar layout that is used in the second/list column. */
-export const DesktopListToolbar = pureComponent((__, children) => {
+export const DesktopListToolbar = pureComponent(({ listOnly }: DesktopListToolbarAttrs, children) => {
 	return m(
-		".flex.pt-4.pb-4.items-center.list-bg",
-		{
-			style: {
-				"border-radius": `${size.radius_8}px 0 0 ${size.radius_8}px`,
-				// matching the list
-				marginLeft: `5px`,
-				marginBottom: px(size.spacing_24),
+		listOnly ? ".scrollbar-gutter-stable-or-fallback.overflow-y-hidden" : "",
+		m(
+			".flex.pt-4.pb-4.items-center.list-bg",
+			{
+				style: {
+					"border-radius": `${size.radius_8}px ${listOnly ? size.radius_8 : 0}px ${listOnly ? size.radius_8 : 0}px ${size.radius_8}px`,
+					// matching the list
+					marginLeft: `5px`,
+					marginBottom: px(size.spacing_24),
+					marginRight: listOnly ? px(size.spacing_24) : undefined,
+				},
 			},
-		},
-		children,
+			children,
+		),
 	)
 })
 

@@ -38,6 +38,8 @@ export interface ConversationPrefProvider {
 	getMailAutoSelectBehavior(): ListAutoSelectBehavior
 
 	getMailListDisplayMode(): MailListDisplayMode
+
+	getNoMailViewerMode(): boolean
 }
 
 export type ConversationViewModelFactory = (options: CreateMailViewerOptions) => ConversationViewModel

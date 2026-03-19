@@ -76,6 +76,8 @@ export interface ListAttrs<T, R extends ViewHolder<T>> {
 	/** will be compared referentially, will completely reset DOM and state on change */
 	renderConfig: RenderConfig<T, R>
 
+	rightMargin?: boolean
+
 	/** called when the end of the list is getting close to the viewport or when "load more" button is pressed. */
 	onLoadMore(): void
 
@@ -151,39 +153,42 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				},
 			},
 			this.renderSwipeItems(attrs),
-			// we need rel for the status indicator
-			m("ul.list.rel.click", {
-				role: "list",
-				oncreate: ({ dom }) => {
-					this.innerDom = dom as HTMLElement
-					this.initializeDom(dom as HTMLElement, attrs.renderConfig)
-					this.updateDomElements(attrs)
-					this.state = attrs.state
-					this.lastThemeId = theme.themeId
-					if (styles.isSingleColumnLayout()) this.innerDom.focus()
-				},
-				onupdate: ({ dom }) => {
-					if (oldRenderConfig !== attrs.renderConfig) {
-						// reset everything
-						console.log("list renderConfig has changed, reset")
-						// m.render actually does diffing if you call it on the same dom element again which is not something that we want, we want completely
-						// new dom elements (at least that's the simplest and most reliable way to reset).
-						// so we trick mithril into thinking that nothing was rendered before. mithril will reset the DOM for us too.
-						// @ts-ignore
-						dom.vnodes = null
+			m(
+				attrs.rightMargin ? ".mr-24" : "",
+				// we need rel for the status indicator
+				m("ul.list.rel.click", {
+					role: "list",
+					oncreate: ({ dom }) => {
+						this.innerDom = dom as HTMLElement
 						this.initializeDom(dom as HTMLElement, attrs.renderConfig)
-					}
-					// if the state has changed or the theme has changed we need to update the DOM
-					if (this.state !== attrs.state || this.lastThemeId !== theme.themeId) {
 						this.updateDomElements(attrs)
 						this.state = attrs.state
-					}
-					this.lastThemeId = theme.themeId
-				},
-				onscroll: () => {
-					attrs.onLoadMore()
-				},
-			}),
+						this.lastThemeId = theme.themeId
+						if (styles.isSingleColumnLayout()) this.innerDom.focus()
+					},
+					onupdate: ({ dom }) => {
+						if (oldRenderConfig !== attrs.renderConfig) {
+							// reset everything
+							console.log("list renderConfig has changed, reset")
+							// m.render actually does diffing if you call it on the same dom element again which is not something that we want, we want completely
+							// new dom elements (at least that's the simplest and most reliable way to reset).
+							// so we trick mithril into thinking that nothing was rendered before. mithril will reset the DOM for us too.
+							// @ts-ignore
+							dom.vnodes = null
+							this.initializeDom(dom as HTMLElement, attrs.renderConfig)
+						}
+						// if the state has changed or the theme has changed we need to update the DOM
+						if (this.state !== attrs.state || this.lastThemeId !== theme.themeId) {
+							this.updateDomElements(attrs)
+							this.state = attrs.state
+						}
+						this.lastThemeId = theme.themeId
+					},
+					onscroll: () => {
+						attrs.onLoadMore()
+					},
+				}),
+			),
 		)
 	}
 

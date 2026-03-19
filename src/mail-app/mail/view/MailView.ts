@@ -148,7 +148,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					const folder = this.mailViewModel.getFolder()
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						desktopToolbar: () => m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel)), this.renderFilterButton()),
+						desktopToolbar: () =>
+							m(
+								DesktopListToolbar,
+								{ listOnly: this.mailViewModel.getNoMailViewerMode() },
+								m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel)),
+								this.renderFilterButton(),
+							),
 						columnLayout: folder
 							? m(
 									"",
@@ -449,7 +455,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				m(
 					DesktopViewerToolbar,
 					{
-						leftContent: deviceConfig.getNoMailViewerMode()
+						leftContent: this.mailViewModel.getNoMailViewerMode()
 							? m(IconButton, {
 									title: "back_action",
 									click: () => this.viewSlider.focusPreviousColumn(),
@@ -576,7 +582,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	view({ attrs }: Vnode<MailViewAttrs>): Children {
-		const exclusive = deviceConfig.getNoMailViewerMode()
+		const exclusive = this.mailViewModel.getNoMailViewerMode()
 		// In no-preview mode, list and mail are mutually exclusive: only the focused one is shown
 		// alongside the folder sidebar. Marking both as exclusive prevents the layout algorithm
 		// from showing them side by side, and triggers an in-place DOM swap when switching.
