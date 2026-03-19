@@ -2270,3 +2270,4 @@ export type TranslationKeyType =
 	| "setAsSenderNameForPrimaryAddress_label"
 	| "incorrectRecoveryCodeFormat_msg"
 	| "emptyString_msg"
+	| "manualUpdateNeeded_msg"
