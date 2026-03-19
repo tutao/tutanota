@@ -441,6 +441,7 @@ export type CustomerInfo = {
 	plan: NumberString;
 	promotionId: null | string;
 	confirmedHuman: boolean;
+	adAttributionCampaignId: null | string;
 
 	customer: Id;
 	accountingInfo: Id;
@@ -1212,8 +1213,10 @@ export type Booking = {
 	paymentInterval: NumberString;
 	_ownerGroup: null | Id;
 	bonusMonth: NumberString;
+	renewalEnabled: boolean;
 
 	items: BookingItem[];
+	subscriptionReference: null | SubscriptionReference;
 }
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", 722)
 
@@ -2214,6 +2217,7 @@ export type UpgradePriceServiceReturn = {
 	bonusMonthsForYearlyPlan: NumberString;
 	firstMonthForFreeForYearlyPlan: boolean;
 	hasGlobalFirstYearDiscount: boolean;
+	globalCampaignName: null | string;
 
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
@@ -4234,4 +4238,19 @@ export type UserAlarmInfoData = {
 
 	ownerGroup: Id;
 	calendarEventRef: CalendarEventRef;
+}
+export const SubscriptionReferenceTypeRef: TypeRef<SubscriptionReference> = new TypeRef("sys", 2733)
+
+export function createSubscriptionReference(values: StrippedEntity<SubscriptionReference>): SubscriptionReference {
+    return Object.assign(create(typeModels[SubscriptionReferenceTypeRef.typeId], SubscriptionReferenceTypeRef), values)
+}
+
+export type SubscriptionReference = {
+	_type: TypeRef<SubscriptionReference>;
+	_original?: SubscriptionReference
+
+	_id: Id;
+	subscriptionProvider: NumberString;
+	foreignKey: null | string;
+	subscriptionApp: NumberString;
 }
