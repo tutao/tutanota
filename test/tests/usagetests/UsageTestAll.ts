@@ -19,7 +19,7 @@ class MockPingAdapter implements PingAdapter {
 o.spec("UsageTest - Main", function () {
 	o("dom render variant", function () {
 		const testId = "t123"
-		const test = new UsageTest(testId, "test 123", 0, true)
+		const test = new UsageTest(testId, "test 123", 0, true, "variant1")
 		test.pingAdapter = new MockPingAdapter()
 
 		const rendered = test.getVariant({
@@ -34,7 +34,7 @@ o.spec("UsageTest - Main", function () {
 		const testId = "t123"
 		const pingAdapter = new MockPingAdapter()
 
-		const test = new UsageTest(testId, "test 123", 2, true)
+		const test = new UsageTest(testId, "test 123", 2, true, "variant1")
 		test.pingAdapter = pingAdapter
 
 		const stage0 = new Stage(0, test, 1, 1)
@@ -45,10 +45,10 @@ o.spec("UsageTest - Main", function () {
 
 	o("add tests to and retrieve from usage test controller", function () {
 		const testId1 = "t1"
-		const test1 = new UsageTest(testId1, "test 1", 0, true)
+		const test1 = new UsageTest(testId1, "test 1", 0, true, "variant1")
 
 		const testId2 = "t2"
-		const test2 = new UsageTest(testId2, "test 2", 1, true)
+		const test2 = new UsageTest(testId2, "test 2", 1, true, "variant1")
 
 		const adapter = new MockPingAdapter()
 		const usageTestController = new UsageTestController(adapter)

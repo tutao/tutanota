@@ -32,6 +32,7 @@ export class UsageTest {
 		readonly testName: string,
 		public variant: number,
 		public active: boolean,
+		public variantName: string | null,
 	) {}
 
 	/**
@@ -138,7 +139,7 @@ export class ObsoleteUsageTest extends UsageTest {
 	private readonly obsoleteStage: ObsoleteStage
 
 	constructor(testId: string, testName: string, variant: number) {
-		super(testId, testName, variant, false)
+		super(testId, testName, variant, false, null)
 		this.obsoleteStage = new ObsoleteStage(0, this, 1, 1)
 	}
 
