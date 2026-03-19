@@ -220,7 +220,7 @@ o.spec("UsageTestModel", function () {
 			o("sends ping", async function () {
 				await ephemeralStorage.storeTestDeviceId(testDeviceId)
 
-				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true)
+				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true, "variant1")
 				usageTest.pingAdapter = usageTestModel
 				const stage = new Stage(0, usageTest, 1, 1)
 				usageTest.addStage(stage)
@@ -254,7 +254,7 @@ o.spec("UsageTestModel", function () {
 			o("sends pings in correct order", async function () {
 				await ephemeralStorage.storeTestDeviceId(testDeviceId)
 
-				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true)
+				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true, "variant1")
 				usageTest.pingAdapter = usageTestModel
 
 				for (let i = 0; i < 3; i++) {

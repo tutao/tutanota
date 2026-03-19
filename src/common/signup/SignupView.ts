@@ -38,6 +38,7 @@ import SignupWizardLayout from "./SignupWizardLayout"
 import { noOp } from "@tutao/utils"
 import { Icons } from "../gui/base/icons/Icons"
 import { getDefaultPaymentMethod, PaymentData, sysTypeRefs } from "@tutao/typerefs"
+import { mailLocator } from "../../mail-app/mailLocator"
 
 assertMainOrNode()
 
@@ -203,6 +204,8 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 	}
 
 	async oncreate() {
+		const activeTests = await mailLocator.usageTestModel.loadActiveUsageTests()
+		mailLocator.usageTestController.setTests(activeTests)
 		await this.wizardViewModel.init()
 		let referralConversion: ReferralType = "not_referred"
 		if (this.wizardViewModel.referralData && this.wizardViewModel.referralData.isCalledBySatisfactionDialog)
