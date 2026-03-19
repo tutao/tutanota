@@ -3359,6 +3359,8 @@ pub struct UpgradePriceServiceReturn {
 	pub firstMonthForFreeForYearlyPlan: bool,
 	#[serde(rename = "2613")]
 	pub hasGlobalFirstYearDiscount: bool,
+	#[serde(rename = "2692")]
+	pub globalCampaignName: Option<String>,
 	#[serde(rename = "1473")]
 	pub premiumPrices: PlanPrices,
 	#[serde(rename = "1474")]

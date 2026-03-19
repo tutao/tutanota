@@ -8296,6 +8296,14 @@ export const typeModels = {
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2692": {
+				"final": false,
+				"name": "globalCampaignName",
+				"id": 2692,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
