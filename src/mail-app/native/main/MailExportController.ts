@@ -198,7 +198,9 @@ export class MailExportController {
 		let currentStartId = startId
 		let currentMailId: IdTuple | null = null
 		const { makeMailBundle } = await import("../../mail/export/Bundler.js")
+		let importedWithoutFailureCount = 0
 		while (true) {
+			importedWithoutFailureCount = 0
 			try {
 				currentMailId = null
 				const downloadedMails = await this.mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, currentStartId, this.getServerUrl())
@@ -231,11 +233,19 @@ export class MailExportController {
 						}
 
 						await this.exportFacade.saveMailboxExport(mailBundle, this.userId, mailBag._id, getElementId(mail))
+						importedWithoutFailureCount++
 					} catch (e) {
 						if (e instanceof FileOpenError) {
 							this._state({ type: "error", message: e.message })
 							return
 						} else {
+							const currentState = this._state()
+							if (currentState.type === "exporting") {
+								this._state({
+									...currentState,
+									failures: currentState.failures + 1,
+								})
+							}
 							await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, mail._id)
 						}
 					}
@@ -247,7 +257,7 @@ export class MailExportController {
 				}
 				this._state({
 					...currentState,
-					exportedMails: currentState.exportedMails + downloadedMails.length,
+					exportedMails: currentState.exportedMails + importedWithoutFailureCount,
 					paused: false,
 				})
 			} catch (e) {
