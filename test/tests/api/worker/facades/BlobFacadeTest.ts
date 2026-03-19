@@ -30,6 +30,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { typeModels as storageTypeModels } from "../../../../../src/common/api/entities/storage/TypeModels"
+import { TransferId } from "../../../../../src/common/api/common/drive/DriveTypes"
 
 const { anything, captor } = matchers
 
@@ -118,6 +119,7 @@ o.spec("BlobFacade", function () {
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
+			const transferId = "abcde" as TransferId
 
 			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 
@@ -130,7 +132,7 @@ o.spec("BlobFacade", function () {
 			when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
 
-			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey)
+			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey, transferId)
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 
 			const optionsCaptor = captor()
@@ -190,6 +192,8 @@ o.spec("BlobFacade", function () {
 	o.spec("download", function () {
 		o("downloadAndDecrypt", async function () {
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcd" as TransferId
+
 			const blobData = new Uint8Array([1, 2, 3])
 			const blobId = "--------0s--"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId, size: String(65), archiveId: archiveId }))
@@ -224,7 +228,7 @@ o.spec("BlobFacade", function () {
 			)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
-			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file))
+			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
 			o(decryptedData).deepEquals(blobData)("decrypted data is equal")
 			const optionsCaptor = captor()
@@ -236,6 +240,7 @@ o.spec("BlobFacade", function () {
 
 		o("downloadAndDecrypt multiple", async function () {
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
@@ -283,13 +288,14 @@ o.spec("BlobFacade", function () {
 			)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
-			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file))
+			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
 			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
 		})
 
 		o("downloadAndDecrypt multiple from different archives", async function () {
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
@@ -345,7 +351,7 @@ o.spec("BlobFacade", function () {
 			)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
-			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file))
+			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
 			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
 		})
@@ -353,6 +359,7 @@ o.spec("BlobFacade", function () {
 		o("downloadAndDecryptNative", async function () {
 			env.networkDebugging = false
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcd" as TransferId
 
 			file.blobs.push(blobs[0])
 
@@ -387,6 +394,7 @@ o.spec("BlobFacade", function () {
 				wrapTutanotaFile(file),
 				file.name,
 				neverNull(file.mimeType),
+				transferId,
 			)
 
 			const expectedFileReference: FileReference = {
@@ -415,6 +423,8 @@ o.spec("BlobFacade", function () {
 		o("downloadAndDecryptNative multiple from different archives", async function () {
 			env.networkDebugging = false
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcd" as TransferId
+
 			const blobId1 = "--------0s-1"
 			const blobId2 = "--------0s-2"
 
@@ -468,6 +478,7 @@ o.spec("BlobFacade", function () {
 				wrapTutanotaFile(file),
 				file.name,
 				neverNull(file.mimeType),
+				transferId,
 			)
 
 			const expectedFileReference: FileReference = {
@@ -506,6 +517,8 @@ o.spec("BlobFacade", function () {
 
 		o("downloadAndDecryptNative_delete_on_error", async function () {
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcd" as TransferId
+
 			file.blobs.push(blobs[0])
 			file.blobs.push(blobs[1])
 
@@ -534,7 +547,7 @@ o.spec("BlobFacade", function () {
 			env.mode = Mode.Desktop
 
 			await assertThrows(ProgrammingError, () =>
-				blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType)),
+				blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId),
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))

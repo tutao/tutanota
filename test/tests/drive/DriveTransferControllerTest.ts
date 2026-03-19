@@ -12,7 +12,6 @@ import { DriveFile, DriveFileTypeRef } from "../../../src/common/api/entities/dr
 import { ArchiveDataType } from "../../../src/common/api/common/TutanotaConstants"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
 import { ConnectionError } from "../../../src/common/api/common/error/RestError"
-import { getElementId } from "../../../src/common/api/common/utils/EntityUtils"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController
@@ -43,7 +42,7 @@ o.spec("DriveTransferController", function () {
 	o.spec("uploads", function () {
 		o.test("when uploading a single file, it is uploaded immediately", async function () {
 			const fileId = "fileId" as TransferId
-			when(driveFacade.generateUploadId()).thenResolve(fileId)
+			when(blobFacade.generateTransferId()).thenResolve(fileId)
 			const file = {
 				name: "file.jpg",
 				size: 1024,
@@ -58,7 +57,7 @@ o.spec("DriveTransferController", function () {
 		o.test("when upload is cancelled it is removed from the queue and the next upload is processed", async function () {
 			const fileId1 = "fileId1" as TransferId
 			const fileId2 = "fileId2" as TransferId
-			when(driveFacade.generateUploadId()).thenResolve(fileId1, fileId2)
+			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
 				name: "file1.jpg",
 				size: 1024,
@@ -120,7 +119,7 @@ o.spec("DriveTransferController", function () {
 		o.test("when upload fails it is put into failed state and the next upload is processed", async function () {
 			const fileId1 = "fileId1" as TransferId
 			const fileId2 = "fileId2" as TransferId
-			when(driveFacade.generateUploadId()).thenResolve(fileId1, fileId2)
+			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
 				name: "file1.jpg",
 				size: 1024,
@@ -202,7 +201,7 @@ o.spec("DriveTransferController", function () {
 		o.test("when uploading multiple files, they are queued after one another", async function () {
 			const fileId1 = "fileId1" as TransferId
 			const fileId2 = "fileId2" as TransferId
-			when(driveFacade.generateUploadId()).thenResolve(fileId1, fileId2)
+			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
 				name: "file1.txt",
 				size: 1024,
@@ -294,7 +293,7 @@ o.spec("DriveTransferController", function () {
 
 		o.test("cancel cancels active upload", async function () {
 			const fileId1 = "fileId1" as TransferId
-			when(driveFacade.generateUploadId()).thenResolve(fileId1)
+			when(blobFacade.generateTransferId()).thenResolve(fileId1)
 			const file1 = {
 				name: "file1.txt",
 				size: 1024,
@@ -310,7 +309,7 @@ o.spec("DriveTransferController", function () {
 		o.test("cancel cancels waiting upload", async function () {
 			const fileId1 = "fileId1" as TransferId
 			const fileId2 = "fileId2" as TransferId
-			when(driveFacade.generateUploadId()).thenResolve(fileId1, fileId2)
+			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
 				name: "file1.txt",
 				size: 1024,
@@ -342,33 +341,55 @@ o.spec("DriveTransferController", function () {
 	})
 	o.spec("downloads", function () {
 		o.test("when downloading a single file, it is downloaded immediately", async function () {
+			const transferId = "abcde" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId)
+
 			const file = createTestEntity(DriveFileTypeRef, { _id: ["fileId", "elementId"], name: "downloadFile", size: "1024" })
+
+			const deferredDownload = defer<void>()
+			when(fileController.open(file, ArchiveDataType.DriveFile, transferId)).thenResolve({
+				promise: deferredDownload.promise,
+				transferIds: [transferId],
+			})
+
 			await transferController.download(file)
-			verify(fileController.open(file, ArchiveDataType.DriveFile))
+			verify(fileController.open(file, ArchiveDataType.DriveFile, transferId))
 			const expectedTransferState: DriveTransferState = {
-				id: "elementId" as TransferId,
+				id: transferId,
 				type: "download",
 				filename: "downloadFile",
 				state: "finished",
 				transferredSize: 0,
 				totalSize: 1024,
 			}
+			deferredDownload.resolve()
+			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([expectedTransferState])
 		})
 		o.test("when a download is cancelled, it is taken out from the queue and the next download is processed", async function () {
+			const transferId1 = "transfer id 1" as TransferId
+			const transferId2 = "transfer id 2" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
+
 			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
 			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
-			when(fileController.open(file1, ArchiveDataType.DriveFile)).thenReturn(deferredDownload1.promise)
+			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
+				promise: deferredDownload1.promise,
+				transferIds: [transferId1],
+			})
 			const deferredDownload2 = defer<void>()
-			when(fileController.open(file2, ArchiveDataType.DriveFile)).thenReturn(deferredDownload2.promise)
-			transferController.download(file1)
-			transferController.download(file2)
+			when(fileController.open(file2, ArchiveDataType.DriveFile, transferId2)).thenResolve({
+				promise: deferredDownload2.promise,
+				transferIds: [transferId2],
+			})
+			await transferController.download(file1)
+			await transferController.download(file2)
 			deferredDownload1.reject(new CancelledError("download failed"))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "active",
@@ -380,7 +401,7 @@ o.spec("DriveTransferController", function () {
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "finished",
@@ -390,19 +411,29 @@ o.spec("DriveTransferController", function () {
 			])
 		})
 		o.test("when a download is failed, it is put into failed state and the next download is processed", async function () {
+			const transferId1 = "transfer id 1" as TransferId
+			const transferId2 = "transfer id 2" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
+
 			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
 			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
-			when(fileController.open(file1, ArchiveDataType.DriveFile)).thenReturn(deferredDownload1.promise)
+			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
+				promise: deferredDownload1.promise,
+				transferIds: [transferId1],
+			})
 			const deferredDownload2 = defer<void>()
-			when(fileController.open(file2, ArchiveDataType.DriveFile)).thenReturn(deferredDownload2.promise)
-			transferController.download(file1)
-			transferController.download(file2)
+			when(fileController.open(file2, ArchiveDataType.DriveFile, transferId2)).thenResolve({
+				promise: deferredDownload2.promise,
+				transferIds: [transferId2],
+			})
+			await transferController.download(file1)
+			await transferController.download(file2)
 			deferredDownload1.reject(new ConnectionError("download failed"))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId1" as TransferId,
+					id: transferId1,
 					type: "download",
 					filename: "downloadFile1",
 					state: "failed",
@@ -410,7 +441,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 				},
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "active",
@@ -422,7 +453,7 @@ o.spec("DriveTransferController", function () {
 
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "active",
@@ -434,7 +465,7 @@ o.spec("DriveTransferController", function () {
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "finished",
@@ -445,18 +476,27 @@ o.spec("DriveTransferController", function () {
 		})
 
 		o.test("when downloading multiple files, they must be queued after one another", async function () {
+			const transferId1 = "transfer id 1" as TransferId
+			const transferId2 = "transfer id 2" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
 			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
 			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
-			when(fileController.open(file1, ArchiveDataType.DriveFile)).thenReturn(deferredDownload1.promise)
+			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
+				promise: deferredDownload1.promise,
+				transferIds: [transferId1],
+			})
 			const deferredDownload2 = defer<void>()
-			when(fileController.open(file2, ArchiveDataType.DriveFile)).thenReturn(deferredDownload2.promise)
+			when(fileController.open(file2, ArchiveDataType.DriveFile, transferId2)).thenResolve({
+				promise: deferredDownload2.promise,
+				transferIds: [transferId2],
+			})
 
-			transferController.download(file1)
-			transferController.download(file2)
+			await transferController.download(file1)
+			await transferController.download(file2)
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId1" as TransferId,
+					id: transferId1,
 					type: "download",
 					filename: "downloadFile1",
 					state: "active",
@@ -464,7 +504,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 				},
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "waiting",
@@ -476,7 +516,7 @@ o.spec("DriveTransferController", function () {
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId1" as TransferId,
+					id: transferId1,
 					type: "download",
 					filename: "downloadFile1",
 					state: "finished",
@@ -484,7 +524,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 				},
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "active",
@@ -495,7 +535,7 @@ o.spec("DriveTransferController", function () {
 			scheduler.getThunkAfter(FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "active",
@@ -507,7 +547,7 @@ o.spec("DriveTransferController", function () {
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId2" as TransferId,
+					id: transferId2,
 					type: "download",
 					filename: "downloadFile2",
 					state: "finished",
@@ -519,34 +559,54 @@ o.spec("DriveTransferController", function () {
 			o.check(transferController.state).deepEquals([])
 		})
 		o.test("cancel download cancels active download", async function () {
+			const transferId1 = "transfer id 1" as TransferId
+			const transferId2 = "transfer id 2" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
+
 			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
 			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
-			when(fileController.open(file1, ArchiveDataType.DriveFile)).thenReturn(deferredDownload1.promise)
+			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
+				promise: deferredDownload1.promise,
+				transferIds: [transferId1],
+			})
 			const deferredDownload2 = defer<void>()
-			when(fileController.open(file2, ArchiveDataType.DriveFile)).thenReturn(deferredDownload2.promise)
+			when(fileController.open(file2, ArchiveDataType.DriveFile, transferId2)).thenResolve({
+				promise: deferredDownload2.promise,
+				transferIds: [transferId2],
+			})
 
-			transferController.download(file1)
-			transferController.download(file2)
+			await transferController.download(file1)
+			await transferController.download(file2)
 
-			await transferController.cancelTransfer(getElementId(file1) as TransferId)
-			verify(blobFacade.cancelDownload(getElementId(file1) as TransferId))
+			await transferController.cancelTransfer(transferId1)
+			verify(blobFacade.cancelDownload(transferId1))
 		})
 		o.test("cancel download cancels waiting download", async function () {
+			const transferId1 = "transfer id 1" as TransferId
+			const transferId2 = "transfer id 2" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
+
 			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
 			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
-			when(fileController.open(file1, ArchiveDataType.DriveFile)).thenReturn(deferredDownload1.promise)
+			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
+				promise: deferredDownload1.promise,
+				transferIds: [transferId1],
+			})
 			const deferredDownload2 = defer<void>()
-			when(fileController.open(file2, ArchiveDataType.DriveFile)).thenReturn(deferredDownload2.promise)
+			when(fileController.open(file2, ArchiveDataType.DriveFile, transferId2)).thenResolve({
+				promise: deferredDownload2.promise,
+				transferIds: [transferId2],
+			})
 
-			transferController.download(file1)
-			transferController.download(file2)
+			await transferController.download(file1)
+			await transferController.download(file2)
 
-			await transferController.cancelTransfer(getElementId(file2) as TransferId)
+			await transferController.cancelTransfer(transferId2)
 			o.check(transferController.state).deepEquals([
 				{
-					id: "elementId1" as TransferId,
+					id: transferId1,
 					type: "download",
 					filename: "downloadFile1",
 					state: "active",
