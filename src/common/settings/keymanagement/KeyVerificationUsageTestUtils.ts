@@ -1,4 +1,4 @@
-import { Stage, UsageTest } from "@tutao/tutanota-usagetests"
+import { Stage, UsageTest } from "@tutao/usagetests"
 import { IdentityKeyVerificationMethod } from "../../api/common/TutanotaConstants"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 

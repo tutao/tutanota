@@ -9,7 +9,7 @@ import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
-import { UsageTestController } from "@tutao/tutanota-usagetests"
+import { UsageTestController } from "@tutao/usagetests"
 import { NativeFileApp } from "../common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"

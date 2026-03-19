@@ -1,0 +1,13 @@
+{
+	"extends": "./../tsconfig_common.json",
+	"include": ["./usagetests/*", "./../types/"],
+	"exclude": ["usagetests/dist"],
+	"files": ["lib/index.ts"],
+	"compilerOptions": {
+		"rootDir": "usagetests",
+		"outDir": "usagetests/dist",
+		"tsBuildInfoFile": "usagetests/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": []
+}

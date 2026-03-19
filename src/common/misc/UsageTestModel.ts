@@ -7,7 +7,7 @@ import {
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
-import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
+import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
 import { UsageTestMetricType } from "../api/common/TutanotaConstants"

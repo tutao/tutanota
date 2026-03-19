@@ -9,7 +9,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUt
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../gui/theme.js"
 import { font_size, px, size } from "../gui/size.js"
-import { UsageTestController } from "@tutao/tutanota-usagetests"
+import { UsageTestController } from "@tutao/usagetests"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"

@@ -35,7 +35,8 @@
 			"@tutao/error": ["./src/error"],
 			"@tutao/wasm-loader": ["./src/wasm-loader"],
 			"@tutao/locc": ["./src/licc"],
-			"@tutao/otest": ["./test/otest"]
+			"@tutao/otest": ["./test/otest"],
+			"@tutao/usagetests": ["./src/usagetests"]
 		}
 	}
 }
