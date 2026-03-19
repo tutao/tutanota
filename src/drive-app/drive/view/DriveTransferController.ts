@@ -5,7 +5,6 @@ import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 import { FileController } from "../../../common/file/FileController"
@@ -119,7 +118,9 @@ export class DriveTransferController {
 			const { id, file } = transfer
 			this.startDownload(transfer.id)
 			try {
-				await this.fileController.open(file, ArchiveDataType.DriveFile)
+				await (
+					await this.fileController.open(file, ArchiveDataType.DriveFile, transfer.id)
+				).promise
 				this.finishDownload(transfer.id)
 			} catch (e) {
 				if (e instanceof CancelledError) {

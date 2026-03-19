@@ -9,7 +9,6 @@ import { deduplicateFilenames, FileReference, sanitizeFilename } from "../api/co
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants.js"
-import Stream from "mithril/stream"
 import { ConnectionError } from "../api/common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
@@ -141,8 +140,8 @@ export abstract class FileController {
 	 * Open a file in the host system
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DownloadReturn> {
-		const transferId = await this.blobFacade.generateTransferId()
+	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments, transferId?: TransferId): Promise<DownloadReturn> {
+		transferId ??= await this.blobFacade.generateTransferId()
 		return { transferIds: [transferId], promise: this.doDownload([{ file, transferId }], DownloadPostProcessing.Open, { archiveType }) }
 	}
 
