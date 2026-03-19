@@ -3,7 +3,6 @@
 	"compilerOptions": {
 		"removeComments": false,
 		"declaration": false,
-		"noEmit": true,
 		"outDir": "build",
 		"rootDir": "."
 	},

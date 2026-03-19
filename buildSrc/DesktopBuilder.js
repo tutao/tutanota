@@ -171,7 +171,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			napiPlugin({
 				platform,
 				architecture,
-				nodeModule: "@tutao/node-mimimi",
+				modulePath: "src/mimimi",
 			}),
 			typescript({
 				tsconfig: "tsconfig.json",

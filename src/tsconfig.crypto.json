@@ -22,9 +22,6 @@
 			"path": "tsconfig.utils.json"
 		},
 		{
-			"path": "../packages/otest"
-		},
-		{
 			"path": "tsconfig.error.json"
 		}
 	]

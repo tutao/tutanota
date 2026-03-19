@@ -36,7 +36,7 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 		})
 
 		await runStep("Types", async () => {
-			await sh`npx tsc --incremental true --noEmit true`
+			await sh`npx tsc --incremental true`
 		})
 	}
 

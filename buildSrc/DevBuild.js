@@ -15,6 +15,7 @@ import { napiPlugin } from "./napiPlugin.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { sh } from "./sh.js"
 import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "./cryptoPrimitivesUtils.js"
+import { exec } from "node:child_process"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -50,11 +51,27 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	await runStep("Packages", async () => {
 		await buildRuntimePackages()
 	})
+	if (desktop) {
+		await runStep("Build mimimi", async () => {
+			exec(
+				"node --experimental-strip-types make.ts 2>&1",
+				{
+					cwd: "src/mimimi",
+				},
+				(error, stdout) => {
+					if (error) {
+						if (stdout) process.stdout.write(`[STDOUT]\n${stdout}`)
+						throw new Error("Could not run make.js on mimimi")
+					}
+				},
+			)
+		})
+	}
 
 	const version = await getTutanotaAppVersion()
 
 	await runStep("Types", async () => {
-		await sh`npx tsc --build --incremental ${true} --noEmit true ${tsConfig}`
+		await sh`npx tsc --build --incremental ${true} ${tsConfig}`
 	})
 
 	/**
@@ -205,9 +222,9 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 					targetName: "node_sqlcipher",
 				}),
 				napiPlugin({
-					nodeModule: "@tutao/node-mimimi",
 					platform,
 					architecture,
+					modulePath: "src/mimimi",
 				}),
 				// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
 				platform === "win32"

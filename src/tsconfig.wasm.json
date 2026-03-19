@@ -11,9 +11,6 @@
 	"references": [
 		{
 			"path": "tsconfig.utils.json"
-		},
-		{
-			"path": "../packages/otest"
 		}
 	]
 }
