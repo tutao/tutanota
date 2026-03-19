@@ -728,6 +728,8 @@ pub struct CustomerInfo {
 	pub promotionId: Option<String>,
 	#[serde(rename = "2691")]
 	pub confirmedHuman: bool,
+	#[serde(rename = "2732")]
+	pub adAttributionCampaignId: Option<String>,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
@@ -1890,8 +1892,12 @@ pub struct Booking {
 	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "2103")]
 	pub bonusMonth: i64,
+	#[serde(rename = "2739")]
+	pub renewalEnabled: bool,
 	#[serde(rename = "721")]
 	pub items: Vec<BookingItem>,
+	#[serde(rename = "2738")]
+	pub subscriptionReference: Option<SubscriptionReference>,
 }
 
 impl Entity for Booking {
@@ -3385,6 +3391,8 @@ pub struct UpgradePriceServiceReturn {
 	pub firstMonthForFreeForYearlyPlan: bool,
 	#[serde(rename = "2613")]
 	pub hasGlobalFirstYearDiscount: bool,
+	#[serde(rename = "2731")]
+	pub globalCampaignName: Option<String>,
 	#[serde(rename = "1473")]
 	pub premiumPrices: PlanPrices,
 	#[serde(rename = "1474")]
@@ -6399,6 +6407,28 @@ impl Entity for UserAlarmInfoData {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2722),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SubscriptionReference {
+	#[serde(rename = "2734")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2735")]
+	pub subscriptionProvider: i64,
+	#[serde(rename = "2736")]
+	pub foreignKey: Option<String>,
+	#[serde(rename = "2737")]
+	pub subscriptionApp: i64,
+}
+
+impl Entity for SubscriptionReference {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2733),
 		}
 	}
 }
