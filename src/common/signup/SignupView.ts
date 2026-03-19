@@ -164,19 +164,16 @@ export class SignupViewModel {
 		const prices = priceDataProvider.getRawPricingData()
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
-		let message: MaybeTranslation | null
+		let message: MaybeTranslation | null = null
 		if (isIOSApp()) {
 			const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 			// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
 			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				this.acceptedPlans = this.acceptedPlans.filter((plan) => plan === PlanType.Free)
 			}
-			message =
-				appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription
-					? lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
-					: null
-		} else {
-			message = null
+			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+				message = lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+			}
 		}
 
 		this.priceInfoTextId = priceDataProvider.getPriceInfoMessage()

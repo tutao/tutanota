@@ -48,8 +48,8 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 
 					m(MessageBanner, { translation: lang.getTranslation("pricing.cyber_monday_msg"), type: "base", icon: Icons.GiftFilled }),
 				),
-			// Headline for general messages
-			data.msg && m(MessageBanner, { translation: data.msg, type: "base" }),
+			// Headline for general messages -- currently only used when a user tries to manage multiple subscriptions on ios (which is not possible)
+			data.msg && m(MessageBanner, { translation: data.msg, type: "error" }),
 			// Headline for promotional messages
 			promotionMessage && m(MessageBanner, { translation: lang.getTranslation(promotionMessage), type: "base" }),
 
