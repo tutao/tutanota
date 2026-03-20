@@ -52,6 +52,11 @@ pipeline {
             defaultValue: "*/master",
             description: "the branch to build the release from, will be propagated to the sub-jobs."
         )
+        persistentString(
+            name: "notify to",
+            defaultValue:  "",
+            description: "the mail addresses of the people that are responsible for updating the release notes on app store and play store (marketing)"
+        )
     }
 
     agent {
@@ -249,6 +254,34 @@ pipeline {
 				} // stage mobile
 			} // stages
 		} // stage other clients
+        stage('notify about release') {
+            when { expression { return params.target.equals("publishToProd") } }
+            steps {
+                script {
+                    def starterId = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')['userId'][0]
+                    def starterMailAddress = "${starterId}@tutao.de"
+                    bodyText = '''\
+                    Hello everyone,
+
+                    there's new release drafts for the MAIL app on github:
+
+                    https://github.com/tutao/tutanota/releases
+
+                    This is your opportunity to review them and see if any of this is relevant for the mobile app
+                    release notes on the draft releases in the app stores (there may be multiple).
+
+                    If you need help understanding what's in the release, the release master is in CC and will be happy
+                    to help you out.
+
+                    If you don't think there's a need to change the app store release notes, please still notify the
+                    release master so they know it's fine to continue.
+
+                    LG
+                    '''.stripIndent()
+                    mail body: bodyText, charset: 'UTF-8', mimeType: 'text/plain', subject: "📣 new mail release, time to review release notes!", to: params.notify_to, cc: starterMailAddress;
+                }
+            }
+        } // stage notify about release
     } // stages
 } // pipeline
 
