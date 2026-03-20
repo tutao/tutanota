@@ -10,7 +10,12 @@
     <string name="markRead_action">既読にする</string>
     <string name="sendLogs_action">ログを送信</string>
     <string name="account_label">ユーザー</string>
+    <string name="widgetNoCredentialsInfo_msg">使用可能な認証情報はありません</string>
     <string name="widgetUnexpectedError_msg">おっと！問題が発生しました。</string>
+    <string name="widgetCredentialsError_msg">カレンダーアプリにログインしてください</string>
+    <string name="widgetOpenApp_action">アプリを開く</string>
+    <string name="widgetNoEvents_msg">予定なし</string>
+    <string name="widgetDescription_msg">今日の予定イベントを見る</string>
     <string name="birthdayCalendar_label">誕生日</string>
     <string name="birthdayEvent_title">{name}の誕生日</string>
     <string name="birthdayEventAge_title">{age}歳</string>
