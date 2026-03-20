@@ -2,7 +2,6 @@
 	"extends": "./../tsconfig_common.json",
 	"include": ["./usagetests", "./../types/"],
 	"exclude": ["usagetests/dist"],
-	"files": ["usagetests/index.ts"],
 	"compilerOptions": {
 		"rootDir": "usagetests",
 		"outDir": "usagetests/dist",

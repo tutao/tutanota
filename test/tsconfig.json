@@ -17,6 +17,7 @@
 			"@tutao/wasm-loader": ["../src/wasm-loader"],
 			"@tutao/locc": ["../src/licc"],
 			"@tutao/otest": ["./otest"],
+			"@tutao/usagetests": ["../src/usagetests"],
 			"@tutao/crypto/rsa": ["../src/crypto/encryption/Rsa"],
 			"@tutao/crypto/random": ["../src/crypto/random/SecureRandom"],
 			"@tutao/crypto/symmetric-cipher-utils": ["../src/crypto/encryption/symmetric/SymmetricCipherUtils"],
@@ -25,6 +26,7 @@
 			"@tutao/crypto/symmetric-cipher-version": ["../src/crypto/encryption/symmetric/SymmetricCipherVersion"],
 			"@tutao/crypto/aes-cbc-facade": ["../src/crypto/encryption/symmetric/AesCbcFacade"],
 			"@tutao/crypto/sha256": ["../src/crypto/hashes/Sha256"],
+			"@tutao/crypto/blake3": ["../src/crypto/hashes/Blake3"],
 			"@tutao/crypto/sjcl": ["../src/crypto/internal/sjcl.js"],
 			"@tutao/crypto/jsbn": ["../src/crypto/internal/crypto-jsbn-2012-08-09_1.js"]
 		}

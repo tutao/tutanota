@@ -13,7 +13,6 @@
 	},
 	"license": "MIT",
 	"devDependencies": {
-		"@tutao/otest": "338.260317.0",
 		"@napi-rs/cli": "3.0.0-alpha.68",
 		"typescript": "5.8.3",
 		"zx": "8.6.1"

@@ -66,7 +66,7 @@ import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
-import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "../../../../../packages/tutanota-crypto/lib/hashes/Blake3"
+import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 
 const originalRandom = random.generateRandomData
 
