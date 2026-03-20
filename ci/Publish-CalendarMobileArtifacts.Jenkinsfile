@@ -5,7 +5,6 @@ pipeline {
 	environment {
 		PATH="${env.NODE_PATH}:${env.PATH}"
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-		IOS_RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
 	}
 
     parameters {
@@ -29,16 +28,21 @@ pipeline {
 			defaultValue: "",
 			description: 'Which version should be published. Leave empty if you want to release the latest build and take the version number from package.json.'
 		)
-		booleanParam(
-			name: "generateReleaseNotes",
-			defaultValue: true,
-			description: "Generate Release notes for this build."
-		 )
-         string(
-             name: 'branch',
-             defaultValue: "*/master",
-             description: "the branch to build the release from"
-         )
+        booleanParam(
+            name: "generateReleaseNotes",
+            defaultValue: true,
+            description: "Generate Release notes for this build."
+        )
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from"
+        )
+        persistentString(
+            name: "notify to",
+            defaultValue:  "",
+            description: "the mail addresses of the people that are responsible for updating the release notes on app store and play store (marketing)"
+        )
     }
 
     agent {
@@ -69,11 +73,10 @@ pipeline {
 			steps {
 				sh "npm ci"
 				script { // create release notes
-					def android = params.googlePlayStore || params.github ? pregenerateReleaseNotes("android", env.VERSION) : null
-					def ios = params.appleAppStore || params.github ? pregenerateReleaseNotes("ios", env.VERSION) : null
-
-					// Assigns the dict returned by reviewReleaseNotes with the notes for each platform to the global var releaseNotes
-					releaseNotes = reviewReleaseNotes(android, ios, env.VERSION)
+					releaseNotes = [
+					    android: params.googlePlayStore || params.github ? pregenerateReleaseNotes("android", env.VERSION) : null,
+					    ios: params.appleAppStore || params.github ? pregenerateReleaseNotes("ios", env.VERSION) : null
+					]
 
 					if (params.appleAppStore || params.github) {
 						env.IOS_RELEASE_NOTES = releaseNotes.ios
@@ -175,13 +178,7 @@ pipeline {
 									trackName: 'production',
 									// Don't publish the app to users directly
 									// It will require manual intervention at play.google.com/console
-									rolloutPercentage: '0%',
-									recentChangeList: [
-										[
-											language: "en-US",
-											text    : "see: ${env.GITHUB_RELEASE_PAGE}"
-										]
-									]
+									rolloutPercentage: '0%'
 								)
 							}
 						} // script
@@ -243,6 +240,34 @@ pipeline {
 				} // stage iOS App
 			} // parallel apps
 		} // stage Publishing Artifacts
+        stage('notify about release') {
+            when { expression { return params.target.equals("publishToProd") } }
+            steps {
+                script {
+                    def starterId = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')['userId'][0]
+                    def starterMailAddress = "${starterId}@tutao.de"
+                    bodyText = '''\
+                    Hello everyone,
+
+                    there's new release drafts for the CALENDAR app on github:
+
+                    https://github.com/tutao/tutanota/releases
+
+                    This is your opportunity to review them and see if any of this is relevant for the mobile app
+                    release notes on the draft releases in the app stores (there may be multiple).
+
+                    If you need help understanding what's in the release, the release master is in CC and will be happy
+                    to help you out.
+
+                    If you don't think there's a need to change the app store release notes, please still notify the
+                    release master so they know it's fine to continue.
+
+                    LG
+                    '''.stripIndent()
+                    mail body: bodyText, charset: 'UTF-8', mimeType: 'text/plain', subject: "📣 new calendar release, time to review release notes!", to: params.notify_to, cc: starterMailAddress;
+                }
+            }
+        } // stage notify about release
     } // stages
 } // pipeline
 
@@ -252,22 +277,6 @@ platform must be one of the strings "ios", "android"
 */
 def pregenerateReleaseNotes(platform, version) {
         return sh(returnStdout: true, script: """node buildSrc/releaseNotes.js --platform ${platform} --milestone ${version} """)
-}
-
-/**
- all parameters are nullable strings.
-*/
-def reviewReleaseNotes(android, ios, version) {
-	// only display input fields for the clients we're actually building.
-    def parameters = [
-         android ? text(defaultValue: android, description: "Android release notes built from Github Milestone", name: "android") : null,
-         ios ? text(defaultValue: ios, description: 'Ios release notes built from Github Milestone', name: 'ios') : null,
-         // If the dummy field is removed, when there is only an option a string will be returned instead(we dont want that)
-         booleanParam(defaultValue: true, description: "dummy param so we always get a dict back", name: "dummy"),
-     ].findAll { it != null }
-    // Get the input
-    // https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/
-    return input(id: 'releaseNotesInput', message: 'Release Notes', parameters: parameters)
 }
 
 /**
@@ -286,9 +295,6 @@ def writeReleaseNotes(String platform, String displayName, String version, Strin
 				// We don't upload iOS artifacts to GitHub
 				if (filePath != "" && platform == "android") {
 					releaseDraftCommand = "${releaseDraftCommand} --uploadFile ${filePath}"
-				} else if (platform == "ios") {
-					// Generate release notes to fastlane
-					sh "${releaseDraftCommand} --toFile ${IOS_RELEASE_NOTES_PATH}"
 				}
 
 				sh releaseDraftCommand
