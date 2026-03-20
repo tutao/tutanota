@@ -83,7 +83,6 @@ export class CustomColorEditorPreview implements Component {
 			mailDetails: null,
 			authStatus: null,
 			encryptionAuthStatus: null,
-			keyVerificationState: null,
 			method: "0",
 			bucketKey: null,
 			conversationEntry: ["listId", "conversationId"],

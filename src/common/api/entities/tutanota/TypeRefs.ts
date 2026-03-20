@@ -243,7 +243,6 @@ export type Mail = {
 	recipientCount: NumberString;
 	encryptionAuthStatus: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
-	keyVerificationState: null | NumberString;
 	processingState: NumberString;
 	processNeeded: boolean;
 	sendAt: null | Date;
