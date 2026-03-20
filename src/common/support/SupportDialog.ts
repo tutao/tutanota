@@ -1,11 +1,11 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, isWebClient } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { locator } from "../api/main/CommonLocator.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { client } from "../misc/ClientDetector"
-import { SupportVisibilityMask } from "./SupportVisibilityMask"
+import { isSupportVisibilityEnabled, SupportVisibilityMask } from "./SupportVisibilityMask"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { SupportLandingPage } from "./pages/SupportLandingPage.js"
@@ -22,7 +22,6 @@ import { Keys } from "@tutao/app-env"
 import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
-import { Mode } from "@tutao/app-env"
 
 assertMainOrNode()
 
@@ -307,14 +306,14 @@ function filterCategories(supportData: tutanotaTypeRefs.SupportData) {
 			const visibility = Number(topic.visibility)
 
 			const meetsPlatform =
-				(isEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || env.mode === Mode.Browser))
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
 
 			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
 			const meetsCustomerStatus =
-				(isEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
-				(isEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
 
 			if (meetsPlatform && meetsCustomerStatus) {
 				filteredTopics.push(topic)
@@ -325,8 +324,4 @@ function filterCategories(supportData: tutanotaTypeRefs.SupportData) {
 	}
 
 	return categories.filter((cat) => cat.topics.length > 0)
-}
-
-function isEnabled(visibility: number, mask: SupportVisibilityMask) {
-	return !!(visibility & mask)
 }
