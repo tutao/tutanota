@@ -151,13 +151,25 @@ class AlarmNotificationsManagerTest {
 			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
 	}
 
+
+	@Test
+	fun testNotScheduleAlarmForMailAppWithReceiveCalendarNotificationsFalse() {
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(false)
+		val identifier = "newAlarm"
+		val startDate = Date()
+		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null, null)
+		manager.scheduleNewAlarms(listOf(alarmNotifications), null)
+		Mockito.verify(systemAlarmFacade, Mockito.never())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
+	}
+
 	@Test
 	fun simple_all_day_event_alarm_1_day_before_is_at_midnight_in_local_time_zone() {
 		// GIVEN an all day event with no repeat rule
 		val alarmIdentifier = "alarmId"
-
-		// Test dates must be far enough in the future to have a valid alarm 24 hours before the event
-		// because AlarmNotificationsManager.schedule compares using newly generated Date()
+		// Test dates must be valid all day dates. Also must be far enough in the future to have a valid
+		// alarm 24 hours before the event because AlarmNotificationsManager.schedule compares using
+		// newly generated Date()
 		val testAllDayStartDateUtc =
 			Date.from(LocalDate.now().plusDays(3).atStartOfDay(ZoneOffset.UTC).toInstant())
 		val testAllDayEndDateUtc =
@@ -172,31 +184,71 @@ class AlarmNotificationsManagerTest {
 				"1D"
 			)
 		val alarms: List<EncryptedAlarmNotification> = listOf(encryptedAlarmNotification)
+
 		// WHEN creating an alarm 1 day in advance for the event
 		manager.scheduleNewAlarms(alarms, null)
 		// THEN the alarm will be scheduled correctly at 00:00 local time
 
-		// Start of day (00:00:00) in UTC+1, 1 day before the original event
+		// Even though event has an All Day Date, the alarm must be at
+		// start of day (00:00:00) in UTC+1, 1 day before the original event.
+		// ZoneOffset.ofHours(1) designates UTC+1
 		val expected1DayAlarmTime =
 			Date.from(
 				testAllDayStartDateUtc.toInstant().atZone(ZoneOffset.UTC).toLocalDate().minusDays(1)
 					.atStartOfDay().toInstant(ZoneOffset.ofHours(1))
 			)
 
-		// verify system facade was called with the right time value
+		// verify system facade was called with the right time value (local 00:00:00)
 		Mockito.verify(systemAlarmFacade)
 			.scheduleAlarmOccurrenceWithSystem(eq(expected1DayAlarmTime), any(), any(), any(), any(), any())
 	}
 
 	@Test
-	fun testNotScheduleAlarmForMailAppWithReceiveCalendarNotificationsFalse() {
-		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(false)
-		val identifier = "newAlarm"
-		val startDate = Date()
-		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null, null)
-		manager.scheduleNewAlarms(listOf(alarmNotifications), null)
-		Mockito.verify(systemAlarmFacade, Mockito.never())
-			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
+	fun repeating_all_day_events_alarm_1_day_before_is_at_midnight_in_local_time_zone() {
+		// Having a separate test for alarms with repeat rules is necessary because the
+		// logic of converting all day dates to local dates is done separately
+		// in 2 different if/else branches.
+
+		val alarmIdentifier = "alarmId"
+
+		val testAllDayStartDateUtc =
+			Date.from(LocalDate.now().plusDays(3).atStartOfDay(ZoneOffset.UTC).toInstant())
+		val testAllDayEndDateUtc =
+			Date.from(LocalDate.now().plusDays(4).atStartOfDay(ZoneOffset.UTC).toInstant())
+
+		val testAllDayRepeatRule = EncryptedRepeatRule(
+			frequency = RepeatPeriod.WEEKLY.value().toString(),
+			interval = "1",
+			"Europe/Berlin",
+			"0",
+			"0",
+			emptyList(),
+			emptyList()
+		)
+
+		val encryptedAlarmNotification =
+			createEncryptedAlarmNotification(
+				userId,
+				alarmIdentifier,
+				testAllDayStartDateUtc,
+				testAllDayEndDateUtc,
+				testAllDayRepeatRule,
+				"1D"
+			)
+
+		val alarms = listOf(encryptedAlarmNotification)
+		manager.scheduleNewAlarms(alarms, null)
+
+		val expected1DayAlarmTime =
+			Date.from(
+				testAllDayStartDateUtc.toInstant().atZone(ZoneOffset.UTC).toLocalDate().minusDays(1)
+					.atStartOfDay().toInstant(ZoneOffset.ofHours(1))
+			)
+
+		// verify system facade was called with the right time value (local 00:00:00)
+		Mockito.verify(systemAlarmFacade)
+			.scheduleAlarmOccurrenceWithSystem(eq(expected1DayAlarmTime), any(), any(), any(), any(), any())
+
 	}
 
 	private fun createEncryptedAlarmNotification(
