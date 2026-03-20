@@ -4,7 +4,7 @@ import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { Thunk, noOp } from "@tutao/utils"
+import { Thunk, noOp, makeSingleUse } from "@tutao/utils"
 import { Card } from "../../gui/base/Card.js"
 import { theme } from "../../gui/theme.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
@@ -12,6 +12,11 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { locator } from "../../api/main/CommonLocator.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
+import { isSupportVisibilityEnabled, SupportVisibilityMask } from "../SupportVisibilityMask"
+import { fastTrackAction } from "../../misc/ApprovalNeededMessageDialog"
+import { ApprovalStatus } from "@tutao/app-env"
+import { getCustomerApprovalStatus, tutanotaTypeRefs } from "@tutao/typerefs"
 
 type Props = {
 	data: SupportDialogState
@@ -62,7 +67,11 @@ export class SupportTopicPage implements Component<Props> {
 		const issue = getTopicIssue(topic, languageTag)
 
 		const buttonText = getContactSupportText(topic, languageTag)
-
+		const customer = locator.logins.getUserController().getCustomer()
+		const approvalStatus =
+			customer == null // this is the case for external mailbox users, they don't load the customer
+				? ApprovalStatus.REGISTRATION_APPROVED
+				: getCustomerApprovalStatus(customer)
 		return m(
 			".flex.flex-column.pt-16.pb-16",
 			{
@@ -93,7 +102,24 @@ export class SupportTopicPage implements Component<Props> {
 				),
 			],
 			m(WasThisHelpful, { goToContactSupportPage, goToSolutionWasHelpfulPage, topicName: topic.issueEN }),
+			this.renderFastTrackButtonIfNeeded(topic, approvalStatus),
 		)
+	}
+
+	renderFastTrackButtonIfNeeded(topic: tutanotaTypeRefs.SupportTopic, approvalStatus: ApprovalStatus): Children {
+		if (approvalStatus !== ApprovalStatus.DELAYED) {
+			return null
+		} else {
+			return isSupportVisibilityEnabled(Number(topic.visibility), SupportVisibilityMask.ShowFasttrackButton)
+				? m(
+						".mt-16",
+						m(PrimaryButton, {
+							label: "fastTrackButtonApproval_action",
+							onclick: makeSingleUse(() => fastTrackAction()),
+						}),
+					)
+				: null
+		}
 	}
 }
 
