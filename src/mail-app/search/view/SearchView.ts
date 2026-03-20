@@ -261,6 +261,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					getLabelsForMail: (mail) => this.searchViewModel.getLabelsForMail(mail),
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
 					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
+					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
 				} satisfies SearchListViewAttrs),
 			),
 		])
