@@ -23,8 +23,8 @@ export const MAX_BLOB_SIZE_BYTES = 1024 * 1024 * 10
 export const REQUEST_SIZE_LIMIT_DEFAULT = 1024 * 1024
 export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/storage/blobservice", MAX_BLOB_SIZE_BYTES + 100], // overhead for encryption
-	["/rest/tutanota/filedataservice", 1024 * 1024 * 25],
-	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
+	["/rest/tutanota/filedataservice", REQUEST_SIZE_LIMIT_DEFAULT * 25],
+	["/rest/tutanota/draftservice", REQUEST_SIZE_LIMIT_DEFAULT * 5], // should be large enough
 ])
 
 export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
