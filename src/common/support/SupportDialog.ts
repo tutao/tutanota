@@ -5,7 +5,7 @@ import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "
 import { locator } from "../api/main/CommonLocator.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { client } from "../misc/ClientDetector"
-import { SupportVisibilityMask } from "./SupportVisibilityMask"
+import { isSupportVisibilityEnabled, SupportVisibilityMask } from "./SupportVisibilityMask"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { SupportLandingPage } from "./pages/SupportLandingPage.js"
@@ -304,14 +304,14 @@ function filterCategories(supportData: SupportData) {
 			const visibility = Number(topic.visibility)
 
 			const meetsPlatform =
-				(isEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
 
 			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
 			const meetsCustomerStatus =
-				(isEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
-				(isEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
 
 			if (meetsPlatform && meetsCustomerStatus) {
 				filteredTopics.push(topic)
@@ -322,8 +322,4 @@ function filterCategories(supportData: SupportData) {
 	}
 
 	return categories.filter((cat) => cat.topics.length > 0)
-}
-
-function isEnabled(visibility: number, mask: SupportVisibilityMask) {
-	return !!(visibility & mask)
 }
