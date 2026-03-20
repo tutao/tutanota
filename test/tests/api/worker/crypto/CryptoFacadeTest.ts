@@ -2055,7 +2055,6 @@ o.spec("CryptoFacadeTest", function () {
 			mailDetails: null,
 			mailDetailsDraft: null,
 			sets: [],
-			keyVerificationState: null,
 			processingState: ProcessingState.INBOX_RULE_APPLIED,
 			clientSpamClassifierResult: null,
 			processNeeded: false,
