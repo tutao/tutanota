@@ -4,7 +4,7 @@ import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { component_size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -13,12 +13,17 @@ import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../common/gui/styles.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
-import { AllIcons } from "../../../common/gui/base/Icon.js"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
+import Stream from "mithril/stream"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { Button, ButtonType } from "../../../common/gui/base/Button"
+import { mailLocator } from "../../mailLocator"
+import { CircleLoadingBar } from "../../../common/gui/ProgressSnackBar"
 
 assertMainOrNode()
 
@@ -39,10 +44,12 @@ export interface SearchListViewAttrs {
 	getLabelsForMail: (mail: Mail) => MailSet[]
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
+	indexStateStream: Stream<SearchIndexStateInfo>
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
 	private attrs: SearchListViewAttrs
+	private indexStateStream: Stream<unknown> | null = null
 
 	private get listModel(): ListElementListModel<SearchResultListEntry> {
 		return this.attrs.listModel
@@ -50,6 +57,14 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 	constructor({ attrs }: Vnode<SearchListViewAttrs>) {
 		this.attrs = attrs
+	}
+
+	oncreate({ attrs: { indexStateStream } }: Vnode<SearchListViewAttrs>) {
+		this.indexStateStream = indexStateStream.map(() => m.redraw())
+	}
+
+	onremove() {
+		this.indexStateStream?.end(true)
 	}
 
 	view({ attrs }: Vnode<SearchListViewAttrs>): Children {
@@ -91,12 +106,62 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 							this.listModel.stopLoading()
 						},
+						renderEndOfListMessage: (): Children => {
+							const failedIndexingUpTo = attrs.indexStateStream().failedIndexingUpTo
+							if (failedIndexingUpTo != null) {
+								const errorMessageKey =
+									attrs.indexStateStream().error === IndexingErrorReason.ConnectionLost ? "indexingFailedConnection_error" : "indexing_error"
+								return m(
+									".flex-center.items-center",
+									{
+										style: {
+											height: px(component_size.list_row_height),
+											width: "100%",
+											position: "absolute",
+											gap: px(size.spacing_4),
+										},
+										"data-testid": "indexing-mails-error",
+									},
+									m(".pl-12", lang.getTranslationText(errorMessageKey)),
+									m(Button, {
+										label: "retry_action",
+										click: () => mailLocator.indexerFacade.extendMailIndex(failedIndexingUpTo),
+										type: ButtonType.Secondary,
+									}),
+								)
+							} else if (attrs.indexStateStream().progress !== 0) {
+								const percentage = Math.trunc(attrs.indexStateStream().progress)
+								return m(
+									".flex-center.items-center",
+									{
+										style: {
+											height: px(component_size.list_row_height),
+											width: "100%",
+											position: "absolute",
+											gap: px(size.spacing_4),
+										},
+										"data-testid": "indexing-mails-progress",
+									},
+									m(CircleLoadingBar, { percentage }),
+									m(".pl-4.pr-32", lang.getTranslationText("indexingEmails_msg")),
+									m(Button, {
+										label: "cancel_action",
+										type: ButtonType.Primary,
+										click: () => {
+											mailLocator.indexerFacade.cancelMailIndexing()
+										},
+									}),
+								)
+							} else {
+								return null
+							}
+						},
 					} satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>),
 		)
 	}
 
 	private getRenderItems(type: TypeRef<Mail | Contact | CalendarEvent>): {
-		icon: AllIcons
+		icon: Icons
 		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
 	} {
 		if (isSameTypeRef(type, ContactTypeRef)) {
