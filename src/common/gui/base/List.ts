@@ -76,6 +76,10 @@ export interface ListAttrs<T, R extends ViewHolder<T>> {
 	/** will be compared referentially, will completely reset DOM and state on change */
 	renderConfig: RenderConfig<T, R>
 
+	/** Allows for a custom message to be displayed at the end of the list
+	 * Loading and ConnectionLost messages take priority and will be displayed instead if the List is in those states */
+	renderEndOfListMessage?(): Children
+
 	/** called when the end of the list is getting close to the viewport or when "load more" button is pressed. */
 	onLoadMore(): void
 
@@ -114,7 +118,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	private lastAttrs!: ListAttrs<T, VH>
 	private domSwipeSpacerLeft!: HTMLElement
 	private domSwipeSpacerRight!: HTMLElement
-	private loadingIndicatorChildDom!: HTMLElement
+	private endOfListMessageChildDom!: HTMLElement
 	private swipeHandler!: ListSwipeHandler<T, VH>
 	private width = 0
 	private height = 0
@@ -408,10 +412,8 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// if resize didn't kick in yet, measure it right away once
 		if (this.height === 0) this.height = this.containerDom!.clientHeight
 		const rowHeight = attrs.renderConfig.itemHeight
-		// plus loading indicator
-		// should depend on whether we are completely loaded maybe?
-		const statusHeight = attrs.state.loadingStatus === ListLoadingState.Done ? 0 : component_size.list_row_height
-		this.innerDom!.style.height = px(attrs.state.items.length * rowHeight + statusHeight)
+		// the added list row height is for the end of list message
+		this.innerDom!.style.height = px(attrs.state.items.length * rowHeight + component_size.list_row_height)
 		if (attrs.state.activeIndex != null && attrs.state.activeIndex !== this.activeIndex) {
 			const index = attrs.state.activeIndex
 			const desiredPosition = attrs.state.activeIndex * rowHeight
@@ -458,7 +460,14 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				row.domElement.focus()
 			}
 		}
-		this.updateStatus(attrs.state.loadingStatus)
+
+		if (this.lastAttrs.renderEndOfListMessage && this.lastAttrs.renderEndOfListMessage() !== null) {
+			// The custom list end message takes precedence over the generic list messages
+			m.render(this.endOfListMessageChildDom, this.lastAttrs.renderEndOfListMessage())
+			this.endOfListMessageChildDom.style.display = ""
+		} else {
+			this.updateStatus(attrs.state.loadingStatus)
+		}
 
 		this.loadMoreIfNecessary(attrs, visibleElementsHeight)
 
@@ -469,16 +478,16 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		switch (status) {
 			case ListLoadingState.Idle:
 			case ListLoadingState.Done:
-				m.render(this.loadingIndicatorChildDom, null)
-				this.loadingIndicatorChildDom.style.display = "none"
+				m.render(this.endOfListMessageChildDom, null)
+				this.endOfListMessageChildDom.style.display = "none"
 				break
 			case ListLoadingState.Loading:
-				m.render(this.loadingIndicatorChildDom, this.renderLoadingIndicator())
-				this.loadingIndicatorChildDom.style.display = ""
+				m.render(this.endOfListMessageChildDom, this.renderLoadingIndicator())
+				this.endOfListMessageChildDom.style.display = ""
 				break
 			case ListLoadingState.ConnectionLost:
-				m.render(this.loadingIndicatorChildDom, this.renderConnectionLostIndicator())
-				this.loadingIndicatorChildDom.style.display = ""
+				m.render(this.endOfListMessageChildDom, this.renderConnectionLostIndicator())
+				this.endOfListMessageChildDom.style.display = ""
 				break
 		}
 	})
@@ -540,16 +549,11 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			style: {
 				bottom: 0,
 				height: px(component_size.list_row_height),
-				display: this.shouldDisplayStatusRow() ? "none" : null,
 			},
 			oncreate: (vnode) => {
-				this.loadingIndicatorChildDom = vnode.dom as HTMLElement
+				this.endOfListMessageChildDom = vnode.dom as HTMLElement
 			},
 		})
-	}
-
-	private shouldDisplayStatusRow() {
-		return this.state?.loadingStatus === ListLoadingState.Done || this.state?.loadingStatus === ListLoadingState.Idle
 	}
 
 	private renderSwipeItems(attrs: ListAttrs<T, VH>): Children {
