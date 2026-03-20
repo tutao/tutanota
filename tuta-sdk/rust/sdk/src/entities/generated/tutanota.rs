@@ -381,8 +381,6 @@ pub struct Mail {
 	pub encryptionAuthStatus: Option<i64>,
 	#[serde(rename = "1395")]
 	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "1677")]
-	pub keyVerificationState: Option<i64>,
 	#[serde(rename = "1728")]
 	pub processingState: i64,
 	#[serde(rename = "1769")]
