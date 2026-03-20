@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/otest",
-	"version": "338.260318.0",
+	"version": "340.260320.0",
 	"license": "GPL-3.0",
 	"description": "little test runner",
 	"main": "./dist/index.js",
