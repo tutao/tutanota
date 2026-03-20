@@ -44,3 +44,25 @@ public func date(_ year: Int, _ month: Int, _ dayOfMonth: Int, _ hour: Int, _ mi
 public extension Date {
 	func advanced(by amount: Double, _ unit: UnitDuration) -> Date { self + Measurement(value: amount, unit: unit).converted(to: .seconds).value }
 }
+
+/// Takes local date and makes a UTC date with year, month, day from it.
+/// This is how we indicate days without attachment to a time zone or time.
+func allDayUTCDate(fromLocalDate localDate: Date, inTimeZone dateTimeZone: String) -> Date {
+	var calendar = Calendar.current
+	calendar.timeZone = TimeZone(identifier: dateTimeZone)!
+	var localComponents = calendar.dateComponents([.year, .month, .day], from: localDate)
+	let timeZone = TimeZone(identifier: "UTC")!
+	localComponents.timeZone = timeZone
+	return calendar.date(from: localComponents)!
+}
+
+/// Takes UTC date and makes a local date with year, month, day from it.
+/// This is how we indicate days without attachment to a time zone or time.
+func allDayLocalDate(fromUTCDate utcDate: Date, inZone localTimeZone: TimeZone) -> Date {
+	var calendar = Calendar.current
+	let timeZone = TimeZone(identifier: "UTC")!
+	calendar.timeZone = timeZone
+	let components = calendar.dateComponents([.year, .month, .day], from: utcDate)
+	calendar.timeZone = localTimeZone
+	return calendar.date(from: components)!
+}
