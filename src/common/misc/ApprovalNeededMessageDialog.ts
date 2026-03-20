@@ -23,6 +23,24 @@ function renderMoreInfoLink(link: InfoLink) {
 	]
 }
 
+// Function that will be called if user presses fast-track buttons
+// Opens a new MailEditor Window with prefilled mailto and subject
+// mailto=approval@tutao.de, subject=Approval Mail for example@tutanota.de
+export const fastTrackAction = async (dialog?: Dialog) => {
+	const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
+	const { newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor")
+	try {
+		const editor = await newMailtoUrlMailEditor("mailto:approval@tutao.de?&body=" + lang.getTranslation("approvalMailBody_msg").text, false)
+		editor?.show()
+		dialog?.close()
+	} catch (e) {
+		if (e instanceof CancelledError) {
+			// ignore
+		}
+		throw e
+	}
+}
+
 export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalStatus): Promise<void> {
 	if (![ApprovalStatus.DELAYED, ApprovalStatus.REGISTRATION_APPROVAL_NEEDED].includes(approvalStatus)) {
 		return
@@ -30,23 +48,6 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 	const closeAction = () => {
 		dialog.close()
 		resolve()
-	}
-	// Function that will be called if user presses fast-track buttons
-	// Opens a new MailEditor Window with prefilled mailto and subject
-	// mailto=approval@tutao.de, subject=Approval Mail for example@tutanota.de
-	const fastTrackAction = async () => {
-		const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
-		const { newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor")
-		try {
-			const editor = await newMailtoUrlMailEditor("mailto:approval@tutao.de?&body=" + lang.getTranslation("approvalMailBody_msg").text, false)
-			editor?.show()
-			dialog.close()
-		} catch (e) {
-			if (e instanceof CancelledError) {
-				// ignore
-			}
-			throw e
-		}
 	}
 	//Button Attributes for automatic approval button
 	const buttonAutomaticApproval: BannerButtonAttrs = {
@@ -58,7 +59,7 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 	//Button Attributes for fast-track button
 	const buttonFastTrack: PrimaryButtonAttrs = {
 		label: "fastTrackButtonApproval_action",
-		onclick: fastTrackAction,
+		onclick: () => fastTrackAction(dialog),
 	}
 
 	const { promise, resolve } = defer<void>()
