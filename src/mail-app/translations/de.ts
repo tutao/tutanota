@@ -2252,12 +2252,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"cannotMoveToTrash_msg" : "Objekte können nicht in den Papierkorb verschoben werden",
-		"cannotCopyToTrash_msg": "Objekte können nicht in den Papierkorb kopiert werden",
-		"folderContent_label": "Inhalt",
-		"createNewFolderIn_label": "Neuen Ordner erstellen in {folderName}",
-		"driveNotEmpty_msg": "Dein Drive enthält noch Dateien oder Ordner. Bitte entferne diese zuerst.",
-		"movingItemCount_label":"Moving {count} items"
+		"zoomOut_action": "Herauszoomen"
 	}
 }
