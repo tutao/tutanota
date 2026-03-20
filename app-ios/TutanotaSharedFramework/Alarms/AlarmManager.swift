@@ -17,13 +17,13 @@ public class AlarmManager {
 	private let alarmPersistor: any AlarmPersistor
 	private let alarmCryptor: any AlarmCryptor
 	private let alarmScheduler: any AlarmScheduler
-	private let alarmCalculator: any AlarmCalculator
+	private let alarmModel: any AlarmCalculator
 
 	public init(alarmPersistor: any AlarmPersistor, alarmCryptor: any AlarmCryptor, alarmScheduler: any AlarmScheduler, alarmCalculator: any AlarmCalculator) {
 		self.alarmPersistor = alarmPersistor
 		self.alarmCryptor = alarmCryptor
 		self.alarmScheduler = alarmScheduler
-		self.alarmCalculator = alarmCalculator
+		self.alarmModel = alarmCalculator
 	}
 
 	/// Process new alarms into the app. Will persist the changes and reschedule as appropriate
@@ -52,6 +52,7 @@ public class AlarmManager {
 		log("Finished processNewAlarms")
 		if let error = resultError { throw error }
 	}
+
 	private func storeNewKeyIfNeeded(_ alarmNotification: EncryptedAlarmNotification, _ newDeviceSessionKey: String?) throws {
 		guard let newDeviceSessionKey else {
 			// nothing to do, the caller did not provide it because we're expected to already have it stored.
@@ -81,16 +82,16 @@ public class AlarmManager {
 					return nil
 				}
 			}
-		let occurences = alarmCalculator.futureOccurrences(acrossAlarms: decryptedAlarms, upToForEach: EVENTS_SCHEDULED_AHEAD, upToOverall: SYSTEM_ALARM_LIMIT)
+		let occurences = alarmModel.futureAlarmOccurrences(acrossAlarms: decryptedAlarms, upToForEach: EVENTS_SCHEDULED_AHEAD, upToOverall: SYSTEM_ALARM_LIMIT)
 
 		// Reverse in order to schedule the soonest one the last. This add reliability if we still schedule more alarms than iOS can handle because it seeems
 		// like it evicts the oldest ones from storage.
 		for occurrence in occurences.reversed() {
 			self.schedule(
 				alarmOccurrence: occurrence,
-				trigger: occurrence.alarm.alarmInfo.trigger,
-				summary: occurrence.alarm.summary,
-				alarmIdentifier: occurrence.alarm.alarmInfo.alarmIdentifer
+				trigger: occurrence.alarmNotification.alarmInfo.trigger,
+				summary: occurrence.alarmNotification.summary,
+				alarmIdentifier: occurrence.alarmNotification.alarmInfo.alarmIdentifer
 			)
 		}
 		log("finished rescheduleAlarms")
@@ -147,22 +148,21 @@ public class AlarmManager {
 
 	private func unschedule(alarm encAlarmNotification: EncryptedAlarmNotification) throws {
 		let alarmNotification = try alarmCryptor.decrypt(alarm: encAlarmNotification)
-		let occurrenceIds = alarmCalculator.futureAlarmOccurrencesSequence(ofAlarm: alarmNotification, maxFutureOccurrences: EVENTS_SCHEDULED_AHEAD)
-			.map { ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber) }
+		let occurrenceIds = alarmModel.alarmOccurrencesSequence(ofAlarm: alarmNotification, maxFutureOccurrences: EVENTS_SCHEDULED_AHEAD)
+			.map { ocurrenceIdentifier(alarmIdentifier: $0.alarmNotification.identifier, occurrence: $0.occurrenceNumber) }
 		log("Cancelling all future alarm occurences of \(alarmNotification.identifier)")
 		self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)
 	}
-	private func schedule(alarmOccurrence: AlarmOccurence, trigger: AlarmInterval, summary: String, alarmIdentifier: String) {
-		let alarmTime = AlarmModel.alarmTime(trigger: trigger, eventTime: alarmOccurrence.eventOccurrenceTime)
 
+	private func schedule(alarmOccurrence: AlarmOccurrence, trigger: AlarmInterval, summary: String, alarmIdentifier: String) {
 		let identifier = ocurrenceIdentifier(alarmIdentifier: alarmIdentifier, occurrence: alarmOccurrence.occurrenceNumber)
 
 		let info = ScheduledAlarmInfo(
-			alarmTime: alarmTime,
+			alarmTime: alarmOccurrence.triggerDate,
 			occurrence: alarmOccurrence.occurrenceNumber,
 			identifier: identifier,
 			summary: summary,
-			eventDate: alarmOccurrence.eventOccurrenceTime
+			eventDate: alarmOccurrence.eventStartDate
 		)
 
 		self.alarmScheduler.schedule(info: info)
