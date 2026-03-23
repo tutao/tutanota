@@ -132,7 +132,7 @@ export function getContextActions(
 			},
 			{
 				label: "move_action",
-				icon: Icons.FolderFilled,
+				icon: Icons.Move,
 				click: () => {
 					onStartMove(item)
 				},
