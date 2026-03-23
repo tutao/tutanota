@@ -56,6 +56,7 @@ import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
+import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
@@ -84,6 +85,7 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
+import java.util.TimeZone
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
@@ -156,7 +158,9 @@ class MainActivity : FragmentActivity() {
 			sseStorage,
 			cryptoFacade,
 			SystemAlarmFacade(this),
-			localNotificationsFacade
+			localNotificationsFacade,
+			DateProviderImpl(),
+			TimeZone.getDefault()
 		)
 		val nativePushFacade = AndroidNativePushFacade(
 			this,
