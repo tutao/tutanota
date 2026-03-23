@@ -130,7 +130,6 @@ class AlarmNotificationsManager(
 			if (alarmNotification.repeatRule == null) {
 
 				val isAllDayEvent = isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
-				Log.d(TAG, "isAllDayEvent?: $isAllDayEvent")
 
 				val localizedEventStartTime = if (isAllDayEvent) {
 					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, timeZone)
@@ -157,7 +156,8 @@ class AlarmNotificationsManager(
 							identifier,
 							alarmNotification.summary,
 							alarmNotification.eventStart,
-							alarmNotification.user
+							alarmNotification.user,
+							isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
 						)
 					}
 
@@ -175,7 +175,8 @@ class AlarmNotificationsManager(
 					} else {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime, occurrence, identifier, alarmNotification.summary, eventStartTime,
-							alarmNotification.user
+							alarmNotification.user,
+							isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
 						)
 					}
 				}
