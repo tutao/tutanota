@@ -116,12 +116,12 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 		}
 
 		return m(
-			"div.flex.flex-column",
+			"div.flex.flex-column.rel",
 			{
-				class: `plan-box${isSelected ? " plan-box-selected" : ""}${isDisabled ? " plan-box-disabled" : ""}`,
 				style: {
 					transform: isSelected && !isMobileLayout ? `translateY(${px(-size.core_16)})` : "initial",
 					transition: `transform ${DefaultAnimationTime}ms, box-shadow ${DefaultAnimationTime}ms, background-color ${DefaultAnimationTime}ms`,
+					"margin-top": hasCampaign ? px(size.spacing_24) : "initial",
 				},
 				onmouseenter: () => {
 					if (!canHover) return
@@ -148,7 +148,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 					campaignName,
 				}),
 			m(
-				"div.plan-box-surface",
+				"",
 				{
 					oncreate: () => {
 						this.measureCollapsed()
