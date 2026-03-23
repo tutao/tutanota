@@ -151,7 +151,7 @@ export class SpamClassifierDataDealer {
 			modifiedClientSpamTrainingDataIndicesSinceStart.map((index) => index.clientSpamTrainingDatumElementId),
 		)
 
-		const { subsampledTrainingData, hamCount, spamCount } = this.subsampleHamAndSpamMails(clientSpamTrainingData)
+		const { subsampledTrainingData, hamCount, spamCount } = this.subsampleHamAndSpamMails(clientSpamTrainingData, this.getMaxMailsCapForDevice(), true)
 
 		return {
 			trainingData: subsampledTrainingData,
@@ -165,11 +165,8 @@ export class SpamClassifierDataDealer {
 	subsampleHamAndSpamMails(
 		clientSpamTrainingData: ClientSpamTrainingDatum[],
 		maxMailsCap: number = this.getMaxMailsCapForDevice(),
-	): {
-		subsampledTrainingData: ClientSpamTrainingDatum[]
-		hamCount: number
-		spamCount: number
-	} {
+		isSubSampleForRetraining: boolean = false,
+	): { subsampledTrainingData: ClientSpamTrainingDatum[]; hamCount: number; spamCount: number } {
 		// we always want to include clientSpamTrainingData with high confidence (usually 4), because these mails have been moved explicitly by the user
 		// we always want to include more recently received mails before including older mails
 		const HIGH_CONFIDENCE_THRESHOLD = 4
@@ -184,12 +181,15 @@ export class SpamClassifierDataDealer {
 			(d) => Number(d.confidence) >= HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.BLACKLIST,
 		)
 
+		const lowConfidenceThreshold = isSubSampleForRetraining ? 1 : 0
 		const hamDataLowConfidence = dateSortedClientSpamTrainingData.filter(
-			(d) => Number(d.confidence) > 0 && Number(d.confidence) < HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.WHITELIST,
+			(d) =>
+				Number(d.confidence) > lowConfidenceThreshold && Number(d.confidence) < HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.WHITELIST,
 		)
 
 		const spamDataLowConfidence = dateSortedClientSpamTrainingData.filter(
-			(d) => Number(d.confidence) > 0 && Number(d.confidence) < HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.BLACKLIST,
+			(d) =>
+				Number(d.confidence) > lowConfidenceThreshold && Number(d.confidence) < HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.BLACKLIST,
 		)
 
 		const hamCount = hamDataHighConfidence.length + hamDataLowConfidence.length
