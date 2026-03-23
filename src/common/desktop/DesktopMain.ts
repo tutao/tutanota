@@ -104,9 +104,16 @@ type Components = {
 	readonly desktopThemeFacade: DesktopThemeFacade
 	readonly credentialsEncryption: NativeCredentialsFacade
 }
+
+const windowsRegistryFacade = new LazyLoaded(async () => {
+	const { WindowsRegistryFacade } = await import("./integration/WindowsRegistryFacade.js")
+	return new WindowsRegistryFacade(commandExecutor)
+})
+
 const tfs = new TempFs(fs, electron, cryptoFns)
 const commandExecutor = new CommandExecutor(child_process)
-const desktopUtils = new DesktopUtils(process, tfs, electron, commandExecutor)
+const desktopUtils = new DesktopUtils(process, tfs, electron, commandExecutor, windowsRegistryFacade)
+
 // Argon2 is already built for the web part, we don't need to have another copy.
 const loadArgon2 = async () => {
 	const wasmSourcePath = path.join(electron.app.getAppPath(), "argon2.wasm")

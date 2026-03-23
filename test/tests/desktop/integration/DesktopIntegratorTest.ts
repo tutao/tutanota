@@ -573,7 +573,7 @@ o.spec("DesktopIntegrator", () => {
 			const integrator = new DesktopIntegratorWin32(electronMock, windowsRegistryFacade)
 
 			await integrator.disableAutoLaunch()
-			verify(autorunMock.remove(electronMock.app.name))
+			verify(autorunMock.unset(electronMock.app.name))
 		})
 	})
 
