@@ -38,6 +38,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError"
 import { NotFoundError } from "../../../common/error/RestError"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
+import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -299,8 +300,13 @@ export class DriveFacade {
 	/**
 	 * @throws MoveCycleError
 	 * @throws MoveToTrashError
+	 * @throws MoveDestinationIsSourceError
 	 */
 	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destinationId: IdTuple, renamedFiles: Map<Id, string>) {
+		if (files.some((file) => isSameId(file.folder, destinationId)) || folders.some((folder) => isSameId(folder.parent, destinationId))) {
+			throw new MoveDestinationIsSourceError("Cannot move items to the location they are already in")
+		}
+
 		const destination = await this.entityClient.load(DriveFolderTypeRef, destinationId)
 		if (destination.type === DriveFolderType.Trash) {
 			throw new MoveToTrashError("Cannot move to the trash")

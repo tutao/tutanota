@@ -4,7 +4,7 @@ import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { handleRestError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
@@ -21,11 +21,12 @@ import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/Us
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
-import { DownloadProgressInfo, UploadProgressInfo, TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../common/api/common/drive/DriveTypes"
 import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
+import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -405,6 +406,8 @@ export class DriveViewModel {
 				throw new UserError("cannotMoveFolderIntoItself_msg")
 			} else if (e instanceof MoveToTrashError) {
 				throw new UserError("cannotMoveToTrash_msg")
+			} else if (e instanceof MoveDestinationIsSourceError) {
+				noOp()
 			} else {
 				this.operationUpdates({
 					type: DriveOperationType.Move,
