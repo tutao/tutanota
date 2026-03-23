@@ -134,7 +134,7 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 				if (SignupFlowUsageTestController.getUsageTestVariantName() === "show_only_active_inline_plans" && isDisabled) return
 
 				return m(
-					`${hasCampaign ? ".mt-24" : ""}`,
+					"",
 					m(BusinessPlanBox, {
 						planConfig,
 						price: prices.priceStr,
