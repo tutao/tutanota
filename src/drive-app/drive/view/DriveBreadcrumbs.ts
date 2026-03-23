@@ -4,13 +4,14 @@ import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { Keys } from "../../../common/api/common/TutanotaConstants"
-import { createAsyncDropdown } from "../../../common/gui/base/Dropdown"
+import { Dropdown } from "../../../common/gui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton"
 import { theme } from "../../../common/gui/theme"
 import { driveFolderName, isDraggingDriveItems } from "./DriveGuiUtils"
 import { FolderItem } from "./DriveUtils"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { modal } from "../../../common/gui/base/Modal"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null
@@ -134,40 +135,49 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 				: null,
 		])
 	}
-	private onLoadParents(
+	private async onLoadParents(
 		dom: HTMLElement,
 		loadParents: () => Promise<DriveFolder[]>,
 		onClick: DriveBreadcrumbsAttrs["onClick"],
 		onDropInto: DriveBreadcrumbsAttrs["onDropInto"],
 	) {
-		const newClickEvent = new MouseEvent("click")
-		createAsyncDropdown({
-			lazyButtons: async () => {
-				const loadedParents = await loadParents()
-				return loadedParents.map((parent) => {
-					return {
-						label: driveFolderName(parent),
-						click: (event) => {
-							if (onClick) {
-								onClick(parent, event)
-							} else {
-								m.route.set(folderRoute(parent))
-							}
-						},
-						drop: (event) => {
-							onDropInto?.({ type: "folder", folder: parent }, event)
-						},
-						dragover: (event) => {
-							const target = event.target as HTMLElement
-							target.classList.add("state-bg", "selected")
-						},
-						dragleave: (event) => {
-							const target = event.target as HTMLElement
-							target.classList.remove("state-bg", "selected")
-						},
-					}
-				})
-			},
-		})(newClickEvent, dom)
+		const loadedParents = await loadParents()
+
+		const dropdown = new Dropdown(() => {
+			let timeoutId: number | null = null
+
+			return loadedParents.map((parent) => {
+				return {
+					label: driveFolderName(parent),
+					click: (event) => {
+						if (onClick) {
+							onClick(parent, event)
+						} else {
+							m.route.set(folderRoute(parent))
+						}
+					},
+					drop: (event) => {
+						dropdown.close()
+						onDropInto?.({ type: "folder", folder: parent }, event)
+					},
+					dragover: (event) => {
+						if (timeoutId != null) {
+							clearTimeout(timeoutId)
+						}
+
+						const target = event.target as HTMLElement
+						target.classList.add("state-bg", "selected")
+					},
+					dragleave: (event) => {
+						const target = event.target as HTMLElement
+						target.classList.remove("state-bg", "selected")
+
+						timeoutId = setTimeout(() => dropdown.close(), 500) as unknown as number
+					},
+				}
+			})
+		}, 200)
+		dropdown.setOrigin(dom.getBoundingClientRect())
+		modal.displayUnique(dropdown, false)
 	}
 }
