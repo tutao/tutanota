@@ -1,6 +1,6 @@
 import type { Thunk } from "@tutao/utils"
 import type { ScheduledTimeoutId, Scheduler } from "../../../common/api/common/utils/Scheduler.js"
-import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
+import { calculateAlarmTime, findNextAlarmOccurrence, getEventEnd, getEventStart, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
 import { DateProvider } from "../../../common/api/common/DateProvider.js"
 import { sysTypeRefs } from "@tutao/typerefs"
 
@@ -53,7 +53,7 @@ export class AlarmScheduler {
 				})
 			}
 		} else {
-			const eventStart = getEventStartByTimes(event.startTime, event.endTime, localZone)
+			const eventStart = getEventStart(event, localZone)
 
 			if (eventStart.getTime() > this._dateProvider.now()) {
 				this._scheduleAction(alarmInfo.alarmIdentifier, calculateAlarmTime(eventStart, parseAlarmInterval(alarmInfo.trigger)), () =>

@@ -849,10 +849,6 @@ export function getEventEnd(event: CalendarEventTimes, timeZone: string): Date {
 }
 
 export function getEventStart({ startTime, endTime }: CalendarEventTimes, timeZone: string): Date {
-	return getEventStartByTimes(startTime, endTime, timeZone)
-}
-
-export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: string): Date {
 	if (isAllDayEventByTimes(startTime, endTime)) {
 		return getAllDayDateForTimezone(startTime, timeZone)
 	} else {
