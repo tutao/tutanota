@@ -3,7 +3,7 @@ import { Icons, TutaFavicon } from "../../gui/base/icons/Icons.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { Card } from "../../gui/base/Card.js"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
+import { SectionButton, SectionButtonAttrs } from "../../gui/base/buttons/SectionButton.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
@@ -40,17 +40,8 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 				]),
 				m(SectionButton, {
 					text: { text: "Tuta FAQ", testId: "" },
-					injectionLeft: m(
-						".",
-						{
-							style: {
-								width: "24px",
-								height: "24px",
-							},
-						},
-						m.trust(TutaFavicon),
-					),
-					rightIcon: { icon: Icons.OpenFilled, title: "open_action" },
+					leftIcon: { icon: Icons.TutaFavicon, title: "supportMenu_label" },
+					rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
 					onclick: () => {
 						windowFacade.openLink("https://tuta.com/support")
 					},
