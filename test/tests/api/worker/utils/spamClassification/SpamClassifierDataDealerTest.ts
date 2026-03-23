@@ -597,9 +597,14 @@ o.spec("SpamClassifierDataDealer", () => {
 
 			oldSpamTrainingData.map((data) => (data._id = [mailBox.clientSpamTrainingData, GENERATED_MIN_ID]))
 
+			const HIGH_IS_SPAM_CONFIDENCE = "4"
+			// retraining only uses data with confidence > 1
 			const newSpamTrainingData = Array.from({ length: 10 }, () =>
 				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST),
-			).concat(Array.from({ length: 10 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST)))
+			)
+				.concat(Array.from({ length: 10 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST)))
+				.concat(Array.from({ length: 10 }, () => createSpamTrainingDatumByConfidenceAndDecision(HIGH_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST)))
+				.concat(Array.from({ length: 10 }, () => createSpamTrainingDatumByConfidenceAndDecision(HIGH_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST)))
 
 			newSpamTrainingData.map((data) => (data._id = [mailBox.clientSpamTrainingData, GENERATED_MIN_ID]))
 
