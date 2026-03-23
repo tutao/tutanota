@@ -1,0 +1,16 @@
+{
+	"extends": "./../tsconfig_common.json",
+	"include": ["./../types/", "common", "mail-app", "calendar-app", "drive-app"],
+	"exclude": ["common/dist"],
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "common/dist",
+		"tsBuildInfoFile": "common/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.mimimi.json"
+		}
+	]
+}

@@ -288,7 +288,7 @@ function wrapError(e: unknown) {
 }
 
 async function promiseMap<T, R>(array: ReadonlyArray<T>, mapper: (value: T) => Promise<R>): Promise<Array<R>> {
-	const result = []
+	const result = Array.of<R>()
 	for (const el of array) {
 		result.push(await mapper(el))
 	}

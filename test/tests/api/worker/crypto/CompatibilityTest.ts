@@ -419,19 +419,19 @@ o.spec("CompatibilityTest", function () {
 				object: bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex)),
 				version: 0,
 			}
-			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
+			const originalSignature = bytesToEd25519Signature(hexToUint8Array(td.signature))
 			const message = hexToUint8Array(td.message)
 
 			// make sure encoding and decoding round trips yield the same results again
 			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(alicePrivateKey.object))).deepEquals(td.alicePrivateKeyHex)
 			o(uint8ArrayToHex(ed25519PublicKeyToBytes(alicePublicKey))).deepEquals(td.alicePublicKeyHex)
-			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
+			o(uint8ArrayToHex(ed25519SignatureToBytes(originalSignature))).deepEquals(td.signature)
 
 			const { encodedKeyPairForSigning } = publicKeySignatureFacade.serializePublicKeyForSigning(versionedPublicEncryptionKey)
 			o(encodedKeyPairForSigning).deepEquals(message)
 
 			const { signature: reproducedSignature } = await publicKeySignatureFacade.signPublicKey(versionedEncryptionKeyPair, alicePrivateKey)
-			o(reproducedSignature).deepEquals(signature)
+			o(reproducedSignature).deepEquals(ed25519SignatureToBytes(originalSignature))
 
 			o(await publicKeySignatureFacade.verifyPublicKeySignature(versionedPublicEncryptionKey, alicePublicKey, reproducedSignature)).equals(true)
 		}

@@ -4,7 +4,6 @@ import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
-import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 import { sh } from "../buildSrc/sh.js"
 import { rolldown } from "rolldown"
@@ -26,7 +25,6 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 
 	if (!fast) {
 		await runStep("Packages", async () => {
-			await buildPackages("..")
 			// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
 			// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
 			await copyCryptoPrimitiveCrateIntoWasmDir({
@@ -36,7 +34,7 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 		})
 
 		await runStep("Types", async () => {
-			await sh`npx tsc --incremental true`
+			await sh`npx tsc --build --incremental ${true}`
 		})
 	}
 
@@ -57,7 +55,7 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 		await createUnitTestHtml(localEnv)
 	})
 	await runStep("Rolldown", async () => {
-		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js") // FIXME: this have to already exists? and is there bettr way to import
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
 			platform: "neutral",

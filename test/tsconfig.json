@@ -10,14 +10,20 @@
 		"outDir": "build",
 		"resolveJsonModule": true,
 		"paths": {
+			/**
+			 * Have to redefine all paths again defined in: `../tsconfig_common.json`
+			 * See: https://github.com/microsoft/TypeScript/issues/57486
+			 */
 			"@tutao/utils": ["../src/utils"],
 			"@tutao/crypto": ["../src/crypto"],
 			"@tutao/crypto/error": ["../src/crypto/error"],
 			"@tutao/error": ["../src/error"],
 			"@tutao/wasm-loader": ["../src/wasm-loader"],
-			"@tutao/locc": ["../src/licc"],
-			"@tutao/otest": ["./otest"],
+			"@tutao/licc": ["../src/licc"],
 			"@tutao/usagetests": ["../src/usagetests"],
+			"@tutao/mimimi": ["../src/mimimi"],
+			"@tutao/otest": ["../test/otest"],
+
 			"@tutao/crypto/rsa": ["../src/crypto/encryption/Rsa"],
 			"@tutao/crypto/random": ["../src/crypto/random/SecureRandom"],
 			"@tutao/crypto/symmetric-cipher-utils": ["../src/crypto/encryption/symmetric/SymmetricCipherUtils"],
@@ -32,5 +38,6 @@
 		}
 	},
 	"include": ["../src/*d.ts", "../libs/*d.ts", "../types/*d.ts", "tests/**/*.ts", "types/*.d.ts", "otest"],
+	"exclude": ["test.js", "TestBuilder.js"],
 	"types": ["node_modules/@types/node"]
 }

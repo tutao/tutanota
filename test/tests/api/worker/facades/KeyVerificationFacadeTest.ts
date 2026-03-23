@@ -18,7 +18,7 @@ import { PublicKeySignatureTypeRef } from "../../../../../src/common/api/entitie
 const { anything } = matchers
 
 const PUBLIC_KEY_BYTES = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
-const PUBLIC_KEY = bytesToEd25519PublicKey(PUBLIC_KEY_BYTES)
+const PUBLIC_KEY: SigningPublicKey = { key: bytesToEd25519PublicKey(PUBLIC_KEY_BYTES), type: SigningKeyPairType.Ed25519 }
 const PUBLIC_KEY_FINGERPRINT = uint8ArrayToHex(sha256Hash(concat(new Uint8Array([0]), new Uint8Array([SigningKeyPairType.Ed25519]), PUBLIC_KEY_BYTES)))
 
 let trustDBEntry: TrustDBEntry
@@ -46,7 +46,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 		}
 		trustDBEntry = {
 			publicIdentityKey: {
-				object: { key: PUBLIC_KEY, type: SigningKeyPairType.Ed25519 },
+				object: PUBLIC_KEY,
 				version: 0,
 			},
 			sourceOfTrust: IdentityKeySourceOfTrust.Manual,
@@ -85,7 +85,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(
 					maybeSignedPublicKey.publicKey,
-					trustDBEntry.publicIdentityKey.object,
+					trustDBEntry.publicIdentityKey.object.key,
 					maybeSignedPublicKey.signature!.signature,
 				),
 			).thenResolve(false)
@@ -139,7 +139,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(
 					maybeSignedPublicKey.publicKey,
-					trustDBEntry.publicIdentityKey.object,
+					trustDBEntry.publicIdentityKey.object.key,
 					maybeSignedPublicKey.signature!.signature,
 				),
 			).thenResolve(true)
