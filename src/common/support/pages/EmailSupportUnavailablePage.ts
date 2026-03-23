@@ -8,6 +8,7 @@ import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { Thunk } from "@tutao/tutanota-utils"
 
 type EmailSupportUnavailableAttrs = {
 	data: SupportDialogState
@@ -54,7 +55,15 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 					},
 				}),
 			),
-			m(
+			this.renderUpgradeButton(data, goToContactSupportPage),
+		)
+	}
+
+	renderUpgradeButton(data: SupportDialogState, goToContactSupportPage: Thunk) {
+		if (data.isExternalUser) {
+			return null
+		} else {
+			return m(
 				".mt-32.center",
 				m(BaseButton, {
 					label: "upgrade_action",
@@ -74,7 +83,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 					},
 					disabled: false,
 				}),
-			),
-		)
+			)
+		}
 	}
 }
