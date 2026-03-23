@@ -5,6 +5,7 @@ import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat } from "@tutao/tutanota-utils"
+import { CryptoError } from "../../misc/CryptoError.js"
 
 export type SymmetricSubKeys = {
 	encryptionKey: AesKey
@@ -54,7 +55,7 @@ export class SymmetricKeyDeriver {
 				}
 			}
 			default:
-				throw new Error(`unexpected cipher version ${symmetricCipherVersion}`)
+				throw new CryptoError(`unexpected cipher version ${symmetricCipherVersion}`)
 		}
 	}
 
