@@ -9,21 +9,19 @@ import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
 import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.DateProvider
+import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.createAndroidKeyStoreFacade
-import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
-import de.tutao.tutashared.ipc.NativeCredentialsFacade
-import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 private enum class State {
@@ -79,14 +77,17 @@ class PushNotificationService : LifecycleJobService() {
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
 		val crypto = AndroidNativeCryptoFacade(this)
 		val keyStoreFacade = createAndroidKeyStoreFacade()
-		val suspensionHandler = SuspensionHandler(DateProvider())
+		val dateProvider = DateProviderImpl()
+		val suspensionHandler = SuspensionHandler(dateProvider)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
 			SystemAlarmFacade(this),
-			localNotificationsFacade
+			localNotificationsFacade,
+			dateProvider,
+			TimeZone.getDefault()
 		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(
