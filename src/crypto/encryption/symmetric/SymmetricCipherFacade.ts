@@ -88,7 +88,8 @@ export class SymmetricCipherFacade {
 	 * @deprecated
 	 */
 	public decryptKeyDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array): AesKey {
-		return uint8ArrayToKey(this.decrypt(key, bytes, false, true, true))
+		const a = this.decrypt(key, bytes, false, true, true)
+		return uint8ArrayToKey(a)
 	}
 
 	/**

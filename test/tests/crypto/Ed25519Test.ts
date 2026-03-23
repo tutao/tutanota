@@ -6,7 +6,7 @@ import { matchers, object, verify } from "testdouble"
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
 		// Use the readFileSync function to read the contents of the "add.wasm" file
-		const wasmBuffer = fs.readFileSync("../lib/encryption/ed25519wasm/crypto_primitives_bg.wasm")
+		const wasmBuffer = fs.readFileSync("../src/crypto-primitives/crypto_primitives_bg.wasm")
 		await initEd25519(wasmBuffer)
 	})
 

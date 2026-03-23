@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, FIXED_IV, keyToUint8Array } from "@tutao/crypto"
+import { Aes128Key, Aes256Key, aes256RandomKey, AesKey, FIXED_IV, keyToUint8Array } from "@tutao/crypto"
 import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
 import { SymmetricCipherFacade } from "@tutao/crypto/symmetric-cipher-facade"
@@ -12,11 +12,11 @@ o.spec("SymmetricCipherFacade", function () {
 
 	let symmetricCipherFacade: SymmetricCipherFacade
 	let aesCbcFacade: AesCbcFacade
-	let aes256Key
-	let plainText
-	let aes128Key
-	let keyToEncrypt_128
-	let keyToEncrypt_256
+	let aes256Key: Aes256Key
+	let plainText: Uint8Array
+	let aes128Key: Aes128Key
+	let keyToEncrypt_128: Aes128Key
+	let keyToEncrypt_256: Aes256Key
 	o.before(function () {
 		aesCbcFacade = object()
 		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade)

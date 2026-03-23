@@ -8,7 +8,6 @@ libs/
 app-android/
 app-ios/
 fdroid-metadata-workaround/
-packages/tutanota-crypto/lib/internal/
-packages/tutanota-crypto/lib/encryption/ed25519wasm/
+src/crypto-primitives
 target/
 packages/node-mimimi/tests

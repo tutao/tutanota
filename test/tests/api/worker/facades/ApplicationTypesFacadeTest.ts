@@ -154,7 +154,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
-		when(fileFacade.readDataFile(anything())).thenReject(Error("reading failed simulation failed"))
+		when(fileFacade.readDataFile(anything())).thenReject(Error("reading simulation failed"))
 		await withOverriddenEnv({ mode: Mode.Desktop }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
 		// did not throw
 	})

@@ -485,7 +485,7 @@ o.spec("CompatibilityTest", function () {
 async function createEd25519Facade(): Promise<Ed25519Facade> {
 	if (typeof process !== "undefined") {
 		const { readFile } = await import("node:fs/promises")
-		const wasmBuffer = await readFile("build/crypto_primitives_bg.wasm")
+		const wasmBuffer = await readFile("../src/crypto-primitives/crypto_primitives_bg.wasm")
 		return new WASMEd25519Facade(wasmBuffer)
 	} else {
 		return new WASMEd25519Facade()
