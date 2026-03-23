@@ -15,7 +15,8 @@ class SystemAlarmFacade(private val context: Context) {
 		identifier: String,
 		summary: String,
 		eventDate: Date,
-		user: String
+		user: String,
+		isAllDayEvent: Boolean
 	) {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "Scheduled notification $identifier at $alarmTime")
@@ -24,7 +25,7 @@ class SystemAlarmFacade(private val context: Context) {
 		}
 
 		val alarmManager = alarmManager
-		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user)
+		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user, isAllDayEvent)
 		alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)
 	}
 
@@ -43,10 +44,19 @@ class SystemAlarmFacade(private val context: Context) {
 		identifier: String,
 		summary: String,
 		eventDate: Date,
-		user: String?
+		user: String?,
+		isAllDayEvent: Boolean = false
 	): PendingIntent {
 		val intent: Intent =
-			AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
+			AlarmBroadcastReceiver.makeAlarmIntent(
+				context,
+				occurrence,
+				identifier,
+				summary,
+				eventDate,
+				isAllDayEvent,
+				user
+			)
 		return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_IMMUTABLE)
 	}
 
