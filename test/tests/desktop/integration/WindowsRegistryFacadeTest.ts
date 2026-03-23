@@ -146,12 +146,17 @@ o.spec("WindowsRegistryFacade", () => {
 		})
 	})
 
-	o.test("remove", async () => {
+	o.spec("unset", () => {
 		const hive = RegistryHive.HKEY_CURRENT_USER
 		const path = "\\Some\\Path\\Here"
 		const valueName = "something"
 		const combined = `${hive}${path}`
-		const entry = facade.entry(hive, path)
+
+		let entry: WindowsRegistryKey
+
+		o.beforeEach(() => {
+			entry = facade.entry(hive, path)
+		})
 
 		o.test("when present", async () => {
 			when(
@@ -165,7 +170,7 @@ o.spec("WindowsRegistryFacade", () => {
 				stdout: "Yay!",
 			})
 
-			o.check(await entry.remove(valueName)).equals(true)
+			o.check(await entry.unset(valueName)).equals(true)
 		})
 
 		o.test("when failed", async () => {
@@ -180,7 +185,49 @@ o.spec("WindowsRegistryFacade", () => {
 				stdout: "",
 			})
 
-			o.check(await entry.remove(valueName)).equals(false)
+			o.check(await entry.unset(valueName)).equals(false)
+		})
+	})
+
+	o.spec("delete", () => {
+		const hive = RegistryHive.HKEY_CURRENT_USER
+		const path = "\\Some\\Path\\Here"
+		const combined = `${hive}${path}`
+
+		let entry: WindowsRegistryKey
+
+		o.beforeEach(() => {
+			entry = facade.entry(hive, path)
+		})
+
+		o.test("when present", async () => {
+			when(
+				executor.run({
+					executable: "reg",
+					args: ["DELETE", combined, "/f"],
+				}),
+			).thenResolve({
+				exitCode: 0,
+				stderr: "",
+				stdout: "Yay!",
+			})
+
+			o.check(await entry.delete()).equals(true)
+		})
+
+		o.test("when failed", async () => {
+			when(
+				executor.run({
+					executable: "reg",
+					args: ["DELETE", combined, "/f"],
+				}),
+			).thenResolve({
+				exitCode: 1,
+				stderr: "Boo! Wasn't there :(",
+				stdout: "",
+			})
+
+			o.check(await entry.delete()).equals(false)
 		})
 	})
 })
