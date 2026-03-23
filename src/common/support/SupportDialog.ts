@@ -38,6 +38,7 @@ type SupportDialogPageName =
 
 export interface SupportDialogState {
 	canHaveEmailSupport: boolean
+	isExternalUser: boolean
 	selectedCategory: Stream<SupportCategory | null>
 	selectedTopic: Stream<SupportTopic | null>
 	contactTemplate: Stream<string>
@@ -52,6 +53,7 @@ export interface SupportDialogState {
 export async function showSupportDialog(logins: LoginController) {
 	const data: SupportDialogState = {
 		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
+		isExternalUser: logins.isUserLoggedIn() && !logins.isInternalUserLoggedIn(),
 		selectedCategory: Stream<SupportCategory | null>(null),
 		selectedTopic: Stream<SupportTopic | null>(null),
 		contactTemplate: Stream<string>(""),
