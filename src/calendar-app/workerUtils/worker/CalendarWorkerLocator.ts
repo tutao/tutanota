@@ -88,7 +88,7 @@ import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/Pub
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
@@ -230,8 +230,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				ref: CalendarEventTypeRef,
 				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
 			})
-
-			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
