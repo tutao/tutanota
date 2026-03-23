@@ -153,7 +153,8 @@ class AlarmNotificationsManager(
 							identifier,
 							alarmNotification.summary,
 							alarmNotification.eventStart,
-							alarmNotification.user
+							alarmNotification.user,
+							isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
 						)
 					}
 
@@ -168,7 +169,8 @@ class AlarmNotificationsManager(
 					} else {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime, occurrence, identifier, alarmNotification.summary, eventStartTime,
-							alarmNotification.user
+							alarmNotification.user,
+							isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
 						)
 					}
 				}

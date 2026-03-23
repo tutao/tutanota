@@ -107,7 +107,7 @@ class AlarmNotificationsManagerTest {
 		manager.scheduleNewAlarms(listOf(notTooFarSingle), null)
 		val alarmtime = calculateAlarmTime(startDate, null, AlarmInterval(AlarmIntervalUnit.MINUTE, 10))
 		Mockito.verify(systemAlarmFacade)
-			.scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId)
+			.scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId, false)
 	}
 
 	@Test
@@ -121,7 +121,7 @@ class AlarmNotificationsManagerTest {
 		val tooFarSingle = createEncryptedAlarmNotification(userId, identifier, startDate, null, null)
 		manager.scheduleNewAlarms(listOf(tooFarSingle), null)
 		Mockito.verify(systemAlarmFacade, Mockito.never())
-			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any(), any())
 	}
 
 	@Test
@@ -148,7 +148,7 @@ class AlarmNotificationsManagerTest {
 		// s n     s+1 n+1  s+2 n+2   s+3
 		// s - event start, n - now. s+2 is before n+2 so it will occur but s+3 is already too far
 		Mockito.verify(systemAlarmFacade, Mockito.times(2))
-			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId), any())
 	}
 
 	@Test
@@ -159,7 +159,7 @@ class AlarmNotificationsManagerTest {
 		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null, null)
 		manager.scheduleNewAlarms(listOf(alarmNotifications), null)
 		Mockito.verify(systemAlarmFacade, Mockito.never())
-			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any(), any())
 	}
 
 	@Test
@@ -199,7 +199,7 @@ class AlarmNotificationsManagerTest {
 
 		// verify system facade was called with the right time value (local 00:00:00)
 		Mockito.verify(systemAlarmFacade)
-			.scheduleAlarmOccurrenceWithSystem(eq(expected1DayAlarmTime), any(), any(), any(), any(), any())
+			.scheduleAlarmOccurrenceWithSystem(eq(expected1DayAlarmTime), any(), any(), any(), any(), any(), any())
 	}
 
 	@Test
@@ -246,7 +246,7 @@ class AlarmNotificationsManagerTest {
 
 		// verify system facade was called with the right time value (local 00:00:00)
 		Mockito.verify(systemAlarmFacade)
-			.scheduleAlarmOccurrenceWithSystem(eq(expected1DayAlarmTime), any(), any(), any(), any(), any())
+			.scheduleAlarmOccurrenceWithSystem(eq(expected1DayAlarmTime), any(), any(), any(), any(), any(), any())
 
 	}
 
