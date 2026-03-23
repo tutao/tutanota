@@ -1,3 +1,5 @@
+import { CryptoError } from "../../misc/CryptoError.js"
+
 /**
  * The version of the symmetric cipher.
  * Must fit into 1 byte, so 255 is the maximum allowed enum value.
@@ -20,7 +22,7 @@ export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCiph
 		if (Object.values(SymmetricCipherVersion).includes(versionByte as SymmetricCipherVersion)) {
 			return versionByte as SymmetricCipherVersion
 		}
-		throw new Error("invalid cipher version")
+		throw new CryptoError("invalid cipher version")
 	} else {
 		return SymmetricCipherVersion.UnusedReservedUnauthenticated
 	}
