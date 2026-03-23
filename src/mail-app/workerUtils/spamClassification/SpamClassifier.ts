@@ -7,6 +7,7 @@ import {
 	glorotUniform,
 	LayersModel,
 	loadLayersModelFromIOHandler,
+	memory,
 	sequential,
 	tensor1d,
 	tensor2d,
@@ -173,24 +174,26 @@ export class SpamClassifier {
 		const layersModel = this.buildModel(await this.spamMailProcessor.getModelInputSize())
 
 		const trainingStart = performance.now()
-		await layersModel.fit(xs, ys, {
-			epochs: 16,
-			batchSize: 32,
-			shuffle: !this.deterministic,
-			// callbacks: {
-			// 	onEpochEnd: async (epoch, logs) => {
-			// 		if (logs) {
-			// 			console.log(`Epoch ${epoch + 1} - Loss: ${logs.loss.toFixed(4)}`)
-			// 		}
-			// 	},
-			// },
-			yieldEvery: 15,
-		})
+		try {
+			await layersModel.fit(xs, ys, {
+				epochs: 16,
+				batchSize: 32,
+				shuffle: !this.deterministic,
+				// callbacks: {
+				// 	onEpochEnd: async (epoch, logs) => {
+				// 		if (logs) {
+				// 			console.log(`Epoch ${epoch + 1} - Loss: ${logs.loss.toFixed(4)}`)
+				// 		}
+				// 	},
+				// },
+				yieldEvery: 15,
+			})
+		} finally {
+			// when using the webgl backend, we need to manually dispose @tensorflow tensors
+			xs.dispose()
+			ys.dispose()
+		}
 		const trainingTime = performance.now() - trainingStart
-
-		// when using the webgl backend, we need to manually dispose @tensorflow tensors
-		xs.dispose()
-		ys.dispose()
 
 		const threshold = this.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount)
 
@@ -276,50 +279,49 @@ export class SpamClassifier {
 		const layersModelToUpdate = await this.cloneLayersModel(classifierToUpdate)
 
 		const retrainingStart = performance.now()
-		try {
-			for (const [isSpamConfidence, trainingInput] of trainingInputByConfidence) {
-				const vectors = trainingInput.map((input) => input.vector)
-				const labels = trainingInput.map((input) => input.label)
+		for (const [isSpamConfidence, trainingInput] of trainingInputByConfidence) {
+			const vectors = trainingInput.map((input) => input.vector)
+			const labels = trainingInput.map((input) => input.label)
 
-				const inputSize = await this.spamMailProcessor.getModelInputSize()
-				const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
-				const ys = tensor1d(labels, "int32")
+			const inputSize = await this.spamMailProcessor.getModelInputSize()
+			const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
+			const ys = tensor1d(labels, "int32")
 
-				// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
-				// but is not yet implemented: https://github.com/tensorflow/tfjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfjs-layers/src/engine/training.ts#L1487
-				//
-				// For now, we use the following workaround:
-				// Re-fit the vector multiple times corresponding to `isSpamConfidence`
-				const modelFitArgs: ModelFitArgs = {
-					epochs: 8,
-					batchSize: 32,
-					shuffle: !this.deterministic,
-					// callbacks: {
-					// 	onEpochEnd: async (epoch, logs) => {
-					// 		console.log(`Epoch ${epoch + 1} - Loss: ${logs!.loss.toFixed(4)}`)
-					// 	},
-					// },
-					yieldEvery: 15,
-				}
+			// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
+			// but is not yet implemented: https://github.com/tensorflow/tfjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfjs-layers/src/engine/training.ts#L1487
+			//
+			// For now, we use the following workaround:
+			// Re-fit the vector multiple times corresponding to `isSpamConfidence`
+			const modelFitArgs: ModelFitArgs = {
+				epochs: 8,
+				batchSize: 32,
+				shuffle: !this.deterministic,
+				// callbacks: {
+				// 	onEpochEnd: async (epoch, logs) => {
+				// 		console.log(`Epoch ${epoch + 1} - Loss: ${logs!.loss.toFixed(4)}`)
+				// 	},
+				// },
+				yieldEvery: 15,
+			}
+			try {
 				for (let i = 0; i <= isSpamConfidence; i++) {
 					await layersModelToUpdate.fit(xs, ys, modelFitArgs)
 				}
-
+			} finally {
 				// when using the webgl backend, we need to manually dispose @tensorflow tensors
 				xs.dispose()
 				ys.dispose()
 			}
-		} finally {
-			classifierToUpdate.threshold = this.calculateThreshold(classifierToUpdate.metaData.hamCount, classifierToUpdate.metaData.spamCount)
-			classifierToUpdate.metaData = {
-				hamCount: classifierToUpdate.metaData.hamCount + trainingDataset.hamCount,
-				spamCount: classifierToUpdate.metaData.spamCount + trainingDataset.spamCount,
-				// lastTrainedFromScratchTime update only happens on full training
-				lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
-				lastTrainedFromScratchTime: classifierToUpdate.metaData.lastTrainedFromScratchTime,
-			}
-			classifierToUpdate.layersModel = layersModelToUpdate
 		}
+		classifierToUpdate.threshold = this.calculateThreshold(classifierToUpdate.metaData.hamCount, classifierToUpdate.metaData.spamCount)
+		classifierToUpdate.metaData = {
+			hamCount: classifierToUpdate.metaData.hamCount + trainingDataset.hamCount,
+			spamCount: classifierToUpdate.metaData.spamCount + trainingDataset.spamCount,
+			// lastTrainedFromScratchTime update only happens on full training
+			lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
+			lastTrainedFromScratchTime: classifierToUpdate.metaData.lastTrainedFromScratchTime,
+		}
+		classifierToUpdate.layersModel = layersModelToUpdate
 
 		await this.activateAndSaveClassifier(ownerGroup, classifierToUpdate)
 
@@ -340,17 +342,24 @@ export class SpamClassifier {
 		const inputSize = await this.spamMailProcessor.getModelInputSize()
 		const xs = tensor2d(vectors, [vectors.length, inputSize], "int32")
 
-		const predictionTensor = classifier.layersModel.predict(xs) as Tensor
-		const predictionData = await predictionTensor.data()
-		const prediction = predictionData[0]
+		try {
+			const predictionTensor = classifier.layersModel.predict(xs) as Tensor
+			const predictionData = await predictionTensor.data()
+			const prediction = predictionData[0]
 
-		console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam for mailbox: ${ownerGroup}`)
+			console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam for mailbox: ${ownerGroup}`)
 
-		// when using the webgl backend, we need to manually dispose @tensorflow tensors
-		xs.dispose()
-		predictionTensor.dispose()
+			// when using the webgl backend, we need to manually dispose @tensorflow tensors
+			predictionTensor.dispose()
 
-		return prediction > classifier.threshold
+			return prediction > classifier.threshold
+		} catch (e) {
+			console.log("error during spam prediction, current memory status: ", JSON.stringify(memory()))
+			throw e
+		} finally {
+			// when using the webgl backend, we need to manually dispose @tensorflow tensors
+			xs.dispose()
+		}
 	}
 
 	// visibleForTesting

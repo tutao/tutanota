@@ -44978,4 +44978,4 @@ function dropout(args) {
     return new Dropout(args);
 }
 
-export { LayersModel, PlatformStub, dense, dropout, enableProdMode, env, fromMemory, glorotUniform, loadLayersModelFromIOHandler, sequential, stringToHashBucketFast$2 as stringToHashBucketFast, tensor1d, tensor2d, withSaveHandler };
+export { LayersModel, PlatformStub, dense, dropout, enableProdMode, env, fromMemory, glorotUniform, loadLayersModelFromIOHandler, memory, sequential, stringToHashBucketFast$2 as stringToHashBucketFast, tensor1d, tensor2d, withSaveHandler };

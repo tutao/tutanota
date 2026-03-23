@@ -10,7 +10,7 @@ import { dense, dropout } from "@tensorflow/tfjs-layers/dist/exports_layers"
 import { glorotUniform } from "@tensorflow/tfjs-layers/dist/exports_initializers"
 
 // Core tensor ops
-import { enableProdMode, env, tensor1d, tensor2d } from "@tensorflow/tfjs-core"
+import { enableProdMode, env, tensor1d, tensor2d, memory } from "@tensorflow/tfjs-core"
 import { stringToHashBucketFast } from "@tensorflow/tfjs-core/dist/ops/string/string_to_hash_bucket_fast"
 import { PlatformStub } from "../../../../libs/tensorflow-platform-stub.js"
 
@@ -34,4 +34,5 @@ export {
 	stringToHashBucketFast,
 	enableProdMode,
 	PlatformStub,
+	memory,
 }
