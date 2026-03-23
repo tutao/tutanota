@@ -18,7 +18,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { driveFolderName } from "./DriveGuiUtils"
 import { LoginTextField } from "../../../common/gui/base/LoginTextField"
 import { styles } from "../../../common/gui/styles"
-import { component_size } from "../../../common/gui/size"
+import { component_size, size } from "../../../common/gui/size"
 
 interface State {
 	currentFolder: DriveFolder
@@ -81,7 +81,16 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 					m(
 						".plr-16.pt-16.pb-16.flex.col.gap-24.border-radius-8",
 						{
-							style: { background: theme.surface_container, height: `min(600px, 90vh, calc(100% - ${component_size.button_height}px)` },
+							style: {
+								background: theme.surface_container,
+								// Limit the dialog height. The dialog itself is trying to shrink to the content so
+								// we have to define the height somehow. We take the smallest out of 600px, 90vh and
+								// the parent dialog size (minus the header) for the case when the window is shorter
+								// than 600px.
+								// We can't use 100% to get the parent height because it forces dialog to grow full
+								// height so instead we use the known dialog margin to calculate it.
+								height: `min(600px, 90vh, calc(100vh - (${size.spacing_12}px * 2) - ${component_size.button_height}px)`,
+							},
 						},
 						[
 							m(".flex.gap-12", [
