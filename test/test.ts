@@ -1,5 +1,7 @@
 import { runTestBuild } from "./TestBuilder.js"
 import { Option, program } from "commander"
+import type { Server as HttpServer } from "node:http"
+import type { AddressInfo } from "node:net"
 
 await program
 	.addOption(new Option("-i, --integration", "Include integration tests (requires local tutadb server)"))
@@ -48,7 +50,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 
 	const { spawn } = await import("node:child_process")
 
-	const server = await new Promise((resolve) => {
+	const server = await new Promise<HttpServer>((resolve) => {
 		const s = app.listen(0, () => resolve(s))
 	})
 
@@ -62,7 +64,8 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 			res.status(200).send()
 		})
 
-		const url = new URL(`http://localhost:${server.address().port}/test.html`)
+		const listeningAddress = server.address()! as AddressInfo
+		const url = new URL(`http://localhost:${listeningAddress.port}/test.html`)
 		if (filter) {
 			url.searchParams.set("filter", filter)
 		}
@@ -74,7 +77,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 
 	const { default: o } = await import("@tutao/otest")
 	console.log("\n--------------- BROWSER ---------------")
-	o.printReport(result)
+	o.printReport(result as any)
 	return resultIsOk(result)
 }
 

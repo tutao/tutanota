@@ -19,7 +19,7 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
-			fs.rm(projectRoot + WASM_PACK_OUT_DIR, { recursive: true, force: true })
+			fs.rmSync(projectRoot + WASM_PACK_OUT_DIR, { recursive: true, force: true })
 		})
 	}
 
