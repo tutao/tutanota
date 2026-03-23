@@ -11,11 +11,12 @@ import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
 import { ServerModelUntypedInstance } from "@tutao/typerefs"
 import { AlarmScheduler } from "../../../../src/common/calendar/date/AlarmScheduler.js"
-import { formatNotificationForDisplay } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { createTestEntity } from "../../TestUtils"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification"
 import { ClientModelInfo } from "@tutao/typerefs"
 import { sysTypeRefs } from "@tutao/typerefs"
+
+import { formatNotificationForDisplay } from "../../../../src/common/misc/Formatter"
 
 const oldTimezone = process.env.TZ
 const userId = "userId1"
@@ -224,7 +225,7 @@ o.spec("DesktopAlarmScheduler", function () {
 			const cb = cbCaptor.value
 			cb(an1.eventStart, "title")
 
-			const { title, body } = formatNotificationForDisplay(an1.eventStart, "title")
+			const { title, body } = formatNotificationForDisplay(an1.eventStart, "title", false)
 			// taking the args apart because we can't match the click handler
 			o.check(notifierMock.showCountedUserNotification.calls.length).equals(1)
 			const firstCall = notifierMock.showCountedUserNotification.calls[0] as Parameters<DesktopNotifier["showCountedUserNotification"]>

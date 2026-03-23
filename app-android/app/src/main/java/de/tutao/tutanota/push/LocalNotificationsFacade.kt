@@ -366,12 +366,21 @@ fun notificationDismissedIntent(
 	return deleteIntent
 }
 
-fun showAlarmNotification(context: Context, timestamp: Long, summary: String, intent: Intent) {
+fun showAlarmNotification(context: Context, timestamp: Long, summary: String, isAllDayEvent: Boolean, intent: Intent) {
 	val contentText = when {
-		isSameDay(timestamp, Date().time) -> String.format("%tR %s", timestamp, summary)
+		isAllDayEvent -> String.format("%1\$ta %1\$td %1\$tb %2\$s", timestamp, summary)
+
+		isSameDay(timestamp, Date().time) -> String.format(
+			"%tR %s",
+			timestamp,
+			summary
+		)
+
 		else -> String.format("%1\$ta %1\$td %1\$tb %1\$tR %2\$s", timestamp, summary) // e.g. Fri 25 Nov 12:31 summary
 	}
+
 	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
 	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 	notificationManager.notify(
 		System.currentTimeMillis().toInt(),

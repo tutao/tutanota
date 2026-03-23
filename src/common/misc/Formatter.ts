@@ -1,5 +1,5 @@
 import { lang } from "./LanguageViewModel"
-import { isSameDayOfDate, pad } from "@tutao/utils"
+import { isSameDay, isSameDayOfDate, pad } from "@tutao/utils"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { TimeFormat } from "@tutao/app-env"
 import { assertMainOrNode } from "@tutao/app-env"
@@ -184,4 +184,19 @@ export function timeStringFromParts(hours: number, minutes: number, amPm: boolea
 
 export function formatMailAddressFromParts(name: string, domain: string): string {
 	return cleanMailAddress(`${name}@${domain}`)
+}
+export function formatNotificationForDisplay(eventStartTime: Date, summary: string, isAllDay: boolean): { title: string; body: string } {
+	let dateString: string
+
+	if (isAllDay) {
+		dateString = formatDateWithWeekday(eventStartTime)
+	} else if (isSameDay(eventStartTime, new Date())) {
+		dateString = formatTime(eventStartTime)
+	} else {
+		dateString = formatDateWithWeekdayAndTime(eventStartTime)
+	}
+
+	const body = `${dateString} ${summary}`
+
+	return { body, title: body }
 }
