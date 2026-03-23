@@ -1932,6 +1932,7 @@ styles.registerStyle("main", () => {
 			"letter-spacing": "1px",
 			"text-align": "right",
 			"margin-right": "-3px",
+			"font-size": "18px",
 		},
 		".monospace": {
 			"font-family": '"Lucida Console", Monaco, monospace',

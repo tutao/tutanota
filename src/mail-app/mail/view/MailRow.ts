@@ -446,7 +446,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		if (mail.attachments.length > 0) {
-			iconText += FontIcons.PaperclipMini
+			iconText += FontIcons.Paperclip
 			description += lang.get("attachment_label")
 		}
 

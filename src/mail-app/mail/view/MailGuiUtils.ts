@@ -763,7 +763,7 @@ export function getConfidentialIcon(mail: Mail): Icons {
  */
 export function getConfidentialFontIcon(mail: Mail): string {
 	const confidentialIcon = getConfidentialIcon(mail)
-	return confidentialIcon === Icons.QuantumLockFilled ? FontIcons.MiniQuantumLock : FontIcons.GenericLockFilled
+	return confidentialIcon === Icons.QuantumLockFilled ? FontIcons.QuantumLockFilled : FontIcons.GenericLockFilled
 }
 
 function cssAttributeSetNonInherit(color: string): boolean {
