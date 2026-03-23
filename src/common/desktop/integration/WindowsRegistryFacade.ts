@@ -14,6 +14,7 @@ if (!isTest() && process.platform !== "win32") {
  */
 export enum RegistryHive {
 	HKEY_CURRENT_USER = "HKEY_CURRENT_USER",
+	HKEY_CLASSES_ROOT = "HKEY_CLASSES_ROOT",
 }
 
 // NOT EXHAUSTIVE; add as needed
@@ -49,6 +50,25 @@ export class WindowsRegistryFacade {
 		}
 
 		return new WindowsRegistryKey(this.childProcess, registryHive, path)
+	}
+
+	/**
+	 * Create a handle for querying a registry key.
+	 *
+	 * Note that this function does not interact with the registry.
+	 *
+	 * @param hiveAndPath Path to the registry key including the hive
+	 */
+	entryWithHive(hiveAndPath: string): WindowsRegistryKey {
+		const firstBackslash = hiveAndPath.indexOf("\\")
+		if (firstBackslash <= 0) {
+			throw new Error(`invalid registry+hive path ${hiveAndPath} - must contain a backslash after the first character`)
+		}
+
+		const hive = hiveAndPath.substring(0, firstBackslash)
+		const path = hiveAndPath.substring(firstBackslash)
+
+		return new WindowsRegistryKey(this.childProcess, hive as RegistryHive, path)
 	}
 }
 
@@ -129,11 +149,26 @@ export class WindowsRegistryKey {
 	 * @param name name of the value
 	 * @return true if removed successfully, false if no value was removed (likely because it wasn't there)
 	 */
-	async remove(name: string): Promise<boolean> {
+	async unset(name: string): Promise<boolean> {
 		const fullPath = `${this.registryHive}${this.path}`
 		const result = await this.childProcess.run({
 			executable: "reg",
 			args: ["DELETE", fullPath, "/v", name, "/f"],
+		})
+		return result.exitCode === 0
+	}
+
+	/**
+	 * Remove the entire key
+	 *
+	 * @param name name of the value
+	 * @return true if removed successfully, false if no value was removed (likely because it wasn't there)
+	 */
+	async delete(): Promise<boolean> {
+		const fullPath = `${this.registryHive}${this.path}`
+		const result = await this.childProcess.run({
+			executable: "reg",
+			args: ["DELETE", fullPath, "/f"],
 		})
 		return result.exitCode === 0
 	}
@@ -169,7 +204,7 @@ function parseResult(stdout: string): Map<string, WindowsRegistryValueType> {
 	// Actually map now
 	let map = new Map()
 	for (const line of lines) {
-		const key = line[0]
+		const key = line[0] === "(Default)" ? "" : line[0]
 		const value = line[2]
 		const type = line[1]
 
