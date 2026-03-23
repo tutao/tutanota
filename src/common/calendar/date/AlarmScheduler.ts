@@ -1,9 +1,7 @@
 import type { Thunk } from "@tutao/tutanota-utils"
-import { downcast } from "@tutao/tutanota-utils"
-import { EndType } from "../../../common/api/common/TutanotaConstants.js"
 import type { AlarmInfo, RepeatRule } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { ScheduledTimeoutId, Scheduler } from "../../../common/api/common/utils/Scheduler.js"
-import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
+import { calculateAlarmTime, findNextAlarmOccurrence, getEventEnd, getEventStart, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
 import { DateProvider } from "../../../common/api/common/DateProvider.js"
 
 type NotificationSender = (eventTime: Date, summary: string) => void
@@ -55,7 +53,7 @@ export class AlarmScheduler {
 				})
 			}
 		} else {
-			const eventStart = getEventStartByTimes(event.startTime, event.endTime, localZone)
+			const eventStart = getEventStart(event, localZone)
 
 			if (eventStart.getTime() > this._dateProvider.now()) {
 				this._scheduleAction(alarmInfo.alarmIdentifier, calculateAlarmTime(eventStart, parseAlarmInterval(alarmInfo.trigger)), () =>
