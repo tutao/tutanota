@@ -22,7 +22,7 @@
 			"@tutao/licc": ["../src/licc"],
 			"@tutao/usagetests": ["../src/usagetests"],
 			"@tutao/mimimi": ["../src/mimimi"],
-			"@tutao/otest": ["../test/otest"],
+			"@tutao/otest": ["./otest"],
 
 			"@tutao/crypto/rsa": ["../src/crypto/encryption/Rsa"],
 			"@tutao/crypto/random": ["../src/crypto/random/SecureRandom"],
@@ -37,7 +37,30 @@
 			"@tutao/crypto/jsbn": ["../src/crypto/internal/crypto-jsbn-2012-08-09_1.js"]
 		}
 	},
-	"include": ["../src/*d.ts", "../libs/*d.ts", "../types/*d.ts", "tests/**/*.ts", "types/*.d.ts", "otest", "test.ts"],
+	"include": ["../src/*d.ts", "../libs/*d.ts", "../types/*d.ts", "tests/**/*.ts", "types/*.d.ts", "test.ts"],
 	"exclude": ["build"],
-	"types": ["node_modules/@types/node"]
+	"types": ["node_modules/@types/node"],
+	"references": [
+		{
+			"path": "tsconfig.otest.json"
+		},
+		{
+			"path": "../src/tsconfig.error.json"
+		},
+		{
+			"path": "../src/tsconfig.crypto.json"
+		},
+		{
+			"path": "../src/tsconfig.utils.json"
+		},
+		{
+			"path": "../src/tsconfig.mimimi.json"
+		},
+		{
+			"path": "../src/tsconfig.wasm.json"
+		},
+		{
+			"path": "../src/tsconfig.usagetests.json"
+		}
+	]
 }

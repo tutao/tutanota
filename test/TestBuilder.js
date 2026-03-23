@@ -10,7 +10,7 @@ import { rolldown } from "rolldown"
 import { resolveLibs } from "../buildSrc/RollupConfig.js"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
-import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "../buildSrc/cryptoPrimitivesUtils.js"
+import { $ } from "zx"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
@@ -19,24 +19,13 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
-			fs.rmSync(projectRoot + WASM_PACK_OUT_DIR, { recursive: true, force: true })
 		})
 	}
 
-	if (!fast) {
-		await runStep("Packages", async () => {
-			// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
-			// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
-			await copyCryptoPrimitiveCrateIntoWasmDir({
-				wasmOutputDir: "build",
-				pathSourcePrefix: "../",
-			})
-		})
-
-		await runStep("Types", async () => {
-			await sh`npx tsc --build --incremental ${true}`
-		})
-	}
+	await runStep("Types", async () => {
+		await sh`npx tsc --build --incremental ${true}`
+	})
+	await $({ stdio: "inherit", cwd: "../src/crypto" })`node --experimental-strip-types make.ts --profile test`
 
 	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({

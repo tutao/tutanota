@@ -1,4 +1,3 @@
-import o from "@tutao/otest"
 import "./AesTest.js"
 import "./BcryptTest.js"
 import "./Argon2idTest.js"

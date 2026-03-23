@@ -51,7 +51,7 @@ export function spy(producer?: (...args: any) => any): Spy {
 		return producer && producer.apply(this, args)
 	}
 
-	s.invocations = invocations
+	s["invocations"] = invocations
 	Object.defineProperty(s, "callCount", {
 		get(): number {
 			return s.invocations.length
@@ -118,7 +118,7 @@ export interface TimeoutMock {
 
 export function makeTimeoutMock(): TimeoutMock {
 	let timeoutId = 1
-	let scheduledFn
+	let scheduledFn: () => unknown
 
 	const timeoutMock = function (fn: () => unknown) {
 		scheduledFn = fn
@@ -143,7 +143,7 @@ function delay(ms: number): Promise<void> {
 
 /** Verify using testdouble, but register as an otest assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {
-	function check(demonstration) {
+	function check(demonstration: any) {
 		try {
 			td.verify(demonstration, config)
 			return {
@@ -161,7 +161,7 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 	otest(demonstration).satisfies(check)
 }
 
-export function throwsErrorWithMessage(errorClass, message): (fn) => { pass: boolean; message: string } {
+export function throwsErrorWithMessage(errorClass: Class<Error>, message: string): (fn: () => unknown) => { pass: boolean; message: string } {
 	return (fn) => {
 		try {
 			fn()

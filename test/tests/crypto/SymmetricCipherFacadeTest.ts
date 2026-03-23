@@ -127,7 +127,7 @@ o.spec("SymmetricCipherFacade", function () {
 			when(aesCbcFacade.decrypt(aes256Key, ciphertext, false, false, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)
-			const decryptedKey = symmetricCipherFacade.decryptKeyDeprecatedUnauthenticated(aes256Key, ciphertext)
+			const decryptedKey = symmetricCipherFacade.decryptKeyDeprecatedUnauthenticatedFixedIv(aes256Key, ciphertext)
 			o(decryptedKey).deepEquals(keyToEncrypt_256)
 		})
 	})

@@ -19,6 +19,7 @@ import {
 } from "@tutao/crypto"
 import { BLOCK_SIZE_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "@tutao/crypto/error"
+import { isBrowser } from "../../../src/common/api/common/Env"
 
 o.spec("aes", function () {
 	const iv = new Uint8Array([233, 159, 225, 105, 170, 223, 70, 218, 139, 107, 71, 91, 179, 231, 239, 102])

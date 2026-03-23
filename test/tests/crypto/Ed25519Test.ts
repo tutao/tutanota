@@ -1,12 +1,19 @@
 import o from "@tutao/otest"
 import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "@tutao/crypto"
-import fs from "node:fs"
 import { matchers, object, verify } from "testdouble"
+import { assertNotNull } from "@tutao/utils"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
-		// Use the readFileSync function to read the contents of the "add.wasm" file
-		const wasmBuffer = fs.readFileSync("../src/crypto-primitives/crypto_primitives_bg.wasm")
+		const loadWasmInNode: ArrayBuffer = await window.node(async () => {
+			const { default: fs } = await import("node:fs")
+			return fs.readFileSync("../src/crypto-primitives/crypto_primitives_bg.wasm")
+		})()
+		const loadWasmInBrowser: ArrayBuffer = await window.browser(() => {
+			return fetch("/crypto_primitives_bg.wasm").then((r) => r.arrayBuffer())
+		})()
+
+		let wasmBuffer = assertNotNull(loadWasmInNode ?? loadWasmInBrowser)
 		await initEd25519(wasmBuffer)
 	})
 

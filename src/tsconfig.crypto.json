@@ -1,6 +1,13 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["../types/*.d.ts", "./crypto/encryption", "./crypto/hashes", "./crypto/misc", "./crypto/random"],
+	"include": [
+		"../types/*.d.ts",
+		"./crypto/encryption",
+		"./crypto/hashes",
+		"./crypto/misc",
+		"./crypto/random",
+		"./crypto/make.ts"
+	],
 	"exclude": ["crypto/dist"],
 	"files": [
 		"crypto/index.ts",
