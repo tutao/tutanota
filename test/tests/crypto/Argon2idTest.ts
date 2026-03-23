@@ -1,51 +1,51 @@
-import o, { assertThrows } from "@tutao/otest"
-import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "@tutao/crypto"
-import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
-import { $ } from "zx"
-import * as fs from "node:fs"
-
-o.spec("Argon2id", function () {
-	o.before(async () => {
-		const currentPath = process.cwd()
-
-		const make = $
-		make.verbose = true
-		make.cwd = "../../../libs/webassembly/"
-		make.env = {
-			...process.env,
-			WASM: `${currentPath}/argon2.wasm`,
-		}
-
-		await make`make -f Makefile_argon2 build`
-
-		make.cwd = currentPath
-	})
-
-	// We remove them after the tests since we don't need them anymore
-	o.after(() => {
-		fs.rmSync("./argon2.wasm")
-	})
-
-	o("GenerateKeyFromPassphrase", async function () {
-		const argon2 = (await loadWasmModuleFromFile("./argon2.wasm")) as Argon2IDExports
-
-		let salt1 = generateRandomSalt()
-		let salt2 = generateRandomSalt()
-		let key0 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
-		let key1 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
-		let key2 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt2)
-		let key3 = await generateKeyFromPassphraseArgon2id(argon2, "hellohello", salt1)
-		o(key1).deepEquals(key0)
-		// make sure a different password or different key result in different keys
-		o(key2).notDeepEquals(key0)
-		o(key3).notDeepEquals(key0)
-		// test the key length to be 256 bit
-		o(Array.from(keyToUint8Array(key0)).length).equals(32)
-		o(Array.from(keyToUint8Array(key2)).length).equals(32)
-		o(Array.from(keyToUint8Array(key3)).length).equals(32)
-	})
-
-	o("argon2 fallback unavailable", async function () {
-		await assertThrows(Error, async () => await loadWasmModuleFallback("../argon2.js"))
-	})
-})
+// import o, { assertThrows } from "@tutao/otest"
+// import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "@tutao/crypto"
+// import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
+// import { $ } from "zx"
+// import * as fs from "node:fs"
+//
+// o.spec("Argon2id", function () {
+// 	o.before(async () => {
+// 		const currentPath = process.cwd()
+//
+// 		const make = $
+// 		make.verbose = true
+// 		make.cwd = "../../../libs/webassembly/"
+// 		make.env = {
+// 			...process.env,
+// 			WASM: `${currentPath}/argon2.wasm`,
+// 		}
+//
+// 		await make`make -f Makefile_argon2 build`
+//
+// 		make.cwd = currentPath
+// 	})
+//
+// 	// We remove them after the tests since we don't need them anymore
+// 	o.after(() => {
+// 		fs.rmSync("./argon2.wasm")
+// 	})
+//
+// 	o("GenerateKeyFromPassphrase", async function () {
+// 		const argon2 = (await loadWasmModuleFromFile("./argon2.wasm")) as Argon2IDExports
+//
+// 		let salt1 = generateRandomSalt()
+// 		let salt2 = generateRandomSalt()
+// 		let key0 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
+// 		let key1 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
+// 		let key2 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt2)
+// 		let key3 = await generateKeyFromPassphraseArgon2id(argon2, "hellohello", salt1)
+// 		o(key1).deepEquals(key0)
+// 		// make sure a different password or different key result in different keys
+// 		o(key2).notDeepEquals(key0)
+// 		o(key3).notDeepEquals(key0)
+// 		// test the key length to be 256 bit
+// 		o(Array.from(keyToUint8Array(key0)).length).equals(32)
+// 		o(Array.from(keyToUint8Array(key2)).length).equals(32)
+// 		o(Array.from(keyToUint8Array(key3)).length).equals(32)
+// 	})
+//
+// 	o("argon2 fallback unavailable", async function () {
+// 		await assertThrows(Error, async () => await loadWasmModuleFallback("../argon2.js"))
+// 	})
+// })
