@@ -4,9 +4,10 @@ import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
-import { isSameDay } from "@tutao/tutanota-utils"
-import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
 import { ClientModelUntypedInstance } from "../../api/common/EntityTypes"
+
+import { formatNotificationForDisplay } from "../../misc/Formatter"
+import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 
 export class DesktopAlarmScheduler {
 	constructor(
@@ -69,7 +70,7 @@ export class DesktopAlarmScheduler {
 		}
 
 		this.alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (eventTime, summary) => {
-			const { title, body } = formatNotificationForDisplay(eventTime, summary)
+			const { title, body } = formatNotificationForDisplay(eventTime, summary, isAllDayEvent(eventInfo))
 			this.notifier.showCountedUserNotification({
 				title,
 				body,
@@ -82,18 +83,4 @@ export class DesktopAlarmScheduler {
 			})
 		})
 	}
-}
-
-export function formatNotificationForDisplay(eventTime: Date, summary: string): { title: string; body: string } {
-	let dateString: string
-
-	if (isSameDay(eventTime, new Date())) {
-		dateString = formatTime(eventTime)
-	} else {
-		dateString = formatDateWithWeekdayAndTime(eventTime)
-	}
-
-	const body = `${dateString} ${summary}`
-
-	return { body, title: body }
 }
