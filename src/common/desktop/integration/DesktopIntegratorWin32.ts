@@ -30,7 +30,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 	}
 
 	async disableAutoLaunch(): Promise<void> {
-		await this.autoRunKey.remove(this.electron.app.name)
+		await this.autoRunKey.unset(this.electron.app.name)
 	}
 
 	runIntegration(wm: WindowManager): Promise<void> {
