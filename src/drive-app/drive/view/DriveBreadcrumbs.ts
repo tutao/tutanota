@@ -96,6 +96,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 									m(Icon, {
 										icon: Icons.ChevronRight,
 										size: IconSize.PX24,
+										style: { fill: theme.on_surface_variant },
 									}),
 								]
 							: null,
@@ -114,6 +115,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 						m(Icon, {
 							icon: Icons.ChevronRight,
 							size: IconSize.PX24,
+							style: { fill: theme.on_surface_variant },
 						}),
 					]
 				})
