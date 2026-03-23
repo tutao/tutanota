@@ -1,12 +1,17 @@
-import type { RegistryTemplateDefinition } from "./integration/RegistryScriptGenerator"
-import { applyScriptBuilder, removeScriptBuilder } from "./integration/RegistryScriptGenerator"
-
 export enum RegistryRoot {
 	/** Global (per-device) registry keys */
 	LOCAL_MACHINE = "HKEY_LOCAL_MACHINE",
 	/** Per-user registry keys */
 	CURRENT_USER = "HKEY_CURRENT_USER",
 }
+
+export type RegistryTemplateDefinition = ReadonlyArray<RegistryValueTemplate>
+export type RegistryValueTemplate = {
+	value: RegistrySubKey
+	root: string
+}
+export type RegistrySubKey = { [key: string]: RegistryValue }
+export type RegistryValue = RegistrySubKey | string
 
 /**
  * > The HKEY_CLASSES_ROOT (HKCR) key contains file name extension associations and COM class registration information such as ProgIDs, CLSIDs, and IIDs.
@@ -26,7 +31,6 @@ export type RegistryPaths = {
 	execPath: string
 	dllPath: string
 	logPath: string
-	tmpPath: string
 }
 
 /**
@@ -34,14 +38,13 @@ export type RegistryPaths = {
  * https://docs.microsoft.com/en-us/windows/win32/msi/installation-context#registry-redirection
  */
 function getTemplate(opts: RegistryPaths, registryRoot: RegistryRoot): RegistryTemplateDefinition {
-	const { execPath, dllPath, logPath, tmpPath } = opts
+	const { execPath, dllPath, logPath } = opts
 	const client_template = {
 		tutanota: {
 			"": "tutanota",
 			DLLPath: dllPath,
 			EXEPath: execPath,
 			LOGPath: logPath,
-			TMPPath: tmpPath,
 		},
 		"": "tutanota",
 	}
@@ -52,7 +55,7 @@ function getTemplate(opts: RegistryPaths, registryRoot: RegistryRoot): RegistryT
 		shell: {
 			open: {
 				command: {
-					"": `\\"${execPath}\\" \\"%1\\"`,
+					"": `"${execPath}" "%1"`,
 				},
 			},
 		},
@@ -93,13 +96,13 @@ function getTemplate(opts: RegistryPaths, registryRoot: RegistryRoot): RegistryT
 		{
 			root: `${registryRoot}\\SOFTWARE\\RegisteredApplications`,
 			value: {
-				tutanota: "SOFTWARE\\\\tutao\\\\tutanota\\\\Capabilities",
+				tutanota: "SOFTWARE\\tutao\\tutanota\\Capabilities",
 			},
 		},
 		{
 			root: `${registryRoot}\\SOFTWARE\\Wow6432Node\\RegisteredApplications`,
 			value: {
-				tutanota: "SOFTWARE\\\\Wow6432Node\\\\tutao\\\\tutanota\\\\Capabilities",
+				tutanota: "SOFTWARE\\Wow6432Node\\tutao\\tutanota\\Capabilities",
 			},
 		},
 		{
@@ -113,44 +116,12 @@ function getTemplate(opts: RegistryPaths, registryRoot: RegistryRoot): RegistryT
 	]
 }
 
-function escape(s: string): string {
-	return s.replace(/\\/g, "\\\\")
-}
-
 /**
- * produce a tmp windows registry script to register an executable as a mailto handler
+ * produce windows registry definitions to (un-)register an executable as a mailto handler
  * @param registryRoot
  * @param opts {RegistryPaths}
- * @returns {string} registry script
+ * @returns {RegistryTemplateDefinition} registry template
  */
-export function makeRegisterKeysScript(registryRoot: RegistryRoot, opts: RegistryPaths): string {
-	const { execPath, dllPath, logPath, tmpPath } = opts
-	const template = getTemplate(
-		{
-			execPath: escape(execPath),
-			dllPath: escape(dllPath),
-			logPath: escape(logPath),
-			tmpPath: escape(tmpPath),
-		},
-		registryRoot,
-	)
-	return applyScriptBuilder(template)
-}
-
-/**
- * produce a tmp windows registry script to unregister tutanota as a mailto handler
- * @returns {string} registry script
- */
-export function makeUnregisterKeysScript(registryRoot: RegistryRoot): string {
-	// the removal script generator doesn't care about values
-	const template = getTemplate(
-		{
-			execPath: "execPath",
-			dllPath: "dllPath",
-			logPath: "logPath",
-			tmpPath: "tmpPath",
-		},
-		registryRoot,
-	)
-	return removeScriptBuilder(template)
+export function makeRegisterKeysTemplate(registryRoot: RegistryRoot, opts?: RegistryPaths): RegistryTemplateDefinition {
+	return getTemplate(opts ?? { dllPath: "dllPath", execPath: "execPath", logPath: "logPath" }, registryRoot)
 }

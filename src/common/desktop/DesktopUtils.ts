@@ -1,10 +1,10 @@
 import path from "node:path"
 import { spawn } from "node:child_process"
 import type { NativeImage, Rectangle } from "electron"
-import { defer, delay } from "@tutao/tutanota-utils"
+import { LazyLoaded, defer, delay } from "@tutao/tutanota-utils"
 import { log } from "./DesktopLog"
 import { swapFilename } from "./PathUtils"
-import { makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot } from "./reg-templater"
+import { makeRegisterKeysTemplate, RegistryRoot, RegistryValue } from "./reg-templater"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { getResourcePath } from "./resources.js"
 import { TempFs } from "./files/TempFs.js"
@@ -12,6 +12,7 @@ import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { CommandExecutor } from "./CommandExecutor"
+import type { WindowsRegistryFacade } from "./integration/WindowsRegistryFacade"
 
 export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
@@ -23,6 +24,7 @@ export class DesktopUtils {
 		private readonly tfs: TempFs,
 		private readonly electron: ElectronExports,
 		private readonly executor: CommandExecutor,
+		private readonly registry: LazyLoaded<WindowsRegistryFacade>,
 	) {
 		this.mailtoArg = findMailToUrlInArgv(this.process.argv)
 	}
@@ -217,9 +219,24 @@ export class DesktopUtils {
 		// with the value of the USERPROFILE env var.
 		const appData = path.join("%USERPROFILE%", "AppData")
 		const logPath = path.join(appData, "Roaming", this.electron.app.getName(), "logs")
-		const tmpPath = path.join(this.tfs.getTutanotaTempPath(), "attach")
-		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, { execPath, dllPath, logPath, tmpPath })
-		await this.executeRegistryScript(tmpRegScript)
+
+		const tmpRegScript = makeRegisterKeysTemplate(RegistryRoot.CURRENT_USER, { execPath, dllPath, logPath })
+		const registryFacade = await this.registry.getAsync()
+
+		for (const entry of tmpRegScript) {
+			async function applyScript(root: string, value: RegistryValue) {
+				for (const [k, v] of Object.entries(value)) {
+					if (typeof v === "string") {
+						const subentry = registryFacade.entryWithHive(root)
+						await subentry.set(k, v)
+					} else {
+						await applyScript(`${root}\\${k}`, v)
+					}
+				}
+			}
+			await applyScript(entry.root, entry.value)
+		}
+
 		this.electron.app.setAsDefaultProtocolClient("mailto")
 		await this._openDefaultAppsSettings()
 	}
@@ -229,8 +246,20 @@ export class DesktopUtils {
 			throw new ProgrammingError("Not win32")
 		}
 		this.electron.app.removeAsDefaultProtocolClient("mailto")
-		const tmpRegScript = makeUnregisterKeysScript(RegistryRoot.CURRENT_USER)
-		await this.executeRegistryScript(tmpRegScript)
+
+		const tmpRegScript = makeRegisterKeysTemplate(RegistryRoot.CURRENT_USER)
+		const registryFacade = await this.registry.getAsync()
+
+		for (const entry of tmpRegScript) {
+			for (const [k, v] of Object.entries(entry.value)) {
+				if (typeof v === "string") {
+					await registryFacade.entryWithHive(entry.root).unset(k)
+				} else {
+					await registryFacade.entryWithHive(`${entry.root}\\${k}`).delete()
+				}
+			}
+		}
+
 		await this._openDefaultAppsSettings()
 	}
 
