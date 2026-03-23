@@ -38,6 +38,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 
 	const data: SupportDialogState = {
 		canHaveEmailSupport: true,
+		isExternalUser: false,
 		selectedCategory: Stream<SupportCategory | null>(null),
 		selectedTopic: Stream<SupportTopic | null>(null),
 		categories: [],
