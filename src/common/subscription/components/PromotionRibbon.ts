@@ -4,7 +4,7 @@ import { px, size } from "../../gui/size"
 import { Translation } from "../../misc/LanguageViewModel"
 import { CAMPAIGN_NAME, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg"
-import { isApp } from "@tutao/app-env"
+import { styles } from "../../gui/styles"
 
 interface PromotionRibbonAttrs {
 	translation: Translation
@@ -16,30 +16,31 @@ interface PromotionRibbonAttrs {
 export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 	view({ attrs: { translation, planBoxPosition, localTheme = theme, campaignName } }: Vnode<PromotionRibbonAttrs>) {
 		return m("", [
-			m(
-				".abs.z3",
-				{
-					style: isApp()
-						? {
-								top: px(-88),
-								right: px(9),
-								width: px(35),
-								rotate: "40deg",
-							}
-						: {
-								top: px(-90),
-								right: px(0),
-								width: px(40),
-								rotate: "45deg",
-							},
-				},
+			campaignName &&
+				campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN &&
+				planBoxPosition === "right" &&
+				m(
+					".abs.z3",
+					{
+						style: styles.isMobileLayout()
+							? {
+									top: px(-88),
+									right: px(9),
+									width: px(35),
+									rotate: "40deg",
+								}
+							: {
+									top: px(-90),
+									right: px(0),
+									width: px(40),
+									rotate: "45deg",
+								},
+					},
 
-				campaignName &&
-					campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN &&
 					m(DynamicColorSvg, {
 						path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/birthday-hat.svg`,
 					}),
-			),
+				),
 			m(
 				".full-width.pt-4.pb-4.text-center.b.smaller.abs",
 				{
