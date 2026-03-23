@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { getDesktopIntegratorForPlatform } from "../../../../src/common/desktop/integration/DesktopIntegrator.js"
 import { downcast, LazyLoaded } from "@tutao/utils"
@@ -8,7 +8,6 @@ import en from "../../../../src/mail-app/translations/en.js"
 import { DesktopIntegratorLinux } from "../../../../src/common/desktop/integration/DesktopIntegratorLinux.js"
 import { DesktopIntegratorDarwin } from "../../../../src/common/desktop/integration/DesktopIntegratorDarwin.js"
 import { DesktopIntegratorWin32 } from "../../../../src/common/desktop/integration/DesktopIntegratorWin32.js"
-import { spy } from "@tutao/otest"
 import { object, verify, when } from "testdouble"
 import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/common/desktop/integration/WindowsRegistryFacade"
 
@@ -573,7 +572,7 @@ o.spec("DesktopIntegrator", () => {
 			const integrator = new DesktopIntegratorWin32(electronMock, windowsRegistryFacade)
 
 			await integrator.disableAutoLaunch()
-			verify(autorunMock.remove(electronMock.app.name))
+			verify(autorunMock.unset(electronMock.app.name))
 		})
 	})
 
