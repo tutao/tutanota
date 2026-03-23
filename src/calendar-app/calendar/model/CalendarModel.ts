@@ -11,7 +11,6 @@ import {
 	findAndRemove,
 	getFromMap,
 	isNotEmpty,
-	isSameDay,
 	LazyLoaded,
 	splitInChunks,
 	symmetricDifference,
@@ -86,12 +85,11 @@ import {
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
-import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import {
 	AlarmInterval,
@@ -131,6 +129,7 @@ import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
+import { formatNotificationForDisplay } from "../../../common/misc/Formatter"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -1468,7 +1467,7 @@ export class CalendarModel {
 		this.userAlarmToAlarmInfo.set(getElementId(userAlarmInfo), userAlarmInfo.alarmInfo.alarmIdentifier)
 
 		scheduler.scheduleAlarm(event, userAlarmInfo.alarmInfo, event.repeatRule, (eventTime, summary) => {
-			const { title, body } = formatNotificationForDisplay(eventTime, summary)
+			const { title, body } = formatNotificationForDisplay(eventTime, summary, isAllDayEvent(event))
 			this.notifications.showNotification(
 				NotificationType.Calendar,
 				title,
@@ -1538,20 +1537,6 @@ function* oneShotProgressMonitorGenerator(progressTracker: ProgressTracker, user
 	while (true) {
 		yield new NoopProgressMonitor()
 	}
-}
-
-export function formatNotificationForDisplay(eventTime: Date, summary: string): { title: string; body: string } {
-	let dateString: string
-
-	if (isSameDay(eventTime, new Date())) {
-		dateString = formatTime(eventTime)
-	} else {
-		dateString = formatDateWithWeekdayAndTime(eventTime)
-	}
-
-	const body = `${dateString} ${summary}`
-
-	return { body, title: body }
 }
 
 async function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
