@@ -1,9 +1,8 @@
-import { program } from "commander"
 import { CRYPTO_PRIMITIVES_CRATE, WASM_PACK_OUT_DIR } from "../../buildSrc/cryptoPrimitivesUtils.js"
 import { $, usePowerShell } from "zx"
 import fs from "fs-extra"
 
-await program.usage("").action(run).parseAsync(process.argv)
+await run()
 
 async function run() {
 	if (process.platform === "win32") {
