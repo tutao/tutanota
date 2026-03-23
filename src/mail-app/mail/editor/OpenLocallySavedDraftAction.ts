@@ -9,6 +9,7 @@ import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
 import { SessionType } from "../../../common/api/common/SessionType"
+import { isEditableDraft } from "../model/MailChecks"
 
 export interface OpenDraftFunctions {
 	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>
@@ -56,6 +57,12 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 			let mailViewerViewModel: MailViewerViewModel
 			try {
 				const mail = await this.entityClient.load(MailTypeRef, draft.mailId)
+				if (!isEditableDraft(mail)) {
+					// mail might have been already sent or scheduled from another client
+					await this.autosaveFacade.clearAutosavedDraftData()
+					return
+				}
+
 				const factory = await this.openDraftFunctions.mailViewerViewModelFactory()
 				mailViewerViewModel = factory({
 					mail,
