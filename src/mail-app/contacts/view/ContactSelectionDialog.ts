@@ -107,7 +107,7 @@ export function showContactSelectionDialog(
 								subActionClick: () => {},
 							},
 							[
-								attrs.contentText ? m(Card, m("p.mt-8", lang.getTranslationText(attrs.contentText))) : null,
+								attrs.contentText ? m(Card, m("p.mt-8.text-preline", lang.getTranslationText(attrs.contentText))) : null,
 								m(
 									".list-bg.border-radius.mt-8",
 									m(SelectAllCheckbox, {
