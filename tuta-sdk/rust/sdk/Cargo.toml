@@ -57,11 +57,11 @@ uniffi = { workspace = true }
 hyper = { version = "1.5", features = ["client"], optional = true }
 hyper-util = { version = "0.1.10", features = ["full"], optional = true }
 http-body-util = { version = "0.1.2", optional = true }
-hyper-rustls = { version = "0.27.5", features = [
+hyper-rustls = { version = "0.27.7", features = [
     "ring",
     "http2",
 ], optional = true }
-rustls = { version = "*", optional = true }
+rustls = { version = "0.23.37", optional = true }
 form_urlencoded = "1"
 
 # allow initializing a simple_logger if the consuming application (or examples) want to do that.
