@@ -1035,7 +1035,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							"",
 							m(ToggleButton, {
 								title: "show_action",
-								icon: Icons.ArrowDown,
+								icon: Icons.PaddedArrowDown,
 								size: ButtonSize.Compact,
 								toggled: this.areDetailsExpanded,
 								onToggled: (_, e) => {
