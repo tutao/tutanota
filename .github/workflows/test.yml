@@ -82,7 +82,7 @@ jobs:
         # It is fine as we run our own tests in a throwaway container anyway
         run: |
           echo Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}
-          npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
+          npm run test -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
 
   build-webapp:
     runs-on: ubuntu-latest

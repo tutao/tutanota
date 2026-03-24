@@ -223,7 +223,7 @@ pipeline {
 								}
 							}
 							steps {
-								sh 'npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
+								sh 'npm run test -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 							}
 						}
 						stage("android tests") {
