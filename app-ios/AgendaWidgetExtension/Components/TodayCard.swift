@@ -34,7 +34,8 @@ struct TodayCard: View {
 								.padding(.bottom, Dimensions.Spacing.space_8)
 						}
 					}
-					.padding(.top, -Dimensions.Spacing.space_12).padding(.leading, Dimensions.Spacing.space_12)  // moves EventsList up slightly so its alignment overlaps with the HeaderButton
+					.padding(.top, -Dimensions.Spacing.space_12).padding(.leading, Dimensions.Spacing.space_12)
+					// moves EventsList up slightly so its alignment overlaps with the HeaderButton
 				}
 			}
 		}

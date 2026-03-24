@@ -48,7 +48,8 @@ public class AlarmModel: AlarmCalculator {
 		printLog("Handling \(singleEventAlarms.count) single event alarms and \(repeatingEventAlarms.count) repeating event alarms.")
 		for alarm in singleEventAlarms { occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: 1) }
 		for alarm in repeatingEventAlarms {
-			occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: upToForEach)  // Get the first N future occurences. (N = uptoForEach)
+			// Get the first N future occurences. (N = uptoForEach)
+			occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: upToForEach)
 		}
 
 		occurrences.sort(by: { $0.eventOccurrenceTime < $1.eventOccurrenceTime })
