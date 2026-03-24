@@ -2,7 +2,7 @@
 	"extends": "../tsconfig_common.json",
 	"compilerOptions": {
 		"declaration": false,
-		"noEmit": true,
+		"noEmit": false,
 		"noImplicitAny": false,
 		"noImplicitThis": false,
 		"strictPropertyInitialization": false,
@@ -37,7 +37,7 @@
 			"@tutao/crypto/jsbn": ["../src/crypto/internal/crypto-jsbn-2012-08-09_1.js"]
 		}
 	},
-	"include": ["../src/*d.ts", "../libs/*d.ts", "../types/*d.ts", "tests/**/*.ts", "types/*.d.ts", "test.ts"],
+	"include": ["../src/*d.ts", "../libs/*d.ts", "../types/*d.ts", "tests/**/*.ts", "types/*.d.ts"],
 	"exclude": ["build"],
 	"types": ["node_modules/@types/node"],
 	"references": [

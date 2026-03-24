@@ -1,7 +1,6 @@
 import { runTestBuild } from "./TestBuilder.js"
 import { Option, program } from "commander"
-import type { Server as HttpServer } from "node:http"
-import type { AddressInfo } from "node:net"
+import { Server as HttpServer } from "node:http"
 
 await program
 	.addOption(new Option("-i, --integration", "Include integration tests (requires local tutadb server)"))
@@ -50,7 +49,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 
 	const { spawn } = await import("node:child_process")
 
-	const server = await new Promise<HttpServer>((resolve) => {
+	const server = await new Promise((resolve) => {
 		const s = app.listen(0, () => resolve(s))
 	})
 
@@ -64,8 +63,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 			res.status(200).send()
 		})
 
-		const listeningAddress = server.address()! as AddressInfo
-		const url = new URL(`http://localhost:${listeningAddress.port}/test.html`)
+		const url = new URL(`http://localhost:${server.address().port}/test.html`)
 		if (filter) {
 			url.searchParams.set("filter", filter)
 		}
@@ -75,9 +73,10 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 		spawn(command, { stdio: "inherit", shell: true })
 	})
 
-	const { default: o } = await import("@tutao/otest")
+	//FIXME: find a better fix that relative import.
+	const { default: o } = await import("./otest/dist/otest.js")
 	console.log("\n--------------- BROWSER ---------------")
-	o.printReport(result as any)
+	o.printReport(result)
 	return resultIsOk(result)
 }
 
