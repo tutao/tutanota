@@ -366,21 +366,18 @@ impl EventFacade {
 			},
 		};
 
-		let mut next = match self.increment_date_by_repeat_period(
+		let Some(mut next) = self.increment_date_by_repeat_period(
 			initial_start_time,
 			repeat_interval * iteration,
 			&repeat_rule.frequency,
-		) {
-			Some(date) => date,
-			None => {
-				return Err(ApiCallError::InternalSdkError {
-					error_message: format!(
-						"Failed to increment date by repeat period E:{} I:{}",
-						initial_start_time.unix_timestamp(),
-						repeat_interval * iteration
-					),
-				})
-			},
+		) else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!(
+					"Failed to increment date by repeat period E:{} I:{}",
+					initial_start_time.unix_timestamp(),
+					repeat_interval * iteration
+				),
+			});
 		};
 
 		let instance_offset = tz.get_offset_utc(&next).to_utc().whole_seconds();
@@ -1525,8 +1522,8 @@ impl EventFacade {
 		repeat_period: &RepeatPeriod,
 	) -> Option<OffsetDateTime> {
 		match repeat_period {
-			RepeatPeriod::Daily => start_date.checked_add(Duration::days(repeat_interval as i64)),
-			RepeatPeriod::Weekly => start_date.checked_add(Duration::weeks(repeat_interval as i64)),
+			RepeatPeriod::Daily => start_date.checked_add(Duration::days(repeat_interval)),
+			RepeatPeriod::Weekly => start_date.checked_add(Duration::weeks(repeat_interval)),
 			RepeatPeriod::Monthly => self.add_months_to_date(start_date, repeat_interval),
 			RepeatPeriod::Annually => self.add_years_to_date(start_date, repeat_interval),
 		}
@@ -1543,7 +1540,7 @@ impl EventFacade {
 
 		let mut new_date = *date;
 
-		let mut total_months = months as i64;
+		let mut total_months = months;
 		while total_months > 0 {
 			let temp_date = new_date.checked_add(Duration::weeks(1))?;
 
