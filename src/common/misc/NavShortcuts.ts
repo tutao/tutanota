@@ -57,7 +57,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			key: Keys.K,
 			shift: true,
 			ctrlOrCmd: true,
-			enabled: () => hasInAppNavigation() && logins.isEnabled(FeatureType.QuickActions),
+			enabled: () => hasInAppNavigation(),
 			exec: () => {
 				quickActionsModel().then(showQuickActionBar)
 			},
