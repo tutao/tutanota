@@ -5,12 +5,13 @@ import { assertNotNull } from "@tutao/utils"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
-		const loadWasmInNode: ArrayBuffer = await window.node(async () => {
+		const loadWasmInNode: ArrayBuffer = await node(async () => {
 			const { default: fs } = await import("node:fs")
 			return fs.readFileSync("../src/crypto-primitives/crypto_primitives_bg.wasm")
 		})()
-		const loadWasmInBrowser: ArrayBuffer = await window.browser(() => {
-			return fetch("/crypto_primitives_bg.wasm").then((r) => r.arrayBuffer())
+		const loadWasmInBrowser: ArrayBuffer = await browser(async () => {
+			const r = await fetch("/crypto_primitives_bg.wasm")
+			return await r.arrayBuffer()
 		})()
 
 		let wasmBuffer = assertNotNull(loadWasmInNode ?? loadWasmInBrowser)

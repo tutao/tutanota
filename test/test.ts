@@ -82,7 +82,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 }
 
 async function runTestsInNode({ integration, filter }) {
-	const { run } = await import("./tests/testInNode")
+	const { run } = await import("./build/testInNode.js")
 	console.log("\n--------------- NODE ---------------")
 	const result = await run({ integration, filter })
 	return resultIsOk(result)

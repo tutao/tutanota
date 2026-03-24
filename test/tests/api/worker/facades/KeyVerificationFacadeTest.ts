@@ -134,12 +134,13 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("non-Ed25519 identity keys result in an error", async function () {
-			trustDBEntry.publicIdentityKey.object.type = 10 as SigningKeyPairType // TODO: reset this back or make a copy
-			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(trustDBEntry)
+			const trustDbEntryCopy = structuredClone(trustDBEntry)
+			trustDbEntryCopy.publicIdentityKey.object.type = 10 as SigningKeyPairType
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(trustDbEntryCopy)
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(
 					maybeSignedPublicKey.publicKey,
-					trustDBEntry.publicIdentityKey.object.key,
+					trustDbEntryCopy.publicIdentityKey.object.key,
 					maybeSignedPublicKey.signature!.signature,
 				),
 			).thenResolve(true)
