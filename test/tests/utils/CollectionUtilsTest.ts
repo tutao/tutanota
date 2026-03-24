@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
-import { setEquals } from "../lib/index.js"
-import { setMap } from "../lib/CollectionUtils.js"
+import { setEquals, setMap } from "@tutao/utils"
 
 type ObjectWithId = {
 	v: number

@@ -1,6 +1,5 @@
-import o from "@tutao/otest"
-import { LazyLoaded } from "../lib/LazyLoaded.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import o, { assertThrows } from "@tutao/otest"
+import { LazyLoaded } from "@tutao/utils"
 
 o.spec("LazyLoaded", function () {
 	o.test("default value", async function () {

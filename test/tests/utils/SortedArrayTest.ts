@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { SortedArray } from "../lib/SortedArray.js"
+import { SortedArray } from "@tutao/utils"
+
 o.spec("SortedArray", function () {
 	o("with numbers", function () {
 		const array = SortedArray.fromNumbers([])

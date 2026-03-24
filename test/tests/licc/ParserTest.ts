@@ -1,6 +1,5 @@
-import o from "@tutao/otest"
-import { ParsedType, parseType } from "../lib/Parser.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import o, { assertThrows } from "@tutao/otest"
+import { ParsedType, parseType } from "@tutao/licc-parser"
 
 o.spec("Parser", function () {
 	o.spec("illegal identifiers are caught", function () {

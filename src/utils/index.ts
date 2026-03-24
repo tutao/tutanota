@@ -117,6 +117,9 @@ export {
 	stringToBase64,
 	byteArraysToBytes,
 	bytesToByteArrays,
+	_replaceLoneSurrogates,
+	_stringToUtf8Uint8ArrayLegacy,
+	_utf8Uint8ArrayToStringLegacy,
 } from "./Encoding"
 export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding"
 export { LazyLoaded } from "./LazyLoaded"

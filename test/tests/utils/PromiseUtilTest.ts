@@ -1,8 +1,7 @@
-import o from "@tutao/otest"
-import { delay, mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseFilter, promiseMap } from "../lib/PromiseUtils.js"
-import { defer } from "../lib/Utils.js"
+import o, { verify } from "@tutao/otest"
+import { delay, mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseFilter, promiseMap } from "@tutao/utils"
+import { defer } from "@tutao/utils"
 import { func, matchers, when } from "testdouble"
-import { verify } from "@tutao/tutanota-test-utils"
 
 function mockDeferMapper() {
 	const mapper = func<(el: any, idx: number) => Promise<any>>((n) => n.promise)

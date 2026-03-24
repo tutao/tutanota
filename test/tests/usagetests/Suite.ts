@@ -1,10 +1,7 @@
 import o from "@tutao/otest"
 // Do not try to "simplify" these imports to "../lib", this does not work with ES modules in node.
 // This could work as "../lib/index.js".
-import { PingIdTuple, Stage } from "../lib/model/Stage.js"
-import { PingAdapter } from "../lib/storage/PingAdapter.js"
-import { UsageTest } from "../lib/model/UsageTest.js"
-import { UsageTestController } from "../lib/model/UsageTestController.js"
+import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
 
 class MockPingAdapter implements PingAdapter {
 	pingsSent = 0
@@ -67,4 +64,3 @@ o.spec("Main", function () {
 
 const result = await o.run()
 o.printReport(result)
-o.terminateProcess(result)

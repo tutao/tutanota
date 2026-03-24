@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { tokenize } from "../lib/Tokenizer.js"
+import { tokenize } from "@tutao/utils"
 o.spec("Tokenizer test", () => {
 	o("tokenize", () => {
 		o(tokenize("")).deepEquals([])

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 
-import "./ParserTest.js"
+import "./ParserTest"
 
 const result = await o.run()
 o.printReport(result)

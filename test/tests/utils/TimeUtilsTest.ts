@@ -1,14 +1,5 @@
 import o from "@tutao/otest"
-import {
-	DAY_IN_MILLIS,
-	daysToMillis,
-	HOUR_IN_MILLIS,
-	hoursToMillis,
-	MINUTE_IN_MILLIS,
-	minutesToMillis,
-	SECOND_IN_MILLIS,
-	secondsToMillis,
-} from "../lib/TimeUtils.js"
+import { DAY_IN_MILLIS, daysToMillis, HOUR_IN_MILLIS, hoursToMillis, MINUTE_IN_MILLIS, minutesToMillis, SECOND_IN_MILLIS, secondsToMillis } from "@tutao/utils"
 
 o.spec("TimeUtils", () => {
 	o.test("seconds", () => {

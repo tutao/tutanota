@@ -1,10 +1,6 @@
 {
 	"include": ["./licc"],
-	"exclude": [
-		"./licc/dist",
-		"./licc/test"
-		// TODO: test will not be here anuymore???
-	],
+	"exclude": ["./licc/dist"],
 	"compilerOptions": {
 		/* Visit https://aka.ms/tsconfig.json to read more about this file */
 

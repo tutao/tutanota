@@ -23,6 +23,7 @@
 			"@tutao/usagetests": ["../src/usagetests"],
 			"@tutao/mimimi": ["../src/mimimi"],
 			"@tutao/otest": ["./otest"],
+			"@tutao/licc-parser": ["../src/licc/Parser"],
 
 			"@tutao/crypto/rsa": ["../src/crypto/encryption/Rsa"],
 			"@tutao/crypto/random": ["../src/crypto/random/SecureRandom"],

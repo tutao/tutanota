@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { mergeMaps, takeFromMap } from "../lib/MapUtils.js"
+import { mergeMaps, takeFromMap } from "@tutao/utils"
 
 o.spec("map utils", function () {
 	o.test("merge maps", function () {

@@ -1,205 +1,204 @@
 import o from "@tutao/otest"
-
 import "./misc/WebsocketConnectivityModelTest"
-import "./api/common/error/RestErrorTest.js"
-import "./api/common/error/TutanotaErrorTest.js"
-import "./api/common/mail/CommonMailUtilsTest.js"
-import "./api/common/utils/BirthdayUtilsTest.js"
-import "./api/common/utils/CommonFormatterTest.js"
-import "./api/common/utils/EntityUtilsTest.js"
-import "./api/common/EntityFunctionsTest.js"
-import "./api/common/utils/FileUtilsTest.js"
-import "./api/common/utils/LoggerTest.js"
-import "./api/common/utils/PlainTextSearchTest.js"
-import "./api/main/EntropyCollectorTest.js"
-import "./api/main/SyncTrackerTest.js"
-import "./api/worker/CompressionTest.js"
-import "./api/worker/EventBusClientTest.js"
-import "./api/worker/EventBusEventCoordinatorTest.js"
-import "./api/worker/SuspensionHandlerTest.js"
-import "./api/worker/UrlifierTest.js"
-import "./api/worker/crypto/AsymmetricCryptoFacadeTest.js"
-import "./api/worker/crypto/CompatibilityTest.js"
-import "./api/worker/crypto/CryptoMapperTest.js"
-import "./api/worker/crypto/CryptoFacadeTest.js"
-import "./api/worker/crypto/CryptoWrapperTest.js"
-import "./api/worker/crypto/EntityAdapterTest.js"
-import "./api/worker/crypto/ModelMapperTest.js"
-import "./api/worker/crypto/ModelMapperTransformationsTest.js"
-import "./api/worker/crypto/TypeMapperTest.js"
-import "./api/worker/facades/ApplicationTypesFacadeTest.js"
-import "./api/worker/facades/BlobAccessTokenFacadeTest.js"
-import "./api/worker/facades/BlobFacadeTest.js"
-import "./api/worker/facades/CalendarFacadeTest.js"
-import "./api/worker/facades/ConfigurationDbTest.js"
-import "./api/worker/facades/ContactFacadeTest.js"
-import "./api/worker/facades/DriveFacadeTest.js"
-import "./api/worker/facades/GroupManagementFacadeTest.js"
-import "./api/worker/facades/AdminKeyLoaderFacadeTest.js"
-import "./api/worker/facades/IdentityKeyCreatorTest.js"
-import "./api/worker/facades/KeyAuthenticationFacadeTest.js"
-import "./api/worker/facades/KeyCacheTest.js"
-import "./api/worker/facades/KeyLoaderFacadeTest.js"
-import "./api/worker/facades/KeyRotationFacadeTest.js"
-import "./api/worker/facades/KyberFacadeTest.js"
-import "./api/worker/facades/LoginFacadeTest.js"
-import "./api/worker/facades/MailAddressFacadeTest.js"
-import "./api/worker/facades/CustomerFacadeTest.js"
-import "./api/worker/facades/MailExportFacadeTest.js"
-import "./api/worker/facades/MailExportTokenFacadeTest.js"
-import "./api/worker/facades/MailFacadeTest.js"
-import "./api/worker/facades/PQFacadeTest.js"
-import "./api/worker/facades/PQMessageTest.js"
-import "./api/worker/facades/PublicEncryptionKeyProviderTest.js"
-import "./api/worker/facades/PublicEncryptionKeyCacheTest.js"
-import "./api/worker/facades/PublicIdentityKeyProviderTest.js"
-import "./api/worker/facades/IdentityKeyTrustDatabaseTest.js"
-import "./api/worker/facades/RolloutFacadeTest.js"
-import "./api/worker/facades/RsaPqPerformanceTest.js"
-import "./api/worker/facades/UserFacadeTest.js"
-import "./api/worker/facades/PublicKeySignatureFacadeTest.js"
-import "./api/worker/facades/InstanceSessionKeysCacheTest.js"
-import "./api/worker/invoicegen/PdfInvoiceGeneratorTest.js"
-import "./api/worker/invoicegen/XRechnungInvoiceGeneratorTest.js"
-import "./api/worker/pdf/DeflaterTest.js"
-import "./api/worker/pdf/PdfDocumentTest.js"
-import "./api/worker/pdf/PdfObjectTest.js"
-import "./api/worker/pdf/PdfWriterTest.js"
-import "./api/worker/rest/CacheStorageProxyTest.js"
-import "./api/worker/rest/CborDateEncoderTest.js"
-import "./api/worker/rest/CustomCacheHandlerTest.js"
-import "./api/worker/rest/EntityRestCacheTest.js"
-import "./api/worker/rest/EntityRestClientTest.js"
-import "./api/worker/rest/EphemeralCacheStorageTest.js"
-import "./api/worker/rest/PatchGeneratorTest.js"
-import "./api/worker/rest/ServiceExecutorTest.js"
-import "./api/worker/search/BulkMailLoaderTest.js"
-import "./api/worker/search/ContactIndexerTest.js"
-import "./api/worker/search/EventQueueTest.js"
-import "./api/worker/search/IndexUtilsTest.js"
-import "./api/worker/search/IndexerCoreTest.js"
-import "./api/worker/search/IndexedDbIndexerTest.js"
-import "./api/worker/search/MailIndexerTest.js"
-import "./api/worker/search/IndexedDbMailIndexerBackendTest.js"
-import "./api/worker/search/IndexedDbSearchFacadeTest.js"
-import "./api/worker/search/SearchIndexEncodingTest.js"
-import "./api/worker/search/SuggestionFacadeTest.js"
-import "./serviceworker/SwTest.js"
-import "./api/worker/facades/KeyVerificationFacadeTest.js"
-import "./api/worker/utils/SleepDetectorTest.js"
-import "./api/worker/utils/spamClassification/HashingVectorizerTest.js"
-import "./api/worker/utils/spamClassification/SpamClassifierDataDealerTest.js"
-import "./api/worker/utils/spamClassification/PreprocessPatternsTest.js"
-import "./calendar/AlarmSchedulerTest.js"
-import "./calendar/CalendarAgendaViewTest.js"
-import "./calendar/CalendarGuiUtilsTest.js"
-import "./calendar/CalendarImporterTest.js"
-import "./calendar/CalendarInvitesTest.js"
-import "./calendar/CalendarModelTest.js"
-import "./calendar/CalendarEventUpdateCoordinatorTest.js"
-import "./calendar/gui/ImportExportUtilsTest.js"
-import "./calendar/CalendarParserTest.js"
-import "./calendar/CalendarUtilsTest.js"
-import "./calendar/CalendarViewModelTest.js"
-import "./calendar/EventDragHandlerTest.js"
-import "./calendar/eventeditor/CalendarEventAlarmModelTest.js"
-import "./calendar/eventeditor/CalendarEventModelTest.js"
-import "./calendar/eventeditor/CalendarEventWhenModelTest.js"
-import "./calendar/eventeditor/CalendarEventWhoModelTest.js"
-import "./calendar/eventeditor/CalendarNotificationModelTest.js"
-import "./calendar/CalendarEventsRepositoryTest.js"
-import "./contacts/ContactListEditorTest.js"
-import "./contacts/ContactMergeUtilsTest.js"
-import "./contacts/ContactUtilsTest.js"
-import "./contacts/VCardExporterTest.js"
-import "./contacts/VCardImporterTest.js"
-import "./drive/DriveViewModelTest.js"
-import "./file/FileControllerTest.js"
-import "./gui/ColorTest.js"
-import "./gui/GuiUtilsTest.js"
-import "./gui/ScopedRouterTest.js"
-import "./gui/ThemeControllerTest.js"
-import "./gui/animation/AnimationsTest.js"
-import "./gui/base/QrCodeScannerTest.js"
-import "./gui/base/WizardDialogNTest.js"
-import "./login/LoginViewModelTest.js"
-import "./login/PostLoginUtilsTest.js"
-import "./mail/InboxRuleHandlerTest.js"
-import "./mail/ProcessInboxHandlerTest.js"
-import "./mail/KnowledgeBaseSearchFilterTest.js"
-import "./mail/MailModelTest.js"
-import "./mail/MailUtilsSignatureTest.js"
-import "./mail/SendMailModelTest.js"
-import "./mail/TemplateSearchFilterTest.js"
-import "./mail/export/BundlerTest.js"
-import "./mail/export/ExporterTest.js"
-import "./mail/model/ConversationListModelTest.js"
-import "./mail/model/FolderSystemTest.js"
-import "./mail/model/MailListModelTest.js"
-import "./mail/view/ConversationViewModelTest.js"
-import "./mail/view/MailViewModelTest.js"
-import "./mail/view/MailViewerViewModelTest.js"
-import "./misc/ClientDetectorTest.js"
-import "./misc/DeviceConfigTest.js"
-import "./misc/FormatValidatorTest.js"
-import "./misc/FormatterTest.js"
-import "./misc/HtmlSanitizerTest.js"
-import "./misc/UserSatisfactionDialogTests.js"
-import "./misc/RecipientKeyVerificationRecoveryModelTest.js"
-import "./misc/LanguageViewModelTest.js"
-import "./misc/ListElementListModelTest.js"
-import "./misc/ListModelTest.js"
-import "./misc/NewsModelTest.js"
-import "./misc/OutOfOfficeNotificationTest.js"
-import "./misc/ParserTest.js"
-import "./misc/PasswordGeneratorTest.js"
-import "./misc/PasswordModelTest.js"
-import "./misc/PasswordUtilsTest.js"
-import "./misc/RecipientsModelTest.js"
-import "./misc/SchedulerTest.js"
-import "./misc/UsageTestModelTest.js"
-import "./misc/credentials/CredentialsProviderTest.js"
-import "./misc/news/items/ReferralLinkNewsTest.js"
-import "./misc/parsing/MailAddressParserTest.js"
-import "./misc/webauthn/WebauthnClientTest.js"
-import "./native/main/MailExportControllerTest.js"
-import "./settings/TemplateEditorModelTest.js"
-import "./settings/UserDataExportTest.js"
-import "./settings/login/secondfactor/SecondFactorEditModelTest.js"
-import "./settings/mailaddress/MailAddressTableModelTest.js"
-import "./settings/whitelabel/CustomColorEditorViewModelTest.js"
-import "./settings/keymanagement/KeyVerificationModelTest.js"
-import "./subscription/CreditCardViewModelTest.js"
-import "./subscription/PriceUtilsTest.js"
-import "./subscription/SignupFormTest.js"
-import "./subscription/CaptchaTest.js"
-import "./subscription/SubscriptionUtilsTest.js"
-import "./support/FaqModelTest.js"
-import "./translations/TranslationKeysTest.js"
-import "./api/worker/search/IndexedDbContactIndexerBackendTest.js"
-import "./api/worker/search/IndexedDbContactSearchFacadeTest.js"
-import "./api/worker/search/OfflineStorageContactIndexerBackendTest.js"
-import "./api/worker/search/OfflineStorageContactSearchFacadeTest.js"
-import "./api/worker/rest/CustomUserCacheHandlerTest.js"
-import "./api/common/utils/QueryTokenUtilsTest.js"
-import "./api/worker/offline/PatchMergerTest.js"
-import "./contacts/ContactModelTest.js"
-import "./api/worker/search/OfflinestorageIndexerTest.js"
-import "./api/worker/EventInstancePrefetcherTest.js"
-import "./misc/parsing/ParserCombinatorTest.js"
-import "./sharing/GroupSettingsModelTest.js"
-import "./mail/editor/OpenLocallySavedDraftActionTest.js"
-import "./mail/SpamClassificationHandlerTest.js"
-import "./misc/quickactions/QuickActionsModelTest.js"
+import "./api/common/error/RestErrorTest"
+import "./api/common/error/TutanotaErrorTest"
+import "./api/common/mail/CommonMailUtilsTest"
+import "./api/common/utils/BirthdayUtilsTest"
+import "./api/common/utils/CommonFormatterTest"
+import "./api/common/utils/EntityUtilsTest"
+import "./api/common/EntityFunctionsTest"
+import "./api/common/utils/FileUtilsTest"
+import "./api/common/utils/LoggerTest"
+import "./api/common/utils/PlainTextSearchTest"
+import "./api/main/EntropyCollectorTest"
+import "./api/main/SyncTrackerTest"
+import "./api/worker/CompressionTest"
+import "./api/worker/EventBusClientTest"
+import "./api/worker/EventBusEventCoordinatorTest"
+import "./api/worker/SuspensionHandlerTest"
+import "./api/worker/UrlifierTest"
+import "./api/worker/crypto/AsymmetricCryptoFacadeTest"
+import "./api/worker/crypto/CompatibilityTest"
+import "./api/worker/crypto/CryptoMapperTest"
+import "./api/worker/crypto/CryptoFacadeTest"
+import "./api/worker/crypto/CryptoWrapperTest"
+import "./api/worker/crypto/EntityAdapterTest"
+import "./api/worker/crypto/ModelMapperTest"
+import "./api/worker/crypto/ModelMapperTransformationsTest"
+import "./api/worker/crypto/TypeMapperTest"
+import "./api/worker/facades/ApplicationTypesFacadeTest"
+import "./api/worker/facades/BlobAccessTokenFacadeTest"
+import "./api/worker/facades/BlobFacadeTest"
+import "./api/worker/facades/CalendarFacadeTest"
+import "./api/worker/facades/ConfigurationDbTest"
+import "./api/worker/facades/ContactFacadeTest"
+import "./api/worker/facades/DriveFacadeTest"
+import "./api/worker/facades/GroupManagementFacadeTest"
+import "./api/worker/facades/AdminKeyLoaderFacadeTest"
+import "./api/worker/facades/IdentityKeyCreatorTest"
+import "./api/worker/facades/KeyAuthenticationFacadeTest"
+import "./api/worker/facades/KeyCacheTest"
+import "./api/worker/facades/KeyLoaderFacadeTest"
+import "./api/worker/facades/KeyRotationFacadeTest"
+import "./api/worker/facades/KyberFacadeTest"
+import "./api/worker/facades/LoginFacadeTest"
+import "./api/worker/facades/MailAddressFacadeTest"
+import "./api/worker/facades/CustomerFacadeTest"
+import "./api/worker/facades/MailExportFacadeTest"
+import "./api/worker/facades/MailExportTokenFacadeTest"
+import "./api/worker/facades/MailFacadeTest"
+import "./api/worker/facades/PQFacadeTest"
+import "./api/worker/facades/PQMessageTest"
+import "./api/worker/facades/PublicEncryptionKeyProviderTest"
+import "./api/worker/facades/PublicEncryptionKeyCacheTest"
+import "./api/worker/facades/PublicIdentityKeyProviderTest"
+import "./api/worker/facades/IdentityKeyTrustDatabaseTest"
+import "./api/worker/facades/RolloutFacadeTest"
+import "./api/worker/facades/RsaPqPerformanceTest"
+import "./api/worker/facades/UserFacadeTest"
+import "./api/worker/facades/PublicKeySignatureFacadeTest"
+import "./api/worker/facades/InstanceSessionKeysCacheTest"
+import "./api/worker/invoicegen/PdfInvoiceGeneratorTest"
+import "./api/worker/invoicegen/XRechnungInvoiceGeneratorTest"
+import "./api/worker/pdf/DeflaterTest"
+import "./api/worker/pdf/PdfDocumentTest"
+import "./api/worker/pdf/PdfObjectTest"
+import "./api/worker/pdf/PdfWriterTest"
+import "./api/worker/rest/CacheStorageProxyTest"
+import "./api/worker/rest/CborDateEncoderTest"
+import "./api/worker/rest/CustomCacheHandlerTest"
+import "./api/worker/rest/EntityRestCacheTest"
+import "./api/worker/rest/EntityRestClientTest"
+import "./api/worker/rest/EphemeralCacheStorageTest"
+import "./api/worker/rest/PatchGeneratorTest"
+import "./api/worker/rest/ServiceExecutorTest"
+import "./api/worker/search/BulkMailLoaderTest"
+import "./api/worker/search/ContactIndexerTest"
+import "./api/worker/search/EventQueueTest"
+import "./api/worker/search/IndexUtilsTest"
+import "./api/worker/search/IndexerCoreTest"
+import "./api/worker/search/IndexedDbIndexerTest"
+import "./api/worker/search/MailIndexerTest"
+import "./api/worker/search/IndexedDbMailIndexerBackendTest"
+import "./api/worker/search/IndexedDbSearchFacadeTest"
+import "./api/worker/search/SearchIndexEncodingTest"
+import "./api/worker/search/SuggestionFacadeTest"
+import "./serviceworker/SwTest"
+import "./api/worker/facades/KeyVerificationFacadeTest"
+import "./api/worker/utils/SleepDetectorTest"
+import "./api/worker/utils/spamClassification/HashingVectorizerTest"
+import "./api/worker/utils/spamClassification/SpamClassifierDataDealerTest"
+import "./api/worker/utils/spamClassification/PreprocessPatternsTest"
+import "./calendar/AlarmSchedulerTest"
+import "./calendar/CalendarAgendaViewTest"
+import "./calendar/CalendarGuiUtilsTest"
+import "./calendar/CalendarImporterTest"
+import "./calendar/CalendarInvitesTest"
+import "./calendar/CalendarModelTest"
+import "./calendar/CalendarEventUpdateCoordinatorTest"
+import "./calendar/gui/ImportExportUtilsTest"
+import "./calendar/CalendarParserTest"
+import "./calendar/CalendarUtilsTest"
+import "./calendar/CalendarViewModelTest"
+import "./calendar/EventDragHandlerTest"
+import "./calendar/eventeditor/CalendarEventAlarmModelTest"
+import "./calendar/eventeditor/CalendarEventModelTest"
+import "./calendar/eventeditor/CalendarEventWhenModelTest"
+import "./calendar/eventeditor/CalendarEventWhoModelTest"
+import "./calendar/eventeditor/CalendarNotificationModelTest"
+import "./calendar/CalendarEventsRepositoryTest"
+import "./contacts/ContactListEditorTest"
+import "./contacts/ContactMergeUtilsTest"
+import "./contacts/ContactUtilsTest"
+import "./contacts/VCardExporterTest"
+import "./contacts/VCardImporterTest"
+import "./drive/DriveViewModelTest"
+import "./file/FileControllerTest"
+import "./gui/ColorTest"
+import "./gui/GuiUtilsTest"
+import "./gui/ScopedRouterTest"
+import "./gui/ThemeControllerTest"
+import "./gui/animation/AnimationsTest"
+import "./gui/base/QrCodeScannerTest"
+import "./gui/base/WizardDialogNTest"
+import "./login/LoginViewModelTest"
+import "./login/PostLoginUtilsTest"
+import "./mail/InboxRuleHandlerTest"
+import "./mail/ProcessInboxHandlerTest"
+import "./mail/KnowledgeBaseSearchFilterTest"
+import "./mail/MailModelTest"
+import "./mail/MailUtilsSignatureTest"
+import "./mail/SendMailModelTest"
+import "./mail/TemplateSearchFilterTest"
+import "./mail/export/BundlerTest"
+import "./mail/export/ExporterTest"
+import "./mail/model/ConversationListModelTest"
+import "./mail/model/FolderSystemTest"
+import "./mail/model/MailListModelTest"
+import "./mail/view/ConversationViewModelTest"
+import "./mail/view/MailViewModelTest"
+import "./mail/view/MailViewerViewModelTest"
+import "./misc/ClientDetectorTest"
+import "./misc/DeviceConfigTest"
+import "./misc/FormatValidatorTest"
+import "./misc/FormatterTest"
+import "./misc/HtmlSanitizerTest"
+import "./misc/UserSatisfactionDialogTests"
+import "./misc/RecipientKeyVerificationRecoveryModelTest"
+import "./misc/LanguageViewModelTest"
+import "./misc/ListElementListModelTest"
+import "./misc/ListModelTest"
+import "./misc/NewsModelTest"
+import "./misc/OutOfOfficeNotificationTest"
+import "./misc/ParserTest"
+import "./misc/PasswordGeneratorTest"
+import "./misc/PasswordModelTest"
+import "./misc/PasswordUtilsTest"
+import "./misc/RecipientsModelTest"
+import "./misc/SchedulerTest"
+import "./misc/UsageTestModelTest"
+import "./misc/credentials/CredentialsProviderTest"
+import "./misc/news/items/ReferralLinkNewsTest"
+import "./misc/parsing/MailAddressParserTest"
+import "./misc/webauthn/WebauthnClientTest"
+import "./native/main/MailExportControllerTest"
+import "./settings/TemplateEditorModelTest"
+import "./settings/UserDataExportTest"
+import "./settings/login/secondfactor/SecondFactorEditModelTest"
+import "./settings/mailaddress/MailAddressTableModelTest"
+import "./settings/whitelabel/CustomColorEditorViewModelTest"
+import "./settings/keymanagement/KeyVerificationModelTest"
+import "./subscription/CreditCardViewModelTest"
+import "./subscription/PriceUtilsTest"
+import "./subscription/SignupFormTest"
+import "./subscription/CaptchaTest"
+import "./subscription/SubscriptionUtilsTest"
+import "./support/FaqModelTest"
+import "./translations/TranslationKeysTest"
+import "./api/worker/search/IndexedDbContactIndexerBackendTest"
+import "./api/worker/search/IndexedDbContactSearchFacadeTest"
+import "./api/worker/search/OfflineStorageContactIndexerBackendTest"
+import "./api/worker/search/OfflineStorageContactSearchFacadeTest"
+import "./api/worker/rest/CustomUserCacheHandlerTest"
+import "./api/common/utils/QueryTokenUtilsTest"
+import "./api/worker/offline/PatchMergerTest"
+import "./contacts/ContactModelTest"
+import "./api/worker/search/OfflinestorageIndexerTest"
+import "./api/worker/EventInstancePrefetcherTest"
+import "./misc/parsing/ParserCombinatorTest"
+import "./sharing/GroupSettingsModelTest"
+import "./mail/editor/OpenLocallySavedDraftActionTest"
+import "./mail/SpamClassificationHandlerTest"
+import "./misc/quickactions/QuickActionsModelTest"
 import "./calendar/CalendarTimeGridTest"
 import "./calendar/AllDaySectionTest"
-import "./mail/view/LabelsPopupViewModelTest.js"
-import "./settings/NotificationSettingsViewerModelTest.js"
+import "./mail/view/LabelsPopupViewModelTest"
+import "./settings/NotificationSettingsViewerModelTest"
 import "./crypto/Suite"
-
+import "./licc/Suite"
+import "./usagetests/Suite"
 import * as td from "testdouble"
-import { random } from "@tutao/crypto"
-import { Mode } from "../../src/common/api/common/Env.js"
+import { Mode } from "../../src/common/api/common/Env"
 
 export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
 	await setupSuite({ integration })
@@ -211,14 +210,15 @@ export async function run({ integration, filter }: { integration?: boolean; filt
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl.js")
+	const { random } = await import("@tutao/crypto")
+	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process !== "undefined") {
 		if (integration) {
 			console.log("\nRunning with integration tests because was run with -i\n")
-			await import("./api/main/WorkerTest.js")
-			await import("./IntegrationTest.js")
+			await import("./api/main/WorkerTest")
+			await import("./IntegrationTest")
 		} else {
 			console.log("\nRunning without integration tests because run without -i\n")
 		}
@@ -226,51 +226,53 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 
 	if (typeof process !== "undefined") {
 		// setup the Entropy for all testcases
+
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
-		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")
-		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest.js")
-		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
-		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
-		await import("./api/worker/offline/OfflineStorageTest.js")
-		await import("./api/worker/rest/RestClientTest.js")
-		await import("./desktop/ApplicationWindowTest.js")
-		await import("./desktop/DesktopContextMenuTest.js")
-		await import("./desktop/DesktopCryptoFacadeTest.js")
-		await import("./desktop/DesktopKeyStoreFacadeTest.js")
-		await import("./desktop/notifications/DesktopNotifierTest.js")
-		await import("./desktop/CommandExecutorTest.js")
-		await import("./desktop/notifications/WindowsNotificationFactoryTest.js")
-		await import("./desktop/ElectronUpdaterTest.js")
-		await import("./desktop/PathUtilsTest.js")
-		await import("./desktop/SocketeerTest.js")
-		await import("./desktop/config/ConfigFileTest.js")
-		await import("./desktop/config/DesktopConfigTest.js")
-		await import("./desktop/DesktopUtilsTest.js")
-		await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
-		await import("./desktop/credentials/AppPassHandlerTest.js")
-		await import("./desktop/credentials/DesktopCredentialsStorageTest.js")
-		await import("./desktop/credentials/DesktopNativeCredentialsFacadeTest.js")
-		await import("./desktop/credentials/KeychainEncryptionTest.js")
-		await import("./desktop/db/OfflineDbFacadeTest.js")
-		await import("./desktop/export/DesktopExportFacadeTest.js")
-		await import("./desktop/files/DesktopFileFacadeTest.js")
-		await import("./desktop/files/TempFsTest.js")
-		await import("./desktop/files/TempFsTest.js")
-		await import("./desktop/integration/DesktopIntegratorTest.js")
-		await import("./desktop/integration/WindowsRegistryFacadeTest.js")
-		await import("./desktop/integration/RegistryScriptGeneratorTest.js")
-		await import("./desktop/net/ProtocolProxyTest.js")
-		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
-		await import("./desktop/sse/DesktopAlarmStorageTest.js")
-		await import("./desktop/sse/SecretStorageTest.js")
-		await import("./desktop/sse/SseClientTest.js")
-		await import("./desktop/sse/TutaNotificationHandlerTest.js")
-		await import("./desktop/sse/TutaSseFacadeTest.js")
-		await import("./api/worker/search/OfflineStorageMailIndexerBackendTest.js")
-		await import("./api/worker/search/OfflineStoragePersistenceTest.js")
-		await import("./api/worker/search/OfflineStorageSearchFacadeTest.js")
-		await import("./api/worker/facades/OfflineStorageAutosaveFacadeTest.js")
-		await import("./api/worker/facades/OfflineStorageSpamClassifierStorageFacadeTest.js")
+
+		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest")
+		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest")
+		await import("./api/worker/utils/spamClassification/SpamClassifierTest")
+		await import("./api/worker/offline/OfflineStorageMigratorTest")
+		await import("./api/worker/offline/OfflineStorageTest")
+		await import("./api/worker/rest/RestClientTest")
+		await import("./desktop/ApplicationWindowTest")
+		await import("./desktop/DesktopContextMenuTest")
+		await import("./desktop/DesktopCryptoFacadeTest")
+		await import("./desktop/DesktopKeyStoreFacadeTest")
+		await import("./desktop/notifications/DesktopNotifierTest")
+		await import("./desktop/CommandExecutorTest")
+		await import("./desktop/notifications/WindowsNotificationFactoryTest")
+		await import("./desktop/ElectronUpdaterTest")
+		await import("./desktop/PathUtilsTest")
+		await import("./desktop/SocketeerTest")
+		await import("./desktop/config/ConfigFileTest")
+		await import("./desktop/config/DesktopConfigTest")
+		await import("./desktop/DesktopUtilsTest")
+		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
+		await import("./desktop/credentials/AppPassHandlerTest")
+		await import("./desktop/credentials/DesktopCredentialsStorageTest")
+		await import("./desktop/credentials/DesktopNativeCredentialsFacadeTest")
+		await import("./desktop/credentials/KeychainEncryptionTest")
+		await import("./desktop/db/OfflineDbFacadeTest")
+		await import("./desktop/export/DesktopExportFacadeTest")
+		await import("./desktop/files/DesktopFileFacadeTest")
+		await import("./desktop/files/TempFsTest")
+		await import("./desktop/files/TempFsTest")
+		await import("./desktop/integration/DesktopIntegratorTest")
+		await import("./desktop/integration/WindowsRegistryFacadeTest")
+		await import("./desktop/integration/RegistryScriptGeneratorTest")
+		await import("./desktop/net/ProtocolProxyTest")
+		await import("./desktop/sse/DesktopAlarmSchedulerTest")
+		await import("./desktop/sse/DesktopAlarmStorageTest")
+		await import("./desktop/sse/SecretStorageTest")
+		await import("./desktop/sse/SseClientTest")
+		await import("./desktop/sse/TutaNotificationHandlerTest")
+		await import("./desktop/sse/TutaSseFacadeTest")
+		await import("./api/worker/search/OfflineStorageMailIndexerBackendTest")
+		await import("./api/worker/search/OfflineStoragePersistenceTest")
+		await import("./api/worker/search/OfflineStorageSearchFacadeTest")
+		await import("./api/worker/facades/OfflineStorageAutosaveFacadeTest")
+		await import("./api/worker/facades/OfflineStorageSpamClassifierStorageFacadeTest")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { renderCsv } from "../lib/Csv.js"
+import { renderCsv } from "@tutao/utils"
 
 o.spec("Csv", function () {
 	o("should render csv as expected", function () {

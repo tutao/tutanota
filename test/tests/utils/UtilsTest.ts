@@ -1,8 +1,6 @@
-import o from "@tutao/otest"
-import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
-import { arrayEquals, deepMemoized, memoized } from "../lib/index.js"
+import o, { verify } from "@tutao/otest"
+import { arrayEquals, clone, deepEqual, deepMemoized, getChangedProps, memoized } from "@tutao/utils"
 import { func, matchers, when } from "testdouble"
-import { verify } from "@tutao/tutanota-test-utils"
 
 o.spec("utils", function () {
 	o("deep clone an instance", function () {

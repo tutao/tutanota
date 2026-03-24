@@ -24,7 +24,8 @@ import { VersionedKey } from "../../../../../src/common/api/worker/crypto/Crypto
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 
-	o.beforeEach(function () {
+	o.beforeEach(async function () {
+		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		keyLoaderFacade = object()
 	})
 

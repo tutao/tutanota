@@ -21,8 +21,8 @@ import {
 	splitArrayAt,
 	splitInChunks,
 	symmetricDifference,
-} from "../lib/index.js"
-import { compare } from "../lib/ArrayUtils.js"
+} from "@tutao/utils"
+import { compare } from "@tutao/utils"
 
 type ObjectWithId = {
 	v: number
