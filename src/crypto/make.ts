@@ -4,7 +4,7 @@ import fs from "node:fs"
 import path from "node:path"
 
 const CRYPTO_PRIMITIVES_CRATE = "../../tuta-sdk/rust/crypto-primitives"
-const WASM_PACK_OUT_DIR = "../../src/crypto-primitives"
+const WASM_PACK_OUT_DIR = "src/crypto-primitives"
 export const CRYPTO_PRIMITIVES_WASM_FILE = "crypto_primitives_bg.wasm"
 
 const AVAILABLE_PROFILES = ["release", "test"] as const
@@ -18,7 +18,8 @@ async function run(options: { profile: AvailableProfile }) {
 	}
 
 	// note: --out-dir is relative to the rust package in `tuta-sdk/rust/crypto_primitives` (CRYPTO_PRIMITIVES_CRATE)
-	await $`npx wasm-pack build --target web --profile release-wasm ${CRYPTO_PRIMITIVES_CRATE} --out-dir ${WASM_PACK_OUT_DIR}`
+	const outDir = `../../../${WASM_PACK_OUT_DIR}`
+	await $`npx wasm-pack build --target web --profile release-wasm ${CRYPTO_PRIMITIVES_CRATE} --out-dir ${outDir}`
 
 	if (options.profile === "release") {
 		await copyCryptoPrimitiveCrateIntoWasmDir("../../build")
@@ -36,7 +37,7 @@ export async function copyCryptoPrimitiveCrateIntoWasmDir(wasmOutputDir: string)
 	if (!fs.existsSync(wasmOutputDir)) {
 		fs.mkdirSync(wasmOutputDir, { recursive: true })
 	}
-	const cryptoPrimitivesWasmFile = path.resolve(`${WASM_PACK_OUT_DIR}/${CRYPTO_PRIMITIVES_WASM_FILE}`)
+	const cryptoPrimitivesWasmFile = path.resolve(`../../${WASM_PACK_OUT_DIR}/${CRYPTO_PRIMITIVES_WASM_FILE}`)
 	const targetPath = path.resolve(`${wasmOutputDir}/${CRYPTO_PRIMITIVES_WASM_FILE}`)
 	fs.copyFileSync(cryptoPrimitivesWasmFile, targetPath)
 }
