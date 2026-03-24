@@ -16,7 +16,7 @@ class MockPingAdapter implements PingAdapter {
 	}
 }
 
-o.spec("Main", function () {
+o.spec("UsageTest - Main", function () {
 	o("dom render variant", function () {
 		const testId = "t123"
 		const test = new UsageTest(testId, "test 123", 0, true)
@@ -61,6 +61,3 @@ o.spec("Main", function () {
 		o(usageTestController.getTest(testId2)).equals(test2)
 	})
 })
-
-const result = await o.run()
-o.printReport(result)
