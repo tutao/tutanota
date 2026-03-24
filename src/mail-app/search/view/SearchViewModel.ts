@@ -106,12 +106,21 @@ export class SearchViewModel {
 		return this._includeRepeatingEvents
 	}
 
-	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "startafterend" | null {
+	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "extendIndex" | "startafterend" | null {
 		if (startDate && endDate) {
 			if (startDate.getTime() > endDate.getTime()) {
 				return "startafterend"
-			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
-				return "long"
+			} else if (isSameTypeRef(this.searchedType, MailTypeRef)) {
+				// extending index only applies to mails
+				const currentIndex = this.getCurrentMailIndexDate()
+				if (currentIndex && startDate < currentIndex) {
+					return "extendIndex"
+				}
+			} else {
+				// We do not care about long for mail search, only if the index is being extended
+				if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+					return "long"
+				}
 			}
 		}
 		return null
@@ -218,9 +227,6 @@ export class SearchViewModel {
 
 	private currentQuery: string = ""
 
-	private extendIndexConfirmationCallback: (() => Promise<boolean>) | null = null
-	private freeToAskAboutExtendingIndex: boolean = true
-
 	constructor(
 		readonly router: SearchRouter,
 		private readonly search: SearchModel,
@@ -244,11 +250,7 @@ export class SearchViewModel {
 		this._listModel = this.createList()
 	}
 
-	async init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
-		if (this.extendIndexConfirmationCallback) {
-			return
-		}
-		this.extendIndexConfirmationCallback = extendIndexConfirmationCallback
+	async init() {
 		this.resultSubscription = this.search.result.map((result) => {
 			if (!result || !isSameTypeRef(result.restriction.type, MailTypeRef)) {
 				this.mailFilterType = new Set()
@@ -489,33 +491,24 @@ export class SearchViewModel {
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
 		if (
-			this.freeToAskAboutExtendingIndex &&
 			startDate &&
 			this.getCategory() === SearchCategoryTypes.mail &&
 			startDate.getTime() < this.search.indexState().currentMailIndexTimestamp &&
 			startDate
 		) {
-			this.freeToAskAboutExtendingIndex = false
-			const confirmed = (await this.extendIndexConfirmationCallback?.()) ?? true
-			this.freeToAskAboutExtendingIndex = true
-			if (confirmed) {
-				this._startDate = startDate
+			this._startDate = startDate
 
-				const searchRestriction = this.getRestriction()
-				this.indexerFacade.extendMailIndex(startDate.getTime()).then(async () => {
-					// don't do anything further if the search parameters were changed
-					if (!isSameSearchRestriction(searchRestriction, this.getRestriction())) {
-						return
-					}
-					this.offlineStorageSettings?.setTimeRange(startDate)
-					this.searchAgain()
-				})
+			const searchRestriction = this.getRestriction()
+			this.indexerFacade.extendMailIndex(startDate.getTime()).then(async () => {
+				// don't do anything further if the search parameters were changed
+				if (!isSameSearchRestriction(searchRestriction, this.getRestriction())) {
+					return
+				}
+				this.offlineStorageSettings?.setTimeRange(startDate)
+				this.searchAgain()
+			})
 
-				return PaidFunctionResult.Success
-			} else {
-				// In this case it is not a success of payment, but we don't need to prompt for upgrade
-				return PaidFunctionResult.Success
-			}
+			return PaidFunctionResult.Success
 		} else {
 			this._startDate = startDate
 		}
@@ -1127,7 +1120,6 @@ export class SearchViewModel {
 
 	dispose() {
 		this.stopLoadAll()
-		this.extendIndexConfirmationCallback = null
 		this.resultSubscription?.end(true)
 		this.resultSubscription = null
 		this.mailboxSubscription?.end(true)

@@ -433,10 +433,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				optionalStartDate: true,
 				dateValidator: (startDate, endDate) => {
 					switch (this.searchViewModel.checkDates(startDate, endDate)) {
-						case "long":
-							return lang.getTranslationText("longSearchRange_msg")
+						case "extendIndex":
+							return lang.getTranslationText("continueSearchMailbox_msg")
 						case "startafterend":
 							return lang.getTranslationText("startAfterEnd_label")
+						case "long":
 						case null:
 							return null
 						default:
@@ -464,6 +465,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							return lang.getTranslationText("longSearchRange_msg")
 						case "startafterend":
 							return lang.getTranslationText("startAfterEnd_label")
+						case "extendIndex":
 						case null:
 							return null
 						default:
@@ -485,7 +487,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	oncreate(): void {
-		this.searchViewModel.init(() => this.confirmMailSearch())
+		this.searchViewModel.init()
 
 		keyManager.registerShortcuts(this.shortcuts())
 	}
@@ -1154,10 +1156,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return this.viewSlider
 	}
 
-	private confirmMailSearch(): Promise<boolean> {
-		return Dialog.confirm("continueSearchMailbox_msg", "search_label")
-	}
-
 	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => {
 		const deleteOrTrashAction = () => {
 			const deleteTrashActions = this.getDeleteAndTrashActions()
@@ -1252,7 +1250,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
 		// afterwords
-		await this.searchViewModel.init(() => this.confirmMailSearch())
+		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
 			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
