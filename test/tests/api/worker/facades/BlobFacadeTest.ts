@@ -1,11 +1,11 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { RestClient, RestClientOptions } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { BlobReferenceTokenWrapper, BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
@@ -14,7 +14,6 @@ import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, 
 import { Mode } from "../../../../../src/common/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
-import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import {
 	BlobGetIn,
@@ -172,8 +171,7 @@ o.spec("BlobFacade", function () {
 				responseBody: stringToUtf8Uint8Array(JSON.stringify(blobServiceResponse)),
 			})
 
-			env.versionNumber = "274.250306.0"
-			const referenceTokens = await withOverriddenEnv({ mode: Mode.Desktop }, () =>
+			const referenceTokens: Array<BlobReferenceTokenWrapper> = await withOverriddenEnv({ mode: Mode.Desktop }, () =>
 				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey),
 			)
 
@@ -379,15 +377,10 @@ o.spec("BlobFacade", function () {
 			when(aesAppMock.aesDecryptFile(sessionKey, encryptedFileUri)).thenResolve(decryptedChunkUri)
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
-			env.mode = Mode.Desktop
-			env.versionNumber = "265.250101.0"
 
-			const decryptedFileReference = await blobFacade.downloadAndDecryptNative(
-				archiveDataType,
-				wrapTutanotaFile(file),
-				file.name,
-				neverNull(file.mimeType),
-			)
+			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+				return blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType))
+			})
 
 			const expectedFileReference: FileReference = {
 				_type: "FileReference",
@@ -460,15 +453,10 @@ o.spec("BlobFacade", function () {
 
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri2, decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
-			env.mode = Mode.Desktop
-			env.versionNumber = "265.250101.0"
 
-			const decryptedFileReference = await blobFacade.downloadAndDecryptNative(
-				archiveDataType,
-				wrapTutanotaFile(file),
-				file.name,
-				neverNull(file.mimeType),
-			)
+			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+				return blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType))
+			})
 
 			const expectedFileReference: FileReference = {
 				_type: "FileReference",
@@ -531,11 +519,12 @@ o.spec("BlobFacade", function () {
 			when(aesAppMock.aesDecryptFile(sessionKey, encryptedFileUri)).thenResolve(decryptedChunkUri)
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
-			env.mode = Mode.Desktop
 
-			await assertThrows(ProgrammingError, () =>
-				blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType)),
-			)
+			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await assertThrows(ProgrammingError, () =>
+					blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType)),
+				)
+			})
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
 		})
