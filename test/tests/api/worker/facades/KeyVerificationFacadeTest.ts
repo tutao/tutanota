@@ -3,7 +3,7 @@ import { KeyVerificationFacade } from "../../../../../src/common/api/worker/faca
 import { matchers, object, verify, when } from "testdouble"
 import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
-import { bytesToEd25519PublicKey, sha256Hash } from "@tutao/crypto"
+import { bytesToEd25519PublicKey, Ed25519PublicKey, sha256Hash } from "@tutao/crypto"
 import testData from "../crypto/CompatibilityTestData.json"
 import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { createTestEntity } from "../../../TestUtils"
@@ -18,7 +18,7 @@ import { PublicKeySignatureTypeRef } from "../../../../../src/common/api/entitie
 const { anything } = matchers
 
 const PUBLIC_KEY_BYTES = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
-const PUBLIC_KEY: SigningPublicKey = { key: bytesToEd25519PublicKey(PUBLIC_KEY_BYTES), type: SigningKeyPairType.Ed25519 }
+const PUBLIC_KEY: Ed25519PublicKey = bytesToEd25519PublicKey(PUBLIC_KEY_BYTES)
 const PUBLIC_KEY_FINGERPRINT = uint8ArrayToHex(sha256Hash(concat(new Uint8Array([0]), new Uint8Array([SigningKeyPairType.Ed25519]), PUBLIC_KEY_BYTES)))
 
 let trustDBEntry: TrustDBEntry
@@ -46,7 +46,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 		}
 		trustDBEntry = {
 			publicIdentityKey: {
-				object: PUBLIC_KEY,
+				object: { key: PUBLIC_KEY, type: SigningKeyPairType.Ed25519 },
 				version: 0,
 			},
 			sourceOfTrust: IdentityKeySourceOfTrust.Manual,
@@ -134,13 +134,12 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("non-Ed25519 identity keys result in an error", async function () {
-			const trustDbEntryCopy = structuredClone(trustDBEntry)
-			trustDbEntryCopy.publicIdentityKey.object.type = 10 as SigningKeyPairType
-			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(trustDbEntryCopy)
+			trustDBEntry.publicIdentityKey.object.type = 10 as SigningKeyPairType
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(trustDBEntry)
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(
 					maybeSignedPublicKey.publicKey,
-					trustDbEntryCopy.publicIdentityKey.object.key,
+					trustDBEntry.publicIdentityKey.object.key,
 					maybeSignedPublicKey.signature!.signature,
 				),
 			).thenResolve(true)
@@ -183,14 +182,14 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 			publicKey = {
 				version: 0,
-				object: PUBLIC_KEY,
+				object: { key: PUBLIC_KEY, type: SigningKeyPairType.Ed25519 },
 			}
 			concatenation = keyVerification.concatenateFingerprint(publicKey)
 			verifyKeyMetadata(concatenation, 0, SigningKeyPairType.Ed25519)
 
 			publicKey = {
 				version: 5,
-				object: PUBLIC_KEY,
+				object: { key: PUBLIC_KEY, type: SigningKeyPairType.Ed25519 },
 			}
 			concatenation = keyVerification.concatenateFingerprint(publicKey)
 			verifyKeyMetadata(concatenation, 5, SigningKeyPairType.Ed25519)

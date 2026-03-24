@@ -17,7 +17,7 @@ o.spec("SymmetricCipherFacade", function () {
 	let aes128Key: Aes128Key
 	let keyToEncrypt_128: Aes128Key
 	let keyToEncrypt_256: Aes256Key
-	o.before(function () {
+	o.beforeEach(function () {
 		aesCbcFacade = object()
 		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade)
 		aes256Key = aes256RandomKey()

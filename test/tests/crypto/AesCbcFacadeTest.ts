@@ -20,7 +20,7 @@ o.spec("AesCbcFacadeTest", function () {
 	let authentication128Key
 	let encryption128Key
 
-	o.before(function () {
+	o.beforeEach(function () {
 		aesKey_256 = aes256RandomKey()
 		aesKey_128 = _aes128RandomKey()
 		encryption128Key = _aes128RandomKey()
