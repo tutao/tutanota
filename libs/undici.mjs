@@ -3516,12 +3516,12 @@ function enumToMap(obj, filter = [], exceptions = []) {
     }));
 }
 
-(function (exports) {
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.SPECIAL_HEADERS = exports.MINOR = exports.MAJOR = exports.HTAB_SP_VCHAR_OBS_TEXT = exports.QUOTED_STRING = exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS = exports.TOKEN = exports.HEX = exports.URL_CHAR = exports.USERINFO_CHARS = exports.MARK = exports.ALPHANUM = exports.NUM = exports.HEX_MAP = exports.NUM_MAP = exports.ALPHA = exports.STATUSES_HTTP = exports.H_METHOD_MAP = exports.METHOD_MAP = exports.METHODS_RTSP = exports.METHODS_ICE = exports.METHODS_HTTP = exports.HEADER_STATE = exports.FINISH = exports.STATUSES = exports.METHODS = exports.LENIENT_FLAGS = exports.FLAGS = exports.TYPE = exports.ERROR = void 0;
+(function (exports$1) {
+	Object.defineProperty(exports$1, "__esModule", { value: true });
+	exports$1.SPECIAL_HEADERS = exports$1.MINOR = exports$1.MAJOR = exports$1.HTAB_SP_VCHAR_OBS_TEXT = exports$1.QUOTED_STRING = exports$1.CONNECTION_TOKEN_CHARS = exports$1.HEADER_CHARS = exports$1.TOKEN = exports$1.HEX = exports$1.URL_CHAR = exports$1.USERINFO_CHARS = exports$1.MARK = exports$1.ALPHANUM = exports$1.NUM = exports$1.HEX_MAP = exports$1.NUM_MAP = exports$1.ALPHA = exports$1.STATUSES_HTTP = exports$1.H_METHOD_MAP = exports$1.METHOD_MAP = exports$1.METHODS_RTSP = exports$1.METHODS_ICE = exports$1.METHODS_HTTP = exports$1.HEADER_STATE = exports$1.FINISH = exports$1.STATUSES = exports$1.METHODS = exports$1.LENIENT_FLAGS = exports$1.FLAGS = exports$1.TYPE = exports$1.ERROR = void 0;
 	const utils_1 = utils;
 	// Emums
-	exports.ERROR = {
+	exports$1.ERROR = {
 	    OK: 0,
 	    INTERNAL: 1,
 	    STRICT: 2,
@@ -3560,12 +3560,12 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	    CB_RESET: 31,
 	    CB_PROTOCOL_COMPLETE: 38,
 	};
-	exports.TYPE = {
+	exports$1.TYPE = {
 	    BOTH: 0, // default
 	    REQUEST: 1,
 	    RESPONSE: 2,
 	};
-	exports.FLAGS = {
+	exports$1.FLAGS = {
 	    CONNECTION_KEEP_ALIVE: 1 << 0,
 	    CONNECTION_CLOSE: 1 << 1,
 	    CONNECTION_UPGRADE: 1 << 2,
@@ -3577,7 +3577,7 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	    // 1 << 8 is unused
 	    TRANSFER_ENCODING: 1 << 9,
 	};
-	exports.LENIENT_FLAGS = {
+	exports$1.LENIENT_FLAGS = {
 	    HEADERS: 1 << 0,
 	    CHUNKED_LENGTH: 1 << 1,
 	    KEEP_ALIVE: 1 << 2,
@@ -3589,7 +3589,7 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	    OPTIONAL_CR_BEFORE_LF: 1 << 8,
 	    SPACES_AFTER_CHUNK_SIZE: 1 << 9,
 	};
-	exports.METHODS = {
+	exports$1.METHODS = {
 	    'DELETE': 0,
 	    'GET': 1,
 	    'HEAD': 2,
@@ -3650,7 +3650,7 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	    /* DRAFT https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html */
 	    'QUERY': 46,
 	};
-	exports.STATUSES = {
+	exports$1.STATUSES = {
 	    CONTINUE: 100,
 	    SWITCHING_PROTOCOLS: 101,
 	    PROCESSING: 102,
@@ -3751,12 +3751,12 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	    NETWORK_READ_TIMEOUT: 598, // Unofficial
 	    NETWORK_CONNECT_TIMEOUT: 599, // Unofficial
 	};
-	exports.FINISH = {
+	exports$1.FINISH = {
 	    SAFE: 0,
 	    SAFE_WITH_CB: 1,
 	    UNSAFE: 2,
 	};
-	exports.HEADER_STATE = {
+	exports$1.HEADER_STATE = {
 	    GENERAL: 0,
 	    CONNECTION: 1,
 	    CONTENT_LENGTH: 2,
@@ -3768,203 +3768,203 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	    TRANSFER_ENCODING_CHUNKED: 8,
 	};
 	// C headers
-	exports.METHODS_HTTP = [
-	    exports.METHODS.DELETE,
-	    exports.METHODS.GET,
-	    exports.METHODS.HEAD,
-	    exports.METHODS.POST,
-	    exports.METHODS.PUT,
-	    exports.METHODS.CONNECT,
-	    exports.METHODS.OPTIONS,
-	    exports.METHODS.TRACE,
-	    exports.METHODS.COPY,
-	    exports.METHODS.LOCK,
-	    exports.METHODS.MKCOL,
-	    exports.METHODS.MOVE,
-	    exports.METHODS.PROPFIND,
-	    exports.METHODS.PROPPATCH,
-	    exports.METHODS.SEARCH,
-	    exports.METHODS.UNLOCK,
-	    exports.METHODS.BIND,
-	    exports.METHODS.REBIND,
-	    exports.METHODS.UNBIND,
-	    exports.METHODS.ACL,
-	    exports.METHODS.REPORT,
-	    exports.METHODS.MKACTIVITY,
-	    exports.METHODS.CHECKOUT,
-	    exports.METHODS.MERGE,
-	    exports.METHODS['M-SEARCH'],
-	    exports.METHODS.NOTIFY,
-	    exports.METHODS.SUBSCRIBE,
-	    exports.METHODS.UNSUBSCRIBE,
-	    exports.METHODS.PATCH,
-	    exports.METHODS.PURGE,
-	    exports.METHODS.MKCALENDAR,
-	    exports.METHODS.LINK,
-	    exports.METHODS.UNLINK,
-	    exports.METHODS.PRI,
+	exports$1.METHODS_HTTP = [
+	    exports$1.METHODS.DELETE,
+	    exports$1.METHODS.GET,
+	    exports$1.METHODS.HEAD,
+	    exports$1.METHODS.POST,
+	    exports$1.METHODS.PUT,
+	    exports$1.METHODS.CONNECT,
+	    exports$1.METHODS.OPTIONS,
+	    exports$1.METHODS.TRACE,
+	    exports$1.METHODS.COPY,
+	    exports$1.METHODS.LOCK,
+	    exports$1.METHODS.MKCOL,
+	    exports$1.METHODS.MOVE,
+	    exports$1.METHODS.PROPFIND,
+	    exports$1.METHODS.PROPPATCH,
+	    exports$1.METHODS.SEARCH,
+	    exports$1.METHODS.UNLOCK,
+	    exports$1.METHODS.BIND,
+	    exports$1.METHODS.REBIND,
+	    exports$1.METHODS.UNBIND,
+	    exports$1.METHODS.ACL,
+	    exports$1.METHODS.REPORT,
+	    exports$1.METHODS.MKACTIVITY,
+	    exports$1.METHODS.CHECKOUT,
+	    exports$1.METHODS.MERGE,
+	    exports$1.METHODS['M-SEARCH'],
+	    exports$1.METHODS.NOTIFY,
+	    exports$1.METHODS.SUBSCRIBE,
+	    exports$1.METHODS.UNSUBSCRIBE,
+	    exports$1.METHODS.PATCH,
+	    exports$1.METHODS.PURGE,
+	    exports$1.METHODS.MKCALENDAR,
+	    exports$1.METHODS.LINK,
+	    exports$1.METHODS.UNLINK,
+	    exports$1.METHODS.PRI,
 	    // TODO(indutny): should we allow it with HTTP?
-	    exports.METHODS.SOURCE,
-	    exports.METHODS.QUERY,
+	    exports$1.METHODS.SOURCE,
+	    exports$1.METHODS.QUERY,
 	];
-	exports.METHODS_ICE = [
-	    exports.METHODS.SOURCE,
+	exports$1.METHODS_ICE = [
+	    exports$1.METHODS.SOURCE,
 	];
-	exports.METHODS_RTSP = [
-	    exports.METHODS.OPTIONS,
-	    exports.METHODS.DESCRIBE,
-	    exports.METHODS.ANNOUNCE,
-	    exports.METHODS.SETUP,
-	    exports.METHODS.PLAY,
-	    exports.METHODS.PAUSE,
-	    exports.METHODS.TEARDOWN,
-	    exports.METHODS.GET_PARAMETER,
-	    exports.METHODS.SET_PARAMETER,
-	    exports.METHODS.REDIRECT,
-	    exports.METHODS.RECORD,
-	    exports.METHODS.FLUSH,
+	exports$1.METHODS_RTSP = [
+	    exports$1.METHODS.OPTIONS,
+	    exports$1.METHODS.DESCRIBE,
+	    exports$1.METHODS.ANNOUNCE,
+	    exports$1.METHODS.SETUP,
+	    exports$1.METHODS.PLAY,
+	    exports$1.METHODS.PAUSE,
+	    exports$1.METHODS.TEARDOWN,
+	    exports$1.METHODS.GET_PARAMETER,
+	    exports$1.METHODS.SET_PARAMETER,
+	    exports$1.METHODS.REDIRECT,
+	    exports$1.METHODS.RECORD,
+	    exports$1.METHODS.FLUSH,
 	    // For AirPlay
-	    exports.METHODS.GET,
-	    exports.METHODS.POST,
+	    exports$1.METHODS.GET,
+	    exports$1.METHODS.POST,
 	];
-	exports.METHOD_MAP = (0, utils_1.enumToMap)(exports.METHODS);
-	exports.H_METHOD_MAP = Object.fromEntries(Object.entries(exports.METHODS).filter(([k]) => k.startsWith('H')));
-	exports.STATUSES_HTTP = [
-	    exports.STATUSES.CONTINUE,
-	    exports.STATUSES.SWITCHING_PROTOCOLS,
-	    exports.STATUSES.PROCESSING,
-	    exports.STATUSES.EARLY_HINTS,
-	    exports.STATUSES.RESPONSE_IS_STALE,
-	    exports.STATUSES.REVALIDATION_FAILED,
-	    exports.STATUSES.DISCONNECTED_OPERATION,
-	    exports.STATUSES.HEURISTIC_EXPIRATION,
-	    exports.STATUSES.MISCELLANEOUS_WARNING,
-	    exports.STATUSES.OK,
-	    exports.STATUSES.CREATED,
-	    exports.STATUSES.ACCEPTED,
-	    exports.STATUSES.NON_AUTHORITATIVE_INFORMATION,
-	    exports.STATUSES.NO_CONTENT,
-	    exports.STATUSES.RESET_CONTENT,
-	    exports.STATUSES.PARTIAL_CONTENT,
-	    exports.STATUSES.MULTI_STATUS,
-	    exports.STATUSES.ALREADY_REPORTED,
-	    exports.STATUSES.TRANSFORMATION_APPLIED,
-	    exports.STATUSES.IM_USED,
-	    exports.STATUSES.MISCELLANEOUS_PERSISTENT_WARNING,
-	    exports.STATUSES.MULTIPLE_CHOICES,
-	    exports.STATUSES.MOVED_PERMANENTLY,
-	    exports.STATUSES.FOUND,
-	    exports.STATUSES.SEE_OTHER,
-	    exports.STATUSES.NOT_MODIFIED,
-	    exports.STATUSES.USE_PROXY,
-	    exports.STATUSES.SWITCH_PROXY,
-	    exports.STATUSES.TEMPORARY_REDIRECT,
-	    exports.STATUSES.PERMANENT_REDIRECT,
-	    exports.STATUSES.BAD_REQUEST,
-	    exports.STATUSES.UNAUTHORIZED,
-	    exports.STATUSES.PAYMENT_REQUIRED,
-	    exports.STATUSES.FORBIDDEN,
-	    exports.STATUSES.NOT_FOUND,
-	    exports.STATUSES.METHOD_NOT_ALLOWED,
-	    exports.STATUSES.NOT_ACCEPTABLE,
-	    exports.STATUSES.PROXY_AUTHENTICATION_REQUIRED,
-	    exports.STATUSES.REQUEST_TIMEOUT,
-	    exports.STATUSES.CONFLICT,
-	    exports.STATUSES.GONE,
-	    exports.STATUSES.LENGTH_REQUIRED,
-	    exports.STATUSES.PRECONDITION_FAILED,
-	    exports.STATUSES.PAYLOAD_TOO_LARGE,
-	    exports.STATUSES.URI_TOO_LONG,
-	    exports.STATUSES.UNSUPPORTED_MEDIA_TYPE,
-	    exports.STATUSES.RANGE_NOT_SATISFIABLE,
-	    exports.STATUSES.EXPECTATION_FAILED,
-	    exports.STATUSES.IM_A_TEAPOT,
-	    exports.STATUSES.PAGE_EXPIRED,
-	    exports.STATUSES.ENHANCE_YOUR_CALM,
-	    exports.STATUSES.MISDIRECTED_REQUEST,
-	    exports.STATUSES.UNPROCESSABLE_ENTITY,
-	    exports.STATUSES.LOCKED,
-	    exports.STATUSES.FAILED_DEPENDENCY,
-	    exports.STATUSES.TOO_EARLY,
-	    exports.STATUSES.UPGRADE_REQUIRED,
-	    exports.STATUSES.PRECONDITION_REQUIRED,
-	    exports.STATUSES.TOO_MANY_REQUESTS,
-	    exports.STATUSES.REQUEST_HEADER_FIELDS_TOO_LARGE_UNOFFICIAL,
-	    exports.STATUSES.REQUEST_HEADER_FIELDS_TOO_LARGE,
-	    exports.STATUSES.LOGIN_TIMEOUT,
-	    exports.STATUSES.NO_RESPONSE,
-	    exports.STATUSES.RETRY_WITH,
-	    exports.STATUSES.BLOCKED_BY_PARENTAL_CONTROL,
-	    exports.STATUSES.UNAVAILABLE_FOR_LEGAL_REASONS,
-	    exports.STATUSES.CLIENT_CLOSED_LOAD_BALANCED_REQUEST,
-	    exports.STATUSES.INVALID_X_FORWARDED_FOR,
-	    exports.STATUSES.REQUEST_HEADER_TOO_LARGE,
-	    exports.STATUSES.SSL_CERTIFICATE_ERROR,
-	    exports.STATUSES.SSL_CERTIFICATE_REQUIRED,
-	    exports.STATUSES.HTTP_REQUEST_SENT_TO_HTTPS_PORT,
-	    exports.STATUSES.INVALID_TOKEN,
-	    exports.STATUSES.CLIENT_CLOSED_REQUEST,
-	    exports.STATUSES.INTERNAL_SERVER_ERROR,
-	    exports.STATUSES.NOT_IMPLEMENTED,
-	    exports.STATUSES.BAD_GATEWAY,
-	    exports.STATUSES.SERVICE_UNAVAILABLE,
-	    exports.STATUSES.GATEWAY_TIMEOUT,
-	    exports.STATUSES.HTTP_VERSION_NOT_SUPPORTED,
-	    exports.STATUSES.VARIANT_ALSO_NEGOTIATES,
-	    exports.STATUSES.INSUFFICIENT_STORAGE,
-	    exports.STATUSES.LOOP_DETECTED,
-	    exports.STATUSES.BANDWIDTH_LIMIT_EXCEEDED,
-	    exports.STATUSES.NOT_EXTENDED,
-	    exports.STATUSES.NETWORK_AUTHENTICATION_REQUIRED,
-	    exports.STATUSES.WEB_SERVER_UNKNOWN_ERROR,
-	    exports.STATUSES.WEB_SERVER_IS_DOWN,
-	    exports.STATUSES.CONNECTION_TIMEOUT,
-	    exports.STATUSES.ORIGIN_IS_UNREACHABLE,
-	    exports.STATUSES.TIMEOUT_OCCURED,
-	    exports.STATUSES.SSL_HANDSHAKE_FAILED,
-	    exports.STATUSES.INVALID_SSL_CERTIFICATE,
-	    exports.STATUSES.RAILGUN_ERROR,
-	    exports.STATUSES.SITE_IS_OVERLOADED,
-	    exports.STATUSES.SITE_IS_FROZEN,
-	    exports.STATUSES.IDENTITY_PROVIDER_AUTHENTICATION_ERROR,
-	    exports.STATUSES.NETWORK_READ_TIMEOUT,
-	    exports.STATUSES.NETWORK_CONNECT_TIMEOUT,
+	exports$1.METHOD_MAP = (0, utils_1.enumToMap)(exports$1.METHODS);
+	exports$1.H_METHOD_MAP = Object.fromEntries(Object.entries(exports$1.METHODS).filter(([k]) => k.startsWith('H')));
+	exports$1.STATUSES_HTTP = [
+	    exports$1.STATUSES.CONTINUE,
+	    exports$1.STATUSES.SWITCHING_PROTOCOLS,
+	    exports$1.STATUSES.PROCESSING,
+	    exports$1.STATUSES.EARLY_HINTS,
+	    exports$1.STATUSES.RESPONSE_IS_STALE,
+	    exports$1.STATUSES.REVALIDATION_FAILED,
+	    exports$1.STATUSES.DISCONNECTED_OPERATION,
+	    exports$1.STATUSES.HEURISTIC_EXPIRATION,
+	    exports$1.STATUSES.MISCELLANEOUS_WARNING,
+	    exports$1.STATUSES.OK,
+	    exports$1.STATUSES.CREATED,
+	    exports$1.STATUSES.ACCEPTED,
+	    exports$1.STATUSES.NON_AUTHORITATIVE_INFORMATION,
+	    exports$1.STATUSES.NO_CONTENT,
+	    exports$1.STATUSES.RESET_CONTENT,
+	    exports$1.STATUSES.PARTIAL_CONTENT,
+	    exports$1.STATUSES.MULTI_STATUS,
+	    exports$1.STATUSES.ALREADY_REPORTED,
+	    exports$1.STATUSES.TRANSFORMATION_APPLIED,
+	    exports$1.STATUSES.IM_USED,
+	    exports$1.STATUSES.MISCELLANEOUS_PERSISTENT_WARNING,
+	    exports$1.STATUSES.MULTIPLE_CHOICES,
+	    exports$1.STATUSES.MOVED_PERMANENTLY,
+	    exports$1.STATUSES.FOUND,
+	    exports$1.STATUSES.SEE_OTHER,
+	    exports$1.STATUSES.NOT_MODIFIED,
+	    exports$1.STATUSES.USE_PROXY,
+	    exports$1.STATUSES.SWITCH_PROXY,
+	    exports$1.STATUSES.TEMPORARY_REDIRECT,
+	    exports$1.STATUSES.PERMANENT_REDIRECT,
+	    exports$1.STATUSES.BAD_REQUEST,
+	    exports$1.STATUSES.UNAUTHORIZED,
+	    exports$1.STATUSES.PAYMENT_REQUIRED,
+	    exports$1.STATUSES.FORBIDDEN,
+	    exports$1.STATUSES.NOT_FOUND,
+	    exports$1.STATUSES.METHOD_NOT_ALLOWED,
+	    exports$1.STATUSES.NOT_ACCEPTABLE,
+	    exports$1.STATUSES.PROXY_AUTHENTICATION_REQUIRED,
+	    exports$1.STATUSES.REQUEST_TIMEOUT,
+	    exports$1.STATUSES.CONFLICT,
+	    exports$1.STATUSES.GONE,
+	    exports$1.STATUSES.LENGTH_REQUIRED,
+	    exports$1.STATUSES.PRECONDITION_FAILED,
+	    exports$1.STATUSES.PAYLOAD_TOO_LARGE,
+	    exports$1.STATUSES.URI_TOO_LONG,
+	    exports$1.STATUSES.UNSUPPORTED_MEDIA_TYPE,
+	    exports$1.STATUSES.RANGE_NOT_SATISFIABLE,
+	    exports$1.STATUSES.EXPECTATION_FAILED,
+	    exports$1.STATUSES.IM_A_TEAPOT,
+	    exports$1.STATUSES.PAGE_EXPIRED,
+	    exports$1.STATUSES.ENHANCE_YOUR_CALM,
+	    exports$1.STATUSES.MISDIRECTED_REQUEST,
+	    exports$1.STATUSES.UNPROCESSABLE_ENTITY,
+	    exports$1.STATUSES.LOCKED,
+	    exports$1.STATUSES.FAILED_DEPENDENCY,
+	    exports$1.STATUSES.TOO_EARLY,
+	    exports$1.STATUSES.UPGRADE_REQUIRED,
+	    exports$1.STATUSES.PRECONDITION_REQUIRED,
+	    exports$1.STATUSES.TOO_MANY_REQUESTS,
+	    exports$1.STATUSES.REQUEST_HEADER_FIELDS_TOO_LARGE_UNOFFICIAL,
+	    exports$1.STATUSES.REQUEST_HEADER_FIELDS_TOO_LARGE,
+	    exports$1.STATUSES.LOGIN_TIMEOUT,
+	    exports$1.STATUSES.NO_RESPONSE,
+	    exports$1.STATUSES.RETRY_WITH,
+	    exports$1.STATUSES.BLOCKED_BY_PARENTAL_CONTROL,
+	    exports$1.STATUSES.UNAVAILABLE_FOR_LEGAL_REASONS,
+	    exports$1.STATUSES.CLIENT_CLOSED_LOAD_BALANCED_REQUEST,
+	    exports$1.STATUSES.INVALID_X_FORWARDED_FOR,
+	    exports$1.STATUSES.REQUEST_HEADER_TOO_LARGE,
+	    exports$1.STATUSES.SSL_CERTIFICATE_ERROR,
+	    exports$1.STATUSES.SSL_CERTIFICATE_REQUIRED,
+	    exports$1.STATUSES.HTTP_REQUEST_SENT_TO_HTTPS_PORT,
+	    exports$1.STATUSES.INVALID_TOKEN,
+	    exports$1.STATUSES.CLIENT_CLOSED_REQUEST,
+	    exports$1.STATUSES.INTERNAL_SERVER_ERROR,
+	    exports$1.STATUSES.NOT_IMPLEMENTED,
+	    exports$1.STATUSES.BAD_GATEWAY,
+	    exports$1.STATUSES.SERVICE_UNAVAILABLE,
+	    exports$1.STATUSES.GATEWAY_TIMEOUT,
+	    exports$1.STATUSES.HTTP_VERSION_NOT_SUPPORTED,
+	    exports$1.STATUSES.VARIANT_ALSO_NEGOTIATES,
+	    exports$1.STATUSES.INSUFFICIENT_STORAGE,
+	    exports$1.STATUSES.LOOP_DETECTED,
+	    exports$1.STATUSES.BANDWIDTH_LIMIT_EXCEEDED,
+	    exports$1.STATUSES.NOT_EXTENDED,
+	    exports$1.STATUSES.NETWORK_AUTHENTICATION_REQUIRED,
+	    exports$1.STATUSES.WEB_SERVER_UNKNOWN_ERROR,
+	    exports$1.STATUSES.WEB_SERVER_IS_DOWN,
+	    exports$1.STATUSES.CONNECTION_TIMEOUT,
+	    exports$1.STATUSES.ORIGIN_IS_UNREACHABLE,
+	    exports$1.STATUSES.TIMEOUT_OCCURED,
+	    exports$1.STATUSES.SSL_HANDSHAKE_FAILED,
+	    exports$1.STATUSES.INVALID_SSL_CERTIFICATE,
+	    exports$1.STATUSES.RAILGUN_ERROR,
+	    exports$1.STATUSES.SITE_IS_OVERLOADED,
+	    exports$1.STATUSES.SITE_IS_FROZEN,
+	    exports$1.STATUSES.IDENTITY_PROVIDER_AUTHENTICATION_ERROR,
+	    exports$1.STATUSES.NETWORK_READ_TIMEOUT,
+	    exports$1.STATUSES.NETWORK_CONNECT_TIMEOUT,
 	];
-	exports.ALPHA = [];
+	exports$1.ALPHA = [];
 	for (let i = 'A'.charCodeAt(0); i <= 'Z'.charCodeAt(0); i++) {
 	    // Upper case
-	    exports.ALPHA.push(String.fromCharCode(i));
+	    exports$1.ALPHA.push(String.fromCharCode(i));
 	    // Lower case
-	    exports.ALPHA.push(String.fromCharCode(i + 0x20));
+	    exports$1.ALPHA.push(String.fromCharCode(i + 0x20));
 	}
-	exports.NUM_MAP = {
+	exports$1.NUM_MAP = {
 	    0: 0, 1: 1, 2: 2, 3: 3, 4: 4,
 	    5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
 	};
-	exports.HEX_MAP = {
+	exports$1.HEX_MAP = {
 	    0: 0, 1: 1, 2: 2, 3: 3, 4: 4,
 	    5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
 	    A: 0XA, B: 0XB, C: 0XC, D: 0XD, E: 0XE, F: 0XF,
 	    a: 0xa, b: 0xb, c: 0xc, d: 0xd, e: 0xe, f: 0xf,
 	};
-	exports.NUM = [
+	exports$1.NUM = [
 	    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 	];
-	exports.ALPHANUM = exports.ALPHA.concat(exports.NUM);
-	exports.MARK = ['-', '_', '.', '!', '~', '*', '\'', '(', ')'];
-	exports.USERINFO_CHARS = exports.ALPHANUM
-	    .concat(exports.MARK)
+	exports$1.ALPHANUM = exports$1.ALPHA.concat(exports$1.NUM);
+	exports$1.MARK = ['-', '_', '.', '!', '~', '*', '\'', '(', ')'];
+	exports$1.USERINFO_CHARS = exports$1.ALPHANUM
+	    .concat(exports$1.MARK)
 	    .concat(['%', ';', ':', '&', '=', '+', '$', ',']);
 	// TODO(indutny): use RFC
-	exports.URL_CHAR = [
+	exports$1.URL_CHAR = [
 	    '!', '"', '$', '%', '&', '\'',
 	    '(', ')', '*', '+', ',', '-', '.', '/',
 	    ':', ';', '<', '=', '>',
 	    '@', '[', '\\', ']', '^', '_',
 	    '`',
 	    '{', '|', '}', '~',
-	].concat(exports.ALPHANUM);
-	exports.HEX = exports.NUM.concat(['a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F']);
+	].concat(exports$1.ALPHANUM);
+	exports$1.HEX = exports$1.NUM.concat(['a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F']);
 	/* Tokens as defined by rfc 2616. Also lowercases them.
 	 *        token       = 1*<any CHAR except CTLs or separators>
 	 *     separators     = "(" | ")" | "<" | ">" | "@"
@@ -3972,80 +3972,80 @@ function enumToMap(obj, filter = [], exceptions = []) {
 	 *                    | "/" | "[" | "]" | "?" | "="
 	 *                    | "{" | "}" | SP | HT
 	 */
-	exports.TOKEN = [
+	exports$1.TOKEN = [
 	    '!', '#', '$', '%', '&', '\'',
 	    '*', '+', '-', '.',
 	    '^', '_', '`',
 	    '|', '~',
-	].concat(exports.ALPHANUM);
+	].concat(exports$1.ALPHANUM);
 	/*
 	 * Verify that a char is a valid visible (printable) US-ASCII
 	 * character or %x80-FF
 	 */
-	exports.HEADER_CHARS = ['\t'];
+	exports$1.HEADER_CHARS = ['\t'];
 	for (let i = 32; i <= 255; i++) {
 	    if (i !== 127) {
-	        exports.HEADER_CHARS.push(i);
+	        exports$1.HEADER_CHARS.push(i);
 	    }
 	}
 	// ',' = \x44
-	exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS.filter((c) => c !== 44);
-	exports.QUOTED_STRING = ['\t', ' '];
+	exports$1.CONNECTION_TOKEN_CHARS = exports$1.HEADER_CHARS.filter((c) => c !== 44);
+	exports$1.QUOTED_STRING = ['\t', ' '];
 	for (let i = 0x21; i <= 0xff; i++) {
 	    if (i !== 0x22 && i !== 0x5c) { // All characters in ASCII except \ and "
-	        exports.QUOTED_STRING.push(i);
+	        exports$1.QUOTED_STRING.push(i);
 	    }
 	}
-	exports.HTAB_SP_VCHAR_OBS_TEXT = ['\t', ' '];
+	exports$1.HTAB_SP_VCHAR_OBS_TEXT = ['\t', ' '];
 	// VCHAR: https://tools.ietf.org/html/rfc5234#appendix-B.1
 	for (let i = 0x21; i <= 0x7E; i++) {
-	    exports.HTAB_SP_VCHAR_OBS_TEXT.push(i);
+	    exports$1.HTAB_SP_VCHAR_OBS_TEXT.push(i);
 	}
 	// OBS_TEXT: https://datatracker.ietf.org/doc/html/rfc9110#name-collected-abnf
 	for (let i = 0x80; i <= 0xff; i++) {
-	    exports.HTAB_SP_VCHAR_OBS_TEXT.push(i);
+	    exports$1.HTAB_SP_VCHAR_OBS_TEXT.push(i);
 	}
-	exports.MAJOR = exports.NUM_MAP;
-	exports.MINOR = exports.MAJOR;
-	exports.SPECIAL_HEADERS = {
-	    'connection': exports.HEADER_STATE.CONNECTION,
-	    'content-length': exports.HEADER_STATE.CONTENT_LENGTH,
-	    'proxy-connection': exports.HEADER_STATE.CONNECTION,
-	    'transfer-encoding': exports.HEADER_STATE.TRANSFER_ENCODING,
-	    'upgrade': exports.HEADER_STATE.UPGRADE,
+	exports$1.MAJOR = exports$1.NUM_MAP;
+	exports$1.MINOR = exports$1.MAJOR;
+	exports$1.SPECIAL_HEADERS = {
+	    'connection': exports$1.HEADER_STATE.CONNECTION,
+	    'content-length': exports$1.HEADER_STATE.CONTENT_LENGTH,
+	    'proxy-connection': exports$1.HEADER_STATE.CONNECTION,
+	    'transfer-encoding': exports$1.HEADER_STATE.TRANSFER_ENCODING,
+	    'upgrade': exports$1.HEADER_STATE.UPGRADE,
 	};
-	exports.default = {
-	    ERROR: exports.ERROR,
-	    TYPE: exports.TYPE,
-	    FLAGS: exports.FLAGS,
-	    LENIENT_FLAGS: exports.LENIENT_FLAGS,
-	    METHODS: exports.METHODS,
-	    STATUSES: exports.STATUSES,
-	    FINISH: exports.FINISH,
-	    HEADER_STATE: exports.HEADER_STATE,
-	    ALPHA: exports.ALPHA,
-	    NUM_MAP: exports.NUM_MAP,
-	    HEX_MAP: exports.HEX_MAP,
-	    NUM: exports.NUM,
-	    ALPHANUM: exports.ALPHANUM,
-	    MARK: exports.MARK,
-	    USERINFO_CHARS: exports.USERINFO_CHARS,
-	    URL_CHAR: exports.URL_CHAR,
-	    HEX: exports.HEX,
-	    TOKEN: exports.TOKEN,
-	    HEADER_CHARS: exports.HEADER_CHARS,
-	    CONNECTION_TOKEN_CHARS: exports.CONNECTION_TOKEN_CHARS,
-	    QUOTED_STRING: exports.QUOTED_STRING,
-	    HTAB_SP_VCHAR_OBS_TEXT: exports.HTAB_SP_VCHAR_OBS_TEXT,
-	    MAJOR: exports.MAJOR,
-	    MINOR: exports.MINOR,
-	    SPECIAL_HEADERS: exports.SPECIAL_HEADERS,
-	    METHODS_HTTP: exports.METHODS_HTTP,
-	    METHODS_ICE: exports.METHODS_ICE,
-	    METHODS_RTSP: exports.METHODS_RTSP,
-	    METHOD_MAP: exports.METHOD_MAP,
-	    H_METHOD_MAP: exports.H_METHOD_MAP,
-	    STATUSES_HTTP: exports.STATUSES_HTTP,
+	exports$1.default = {
+	    ERROR: exports$1.ERROR,
+	    TYPE: exports$1.TYPE,
+	    FLAGS: exports$1.FLAGS,
+	    LENIENT_FLAGS: exports$1.LENIENT_FLAGS,
+	    METHODS: exports$1.METHODS,
+	    STATUSES: exports$1.STATUSES,
+	    FINISH: exports$1.FINISH,
+	    HEADER_STATE: exports$1.HEADER_STATE,
+	    ALPHA: exports$1.ALPHA,
+	    NUM_MAP: exports$1.NUM_MAP,
+	    HEX_MAP: exports$1.HEX_MAP,
+	    NUM: exports$1.NUM,
+	    ALPHANUM: exports$1.ALPHANUM,
+	    MARK: exports$1.MARK,
+	    USERINFO_CHARS: exports$1.USERINFO_CHARS,
+	    URL_CHAR: exports$1.URL_CHAR,
+	    HEX: exports$1.HEX,
+	    TOKEN: exports$1.TOKEN,
+	    HEADER_CHARS: exports$1.HEADER_CHARS,
+	    CONNECTION_TOKEN_CHARS: exports$1.CONNECTION_TOKEN_CHARS,
+	    QUOTED_STRING: exports$1.QUOTED_STRING,
+	    HTAB_SP_VCHAR_OBS_TEXT: exports$1.HTAB_SP_VCHAR_OBS_TEXT,
+	    MAJOR: exports$1.MAJOR,
+	    MINOR: exports$1.MINOR,
+	    SPECIAL_HEADERS: exports$1.SPECIAL_HEADERS,
+	    METHODS_HTTP: exports$1.METHODS_HTTP,
+	    METHODS_ICE: exports$1.METHODS_ICE,
+	    METHODS_RTSP: exports$1.METHODS_RTSP,
+	    METHOD_MAP: exports$1.METHOD_MAP,
+	    H_METHOD_MAP: exports$1.H_METHOD_MAP,
+	    STATUSES_HTTP: exports$1.STATUSES_HTTP,
 	}; 
 } (constants$4));
 
@@ -9448,8 +9448,8 @@ class Parser {
      * @param {import('net').Socket} socket
      * @param {*} llhttp
      */
-  constructor (client, socket, { exports }) {
-    this.llhttp = exports;
+  constructor (client, socket, { exports: exports$1 }) {
+    this.llhttp = exports$1;
     this.ptr = this.llhttp.llhttp_alloc(constants$2.TYPE.RESPONSE);
     this.client = client;
     /**

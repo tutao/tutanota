@@ -1116,11 +1116,6 @@ function warn(...msg) {
         console.warn(...msg);
     }
 }
-function log$3(...msg) {
-    if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
-        console.log(...msg);
-    }
-}
 
 /**
  * @license
@@ -2606,11 +2601,11 @@ Long$1.fromBytesBE = function fromBytesBE(bytes, unsigned) {
     );
 };
 
-var long$1 = /*@__PURE__*/getDefaultExportFromCjs(long);
+var long_default = /*@__PURE__*/getDefaultExportFromCjs(long);
 
 var LongExports = /*#__PURE__*/_mergeNamespaces({
     __proto__: null,
-    default: long$1
+    default: long_default
 }, [long]);
 
 /**
@@ -2634,7 +2629,7 @@ var LongExports = /*#__PURE__*/_mergeNamespaces({
 // tslint:disable-next-line
 const Long = 
 // tslint:disable-next-line
-long$1 || LongExports;
+long_default || LongExports;
 function hexToLong(hex) {
     return Long.fromString(hex, true, 16);
 }
@@ -11896,74 +11891,6 @@ function tensor2d(values, shape, dtype) {
 }
 
 /**
- * Check whether updates.shape = indices.shape[:batchDim] +
- * shape[sliceDim:]
- *
- * @param x The input tensor.
- */
-function validateUpdateShape(shape, indices, updates) {
-    const sliceDim = (indices.rank > 1) ? indices.shape[indices.rank - 1] : 1;
-    const batchDim = (indices.rank > 1) ? indices.rank - 1 : 1;
-    const shapeError = 'Must have updates.shape = indices.shape[:batchDim] + ' +
-        `shape[sliceDim:], got updates.shape: ${updates.shape}` +
-        `, indices.shape: ${indices.shape}, shape: ${shape}` +
-        `, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
-    if (updates.rank < batchDim) {
-        throw new Error(shapeError + ` update.rank < ${batchDim}. `);
-    }
-    if (shape.length < sliceDim + (updates.rank - batchDim)) {
-        throw new Error(shapeError +
-            ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`);
-    }
-    if (updates.rank !== batchDim + shape.length - sliceDim) {
-        throw new Error(shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`);
-    }
-    for (let d = 0; d < batchDim; ++d) {
-        if (updates.shape[d] !== indices.shape[d]) {
-            throw new Error(shapeError +
-                ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`);
-        }
-    }
-    for (let d = 0; d < updates.rank - batchDim; ++d) {
-        if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
-            throw new Error(shapeError +
-                ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`);
-        }
-    }
-}
-/**
- * Validate scatter nd inputs.
- *
- * @param update The tensor contains the update values.
- * @param indices The tensor contains the indices for the update values.
- * @param shape The shape of the output tensor.
- */
-function validateInput(updates, indices, shape) {
-    if (indices.rank < 1) {
-        throw new Error('tf.scatterND() expects the indices to be rank 1 or higher,' +
-            ` but the rank was ${indices.rank}.`);
-    }
-    if (updates.rank < 1) {
-        throw new Error('tf.scatterND() expects the updates to be rank 1 or higher,' +
-            ` but the rank was ${updates.rank}.`);
-    }
-    if (indices.dtype !== 'int32') {
-        throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
-    }
-    if (shape.length < 1) {
-        throw new Error(`Output rank must be greater or equal to 1, but got shape: ${shape}`);
-    }
-    if (shape.length === 0) {
-        if (indices.size === 0) {
-            throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
-        }
-        if (updates.size === 0) {
-            throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
-        }
-    }
-    validateUpdateShape(shape, indices, updates);
-}
-/**
  * Calculate the shape information for the output.
  *
  * @param update The tensor contains the update values.
@@ -16070,19 +15997,6 @@ function assertParamsValid(input, begin, size) {
             `(${begin[i] + size[i]}) would overflow input.shape[${i}] (${input.shape[i]})`);
     }
 }
-/** Converts a binary mask to an array of axes. Used in stridedSlice(). */
-function maskToAxes(mask) {
-    const axes = [];
-    let axis = 0;
-    while (mask > 0) {
-        if (mask & 1) {
-            axes.push(axis);
-        }
-        mask /= 2;
-        axis++;
-    }
-    return axes;
-}
 /** Computes the output shape given the strided slice params. */
 function computeOutShape$2(begin, end, strides) {
     const size = [];
@@ -16090,182 +16004,6 @@ function computeOutShape$2(begin, end, strides) {
         size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
     }
     return size;
-}
-// Creates full selection at the elided dimensions. If the dimension matches
-// the ellipsis mask, override the current stride value. Otherwise, insert.
-function stridesWithElidedDims(strides, ellipsisInsertionIndex, numElidedAxes, inputShape) {
-    const newStrides = [...strides];
-    for (let i = newStrides.length; i < inputShape.length; i++) {
-        newStrides.push(1);
-    }
-    for (let i = 0; i < numElidedAxes; i++) {
-        if (i === 0) {
-            newStrides[ellipsisInsertionIndex] = 1;
-        }
-        else {
-            newStrides.splice(ellipsisInsertionIndex, 0 /* num elements to delete */, 1 /* element to add */);
-            newStrides.pop();
-        }
-    }
-    return newStrides;
-}
-function unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, normalizedAxis) {
-    if (normalizedAxis <= ellipsisInsertionIndex) {
-        return normalizedAxis;
-    }
-    return normalizedAxis - (numElidedAxes - 1);
-}
-function getElidedAxes(numElidedAxes, ellipsisInsertionIndex) {
-    const elidedAxes = [];
-    for (let i = 0; i < numElidedAxes; i++) {
-        elidedAxes.push(ellipsisInsertionIndex + i);
-    }
-    return elidedAxes;
-}
-// Normalize the start, end and strides.
-function getNormalizedAxes(inputShape, ellipsisAxes, numInterpolatedAxes, begin, end, strides, beginMask, endMask, ellipsisMask) {
-    const inputRank = inputShape.length;
-    let normalizedBegin = new Array(inputRank), normalizedEnd = new Array(inputRank), normalizedStrides = new Array(inputRank);
-    if (ellipsisAxes.length && numInterpolatedAxes > 0) {
-        const fullIndex = ellipsisAxes[0];
-        // The ellipsis applies to the masked index as well as any dimensions
-        // that are interpolated.
-        const numElidedAxes = numInterpolatedAxes + 1;
-        normalizedBegin = startIndicesWithElidedDims(beginMask, fullIndex, numElidedAxes, begin, inputShape);
-        normalizedEnd = stopIndicesWithElidedDims(endMask, fullIndex, numElidedAxes, end, inputShape);
-        normalizedStrides =
-            stridesWithElidedDims(strides, fullIndex, numElidedAxes, inputShape);
-    }
-    else {
-        for (let axis = 0; axis < inputRank; axis++) {
-            normalizedBegin[axis] = startForAxis(beginMask, begin, strides, inputShape, axis, ellipsisMask);
-            normalizedEnd[axis] =
-                stopForAxis(endMask, end, strides, inputShape, axis, ellipsisMask);
-            normalizedStrides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-        }
-    }
-    return {
-        begin: normalizedBegin,
-        end: normalizedEnd,
-        strides: normalizedStrides
-    };
-}
-// Creates full selection at the elided dimensions. If the dimension matches
-// the ellipsis mask, override the current start value. Otherwise, insert.
-function startIndicesWithElidedDims(beginMask, ellipsisInsertionIndex, numElidedAxes, originalBegin, inputShape) {
-    const newIndices = [...inputShape];
-    const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
-    for (let axis = 0; axis < newIndices.length; axis++) {
-        if (elidedAxes.indexOf(axis) > -1) {
-            newIndices[axis] = 0;
-        }
-        else {
-            const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
-            let originalValue = originalBegin[originalAxis];
-            if (beginMask & 1 << originalAxis) {
-                originalValue = 0;
-            }
-            newIndices[axis] = originalValue;
-        }
-    }
-    return newIndices;
-}
-// Creates full selection at the elided dimensions. If the dimension matches
-// the ellipsis mask, override the current stop value. Otherwise, insert.
-function stopIndicesWithElidedDims(endMask, ellipsisInsertionIndex, numElidedAxes, originalEnd, inputShape) {
-    const newIndices = [...inputShape];
-    const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
-    for (let axis = 0; axis < newIndices.length; axis++) {
-        if (elidedAxes.indexOf(axis) > -1) {
-            newIndices[axis] = Number.MAX_SAFE_INTEGER;
-        }
-        else {
-            const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
-            let originalValue = originalEnd[originalAxis];
-            if (endMask & 1 << originalAxis) {
-                originalValue = Number.MAX_SAFE_INTEGER;
-            }
-            newIndices[axis] = originalValue;
-        }
-    }
-    for (let i = 0; i < newIndices.length; i++) {
-        // Handle negative indices
-        const axisSize = inputShape[i];
-        if (newIndices[i] < 0) {
-            newIndices[i] += axisSize;
-        }
-        newIndices[i] = clamp(0, newIndices[i], inputShape[i]);
-    }
-    return newIndices;
-}
-function stridesForAxis(strides, axis, ellipsisMask) {
-    let stride = strides[axis];
-    if (ellipsisMask & (1 << axis) || stride == null) {
-        stride = 1;
-    }
-    return stride;
-}
-function startForAxis(beginMask, startIndices, strides, inputShape, axis, ellipsisMask) {
-    // Begin with the specified index
-    let start = startIndices[axis];
-    const stride = strides[axis] || 1;
-    // Check the axis bit from right of masked axes, or the begin index is not set
-    // for the axis.
-    if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
-        if (stride > 0) {
-            // Forward iteration - use the first element. These values will get
-            // clamped below (Note: We could have set them to 0 and axis_size-1, but
-            // use lowest() and max() to maintain symmetry with StopForAxis())
-            start = Number.MIN_SAFE_INTEGER;
-        }
-        else {
-            // Backward iteration - use the last element.
-            start = Number.MAX_SAFE_INTEGER;
-        }
-    }
-    // Handle negative indices
-    const axisSize = inputShape[axis];
-    if (start < 0) {
-        start += axisSize;
-    }
-    // Clamping
-    start = clamp(0, start, axisSize - 1);
-    return start;
-}
-function stopForAxis(endMask, stopIndices, strides, inputShape, axis, ellipsisMask) {
-    // Begin with the specified index
-    let stop = stopIndices[axis];
-    const stride = strides[axis] || 1;
-    // Check the axis bit from right of masked axes, or if the stop index is not
-    // set for this axis.
-    if (endMask & (1 << axis) || ellipsisMask & (1 << axis) || stop == null) {
-        if (stride > 0) {
-            // Forward iteration - use the last element. These values will get
-            // clamped below
-            stop = Number.MAX_SAFE_INTEGER;
-        }
-        else {
-            // Backward iteration - use the first element.
-            stop = Number.MIN_SAFE_INTEGER;
-        }
-    }
-    // Handle negative indices
-    const axisSize = inputShape[axis];
-    if (stop < 0) {
-        stop += axisSize;
-    }
-    // Clamping
-    // Because the end index points one past the last element, we need slightly
-    // different clamping ranges depending on the direction.
-    if (stride > 0) {
-        // Forward iteration
-        stop = clamp(0, stop, axisSize);
-    }
-    else {
-        // Backward iteration
-        stop = clamp(-1, stop, axisSize - 1);
-    }
-    return stop;
 }
 /**
  * Returns true if the slice occupies a continous set of elements in the
@@ -16611,24 +16349,6 @@ function canonical(x, c, strideI, dimI, masks, validRange) {
             xFwd > validRange[1] ? validRange[1] : xFwd;
     }
 }
-
-var slice_util = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    assertParamsValid: assertParamsValid,
-    computeFlatOffset: computeFlatOffset,
-    computeOutShape: computeOutShape$2,
-    getNormalizedAxes: getNormalizedAxes,
-    isSliceContinous: isSliceContinous,
-    maskToAxes: maskToAxes,
-    parseSliceParams: parseSliceParams,
-    sliceInfo: sliceInfo,
-    startForAxis: startForAxis,
-    startIndicesWithElidedDims: startIndicesWithElidedDims,
-    stopForAxis: stopForAxis,
-    stopIndicesWithElidedDims: stopIndicesWithElidedDims,
-    stridesForAxis: stridesForAxis,
-    stridesWithElidedDims: stridesWithElidedDims
-});
 
 /**
  * @license
@@ -17858,13 +17578,6 @@ function collectGatherOpShapeInfo(x, indices, axis, batchDims) {
     return { batchSize, sliceSize, outerSize, dimSize, outputShape };
 }
 
-var segment_util = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    collectGatherOpShapeInfo: collectGatherOpShapeInfo,
-    computeOutShape: computeOutShape,
-    segOpComputeOptimalWindowSize: segOpComputeOptimalWindowSize
-});
-
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -17967,20 +17680,15 @@ var backend_util = /*#__PURE__*/Object.freeze({
     getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage: getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage,
     getUndoAxesPermutation: getUndoAxesPermutation,
     isIdentityPermutation: isIdentityPermutation,
-    log: log$3,
     mergeRealAndImagArrays: mergeRealAndImagArrays,
     prepareAndValidate: prepareAndValidate,
     prepareSplitSize: prepareSplitSize,
-    segment_util: segment_util,
     shouldFuse: shouldFuse,
-    slice_util: slice_util,
     splitRealAndImagArrays: splitRealAndImagArrays,
     stridesOrDilationsArePositive: stridesOrDilationsArePositive,
     tupleValuesAreOne: tupleValuesAreOne,
     upcastType: upcastType,
     validateDefaultValueShape: validateDefaultValueShape,
-    validateInput: validateInput,
-    validateUpdateShape: validateUpdateShape,
     warn: warn
 });
 
