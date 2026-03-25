@@ -6,12 +6,11 @@ import require$$2 from 'os';
 import require$$1$2 from 'fs';
 import require$$0$1 from 'stream';
 import require$$4 from 'url';
-import require$$1$3 from 'string_decoder';
 import require$$0$3 from 'constants';
 import require$$5 from 'assert';
-import require$$1$4 from 'path';
-import require$$1$6 from 'child_process';
-import require$$1$5 from 'electron';
+import require$$1$3 from 'path';
+import require$$1$5 from 'child_process';
+import require$$1$4 from 'electron';
 import require$$15 from 'zlib';
 import require$$4$1 from 'http';
 
@@ -486,7 +485,7 @@ function requireCommon () {
 
 			const split = (typeof namespaces === 'string' ? namespaces : '')
 				.trim()
-				.replace(' ', ',')
+				.replace(/\s+/g, ',')
 				.split(',')
 				.filter(Boolean);
 
@@ -838,7 +837,7 @@ function requireBrowser () {
 		function load() {
 			let r;
 			try {
-				r = exports.storage.getItem('debug');
+				r = exports.storage.getItem('debug') || exports.storage.getItem('DEBUG') ;
 			} catch (error) {
 				// Swallow
 				// XXX (@Qix-) should we be logging these?
@@ -2178,8 +2177,11 @@ var xml = {};
 var sax$1 = {};
 
 (function (exports) {
-(function (sax) { // wrapper for non-node envs
-	  sax.parser = function (strict, opt) { return new SAXParser(strict, opt) };
+(function (sax) {
+	  // wrapper for non-node envs
+	  sax.parser = function (strict, opt) {
+	    return new SAXParser(strict, opt)
+	  };
 	  sax.SAXParser = SAXParser;
 	  sax.SAXStream = SAXStream;
 	  sax.createStream = createStream;
@@ -2196,9 +2198,18 @@ var sax$1 = {};
 	  sax.MAX_BUFFER_LENGTH = 64 * 1024;
 
 	  var buffers = [
-	    'comment', 'sgmlDecl', 'textNode', 'tagName', 'doctype',
-	    'procInstName', 'procInstBody', 'entity', 'attribName',
-	    'attribValue', 'cdata', 'script'
+	    'comment',
+	    'sgmlDecl',
+	    'textNode',
+	    'tagName',
+	    'doctype',
+	    'procInstName',
+	    'procInstBody',
+	    'entity',
+	    'attribName',
+	    'attribValue',
+	    'cdata',
+	    'script',
 	  ];
 
 	  sax.EVENTS = [
@@ -2219,10 +2230,10 @@ var sax$1 = {};
 	    'ready',
 	    'script',
 	    'opennamespace',
-	    'closenamespace'
+	    'closenamespace',
 	  ];
 
-	  function SAXParser (strict, opt) {
+	  function SAXParser(strict, opt) {
 	    if (!(this instanceof SAXParser)) {
 	      return new SAXParser(strict, opt)
 	    }
@@ -2231,9 +2242,13 @@ var sax$1 = {};
 	    clearBuffers(parser);
 	    parser.q = parser.c = '';
 	    parser.bufferCheckPosition = sax.MAX_BUFFER_LENGTH;
+	    parser.encoding = null;
 	    parser.opt = opt || {};
 	    parser.opt.lowercase = parser.opt.lowercase || parser.opt.lowercasetags;
 	    parser.looseCase = parser.opt.lowercase ? 'toLowerCase' : 'toUpperCase';
+	    parser.opt.maxEntityCount = parser.opt.maxEntityCount || 512;
+	    parser.opt.maxEntityDepth = parser.opt.maxEntityDepth || 4;
+	    parser.entityCount = parser.entityDepth = 0;
 	    parser.tags = [];
 	    parser.closed = parser.closedRoot = parser.sawRoot = false;
 	    parser.tag = parser.error = null;
@@ -2241,7 +2256,10 @@ var sax$1 = {};
 	    parser.noscript = !!(strict || parser.opt.noscript);
 	    parser.state = S.BEGIN;
 	    parser.strictEntities = parser.opt.strictEntities;
-	    parser.ENTITIES = parser.strictEntities ? Object.create(sax.XML_ENTITIES) : Object.create(sax.ENTITIES);
+	    parser.ENTITIES =
+	      parser.strictEntities ?
+	        Object.create(sax.XML_ENTITIES)
+	      : Object.create(sax.ENTITIES);
 	    parser.attribList = [];
 
 	    // namespaces form a prototype chain.
@@ -2267,7 +2285,7 @@ var sax$1 = {};
 
 	  if (!Object.create) {
 	    Object.create = function (o) {
-	      function F () {}
+	      function F() {}
 	      F.prototype = o;
 	      var newf = new F();
 	      return newf
@@ -2282,7 +2300,7 @@ var sax$1 = {};
 	    };
 	  }
 
-	  function checkBufferLength (parser) {
+	  function checkBufferLength(parser) {
 	    var maxAllowed = Math.max(sax.MAX_BUFFER_LENGTH, 10);
 	    var maxActual = 0;
 	    for (var i = 0, l = buffers.length; i < l; i++) {
@@ -2318,13 +2336,13 @@ var sax$1 = {};
 	    parser.bufferCheckPosition = m + parser.position;
 	  }
 
-	  function clearBuffers (parser) {
+	  function clearBuffers(parser) {
 	    for (var i = 0, l = buffers.length; i < l; i++) {
 	      parser[buffers[i]] = '';
 	    }
 	  }
 
-	  function flushBuffers (parser) {
+	  function flushBuffers(parser) {
 	    closeText(parser);
 	    if (parser.cdata !== '') {
 	      emitNode(parser, 'oncdata', parser.cdata);
@@ -2337,11 +2355,20 @@ var sax$1 = {};
 	  }
 
 	  SAXParser.prototype = {
-	    end: function () { end(this); },
+	    end: function () {
+	      end(this);
+	    },
 	    write: write,
-	    resume: function () { this.error = null; return this },
-	    close: function () { return this.write(null) },
-	    flush: function () { flushBuffers(this); }
+	    resume: function () {
+	      this.error = null;
+	      return this
+	    },
+	    close: function () {
+	      return this.write(null)
+	    },
+	    flush: function () {
+	      flushBuffers(this);
+	    },
 	  };
 
 	  var Stream;
@@ -2356,11 +2383,44 @@ var sax$1 = {};
 	    return ev !== 'error' && ev !== 'end'
 	  });
 
-	  function createStream (strict, opt) {
+	  function createStream(strict, opt) {
 	    return new SAXStream(strict, opt)
 	  }
 
-	  function SAXStream (strict, opt) {
+	  function determineBufferEncoding(data, isEnd) {
+	    // BOM-based detection is the most reliable signal when present.
+	    if (data.length >= 2) {
+	      if (data[0] === 0xff && data[1] === 0xfe) {
+	        return 'utf-16le'
+	      }
+
+	      if (data[0] === 0xfe && data[1] === 0xff) {
+	        return 'utf-16be'
+	      }
+	    }
+
+	    if (data.length >= 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+	      return 'utf8'
+	    }
+
+	    if (data.length >= 4) {
+	      // XML documents without a BOM still start with "<?xml", which is enough
+	      // to distinguish UTF-16LE/BE from UTF-8 by looking at the zero bytes.
+	      if (data[0] === 0x3c && data[1] === 0x00 && data[2] === 0x3f && data[3] === 0x00) {
+	        return 'utf-16le'
+	      }
+
+	      if (data[0] === 0x00 && data[1] === 0x3c && data[2] === 0x00 && data[3] === 0x3f) {
+	        return 'utf-16be'
+	      }
+
+	      return 'utf8'
+	    }
+
+	    return isEnd ? 'utf8' : null
+	  }
+
+	  function SAXStream(strict, opt) {
 	    if (!(this instanceof SAXStream)) {
 	      return new SAXStream(strict, opt)
 	    }
@@ -2386,7 +2446,7 @@ var sax$1 = {};
 	    };
 
 	    this._decoder = null;
-
+	    this._decoderBuffer = null;
 	    streamWraps.forEach(function (ev) {
 	      Object.defineProperty(me, 'on' + ev, {
 	        get: function () {
@@ -2401,26 +2461,58 @@ var sax$1 = {};
 	          me.on(ev, h);
 	        },
 	        enumerable: true,
-	        configurable: false
+	        configurable: false,
 	      });
 	    });
 	  }
 
 	  SAXStream.prototype = Object.create(Stream.prototype, {
 	    constructor: {
-	      value: SAXStream
-	    }
+	      value: SAXStream,
+	    },
 	  });
 
-	  SAXStream.prototype.write = function (data) {
-	    if (typeof Buffer === 'function' &&
-	      typeof Buffer.isBuffer === 'function' &&
-	      Buffer.isBuffer(data)) {
-	      if (!this._decoder) {
-	        var SD = require$$1$3.StringDecoder;
-	        this._decoder = new SD('utf8');
+	  SAXStream.prototype._decodeBuffer = function (data, isEnd) {
+	    if (this._decoderBuffer) {
+	      // Keep incomplete leading bytes until we have enough data to infer the
+	      // stream encoding, then decode the buffered prefix together with the next chunk.
+	      data = Buffer.concat([this._decoderBuffer, data]);
+	      this._decoderBuffer = null;
+	    }
+
+	    if (!this._decoder) {
+	      var encoding = determineBufferEncoding(data, isEnd);
+	      if (!encoding) {
+	        // A very short first chunk may not contain enough bytes to detect the
+	        // encoding yet, so defer decoding until the next write/end call.
+	        this._decoderBuffer = data;
+	        return ''
 	      }
-	      data = this._decoder.write(data);
+
+	      // Store the detected transport encoding so strict mode can compare it
+	      // with the optional encoding declared in the XML prolog later on.
+	      this._parser.encoding = encoding;
+	      this._decoder = new TextDecoder(encoding);
+	    }
+
+	    return this._decoder.decode(data, { stream: !isEnd })
+	  };
+
+	  SAXStream.prototype.write = function (data) {
+	    if (
+	      typeof Buffer === 'function' &&
+	      typeof Buffer.isBuffer === 'function' &&
+	      Buffer.isBuffer(data)
+	    ) {
+	      data = this._decodeBuffer(data, false);
+	    } else if (this._decoderBuffer) {
+	      // Flush any buffered binary prefix before handling a string chunk.
+	      // This only matters if the caller mixes Buffer and string writes (used in test).
+	      var remaining = this._decodeBuffer(Buffer.alloc(0), true);
+	      if (remaining) {
+	        this._parser.write(remaining);
+	        this.emit('data', remaining);
+	      }
 	    }
 
 	    this._parser.write(data.toString());
@@ -2432,6 +2524,20 @@ var sax$1 = {};
 	    if (chunk && chunk.length) {
 	      this.write(chunk);
 	    }
+	    // Flush any remaining decoded data from the TextDecoder
+	    if (this._decoderBuffer) {
+	      var finalChunk = this._decodeBuffer(Buffer.alloc(0), true);
+	      if (finalChunk) {
+	        this._parser.write(finalChunk);
+	        this.emit('data', finalChunk);
+	      }
+	    } else if (this._decoder) {
+	      var remaining = this._decoder.decode();
+	      if (remaining) {
+	        this._parser.write(remaining);
+	        this.emit('data', remaining);
+	      }
+	    }
 	    this._parser.end();
 	    return true
 	  };
@@ -2440,7 +2546,10 @@ var sax$1 = {};
 	    var me = this;
 	    if (!me._parser['on' + ev] && streamWraps.indexOf(ev) !== -1) {
 	      me._parser['on' + ev] = function () {
-	        var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments);
+	        var args =
+	          arguments.length === 1 ?
+	            [arguments[0]]
+	          : Array.apply(null, arguments);
 	        args.splice(0, 0, ev);
 	        me.emit.apply(me, args);
 	      };
@@ -2463,30 +2572,34 @@ var sax$1 = {};
 	  // without a significant breaking change to either this  parser, or the
 	  // JavaScript language.  Implementation of an emoji-capable xml parser
 	  // is left as an exercise for the reader.
-	  var nameStart = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
+	  var nameStart =
+	    /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
 
-	  var nameBody = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
+	  var nameBody =
+	    /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
 
-	  var entityStart = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
-	  var entityBody = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
+	  var entityStart =
+	    /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
+	  var entityBody =
+	    /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
 
-	  function isWhitespace (c) {
+	  function isWhitespace(c) {
 	    return c === ' ' || c === '\n' || c === '\r' || c === '\t'
 	  }
 
-	  function isQuote (c) {
-	    return c === '"' || c === '\''
+	  function isQuote(c) {
+	    return c === '"' || c === "'"
 	  }
 
-	  function isAttribEnd (c) {
+	  function isAttribEnd(c) {
 	    return c === '>' || isWhitespace(c)
 	  }
 
-	  function isMatch (regex, c) {
+	  function isMatch(regex, c) {
 	    return regex.test(c)
 	  }
 
-	  function notMatch (regex, c) {
+	  function notMatch(regex, c) {
 	    return !isMatch(regex, c)
 	  }
 
@@ -2527,271 +2640,271 @@ var sax$1 = {};
 	    CLOSE_TAG: S++, // </a
 	    CLOSE_TAG_SAW_WHITE: S++, // </a   >
 	    SCRIPT: S++, // <script> ...
-	    SCRIPT_ENDING: S++ // <script> ... <
+	    SCRIPT_ENDING: S++, // <script> ... <
 	  };
 
 	  sax.XML_ENTITIES = {
-	    'amp': '&',
-	    'gt': '>',
-	    'lt': '<',
-	    'quot': '"',
-	    'apos': "'"
+	    amp: '&',
+	    gt: '>',
+	    lt: '<',
+	    quot: '"',
+	    apos: "'",
 	  };
 
 	  sax.ENTITIES = {
-	    'amp': '&',
-	    'gt': '>',
-	    'lt': '<',
-	    'quot': '"',
-	    'apos': "'",
-	    'AElig': 198,
-	    'Aacute': 193,
-	    'Acirc': 194,
-	    'Agrave': 192,
-	    'Aring': 197,
-	    'Atilde': 195,
-	    'Auml': 196,
-	    'Ccedil': 199,
-	    'ETH': 208,
-	    'Eacute': 201,
-	    'Ecirc': 202,
-	    'Egrave': 200,
-	    'Euml': 203,
-	    'Iacute': 205,
-	    'Icirc': 206,
-	    'Igrave': 204,
-	    'Iuml': 207,
-	    'Ntilde': 209,
-	    'Oacute': 211,
-	    'Ocirc': 212,
-	    'Ograve': 210,
-	    'Oslash': 216,
-	    'Otilde': 213,
-	    'Ouml': 214,
-	    'THORN': 222,
-	    'Uacute': 218,
-	    'Ucirc': 219,
-	    'Ugrave': 217,
-	    'Uuml': 220,
-	    'Yacute': 221,
-	    'aacute': 225,
-	    'acirc': 226,
-	    'aelig': 230,
-	    'agrave': 224,
-	    'aring': 229,
-	    'atilde': 227,
-	    'auml': 228,
-	    'ccedil': 231,
-	    'eacute': 233,
-	    'ecirc': 234,
-	    'egrave': 232,
-	    'eth': 240,
-	    'euml': 235,
-	    'iacute': 237,
-	    'icirc': 238,
-	    'igrave': 236,
-	    'iuml': 239,
-	    'ntilde': 241,
-	    'oacute': 243,
-	    'ocirc': 244,
-	    'ograve': 242,
-	    'oslash': 248,
-	    'otilde': 245,
-	    'ouml': 246,
-	    'szlig': 223,
-	    'thorn': 254,
-	    'uacute': 250,
-	    'ucirc': 251,
-	    'ugrave': 249,
-	    'uuml': 252,
-	    'yacute': 253,
-	    'yuml': 255,
-	    'copy': 169,
-	    'reg': 174,
-	    'nbsp': 160,
-	    'iexcl': 161,
-	    'cent': 162,
-	    'pound': 163,
-	    'curren': 164,
-	    'yen': 165,
-	    'brvbar': 166,
-	    'sect': 167,
-	    'uml': 168,
-	    'ordf': 170,
-	    'laquo': 171,
-	    'not': 172,
-	    'shy': 173,
-	    'macr': 175,
-	    'deg': 176,
-	    'plusmn': 177,
-	    'sup1': 185,
-	    'sup2': 178,
-	    'sup3': 179,
-	    'acute': 180,
-	    'micro': 181,
-	    'para': 182,
-	    'middot': 183,
-	    'cedil': 184,
-	    'ordm': 186,
-	    'raquo': 187,
-	    'frac14': 188,
-	    'frac12': 189,
-	    'frac34': 190,
-	    'iquest': 191,
-	    'times': 215,
-	    'divide': 247,
-	    'OElig': 338,
-	    'oelig': 339,
-	    'Scaron': 352,
-	    'scaron': 353,
-	    'Yuml': 376,
-	    'fnof': 402,
-	    'circ': 710,
-	    'tilde': 732,
-	    'Alpha': 913,
-	    'Beta': 914,
-	    'Gamma': 915,
-	    'Delta': 916,
-	    'Epsilon': 917,
-	    'Zeta': 918,
-	    'Eta': 919,
-	    'Theta': 920,
-	    'Iota': 921,
-	    'Kappa': 922,
-	    'Lambda': 923,
-	    'Mu': 924,
-	    'Nu': 925,
-	    'Xi': 926,
-	    'Omicron': 927,
-	    'Pi': 928,
-	    'Rho': 929,
-	    'Sigma': 931,
-	    'Tau': 932,
-	    'Upsilon': 933,
-	    'Phi': 934,
-	    'Chi': 935,
-	    'Psi': 936,
-	    'Omega': 937,
-	    'alpha': 945,
-	    'beta': 946,
-	    'gamma': 947,
-	    'delta': 948,
-	    'epsilon': 949,
-	    'zeta': 950,
-	    'eta': 951,
-	    'theta': 952,
-	    'iota': 953,
-	    'kappa': 954,
-	    'lambda': 955,
-	    'mu': 956,
-	    'nu': 957,
-	    'xi': 958,
-	    'omicron': 959,
-	    'pi': 960,
-	    'rho': 961,
-	    'sigmaf': 962,
-	    'sigma': 963,
-	    'tau': 964,
-	    'upsilon': 965,
-	    'phi': 966,
-	    'chi': 967,
-	    'psi': 968,
-	    'omega': 969,
-	    'thetasym': 977,
-	    'upsih': 978,
-	    'piv': 982,
-	    'ensp': 8194,
-	    'emsp': 8195,
-	    'thinsp': 8201,
-	    'zwnj': 8204,
-	    'zwj': 8205,
-	    'lrm': 8206,
-	    'rlm': 8207,
-	    'ndash': 8211,
-	    'mdash': 8212,
-	    'lsquo': 8216,
-	    'rsquo': 8217,
-	    'sbquo': 8218,
-	    'ldquo': 8220,
-	    'rdquo': 8221,
-	    'bdquo': 8222,
-	    'dagger': 8224,
-	    'Dagger': 8225,
-	    'bull': 8226,
-	    'hellip': 8230,
-	    'permil': 8240,
-	    'prime': 8242,
-	    'Prime': 8243,
-	    'lsaquo': 8249,
-	    'rsaquo': 8250,
-	    'oline': 8254,
-	    'frasl': 8260,
-	    'euro': 8364,
-	    'image': 8465,
-	    'weierp': 8472,
-	    'real': 8476,
-	    'trade': 8482,
-	    'alefsym': 8501,
-	    'larr': 8592,
-	    'uarr': 8593,
-	    'rarr': 8594,
-	    'darr': 8595,
-	    'harr': 8596,
-	    'crarr': 8629,
-	    'lArr': 8656,
-	    'uArr': 8657,
-	    'rArr': 8658,
-	    'dArr': 8659,
-	    'hArr': 8660,
-	    'forall': 8704,
-	    'part': 8706,
-	    'exist': 8707,
-	    'empty': 8709,
-	    'nabla': 8711,
-	    'isin': 8712,
-	    'notin': 8713,
-	    'ni': 8715,
-	    'prod': 8719,
-	    'sum': 8721,
-	    'minus': 8722,
-	    'lowast': 8727,
-	    'radic': 8730,
-	    'prop': 8733,
-	    'infin': 8734,
-	    'ang': 8736,
-	    'and': 8743,
-	    'or': 8744,
-	    'cap': 8745,
-	    'cup': 8746,
-	    'int': 8747,
-	    'there4': 8756,
-	    'sim': 8764,
-	    'cong': 8773,
-	    'asymp': 8776,
-	    'ne': 8800,
-	    'equiv': 8801,
-	    'le': 8804,
-	    'ge': 8805,
-	    'sub': 8834,
-	    'sup': 8835,
-	    'nsub': 8836,
-	    'sube': 8838,
-	    'supe': 8839,
-	    'oplus': 8853,
-	    'otimes': 8855,
-	    'perp': 8869,
-	    'sdot': 8901,
-	    'lceil': 8968,
-	    'rceil': 8969,
-	    'lfloor': 8970,
-	    'rfloor': 8971,
-	    'lang': 9001,
-	    'rang': 9002,
-	    'loz': 9674,
-	    'spades': 9824,
-	    'clubs': 9827,
-	    'hearts': 9829,
-	    'diams': 9830
+	    amp: '&',
+	    gt: '>',
+	    lt: '<',
+	    quot: '"',
+	    apos: "'",
+	    AElig: 198,
+	    Aacute: 193,
+	    Acirc: 194,
+	    Agrave: 192,
+	    Aring: 197,
+	    Atilde: 195,
+	    Auml: 196,
+	    Ccedil: 199,
+	    ETH: 208,
+	    Eacute: 201,
+	    Ecirc: 202,
+	    Egrave: 200,
+	    Euml: 203,
+	    Iacute: 205,
+	    Icirc: 206,
+	    Igrave: 204,
+	    Iuml: 207,
+	    Ntilde: 209,
+	    Oacute: 211,
+	    Ocirc: 212,
+	    Ograve: 210,
+	    Oslash: 216,
+	    Otilde: 213,
+	    Ouml: 214,
+	    THORN: 222,
+	    Uacute: 218,
+	    Ucirc: 219,
+	    Ugrave: 217,
+	    Uuml: 220,
+	    Yacute: 221,
+	    aacute: 225,
+	    acirc: 226,
+	    aelig: 230,
+	    agrave: 224,
+	    aring: 229,
+	    atilde: 227,
+	    auml: 228,
+	    ccedil: 231,
+	    eacute: 233,
+	    ecirc: 234,
+	    egrave: 232,
+	    eth: 240,
+	    euml: 235,
+	    iacute: 237,
+	    icirc: 238,
+	    igrave: 236,
+	    iuml: 239,
+	    ntilde: 241,
+	    oacute: 243,
+	    ocirc: 244,
+	    ograve: 242,
+	    oslash: 248,
+	    otilde: 245,
+	    ouml: 246,
+	    szlig: 223,
+	    thorn: 254,
+	    uacute: 250,
+	    ucirc: 251,
+	    ugrave: 249,
+	    uuml: 252,
+	    yacute: 253,
+	    yuml: 255,
+	    copy: 169,
+	    reg: 174,
+	    nbsp: 160,
+	    iexcl: 161,
+	    cent: 162,
+	    pound: 163,
+	    curren: 164,
+	    yen: 165,
+	    brvbar: 166,
+	    sect: 167,
+	    uml: 168,
+	    ordf: 170,
+	    laquo: 171,
+	    not: 172,
+	    shy: 173,
+	    macr: 175,
+	    deg: 176,
+	    plusmn: 177,
+	    sup1: 185,
+	    sup2: 178,
+	    sup3: 179,
+	    acute: 180,
+	    micro: 181,
+	    para: 182,
+	    middot: 183,
+	    cedil: 184,
+	    ordm: 186,
+	    raquo: 187,
+	    frac14: 188,
+	    frac12: 189,
+	    frac34: 190,
+	    iquest: 191,
+	    times: 215,
+	    divide: 247,
+	    OElig: 338,
+	    oelig: 339,
+	    Scaron: 352,
+	    scaron: 353,
+	    Yuml: 376,
+	    fnof: 402,
+	    circ: 710,
+	    tilde: 732,
+	    Alpha: 913,
+	    Beta: 914,
+	    Gamma: 915,
+	    Delta: 916,
+	    Epsilon: 917,
+	    Zeta: 918,
+	    Eta: 919,
+	    Theta: 920,
+	    Iota: 921,
+	    Kappa: 922,
+	    Lambda: 923,
+	    Mu: 924,
+	    Nu: 925,
+	    Xi: 926,
+	    Omicron: 927,
+	    Pi: 928,
+	    Rho: 929,
+	    Sigma: 931,
+	    Tau: 932,
+	    Upsilon: 933,
+	    Phi: 934,
+	    Chi: 935,
+	    Psi: 936,
+	    Omega: 937,
+	    alpha: 945,
+	    beta: 946,
+	    gamma: 947,
+	    delta: 948,
+	    epsilon: 949,
+	    zeta: 950,
+	    eta: 951,
+	    theta: 952,
+	    iota: 953,
+	    kappa: 954,
+	    lambda: 955,
+	    mu: 956,
+	    nu: 957,
+	    xi: 958,
+	    omicron: 959,
+	    pi: 960,
+	    rho: 961,
+	    sigmaf: 962,
+	    sigma: 963,
+	    tau: 964,
+	    upsilon: 965,
+	    phi: 966,
+	    chi: 967,
+	    psi: 968,
+	    omega: 969,
+	    thetasym: 977,
+	    upsih: 978,
+	    piv: 982,
+	    ensp: 8194,
+	    emsp: 8195,
+	    thinsp: 8201,
+	    zwnj: 8204,
+	    zwj: 8205,
+	    lrm: 8206,
+	    rlm: 8207,
+	    ndash: 8211,
+	    mdash: 8212,
+	    lsquo: 8216,
+	    rsquo: 8217,
+	    sbquo: 8218,
+	    ldquo: 8220,
+	    rdquo: 8221,
+	    bdquo: 8222,
+	    dagger: 8224,
+	    Dagger: 8225,
+	    bull: 8226,
+	    hellip: 8230,
+	    permil: 8240,
+	    prime: 8242,
+	    Prime: 8243,
+	    lsaquo: 8249,
+	    rsaquo: 8250,
+	    oline: 8254,
+	    frasl: 8260,
+	    euro: 8364,
+	    image: 8465,
+	    weierp: 8472,
+	    real: 8476,
+	    trade: 8482,
+	    alefsym: 8501,
+	    larr: 8592,
+	    uarr: 8593,
+	    rarr: 8594,
+	    darr: 8595,
+	    harr: 8596,
+	    crarr: 8629,
+	    lArr: 8656,
+	    uArr: 8657,
+	    rArr: 8658,
+	    dArr: 8659,
+	    hArr: 8660,
+	    forall: 8704,
+	    part: 8706,
+	    exist: 8707,
+	    empty: 8709,
+	    nabla: 8711,
+	    isin: 8712,
+	    notin: 8713,
+	    ni: 8715,
+	    prod: 8719,
+	    sum: 8721,
+	    minus: 8722,
+	    lowast: 8727,
+	    radic: 8730,
+	    prop: 8733,
+	    infin: 8734,
+	    ang: 8736,
+	    and: 8743,
+	    or: 8744,
+	    cap: 8745,
+	    cup: 8746,
+	    int: 8747,
+	    there4: 8756,
+	    sim: 8764,
+	    cong: 8773,
+	    asymp: 8776,
+	    ne: 8800,
+	    equiv: 8801,
+	    le: 8804,
+	    ge: 8805,
+	    sub: 8834,
+	    sup: 8835,
+	    nsub: 8836,
+	    sube: 8838,
+	    supe: 8839,
+	    oplus: 8853,
+	    otimes: 8855,
+	    perp: 8869,
+	    sdot: 8901,
+	    lceil: 8968,
+	    rceil: 8969,
+	    lfloor: 8970,
+	    rfloor: 8971,
+	    lang: 9001,
+	    rang: 9002,
+	    loz: 9674,
+	    spades: 9824,
+	    clubs: 9827,
+	    hearts: 9829,
+	    diams: 9830,
 	  };
 
 	  Object.keys(sax.ENTITIES).forEach(function (key) {
@@ -2807,33 +2920,90 @@ var sax$1 = {};
 	  // shorthand
 	  S = sax.STATE;
 
-	  function emit (parser, event, data) {
+	  function emit(parser, event, data) {
 	    parser[event] && parser[event](data);
 	  }
 
-	  function emitNode (parser, nodeType, data) {
+	  function getDeclaredEncoding(body) {
+	    var match = body && body.match(/(?:^|\s)encoding\s*=\s*(['"])([^'"]+)\1/i);
+	    return match ? match[2] : null
+	  }
+
+	  function normalizeEncodingName(encoding) {
+	    if (!encoding) {
+	      return null
+	    }
+
+	    return encoding.toLowerCase().replace(/[^a-z0-9]/g, '')
+	  }
+
+	  function encodingsMatch(detectedEncoding, declaredEncoding) {
+	    const detected = normalizeEncodingName(detectedEncoding);
+	    const declared = normalizeEncodingName(declaredEncoding);
+
+	    if (!detected || !declared) {
+	      return true
+	    }
+
+	    if (declared === 'utf16') {
+	      return detected === 'utf16le' || detected === 'utf16be'
+	    }
+
+	    return detected === declared
+	  }
+
+	  function validateXmlDeclarationEncoding(parser, data) {
+	    if (
+	      !parser.strict ||
+	      !parser.encoding ||
+	      !data ||
+	      data.name !== 'xml'
+	    ) {
+	      return
+	    }
+
+	    var declaredEncoding = getDeclaredEncoding(data.body);
+	    if (
+	      declaredEncoding &&
+	      !encodingsMatch(parser.encoding, declaredEncoding)
+	    ) {
+	      strictFail(
+	        parser,
+	        'XML declaration encoding ' +
+	          declaredEncoding +
+	          ' does not match detected stream encoding ' +
+	          parser.encoding.toUpperCase()
+	      );
+	    }
+	  }
+
+	  function emitNode(parser, nodeType, data) {
 	    if (parser.textNode) closeText(parser);
 	    emit(parser, nodeType, data);
 	  }
 
-	  function closeText (parser) {
+	  function closeText(parser) {
 	    parser.textNode = textopts(parser.opt, parser.textNode);
 	    if (parser.textNode) emit(parser, 'ontext', parser.textNode);
 	    parser.textNode = '';
 	  }
 
-	  function textopts (opt, text) {
+	  function textopts(opt, text) {
 	    if (opt.trim) text = text.trim();
 	    if (opt.normalize) text = text.replace(/\s+/g, ' ');
 	    return text
 	  }
 
-	  function error (parser, er) {
+	  function error(parser, er) {
 	    closeText(parser);
 	    if (parser.trackPosition) {
-	      er += '\nLine: ' + parser.line +
-	        '\nColumn: ' + parser.column +
-	        '\nChar: ' + parser.c;
+	      er +=
+	        '\nLine: ' +
+	        parser.line +
+	        '\nColumn: ' +
+	        parser.column +
+	        '\nChar: ' +
+	        parser.c;
 	    }
 	    er = new Error(er);
 	    parser.error = er;
@@ -2841,11 +3011,14 @@ var sax$1 = {};
 	    return parser
 	  }
 
-	  function end (parser) {
-	    if (parser.sawRoot && !parser.closedRoot) strictFail(parser, 'Unclosed root tag');
-	    if ((parser.state !== S.BEGIN) &&
-	      (parser.state !== S.BEGIN_WHITESPACE) &&
-	      (parser.state !== S.TEXT)) {
+	  function end(parser) {
+	    if (parser.sawRoot && !parser.closedRoot)
+	      strictFail(parser, 'Unclosed root tag');
+	    if (
+	      parser.state !== S.BEGIN &&
+	      parser.state !== S.BEGIN_WHITESPACE &&
+	      parser.state !== S.TEXT
+	    ) {
 	      error(parser, 'Unexpected end');
 	    }
 	    closeText(parser);
@@ -2856,7 +3029,7 @@ var sax$1 = {};
 	    return parser
 	  }
 
-	  function strictFail (parser, message) {
+	  function strictFail(parser, message) {
 	    if (typeof parser !== 'object' || !(parser instanceof SAXParser)) {
 	      throw new Error('bad call to strictFail')
 	    }
@@ -2865,10 +3038,10 @@ var sax$1 = {};
 	    }
 	  }
 
-	  function newTag (parser) {
+	  function newTag(parser) {
 	    if (!parser.strict) parser.tagName = parser.tagName[parser.looseCase]();
 	    var parent = parser.tags[parser.tags.length - 1] || parser;
-	    var tag = parser.tag = { name: parser.tagName, attributes: {} };
+	    var tag = (parser.tag = { name: parser.tagName, attributes: {} });
 
 	    // will be overridden if tag contails an xmlns="foo" or xmlns:foo="bar"
 	    if (parser.opt.xmlns) {
@@ -2878,9 +3051,9 @@ var sax$1 = {};
 	    emitNode(parser, 'onopentagstart', tag);
 	  }
 
-	  function qname (name, attribute) {
+	  function qname(name, attribute) {
 	    var i = name.indexOf(':');
-	    var qualName = i < 0 ? [ '', name ] : name.split(':');
+	    var qualName = i < 0 ? ['', name] : name.split(':');
 	    var prefix = qualName[0];
 	    var local = qualName[1];
 
@@ -2893,13 +3066,15 @@ var sax$1 = {};
 	    return { prefix: prefix, local: local }
 	  }
 
-	  function attrib (parser) {
+	  function attrib(parser) {
 	    if (!parser.strict) {
 	      parser.attribName = parser.attribName[parser.looseCase]();
 	    }
 
-	    if (parser.attribList.indexOf(parser.attribName) !== -1 ||
-	      parser.tag.attributes.hasOwnProperty(parser.attribName)) {
+	    if (
+	      parser.attribList.indexOf(parser.attribName) !== -1 ||
+	      parser.tag.attributes.hasOwnProperty(parser.attribName)
+	    ) {
 	      parser.attribName = parser.attribValue = '';
 	      return
 	    }
@@ -2912,13 +3087,26 @@ var sax$1 = {};
 	      if (prefix === 'xmlns') {
 	        // namespace binding attribute. push the binding into scope
 	        if (local === 'xml' && parser.attribValue !== XML_NAMESPACE) {
-	          strictFail(parser,
-	            'xml: prefix must be bound to ' + XML_NAMESPACE + '\n' +
-	            'Actual: ' + parser.attribValue);
-	        } else if (local === 'xmlns' && parser.attribValue !== XMLNS_NAMESPACE) {
-	          strictFail(parser,
-	            'xmlns: prefix must be bound to ' + XMLNS_NAMESPACE + '\n' +
-	            'Actual: ' + parser.attribValue);
+	          strictFail(
+	            parser,
+	            'xml: prefix must be bound to ' +
+	              XML_NAMESPACE +
+	              '\n' +
+	              'Actual: ' +
+	              parser.attribValue
+	          );
+	        } else if (
+	          local === 'xmlns' &&
+	          parser.attribValue !== XMLNS_NAMESPACE
+	        ) {
+	          strictFail(
+	            parser,
+	            'xmlns: prefix must be bound to ' +
+	              XMLNS_NAMESPACE +
+	              '\n' +
+	              'Actual: ' +
+	              parser.attribValue
+	          );
 	        } else {
 	          var tag = parser.tag;
 	          var parent = parser.tags[parser.tags.length - 1] || parser;
@@ -2938,14 +3126,14 @@ var sax$1 = {};
 	      parser.tag.attributes[parser.attribName] = parser.attribValue;
 	      emitNode(parser, 'onattribute', {
 	        name: parser.attribName,
-	        value: parser.attribValue
+	        value: parser.attribValue,
 	      });
 	    }
 
 	    parser.attribName = parser.attribValue = '';
 	  }
 
-	  function openTag (parser, selfClosing) {
+	  function openTag(parser, selfClosing) {
 	    if (parser.opt.xmlns) {
 	      // emit namespace binding events
 	      var tag = parser.tag;
@@ -2957,8 +3145,10 @@ var sax$1 = {};
 	      tag.uri = tag.ns[qn.prefix] || '';
 
 	      if (tag.prefix && !tag.uri) {
-	        strictFail(parser, 'Unbound namespace prefix: ' +
-	          JSON.stringify(parser.tagName));
+	        strictFail(
+	          parser,
+	          'Unbound namespace prefix: ' + JSON.stringify(parser.tagName)
+	        );
 	        tag.uri = qn.prefix;
 	      }
 
@@ -2967,7 +3157,7 @@ var sax$1 = {};
 	        Object.keys(tag.ns).forEach(function (p) {
 	          emitNode(parser, 'onopennamespace', {
 	            prefix: p,
-	            uri: tag.ns[p]
+	            uri: tag.ns[p],
 	          });
 	        });
 	      }
@@ -2982,20 +3172,22 @@ var sax$1 = {};
 	        var qualName = qname(name, true);
 	        var prefix = qualName.prefix;
 	        var local = qualName.local;
-	        var uri = prefix === '' ? '' : (tag.ns[prefix] || '');
+	        var uri = prefix === '' ? '' : tag.ns[prefix] || '';
 	        var a = {
 	          name: name,
 	          value: value,
 	          prefix: prefix,
 	          local: local,
-	          uri: uri
+	          uri: uri,
 	        };
 
 	        // if there's any attributes with an undefined namespace,
 	        // then fail on them now.
 	        if (prefix && prefix !== 'xmlns' && !uri) {
-	          strictFail(parser, 'Unbound namespace prefix: ' +
-	            JSON.stringify(prefix));
+	          strictFail(
+	            parser,
+	            'Unbound namespace prefix: ' + JSON.stringify(prefix)
+	          );
 	          a.uri = prefix;
 	        }
 	        parser.tag.attributes[name] = a;
@@ -3024,7 +3216,7 @@ var sax$1 = {};
 	    parser.attribList.length = 0;
 	  }
 
-	  function closeTag (parser) {
+	  function closeTag(parser) {
 	    if (!parser.tagName) {
 	      strictFail(parser, 'Weird empty close tag.');
 	      parser.textNode += '</>';
@@ -3071,7 +3263,7 @@ var sax$1 = {};
 	    parser.tagName = tagName;
 	    var s = parser.tags.length;
 	    while (s-- > t) {
-	      var tag = parser.tag = parser.tags.pop();
+	      var tag = (parser.tag = parser.tags.pop());
 	      parser.tagName = parser.tag.name;
 	      emitNode(parser, 'onclosetag', parser.tagName);
 
@@ -3095,7 +3287,7 @@ var sax$1 = {};
 	    parser.state = S.TEXT;
 	  }
 
-	  function parseEntity (parser) {
+	  function parseEntity(parser) {
 	    var entity = parser.entity;
 	    var entityLC = entity.toLowerCase();
 	    var num;
@@ -3120,7 +3312,12 @@ var sax$1 = {};
 	      }
 	    }
 	    entity = entity.replace(/^0+/, '');
-	    if (isNaN(num) || numStr.toLowerCase() !== entity) {
+	    if (
+	      isNaN(num) ||
+	      numStr.toLowerCase() !== entity ||
+	      num < 0 ||
+	      num > 0x10ffff
+	    ) {
 	      strictFail(parser, 'Invalid character entity');
 	      return '&' + parser.entity + ';'
 	    }
@@ -3128,7 +3325,7 @@ var sax$1 = {};
 	    return String.fromCodePoint(num)
 	  }
 
-	  function beginWhiteSpace (parser, c) {
+	  function beginWhiteSpace(parser, c) {
 	    if (c === '<') {
 	      parser.state = S.OPEN_WAKA;
 	      parser.startTagPosition = parser.position;
@@ -3141,7 +3338,7 @@ var sax$1 = {};
 	    }
 	  }
 
-	  function charAt (chunk, i) {
+	  function charAt(chunk, i) {
 	    var result = '';
 	    if (i < chunk.length) {
 	      result = chunk.charAt(i);
@@ -3149,14 +3346,16 @@ var sax$1 = {};
 	    return result
 	  }
 
-	  function write (chunk) {
+	  function write(chunk) {
 	    var parser = this;
 	    if (this.error) {
 	      throw this.error
 	    }
 	    if (parser.closed) {
-	      return error(parser,
-	        'Cannot write after close. Assign an onready handler.')
+	      return error(
+	        parser,
+	        'Cannot write after close. Assign an onready handler.'
+	      )
 	    }
 	    if (chunk === null) {
 	      return end(parser)
@@ -3214,11 +3413,17 @@ var sax$1 = {};
 	            }
 	            parser.textNode += chunk.substring(starti, i - 1);
 	          }
-	          if (c === '<' && !(parser.sawRoot && parser.closedRoot && !parser.strict)) {
+	          if (
+	            c === '<' &&
+	            !(parser.sawRoot && parser.closedRoot && !parser.strict)
+	          ) {
 	            parser.state = S.OPEN_WAKA;
 	            parser.startTagPosition = parser.position;
 	          } else {
-	            if (!isWhitespace(c) && (!parser.sawRoot || parser.closedRoot)) {
+	            if (
+	              !isWhitespace(c) &&
+	              (!parser.sawRoot || parser.closedRoot)
+	            ) {
 	              strictFail(parser, 'Text data outside of root node.');
 	            }
 	            if (c === '&') {
@@ -3278,10 +3483,14 @@ var sax$1 = {};
 	            parser.state = S.COMMENT;
 	            parser.comment = '';
 	            parser.sgmlDecl = '';
-	            continue;
+	            continue
 	          }
 
-	          if (parser.doctype && parser.doctype !== true && parser.sgmlDecl) {
+	          if (
+	            parser.doctype &&
+	            parser.doctype !== true &&
+	            parser.sgmlDecl
+	          ) {
 	            parser.state = S.DOCTYPE_DTD;
 	            parser.doctype += '<!' + parser.sgmlDecl + c;
 	            parser.sgmlDecl = '';
@@ -3293,8 +3502,10 @@ var sax$1 = {};
 	          } else if ((parser.sgmlDecl + c).toUpperCase() === DOCTYPE) {
 	            parser.state = S.DOCTYPE;
 	            if (parser.doctype || parser.sawRoot) {
-	              strictFail(parser,
-	                'Inappropriately located doctype declaration');
+	              strictFail(
+	                parser,
+	                'Inappropriately located doctype declaration'
+	              );
 	            }
 	            parser.doctype = '';
 	            parser.sgmlDecl = '';
@@ -3403,10 +3614,22 @@ var sax$1 = {};
 	          continue
 
 	        case S.CDATA:
+	          var starti = i - 1;
+	          while (c && c !== ']') {
+	            c = charAt(chunk, i++);
+	            if (c && parser.trackPosition) {
+	              parser.position++;
+	              if (c === '\n') {
+	                parser.line++;
+	                parser.column = 0;
+	              } else {
+	                parser.column++;
+	              }
+	            }
+	          }
+	          parser.cdata += chunk.substring(starti, i - 1);
 	          if (c === ']') {
 	            parser.state = S.CDATA_ENDING;
-	          } else {
-	            parser.cdata += c;
 	          }
 	          continue
 
@@ -3457,10 +3680,12 @@ var sax$1 = {};
 
 	        case S.PROC_INST_ENDING:
 	          if (c === '>') {
-	            emitNode(parser, 'onprocessinginstruction', {
+	            const procInstEndData = {
 	              name: parser.procInstName,
-	              body: parser.procInstBody
-	            });
+	              body: parser.procInstBody,
+	            };
+	            validateXmlDeclarationEncoding(parser, procInstEndData);
+	            emitNode(parser, 'onprocessinginstruction', procInstEndData);
 	            parser.procInstName = parser.procInstBody = '';
 	            parser.state = S.TEXT;
 	          } else {
@@ -3492,7 +3717,10 @@ var sax$1 = {};
 	            openTag(parser, true);
 	            closeTag(parser);
 	          } else {
-	            strictFail(parser, 'Forward-slash in opening tag not followed by >');
+	            strictFail(
+	              parser,
+	              'Forward-slash in opening tag not followed by >'
+	            );
 	            parser.state = S.ATTRIB;
 	          }
 	          continue
@@ -3542,7 +3770,7 @@ var sax$1 = {};
 	            parser.attribValue = '';
 	            emitNode(parser, 'onattribute', {
 	              name: parser.attribName,
-	              value: ''
+	              value: '',
 	            });
 	            parser.attribName = '';
 	            if (c === '>') {
@@ -3639,7 +3867,7 @@ var sax$1 = {};
 	          } else if (isMatch(nameBody, c)) {
 	            parser.tagName += c;
 	          } else if (parser.script) {
-	            parser.script += '</' + parser.tagName;
+	            parser.script += '</' + parser.tagName + c;
 	            parser.tagName = '';
 	            parser.state = S.SCRIPT;
 	          } else {
@@ -3685,16 +3913,36 @@ var sax$1 = {};
 
 	          if (c === ';') {
 	            var parsedEntity = parseEntity(parser);
-	            if (parser.opt.unparsedEntities && !Object.values(sax.XML_ENTITIES).includes(parsedEntity)) {
+	            if (
+	              parser.opt.unparsedEntities &&
+	              !Object.values(sax.XML_ENTITIES).includes(parsedEntity)
+	            ) {
+	              if ((parser.entityCount += 1) > parser.opt.maxEntityCount) {
+	                error(
+	                  parser,
+	                  'Parsed entity count exceeds max entity count'
+	                );
+	              }
+
+	              if ((parser.entityDepth += 1) > parser.opt.maxEntityDepth) {
+	                error(
+	                  parser,
+	                  'Parsed entity depth exceeds max entity depth'
+	                );
+	              }
+
 	              parser.entity = '';
 	              parser.state = returnState;
 	              parser.write(parsedEntity);
+	              parser.entityDepth -= 1;
 	            } else {
 	              parser[buffer] += parsedEntity;
 	              parser.entity = '';
 	              parser.state = returnState;
 	            }
-	          } else if (isMatch(parser.entity.length ? entityBody : entityStart, c)) {
+	          } else if (
+	            isMatch(parser.entity.length ? entityBody : entityStart, c)
+	          ) {
 	            parser.entity += c;
 	          } else {
 	            strictFail(parser, 'Invalid character in entity name');
@@ -3720,7 +3968,7 @@ var sax$1 = {};
 	  /*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
 	  /* istanbul ignore next */
 	  if (!String.fromCodePoint) {
-	    (function () {
+(function () {
 	      var stringFromCharCode = String.fromCharCode;
 	      var floor = Math.floor;
 	      var fromCodePoint = function () {
@@ -3739,18 +3987,20 @@ var sax$1 = {};
 	          if (
 	            !isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
 	            codePoint < 0 || // not a valid Unicode code point
-	            codePoint > 0x10FFFF || // not a valid Unicode code point
+	            codePoint > 0x10ffff || // not a valid Unicode code point
 	            floor(codePoint) !== codePoint // not an integer
 	          ) {
 	            throw RangeError('Invalid code point: ' + codePoint)
 	          }
-	          if (codePoint <= 0xFFFF) { // BMP code point
+	          if (codePoint <= 0xffff) {
+	            // BMP code point
 	            codeUnits.push(codePoint);
-	          } else { // Astral code point; split in surrogate halves
+	          } else {
+	            // Astral code point; split in surrogate halves
 	            // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
 	            codePoint -= 0x10000;
-	            highSurrogate = (codePoint >> 10) + 0xD800;
-	            lowSurrogate = (codePoint % 0x400) + 0xDC00;
+	            highSurrogate = (codePoint >> 10) + 0xd800;
+	            lowSurrogate = (codePoint % 0x400) + 0xdc00;
 	            codeUnits.push(highSurrogate, lowSurrogate);
 	          }
 	          if (index + 1 === length || codeUnits.length > MAX_SIZE) {
@@ -3765,12 +4015,12 @@ var sax$1 = {};
 	        Object.defineProperty(String, 'fromCodePoint', {
 	          value: fromCodePoint,
 	          configurable: true,
-	          writable: true
+	          writable: true,
 	        });
 	      } else {
 	        String.fromCodePoint = fromCodePoint;
 	      }
-	    }());
+	    })();
 	  }
 	})(exports); 
 } (sax$1));
@@ -5085,7 +5335,7 @@ var makeDir$1 = {};
 
 var utils$1 = {};
 
-const path$h = require$$1$4;
+const path$h = require$$1$3;
 
 // https://github.com/nodejs/node/issues/8987
 // https://github.com/libuv/libuv/pull/1088
@@ -5180,7 +5430,7 @@ var utimes = {
 };
 
 const fs$d = fs$i;
-const path$g = require$$1$4;
+const path$g = require$$1$3;
 const util$1 = require$$1$1;
 
 function getStats$2 (src, dest, opts) {
@@ -5333,7 +5583,7 @@ var stat$4 = {
 };
 
 const fs$c = gracefulFs;
-const path$f = require$$1$4;
+const path$f = require$$1$3;
 const mkdirs$1 = mkdirs$2.mkdirs;
 const pathExists$5 = pathExists_1.pathExists;
 const utimesMillis = utimes.utimesMillis;
@@ -5567,7 +5817,7 @@ function copyLink$1 (resolvedSrc, dest, cb) {
 var copy_1 = copy$2;
 
 const fs$b = gracefulFs;
-const path$e = require$$1$4;
+const path$e = require$$1$3;
 const mkdirsSync$1 = mkdirs$2.mkdirsSync;
 const utimesMillisSync = utimes.utimesMillisSync;
 const stat$2 = stat$4;
@@ -5741,7 +5991,7 @@ var copy$1 = {
 };
 
 const fs$a = gracefulFs;
-const path$d = require$$1$4;
+const path$d = require$$1$3;
 const assert = require$$5;
 
 const isWindows = (process.platform === 'win32');
@@ -6064,7 +6314,7 @@ var remove_1 = {
 
 const u$6 = universalify$1.fromPromise;
 const fs$8 = fs$i;
-const path$c = require$$1$4;
+const path$c = require$$1$3;
 const mkdir$3 = mkdirs$2;
 const remove$1 = remove_1;
 
@@ -6101,7 +6351,7 @@ var empty = {
 };
 
 const u$5 = universalify$1.fromCallback;
-const path$b = require$$1$4;
+const path$b = require$$1$3;
 const fs$7 = gracefulFs;
 const mkdir$2 = mkdirs$2;
 
@@ -6169,7 +6419,7 @@ var file = {
 };
 
 const u$4 = universalify$1.fromCallback;
-const path$a = require$$1$4;
+const path$a = require$$1$3;
 const fs$6 = gracefulFs;
 const mkdir$1 = mkdirs$2;
 const pathExists$4 = pathExists_1.pathExists;
@@ -6231,7 +6481,7 @@ var link = {
   createLinkSync: createLinkSync$1
 };
 
-const path$9 = require$$1$4;
+const path$9 = require$$1$3;
 const fs$5 = gracefulFs;
 const pathExists$3 = pathExists_1.pathExists;
 
@@ -6360,7 +6610,7 @@ var symlinkType_1 = {
 };
 
 const u$3 = universalify$1.fromCallback;
-const path$8 = require$$1$4;
+const path$8 = require$$1$3;
 const fs$3 = fs$i;
 const _mkdirs = mkdirs$2;
 const mkdirs = _mkdirs.mkdirs;
@@ -6557,16 +6807,16 @@ function writeFileSync (file, obj, options = {}) {
   return fs.writeFileSync(file, str, options)
 }
 
-const jsonfile$1 = {
+// NOTE: do not change this export format; required for ESM compat
+// see https://github.com/jprichardson/node-jsonfile/pull/162 for details
+var jsonfile$1 = {
   readFile,
   readFileSync,
   writeFile,
   writeFileSync
 };
 
-var jsonfile_1 = jsonfile$1;
-
-const jsonFile$1 = jsonfile_1;
+const jsonFile$1 = jsonfile$1;
 
 var jsonfile = {
   // jsonfile exports
@@ -6578,7 +6828,7 @@ var jsonfile = {
 
 const u$2 = universalify$1.fromCallback;
 const fs$2 = gracefulFs;
-const path$7 = require$$1$4;
+const path$7 = require$$1$3;
 const mkdir = mkdirs$2;
 const pathExists$1 = pathExists_1.pathExists;
 
@@ -6653,7 +6903,7 @@ jsonFile.readJSONSync = jsonFile.readJsonSync;
 var json$1 = jsonFile;
 
 const fs$1 = gracefulFs;
-const path$6 = require$$1$4;
+const path$6 = require$$1$3;
 const copy = copy$1.copy;
 const remove = remove_1.remove;
 const mkdirp = mkdirs$2.mkdirp;
@@ -6727,7 +6977,7 @@ function moveAcrossDevice$1 (src, dest, overwrite, cb) {
 var move_1 = move$1;
 
 const fs = gracefulFs;
-const path$5 = require$$1$4;
+const path$5 = require$$1$3;
 const copySync = copy$1.copySync;
 const removeSync = remove_1.removeSync;
 const mkdirpSync = mkdirs$2.mkdirpSync;
@@ -10735,6 +10985,7 @@ const debug$1 = (
 var debug_1 = debug$1;
 
 (function (module, exports) {
+
 	const {
 	  MAX_SAFE_COMPONENT_LENGTH,
 	  MAX_SAFE_BUILD_LENGTH,
@@ -10747,6 +10998,7 @@ var debug_1 = debug$1;
 	const re = exports.re = [];
 	const safeRe = exports.safeRe = [];
 	const src = exports.src = [];
+	const safeSrc = exports.safeSrc = [];
 	const t = exports.t = {};
 	let R = 0;
 
@@ -10779,6 +11031,7 @@ var debug_1 = debug$1;
 	  debug(name, index, value);
 	  t[name] = index;
 	  src[index] = value;
+	  safeSrc[index] = safe;
 	  re[index] = new RegExp(value, isGlobal ? 'g' : undefined);
 	  safeRe[index] = new RegExp(safe, isGlobal ? 'g' : undefined);
 	};
@@ -10811,12 +11064,14 @@ var debug_1 = debug$1;
 
 	// ## Pre-release Version Identifier
 	// A numeric identifier, or a non-numeric identifier.
+	// Non-numeric identifiers include numeric identifiers but can be longer.
+	// Therefore non-numeric identifiers must go first.
 
-	createToken('PRERELEASEIDENTIFIER', `(?:${src[t.NUMERICIDENTIFIER]
-	}|${src[t.NONNUMERICIDENTIFIER]})`);
+	createToken('PRERELEASEIDENTIFIER', `(?:${src[t.NONNUMERICIDENTIFIER]
+	}|${src[t.NUMERICIDENTIFIER]})`);
 
-	createToken('PRERELEASEIDENTIFIERLOOSE', `(?:${src[t.NUMERICIDENTIFIERLOOSE]
-	}|${src[t.NONNUMERICIDENTIFIER]})`);
+	createToken('PRERELEASEIDENTIFIERLOOSE', `(?:${src[t.NONNUMERICIDENTIFIER]
+	}|${src[t.NUMERICIDENTIFIERLOOSE]})`);
 
 	// ## Pre-release Version
 	// Hyphen, followed by one or more dot-separated pre-release version
@@ -10974,6 +11229,10 @@ var parseOptions_1 = parseOptions$1;
 
 const numeric = /^[0-9]+$/;
 const compareIdentifiers$1 = (a, b) => {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a === b ? 0 : a < b ? -1 : 1
+  }
+
   const anum = numeric.test(a);
   const bnum = numeric.test(b);
 
@@ -11008,7 +11267,7 @@ let SemVer$d = class SemVer {
 
     if (version instanceof SemVer) {
       if (version.loose === !!options.loose &&
-          version.includePrerelease === !!options.includePrerelease) {
+        version.includePrerelease === !!options.includePrerelease) {
         return version
       } else {
         version = version.version;
@@ -11107,11 +11366,25 @@ let SemVer$d = class SemVer {
       other = new SemVer(other, this.options);
     }
 
-    return (
-      compareIdentifiers(this.major, other.major) ||
-      compareIdentifiers(this.minor, other.minor) ||
-      compareIdentifiers(this.patch, other.patch)
-    )
+    if (this.major < other.major) {
+      return -1
+    }
+    if (this.major > other.major) {
+      return 1
+    }
+    if (this.minor < other.minor) {
+      return -1
+    }
+    if (this.minor > other.minor) {
+      return 1
+    }
+    if (this.patch < other.patch) {
+      return -1
+    }
+    if (this.patch > other.patch) {
+      return 1
+    }
+    return 0
   }
 
   comparePre (other) {
@@ -11174,6 +11447,19 @@ let SemVer$d = class SemVer {
   // preminor will bump the version up to the next minor release, and immediately
   // down to pre-release. premajor and prepatch work the same way.
   inc (release, identifier, identifierBase) {
+    if (release.startsWith('pre')) {
+      if (!identifier && identifierBase === false) {
+        throw new Error('invalid increment argument: identifier is empty')
+      }
+      // Avoid an invalid semver results
+      if (identifier) {
+        const match = `-${identifier}`.match(this.options.loose ? re$1[t$1.PRERELEASELOOSE] : re$1[t$1.PRERELEASE]);
+        if (!match || match[1] !== identifier) {
+          throw new Error(`invalid identifier: ${identifier}`)
+        }
+      }
+    }
+
     switch (release) {
       case 'premajor':
         this.prerelease.length = 0;
@@ -11203,6 +11489,12 @@ let SemVer$d = class SemVer {
           this.inc('patch', identifier, identifierBase);
         }
         this.inc('pre', identifier, identifierBase);
+        break
+      case 'release':
+        if (this.prerelease.length === 0) {
+          throw new Error(`version ${this.raw} is not a prerelease`)
+        }
+        this.prerelease.length = 0;
         break
 
       case 'major':
@@ -11246,10 +11538,6 @@ let SemVer$d = class SemVer {
       // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
       case 'pre': {
         const base = Number(identifierBase) ? 1 : 0;
-
-        if (!identifier && identifierBase === false) {
-          throw new Error('invalid increment argument: identifier is empty')
-        }
 
         if (this.prerelease.length === 0) {
           this.prerelease = [base];
@@ -11379,20 +11667,13 @@ const diff$1 = (version1, version2) => {
       return 'major'
     }
 
-    // Otherwise it can be determined by checking the high version
-
-    if (highVersion.patch) {
-      // anything higher than a patch bump would result in the wrong version
+    // If the main part has no difference
+    if (lowVersion.compareMain(highVersion) === 0) {
+      if (lowVersion.minor && !lowVersion.patch) {
+        return 'minor'
+      }
       return 'patch'
     }
-
-    if (highVersion.minor) {
-      // anything higher than a minor bump would result in the wrong version
-      return 'minor'
-    }
-
-    // bumping major/minor/patch all have same result
-    return 'major'
   }
 
   // add the `pre` prefix if we are going to a prerelease version
@@ -11410,7 +11691,7 @@ const diff$1 = (version1, version2) => {
     return prefix + 'patch'
   }
 
-  // high and low are preleases
+  // high and low are prereleases
   return 'prerelease'
 };
 
@@ -11609,6 +11890,7 @@ var hasRequiredLrucache;
 function requireLrucache () {
 	if (hasRequiredLrucache) return lrucache;
 	hasRequiredLrucache = 1;
+
 	class LRUCache {
 	  constructor () {
 	    this.max = 1000;
@@ -11658,6 +11940,7 @@ var hasRequiredRange;
 function requireRange () {
 	if (hasRequiredRange) return range;
 	hasRequiredRange = 1;
+
 	const SPACE_CHARACTERS = /\s+/g;
 
 	// hoisted class for cyclic dependency
@@ -11913,6 +12196,7 @@ function requireRange () {
 	// already replaced the hyphen ranges
 	// turn into a set of JUST comparators.
 	const parseComparator = (comp, options) => {
+	  comp = comp.replace(re[t.BUILD], '');
 	  debug('comp', comp, options);
 	  comp = replaceCarets(comp, options);
 	  debug('caret', comp);
@@ -12221,6 +12505,7 @@ var hasRequiredComparator;
 function requireComparator () {
 	if (hasRequiredComparator) return comparator;
 	hasRequiredComparator = 1;
+
 	const ANY = Symbol('SemVer ANY');
 	// hoisted class for cyclic dependency
 	class Comparator {
@@ -12695,7 +12980,7 @@ const compare$1 = compare_1;
 // - If LT
 //   - If LT.semver is greater than any < or <= comp in C, return false
 //   - If LT is <=, and LT.semver does not satisfy every C, return false
-//   - If GT.semver has a prerelease, and not in prerelease mode
+//   - If LT.semver has a prerelease, and not in prerelease mode
 //     - If no C has a prerelease and the LT.semver tuple, return false
 // - Else return true
 
@@ -14861,7 +15146,7 @@ const fs_1$2 = require$$1$2;
 // @ts-ignore
 const isEqual = lodash_isequalExports;
 const fs_extra_1$2 = lib;
-const path$4 = require$$1$4;
+const path$4 = require$$1$3;
 /** @private **/
 class DownloadedUpdateHelper {
     constructor(cacheDir) {
@@ -15028,7 +15313,7 @@ var AppAdapter = {};
 
 Object.defineProperty(AppAdapter, "__esModule", { value: true });
 AppAdapter.getAppCacheDir = getAppCacheDir;
-const path$3 = require$$1$4;
+const path$3 = require$$1$3;
 const os_1 = require$$2;
 function getAppCacheDir() {
     const homedir = (0, os_1.homedir)();
@@ -15048,10 +15333,10 @@ function getAppCacheDir() {
 
 Object.defineProperty(ElectronAppAdapter$1, "__esModule", { value: true });
 ElectronAppAdapter$1.ElectronAppAdapter = void 0;
-const path$2 = require$$1$4;
+const path$2 = require$$1$3;
 const AppAdapter_1 = AppAdapter;
 class ElectronAppAdapter {
-    constructor(app = require$$1$5.app) {
+    constructor(app = require$$1$4.app) {
         this.app = app;
     }
     whenReady() {
@@ -15096,7 +15381,7 @@ var electronHttpExecutor = {};
 	const builder_util_runtime_1 = out;
 	exports.NET_SESSION_NAME = "electron-updater";
 	function getNetSession() {
-	    return require$$1$5.session.fromPartition(exports.NET_SESSION_NAME, {
+	    return require$$1$4.session.fromPartition(exports.NET_SESSION_NAME, {
 	        cache: false,
 	    });
 	}
@@ -15142,7 +15427,7 @@ var electronHttpExecutor = {};
 	        if (this.cachedSession == null) {
 	            this.cachedSession = getNetSession();
 	        }
-	        const request = require$$1$5.net.request({
+	        const request = require$$1$4.net.request({
 	            ...options,
 	            session: this.cachedSession,
 	        });
@@ -15857,7 +16142,7 @@ Object.defineProperty(PrivateGitHubProvider$1, "__esModule", { value: true });
 PrivateGitHubProvider$1.PrivateGitHubProvider = void 0;
 const builder_util_runtime_1$5 = out;
 const js_yaml_1 = jsYaml;
-const path$1 = require$$1$4;
+const path$1 = require$$1$3;
 const url_1$1 = require$$4;
 const util_1 = util;
 const GitHubProvider_1$1 = GitHubProvider$1;
@@ -16825,7 +17110,7 @@ function requireAppUpdater () {
 	const fs_extra_1 = lib;
 	const js_yaml_1 = jsYaml;
 	const lazy_val_1 = main$1;
-	const path = require$$1$4;
+	const path = require$$1$3;
 	const semver_1 = semver$1;
 	const DownloadedUpdateHelper_1 = DownloadedUpdateHelper$1;
 	const ElectronAppAdapter_1 = ElectronAppAdapter$1;
@@ -17070,7 +17355,7 @@ function requireAppUpdater () {
 	            }
 	            void it.downloadPromise.then(() => {
 	                const notificationContent = AppUpdater.formatDownloadNotification(it.updateInfo.version, this.app.name, downloadNotification);
-	                new (require$$1$5.Notification)(notificationContent).show();
+	                new (require$$1$4.Notification)(notificationContent).show();
 	            });
 	            return it;
 	        });
@@ -17475,7 +17760,7 @@ function requireBaseUpdater () {
 	hasRequiredBaseUpdater = 1;
 	Object.defineProperty(BaseUpdater, "__esModule", { value: true });
 	BaseUpdater.BaseUpdater = void 0;
-	const child_process_1 = require$$1$6;
+	const child_process_1 = require$$1$5;
 	const AppUpdater_1 = requireAppUpdater();
 	let BaseUpdater$1 = class BaseUpdater extends AppUpdater_1.AppUpdater {
 	    constructor(options, app) {
@@ -17490,7 +17775,7 @@ function requireBaseUpdater () {
 	        if (isInstalled) {
 	            setImmediate(() => {
 	                // this event is normally emitted when calling quitAndInstall, this emulates that
-	                require$$1$5.autoUpdater.emit("before-quit-for-update");
+	                require$$1$4.autoUpdater.emit("before-quit-for-update");
 	                this.app.quit();
 	            });
 	        }
@@ -17672,10 +17957,10 @@ function requireAppImageUpdater () {
 	Object.defineProperty(AppImageUpdater, "__esModule", { value: true });
 	AppImageUpdater.AppImageUpdater = void 0;
 	const builder_util_runtime_1 = out;
-	const child_process_1 = require$$1$6;
+	const child_process_1 = require$$1$5;
 	const fs_extra_1 = lib;
 	const fs_1 = require$$1$2;
-	const path = require$$1$4;
+	const path = require$$1$3;
 	const BaseUpdater_1 = requireBaseUpdater();
 	const FileWithEmbeddedBlockMapDifferentialDownloader_1 = FileWithEmbeddedBlockMapDifferentialDownloader$1;
 	const main_1 = requireMain();
@@ -17898,16 +18183,16 @@ function requireMacUpdater () {
 	const builder_util_runtime_1 = out;
 	const fs_extra_1 = lib;
 	const fs_1 = require$$1$2;
-	const path = require$$1$4;
+	const path = require$$1$3;
 	const http_1 = require$$4$1;
 	const AppUpdater_1 = requireAppUpdater();
 	const Provider_1 = Provider$1;
-	const child_process_1 = require$$1$6;
+	const child_process_1 = require$$1$5;
 	const crypto_1 = require$$0$2;
 	let MacUpdater$1 = class MacUpdater extends AppUpdater_1.AppUpdater {
 	    constructor(options, app) {
 	        super(options, app);
-	        this.nativeUpdater = require$$1$5.autoUpdater;
+	        this.nativeUpdater = require$$1$4.autoUpdater;
 	        this.squirrelDownloadedUpdate = false;
 	        this.nativeUpdater.on("error", it => {
 	            this._logger.warn(it);
@@ -18150,9 +18435,9 @@ var windowsExecutableCodeSignatureVerifier = {};
 Object.defineProperty(windowsExecutableCodeSignatureVerifier, "__esModule", { value: true });
 windowsExecutableCodeSignatureVerifier.verifySignature = verifySignature;
 const builder_util_runtime_1 = out;
-const child_process_1 = require$$1$6;
+const child_process_1 = require$$1$5;
 const os = require$$2;
-const path = require$$1$4;
+const path = require$$1$3;
 // $certificateInfo = (Get-AuthenticodeSignature 'xxx\yyy.exe'
 // | where {$_.Status.Equals([System.Management.Automation.SignatureStatus]::Valid) -and $_.SignerCertificate.Subject.Contains("CN=siemens.com")})
 // | Out-String ; if ($certificateInfo) { exit 0 } else { exit 1 }
@@ -18290,7 +18575,7 @@ function requireNsisUpdater () {
 	Object.defineProperty(NsisUpdater, "__esModule", { value: true });
 	NsisUpdater.NsisUpdater = void 0;
 	const builder_util_runtime_1 = out;
-	const path = require$$1$4;
+	const path = require$$1$3;
 	const BaseUpdater_1 = requireBaseUpdater();
 	const FileWithEmbeddedBlockMapDifferentialDownloader_1 = FileWithEmbeddedBlockMapDifferentialDownloader$1;
 	const main_1 = requireMain();
@@ -18420,7 +18705,7 @@ function requireNsisUpdater () {
 	                callUsingElevation();
 	            }
 	            else if (errorCode === "ENOENT") {
-	                require$$1$5
+	                require$$1$4
 	                    .shell.openPath(options.installerPath)
 	                    .catch((err) => this.dispatchError(err));
 	            }
@@ -18473,7 +18758,7 @@ function requireMain () {
 		const builder_util_runtime_1 = out;
 		Object.defineProperty(exports, "CancellationToken", { enumerable: true, get: function () { return builder_util_runtime_1.CancellationToken; } });
 		const fs_extra_1 = lib;
-		const path = require$$1$4;
+		const path = require$$1$3;
 		var BaseUpdater_1 = requireBaseUpdater();
 		Object.defineProperty(exports, "BaseUpdater", { enumerable: true, get: function () { return BaseUpdater_1.BaseUpdater; } });
 		var AppUpdater_1 = requireAppUpdater();

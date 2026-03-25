@@ -12,9 +12,8 @@ import { rolldown } from "rolldown"
 import { resolveLibs } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
-import { sh } from "./sh.js"
-import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "./cryptoPrimitivesUtils.js"
-import { exec } from "node:child_process"
+import { execSync } from "child_process"
+import { spawnSync } from "node:child_process"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -29,6 +28,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @returns {Promise<void>}
  */
 export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
+	const version = await getTutanotaAppVersion()
 	const isCalendarBuild = app === "calendar"
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
@@ -37,36 +37,32 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	console.log(`Building dev client stage: ${stage} host: ${host} app: ${app}`)
 
 	if (clean) {
-		await runStep("Clean", () =>
-			// parallelize rm
-			Promise.all([
-				fs.emptyDir(buildDir),
-				fs.rm(liboqsIncludeDir, { recursive: true, force: true }),
-				fs.rm(WASM_PACK_OUT_DIR, { recursive: true, force: true }),
-			]),
-		)
-	}
-	if (desktop) {
-		await runStep("Build mimimi", async () => {
-			exec(
-				"node --experimental-strip-types make.ts 2>&1",
-				{
-					cwd: "src/mimimi",
-				},
-				(error, stdout) => {
-					if (error) {
-						if (stdout) process.stdout.write(`[STDOUT]\n${stdout}`)
-						throw new Error("Could not run make.js on mimimi")
-					}
-				},
-			)
+		await runStep("Clean", async () => {
+			fs.rmSync(buildDir, { recursive: true, force: true })
+			fs.rmSync(liboqsIncludeDir, { recursive: true, force: true })
+			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
+			spawnSync("cargo", ["clean"])
+			spawnSync("npx", ["tsc", "--build", "--clean"])
 		})
 	}
 
-	const version = await getTutanotaAppVersion()
+	await runStep("Build crypto-primitives", async () => {
+		const targetDir = path.resolve(buildDir)
+		clean
+			? await $({ stdio: "inherit", cwd: "src/crypto" })`node --experimental-strip-types make.ts ${targetDir} --clean`
+			: await $({ stdio: "inherit", cwd: "src/crypto" })`node --experimental-strip-types make.ts ${targetDir}`
+	})
+
+	if (desktop) {
+		await runStep("Build mimimi", async () => {
+			execSync("node --experimental-strip-types make.ts", {
+				cwd: "src/mimimi",
+			})
+		})
+	}
 
 	await runStep("Types", async () => {
-		await sh`npx tsc --build --incremental ${true} ${tsConfig}`
+		await $({ stdio: "inherit" })`npx tsc --build --incremental ${true} ${tsConfig}`
 	})
 
 	/**
@@ -129,10 +125,6 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	const resolvedBuildDir = path.resolve(buildDir)
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
-
-	// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
-	// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
-	await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
 
 	await runStep("Web: Rolldown", async () => {
 		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js") // FIXME: this have to already exists? and is there bettr way to import

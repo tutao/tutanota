@@ -23,7 +23,7 @@
 		"preinstall": "node buildSrc/preinstall.js",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
-		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema && npm run style:fix",
+		"generate-ipc": "npm run build -w @tutao/licc && node src/licc/dist/cli.js ipc-schema && npm run style:fix",
 		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\" --cache --cache-location cache/prettier",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",
 		"lint:check": "eslint . --cache --cache-location cache/eslint",
@@ -104,6 +104,9 @@
 		"xhr2": "0.2.1",
 		"zx": "8.5.5"
 	},
+	"workspaces": [
+		"./src/licc"
+	],
 	"engines": {
 		"npm": ">=10.0.0",
 		"node": ">=22.16.0"

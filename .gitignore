@@ -31,3 +31,4 @@ tuta-sdk/android
 import-trace.json
 src/crypto-primitives
 src/mimimi/package-lock.json
+src/licc/package-lock.json

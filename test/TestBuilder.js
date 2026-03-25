@@ -5,28 +5,19 @@ import path, { dirname } from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
-import { sh } from "../buildSrc/sh.js"
 import { rolldown } from "rolldown"
 import { resolveLibs } from "../buildSrc/RollupConfig.js"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
 import { $ } from "zx"
+import { spawnSync } from "node:child_process"
+import { execSync } from "node:child_process"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ networkDebugging = false, clean, fast = false }) {
-	if (clean) {
-		await runStep("Clean", async () => {
-			await fs.emptyDir("build")
-		})
-	}
-
-	await runStep("Types", async () => {
-		await sh`npx tsc --build --incremental ${true}`
-	})
-	await $({ stdio: "inherit", cwd: "../src/crypto" })`node --experimental-strip-types make.ts --profile test`
-
+export async function runTestBuild({ networkDebugging = false, clean }) {
+	const buildDir = path.resolve("build")
 	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({
 		staticUrl: "http://localhost:9000",
@@ -37,12 +28,39 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 		networkDebugging,
 	})
 
+	if (clean) {
+		await runStep("Clean", async () => {
+			fs.rmSync(buildDir, { recursive: true, force: true })
+			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
+			spawnSync("cargo", ["clean"])
+			spawnSync("npx", ["tsc", "--build", "--clean"])
+		})
+	}
+
+	await runStep("Build crypto-primitives", async () => {
+		const targetDir = path.resolve(buildDir)
+		const _ = clean
+			? await $({ stdio: "inherit", cwd: "../src/crypto" })`node --experimental-strip-types make.ts ${targetDir} --clean`
+			: await $({ stdio: "inherit", cwd: "../src/crypto" })`node --experimental-strip-types make.ts ${targetDir}`
+	})
+
+	await runStep("Build mimimi", async () => {
+		execSync("node --experimental-strip-types make.ts", {
+			cwd: "../src/mimimi",
+		})
+	})
+
+	await runStep("Types", async () => {
+		await $({ stdio: "inherit" })`npx tsc --build --incremental ${true}`
+	})
+
 	await runStep("Assets", async () => {
 		const pjPath = path.join("..", "package.json")
 		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await createUnitTestHtml(localEnv)
 	})
+
 	await runStep("Rolldown", async () => {
 		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js") // FIXME: this have to already exists? and is there bettr way to import
 		const bundle = await rolldown({
