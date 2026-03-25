@@ -1,13 +1,13 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { createWizardDialog, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
-import { assertMainOrNode } from "../../api/common/Env"
 import { EnterImapCredentialsPage, EnterImapCredentialsPageAttrs } from "./EnterImapCredentialsPage.js"
 import { ConfigureImapImportPage, ConfigureImapImportPageAttrs } from "./ConfigureImapImportPage.js"
 import { ImapImportState, ImportState } from "../../api/worker/imapimport/ImapImportState.js"
 import { ImapImportStartedPage, ImapImportStartedPageAttrs } from "./ImapImportStartedPage.js"
-import { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { isDomainName } from "../../misc/FormatValidator.js"
+import { assertMainOrNode } from "../../common/api/common/Env.js"
+import { TranslationKey } from "../../common/misc/LanguageViewModel"
+import { isDomainName } from "../../common/misc/FormatValidator"
+import { createWizardDialog, wizardPageWrapper } from "../../common/gui/base/WizardDialog"
 
 assertMainOrNode()
 
@@ -74,7 +74,7 @@ export class ImapImportModel {
 	}
 
 	get rootImportMailFolderName(): Stream<string> {
-		if (this._rootImportMailFolderName().length == 0) {
+		if (this._rootImportMailFolderName().length === 0) {
 			this._rootImportMailFolderName = stream("imap:" + this._imapAccountUsername())
 		}
 
@@ -126,7 +126,7 @@ export class ImapImportModel {
 		let username = this._imapAccountUsername()
 		let password = this._imapAccountPassword()
 
-		if (port.length == 0 || username.length == 0 || password.length == 0) {
+		if (port.length === 0 || username.length === 0 || password.length === 0) {
 			return "imapAccountInvalid_msg"
 		} else {
 			return null
@@ -136,7 +136,7 @@ export class ImapImportModel {
 	validateRootImportMailFolder(): TranslationKey | null {
 		let cleanRootImportFolderName = this._rootImportMailFolderName().toLocaleLowerCase().trim()
 
-		if (cleanRootImportFolderName.length == 0) {
+		if (cleanRootImportFolderName.length === 0) {
 			return "imapImportRootMailFolderNameInvalid_msg"
 		} else {
 			return null

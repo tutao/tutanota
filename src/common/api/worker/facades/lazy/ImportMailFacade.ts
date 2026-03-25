@@ -61,7 +61,7 @@ export interface ImportMailParams {
 	bccRecipients: RecipientList
 	attachments: ImapImportAttachments | null
 	imapUid: number
-	imapModSeq: BigInt | null
+	imapModSeq: number | null
 	imapFolderSyncState: IdTuple
 }
 

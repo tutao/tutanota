@@ -36,6 +36,7 @@ import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "./facades/PublicIdentityKeyProvider"
 import { DriveFacade } from "./facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../main/TransferProgressDispatcher"
+import { ImapImporter } from "../../../api/worker/imapimport/ImapImporter"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -92,4 +93,5 @@ export interface CommonWorkerInterface {
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
 	readonly driveFacade: DriveFacade
+	readonly imapImporterFacade: ImapImporter
 }

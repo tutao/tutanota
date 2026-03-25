@@ -1,13 +1,14 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
-import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertMainOrNode } from "../../api/common/Env"
 import { AddImapImportData } from "./AddImapImportWizard.js"
-import { locator } from "../../api/main/MainLocator.js"
+import { assertMainOrNode } from "../../common/api/common/Env.js"
+import { lang } from "../../common/misc/LanguageViewModel.js"
+import { Button, ButtonType } from "../../common/gui/base/Button"
+import { emitWizardEvent, WizardEventType, WizardPageN } from "../../common/gui/base/WizardDialog"
+import { locator } from "../../common/api/main/CommonLocator"
 
 assertMainOrNode()
+
+class WizardPageAttrs<T> {}
 
 export class ImapImportStartedPage implements WizardPageN<AddImapImportData> {
 	private dom: HTMLElement | null = null
@@ -38,9 +39,9 @@ export class ImapImportStartedPage implements WizardPageN<AddImapImportData> {
 						},
 					},
 					m(Button, {
-						type: ButtonType.Login,
+						type: ButtonType.Primary,
 						label: "closeImapImportSetup_action",
-						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
+						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),

@@ -53,6 +53,8 @@
 		"@types/luxon": "3.6.2",
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
+		"imapflow": "1.0.128",
+		"mailparser": "^3.6.4",
 		"cborg": "4.2.2",
 		"dompurify": "3.3.2",
 		"electron": "41.0.3",

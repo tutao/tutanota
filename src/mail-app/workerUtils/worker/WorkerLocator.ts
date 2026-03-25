@@ -118,6 +118,9 @@ import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { ImapImporter } from "../../../api/worker/imapimport/ImapImporter"
+import { ImportImapFacade } from "../../../common/api/worker/facades/lazy/ImportImapFacade"
+import { ImportMailFacade } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 
 assertWorkerOrNode()
 
@@ -205,6 +208,11 @@ export type WorkerLocatorType = {
 
 	// drive
 	driveFacade: lazyAsync<DriveFacade>
+
+	// IMAP mail import
+	imapImporter: lazyAsync<ImapImporter>
+	importImap: lazyAsync<ImportImapFacade>
+	importMail: lazyAsync<ImportMailFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
