@@ -2244,6 +2244,7 @@ export default {
 		"widgetMissingConfigurationError_msg": "Bitte konfigurieren Sie dieses Widget",
 		"widgetNoCredentialsInfo_msg": "Keine Login-Daten vorhanden",
 		"widgetNoEvents_msg": "Keine Termine",
+		"widgetNoEventsToday_msg": "Heute keine Termine",
 		"widgetOpenApp_action": "Die App öffnen",
 		"widgetUnexpectedError_msg": "Etwas ist schief gelaufen.",
 		"withCustomRules_label": "Mit benutzerdefinierten Wiederholungen",

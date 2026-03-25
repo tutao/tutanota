@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Bitte melde dich in der Kalender-App an</string>
     <string name="widgetOpenApp_action">Die App öffnen</string>
     <string name="widgetNoEvents_msg">Keine Termine</string>
+    <string name="widgetNoEventsToday_msg">Heute keine Termine</string>
     <string name="widgetDescription_msg">Heute anstehenden Termine anzeigen</string>
     <string name="birthdayCalendar_label">Geburtstage</string>
     <string name="birthdayEvent_title">{name}s Geburtstag</string>

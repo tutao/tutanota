@@ -2257,4 +2257,5 @@ export type TranslationKeyType =
 	| "cannotCopyToTrash_msg"
 	| "driveNotEmpty_msg"
 	| "movingItemCount_label"
+	| "widgetNoEventsToday_msg"
 	| "emptyString_msg"

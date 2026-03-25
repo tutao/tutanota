@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Die App öffnen";
 TutaoWidgetUnexpectedErrorMsg = "Etwas ist schief gelaufen.";
 TutaoWidgetSendLogsAction = "Logs senden";
 TutaoWidgetNoEventsMsg = "Keine Termine";
+TutaoWidgetNoEventsTodayMsg = "Heute keine Termine";
 TutaoWidgetCredentialsErrorMsg = "Keine Login-Daten vorhanden";
 TutaoAccountLabel = "Benutzer";
 TutaoCalendarsLabel = "Kalender";
