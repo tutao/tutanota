@@ -1,11 +1,17 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isApp, isBrowser } from "../../common/api/common/Env"
 import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
-import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
+	MailboxGroupRoot,
+	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailSet,
+	MailSetEntryTypeRef,
 	MailSetTypeRef,
+	MailTypeRef,
+	OutOfOfficeNotification,
 	OutOfOfficeNotificationTypeRef,
+	TutanotaProperties,
 	TutanotaPropertiesTypeRef,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -13,13 +19,14 @@ import {
 	FeatureType,
 	FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
 	InboxRuleType,
+	MailSetKind,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	ReportMovedMailsType,
-	UpgradePromptType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "../../common/api/common/TutanotaConstants"
-import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, isEmpty, LazyLoaded, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../common/gui/base/Dialog"
@@ -56,10 +63,14 @@ import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../commo
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { getFolderName } from "../mail/model/MailUtils.js"
-import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, isSameId } from "../../common/api/common/utils/EntityUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
 import { client } from "../../common/misc/ClientDetector"
+import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
+import { MoveMode } from "../mail/model/MailModel"
+import { ButtonType } from "../../common/gui/base/Button"
+import { isOfflineError } from "../../common/api/common/utils/ErrorUtils"
 import { ProgressBar, ProgressBarType } from "../../common/gui/base/ProgressBar"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 
@@ -418,10 +429,120 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 										"{1}": mailLocator.logins.getUserController().props.inboxRules.length,
 									}),
 								),
+								m(
+									".flex-start.mt-8",
+									m(
+										".flex",
+										m(LoginButton, {
+											label: "reapplyInboxRules_action",
+											onclick: async () => {
+												if (mailLocator.logins.getUserController().isFreeAccount()) {
+													// you need access to inbox rules first before you can even use them
+													await showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
+													return
+												}
+
+												const progress = stream(0)
+												const abort = new AbortController()
+												const moved = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
+													middle: "reapplyInboxRules_action",
+													left: () => {
+														return [
+															{
+																label: "cancel_action",
+																click: () => {
+																	abort.abort()
+
+																	// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
+																	progress(100)
+																},
+																type: ButtonType.Secondary,
+															} as const,
+														]
+													},
+												})
+												await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": moved }))
+											},
+										}),
+									),
+								),
 							],
 				],
 			),
 		]
+	}
+
+	private async reapplyAllInboxRules(progress: Stream<number>, abort: AbortController): Promise<number> {
+		const userController = mailLocator.logins.getUserController()
+		const inboxRules = userController.props.inboxRules
+		if (isEmpty(inboxRules)) {
+			return 0
+		}
+
+		const folderSystem = assertNotNull(
+			mailLocator.mailModel.getFolderSystemByGroupId(userController.getUserMailGroupMembership().group),
+			"no folder system?",
+		)
+		const inbox = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX), "no inbox?")
+		const inboxRuleHandler = mailLocator.processInboxHandler()
+		const mailboxDetails = await mailLocator.mailboxModel.getUserMailboxDetails()
+
+		let totalProcessed = 0
+		let totalMoved = 0
+
+		try {
+			const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
+			const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
+
+			for (const chunk of chunked) {
+				if (abort.signal.aborted) {
+					break
+				}
+
+				const mails = await resolveMailSetEntries(
+					chunk,
+					(list, elements) => mailLocator.entityClient.loadMultiple(MailTypeRef, list, elements),
+					mailLocator.mailModel,
+				)
+
+				const destinationsForMails = new Map<Id, IdTuple[]>()
+				const destinationFolders = new Map<Id, MailSet>()
+
+				await promiseMap(mails, async (mail) => {
+					if (mail.mail.mailDetails == null) {
+						// inbox rules do not work on drafts
+						return
+					}
+
+					const location = await inboxRuleHandler.processInboxRulesOnly(mail.mail, inbox, mailboxDetails)
+					if (isSameId(location._id, inbox._id)) {
+						// don't move from the inbox to the inbox
+						return
+					}
+
+					const locationId = elementIdPart(location._id)
+					destinationFolders.set(locationId, location)
+
+					const destinationList = destinationsForMails.get(locationId) ?? assertNotNull(destinationsForMails.set(locationId, []).get(locationId))
+					destinationList.push(mail.mail._id)
+				})
+
+				for (const [destinationId, mails] of destinationsForMails.entries()) {
+					const mailset = assertNotNull(destinationFolders.get(destinationId))
+					await mailLocator.mailModel.moveMails(mails, mailset, MoveMode.Mails)
+					totalMoved += mails.length
+				}
+
+				totalProcessed += chunk.length
+				progress((totalProcessed / allIds.length) * 100)
+			}
+		} catch (e) {
+			if (!isOfflineError(e)) {
+				throw e
+			}
+		}
+
+		return totalMoved
 	}
 
 	private renderLocalDataSection(): Children {
