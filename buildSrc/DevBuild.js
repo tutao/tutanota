@@ -57,6 +57,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 		await runStep("Build mimimi", async () => {
 			execSync("node --experimental-strip-types make.ts", {
 				cwd: "src/mimimi",
+				stdio: "inherit",
 			})
 		})
 	}

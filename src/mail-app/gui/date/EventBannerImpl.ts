@@ -1,5 +1,5 @@
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "../../../common/api/entities/tutanota/TypeRefs"
-import { DateTime } from "../../../../libs/luxon"
+import { DateTime } from "luxon"
 import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"

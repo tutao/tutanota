@@ -28,7 +28,7 @@ import { MembershipRemovedError } from "../../../common/api/common/error/Members
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
-import { aes256EncryptSearchIndexEntry, aes256RandomKey, AesKey, decryptKey, IV_BYTE_LENGTH, random, aesDecryptUnauthenticated } from "@tutao/crypto"
+import { aes256EncryptSearchIndexEntry, aes256RandomKey, aesDecryptUnauthenticated, AesKey, decryptKey, IV_BYTE_LENGTH, random } from "@tutao/crypto"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import {
 	ElementDataOS,
@@ -47,7 +47,7 @@ import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/w
 import { EntityUpdateData, entityUpdateToUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
-import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
+import type { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"

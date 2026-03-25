@@ -14,9 +14,8 @@ import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
-import { rollupWasmLoader } from "@tutao/tuta-wasm-loader"
 import replace from "@rollup/plugin-replace"
-import { copyCryptoPrimitiveCrateIntoWasmDir } from "./cryptoPrimitivesUtils.js"
+import { rollupWasmLoader } from "../src/wasm-loader/dist/index.js"
 
 /**
  * Builds the web app for production.
@@ -45,13 +44,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started cleaning", measure())
 	await fs.emptyDir(buildDir)
-
-	// using native versions for mobile app
-	if (!mobileBuild) {
-		// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
-		// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
-		await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
-	}
 
 	console.log("bundling polyfill", measure())
 	const polyfillBundle = await rollup({

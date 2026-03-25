@@ -26,6 +26,9 @@
 		},
 		{
 			"path": "./src/tsconfig.usagetests.json"
+		},
+		{
+			"path": "./src/tsconfig.combined-apps.json"
 		}
 	]
 }

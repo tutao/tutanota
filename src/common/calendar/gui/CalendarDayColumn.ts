@@ -7,7 +7,7 @@ import { Time } from "../date/Time"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions } from "./CalendarEventBubble"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
-import { DateTime } from "../../../../libs/luxon"
+import { DateTime } from "luxon"
 import { px } from "../../gui/size"
 import { TimeIndicator } from "./TimeIndicator"
 

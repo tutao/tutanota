@@ -278,7 +278,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 			this.processInlineImages()
 			const htmlBeforeProcessQuotedReply = editorDom.innerHTML
-			this.editor.squire.modifyDocument(() => {
+			this.editor.squire!.modifyDocument(() => {
 				this.processQuotedReply(editorDom)
 			})
 
@@ -297,7 +297,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					this.shouldCollapseQuotedReply = true
 					this.collapsedReply = null
 				}
-				this.editor.squire.modifyDocument(() => {
+				this.editor.squire!.modifyDocument(() => {
 					// We process with modifyDocument to not raise an input event as that would cause an infinite loop
 					this.processQuotedReply(editorDom)
 				})
@@ -474,7 +474,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 	private expandQuotedReply(quoteWrap: HTMLElement): void {
 		this.shouldCollapseQuotedReply = false
-		this.editor.squire.modifyDocument(() => {
+		this.editor.squire!.modifyDocument(() => {
 			quoteWrap.replaceWith(assertNotNull(this.collapsedReply))
 		})
 	}

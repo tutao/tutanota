@@ -10,8 +10,7 @@ import { resolveLibs } from "../buildSrc/RollupConfig.js"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
 import { $ } from "zx"
-import { spawnSync } from "node:child_process"
-import { execSync } from "node:child_process"
+import { execSync, spawnSync } from "node:child_process"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
@@ -47,6 +46,7 @@ export async function runTestBuild({ networkDebugging = false, clean }) {
 	await runStep("Build mimimi", async () => {
 		execSync("node --experimental-strip-types make.ts", {
 			cwd: "../src/mimimi",
+			stdio: "inherit",
 		})
 	})
 
