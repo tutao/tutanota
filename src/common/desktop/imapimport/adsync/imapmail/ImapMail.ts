@@ -200,7 +200,7 @@ export class ImapMailBody {
 
 export class ImapMail {
 	uid: number
-	modSeq?: BigInt
+	modSeq?: bigint
 	size?: number
 	internalDate?: Date
 	flags?: Set<string>
@@ -218,7 +218,7 @@ export class ImapMail {
 		this.belongsToMailbox = belongsToMailbox
 	}
 
-	setModSeq(modSeq?: BigInt): this {
+	setModSeq(modSeq?: bigint): this {
 		this.modSeq = modSeq
 		return this
 	}

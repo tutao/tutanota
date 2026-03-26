@@ -52,6 +52,7 @@ import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/Autosave
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { ImapImporter } from "../../../api/worker/imapimport/ImapImporter"
+import { ImapImportFacade } from "../../../common/native/common/generatedipc/ImapImportFacade"
 
 assertWorkerOrNode()
 

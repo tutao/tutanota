@@ -13,7 +13,7 @@ export function getAverageOfList(list: number[]) {
 		acc += value
 		return acc
 	}, 0) /
-		list.length !=
+		list.length !==
 		0
 		? list.length
 		: 1

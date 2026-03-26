@@ -16,7 +16,7 @@ export const THROUGHPUT_THRESHOLD: number = 10
 export abstract class AdSyncOptimizer {
 	protected optimizationDifference: number
 	protected optimizationInterval: number
-	protected abstract scheduler?: NodeJS.Timer
+	protected abstract scheduler?: IntervalID
 	protected optimizerUpdateTimeStampHistory: TimeStamp[] = []
 
 	protected constructor(optimizationDifference: number, optimizationInterval: number) {

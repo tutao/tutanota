@@ -78,6 +78,7 @@ import { ButtonType } from "../../common/gui/base/Button"
 import { CancelledError } from "../../common/api/common/error/CancelledError"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
+import ImapImportSettingsViewer from "./imapimport/ImapImportSettingsViewer"
 
 assertMainOrNode()
 
@@ -194,6 +195,22 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					() => {
 						if (isDesktop()) {
 							return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
+						} else {
+							return new WebMailImportSettingsViewer()
+						}
+					},
+					undefined,
+				),
+			)
+
+			this._userFolders.push(
+				new SettingsFolder(
+					() => "imapImportSettings_label",
+					() => Icons.Sync,
+					"imapImportImport",
+					() => {
+						if (isDesktop()) {
+							return new ImapImportSettingsViewer()
 						} else {
 							return new WebMailImportSettingsViewer()
 						}

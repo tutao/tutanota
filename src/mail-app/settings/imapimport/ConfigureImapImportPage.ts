@@ -1,16 +1,15 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { TextField, TextFieldAttrs } from "../../gui/base/TextField.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel"
-import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertMainOrNode } from "../../api/common/Env"
-import { InitializeImapImportParams } from "../../api/worker/imapimport/ImapImporter.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { locator } from "../../api/main/MainLocator.js"
-import { ImapImportState, ImportState } from "../../api/worker/imapimport/ImapImportState.js"
+import { InitializeImapImportParams } from "../../../api/worker/imapimport/ImapImporter.js"
+import { ImapImportState, ImportState } from "../../../api/worker/imapimport/ImapImportState.js"
 import { AddImapImportData } from "./AddImapImportWizard.js"
+import { assertMainOrNode } from "../../../common/api/common/Env"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog"
+import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
+import { lang, MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { Button, ButtonType } from "../../../common/gui/base/Button"
+import { Dialog } from "../../../common/gui/base/Dialog"
+import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import { locator } from "../../workerUtils/worker/WorkerLocator"
 
 assertMainOrNode()
 
@@ -46,9 +45,9 @@ export class ConfigureImapImportPage implements WizardPageN<AddImapImportData> {
 						},
 					},
 					m(Button, {
-						type: ButtonType.Login,
+						type: ButtonType.Primary,
 						label: "startImapImport_action",
-						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
+						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),
@@ -63,8 +62,8 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<AddImapImpo
 		this.data = imapImportData
 	}
 
-	headerTitle(): string {
-		return lang.get("imapImportSetup_title")
+	headerTitle(): MaybeTranslation {
+		return "imapImportSetup_title"
 	}
 
 	async nextAction(showErrorDialog: boolean = true): Promise<boolean> {
@@ -85,7 +84,7 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<AddImapImpo
 
 			this.data.model.imapImportState = await initializeAndContinueImapImport(initializeImapImportParams)
 
-			if (this.data.model.imapImportState.state == ImportState.POSTPONED) {
+			if (this.data.model.imapImportState.state === ImportState.POSTPONED) {
 				let postponedErrorMsg = "imapImportStartedPostponed_msg" as TranslationKey
 				return showErrorDialog ? Dialog.message(postponedErrorMsg).then(() => true) : Promise.resolve(true)
 			}
@@ -104,8 +103,9 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<AddImapImpo
 }
 
 async function initializeAndContinueImapImport(initializeImportParams: InitializeImapImportParams): Promise<ImapImportState> {
+	const imapImporter = await locator.imapImporter()
 	return showProgressDialog(
 		"startingImapImport_msg",
-		locator.imapImporterFacade.initializeImport(initializeImportParams).then(() => locator.imapImporterFacade.continueImport()),
+		imapImporter.initializeImport(initializeImportParams).then(() => imapImporter.continueImport()),
 	)
 }

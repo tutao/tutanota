@@ -122,6 +122,9 @@ import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "./calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
+import { DesktopImapImportSystemFacade } from "../common/desktop/imapimport/DesktopImapImportSystemFacade"
+import { ImportImapFacade } from "../common/api/worker/facades/lazy/ImportImapFacade"
+import { ImapImporter } from "../api/worker/imapimport/ImapImporter"
 
 assertMainOrNode()
 
@@ -182,6 +185,7 @@ class CalendarLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
+	imapImportFacade!: ImapImporter
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -685,6 +689,7 @@ class CalendarLocator implements CommonLocator {
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
+				this.imapImportFacade,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,

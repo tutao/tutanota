@@ -67,7 +67,7 @@ export class DifferentialUidLoader {
 		let deletedUids: number[] = []
 		if (this.emitAdSyncEventTypes.has(AdSyncEventType.DELETE)) {
 			deletedUids = [...this.importedUidToMailIdsMap.keys()].filter((uid) => {
-				!seenUids.includes(uid)
+				return !seenUids.includes(uid)
 			})
 		}
 
@@ -78,7 +78,7 @@ export class DifferentialUidLoader {
 	private async calculateUidDiffInBatches(fromSeq: number, downloadBatchSize: number, totalMessageCount: number | null): Promise<SeenUids> {
 		let seenUids: number[] = []
 
-		if (totalMessageCount == 0) {
+		if (totalMessageCount === 0) {
 			return seenUids
 		}
 
@@ -118,10 +118,10 @@ export class DifferentialUidLoader {
 		let nextUidFetchRange: number[]
 		let fetchRequestType: UidFetchRequestType
 
-		if (this.emitAdSyncEventTypes.has(AdSyncEventType.CREATE) && this.uidCreateQueue.length != 0) {
+		if (this.emitAdSyncEventTypes.has(AdSyncEventType.CREATE) && this.uidCreateQueue.length !== 0) {
 			nextUidFetchRange = this.uidCreateQueue.splice(0, downloadBatchSize)
 			fetchRequestType = UidFetchRequestType.CREATE
-		} else if (this.emitAdSyncEventTypes.has(AdSyncEventType.UPDATE) && this.uidUpdateQueue.length != 0) {
+		} else if (this.emitAdSyncEventTypes.has(AdSyncEventType.UPDATE) && this.uidUpdateQueue.length !== 0) {
 			nextUidFetchRange = this.uidUpdateQueue.splice(0, downloadBatchSize)
 			fetchRequestType = UidFetchRequestType.UPDATE
 		} else if (this.uidDiffInProgress) {
@@ -150,7 +150,7 @@ export class DifferentialUidLoader {
 		let uidFetchSequenceList = uidsToFetch.reduce<UidFetchSequence[]>((uidFetchSequenceList, uid: number) => {
 			let prevUidFetchSequence = uidFetchSequenceList.at(-1)
 
-			if (prevUidFetchSequence && prevUidFetchSequence.toUid == uid - 1) {
+			if (prevUidFetchSequence && prevUidFetchSequence.toUid === uid - 1) {
 				prevUidFetchSequence.toUid = uid
 				uidFetchSequenceList[-1] = prevUidFetchSequence
 			} else {
@@ -182,13 +182,13 @@ export class DifferentialUidLoader {
 
 		let uidFetchSequenceStrings = uidFetchSequenceChunks.map((uidFetchSequenceChunk) => {
 			return uidFetchSequenceChunk.reduce<string>((uidFetchSequenceString, uidFetchSequence, index) => {
-				if (uidFetchSequence.fromUid == uidFetchSequence.toUid) {
-					return uidFetchSequenceString + `${uidFetchSequence.fromUid}` + (index == uidFetchSequenceChunk.length - 1 ? "" : ",")
+				if (uidFetchSequence.fromUid === uidFetchSequence.toUid) {
+					return uidFetchSequenceString + `${uidFetchSequence.fromUid}` + (index === uidFetchSequenceChunk.length - 1 ? "" : ",")
 				} else {
 					return (
 						uidFetchSequenceString +
 						`${uidFetchSequence.fromUid}:${uidFetchSequence.toUid}` +
-						(index == uidFetchSequenceChunk.length - 1 ? "" : ",")
+						(index === uidFetchSequenceChunk.length - 1 ? "" : ",")
 					)
 				}
 			}, "")

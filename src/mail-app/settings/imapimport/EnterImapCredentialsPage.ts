@@ -1,15 +1,14 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { TextField, TextFieldAttrs, TextFieldType } from "../../gui/base/TextField.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { lang } from "../../misc/LanguageViewModel"
-import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertMainOrNode } from "../../api/common/Env"
 import { AddImapImportData, ImapImportModel } from "./AddImapImportWizard.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
+import { assertMainOrNode } from "../../../common/api/common/Env"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog"
+import { TextField, TextFieldAttrs, TextFieldType } from "../../../common/gui/base/TextField"
+import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
+import { Button, ButtonType } from "../../../common/gui/base/Button"
+import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { ButtonSize } from "../../../common/gui/base/ButtonSize"
+import { Dialog } from "../../../common/gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -82,9 +81,9 @@ export class EnterImapCredentialsPage implements WizardPageN<AddImapImportData> 
 						},
 					},
 					m(Button, {
-						type: ButtonType.Login,
+						type: ButtonType.Primary,
 						label: "next_action",
-						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
+						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),
@@ -99,7 +98,7 @@ export class EnterImapCredentialsPage implements WizardPageN<AddImapImportData> 
 				model.toggleRevealImapAccountPassword()
 				e.stopPropagation()
 			},
-			icon: model.isImapAccountPasswordRevealed() ? Icons.NoEye : Icons.Eye,
+			icon: model.isImapAccountPasswordRevealed() ? Icons.EyeCrossedFilled : Icons.EyeFilled,
 			size: ButtonSize.Compact,
 		})
 	}
@@ -112,8 +111,8 @@ export class EnterImapCredentialsPageAttrs implements WizardPageAttrs<AddImapImp
 		this.data = imapImportData
 	}
 
-	headerTitle(): string {
-		return lang.get("imapImportSetup_title")
+	headerTitle(): MaybeTranslation {
+		return "imapImportSetup_title"
 	}
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {

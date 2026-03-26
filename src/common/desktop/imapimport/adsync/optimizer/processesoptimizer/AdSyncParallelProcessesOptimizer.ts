@@ -1,7 +1,7 @@
 import { OptimizerUpdateAction, THROUGHPUT_THRESHOLD } from "../AdSyncOptimizer.js"
 import { AverageThroughput, TimeStamp } from "../../utils/AdSyncUtils.js"
-import { ProgrammingError } from "../../../../../api/common/error/ProgrammingError.js"
-import { AdSyncProcessesOptimizer, OptimizerProcess } from "./AdSyncProcessesOptimizer.js"
+import { AdSyncProcessesOptimizer, OptimizerProcess } from "./AdSyncProcessesOptimizer"
+import { ProgrammingError } from "../../../../../api/common/error/ProgrammingError"
 
 const MINIMUM_PARALLEL_PROCESSES = 2
 const MAX_PARALLEL_PROCESSES = 15
@@ -31,7 +31,7 @@ export class AdSyncParallelProcessesOptimizer extends AdSyncProcessesOptimizer {
 		}
 
 		if (combinedAverageThroughputCurrent + THROUGHPUT_THRESHOLD >= combinedAverageThroughputLast) {
-			if (lastUpdateAction != OptimizerUpdateAction.DECREASE) {
+			if (lastUpdateAction !== OptimizerUpdateAction.DECREASE) {
 				if (this.runningProcessMap.size < this.maxParallelProcesses) {
 					this.startSyncSessionProcesses(this.optimizationDifference)
 					this.optimizerUpdateActionHistory.push(OptimizerUpdateAction.INCREASE)
@@ -43,7 +43,7 @@ export class AdSyncParallelProcessesOptimizer extends AdSyncProcessesOptimizer {
 				this.optimizerUpdateActionHistory.push(OptimizerUpdateAction.DECREASE)
 			}
 		} else {
-			if (lastUpdateAction == OptimizerUpdateAction.INCREASE && this.runningProcessMap.size > 1) {
+			if (lastUpdateAction === OptimizerUpdateAction.INCREASE && this.runningProcessMap.size > 1) {
 				this.stopSyncSessionProcesses(1)
 				this.optimizerUpdateActionHistory.push(OptimizerUpdateAction.DECREASE)
 			}
@@ -53,7 +53,7 @@ export class AdSyncParallelProcessesOptimizer extends AdSyncProcessesOptimizer {
 	}
 
 	private getCombinedAverageThroughputInTimeInterval(fromTimeStamp: TimeStamp, toTimeStamp: TimeStamp): AverageThroughput {
-		if (this.runningProcessMap.size == 0) {
+		if (this.runningProcessMap.size === 0) {
 			return 0
 		} else {
 			return [...this.runningProcessMap.values()].reduce<AverageThroughput>((acc: AverageThroughput, value: OptimizerProcess) => {

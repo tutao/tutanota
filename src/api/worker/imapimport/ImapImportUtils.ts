@@ -1,11 +1,10 @@
-import { ImportImapAccount, ImportImapFolderSyncState } from "../../entities/tutanota/TypeRefs.js"
-import { ImapAccount } from "../../../desktop/imapimport/adsync/ImapSyncState.js"
-import { ImapMail, ImapMailAddress, ImapMailAttachment } from "../../../desktop/imapimport/adsync/imapmail/ImapMail.js"
-import { CalendarMethod, calendarMethodToMailMethod, MailMethod, MailState, ReplyType } from "../../common/TutanotaConstants.js"
-import { ImapMailbox, ImapMailboxSpecialUse } from "../../../desktop/imapimport/adsync/imapmail/ImapMailbox.js"
-import { PartialRecipient, RecipientList } from "../../common/recipients/Recipient.js"
-import { DataFile } from "../../common/DataFile.js"
-import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../facades/lazy/ImportMailFacade.js"
+import { ImapAccount } from "../../../common/desktop/imapimport/adsync/ImapSyncState.js"
+import { ImapMail, ImapMailAddress, ImapMailAttachment } from "../../../common/desktop/imapimport/adsync/imapmail/ImapMail.js"
+import { ImapMailbox, ImapMailboxSpecialUse } from "../../../common/desktop/imapimport/adsync/imapmail/ImapMailbox.js"
+import { ImportImapAccount, ImportImapFolderSyncState } from "../../../common/api/entities/tutanota/TypeRefs"
+import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
+import { CalendarMethod, calendarMethodToMailMethod, MailMethod, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
+import { PartialRecipient, RecipientList } from "../../../common/api/common/recipients/Recipient"
 
 const TEXT_CALENDAR_MIME_TYPE = "text/calendar"
 const CALENDAR_METHOD_MIME_PARAMETER = "method"
@@ -24,7 +23,7 @@ export function importImapAccountToImapAccount(importImapAccount: ImportImapAcco
 
 export function getFolderSyncStateForMailboxPath(mailboxPath: string, folderSyncStates: ImportImapFolderSyncState[]): ImportImapFolderSyncState | null {
 	let folderSyncState = folderSyncStates.find((folderSyncState) => {
-		return folderSyncState.path == mailboxPath
+		return folderSyncState.path === mailboxPath
 	})
 	return folderSyncState ? folderSyncState : null
 }
@@ -38,7 +37,7 @@ export function imapMailToImportMailParams(
 	let fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
 	let senderMailAddress = imapMail.envelope?.sender?.at(0)?.address ?? null
 
-	let differentEnvelopeSender = senderMailAddress != fromMailAddress ? senderMailAddress : null
+	let differentEnvelopeSender = senderMailAddress !== fromMailAddress ? senderMailAddress : null
 
 	let attachments = deduplicatedAttachments
 	if (!attachments) {
@@ -103,12 +102,12 @@ function mailStateFromImapMailbox(imapMailbox: ImapMailbox): MailState {
 }
 
 function unreadFromImapMail(imapMail: ImapMail): boolean {
-	return !imapMail.flags?.has(IMAP_FLAG_SEEN) ?? true
+	return !(imapMail.flags?.has(IMAP_FLAG_SEEN) ?? false)
 }
 
 function mailMethodFromImapMail(imapMail: ImapMail): MailMethod {
 	let iCalAttachments = imapMail.attachments?.find((attachment) => {
-		attachment.contentType == TEXT_CALENDAR_MIME_TYPE && attachment.headers.has(CALENDAR_METHOD_MIME_PARAMETER)
+		return attachment.contentType === TEXT_CALENDAR_MIME_TYPE && attachment.headers.has(CALENDAR_METHOD_MIME_PARAMETER)
 	})
 	let calendarMethod = iCalAttachments?.headers.get(CALENDAR_METHOD_MIME_PARAMETER) as CalendarMethod
 	return calendarMethod ? calendarMethodToMailMethod(calendarMethod) : MailMethod.NONE

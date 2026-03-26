@@ -1,14 +1,12 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { AddImapImportData } from "./AddImapImportWizard.js"
-import { assertMainOrNode } from "../../common/api/common/Env.js"
-import { lang } from "../../common/misc/LanguageViewModel.js"
-import { Button, ButtonType } from "../../common/gui/base/Button"
-import { emitWizardEvent, WizardEventType, WizardPageN } from "../../common/gui/base/WizardDialog"
-import { locator } from "../../common/api/main/CommonLocator"
+import { assertMainOrNode } from "../../../common/api/common/Env.js"
+import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
+import { Button, ButtonType } from "../../../common/gui/base/Button"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog"
+import { locator } from "../../workerUtils/worker/WorkerLocator"
 
 assertMainOrNode()
-
-class WizardPageAttrs<T> {}
 
 export class ImapImportStartedPage implements WizardPageN<AddImapImportData> {
 	private dom: HTMLElement | null = null
@@ -17,14 +15,14 @@ export class ImapImportStartedPage implements WizardPageN<AddImapImportData> {
 		this.dom = vnode.dom as HTMLElement
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<AddImapImportData>>): Children {
+	view({ attrs: { data } }: Vnode<WizardPageAttrs<AddImapImportData>>): Children {
 		return m("", [
 			m("h4.mt-l.text-center", lang.get("imapImportStarted_title")),
 			m(
 				"p.text-center",
 				lang.get("imapImportStartedSuccess_msg", {
-					"{externalImapAccountUsername}": vnode.attrs.data.model.imapAccountUsername(),
-					"{rootImportMailFolderName}": vnode.attrs.data.model.rootImportMailFolderName(),
+					"{externalImapAccountUsername}": data.model.imapAccountUsername() ?? "",
+					"{rootImportMailFolderName}": data.model.rootImportMailFolderName() ?? "",
 				}),
 			),
 			m("p.text-center", lang.get("imapImportStartedExplanation_msg")),
@@ -58,12 +56,13 @@ export class ImapImportStartedPageAttrs implements WizardPageAttrs<AddImapImport
 		this.data = imapImportData
 	}
 
-	headerTitle(): string {
-		return lang.get("imapImportSetup_title")
+	headerTitle(): MaybeTranslation {
+		return "imapImportSetup_title"
 	}
 
 	async nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-		await locator.imapImporterFacade.continueImport()
+		const importer = await locator.imapImporter()
+		await importer.continueImport()
 		return Promise.resolve(true)
 	}
 

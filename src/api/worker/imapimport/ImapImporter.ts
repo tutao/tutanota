@@ -1,20 +1,21 @@
-import { AdSyncEventType } from "../../../desktop/imapimport/adsync/AdSyncEventListener"
-import { ImportImapAccountSyncState, ImportImapFolderSyncState, MailFolder } from "../../entities/tutanota/TypeRefs.js"
-import { ImportImapFacade } from "../facades/lazy/ImportImapFacade.js"
-import { ImapImportDataFile, ImapImportTutanotaFileId, ImportMailFacade } from "../facades/lazy/ImportMailFacade.js"
+import { AdSyncEventType } from "../../../common/desktop/imapimport/adsync/AdSyncEventListener"
 import { ImapImportState, ImportState } from "./ImapImportState.js"
 import { getFolderSyncStateForMailboxPath, imapMailToImportMailParams, importImapAccountToImapAccount } from "./ImapImportUtils.js"
-import { ImapMailboxState, ImapMailIds, ImapSyncState } from "../../../desktop/imapimport/adsync/ImapSyncState.js"
-import { ImapMailbox, ImapMailboxStatus } from "../../../desktop/imapimport/adsync/imapmail/ImapMailbox.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { ImapMail, ImapMailAttachment } from "../../../desktop/imapimport/adsync/imapmail/ImapMail.js"
-import { ImapError } from "../../../desktop/imapimport/adsync/imapmail/ImapError.js"
-import { ImapImportSystemFacade } from "../../../native/common/generatedipc/ImapImportSystemFacade.js"
-import { ImapImportFacade } from "../../../native/common/generatedipc/ImapImportFacade.js"
+import { ImapMailboxState, ImapMailIds, ImapSyncState } from "../../../common/desktop/imapimport/adsync/ImapSyncState.js"
+import { ImapMailbox, ImapMailboxStatus } from "../../../common/desktop/imapimport/adsync/imapmail/ImapMailbox.js"
+import { ImapMail, ImapMailAttachment } from "../../../common/desktop/imapimport/adsync/imapmail/ImapMail.js"
+import { ImapError } from "../../../common/desktop/imapimport/adsync/imapmail/ImapError.js"
+
 import { uint8ArrayToString } from "@tutao/tutanota-utils"
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import { MaybePromise } from "rollup"
-import { SuspensionError } from "../../common/error/SuspensionError.js"
+import { ImportImapAccountSyncState, ImportImapFolderSyncState, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ImapImportDataFile, ImapImportTutanotaFileId, ImportMailFacade } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
+import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
+import { ImapImportFacade } from "../../../common/native/common/generatedipc/ImapImportFacade"
+import { ImapImportSystemFacade } from "../../../common/native/common/generatedipc/ImapImportSystemFacade"
+import { ImportImapFacade } from "../../../common/api/worker/facades/lazy/ImportImapFacade"
 
 const DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME = 120 * 1000 // 120 seconds
 
@@ -56,11 +57,11 @@ export class ImapImporter implements ImapImportFacade {
 	}
 
 	async continueImport(): Promise<ImapImportState> {
-		if (this.imapImportState.state == ImportState.RUNNING) {
+		if (this.imapImportState.state === ImportState.RUNNING) {
 			return this.imapImportState
 		}
 
-		if (this.imapImportState.state == ImportState.POSTPONED && this.imapImportState.postponedUntil.getTime() > Date.now()) {
+		if (this.imapImportState.state === ImportState.POSTPONED && this.imapImportState.postponedUntil.getTime() > Date.now()) {
 			this.imapImportState.state = ImportState.POSTPONED
 			return this.imapImportState
 		}
@@ -119,7 +120,7 @@ export class ImapImporter implements ImapImportFacade {
 		return true
 	}
 
-	async loadRootImportFolder(): Promise<MailFolder | null> {
+	async loadRootImportFolder(): Promise<MailSet | null> {
 		if (this.importImapAccountSyncState?.rootImportMailFolder == null) {
 			return Promise.resolve(null)
 		}
@@ -149,7 +150,7 @@ export class ImapImporter implements ImapImportFacade {
 		for (const folderSyncState of this.importImapFolderSyncStates) {
 			let importedImapUidToMailIdsMap = new Map<number, ImapMailIds>()
 			let importedImapUidToMailIdMapList = await this.importImapFacade.getImportedImapUidToMailIdsMapList(folderSyncState.importedImapUidToMailIdsMap)
-			importedImapUidToMailIdMapList.forEach((importImapUidToMailIds) => {
+			for (const importImapUidToMailIds of importedImapUidToMailIdMapList) {
 				let imapUid = parseInt(importImapUidToMailIds.imapUid)
 				let importedImapMailIds = new ImapMailIds(imapUid)
 				if (importImapUidToMailIds.imapModSeq != null) {
@@ -158,7 +159,7 @@ export class ImapImporter implements ImapImportFacade {
 				importedImapMailIds.externalMailId = importImapUidToMailIds.mail
 
 				importedImapUidToMailIdsMap.set(imapUid, importedImapMailIds)
-			})
+			}
 
 			let imapMailboxState = new ImapMailboxState(folderSyncState.path, importedImapUidToMailIdsMap)
 			imapMailboxState.uidNext = folderSyncState.uidnext ? parseInt(folderSyncState.uidnext) : undefined
@@ -181,11 +182,11 @@ export class ImapImporter implements ImapImportFacade {
 			this.importImapAccountSyncState.importedImapAttachmentHashToIdMap,
 		)
 
-		importedImapAttachmentHashToIdMapList.forEach((importedImapAttachmentHashToId) => {
+		for (const importedImapAttachmentHashToId of importedImapAttachmentHashToIdMapList) {
 			let imapAttachmentHash = importedImapAttachmentHashToId.imapAttachmentHash
 			let attachmentId = importedImapAttachmentHashToId.attachment
 			importedImapAttachmentHashToIdMap.set(imapAttachmentHash, attachmentId)
-		})
+		}
 
 		return importedImapAttachmentHashToIdMap
 	}
@@ -206,6 +207,8 @@ export class ImapImporter implements ImapImportFacade {
 				}
 			}
 
+			// FIXME: resolve this issue
+			// eslint-disable-next-line no-async-promise-executor
 			let deferredAttachmentId: Promise<IdTuple | undefined> = new Promise(async (resolve) => {
 				this.importedImapAttachmentHashToIdMap = await this.getImportedImapAttachmentHashToIdMap()
 				resolve(this.importedImapAttachmentHashToIdMap.get(fileHash))
@@ -233,7 +236,7 @@ export class ImapImporter implements ImapImportFacade {
 		}
 
 		switch (eventType) {
-			case AdSyncEventType.CREATE:
+			case AdSyncEventType.CREATE: {
 				let parentFolderId = this.importImapAccountSyncState.rootImportMailFolder
 				if (imapMailbox.parentFolder) {
 					let parentFolderSyncState = getFolderSyncStateForMailboxPath(imapMailbox.parentFolder.path, this.importImapFolderSyncStates ?? [])
@@ -246,6 +249,7 @@ export class ImapImporter implements ImapImportFacade {
 					this.importImapFolderSyncStates?.push(newFolderSyncState)
 				}
 				break
+			}
 			case AdSyncEventType.UPDATE:
 				// TODO update mail folder through existing Tutanota API's
 				break
@@ -266,7 +270,7 @@ export class ImapImporter implements ImapImportFacade {
 		if (folderSyncState) {
 			const newFolderSyncState = await this.importImapFacade.updateImportImapFolderSyncState(imapMailboxStatus, folderSyncState)
 
-			let index = this.importImapFolderSyncStates.findIndex((folderSyncState) => folderSyncState.path == newFolderSyncState.path)
+			let index = this.importImapFolderSyncStates.findIndex((folderSyncState) => folderSyncState.path === newFolderSyncState.path)
 			this.importImapFolderSyncStates[index] = newFolderSyncState
 		}
 
@@ -285,11 +289,9 @@ export class ImapImporter implements ImapImportFacade {
 
 			switch (eventType) {
 				case AdSyncEventType.CREATE:
-					this.importMailFacade.importMail(importMailParams).catch((error) => {
+					this.importMailFacade.importMail(importMailParams).catch((error: Error) => {
 						if (error instanceof SuspensionError) {
-							this.postponeImport(
-								new Date(Date.now() + (error.suspensionTime ? parseInt(error.suspensionTime) : DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME)),
-							)
+							this.postponeImport(new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME)))
 						}
 					})
 					break

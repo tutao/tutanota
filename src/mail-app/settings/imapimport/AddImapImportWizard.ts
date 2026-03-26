@@ -2,12 +2,13 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { EnterImapCredentialsPage, EnterImapCredentialsPageAttrs } from "./EnterImapCredentialsPage.js"
 import { ConfigureImapImportPage, ConfigureImapImportPageAttrs } from "./ConfigureImapImportPage.js"
-import { ImapImportState, ImportState } from "../../api/worker/imapimport/ImapImportState.js"
+import { ImapImportState, ImportState } from "../../../api/worker/imapimport/ImapImportState.js"
 import { ImapImportStartedPage, ImapImportStartedPageAttrs } from "./ImapImportStartedPage.js"
-import { assertMainOrNode } from "../../common/api/common/Env.js"
-import { TranslationKey } from "../../common/misc/LanguageViewModel"
-import { isDomainName } from "../../common/misc/FormatValidator"
-import { createWizardDialog, wizardPageWrapper } from "../../common/gui/base/WizardDialog"
+import { assertMainOrNode } from "../../../common/api/common/Env.js"
+import { TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { isDomainName } from "../../../common/misc/FormatValidator"
+import { createWizardDialog, wizardPageWrapper } from "../../../common/gui/base/WizardDialog"
+import { DialogType } from "../../../common/gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -152,9 +153,14 @@ export function showAddImapImportWizard(addImapImportData: AddImapImportData): P
 		wizardPageWrapper(ImapImportStartedPage, new ImapImportStartedPageAttrs(addImapImportData)),
 	]
 	return new Promise((resolve) => {
-		const wizardBuilder = createWizardDialog(addImapImportData, wizardPages, () => {
-			resolve()
-			return Promise.resolve()
+		const wizardBuilder = createWizardDialog({
+			data: addImapImportData,
+			pages: wizardPages,
+			closeAction: () => {
+				resolve()
+				return Promise.resolve()
+			},
+			dialogType: DialogType.EditLarge,
 		})
 		const wizard = wizardBuilder.dialog
 		const wizardAttrs = wizardBuilder.attrs

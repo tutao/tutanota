@@ -48,20 +48,20 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 	protected startSyncSessionProcesses(amount: number) {
 		let nextMailboxesToDownload = this.nextMailboxesToDownload(amount)
 
-		nextMailboxesToDownload.forEach((mailbox) => {
+		for (const mailbox of nextMailboxesToDownload) {
 			if (!this.isExistRunningProcessForMailbox(mailbox)) {
 				// we only allow one process per IMAP folder
 				this.runningProcessMap.set(this.nextProcessId, new OptimizerProcess(mailbox.mailboxState.path))
 				this.syncSessionEventListener.onStartSyncSessionProcess(this.nextProcessId, mailbox)
 				this.nextProcessId += 1
 			}
-		})
+		}
 	}
 
 	protected stopSyncSessionProcesses(amount: number) {
 		let nextProcessIdsToDrop = this.nextProcessIdsToDrop(amount)
 
-		nextProcessIdsToDrop.forEach((processId) => {
+		for (const processId of nextProcessIdsToDrop) {
 			let mailboxToDrop = this.runningProcessMap.get(processId)
 			if (mailboxToDrop) {
 				let timeToLiveIntervalMS = 1000 * (mailboxToDrop.syncSessionMailbox?.timeToLive ? mailboxToDrop.syncSessionMailbox?.timeToLive : 0) // conversion to milliseconds
@@ -70,7 +70,7 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 				if (mailboxToDrop.processStartTime + timeToLiveIntervalMS <= Date.now()) {
 					if (mailboxToDrop.syncSessionMailbox) {
 						let index = this.optimizedSyncSessionMailboxes.findIndex((mailbox) => {
-							return mailbox.mailboxState.path == mailboxToDrop!.mailboxPath
+							return mailbox.mailboxState.path === mailboxToDrop!.mailboxPath
 						})
 						this.optimizedSyncSessionMailboxes[index] = mailboxToDrop.syncSessionMailbox
 					}
@@ -78,7 +78,7 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 					this.syncSessionEventListener.onStopSyncSessionProcess(processId)
 				}
 			}
-		})
+		}
 	}
 
 	protected nextMailboxesToDownload(amount: number): ImapSyncSessionMailbox[] {
@@ -111,7 +111,7 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 
 	protected isExistRunningProcessForMailbox(mailbox: ImapSyncSessionMailbox) {
 		return Array.from(this.runningProcessMap.values()).find((optimizerProcess) => {
-			return optimizerProcess.mailboxPath == mailbox.mailboxState.path
+			return optimizerProcess.mailboxPath === mailbox.mailboxState.path
 		})
 	}
 
@@ -134,10 +134,10 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 		this.syncSessionEventListener.onStopSyncSessionProcess(processId)
 
 		let mailboxIndex = this.optimizedSyncSessionMailboxes.findIndex((mailbox) => {
-			return mailbox.mailboxState.path == syncSessionMailbox.mailboxState.path
+			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
 		})
-		if (mailboxIndex != -1) {
-			let isLastMailboxFinish = this.optimizedSyncSessionMailboxes.length == 1
+		if (mailboxIndex !== -1) {
+			let isLastMailboxFinish = this.optimizedSyncSessionMailboxes.length === 1
 			this.optimizedSyncSessionMailboxes.splice(mailboxIndex, 1)
 
 			this.runningProcessMap.delete(processId)
@@ -156,10 +156,10 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 		this.syncSessionEventListener.onStopSyncSessionProcess(processId)
 
 		let mailboxIndex = this.optimizedSyncSessionMailboxes.findIndex((mailbox) => {
-			return mailbox.mailboxState.path == syncSessionMailbox.mailboxState.path
+			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
 		})
 
-		if (mailboxIndex != -1) {
+		if (mailboxIndex !== -1) {
 			this.optimizedSyncSessionMailboxes[mailboxIndex] = syncSessionMailbox
 			this.runningProcessMap.delete(processId)
 

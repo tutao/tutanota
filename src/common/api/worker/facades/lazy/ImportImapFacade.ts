@@ -4,7 +4,7 @@
  * The ImportImapFolderSyncState is needed to store relevant IMAP synchronization information for a single folder, most importantly the UID to TutanotaID map.
  * The facade communicates directly with the ImportImapService and the ImportImapFolderService.
  */
-import { aes128RandomKey, encryptKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { MailFacade } from "./MailFacade.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
@@ -23,13 +23,14 @@ import {
 	ImportImapUidToMailIds,
 	ImportImapUidToMailIdsTypeRef,
 	MailboxGroupRootTypeRef,
-	MailFolder,
-	MailFolderTypeRef,
+	MailSet,
+	MailSetTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { ImportImapFolderService, ImportImapService } from "../../../entities/tutanota/Services.js"
 import { GroupType } from "../../../common/TutanotaConstants.js"
-import { InitializeImapImportParams } from "../../imapimport/ImapImporter.js"
-import { ImapMailbox, ImapMailboxStatus } from "../../../../desktop/imapimport/adsync/imapmail/ImapMailbox.js"
+import { InitializeImapImportParams } from "../../../../../api/worker/imapimport/ImapImporter"
+import { ImapMailbox, ImapMailboxStatus } from "../../../../desktop/imapimport/adsync/imapmail/ImapMailbox"
+import { KeyLoaderFacade } from "../KeyLoaderFacade"
 
 export class ImportImapFacade {
 	constructor(
@@ -37,12 +38,13 @@ export class ImportImapFacade {
 		private readonly mailFacade: MailFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
+		private readonly keyLoader: KeyLoaderFacade,
 	) {}
 
 	async initializeImapImport(initializeParams: InitializeImapImportParams): Promise<ImportImapAccountSyncState> {
 		const mailGroupId = this.userFacade.getGroupId(GroupType.Mail)
 
-		let rootImportMailFolder = await this.mailFacade.createMailFolder(initializeParams.rootImportMailFolderName, null, mailGroupId)
+		let rootImportMailFolderId = await this.mailFacade.createMailFolder(initializeParams.rootImportMailFolderName, null, mailGroupId)
 
 		let importImapAccount = createImportImapAccount({
 			host: initializeParams.host,
@@ -52,15 +54,15 @@ export class ImportImapFacade {
 			accessToken: initializeParams.accessToken,
 		})
 
-		const mailGroupKey = this.userFacade.getGroupKey(mailGroupId)
-		const sk = aes128RandomKey()
+		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+		const sk = aes256RandomKey()
 		const importImapPostIn = createImportImapPostIn({
-			ownerEncImapAccountSyncStateSessionKey: encryptKey(mailGroupKey, sk),
+			ownerEncSessionKey: encryptKey(mailGroupKey.object, sk),
 			ownerGroup: mailGroupId,
 			imapAccount: importImapAccount,
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
-			rootImportMailFolder: rootImportMailFolder._id,
+			rootImportMailFolder: rootImportMailFolderId,
 		})
 
 		const importImapPostOut = await this.serviceExecutor.post(ImportImapService, importImapPostIn, { sessionKey: sk })
@@ -76,9 +78,12 @@ export class ImportImapFacade {
 		let newRootImportMailFolderName = initializeParams.rootImportMailFolderName
 		if (importImapAccountSyncState.rootImportMailFolder != null) {
 			let rootImportMailFolder = await this.getRootImportFolder(importImapAccountSyncState.rootImportMailFolder)
-			if (newRootImportMailFolderName != rootImportMailFolder?.name) {
-				let rootImportMailFolder = await this.mailFacade.createMailFolder(initializeParams.rootImportMailFolderName, null, mailGroupId)
-				importImapAccountSyncState.rootImportMailFolder = rootImportMailFolder._id
+			if (newRootImportMailFolderName !== rootImportMailFolder?.name) {
+				importImapAccountSyncState.rootImportMailFolder = await this.mailFacade.createMailFolder(
+					initializeParams.rootImportMailFolderName,
+					null,
+					mailGroupId,
+				)
 			}
 		}
 
@@ -106,16 +111,16 @@ export class ImportImapFacade {
 	): Promise<ImportImapFolderSyncState | undefined> {
 		if (imapMailbox.name) {
 			const mailGroupId = this.userFacade.getGroupId(GroupType.Mail)
-			const newMailFolder = await this.mailFacade.createMailFolder(imapMailbox.name, parentFolderId, mailGroupId)
+			const newMailFolderId = await this.mailFacade.createMailFolder(imapMailbox.name, parentFolderId, mailGroupId)
 
-			const mailGroupKey = this.userFacade.getGroupKey(mailGroupId)
-			const sk = aes128RandomKey()
+			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+			const sk = aes256RandomKey()
 			const importImapFolderPostIn = createImportImapFolderPostIn({
-				ownerEncSessionKey: encryptKey(mailGroupKey, sk),
+				ownerEncSessionKey: encryptKey(mailGroupKey.object, sk),
 				ownerGroup: mailGroupId,
 				path: imapMailbox.path,
 				imapAccountSyncState: importImapAccountSyncStateId,
-				mailFolder: newMailFolder._id,
+				mailFolder: newMailFolderId,
 			})
 
 			const importImapFolderPostOut = await this.serviceExecutor.post(ImportImapFolderService, importImapFolderPostIn, { sessionKey: sk })
@@ -144,8 +149,8 @@ export class ImportImapFacade {
 		return this.entityClient.load(ImportImapFolderSyncStateTypeRef, folderSyncState._id)
 	}
 
-	async getRootImportFolder(rootImportFolderId: IdTuple): Promise<MailFolder | null> {
-		return this.entityClient.load(MailFolderTypeRef, rootImportFolderId)
+	async getRootImportFolder(rootImportFolderId: IdTuple): Promise<MailSet | null> {
+		return this.entityClient.load(MailSetTypeRef, rootImportFolderId)
 	}
 
 	async getImportImapAccountSyncState(): Promise<ImportImapAccountSyncState | null> {

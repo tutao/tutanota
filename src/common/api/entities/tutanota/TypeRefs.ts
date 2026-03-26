@@ -1030,6 +1030,7 @@ export type MailboxGroupRoot = {
 	outOfOfficeNotification: null | Id;
 	outOfOfficeNotificationRecipientList: null | OutOfOfficeNotificationRecipientList;
 	mailboxProperties: null | Id;
+	imapAccountSyncState: null | Id;
 }
 export const CreateMailGroupDataTypeRef: TypeRef<CreateMailGroupData> = new TypeRef("tutanota", 707)
 
@@ -2769,4 +2770,210 @@ export type SendDraftParameters = {
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
 	attachmentKeyData: AttachmentKeyData[];
+}
+export const ImportImapAccountTypeRef: TypeRef<ImportImapAccount> = new TypeRef("tutanota", 1830)
+
+export function createImportImapAccount(values: StrippedEntity<ImportImapAccount>): ImportImapAccount {
+    return Object.assign(create(typeModels[ImportImapAccountTypeRef.typeId], ImportImapAccountTypeRef), values)
+}
+
+export type ImportImapAccount = {
+	_type: TypeRef<ImportImapAccount>;
+	_original?: ImportImapAccount
+
+	_id: Id;
+	host: string;
+	port: NumberString;
+	userName: string;
+	password: null | string;
+	accessToken: null | string;
+}
+export const ImportImapUidToMailIdsTypeRef: TypeRef<ImportImapUidToMailIds> = new TypeRef("tutanota", 1837)
+
+export function createImportImapUidToMailIds(values: StrippedEntity<ImportImapUidToMailIds>): ImportImapUidToMailIds {
+    return Object.assign(create(typeModels[ImportImapUidToMailIdsTypeRef.typeId], ImportImapUidToMailIdsTypeRef), values)
+}
+
+export type ImportImapUidToMailIds = {
+	_type: TypeRef<ImportImapUidToMailIds>;
+	_original?: ImportImapUidToMailIds
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	imapUid: NumberString;
+	imapModSeq: null | NumberString;
+
+	mail: IdTuple;
+}
+export const ImportImapAttachmentHashToIdTypeRef: TypeRef<ImportImapAttachmentHashToId> = new TypeRef("tutanota", 1846)
+
+export function createImportImapAttachmentHashToId(values: StrippedEntity<ImportImapAttachmentHashToId>): ImportImapAttachmentHashToId {
+    return Object.assign(create(typeModels[ImportImapAttachmentHashToIdTypeRef.typeId], ImportImapAttachmentHashToIdTypeRef), values)
+}
+
+export type ImportImapAttachmentHashToId = {
+	_type: TypeRef<ImportImapAttachmentHashToId>;
+	_errors: Object;
+	_original?: ImportImapAttachmentHashToId
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerKeyVersion: null | NumberString;
+	imapAttachmentHash: string;
+
+	attachment: IdTuple;
+}
+export const ImportImapFolderSyncStateTypeRef: TypeRef<ImportImapFolderSyncState> = new TypeRef("tutanota", 1856)
+
+export function createImportImapFolderSyncState(values: StrippedEntity<ImportImapFolderSyncState>): ImportImapFolderSyncState {
+    return Object.assign(create(typeModels[ImportImapFolderSyncStateTypeRef.typeId], ImportImapFolderSyncStateTypeRef), values)
+}
+
+export type ImportImapFolderSyncState = {
+	_type: TypeRef<ImportImapFolderSyncState>;
+	_errors: Object;
+	_original?: ImportImapFolderSyncState
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerKeyVersion: null | NumberString;
+	path: string;
+	uidvalidity: null | NumberString;
+	uidnext: null | NumberString;
+	highestmodseq: null | NumberString;
+
+	importedImapUidToMailIdsMap: Id;
+	mailFolder: IdTuple;
+}
+export const ImportImapAccountSyncStateTypeRef: TypeRef<ImportImapAccountSyncState> = new TypeRef("tutanota", 1870)
+
+export function createImportImapAccountSyncState(values: StrippedEntity<ImportImapAccountSyncState>): ImportImapAccountSyncState {
+    return Object.assign(create(typeModels[ImportImapAccountSyncStateTypeRef.typeId], ImportImapAccountSyncStateTypeRef), values)
+}
+
+export type ImportImapAccountSyncState = {
+	_type: TypeRef<ImportImapAccountSyncState>;
+	_errors: Object;
+	_original?: ImportImapAccountSyncState
+
+	_id: Id;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerKeyVersion: null | NumberString;
+	maxQuota: NumberString;
+	postponedUntil: NumberString;
+	importedMailCount: NumberString;
+
+	imapFolderSyncStateList: Id;
+	importedImapAttachmentHashToIdMap: Id;
+	imapAccount: ImportImapAccount;
+	rootImportMailFolder: null | IdTuple;
+}
+export const ImportImapFolderPostInTypeRef: TypeRef<ImportImapFolderPostIn> = new TypeRef("tutanota", 1885)
+
+export function createImportImapFolderPostIn(values: StrippedEntity<ImportImapFolderPostIn>): ImportImapFolderPostIn {
+    return Object.assign(create(typeModels[ImportImapFolderPostInTypeRef.typeId], ImportImapFolderPostInTypeRef), values)
+}
+
+export type ImportImapFolderPostIn = {
+	_type: TypeRef<ImportImapFolderPostIn>;
+	_errors: Object;
+	_original?: ImportImapFolderPostIn
+
+	_format: NumberString;
+	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
+	ownerGroup: Id;
+	path: string;
+
+	imapAccountSyncState: Id;
+	mailFolder: IdTuple;
+}
+export const ImportImapFolderPostOutTypeRef: TypeRef<ImportImapFolderPostOut> = new TypeRef("tutanota", 1893)
+
+export function createImportImapFolderPostOut(values: StrippedEntity<ImportImapFolderPostOut>): ImportImapFolderPostOut {
+    return Object.assign(create(typeModels[ImportImapFolderPostOutTypeRef.typeId], ImportImapFolderPostOutTypeRef), values)
+}
+
+export type ImportImapFolderPostOut = {
+	_type: TypeRef<ImportImapFolderPostOut>;
+	_original?: ImportImapFolderPostOut
+
+	_format: NumberString;
+
+	imapFolderSyncState: IdTuple;
+}
+export const ImportImapFolderDeleteInTypeRef: TypeRef<ImportImapFolderDeleteIn> = new TypeRef("tutanota", 1896)
+
+export function createImportImapFolderDeleteIn(values: StrippedEntity<ImportImapFolderDeleteIn>): ImportImapFolderDeleteIn {
+    return Object.assign(create(typeModels[ImportImapFolderDeleteInTypeRef.typeId], ImportImapFolderDeleteInTypeRef), values)
+}
+
+export type ImportImapFolderDeleteIn = {
+	_type: TypeRef<ImportImapFolderDeleteIn>;
+	_original?: ImportImapFolderDeleteIn
+
+	_format: NumberString;
+
+	imapFolderSyncState: IdTuple;
+}
+export const ImportImapPostInTypeRef: TypeRef<ImportImapPostIn> = new TypeRef("tutanota", 1900)
+
+export function createImportImapPostIn(values: StrippedEntity<ImportImapPostIn>): ImportImapPostIn {
+    return Object.assign(create(typeModels[ImportImapPostInTypeRef.typeId], ImportImapPostInTypeRef), values)
+}
+
+export type ImportImapPostIn = {
+	_type: TypeRef<ImportImapPostIn>;
+	_errors: Object;
+	_original?: ImportImapPostIn
+
+	_format: NumberString;
+	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
+	ownerGroup: Id;
+	maxQuota: NumberString;
+	postponedUntil: NumberString;
+
+	imapAccount: ImportImapAccount;
+	rootImportMailFolder: null | IdTuple;
+}
+export const ImportImapPostOutTypeRef: TypeRef<ImportImapPostOut> = new TypeRef("tutanota", 1909)
+
+export function createImportImapPostOut(values: StrippedEntity<ImportImapPostOut>): ImportImapPostOut {
+    return Object.assign(create(typeModels[ImportImapPostOutTypeRef.typeId], ImportImapPostOutTypeRef), values)
+}
+
+export type ImportImapPostOut = {
+	_type: TypeRef<ImportImapPostOut>;
+	_original?: ImportImapPostOut
+
+	_format: NumberString;
+
+	imapAccountSyncState: Id;
+}
+export const ImportImapDeleteInTypeRef: TypeRef<ImportImapDeleteIn> = new TypeRef("tutanota", 1912)
+
+export function createImportImapDeleteIn(values: StrippedEntity<ImportImapDeleteIn>): ImportImapDeleteIn {
+    return Object.assign(create(typeModels[ImportImapDeleteInTypeRef.typeId], ImportImapDeleteInTypeRef), values)
+}
+
+export type ImportImapDeleteIn = {
+	_type: TypeRef<ImportImapDeleteIn>;
+	_errors: Object;
+	_original?: ImportImapDeleteIn
+
+	_format: NumberString;
+
+	imapAccountSyncState: Id;
 }

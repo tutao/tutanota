@@ -166,6 +166,7 @@ import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/C
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
 import { ImapImporter } from "../api/worker/imapimport/ImapImporter"
+import { ImapImportFacade } from "../common/native/common/generatedipc/ImapImportFacade"
 
 assertMainOrNode()
 
@@ -237,7 +238,7 @@ class MailLocator implements CommonLocator {
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
-	imapImporterFacade!: ImapImporter
+	imapImportFacade!: ImapImporter
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -879,7 +880,7 @@ class MailLocator implements CommonLocator {
 			mailLocator.search.indexState(state)
 		})
 		this.autosaveFacade = autosaveFacade
-		this.imapImporterFacade = imapImportFacade
+		this.imapImportFacade = imapImportFacade
 
 		this.usageTestModel = new UsageTestModel(
 			{
@@ -931,7 +932,7 @@ class MailLocator implements CommonLocator {
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
-				this.imapImporterFacade,
+				this.imapImportFacade,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,

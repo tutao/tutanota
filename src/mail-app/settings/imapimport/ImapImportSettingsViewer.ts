@@ -1,25 +1,25 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../../api/common/Env.js"
-import { UpdatableSettingsViewer } from "../SettingsView.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { TextField, TextFieldAttrs } from "../../gui/base/TextField.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
-import { locator } from "../../api/main/MainLocator.js"
-import { ImportImapAccount, ImportImapAccountSyncStateTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { AddImapImportData, ImapImportModel, ImapImportModelConfig, showAddImapImportWizard } from "./AddImapImportWizard.js"
-import { theme } from "../../gui/theme.js"
-import { px } from "../../gui/size.js"
-import { ImapImportState, ImportState } from "../../api/worker/imapimport/ImapImportState.js"
-import { formatDateTime } from "../../misc/Formatter.js"
+import { ImapImportState, ImportState } from "../../../api/worker/imapimport/ImapImportState.js"
+import { assertMainOrNode } from "../../../common/api/common/Env"
+import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
+import { ImportImapAccount, ImportImapAccountSyncStateTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { ButtonSize } from "../../../common/gui/base/ButtonSize"
+import { theme } from "../../../common/gui/theme"
+import { px } from "../../../common/gui/size"
+import { formatDateTime } from "../../../common/misc/Formatter"
+import { locator } from "../../workerUtils/worker/WorkerLocator"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 
-export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
+class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	private importImapAccount: ImportImapAccount | null = null
 	private rootImportMailFolderName: string = ""
 	private imapAccountHost: Stream<string>
@@ -80,7 +80,7 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				m(TextField, imapAccountPortAttrs),
 				m(TextField, imapAccountUsernameAttrs),
 				m(TextField, imapAccountPasswordAttrs),
-				this.imapImportState().state != ImportState.NOT_INITIALIZED ? this.renderImapImportStatusCard() : null,
+				this.imapImportState().state !== ImportState.NOT_INITIALIZED ? this.renderImapImportStatusCard() : null,
 			]),
 		]
 	}
@@ -106,7 +106,7 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				m(IconButton, {
 					title: "setUpImapImport_label",
 					click: () => showAddImapImportWizard(addImapImportData),
-					icon: Icons.Edit,
+					icon: Icons.PenFilled,
 					size: ButtonSize.Compact,
 				}),
 			]),
@@ -116,14 +116,14 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	private renderImapImportStatusCard(): Children {
 		const continueImapImportIconButtonAttrs: IconButtonAttrs = {
 			title: "continueImapImport_action",
-			icon: Icons.Play,
+			icon: Icons.PlayFilled,
 			click: () => this.continueImapImport(),
 			size: ButtonSize.Normal,
 		}
 
 		const pauseImapImportIconButtonAttrs: IconButtonAttrs = {
 			title: "pauseImapImport_action",
-			icon: Icons.Pause,
+			icon: Icons.PauseFilled,
 			click: () => this.pauseImapImport(),
 			size: ButtonSize.Normal,
 		}
@@ -132,8 +132,8 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			".border-radius-big",
 			{
 				style: {
-					border: `1px solid ${theme.content_accent}`,
-					backgroundColor: theme.content_bg,
+					border: `1px solid ${theme.content_accent_tuta_bday}`,
+					backgroundColor: theme.surface_container,
 					marginTop: px(48),
 					padding: px(16),
 				},
@@ -154,8 +154,8 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					),
 				]),
 				m("center", [
-					this.imapImportState().state != ImportState.RUNNING ? m(IconButton, continueImapImportIconButtonAttrs) : null,
-					this.imapImportState().state == ImportState.RUNNING ? m(IconButton, pauseImapImportIconButtonAttrs) : null,
+					this.imapImportState().state !== ImportState.RUNNING ? m(IconButton, continueImapImportIconButtonAttrs) : null,
+					this.imapImportState().state === ImportState.RUNNING ? m(IconButton, pauseImapImportIconButtonAttrs) : null,
 				]),
 			],
 		)
@@ -177,18 +177,21 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async continueImapImport() {
-		let newImapImportState = await locator.imapImporterFacade.continueImport()
+		let imapImporter = await locator.imapImporter()
+		let newImapImportState = await imapImporter.continueImport()
 		this.imapImportState(newImapImportState)
 	}
 
 	private async pauseImapImport() {
-		let newImapImportState = await locator.imapImporterFacade.pauseImport()
+		let imapImporter = await locator.imapImporter()
+		let newImapImportState = await imapImporter.pauseImport()
 		this.imapImportState(newImapImportState)
 	}
 
 	private async requestImapImportAccountSyncState() {
-		const importImapAccountSyncState = await locator.imapImporterFacade.loadImportImapAccountSyncState()
-		const rootImportMailFolder = await locator.imapImporterFacade.loadRootImportFolder()
+		let imapImporter = await locator.imapImporter()
+		const importImapAccountSyncState = await imapImporter.loadImportImapAccountSyncState()
+		const rootImportMailFolder = await imapImporter.loadRootImportFolder()
 
 		this.importImapAccount = importImapAccountSyncState?.imapAccount ?? null
 		this.rootImportMailFolderName = rootImportMailFolder?.name ?? ""
@@ -203,7 +206,8 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async updateImapImportState() {
-		let newImapImportState = await locator.imapImporterFacade.loadImapImportState()
+		let imapImporter = await locator.imapImporter()
+		let newImapImportState = imapImporter.loadImapImportState()
 		this.imapImportState(newImapImportState)
 
 		m.redraw()
@@ -218,3 +222,5 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 }
+
+export default ImapImportSettingsViewer

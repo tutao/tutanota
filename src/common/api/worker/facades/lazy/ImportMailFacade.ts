@@ -1,7 +1,7 @@
 import { ArchiveDataType, GroupType, MailMethod, MailPhishingStatus, MailState, ReplyType } from "../../../common/TutanotaConstants.js"
 import { RecipientList } from "../../../common/recipients/Recipient.js"
 import { UserFacade } from "../UserFacade.js"
-import { MailFacade, recipientToDraftRecipient, recipientToEncryptedMailAddress } from "./MailFacade.js"
+import { MailFacade } from "./MailFacade.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import {
@@ -9,24 +9,31 @@ import {
 	createImportMailData,
 	createImportMailDataMailReference,
 	createImportMailPostIn,
+	createMailAddress,
 	createNewImportAttachment,
+	createRecipients,
 	DraftAttachment,
 	FileTypeRef,
 	ImportAttachment,
 	ImportMailDataMailReference,
+	ImportMailDataTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { byteLength, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { aes128RandomKey, encryptKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey } from "@tutao/tutanota-crypto"
 import { ImportMailService } from "../../../entities/tutanota/Services.js"
 import { FileReference, isDataFile } from "../../../common/utils/FileUtils.js"
-import { BlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
+import { BlobReferenceTokenWrapper, createStringWrapper } from "../../../entities/sys/TypeRefs.js"
 import { BlobFacade } from "./BlobFacade.js"
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
-import { CryptoFacade, encryptString } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DataFile } from "../../../common/DataFile.js"
 import { SuspensionBehavior } from "../../rest/RestClient.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade"
+import { InstancePipeline } from "../../crypto/InstancePipeline"
+import { VersionedKey } from "../../crypto/CryptoWrapper"
+import { locator } from "../../../../../mail-app/workerUtils/worker/WorkerLocator"
 
 export interface ImapImportTutanotaFileId {
 	readonly _type: "ImapImportTutanotaFileId"
@@ -61,7 +68,7 @@ export interface ImportMailParams {
 	bccRecipients: RecipientList
 	attachments: ImapImportAttachments | null
 	imapUid: number
-	imapModSeq: number | null
+	imapModSeq: bigint | null
 	imapFolderSyncState: IdTuple
 }
 
@@ -78,12 +85,13 @@ export class ImportMailFacade {
 		private readonly blobFacade: BlobFacade,
 		private readonly fileApp: NativeFileApp,
 		private readonly crypto: CryptoFacade,
+		private readonly keyLoader: KeyLoaderFacade,
+		private readonly instancePipeline: InstancePipeline,
 	) {}
 
 	async importMail({
 		subject,
 		bodyText,
-		sentDate,
 		receivedDate,
 		state,
 		unread,
@@ -110,41 +118,71 @@ export class ImportMailFacade {
 		}
 
 		const mailGroupId = this.userFacade.getGroupId(GroupType.Mail)
-		const mailGroupKey = this.userFacade.getGroupKey(mailGroupId)
-		const sk = aes128RandomKey()
-		const service = createImportMailPostIn()
-		service.ownerEncSessionKey = encryptKey(mailGroupKey, sk)
-		service.ownerGroup = mailGroupId
-		service.imapUid = imapUid.toString()
-		service.imapModSeq = imapModSeq?.toString() ?? null
-		service.imapFolderSyncState = imapFolderSyncState
+		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+		const sk = aes256RandomKey()
 
-		service.mailData = createImportMailData({
+		const importMailData = createImportMailData({
 			subject,
 			compressedBodyText: bodyText,
-			sentDate,
-			receivedDate,
+			date: receivedDate,
 			state,
 			unread,
 			messageId,
 			inReplyTo,
 			references: references.map(referenceToImportMailDataMailReference),
-			senderMailAddress,
-			senderName,
+			sender: createMailAddress({
+				name: senderName,
+				address: senderMailAddress,
+				contact: null,
+			}),
 			confidential: false,
 			method,
 			replyType,
 			differentEnvelopeSender,
 			phishingStatus: MailPhishingStatus.UNKNOWN,
 			compressedHeaders: headers,
-			replyTos: replyTos.map(recipientToEncryptedMailAddress),
-			toRecipients: toRecipients.map(recipientToDraftRecipient),
-			ccRecipients: ccRecipients.map(recipientToDraftRecipient),
-			bccRecipients: bccRecipients.map(recipientToDraftRecipient),
+			//fixme: Fix replies to
+			replyTos: [],
+			recipients: createRecipients({
+				toRecipients: toRecipients.map((recipient) =>
+					createMailAddress({
+						name: recipient.name ?? "",
+						address: recipient.address,
+						contact: null,
+					}),
+				),
+				ccRecipients: ccRecipients.map((recipient) =>
+					createMailAddress({
+						name: recipient.name ?? "",
+						address: recipient.address,
+						contact: null,
+					}),
+				),
+				bccRecipients: bccRecipients.map((recipient) =>
+					createMailAddress({
+						name: recipient.name ?? "",
+						address: recipient.address,
+						contact: null,
+					}),
+				),
+			}),
+
 			importedAttachments: await this._createAddedImportAttachments(attachments, mailGroupId, mailGroupKey),
 		})
 
-		await this.serviceExecutor.post(ImportMailService, service, { sessionKey: sk, suspensionBehavior: SuspensionBehavior.Throw })
+		const encryptedParsedInstance = await this.instancePipeline.mapAndEncrypt(ImportMailDataTypeRef, importMailData, sk)
+
+		const importMailPostIn = createImportMailPostIn({
+			encImports: [
+				createStringWrapper({
+					value: JSON.stringify(encryptedParsedInstance),
+				}),
+			],
+			//FIXME: use proper mail state
+			mailState: imapFolderSyncState,
+		})
+
+		await this.serviceExecutor.post(ImportMailService, importMailPostIn, { suspensionBehavior: SuspensionBehavior.Throw })
 	}
 
 	/**
@@ -153,7 +191,7 @@ export class ImportMailFacade {
 	async _createAddedImportAttachments(
 		providedFiles: ImapImportAttachments | null,
 		ownerMailGroupId: Id,
-		mailGroupKey: Aes128Key,
+		mailGroupKey: VersionedKey,
 	): Promise<ImportAttachment[]> {
 		if (providedFiles == null || providedFiles.length === 0) return []
 
@@ -161,14 +199,17 @@ export class ImportMailFacade {
 			if (isImapImportTutanotaFileId(providedFile)) {
 				// attachment is already available on the server, but we need to load ownerEncFileSessionKey
 				let existingFile = await this.entityClient.load(FileTypeRef, providedFile._id)
-				return this.crypto.resolveSessionKeyForInstance(existingFile).then((fileSessionKey) => {
-					const attachment = createImportAttachment()
-					attachment.existingFile = existingFile._id
-					attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, <number[]>neverNull(fileSessionKey))
-					return attachment
+				return this.crypto.resolveSessionKey(existingFile).then((fileSessionKey) => {
+					return createImportAttachment({
+						existingAttachmentFile: existingFile._id,
+						ownerEncFileSessionKey: encryptKey(mailGroupKey.object, <number[]>neverNull(fileSessionKey)),
+						newAttachment: null,
+						// FIXME
+						ownerFileKeyVersion: "0",
+					})
 				})
 			} else if (isDataFile(providedFile)) {
-				const fileSessionKey = aes128RandomKey()
+				const fileSessionKey = aes256RandomKey()
 				let referenceTokens: Array<BlobReferenceTokenWrapper>
 				const { location } = await this.fileApp.writeDataFile(providedFile)
 				referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, ownerMailGroupId, fileSessionKey)
@@ -177,7 +218,7 @@ export class ImportMailFacade {
 				return draftAttachmentToImportAttachment(draftAttachment, providedFile.fileHash, mailGroupKey)
 			} else {
 				// (isFileReference(providedFile)) == true
-				const fileSessionKey = aes128RandomKey()
+				const fileSessionKey = aes256RandomKey()
 				const referenceTokens = await this.blobFacade.encryptAndUploadNative(
 					ArchiveDataType.Attachments,
 					providedFile.location,
@@ -201,25 +242,27 @@ export function referenceToImportMailDataMailReference(reference: string): Impor
 	})
 }
 
-function draftAttachmentToImportAttachment(draftAttachment: DraftAttachment, newFileHash: string | null, mailGroupKey: Aes128Key): ImportAttachment {
-	let importAttachment = createImportAttachment()
-	importAttachment.existingFile = draftAttachment.existingFile
-	importAttachment.ownerEncFileSessionKey = draftAttachment.ownerEncFileSessionKey
+function draftAttachmentToImportAttachment(draftAttachment: DraftAttachment, newFileHash: string | null, mailGroupKey: VersionedKey): ImportAttachment {
+	let importAttachment = createImportAttachment({
+		existingAttachmentFile: draftAttachment.existingFile,
+		ownerEncFileSessionKey: draftAttachment.ownerEncFileSessionKey,
+		newAttachment: null,
+		// FIXME
+		ownerFileKeyVersion: "0",
+	})
 
 	let newFile = draftAttachment.newFile
 	if (newFile != null) {
-		let newImportAttachment = createNewImportAttachment()
-
-		const fileHashSessionKey = aes128RandomKey()
-
-		newImportAttachment.encFileHash = newFileHash ? encryptString(fileHashSessionKey, newFileHash) : null
-		newImportAttachment.ownerEncFileHashSessionKey = newFileHash ? encryptKey(mailGroupKey, fileHashSessionKey) : null
-		newImportAttachment.encFileName = newFile.encFileName
-		newImportAttachment.encCid = newFile.encCid
-		newImportAttachment.encMimeType = newFile.encMimeType
-		newImportAttachment.referenceTokens = newFile.referenceTokens
-
-		importAttachment.newFile = newImportAttachment
+		const fileHashSessionKey = aes256RandomKey()
+		importAttachment.newAttachment = createNewImportAttachment({
+			// FIXME add key version to TutanotaModelV108
+			encFileHash: newFileHash ? locator.cryptoWrapper.encryptString(fileHashSessionKey, newFileHash) : null,
+			ownerEncFileHashSessionKey: newFileHash ? encryptKey(mailGroupKey.object, fileHashSessionKey) : null,
+			encFileName: newFile.encFileName,
+			encCid: newFile.encCid,
+			encMimeType: newFile.encMimeType,
+			referenceTokens: newFile.referenceTokens,
+		})
 	}
 
 	return importAttachment
