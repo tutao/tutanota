@@ -179,7 +179,8 @@ export class ImportMailFacade {
 				}),
 			],
 			//FIXME: use proper mail state
-			mailState: imapFolderSyncState,
+			mailState: null,
+			imapFolderSyncState: imapFolderSyncState,
 		})
 
 		await this.serviceExecutor.post(ImportMailService, importMailPostIn, { suspensionBehavior: SuspensionBehavior.Throw })

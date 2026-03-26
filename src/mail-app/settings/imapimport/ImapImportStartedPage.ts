@@ -5,6 +5,7 @@ import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.j
 import { Button, ButtonType } from "../../../common/gui/base/Button"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog"
 import { locator } from "../../workerUtils/worker/WorkerLocator"
+import { mailLocator } from "../../mailLocator"
 
 assertMainOrNode()
 
@@ -61,7 +62,7 @@ export class ImapImportStartedPageAttrs implements WizardPageAttrs<AddImapImport
 	}
 
 	async nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-		const importer = await locator.imapImporter()
+		const importer = mailLocator.imapImportFacade
 		await importer.continueImport()
 		return Promise.resolve(true)
 	}

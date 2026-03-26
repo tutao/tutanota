@@ -3648,9 +3648,11 @@ pub struct ImportMailPostIn {
 	#[serde(rename = "1571")]
 	pub _format: i64,
 	#[serde(rename = "1577")]
-	pub mailState: IdTupleGenerated,
+	pub mailState: Option<IdTupleGenerated>,
 	#[serde(rename = "1578")]
 	pub encImports: Vec<super::sys::StringWrapper>,
+	#[serde(rename = "1917")]
+	pub imapFolderSyncState: Option<IdTupleGenerated>,
 }
 
 impl Entity for ImportMailPostIn {

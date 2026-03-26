@@ -177,7 +177,8 @@ impl ImportEssential {
 
 		let post_in = ImportMailPostIn {
 			encImports: serialized_imports,
-			mailState: self.remote_state_id.clone(),
+			mailState: Some(self.remote_state_id.clone()),
+			imapFolderSyncState: None,
 			_format: 0,
 		};
 

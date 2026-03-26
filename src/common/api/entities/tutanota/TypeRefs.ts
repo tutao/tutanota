@@ -2339,8 +2339,9 @@ export type ImportMailPostIn = {
 
 	_format: NumberString;
 
-	mailState: IdTuple;
+	mailState: null | IdTuple;
 	encImports: StringWrapper[];
+	imapFolderSyncState: null | IdTuple;
 }
 export const ImportMailPostOutTypeRef: TypeRef<ImportMailPostOut> = new TypeRef("tutanota", 1579)
 

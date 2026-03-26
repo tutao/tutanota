@@ -8536,7 +8536,7 @@ export const typeModels = {
 				"name": "mailState",
 				"id": 1577,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 1559,
 				"dependency": null
 			},
@@ -8548,6 +8548,15 @@ export const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 728,
 				"dependency": "sys"
+			},
+			"1917": {
+				"final": false,
+				"name": "imapFolderSyncState",
+				"id": 1917,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1856,
+				"dependency": null
 			}
 		}
 	},

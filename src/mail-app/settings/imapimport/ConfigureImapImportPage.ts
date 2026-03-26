@@ -10,6 +10,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { locator } from "../../workerUtils/worker/WorkerLocator"
+import { mailLocator } from "../../mailLocator"
 
 assertMainOrNode()
 
@@ -103,7 +104,7 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<AddImapImpo
 }
 
 async function initializeAndContinueImapImport(initializeImportParams: InitializeImapImportParams): Promise<ImapImportState> {
-	const imapImporter = await locator.imapImporter()
+	const imapImporter = mailLocator.imapImportFacade
 	return showProgressDialog(
 		"startingImapImport_msg",
 		imapImporter.initializeImport(initializeImportParams).then(() => imapImporter.continueImport()),
