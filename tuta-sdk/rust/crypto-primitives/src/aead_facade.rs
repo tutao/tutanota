@@ -5,7 +5,7 @@ use crate::randomizer_facade::RandomizerFacade;
 use ::blake3::OUT_LEN;
 
 /// The possible errors that can occur while decrypting an AES text
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Eq, PartialEq)]
 pub enum AeadDecryptError {
 	#[error("InvalidVersionError")]
 	InvalidVersionError,
@@ -52,14 +52,57 @@ impl AeadFacade {
 		Self { randomizer_facade }
 	}
 
+	const PADDING_BLOCK_SIZE_BYTES: usize = 4;
+	const PADDING_BYTE: u8 = 0x80;
+	const PADDING_ZERO_BYTE: u8 = 0x00;
+
+	fn pad(plaintext: &mut Vec<u8>) {
+		let bytes_to_append =
+			Self::PADDING_BLOCK_SIZE_BYTES - plaintext.len() % Self::PADDING_BLOCK_SIZE_BYTES;
+		plaintext.push(Self::PADDING_BYTE);
+		for _ in 1..bytes_to_append {
+			plaintext.push(Self::PADDING_ZERO_BYTE);
+		}
+	}
+
+	fn unpad(plaintext: &mut Vec<u8>) -> Result<(), AeadDecryptError> {
+		let mut zero_byte_count = 0;
+		loop {
+			let Some(byte) = plaintext.pop() else {
+				return Err(AeadDecryptError::DecryptionError);
+			};
+			if byte != Self::PADDING_ZERO_BYTE {
+				if byte != Self::PADDING_BYTE {
+					return Err(AeadDecryptError::DecryptionError);
+				}
+				return Ok(());
+			}
+			zero_byte_count += 1;
+			if zero_byte_count >= Self::PADDING_BLOCK_SIZE_BYTES {
+				return Err(AeadDecryptError::DecryptionError);
+			}
+		}
+	}
+
 	pub fn encrypt(
 		&self,
 		sub_keys: &AeadSubKeys,
 		plaintext: &[u8],
 		associated_data: &[u8],
 	) -> Vec<u8> {
+		let mut plaintext = plaintext.to_vec();
+		Self::pad(&mut plaintext);
+		self.internal_encrypt(sub_keys, &plaintext, associated_data)
+	}
+
+	fn internal_encrypt(
+		&self,
+		sub_keys: &AeadSubKeys,
+		padded_plaintext: &[u8],
+		associated_data: &[u8],
+	) -> Vec<u8> {
 		let nonce = Nonce::generate(&self.randomizer_facade);
-		let ciphertext = aes::aes_ctr_encrypt(&sub_keys.encryption_key, plaintext, &nonce);
+		let ciphertext = aes::aes_ctr_encrypt(&sub_keys.encryption_key, padded_plaintext, &nonce);
 		let end_of_ciphertext: u32 = 1 + NONCE_BYTE_SIZE as u32 + ciphertext.len() as u32;
 		let tag = blake3::blake3_mac(
 			sub_keys.authentication_key.as_bytes(),
@@ -118,7 +161,8 @@ impl AeadFacade {
 		.map_err(|_| AeadDecryptError::DecryptionError)?;
 
 		let nonce = Nonce::try_from_slice(nonce).expect("nonce should have correct size");
-		let plaintext = aes_ctr_decrypt(&sub_keys.encryption_key, ciphertext, &nonce);
+		let mut plaintext = aes_ctr_decrypt(&sub_keys.encryption_key, ciphertext, &nonce);
+		Self::unpad(&mut plaintext)?;
 
 		Ok(plaintext)
 	}
@@ -126,15 +170,76 @@ impl AeadFacade {
 
 #[cfg(test)]
 mod tests {
-	use crate::aead_facade::{AeadFacade, AeadSubKeys};
+	use super::{AeadDecryptError, AeadFacade, AeadSubKeys, OUT_LEN};
 	use crate::aes::{Aes256Key, NONCE_BYTE_SIZE};
 	use crate::compatibility_test_utils::get_compatibility_test_data;
 	use crate::key::GenericAesKey;
 	use crate::randomizer_facade::{test_util::make_thread_rng_facade, RandomizerFacade};
 	use crate::test_utils::TestRng;
 
+	fn roundtrip(
+		plaintext: &[u8],
+		encryption_associated_data: &[u8],
+		decryption_associated_data: Option<&[u8]>,
+	) -> Result<Vec<u8>, AeadDecryptError> {
+		let randomizer_facade = make_thread_rng_facade();
+		let aead_facade = AeadFacade::new(make_thread_rng_facade());
+		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
+		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
+		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
+		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let ciphertext = aead_facade.encrypt(&sub_keys, plaintext, encryption_associated_data);
+		let decryption_associated_data =
+			decryption_associated_data.unwrap_or_else(|| encryption_associated_data);
+		aead_facade.decrypt(&sub_keys, &ciphertext, decryption_associated_data)
+	}
+
 	#[test]
 	fn test_aead_round_trip() {
+		let plaintext = b"plaintext";
+		let decrypted = roundtrip(plaintext, b"test", None);
+		assert_eq!(plaintext, decrypted.unwrap().as_slice());
+	}
+
+	#[test]
+	fn test_empty_plaintext() {
+		let plaintext = b"";
+		let decrypted = roundtrip(plaintext, b"test", None);
+		assert_eq!(plaintext, decrypted.unwrap().as_slice());
+	}
+
+	#[test]
+	fn test_empty_associated_data() {
+		let plaintext = b"plaintext";
+		let decrypted = roundtrip(plaintext, b"", None);
+		assert_eq!(plaintext, decrypted.unwrap().as_slice());
+	}
+
+	#[test]
+	fn test_wrong_associated_data() {
+		let plaintext = b"plaintext";
+		let decrypted = roundtrip(plaintext, b"test", Some(b"wrong"));
+		assert_eq!(decrypted, Err(AeadDecryptError::DecryptionError));
+	}
+
+	#[test]
+	fn test_wrong_mac() {
+		let plaintext = b"plaintext";
+		let associated_data = b"test";
+		let randomizer_facade = make_thread_rng_facade();
+		let aead_facade = AeadFacade::new(make_thread_rng_facade());
+		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
+		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
+		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
+		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let mut ciphertext = aead_facade.encrypt(&sub_keys, plaintext, associated_data);
+		let ciphertext_len = ciphertext.len();
+		*ciphertext.get_mut(ciphertext_len - 1).unwrap() += 1;
+		let decrypted = aead_facade.decrypt(&sub_keys, &ciphertext, associated_data);
+		assert_eq!(decrypted, Err(AeadDecryptError::DecryptionError));
+	}
+
+	fn test_encrypt(plaintext: &[u8]) -> Vec<u8> {
 		let randomizer_facade = make_thread_rng_facade();
 		let aead_facade = AeadFacade::new(make_thread_rng_facade());
 		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
@@ -142,12 +247,53 @@ mod tests {
 		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
 		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
 		let associated_data = b"test";
-		let plaintext = b"plaintext";
-		let ciphertext = aead_facade.encrypt(&sub_keys, plaintext, associated_data);
-		let decrypted = aead_facade
-			.decrypt(&sub_keys, &ciphertext, associated_data)
-			.unwrap();
-		assert_eq!(plaintext, decrypted.as_slice());
+		aead_facade.encrypt(&sub_keys, plaintext, associated_data)
+	}
+
+	#[test]
+	fn test_padding() {
+		const OVERHEAD: usize = 1 + NONCE_BYTE_SIZE + OUT_LEN;
+		assert_eq!(test_encrypt(b"").len(), 4 + OVERHEAD);
+		assert_eq!(test_encrypt(b"1").len(), 4 + OVERHEAD);
+		assert_eq!(test_encrypt(b"22").len(), 4 + OVERHEAD);
+		assert_eq!(test_encrypt(b"333").len(), 4 + OVERHEAD);
+		assert_eq!(test_encrypt(b"4444").len(), 8 + OVERHEAD);
+		assert_eq!(test_encrypt(b"55555").len(), 8 + OVERHEAD);
+	}
+
+	fn test_decrypt(wrongly_padded_plaintext: &[u8]) -> Result<Vec<u8>, AeadDecryptError> {
+		let randomizer_facade = make_thread_rng_facade();
+		let aead_facade = AeadFacade::new(make_thread_rng_facade());
+		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
+		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
+		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
+		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let associated_data = b"test";
+		let ciphertext =
+			aead_facade.internal_encrypt(&sub_keys, wrongly_padded_plaintext, associated_data);
+		aead_facade.decrypt(&sub_keys, &ciphertext, associated_data)
+	}
+
+	#[test]
+	fn test_unpadding_errors() {
+		assert_eq!(test_decrypt(b""), Err(AeadDecryptError::DecryptionError));
+		assert_eq!(
+			test_decrypt(b"text"),
+			Err(AeadDecryptError::DecryptionError)
+		);
+		assert_eq!(
+			test_decrypt(b"text\0\0"),
+			Err(AeadDecryptError::DecryptionError)
+		);
+		let mut plaintext = b"tex".to_vec();
+		plaintext.push(AeadFacade::PADDING_BYTE);
+		for _ in 0..AeadFacade::PADDING_BLOCK_SIZE_BYTES {
+			plaintext.push(AeadFacade::PADDING_ZERO_BYTE);
+		}
+		assert_eq!(
+			test_decrypt(plaintext.as_slice()),
+			Err(AeadDecryptError::DecryptionError)
+		);
 	}
 
 	#[test]
