@@ -168,13 +168,14 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutadrive", BuildConfig.APPLICATION_ID)
 
+		val paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.DRIVE)
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacadeStub,
-			AndroidMobilePaymentsFacade(this),
+			paymentsFacade,
 			AndroidMobileSystemFacade(
 				fileFacade,
 				this,
@@ -361,6 +362,10 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			// mailbox later when loaded (in handleIntent())
 			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
+			}
+
+			if (paymentsFacade.hasPlaystorePayment()) {
+				queryParameters["paymentSetup"] = "playstore"
 			}
 
 			startWebApp(queryParameters)
