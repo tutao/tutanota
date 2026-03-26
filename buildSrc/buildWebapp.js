@@ -47,19 +47,8 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("bundling polyfill", measure())
 	const polyfillBundle = await rollup({
-		input: ["src/polyfill.ts"],
-		plugins: [
-			typescript({
-				tsconfig: tsConfig,
-			}),
-			minify && terser(),
-			// nodeResolve is for our own modules
-			nodeResolve({
-				preferBuiltins: true,
-				resolveOnly: [/^@tutao\/.*$/],
-			}),
-			commonjs(),
-		],
+		input: ["src/polyfill.js"],
+		plugins: [minify && terser(), commonjs()],
 	})
 	await polyfillBundle.write({
 		sourcemap: false,

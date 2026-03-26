@@ -4,7 +4,8 @@
 		"removeComments": false,
 		"declaration": false,
 		"outDir": "build",
-		"rootDir": "."
+		"rootDir": ".",
+		"noEmit": false
 	},
 	"files": [],
 	"exclude": ["**/dist"],
