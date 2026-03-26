@@ -74,6 +74,7 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "6.0.
 mockito-inline = { module = "com.linkedin.dexmaker:dexmaker-mockito-inline-extended", version = "2.28.1" }
 mockito-core = { module = "org.mockito:mockito-core", version = "5.20.0" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.20.0" }
+billing = { module = "com.android.billingclient:billing-ktx", version = "8.3.0" }
 tutasdk = { module = "de.tutao:tutasdk", version = "unspecified" }
 
 [plugins]

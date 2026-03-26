@@ -202,13 +202,15 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
+		val paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.CALENDAR)
+
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
-			AndroidMobilePaymentsFacade(this),
+			paymentsFacade,
 			AndroidMobileSystemFacade(
 				fileFacade,
 				this,
@@ -398,6 +400,9 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 				queryParameters["noAutoLogin"] = "true"
 			}
 
+			if (paymentsFacade.hasPlaystorePayment()) {
+				queryParameters["paymentSetup"] = "playstore"
+			}
 
 			// Start observing SSE users in the background.
 			// If there are no users we need to tell web part to invalidate alarms.
