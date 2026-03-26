@@ -165,7 +165,10 @@ public class AlarmManager {
 			eventDate: alarmOccurrence.eventStartDate
 		)
 
-		self.alarmScheduler.schedule(info: info)
+		self.alarmScheduler.schedule(
+			info: info,
+			isAllDayevent: isAllDayEvent(startDate: alarmOccurrence.alarmNotification.eventStart, endDate: alarmOccurrence.alarmNotification.eventEnd)
+		)
 	}
 }
 
