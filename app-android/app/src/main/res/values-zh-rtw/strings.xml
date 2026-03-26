@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">請在日曆應用程式上登入</string>
     <string name="widgetOpenApp_action">開啟應用程式</string>
     <string name="widgetNoEvents_msg">沒有活動</string>
+    <string name="widgetNoEventsToday_msg">今天沒有活動</string>
     <string name="widgetDescription_msg">顯示今天即將進行的活動</string>
     <string name="birthdayCalendar_label">生日</string>
     <string name="birthdayEvent_title">{name}生日</string>

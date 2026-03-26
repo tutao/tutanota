@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Ouvrez l'application";
 TutaoWidgetUnexpectedErrorMsg = "Oups ! Une erreur s'est produite.";
 TutaoWidgetSendLogsAction = "Envoyer les journaux";
 TutaoWidgetNoEventsMsg = "Aucun événement";
+TutaoWidgetNoEventsTodayMsg = "Aucun événement aujourd’hui";
 TutaoWidgetCredentialsErrorMsg = "Aucune référence disponible";
 TutaoAccountLabel = "Utilisateur";
 TutaoCalendarsLabel = "Calendriers";

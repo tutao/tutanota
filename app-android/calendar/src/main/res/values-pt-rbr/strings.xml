@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Faça login no app Calendário</string>
     <string name="widgetOpenApp_action">Abrir o app</string>
     <string name="widgetNoEvents_msg">Sem eventos</string>
+    <string name="widgetNoEventsToday_msg">Sem eventos para hoje</string>
     <string name="widgetDescription_msg">Mostrar os próximos eventos de hoje</string>
     <string name="birthdayCalendar_label">Aniversários</string>
     <string name="birthdayEvent_title">Aniversário de {name}</string>

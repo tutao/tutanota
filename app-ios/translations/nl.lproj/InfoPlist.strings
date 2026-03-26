@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Open de app";
 TutaoWidgetUnexpectedErrorMsg = "Oeps! Er is iets fout gegaan.";
 TutaoWidgetSendLogsAction = "Verstuur de logbestanden";
 TutaoWidgetNoEventsMsg = "Geen evenementen";
+TutaoWidgetNoEventsTodayMsg = "Vandaag geen activiteiten";
 TutaoWidgetCredentialsErrorMsg = "Referenties ontbreken";
 TutaoAccountLabel = "Gebruiker";
 TutaoCalendarsLabel = "Kalenders";

@@ -2244,6 +2244,7 @@ export default {
 		"widgetMissingConfigurationError_msg": "請設定此部件",
 		"widgetNoCredentialsInfo_msg": "沒有登入資料可用",
 		"widgetNoEvents_msg": "沒有活動",
+		"widgetNoEventsToday_msg": "今天沒有活動",
 		"widgetOpenApp_action": "開啟應用程式",
 		"widgetUnexpectedError_msg": "哎喲！發生問題。",
 		"withCustomRules_label": "具有自訂重複規則",

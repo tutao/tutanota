@@ -2244,6 +2244,7 @@ export default {
 		"widgetMissingConfigurationError_msg": "Configura este widget",
 		"widgetNoCredentialsInfo_msg": "Sen credenciais dispoñibles",
 		"widgetNoEvents_msg": "Sen eventos",
+		"widgetNoEventsToday_msg": "Sen eventos para hoxe",
 		"widgetOpenApp_action": "Abrir a app",
 		"widgetUnexpectedError_msg": "Oooi! Houbo un fallo.",
 		"withCustomRules_label": "Con regras de repetición personais",

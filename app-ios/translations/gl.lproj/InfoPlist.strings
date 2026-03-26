@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Abrir a app";
 TutaoWidgetUnexpectedErrorMsg = "Oooi! Houbo un fallo.";
 TutaoWidgetSendLogsAction = "Enviar rexistros";
 TutaoWidgetNoEventsMsg = "Sen eventos";
+TutaoWidgetNoEventsTodayMsg = "Sen eventos para hoxe";
 TutaoWidgetCredentialsErrorMsg = "Sen credenciais dispoñibles";
 TutaoAccountLabel = "Usuario";
 TutaoCalendarsLabel = "Calendarios";

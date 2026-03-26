@@ -2244,6 +2244,7 @@ export default {
 		"widgetMissingConfigurationError_msg": "Skonfiguruj ten widżet",
 		"widgetNoCredentialsInfo_msg": "Brak danych uwierzytelniających",
 		"widgetNoEvents_msg": "Brak wydarzeń",
+		"widgetNoEventsToday_msg": "Brak wydarzeń dzisiaj",
 		"widgetOpenApp_action": "Otwórz aplikację",
 		"widgetUnexpectedError_msg": "Oj! Coś poszło nie tak.",
 		"withCustomRules_label": "Z własnymi regułami powtarzania",

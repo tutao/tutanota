@@ -2244,6 +2244,7 @@ export default {
 		"widgetMissingConfigurationError_msg": "Veuillez configurer ce widget.",
 		"widgetNoCredentialsInfo_msg": "Aucune référence disponible",
 		"widgetNoEvents_msg": "Aucun événement",
+		"widgetNoEventsToday_msg": "Aucun événement aujourd’hui",
 		"widgetOpenApp_action": "Ouvrez l'application",
 		"widgetUnexpectedError_msg": "Oups ! Une erreur s'est produite.",
 		"withCustomRules_label": "Avec des règles de répétition personnalisées",
