@@ -121,6 +121,7 @@ import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveF
 import { ImapImporter } from "../../../api/worker/imapimport/ImapImporter"
 import { ImportImapFacade } from "../../../common/api/worker/facades/lazy/ImportImapFacade"
 import { ImportMailFacade } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
+import { ImapImportSystemFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ImapImportSystemFacadeSendDispatcher"
 
 assertWorkerOrNode()
 
@@ -895,9 +896,27 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.cryptoWrapper,
 		)
 	})
+	locator.imapImporter = lazyMemoized(async () => {
+		const mailFacade = await locator.mail()
+		const blobFacade = await locator.blob()
+		const importMailFacade = new ImportMailFacade(
+			locator.user,
+			mailFacade,
+			locator.serviceExecutor,
+			locator.cachingEntityClient,
+			blobFacade,
+			fileApp,
+			locator.crypto,
+			locator.keyLoader,
+			locator.instancePipeline,
+		)
+		const importImapFacade = new ImportImapFacade(locator.user, mailFacade, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
+
+		return new ImapImporter(new ImapImportSystemFacadeSendDispatcher(worker), importImapFacade, importMailFacade)
+	})
 }
 
-const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
+const RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
 async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 	const indexer = await locator.indexer()
@@ -908,12 +927,12 @@ async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 	} catch (e) {
 		if (e instanceof ServiceUnavailableError) {
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
+			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
 			return fullLoginIndexerInit(worker)
 		} else if (e instanceof ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
-			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
+			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")
 			return fullLoginIndexerInit(worker)
 		} else {

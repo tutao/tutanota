@@ -14,8 +14,8 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { theme } from "../../../common/gui/theme"
 import { px } from "../../../common/gui/size"
 import { formatDateTime } from "../../../common/misc/Formatter"
-import { locator } from "../../workerUtils/worker/WorkerLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { mailLocator } from "../../mailLocator"
 
 assertMainOrNode()
 
@@ -177,19 +177,19 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async continueImapImport() {
-		let imapImporter = await locator.imapImporter()
+		let imapImporter = mailLocator.imapImportFacade
 		let newImapImportState = await imapImporter.continueImport()
 		this.imapImportState(newImapImportState)
 	}
 
 	private async pauseImapImport() {
-		let imapImporter = await locator.imapImporter()
+		let imapImporter = mailLocator.imapImportFacade
 		let newImapImportState = await imapImporter.pauseImport()
 		this.imapImportState(newImapImportState)
 	}
 
 	private async requestImapImportAccountSyncState() {
-		let imapImporter = await locator.imapImporter()
+		let imapImporter = mailLocator.imapImportFacade
 		const importImapAccountSyncState = await imapImporter.loadImportImapAccountSyncState()
 		const rootImportMailFolder = await imapImporter.loadRootImportFolder()
 
@@ -206,7 +206,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async updateImapImportState() {
-		let imapImporter = await locator.imapImporter()
+		let imapImporter = mailLocator.imapImportFacade
 		let newImapImportState = imapImporter.loadImapImportState()
 		this.imapImportState(newImapImportState)
 
