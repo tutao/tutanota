@@ -2244,6 +2244,7 @@ export default {
 		"widgetMissingConfigurationError_msg": "Pienoisohjelma pitää määritellä",
 		"widgetNoCredentialsInfo_msg": "Kirjautumistietoja ei saatavilla",
 		"widgetNoEvents_msg": "Ei tapahtumia",
+		"widgetNoEventsToday_msg": "Ei tapahtumia tänään",
 		"widgetOpenApp_action": "Avaa sovellus",
 		"widgetUnexpectedError_msg": "Hups! Jotain meni pieleen.",
 		"withCustomRules_label": "Mukautetut toistosäännöt",

@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Veuillez vous connecter à l\'application Calendrier.</string>
     <string name="widgetOpenApp_action">Ouvrez l\'application</string>
     <string name="widgetNoEvents_msg">Aucun événement</string>
+    <string name="widgetNoEventsToday_msg">Aucun événement aujourd’hui</string>
     <string name="widgetDescription_msg">Afficher les événements à venir aujourd\'hui</string>
     <string name="birthdayCalendar_label">Anniversaires</string>
     <string name="birthdayEvent_title">Anniversaire de {name}</string>

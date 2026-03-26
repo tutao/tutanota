@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "開啟應用程式";
 TutaoWidgetUnexpectedErrorMsg = "哎喲！發生問題。";
 TutaoWidgetSendLogsAction = "發送記錄";
 TutaoWidgetNoEventsMsg = "沒有活動";
+TutaoWidgetNoEventsTodayMsg = "今天沒有活動";
 TutaoWidgetCredentialsErrorMsg = "沒有登入資料可用";
 TutaoAccountLabel = "用戶";
 TutaoCalendarsLabel = "日曆";

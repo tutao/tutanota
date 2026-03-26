@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Log alstublieft in op de kalender-app</string>
     <string name="widgetOpenApp_action">Open de app</string>
     <string name="widgetNoEvents_msg">Geen evenementen</string>
+    <string name="widgetNoEventsToday_msg">Vandaag geen activiteiten</string>
     <string name="widgetDescription_msg">Toon actuele evenementen</string>
     <string name="birthdayCalendar_label">Verjaardagen</string>
     <string name="birthdayEvent_title">{name}s verjaardag</string>

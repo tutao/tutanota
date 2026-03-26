@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Avaa sovellus";
 TutaoWidgetUnexpectedErrorMsg = "Hups! Jotain meni pieleen.";
 TutaoWidgetSendLogsAction = "Lähetä lokit";
 TutaoWidgetNoEventsMsg = "Ei tapahtumia";
+TutaoWidgetNoEventsTodayMsg = "Ei tapahtumia tänään";
 TutaoWidgetCredentialsErrorMsg = "Kirjautumistietoja ei saatavilla";
 TutaoAccountLabel = "Käyttäjä";
 TutaoCalendarsLabel = "Kalenterit";
