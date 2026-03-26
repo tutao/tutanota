@@ -43,12 +43,14 @@ android {
 			enableV2Signing = true
 		}
 	}
-	flavorDimensions("releaseType")
+	flavorDimensions.add("releaseType")
 	productFlavors {
 		create("tutao") {
+			dimension = "releaseType"
 			signingConfig = signingConfigs.getByName("release")
 		}
 		create("fdroid") {
+			dimension = "releaseType"
 		}
 	}
 	buildTypes {
@@ -159,7 +161,6 @@ dependencies {
 
 
 	implementation(files("../libs/sqlcipher-android.aar"))
-
 
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 

@@ -47,5 +47,5 @@ tasks.register("unittest") {
 	dependsOn(":app:testFdroidDebugUnitTest")
 	dependsOn(":calendar:testFdroidDebugUnitTest")
 	dependsOn(":drive:testFdroidDebugUnitTest")
-	dependsOn(":tutashared:testDebugUnitTest")
+	dependsOn(":tutashared:testFdroidDebugUnitTest")
 }

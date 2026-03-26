@@ -17,6 +17,19 @@ import de.tutao.tutashared.ipc.MobilePaymentSubscriptionOwnership
 import de.tutao.tutashared.ipc.MobilePaymentsFacade
 import de.tutao.tutashared.ipc.MobilePlanPrice
 
+internal fun getSubscriptionReplacementMode(
+	oldProductId: String,
+	newProductId: String,
+): Int {
+	return if (oldProductId == newProductId) {
+		SubscriptionProductReplacementParams.ReplacementMode.WITHOUT_PRORATION
+	} else if (newProductId.endsWith(".legend")) {
+		SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
+	} else {
+		SubscriptionProductReplacementParams.ReplacementMode.DEFERRED
+	}
+}
+
 class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : MobilePaymentsFacade {
 	val billingClient: TutaoBillingClient = TutaoBillingClient(activity)
 
@@ -55,7 +68,7 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		val currentPurchase = currentPurchases.singleOrNull()
 		if (currentPurchases.size > 1) error("Multiple subscriptions found for this account")
 		if (currentPurchase != null) {
-			return replaceSubscription(productId, interval, currentInterval, accountId, productDetails, offerDetails, currentPurchase)
+			return replaceSubscription(productId, accountId, productDetails, offerDetails, currentPurchase)
 		}
 
 		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
@@ -72,31 +85,13 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 
 	private suspend fun replaceSubscription(
 		productId: String,
-		interval: Long,
-		currentInterval: Long?,
 		accountId: String,
 		productDetails: ProductDetails,
 		offerDetails: ProductDetails.SubscriptionOfferDetails,
 		currentPurchase: Purchase,
 	): MobilePaymentResult {
 		val oldProductId = currentPurchase.products.single()
-		val oldInterval = currentInterval ?: error("Missing current interval")
-		val oldOffer = (if (oldProductId == productId) productDetails else billingClient.queryProduct(oldProductId)).subscriptionOfferDetails
-			.orEmpty().single { it.basePlanId == (if (oldInterval == 12L) "yearly" else "monthly") && it.offerId == null }
-		val mode = if (oldProductId == productId ) {
-
-				SubscriptionProductReplacementParams.ReplacementMode.WITHOUT_PRORATION
-
-
-		}
-		// TODO: Think carefully about this condition. Should the price be multiplied by interval/currentInterval?
-		else if (offerDetails.pricingPhases.pricingPhaseList.last().priceAmountMicros / interval >
-			oldOffer.pricingPhases.pricingPhaseList.last().priceAmountMicros / oldInterval
-		) {
-			SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
-		} else {
-			SubscriptionProductReplacementParams.ReplacementMode.DEFERRED
-		}
+		val mode = getSubscriptionReplacementMode(oldProductId, productId)
 		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
 			.setProductDetails(productDetails)
 			.setOfferToken(offerDetails.offerToken)
@@ -128,10 +123,21 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 	}
 
 	override suspend fun showSubscriptionConfigView() {
-
-		// "https://play.google.com/store/account/subscriptions?sku=$sku&package=$packageName"
+		val params = QueryPurchasesParams.newBuilder()
+			.setProductType(BillingClient.ProductType.SUBS)
+			.includeSuspendedSubscriptions(true)
+			.build()
+		val productId = billingClient.queryPurchases(params)
+			.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+			.flatMap { it.products }
+			.distinct()
+			.singleOrNull()
+		val uri = "https://play.google.com/store/account/subscriptions".toUri().buildUpon()
+			.appendQueryParameter("package", activity.packageName)
+			.apply { if (productId != null) appendQueryParameter("sku", productId) }
+			.build()
 		try {
-			val myIntent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/account/subscriptions".toUri())
+			val myIntent = Intent(Intent.ACTION_VIEW, uri)
 			activity.startActivity(myIntent)
 
 		} catch (e: ActivityNotFoundException) {

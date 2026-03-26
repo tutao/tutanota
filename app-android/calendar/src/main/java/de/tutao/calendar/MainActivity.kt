@@ -123,6 +123,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
 	private lateinit var sqlCipherFacade: SqlCipherFacade
+	private lateinit var paymentsFacade: AndroidMobilePaymentsFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -202,13 +203,15 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
+		paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.CALENDAR)
+
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
-			AndroidMobilePaymentsFacade(this),
+			paymentsFacade,
 			AndroidMobileSystemFacade(
 				fileFacade,
 				this,
@@ -397,7 +400,6 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
 			}
-
 
 			// Start observing SSE users in the background.
 			// If there are no users we need to tell web part to invalidate alarms.
@@ -600,6 +602,9 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}
 		parameters["platformId"] = "android"
+		if (paymentsFacade.hasPlaystorePayment()) {
+			parameters["paymentSetup"] = "playstore"
+		}
 		val queryBuilder = StringBuilder()
 		for ((key, value) in parameters) {
 			try {
