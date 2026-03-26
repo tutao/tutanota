@@ -1415,8 +1415,8 @@ impl EventFacade {
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
 			|| (week_start != Weekday::Monday // We have WKST
-			&& new_date.assume_utc().unix_timestamp()
-			>= next_week)
+            && new_date.assume_utc().unix_timestamp()
+            >= next_week)
 		{
 			// Or we created an event after the first event or within the next week
 			return Ok(());
@@ -1754,98 +1754,683 @@ mod tests {
 		}
 	}
 
-	#[test]
-	fn test_generate_events_by_day_by_month_yearly() {
-		let events_facade = EventFacade {};
+	mod calculate_event_occurrences_tests {
+		use super::*;
+		use crate::date::event_facade::{
+			ByRule, ByRuleType, EndType, EventRepeatRule, RepeatPeriod,
+		};
+		use crate::date::DateTime;
+		use time::{Date, Month};
 
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, Month::December, 30)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
+		#[test]
+		fn test_generate_events_by_day_by_month_yearly() {
+			let events_facade = EventFacade {};
 
-		let events = events_facade.calculate_event_occurrences(
-			DateTime::from_seconds(1725235200), // 2024-09-02T00:00:00.000Z
-			DateTime::from_seconds(1725321600), // 2024-09-03T00:00:00.000Z
-			EventRepeatRule {
-				frequency: RepeatPeriod::Annually,
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, Month::December, 30)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let events = events_facade.calculate_event_occurrences(
+				DateTime::from_seconds(1725235200), // 2024-09-02T00:00:00.000Z
+				DateTime::from_seconds(1725321600), // 2024-09-03T00:00:00.000Z
+				EventRepeatRule {
+					frequency: RepeatPeriod::Annually,
+					by_rules: vec![
+						ByRule {
+							by_rule: ByRuleType::ByDay,
+							interval: "1MO".to_string(),
+						},
+						ByRule {
+							by_rule: ByRuleType::ByMonth,
+							interval: "9".to_string(),
+						},
+					],
+				},
+				1,
+				EndType::Count,
+				Some(6),
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(events.clone().unwrap().iter().len(), 2);
+			assert_eq!(
+				events.unwrap(),
+				[
+					DateTime::from_seconds(1725235200), // 2024-09-02T00:00:00.000Z
+					DateTime::from_seconds(1756684800), // 2025-09-01T00:00:00.000Z
+				]
+			);
+		}
+
+		#[test]
+		fn test_generate_events_by_month_on_last_friday() {
+			let events_facade = EventFacade {};
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2026, Month::January, 1)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let events = events_facade.calculate_event_occurrences(
+				DateTime::from_seconds(1743147215),
+				DateTime::from_seconds(1743161615),
+				EventRepeatRule {
+					frequency: RepeatPeriod::Monthly,
+					by_rules: vec![ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "-1FR".to_string(),
+					}],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(events.clone().unwrap().iter().len(), 10);
+			assert_eq!(
+				events.unwrap(),
+				[
+					DateTime::from_seconds(1743147215), // Fri Mar 28 2025 07:33:35 GMT+0000
+					DateTime::from_seconds(1745562815), // Fri Apr 25 2025 06:33:35 GMT+0000
+					DateTime::from_seconds(1748586815), // Fri May 30 2025 06:33:35 GMT+0000
+					DateTime::from_seconds(1751006015), // Fri Jun 27 2025 06:33:35 GMT+0000
+					DateTime::from_seconds(1753425215), // Fri Jul 25 2025 06:33:35 GMT+0000
+					DateTime::from_seconds(1756449215), // Fri Aug 29 2025 06:33:35 GMT+0000
+					DateTime::from_seconds(1758868415), // Fri Sep 26 2025 06:33:35 GMT+0000
+					DateTime::from_seconds(1761896015), // Fri Oct 31 2025 07:33:35 GMT+0000
+					DateTime::from_seconds(1764315215), // Fri Nov 28 2025 07:33:35 GMT+0000
+					DateTime::from_seconds(1766734415), // Fri Dec 26 2025 07:33:35 GMT+0000
+				]
+			);
+		}
+
+		#[test]
+		fn test_generate_event_with_by_rule_result_before_incremented_event_instance() {
+			let events_facade = EventFacade {};
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, time::Month::May, 16)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let events = events_facade.calculate_event_occurrences(
+				DateTime::from_seconds(1745485200), // 2025-04-24T09:00:00.000Z
+				DateTime::from_seconds(1745501400), // 2025-04-24T13:30:00.000Z
+				EventRepeatRule {
+					frequency: RepeatPeriod::Monthly,
+					by_rules: vec![ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "3TH".to_string(),
+					}],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(events.unwrap().iter().len(), 1);
+		}
+
+		#[test]
+		fn test_generate_instances() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, time::Month::March, 30)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: vec![],
+			};
+
+			let events = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(
+				events.unwrap(),
+				vec![
+					DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+					DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
+					DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+					DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
+					DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+					DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
+					DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
+					DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_generate_instances_with_by_rule() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::April, 12).unwrap(),
+				Time::from_hms(15, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::April, 12).unwrap(),
+				Time::from_hms(16, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2027, time::Month::May, 1)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Monthly,
+				by_rules: vec![ByRule {
+					interval: "2SA".to_string(),
+					by_rule: ByRuleType::ByDay,
+				}],
+			};
+
+			let events = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				repeat_rule,
+				3,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(
+				events.unwrap(),
+				vec![
+					DateTime::from_seconds(1744471800), //12.04.2025 15:30:00
+					DateTime::from_seconds(1752334200), //12.07.2025 15:30:00
+					DateTime::from_seconds(1760196600), //11.10.2025 15:30:00
+					DateTime::from_seconds(1768062600), //10.01.2026 15:30:00
+					DateTime::from_seconds(1775921400), //11.04.2026 15:30:00
+					DateTime::from_seconds(1783783800), //11.07.2026 15:30:00
+					DateTime::from_seconds(1791646200), //10.10.2026 15:30:00
+					DateTime::from_seconds(1799512200), //09.01.2027 15:30:00
+					DateTime::from_seconds(1807371000), //10.04.2027 15:30:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_generate_instances_with_by_rule_one_month() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::April, 24).unwrap(),
+				Time::from_hms(15, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::April, 12).unwrap(),
+				Time::from_hms(16, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, time::Month::July, 1)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Monthly,
+				by_rules: vec![ByRule {
+					interval: "3TH".to_string(),
+					by_rule: ByRuleType::ByDay,
+				}],
+			};
+
+			let events = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(
+				events.unwrap(),
+				vec![
+					DateTime::from_seconds(1747323000), //15.05.2025 15:30:00
+					DateTime::from_seconds(1750347000), //19.06.2025 15:30:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_generate_instances_with_dst_change() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, time::Month::April, 1)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: vec![],
+			};
+
+			let events = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(
+				events.unwrap(),
+				vec![
+					DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+					DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
+					DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+					DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
+					DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+					DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
+					DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
+					DateTime::from_millis(1743249600000), //29.03.2025 12:00:00
+					DateTime::from_millis(1743332400000), //30.03.2025 11:00:00
+					DateTime::from_millis(1743418800000)  //31.03.2025 11:00:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_create_event_instances_for_weekly_events() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 13).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 13).unwrap(),
+				Time::from_hms(18, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, Month::March, 27)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let weekly_events = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				EventRepeatRule {
+					frequency: RepeatPeriod::Weekly,
+					by_rules: vec![],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			// 27 of march is matching one occurance but max-date is not inclusive.
+			assert_eq!(
+				weekly_events.unwrap(),
+				vec![
+					DateTime::from_millis(1741867200000), //13.03.2025 12:00:00
+					DateTime::from_millis(1742472000000), //20.03.2025 12:00:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_create_event_instances_with_excluded_dates() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, Month::March, 30)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let excluded_dates = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				EventRepeatRule {
+					frequency: RepeatPeriod::Daily,
+					by_rules: vec![],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![
+					DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+					DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
+					DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+					DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
+					DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
+					DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
+				],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(
+				excluded_dates.unwrap(),
+				vec![
+					DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+					DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_create_event_instances_with_by_rule() {
+			let event_facade = EventFacade::new();
+
+			let event_start = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let event_end = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+				Time::from_hms(12, 30, 0).unwrap(),
+			)
+			.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, Month::March, 30)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let by_rules = event_facade.calculate_event_occurrences(
+				DateTime::from_seconds(event_start.unix_timestamp() as u64),
+				DateTime::from_seconds(event_end.unix_timestamp() as u64),
+				EventRepeatRule {
+					frequency: RepeatPeriod::Daily,
+					by_rules: vec![
+						ByRule {
+							by_rule: ByRuleType::ByDay,
+							interval: "MO".to_string(),
+						},
+						ByRule {
+							by_rule: ByRuleType::ByDay,
+							interval: "WE".to_string(),
+						},
+					],
+				},
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			assert_eq!(
+				by_rules.unwrap(),
+				vec![
+					DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+					DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+				]
+			);
+		}
+
+		#[test]
+		fn test_generate_events_biweekly() {
+			let events_facade = EventFacade {};
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2025, Month::December, 30)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Weekly,
 				by_rules: vec![
 					ByRule {
 						by_rule: ByRuleType::ByDay,
-						interval: "1MO".to_string(),
+						interval: "MO".to_string(),
 					},
 					ByRule {
-						by_rule: ByRuleType::ByMonth,
-						interval: "9".to_string(),
+						by_rule: ByRuleType::ByDay,
+						interval: "TU".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "WE".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "TH".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "FR".to_string(),
 					},
 				],
-			},
-			1,
-			EndType::Count,
-			Some(6),
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
+			};
 
-		assert_eq!(events.clone().unwrap().iter().len(), 2);
-		assert_eq!(
-			events.unwrap(),
-			[
-				DateTime::from_seconds(1725235200), // 2024-09-02T00:00:00.000Z
-				DateTime::from_seconds(1756684800), // 2025-09-01T00:00:00.000Z
-			]
-		);
-	}
+			let events = events_facade.calculate_event_occurrences(
+				DateTime::from_seconds(1756893600),
+				DateTime::from_seconds(1756895400),
+				repeat_rule,
+				2,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
 
-	#[test]
-	fn test_generate_events_by_month_on_last_friday() {
-		let events_facade = EventFacade {};
+			assert!(events.is_ok())
+		}
 
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2026, time::Month::January, 1)
+		#[test]
+		fn test_generate_instances_for_old_event_reaching_far_future() {
+			let event_facade = EventFacade::new();
+
+			let event_start = DateTime::from_seconds(
+				time::Date::from_calendar_date(2025, time::Month::January, 2)
+					.unwrap()
+					.with_time(Time::from_hms(18, 0, 0).unwrap())
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+			let event_end = DateTime::from_seconds(
+				time::Date::from_calendar_date(2025, time::Month::January, 2)
+					.unwrap()
+					.with_time(Time::from_hms(18, 30, 0).unwrap())
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+			let max_date = DateTime::from_seconds(
+				time::Date::from_calendar_date(2026, time::Month::March, 10)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let events = event_facade
+				.calculate_event_occurrences(
+					event_start,
+					event_end,
+					EventRepeatRule {
+						frequency: RepeatPeriod::Daily,
+						by_rules: vec![],
+					},
+					1,
+					EndType::Never,
+					None,
+					vec![],
+					max_date,
+					"UTC".to_string(),
+				)
+				.unwrap();
+
+			// Jan 2 2025 to Mar 10 2026 is 432 days, so we expect 432 instances
+			assert_eq!(events.len(), 432);
+		}
+
+		#[test]
+		fn test_generate_all_day_event_instances() { // FIXME turn this into a simple test for all day generation that does not got throught DST, later handle DSTs on different dedicated tests.
+			let event_facade = EventFacade::new();
+
+			let event_start = Date::from_calendar_date(2026, Month::July, 01)
 				.unwrap()
 				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
+				.assume_utc();
 
-		let events = events_facade.calculate_event_occurrences(
-			DateTime::from_seconds(1743147215),
-			DateTime::from_seconds(1743161615),
-			EventRepeatRule {
-				frequency: RepeatPeriod::Monthly,
-				by_rules: vec![ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "-1FR".to_string(),
-				}],
-			},
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
+			let event_end = Date::from_calendar_date(2026, Month::July, 02)
+				.unwrap()
+				.midnight()
+				.assume_utc();
 
-		assert_eq!(events.clone().unwrap().iter().len(), 10);
-		assert_eq!(
-			events.unwrap(),
-			[
-				DateTime::from_seconds(1743147215), // Fri Mar 28 2025 07:33:35 GMT+0000
-				DateTime::from_seconds(1745562815), // Fri Apr 25 2025 06:33:35 GMT+0000
-				DateTime::from_seconds(1748586815), // Fri May 30 2025 06:33:35 GMT+0000
-				DateTime::from_seconds(1751006015), // Fri Jun 27 2025 06:33:35 GMT+0000
-				DateTime::from_seconds(1753425215), // Fri Jul 25 2025 06:33:35 GMT+0000
-				DateTime::from_seconds(1756449215), // Fri Aug 29 2025 06:33:35 GMT+0000
-				DateTime::from_seconds(1758868415), // Fri Sep 26 2025 06:33:35 GMT+0000
-				DateTime::from_seconds(1761896015), // Fri Oct 31 2025 07:33:35 GMT+0000
-				DateTime::from_seconds(1764315215), // Fri Nov 28 2025 07:33:35 GMT+0000
-				DateTime::from_seconds(1766734415), // Fri Dec 26 2025 07:33:35 GMT+0000
-			]
-		);
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2026, Month::July, 31)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: vec![],
+			};
+
+			let events = event_facade
+				.calculate_event_occurrences(
+					DateTime::from_seconds(event_start.unix_timestamp() as u64),
+					DateTime::from_seconds(event_end.unix_timestamp() as u64),
+					repeat_rule,
+					1,
+					EndType::Never,
+					None,
+					vec![],
+					max_date,
+					"Europe/Berlin".to_string(),
+				)
+				.unwrap();
+
+			// assert_eq!(events.iter().count(), 30);
+			assert!(events.iter().enumerate().all(|(index, event_start_time)| {
+				let expected_date =
+					Date::from_calendar_date(2026, Month::March, 01 * (index + 1) as u8)
+						.unwrap()
+						.midnight()
+						.assume_utc()
+						.unix_timestamp();
+				println!("{}", expected_date.to_string().as_str());
+				println!("{}", event_start_time.as_seconds().to_string().as_str());
+				return event_start_time.as_seconds() == expected_date as u64;
+			}));
+		}
 	}
 
 	#[test]
@@ -1885,427 +2470,6 @@ mod tests {
 		assert_eq!(
 			event.calendar_event.endTime.as_seconds(),
 			next_day_midnight.unix_timestamp().unsigned_abs()
-		);
-	}
-
-	#[test]
-	fn test_generate_event_with_by_rule_result_before_incremented_event_instance() {
-		let events_facade = EventFacade {};
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, time::Month::May, 16)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let events = events_facade.calculate_event_occurrences(
-			DateTime::from_seconds(1745485200), // 2025-04-24T09:00:00.000Z
-			DateTime::from_seconds(1745501400), // 2025-04-24T13:30:00.000Z
-			EventRepeatRule {
-				frequency: RepeatPeriod::Monthly,
-				by_rules: vec![ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "3TH".to_string(),
-				}],
-			},
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(events.unwrap().iter().len(), 1);
-	}
-
-	#[test]
-	fn test_generate_instances() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, time::Month::March, 30)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::Daily,
-			by_rules: vec![],
-		};
-
-		let events = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			repeat_rule,
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(
-			events.unwrap(),
-			vec![
-				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
-				DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
-				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
-				DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
-				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
-				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
-				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
-				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
-			]
-		);
-	}
-
-	#[test]
-	fn test_generate_instances_with_by_rule() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::April, 12).unwrap(),
-			Time::from_hms(15, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::April, 12).unwrap(),
-			Time::from_hms(16, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2027, time::Month::May, 1)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::Monthly,
-			by_rules: vec![ByRule {
-				interval: "2SA".to_string(),
-				by_rule: ByRuleType::ByDay,
-			}],
-		};
-
-		let events = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			repeat_rule,
-			3,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(
-			events.unwrap(),
-			vec![
-				DateTime::from_seconds(1744471800), //12.04.2025 15:30:00
-				DateTime::from_seconds(1752334200), //12.07.2025 15:30:00
-				DateTime::from_seconds(1760196600), //11.10.2025 15:30:00
-				DateTime::from_seconds(1768062600), //10.01.2026 15:30:00
-				DateTime::from_seconds(1775921400), //11.04.2026 15:30:00
-				DateTime::from_seconds(1783783800), //11.07.2026 15:30:00
-				DateTime::from_seconds(1791646200), //10.10.2026 15:30:00
-				DateTime::from_seconds(1799512200), //09.01.2027 15:30:00
-				DateTime::from_seconds(1807371000), //10.04.2027 15:30:00
-			]
-		);
-	}
-
-	#[test]
-	fn test_generate_instances_with_by_rule_one_month() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::April, 24).unwrap(),
-			Time::from_hms(15, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::April, 12).unwrap(),
-			Time::from_hms(16, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, time::Month::July, 1)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::Monthly,
-			by_rules: vec![ByRule {
-				interval: "3TH".to_string(),
-				by_rule: ByRuleType::ByDay,
-			}],
-		};
-
-		let events = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			repeat_rule,
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(
-			events.unwrap(),
-			vec![
-				DateTime::from_seconds(1747323000), //15.05.2025 15:30:00
-				DateTime::from_seconds(1750347000), //19.06.2025 15:30:00
-			]
-		);
-	}
-
-	#[test]
-	fn test_generate_instances_with_dst_change() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, time::Month::April, 1)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::Daily,
-			by_rules: vec![],
-		};
-
-		let events = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			repeat_rule,
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(
-			events.unwrap(),
-			vec![
-				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
-				DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
-				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
-				DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
-				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
-				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
-				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
-				DateTime::from_millis(1743249600000), //29.03.2025 12:00:00
-				DateTime::from_millis(1743332400000), //30.03.2025 11:00:00
-				DateTime::from_millis(1743418800000)  //31.03.2025 11:00:00
-			]
-		);
-	}
-
-	#[test]
-	fn test_create_event_instances_for_weekly_events() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 13).unwrap(),
-			Time::from_hms(12, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 13).unwrap(),
-			Time::from_hms(18, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, Month::March, 27)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let weekly_events = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			EventRepeatRule {
-				frequency: RepeatPeriod::Weekly,
-				by_rules: vec![],
-			},
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		// 27 of march is matching one occurance but max-date is not inclusive.
-		assert_eq!(
-			weekly_events.unwrap(),
-			vec![
-				DateTime::from_millis(1741867200000), //13.03.2025 12:00:00
-				DateTime::from_millis(1742472000000), //20.03.2025 12:00:00
-			]
-		);
-	}
-
-	#[test]
-	fn test_create_event_instances_with_excluded_dates() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, Month::March, 30)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let excluded_dates = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			EventRepeatRule {
-				frequency: RepeatPeriod::Daily,
-				by_rules: vec![],
-			},
-			1,
-			EndType::Never,
-			None,
-			vec![
-				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
-				DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
-				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
-				DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
-				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
-				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
-			],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(
-			excluded_dates.unwrap(),
-			vec![
-				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
-				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
-			]
-		);
-	}
-
-	#[test]
-	fn test_create_event_instances_with_by_rule() {
-		let event_facade = EventFacade::new();
-
-		let event_start = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 0, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let event_end = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
-			Time::from_hms(12, 30, 0).unwrap(),
-		)
-		.assume_utc();
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, Month::March, 30)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let by_rules = event_facade.calculate_event_occurrences(
-			DateTime::from_seconds(event_start.unix_timestamp() as u64),
-			DateTime::from_seconds(event_end.unix_timestamp() as u64),
-			EventRepeatRule {
-				frequency: RepeatPeriod::Daily,
-				by_rules: vec![
-					ByRule {
-						by_rule: ByRuleType::ByDay,
-						interval: "MO".to_string(),
-					},
-					ByRule {
-						by_rule: ByRuleType::ByDay,
-						interval: "WE".to_string(),
-					},
-				],
-			},
-			1,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert_eq!(
-			by_rules.unwrap(),
-			vec![
-				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
-				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
-			]
 		);
 	}
 
@@ -3476,59 +3640,6 @@ mod tests {
 	}
 
 	#[test]
-	fn test_generate_events_biweekly() {
-		let events_facade = EventFacade {};
-
-		let max_date = DateTime::from_seconds(
-			Date::from_calendar_date(2025, Month::December, 30)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::Weekly,
-			by_rules: vec![
-				ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "MO".to_string(),
-				},
-				ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "TU".to_string(),
-				},
-				ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "WE".to_string(),
-				},
-				ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "TH".to_string(),
-				},
-				ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "FR".to_string(),
-				},
-			],
-		};
-
-		let events = events_facade.calculate_event_occurrences(
-			DateTime::from_seconds(1756893600),
-			DateTime::from_seconds(1756895400),
-			repeat_rule,
-			2,
-			EndType::Never,
-			None,
-			vec![],
-			max_date,
-			"Europe/Berlin".to_string(),
-		);
-
-		assert!(events.is_ok())
-	}
-
-	#[test]
 	fn test_flow_with_by_month_daily() {
 		let time = Time::from_hms(13, 23, 00).unwrap();
 		let date = PrimitiveDateTime::new(
@@ -4401,52 +4512,5 @@ mod tests {
 					.to_date_time(),
 			]
 		);
-	}
-
-	#[test]
-	fn test_generate_instances_for_old_event_reaching_far_future() {
-		let event_facade = EventFacade::new();
-
-		let event_start = DateTime::from_seconds(
-			time::Date::from_calendar_date(2025, time::Month::January, 2)
-				.unwrap()
-				.with_time(Time::from_hms(18, 0, 0).unwrap())
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-		let event_end = DateTime::from_seconds(
-			time::Date::from_calendar_date(2025, time::Month::January, 2)
-				.unwrap()
-				.with_time(Time::from_hms(18, 30, 0).unwrap())
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-		let max_date = DateTime::from_seconds(
-			time::Date::from_calendar_date(2026, time::Month::March, 10)
-				.unwrap()
-				.midnight()
-				.assume_utc()
-				.unix_timestamp() as u64,
-		);
-
-		let events = event_facade
-			.calculate_event_occurrences(
-				event_start,
-				event_end,
-				EventRepeatRule {
-					frequency: RepeatPeriod::Daily,
-					by_rules: vec![],
-				},
-				1,
-				EndType::Never,
-				None,
-				vec![],
-				max_date,
-				"UTC".to_string(),
-			)
-			.unwrap();
-
-		// Jan 2 2025 to Mar 10 2026 is 432 days, so we expect 432 instances
-		assert_eq!(events.len(), 432);
 	}
 }

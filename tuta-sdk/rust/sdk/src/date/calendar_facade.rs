@@ -784,26 +784,15 @@ fn get_max_timestamp_id() -> CustomId {
 
 #[cfg(test)]
 mod calendar_facade_unit_tests {
-	use super::{
-		CalendarFacade, RangeWithOffset, BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_CALENDAR_COLOR,
-		DEFAULT_CALENDAR_NAME,
-	};
+	use super::CalendarFacade;
+	use super::*;
 	use crate::contacts::contact_facade::MockContactFacade;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::customer::customer_facade::MockCustomerFacade;
-	use crate::date::event_facade::EventFacade;
-	use crate::date::DateTime;
-	use crate::entities::generated::sys::{CustomerInfo, GroupInfo, GroupMembership, User};
-	use crate::entities::generated::tutanota::{
-		CalendarEvent, Contact, GroupSettings, UserSettingsGroupRoot,
-	};
-	use crate::groups::GroupType;
-	use crate::tutanota_constants::{AccountType, PlanType};
+	use crate::entities::generated::sys::CustomerInfo;
 	use crate::user_facade::MockUserFacade;
-	use crate::util::test_utils::{create_mock_contact, create_test_entity};
+	use crate::util::test_utils::create_test_entity;
 	use crate::{GeneratedId, IdTupleGenerated};
-	use std::sync::Arc;
-	use time::{OffsetDateTime, UtcOffset};
 
 	fn create_mock_user(
 		user_group: &GeneratedId,
@@ -870,900 +859,948 @@ mod calendar_facade_unit_tests {
 		}
 	}
 
-	#[test]
-	fn should_remove_events_not_in_range_one_day() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root =
-			create_mock_user_settings_group_root(None, None, None, None);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let timestamp_start = DateTime::from_seconds(1753761600);
-		let timestamp_end = DateTime::from_seconds(1753826400);
-		let timestamp_today = DateTime::from_seconds(1753740000);
-		let offset = 7200;
-		let negative_offset = -39600;
-
-		let events_at_27 = [CalendarEvent {
-			summary: "Single 27 ".to_string(),
-			startTime: DateTime::from_seconds(1753574400),
-			endTime: DateTime::from_seconds(1753660800),
-			..create_test_entity()
-		}];
-
-		let events_at_28 = [
-			CalendarEvent {
-				summary: "G Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800),
-				endTime: DateTime::from_seconds(1753747200),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "O Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800),
-				endTime: DateTime::from_seconds(1753747200),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800),
-				endTime: DateTime::from_seconds(1753747200),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800),
-				endTime: DateTime::from_seconds(1753747200),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Weekly Monday".to_string(),
-				startTime: DateTime::from_seconds(1753660800),
-				endTime: DateTime::from_seconds(1753747200),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Weekly Monday".to_string(),
-				startTime: DateTime::from_seconds(1753660800),
-				endTime: DateTime::from_seconds(1753747200),
-				..create_test_entity()
-			},
-		];
-
-		let event_that_spans_between_two_days_on_different_timezones = CalendarEvent {
-			summary: "Monday Afternoon till Tuesday morning on -11. Tuesday on +2".to_string(),
-			startTime: DateTime::from_seconds(1753776000),
-			endTime: DateTime::from_seconds(1753822000),
-			..create_test_entity()
+	mod filter_events_in_range_tests {
+		use super::*;
+		use crate::contacts::contact_facade::MockContactFacade;
+		use crate::crypto_entity_client::MockCryptoEntityClient;
+		use crate::customer::customer_facade::MockCustomerFacade;
+		use crate::date::calendar_facade::calendar_facade_unit_tests::{
+			create_mock_group_info, create_mock_user, create_mock_user_settings_group_root,
 		};
+		use crate::date::calendar_facade::RangeWithOffset;
+		use crate::date::DateTime;
+		use crate::entities::generated::sys::GroupInfo;
+		use crate::entities::generated::tutanota::{CalendarEvent, UserSettingsGroupRoot};
+		use crate::tutanota_constants::AccountType;
+		use crate::user_facade::MockUserFacade;
+		use crate::util::test_utils::create_test_entity;
+		use crate::{GeneratedId, IdTupleGenerated};
+		use std::sync::Arc;
+		use time::{OffsetDateTime, UtcOffset};
 
-		let events_at_29 = [
-			CalendarEvent {
-				summary: "G Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200),
-				endTime: DateTime::from_seconds(1753833600),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "O Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200),
-				endTime: DateTime::from_seconds(1753833600),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200),
-				endTime: DateTime::from_seconds(1753833600),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200),
-				endTime: DateTime::from_seconds(1753833600),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Weekly Tuesday".to_string(),
-				startTime: DateTime::from_seconds(1753747200),
-				endTime: DateTime::from_seconds(1753833600),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Weekly Tuesday".to_string(),
-				startTime: DateTime::from_seconds(1753747200),
-				endTime: DateTime::from_seconds(1753833600),
-				..create_test_entity()
-			},
-			event_that_spans_between_two_days_on_different_timezones.clone(),
-		];
+		#[test]
+		fn should_remove_events_not_in_range_one_day() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
 
-		let events_at_30 = [
-			CalendarEvent {
-				summary: "G Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600),
-				endTime: DateTime::from_seconds(1753920000),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "O Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600),
-				endTime: DateTime::from_seconds(1753920000),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600),
-				endTime: DateTime::from_seconds(1753920000),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600),
-				endTime: DateTime::from_seconds(1753920000),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Weekly Wednesday".to_string(),
-				startTime: DateTime::from_seconds(1753228800),
-				endTime: DateTime::from_seconds(1753315200),
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Weekly Wednesday".to_string(),
-				startTime: DateTime::from_seconds(1753228800),
-				endTime: DateTime::from_seconds(1753315200),
-				..create_test_entity()
-			},
-		];
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
 
-		let events_at_31 = [CalendarEvent {
-			summary: "Single 31".to_string(),
-			startTime: DateTime::from_seconds(1753920000),
-			endTime: DateTime::from_seconds(1754006400),
-			..create_test_entity()
-		}];
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
 
-		let mut events = vec![];
-		events.extend(&events_at_27);
-		events.extend(&events_at_28);
-		events.extend(&events_at_29);
-		events.extend(&events_at_30);
-		events.extend(&events_at_31);
+			let mock_user_settings_group_root =
+				create_mock_user_settings_group_root(None, None, None, None);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root));
 
-		let binding = CalendarEvent {
-			summary: "Monday Night".to_string(),
-			startTime: DateTime::from_seconds(1753722000),
-			endTime: DateTime::from_seconds(1753738200),
-			..create_test_entity()
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let timestamp_start = DateTime::from_seconds(1753761600);
+			let timestamp_end = DateTime::from_seconds(1753826400);
+			let timestamp_today = DateTime::from_seconds(1753740000);
+			let offset = 7200;
+			let negative_offset = -39600;
+
+			let events_at_27 = [CalendarEvent {
+				summary: "Single 27 ".to_string(),
+				startTime: DateTime::from_seconds(1753574400),
+				endTime: DateTime::from_seconds(1753660800),
+				..create_test_entity()
+			}];
+
+			let events_at_28 = [
+				CalendarEvent {
+					summary: "G Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800),
+					endTime: DateTime::from_seconds(1753747200),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "O Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800),
+					endTime: DateTime::from_seconds(1753747200),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800),
+					endTime: DateTime::from_seconds(1753747200),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800),
+					endTime: DateTime::from_seconds(1753747200),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Weekly Monday".to_string(),
+					startTime: DateTime::from_seconds(1753660800),
+					endTime: DateTime::from_seconds(1753747200),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Weekly Monday".to_string(),
+					startTime: DateTime::from_seconds(1753660800),
+					endTime: DateTime::from_seconds(1753747200),
+					..create_test_entity()
+				},
+			];
+
+			let event_that_spans_between_two_days_on_different_timezones = CalendarEvent {
+				summary: "Monday Afternoon till Tuesday morning on -11. Tuesday on +2".to_string(),
+				startTime: DateTime::from_seconds(1753776000),
+				endTime: DateTime::from_seconds(1753822000),
+				..create_test_entity()
+			};
+
+			let events_at_29 = [
+				CalendarEvent {
+					summary: "G Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200),
+					endTime: DateTime::from_seconds(1753833600),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "O Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200),
+					endTime: DateTime::from_seconds(1753833600),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200),
+					endTime: DateTime::from_seconds(1753833600),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200),
+					endTime: DateTime::from_seconds(1753833600),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Weekly Tuesday".to_string(),
+					startTime: DateTime::from_seconds(1753747200),
+					endTime: DateTime::from_seconds(1753833600),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Weekly Tuesday".to_string(),
+					startTime: DateTime::from_seconds(1753747200),
+					endTime: DateTime::from_seconds(1753833600),
+					..create_test_entity()
+				},
+				event_that_spans_between_two_days_on_different_timezones.clone(),
+			];
+
+			let events_at_30 = [
+				CalendarEvent {
+					summary: "G Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600),
+					endTime: DateTime::from_seconds(1753920000),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "O Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600),
+					endTime: DateTime::from_seconds(1753920000),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600),
+					endTime: DateTime::from_seconds(1753920000),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600),
+					endTime: DateTime::from_seconds(1753920000),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Weekly Wednesday".to_string(),
+					startTime: DateTime::from_seconds(1753228800),
+					endTime: DateTime::from_seconds(1753315200),
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Weekly Wednesday".to_string(),
+					startTime: DateTime::from_seconds(1753228800),
+					endTime: DateTime::from_seconds(1753315200),
+					..create_test_entity()
+				},
+			];
+
+			let events_at_31 = [CalendarEvent {
+				summary: "Single 31".to_string(),
+				startTime: DateTime::from_seconds(1753920000),
+				endTime: DateTime::from_seconds(1754006400),
+				..create_test_entity()
+			}];
+
+			let mut events = vec![];
+			events.extend(&events_at_27);
+			events.extend(&events_at_28);
+			events.extend(&events_at_29);
+			events.extend(&events_at_30);
+			events.extend(&events_at_31);
+
+			let binding = CalendarEvent {
+				summary: "Monday Night".to_string(),
+				startTime: DateTime::from_seconds(1753722000),
+				endTime: DateTime::from_seconds(1753738200),
+				..create_test_entity()
+			};
+			events.push(&binding);
+
+			let all_events: Vec<CalendarEvent> = events.into_iter().map(|e| e.clone()).collect();
+
+			let filtered_events = calendar_facade.filter_events_in_range(
+				timestamp_start.as_millis(),
+				timestamp_end.as_millis(),
+				&RangeWithOffset(
+					OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+					OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+				),
+				all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
+			);
+			assert_eq!(filtered_events.len(), 7);
+			assert!(filtered_events.iter().eq(events_at_29.iter()));
+
+			let filtered_events_at_negative_offset = calendar_facade.filter_events_in_range(
+				timestamp_start.as_millis(),
+				timestamp_end.as_millis(),
+				&RangeWithOffset(
+					OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
+					OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
+				),
+				all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
+			);
+
+			let mut events_with_event_that_spans = events_at_28.clone().to_vec();
+			events_with_event_that_spans
+				.push(event_that_spans_between_two_days_on_different_timezones);
+			assert_eq!(filtered_events_at_negative_offset.len(), 7);
+			assert!(filtered_events_at_negative_offset
+				.iter()
+				.eq(events_with_event_that_spans.iter()));
+		}
+
+		#[test]
+		fn should_remove_events_not_in_range_multiple_days() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root =
+				create_mock_user_settings_group_root(None, None, None, None);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let timestamp_start = DateTime::from_seconds(1753675200); // Mon Jul 28 2025 04:00:00 GMT+0000
+			let timestamp_end = DateTime::from_seconds(1753912800); // Wed Jul 30 2025 22:00:00 GMT+0000
+			let timestamp_today = DateTime::from_seconds(1753653600); // Sun Jul 27 2025 22:00:00 GMT+0000
+			let offset = 7200;
+			let negative_offset = -39600;
+
+			let events_at_27 = [CalendarEvent {
+				summary: "Single 27 ".to_string(),
+				startTime: DateTime::from_seconds(1753574400), // Sun Jul 27 2025 00:00:00 GMT+0000
+				endTime: DateTime::from_seconds(1753660800),   // Mon Jul 28 2025 00:00:00 GMT+0000
+				..create_test_entity()
+			}];
+
+			let events_at_28 = [
+				CalendarEvent {
+					summary: "G Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "O Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Single 28".to_string(),
+					startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Weekly Monday".to_string(),
+					startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Weekly Monday".to_string(),
+					startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+			];
+
+			let event_that_spans_between_two_days_on_different_timezones = CalendarEvent {
+				summary: "Monday Afternoon till Tuesday morning on -11. Tuesday on +2".to_string(),
+				startTime: DateTime::from_seconds(1753776000), // Tue Jul 29 2025 08:00:00 GMT+0000
+				endTime: DateTime::from_seconds(1753822000),   // Tue Jul 29 2025 20:46:40 GMT+0000
+				..create_test_entity()
+			};
+
+			let events_at_29 = [
+				CalendarEvent {
+					summary: "G Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "O Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Single 29".to_string(),
+					startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Weekly Tuesday".to_string(),
+					startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Weekly Tuesday".to_string(),
+					startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				event_that_spans_between_two_days_on_different_timezones.clone(),
+			];
+
+			let events_at_30 = [
+				CalendarEvent {
+					summary: "G Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "O Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "-11 Island Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+				CalendarEvent {
+					summary: "Single 30".to_string(),
+					startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
+					endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
+					..create_test_entity()
+				},
+			];
+
+			let events_at_31 = [CalendarEvent {
+				summary: "Single 31".to_string(),
+				startTime: DateTime::from_seconds(1753920000), // Thu Jul 31 2025 00:00:00 GMT+0000
+				endTime: DateTime::from_seconds(1754006400),   // Fri Aug 01 2025 00:00:00 GMT+0000
+				..create_test_entity()
+			}];
+
+			let mut events = vec![];
+			events.extend(&events_at_27);
+			events.extend(&events_at_28);
+			events.extend(&events_at_29);
+			events.extend(&events_at_30);
+			events.extend(&events_at_31);
+
+			let binding = CalendarEvent {
+				summary: "Monday Night".to_string(),
+				startTime: DateTime::from_seconds(1753722000), // Mon Jul 28 2025 17:00:00 GMT+0000
+				endTime: DateTime::from_seconds(1753738200),   // Mon Jul 28 2025 21:30:00 GMT+0000
+				..create_test_entity()
+			};
+			events.push(&binding);
+
+			let all_events: Vec<CalendarEvent> =
+				events.clone().into_iter().map(|e| e.clone()).collect();
+
+			let filtered_events = calendar_facade.filter_events_in_range(
+				timestamp_start.as_millis(),
+				timestamp_end.as_millis(),
+				&RangeWithOffset(
+					OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+					OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+				),
+				all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
+			);
+
+			let mut tested_events = vec![];
+			tested_events.extend(&events_at_28);
+			tested_events.extend(&events_at_29);
+			tested_events.extend(&events_at_30);
+			tested_events.push(&binding);
+
+			assert_eq!(filtered_events.len(), tested_events.len());
+			assert!(filtered_events.iter().eq(tested_events.clone()));
+
+			let filtered_events_at_negative_offset = calendar_facade.filter_events_in_range(
+				timestamp_start.as_millis(),
+				timestamp_end.as_millis(),
+				&RangeWithOffset(
+					OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
+					OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
+						.unwrap()
+						.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
+				),
+				all_events.as_slice(),
+			);
+
+			let mut tested_negative_events = vec![];
+			tested_negative_events.extend(&events_at_27);
+			tested_negative_events.extend(&events_at_28);
+			tested_negative_events.extend(&events_at_29);
+			tested_negative_events.push(&binding);
+
+			assert_eq!(
+				filtered_events_at_negative_offset.len(),
+				tested_negative_events.len()
+			);
+			assert!(filtered_events_at_negative_offset
+				.iter()
+				.eq(tested_negative_events));
+		}
+	}
+
+	mod get_calendars_render_data_tests {
+		use super::*;
+		use crate::contacts::contact_facade::MockContactFacade;
+		use crate::crypto_entity_client::MockCryptoEntityClient;
+		use crate::customer::customer_facade::MockCustomerFacade;
+		use crate::date::calendar_facade::calendar_facade_unit_tests::{
+			create_mock_customer_info, create_mock_group_info, create_mock_user,
+			create_mock_user_settings_group_root,
 		};
-		events.push(&binding);
-
-		let all_events: Vec<CalendarEvent> = events.into_iter().map(|e| e.clone()).collect();
-
-		let filtered_events = calendar_facade.filter_events_in_range(
-			timestamp_start.as_millis(),
-			timestamp_end.as_millis(),
-			&RangeWithOffset(
-				OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
-				OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
-			),
-			all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
-		);
-		assert_eq!(filtered_events.len(), 7);
-		assert!(filtered_events.iter().eq(events_at_29.iter()));
-
-		let filtered_events_at_negative_offset = calendar_facade.filter_events_in_range(
-			timestamp_start.as_millis(),
-			timestamp_end.as_millis(),
-			&RangeWithOffset(
-				OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
-				OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
-			),
-			all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
-		);
-
-		let mut events_with_event_that_spans = events_at_28.clone().to_vec();
-		events_with_event_that_spans.push(event_that_spans_between_two_days_on_different_timezones);
-		assert_eq!(filtered_events_at_negative_offset.len(), 7);
-		assert!(filtered_events_at_negative_offset
-			.iter()
-			.eq(events_with_event_that_spans.iter()));
-	}
-
-	#[test]
-	fn should_remove_events_not_in_range_multiple_days() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root =
-			create_mock_user_settings_group_root(None, None, None, None);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let timestamp_start = DateTime::from_seconds(1753675200); // Mon Jul 28 2025 04:00:00 GMT+0000
-		let timestamp_end = DateTime::from_seconds(1753912800); // Wed Jul 30 2025 22:00:00 GMT+0000
-		let timestamp_today = DateTime::from_seconds(1753653600); // Sun Jul 27 2025 22:00:00 GMT+0000
-		let offset = 7200;
-		let negative_offset = -39600;
-
-		let events_at_27 = [CalendarEvent {
-			summary: "Single 27 ".to_string(),
-			startTime: DateTime::from_seconds(1753574400), // Sun Jul 27 2025 00:00:00 GMT+0000
-			endTime: DateTime::from_seconds(1753660800),   // Mon Jul 28 2025 00:00:00 GMT+0000
-			..create_test_entity()
-		}];
-
-		let events_at_28 = [
-			CalendarEvent {
-				summary: "G Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "O Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Single 28".to_string(),
-				startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Weekly Monday".to_string(),
-				startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Weekly Monday".to_string(),
-				startTime: DateTime::from_seconds(1753660800), // Mon Jul 28 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753747200),   // Tue Jul 29 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-		];
-
-		let event_that_spans_between_two_days_on_different_timezones = CalendarEvent {
-			summary: "Monday Afternoon till Tuesday morning on -11. Tuesday on +2".to_string(),
-			startTime: DateTime::from_seconds(1753776000), // Tue Jul 29 2025 08:00:00 GMT+0000
-			endTime: DateTime::from_seconds(1753822000),   // Tue Jul 29 2025 20:46:40 GMT+0000
-			..create_test_entity()
+		use crate::date::calendar_facade::{
+			CalendarFacade, BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_CALENDAR_COLOR,
+			DEFAULT_CALENDAR_NAME,
 		};
-
-		let events_at_29 = [
-			CalendarEvent {
-				summary: "G Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "O Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Single 29".to_string(),
-				startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Weekly Tuesday".to_string(),
-				startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Weekly Tuesday".to_string(),
-				startTime: DateTime::from_seconds(1753747200), // Tue Jul 29 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753833600),   // Wed Jul 30 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			event_that_spans_between_two_days_on_different_timezones.clone(),
-		];
-
-		let events_at_30 = [
-			CalendarEvent {
-				summary: "G Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "O Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "-11 Island Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-			CalendarEvent {
-				summary: "Single 30".to_string(),
-				startTime: DateTime::from_seconds(1753833600), // Wed Jul 30 2025 00:00:00 GMT+0000
-				endTime: DateTime::from_seconds(1753920000),   // Thu Jul 31 2025 00:00:00 GMT+0000
-				..create_test_entity()
-			},
-		];
-
-		let events_at_31 = [CalendarEvent {
-			summary: "Single 31".to_string(),
-			startTime: DateTime::from_seconds(1753920000), // Thu Jul 31 2025 00:00:00 GMT+0000
-			endTime: DateTime::from_seconds(1754006400),   // Fri Aug 01 2025 00:00:00 GMT+0000
-			..create_test_entity()
-		}];
-
-		let mut events = vec![];
-		events.extend(&events_at_27);
-		events.extend(&events_at_28);
-		events.extend(&events_at_29);
-		events.extend(&events_at_30);
-		events.extend(&events_at_31);
-
-		let binding = CalendarEvent {
-			summary: "Monday Night".to_string(),
-			startTime: DateTime::from_seconds(1753722000), // Mon Jul 28 2025 17:00:00 GMT+0000
-			endTime: DateTime::from_seconds(1753738200),   // Mon Jul 28 2025 21:30:00 GMT+0000
-			..create_test_entity()
-		};
-		events.push(&binding);
-
-		let all_events: Vec<CalendarEvent> =
-			events.clone().into_iter().map(|e| e.clone()).collect();
-
-		let filtered_events = calendar_facade.filter_events_in_range(
-			timestamp_start.as_millis(),
-			timestamp_end.as_millis(),
-			&RangeWithOffset(
-				OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
-				OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
-			),
-			all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
-		);
-
-		let mut tested_events = vec![];
-		tested_events.extend(&events_at_28);
-		tested_events.extend(&events_at_29);
-		tested_events.extend(&events_at_30);
-		tested_events.push(&binding);
-
-		assert_eq!(filtered_events.len(), tested_events.len());
-		assert!(filtered_events.iter().eq(tested_events.clone()));
-
-		let filtered_events_at_negative_offset = calendar_facade.filter_events_in_range(
-			timestamp_start.as_millis(),
-			timestamp_end.as_millis(),
-			&RangeWithOffset(
-				OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
-				OffsetDateTime::from_unix_timestamp(timestamp_end.as_seconds() as i64)
-					.unwrap()
-					.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
-			),
-			all_events.as_slice(),
-		);
-
-		let mut tested_negative_events = vec![];
-		tested_negative_events.extend(&events_at_27);
-		tested_negative_events.extend(&events_at_28);
-		tested_negative_events.extend(&events_at_29);
-		tested_negative_events.push(&binding);
-
-		assert_eq!(
-			filtered_events_at_negative_offset.len(),
-			tested_negative_events.len()
-		);
-		assert!(filtered_events_at_negative_offset
-			.iter()
-			.eq(tested_negative_events));
-	}
-
-	#[tokio::test]
-	async fn test_private_default_calendar_render_info() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root =
-			create_mock_user_settings_group_root(None, None, None, None);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
-
-		assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
-		assert_eq!(calendar_render_data.color, DEFAULT_CALENDAR_COLOR);
-	}
-
-	#[tokio::test]
-	async fn test_private_custom_calendar_render_info() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-		let custom_color = "a5e4ac";
-		let custom_name = "Private Custom Edited";
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root = create_mock_user_settings_group_root(
-			Some(&calendar_id),
-			Some(custom_color),
-			None,
-			None,
-		);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, Some(custom_name));
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
-
-		assert_eq!(calendar_render_data.name, custom_name);
-		assert_eq!(calendar_render_data.color, custom_color);
-	}
-
-	#[tokio::test]
-	async fn test_private_custom_calendar_no_name_render_info() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let custom_color = "a5e4ac";
-		let mock_user_settings_group_root = create_mock_user_settings_group_root(
-			Some(&calendar_id),
-			Some(custom_color),
-			None,
-			None,
-		);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
-
-		assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
-		assert_eq!(calendar_render_data.color, custom_color);
-	}
-
-	#[tokio::test]
-	async fn test_shared_calendar_render_info() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-		let custom_color = "e4c0a5";
-		let custom_name = "Shared Calendar";
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root = create_mock_user_settings_group_root(
-			Some(&calendar_id),
-			Some(custom_color),
-			Some(custom_name),
-			None,
-		);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, Some("Shared"));
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
-
-		assert_eq!(calendar_render_data.name, custom_name.to_string());
-		assert_eq!(calendar_render_data.color, custom_color);
-	}
-
-	#[tokio::test]
-	async fn test_birthday_calendar_render_info() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mut mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::PAID);
-		let user_id = mock_user._id.clone().unwrap();
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root =
-			create_mock_user_settings_group_root(None, None, None, None);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root.clone()));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let mock_customer_info = create_mock_customer_info(
-			&GeneratedId::test_random(),
-			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
-			PlanType::Revolutionary,
-		);
-		mock_customer_facade
-			.expect_fetch_customer_info()
-			.return_const(Ok(mock_customer_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
-		let birthday_calendar_id = GeneratedId(formated_id);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
-
-		let client_only_calendars = calendar_facade
-			.get_birthday_calendar_data(&mock_user_settings_group_root)
-			.await;
-		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
-
-		assert_eq!(render_data.name, birthday_calendar.name);
-		assert_eq!(render_data.color, birthday_calendar.color);
-	}
-
-	#[tokio::test]
-	async fn test_do_not_create_birthday_calendar_render_info_for_legacy_account() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mock_contact_facade = MockContactFacade::default();
-		let mut mock_customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::PAID);
-		let user_id = mock_user._id.clone().unwrap();
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root =
-			create_mock_user_settings_group_root(None, None, None, None);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root.clone()));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let mock_customer_info = create_mock_customer_info(
-			&GeneratedId::test_random(),
-			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
-			PlanType::Premium,
-		);
-		mock_customer_facade
-			.expect_fetch_customer_info()
-			.return_const(Ok(mock_customer_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(mock_customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
-		let birthday_calendar_id = GeneratedId(formated_id);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let render_data = calendars_render_data.get(&birthday_calendar_id);
-		assert!(render_data.is_none());
-
-		let client_only_calendars = calendar_facade
-			.get_birthday_calendar_data(&mock_user_settings_group_root)
-			.await;
-		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
-		assert!(birthday_calendar.is_none());
-	}
-
-	#[tokio::test]
-	async fn test_do_not_create_birthday_calendar_render_info_for_free_account() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let contact_facade = MockContactFacade::default();
-		let customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let user_group = GeneratedId::test_random();
-		let calendar_id = GeneratedId::test_random();
-
-		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
-		let user_id = mock_user._id.clone().unwrap();
-		mock_user_facade.expect_get_user().return_const(mock_user);
-
-		let mock_user_settings_group_root =
-			create_mock_user_settings_group_root(None, None, None, None);
-		mock_crypto_entity_client
-			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root.clone()));
-
-		let mock_group_info = create_mock_group_info(&calendar_id, None);
-		mock_crypto_entity_client
-			.expect_load::<GroupInfo, IdTupleGenerated>()
-			.return_const(Ok(mock_group_info));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(contact_facade),
-			Arc::new(customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
-		let birthday_calendar_id = GeneratedId(formated_id);
-
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
-		let render_data = calendars_render_data.get(&birthday_calendar_id);
-		assert!(render_data.is_none());
-
-		let client_only_calendars = calendar_facade
-			.get_birthday_calendar_data(&mock_user_settings_group_root)
-			.await;
-		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
-		assert!(birthday_calendar.is_none());
-	}
-
-	#[tokio::test]
-	async fn test_generate_birthday_from_valid_contacts() {
-		let mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mut mock_contact_facade = MockContactFacade::default();
-		let customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let default_private_calendar_id = GeneratedId::test_random();
-		let user_group = GeneratedId::test_random();
-		let mock_user =
-			create_mock_user(&user_group, &default_private_calendar_id, AccountType::PAID);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-		let contact_list_id = GeneratedId::test_random();
-
-		let mock_contacts: Vec<Contact> = vec![
-			create_mock_contact(
-				&contact_list_id,
+		use crate::entities::generated::sys::GroupInfo;
+		use crate::entities::generated::tutanota::UserSettingsGroupRoot;
+		use crate::tutanota_constants::{AccountType, PlanType};
+		use crate::user_facade::MockUserFacade;
+		use crate::{GeneratedId, IdTupleGenerated};
+		use std::sync::Arc;
+
+		#[tokio::test]
+		async fn test_private_default_calendar_render_info() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root =
+				create_mock_user_settings_group_root(None, None, None, None);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+			assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
+			assert_eq!(calendar_render_data.color, DEFAULT_CALENDAR_COLOR);
+		}
+
+		#[tokio::test]
+		async fn test_private_custom_calendar_render_info() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+			let custom_color = "a5e4ac";
+			let custom_name = "Private Custom Edited";
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root = create_mock_user_settings_group_root(
+				Some(&calendar_id),
+				Some(custom_color),
+				None,
+				None,
+			);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, Some(custom_name));
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+			assert_eq!(calendar_render_data.name, custom_name);
+			assert_eq!(calendar_render_data.color, custom_color);
+		}
+
+		#[tokio::test]
+		async fn test_private_custom_calendar_no_name_render_info() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let custom_color = "a5e4ac";
+			let mock_user_settings_group_root = create_mock_user_settings_group_root(
+				Some(&calendar_id),
+				Some(custom_color),
+				None,
+				None,
+			);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+			assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
+			assert_eq!(calendar_render_data.color, custom_color);
+		}
+
+		#[tokio::test]
+		async fn test_shared_calendar_render_info() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+			let custom_color = "e4c0a5";
+			let custom_name = "Shared Calendar";
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root = create_mock_user_settings_group_root(
+				Some(&calendar_id),
+				Some(custom_color),
+				Some(custom_name),
+				None,
+			);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, Some("Shared"));
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+			assert_eq!(calendar_render_data.name, custom_name.to_string());
+			assert_eq!(calendar_render_data.color, custom_color);
+		}
+
+		#[tokio::test]
+		async fn test_birthday_calendar_render_info() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mut mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::PAID);
+			let user_id = mock_user._id.clone().unwrap();
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root =
+				create_mock_user_settings_group_root(None, None, None, None);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root.clone()));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let mock_customer_info = create_mock_customer_info(
 				&GeneratedId::test_random(),
-				Some("Mary"),
-				Some("2000-05-06".to_string()),
-			),
-			create_mock_contact(
+				IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
+				PlanType::Revolutionary,
+			);
+			mock_customer_facade
+				.expect_fetch_customer_info()
+				.return_const(Ok(mock_customer_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
+			let birthday_calendar_id = GeneratedId(formated_id);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
+
+			let client_only_calendars = calendar_facade
+				.get_birthday_calendar_data(&mock_user_settings_group_root)
+				.await;
+			let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
+
+			assert_eq!(render_data.name, birthday_calendar.name);
+			assert_eq!(render_data.color, birthday_calendar.color);
+		}
+
+		#[tokio::test]
+		async fn test_do_not_create_birthday_calendar_render_info_for_legacy_account() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mock_contact_facade = MockContactFacade::default();
+			let mut mock_customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::PAID);
+			let user_id = mock_user._id.clone().unwrap();
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root =
+				create_mock_user_settings_group_root(None, None, None, None);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root.clone()));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let mock_customer_info = create_mock_customer_info(
+				&GeneratedId::test_random(),
+				IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
+				PlanType::Premium,
+			);
+			mock_customer_facade
+				.expect_fetch_customer_info()
+				.return_const(Ok(mock_customer_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(mock_customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
+			let birthday_calendar_id = GeneratedId(formated_id);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let render_data = calendars_render_data.get(&birthday_calendar_id);
+			assert!(render_data.is_none());
+
+			let client_only_calendars = calendar_facade
+				.get_birthday_calendar_data(&mock_user_settings_group_root)
+				.await;
+			let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
+			assert!(birthday_calendar.is_none());
+		}
+
+		#[tokio::test]
+		async fn test_do_not_create_birthday_calendar_render_info_for_free_account() {
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let contact_facade = MockContactFacade::default();
+			let customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let user_group = GeneratedId::test_random();
+			let calendar_id = GeneratedId::test_random();
+
+			let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+			let user_id = mock_user._id.clone().unwrap();
+			mock_user_facade.expect_get_user().return_const(mock_user);
+
+			let mock_user_settings_group_root =
+				create_mock_user_settings_group_root(None, None, None, None);
+			mock_crypto_entity_client
+				.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+				.return_const(Ok(mock_user_settings_group_root.clone()));
+
+			let mock_group_info = create_mock_group_info(&calendar_id, None);
+			mock_crypto_entity_client
+				.expect_load::<GroupInfo, IdTupleGenerated>()
+				.return_const(Ok(mock_group_info));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(contact_facade),
+				Arc::new(customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
+			let birthday_calendar_id = GeneratedId(formated_id);
+
+			let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
+			let render_data = calendars_render_data.get(&birthday_calendar_id);
+			assert!(render_data.is_none());
+
+			let client_only_calendars = calendar_facade
+				.get_birthday_calendar_data(&mock_user_settings_group_root)
+				.await;
+			let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
+			assert!(birthday_calendar.is_none());
+		}
+	}
+
+	mod generate_birthdays_tests {
+		use super::*;
+		use crate::entities::generated::tutanota::Contact;
+		use crate::util::test_utils::create_mock_contact;
+
+		#[tokio::test]
+		async fn test_generate_birthday_from_valid_contacts() {
+			let mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mut mock_contact_facade = MockContactFacade::default();
+			let customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let default_private_calendar_id = GeneratedId::test_random();
+			let user_group = GeneratedId::test_random();
+			let mock_user =
+				create_mock_user(&user_group, &default_private_calendar_id, AccountType::PAID);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+			let contact_list_id = GeneratedId::test_random();
+
+			let mock_contacts: Vec<Contact> = vec![
+				create_mock_contact(
+					&contact_list_id,
+					&GeneratedId::test_random(),
+					Some("Mary"),
+					Some("2000-05-06".to_string()),
+				),
+				create_mock_contact(
+					&contact_list_id,
+					&GeneratedId::test_random(),
+					Some("Jane"),
+					Some("1950-05-06".to_string()),
+				),
+				create_mock_contact(
+					&contact_list_id,
+					&GeneratedId::test_random(),
+					Some("John"),
+					Some("--05-06".to_string()),
+				),
+			];
+			mock_contact_facade
+				.expect_load_all_user_contacts()
+				.return_const(Ok(mock_contacts));
+
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(customer_facade),
+				Arc::new(event_facade),
+			);
+
+			let birthdays = calendar_facade.generate_birthdays().await.unwrap();
+			assert_eq!(birthdays.len(), 3);
+		}
+
+		#[tokio::test]
+		async fn test_fail_to_generate_birthday_from_invalid_contacts() {
+			let mock_crypto_entity_client = MockCryptoEntityClient::default();
+			let mut mock_user_facade = MockUserFacade::default();
+			let mut mock_contact_facade = MockContactFacade::default();
+			let customer_facade = MockCustomerFacade::default();
+			let event_facade = crate::date::event_facade::EventFacade {};
+
+			let default_private_calendar_id = GeneratedId::test_random();
+			let user_group = GeneratedId::test_random();
+			let mock_user =
+				create_mock_user(&user_group, &default_private_calendar_id, AccountType::PAID);
+			mock_user_facade.expect_get_user().return_const(mock_user);
+			let contact_list_id = GeneratedId::test_random();
+
+			let mock_contacts: Vec<Contact> = vec![create_mock_contact(
 				&contact_list_id,
 				&GeneratedId::test_random(),
 				Some("Jane"),
-				Some("1950-05-06".to_string()),
-			),
-			create_mock_contact(
-				&contact_list_id,
-				&GeneratedId::test_random(),
-				Some("John"),
-				Some("--05-06".to_string()),
-			),
-		];
-		mock_contact_facade
-			.expect_load_all_user_contacts()
-			.return_const(Ok(mock_contacts));
+				Some("00-05-06".to_string()),
+			)];
+			mock_contact_facade
+				.expect_load_all_user_contacts()
+				.return_const(Ok(mock_contacts));
 
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(customer_facade),
-			Arc::new(event_facade),
-		);
+			let calendar_facade = CalendarFacade::new(
+				Arc::new(mock_crypto_entity_client),
+				Arc::new(mock_user_facade),
+				Arc::new(mock_contact_facade),
+				Arc::new(customer_facade),
+				Arc::new(event_facade),
+			);
 
-		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
-		assert_eq!(birthdays.len(), 3);
-	}
-
-	#[tokio::test]
-	async fn test_fail_to_generate_birthday_from_invalid_contacts() {
-		let mock_crypto_entity_client = MockCryptoEntityClient::default();
-		let mut mock_user_facade = MockUserFacade::default();
-		let mut mock_contact_facade = MockContactFacade::default();
-		let customer_facade = MockCustomerFacade::default();
-		let event_facade = EventFacade {};
-
-		let default_private_calendar_id = GeneratedId::test_random();
-		let user_group = GeneratedId::test_random();
-		let mock_user =
-			create_mock_user(&user_group, &default_private_calendar_id, AccountType::PAID);
-		mock_user_facade.expect_get_user().return_const(mock_user);
-		let contact_list_id = GeneratedId::test_random();
-
-		let mock_contacts: Vec<Contact> = vec![create_mock_contact(
-			&contact_list_id,
-			&GeneratedId::test_random(),
-			Some("Jane"),
-			Some("00-05-06".to_string()),
-		)];
-		mock_contact_facade
-			.expect_load_all_user_contacts()
-			.return_const(Ok(mock_contacts));
-
-		let calendar_facade = CalendarFacade::new(
-			Arc::new(mock_crypto_entity_client),
-			Arc::new(mock_user_facade),
-			Arc::new(mock_contact_facade),
-			Arc::new(customer_facade),
-			Arc::new(event_facade),
-		);
-
-		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
-		assert_eq!(birthdays.len(), 0);
+			let birthdays = calendar_facade.generate_birthdays().await.unwrap();
+			assert_eq!(birthdays.len(), 0);
+		}
 	}
 
 	mod get_calendar_events_tests {
@@ -1879,8 +1916,17 @@ mod calendar_facade_unit_tests {
 				.return_once(|_, _, _, _| Ok(vec![repeating_event]));
 
 			let calendar_facade = create_test_facade(mock_crypto_entity_client);
+
+			let end_date: DateTime = DateTime::from_seconds(
+				time::Date::from_calendar_date(2026, time::Month::May, 11)
+					.unwrap()
+					.with_time(Time::from_hms(18, 30, 0).unwrap())
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
 			let result = calendar_facade
-				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), START, END)
+				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), START, end_date)
 				.await
 				.unwrap();
 
@@ -1894,6 +1940,10 @@ mod calendar_facade_unit_tests {
 				(2026, time::Month::May, 4),
 				(2026, time::Month::May, 5),
 				(2026, time::Month::May, 6),
+				(2026, time::Month::May, 7),
+				(2026, time::Month::May, 8),
+				(2026, time::Month::May, 9),
+				(2026, time::Month::May, 10),
 			];
 
 			assert_eq!(expected_times.len(), result.long_events.len());
