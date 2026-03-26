@@ -243,7 +243,7 @@ class AlarmSchedulerStub: AlarmScheduler {
 	var scheduled: [ScheduledAlarmInfo] = []
 	var unscheduled: [String] = []
 
-	func schedule(info: ScheduledAlarmInfo) { self.scheduled.append(info) }
+	func schedule(info: ScheduledAlarmInfo, isAllDayevent: Bool = false) { self.scheduled.append(info) }
 
 	func unscheduleAll(occurrenceIds: [String]) { self.unscheduled += occurrenceIds }
 }
