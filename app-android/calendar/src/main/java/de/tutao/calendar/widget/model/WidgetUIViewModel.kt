@@ -182,14 +182,17 @@ class WidgetUIViewModel(
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			Log.d(TAG, "Creating UIEvents from calendar $calendarId")
 
-			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
+			val allServerPersistedEvents = eventList.shortEvents.plus(eventList.longEvents)
+			allServerPersistedEvents.forEach { loadedEvent ->
 				val zoneId = ZoneId.systemDefault()
+
 				val startAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
 
-				val start = LocalDateTime.ofInstant(startAsInstant, zoneId)
-				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
+				val eventLocalStartTime = LocalDateTime.ofInstant(startAsInstant, zoneId)
+				val eventLocalEndTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
 
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
 				val isAllDay = isAllDayEventByTimes(
 					Date.from(Instant.ofEpochMilli(loadedEvent.startTime.toLong())),
 					Date.from(Instant.ofEpochMilli(loadedEvent.endTime.toLong()))
@@ -200,10 +203,10 @@ class WidgetUIViewModel(
 					loadedEvent.id,
 					settings.calendars[calendarId]?.color ?: "2196f3",
 					loadedEvent.summary,
-					start.format(formatter),
-					end.format(formatter),
+					eventLocalStartTime.format(formatter),
+					eventLocalEndTime.format(formatter),
 					isAllDay,
-					loadedEvent.startTime.toLong()
+					loadedEvent.startTime.toLong() // FIXME check need
 				)
 
 				val referenceDate = if (isAllDay) {
@@ -212,7 +215,7 @@ class WidgetUIViewModel(
 						.of(LocalDate.of(eventDate.year, eventDate.month, eventDate.dayOfMonth), LocalTime.MIDNIGHT)
 						.atZone(ZoneId.systemDefault()).toLocalDateTime()
 				} else {
-					start
+					eventLocalStartTime
 				}
 
 				val startOfDay = midnightInDate(zoneId, referenceDate)
