@@ -3,4 +3,4 @@
  * Needed in case we only want to handle the errors but don't want to include the rest of the code.
  */
 
-export { CryptoError } from "./misc/CryptoError.js"
+export { CryptoError } from "./misc/CryptoError"

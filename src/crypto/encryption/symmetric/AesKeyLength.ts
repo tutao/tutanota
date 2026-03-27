@@ -1,5 +1,4 @@
-import { CryptoError } from "../../misc/CryptoError.js"
-
+import { CryptoError } from "@tutao/crypto/error"
 import { AesKey } from "./SymmetricCipherUtils.js"
 
 export enum AesKeyLength {

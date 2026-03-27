@@ -1,7 +1,7 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 import { hexToUint8Array } from "@tutao/utils"
-import { random } from "../random/Randomizer.js"
+import { random } from "@tutao/crypto"
 import { bitArrayToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 
 export let DIGITS: number = 6

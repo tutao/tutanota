@@ -1,4 +1,4 @@
-import { random } from "../../random/Randomizer.js"
+import { random } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import { Base64, base64ToBase64Url, base64ToUint8Array, Base64Url, hexToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"

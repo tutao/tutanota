@@ -1,5 +1,5 @@
 import { uint8ArrayToBase64 } from "@tutao/utils"
-import { CryptoError } from "../misc/CryptoError.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { Aes256Key, AesKey, IV_BYTE_LENGTH } from "./symmetric/SymmetricCipherUtils.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
 

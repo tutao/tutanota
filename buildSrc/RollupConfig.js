@@ -22,6 +22,9 @@ export const dependencyMap = {
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+}
+
+export const tsImportAliases = {
 	"@tutao/utils": path.normalize("src/utils/dist/index.js"),
 	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
 	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
@@ -142,11 +145,11 @@ export const allowedImports = {
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
-export function resolveLibs(baseDir = ".") {
+export function resolveLibs(baseDir = ".", extraDependenciesMap = {}) {
 	return {
 		name: "resolve-libs",
 		resolveId(source) {
-			const value = dependencyMap[source]
+			const value = dependencyMap[source] ?? tsImportAliases[source] ?? extraDependenciesMap[source]
 			if (!value) return null
 			const id = path.join(baseDir, value)
 			return { id, resolvedBy: this.name }
@@ -347,6 +350,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 			return "translation-" + language
 		} else if (isIn(`src/mail-app`) || isIn(`src/calendar-app`)) {
 			return "main"
+		} else {
+			throw new Error("I do not know which chunk? for: " + moduleId)
 		}
 	}
 }

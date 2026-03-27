@@ -2,7 +2,7 @@ import { AesKey, FIXED_IV, generateIV, keyToUint8Array, uint8ArrayToKey } from "
 import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
 import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
 import { assert } from "@tutao/utils"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
+import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 
 /**
  * This facade contains all methods for encryption/ decryption for symmetric encryption incl. AES-128 and AES-256 in CBC mode or AEAD.

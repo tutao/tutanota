@@ -1,7 +1,7 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 import type { EntropySource } from "../misc/Constants.js"
-import { CryptoError } from "../misc/CryptoError.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 /**
  * This Interface provides an abstraction of the random number generator implementation.

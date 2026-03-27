@@ -1,5 +1,5 @@
 import sjcl from "../internal/sjcl.js"
-import { CryptoError } from "../misc/CryptoError.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { AesKey, bitArrayToUint8Array, uint8ArrayToBitArray } from "./symmetric/SymmetricCipherUtils.js"
 import { MacTag } from "../misc/Constants"
 

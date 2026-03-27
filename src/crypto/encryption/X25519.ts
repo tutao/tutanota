@@ -1,6 +1,6 @@
 // @ts-ignore[untyped-import]
 import { x25519 } from "../internal/noble-curves-1.3.0.js"
-import { random } from "../random/Randomizer.js"
+import { random } from "@tutao/crypto"
 
 export type X25519PrivateKey = Uint8Array
 export type X25519PublicKey = Uint8Array

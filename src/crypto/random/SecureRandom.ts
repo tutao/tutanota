@@ -1,4 +1,4 @@
-import { random } from "./Randomizer.js"
+import { random } from "@tutao/crypto"
 
 /**
  * This is the adapter to the PRNG interface required by JSBN.
