@@ -1,12 +1,18 @@
 import o from "@tutao/otest"
-import { AeadFacade } from "../lib/encryption/symmetric/AeadFacade.js"
+import { AeadFacade, PADDING_BYTE } from "../lib/encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
-import { aes256RandomKey, keyToUint8Array, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
+import {
+	aes256RandomKey,
+	IV_BYTE_LENGTH,
+	keyToUint8Array,
+	SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
+} from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
 import { _aes128RandomKey } from "./AesTest.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "../lib/misc/CryptoError.js"
 import { concat } from "@tutao/tutanota-utils"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
+import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "../lib/hashes/Blake3.js"
 
 o.spec("AeadFacadeTest", function () {
 	let aeadFacade: AeadFacade
@@ -36,7 +42,7 @@ o.spec("AeadFacadeTest", function () {
 	})
 
 	o("decrypt_canonicalization_safe", async function () {
-		// we make sure that data is treated differently depending on whether it is part of the associated data or the ciphertext. this ensures a canoncial form.
+		// we make sure that data is treated differently depending on whether it is part of the associated data or the ciphertext. this ensures a canonical form.
 		const ciphertext = aeadFacade.encrypt(keys, plainText, associatedData)
 		const wrongCiphertext = ciphertext.subarray(0, ciphertext.length - 1)
 		const wrongAssociatedData = concat(Uint8Array.from([ciphertext[ciphertext.length - 1]]), associatedData)
@@ -80,5 +86,30 @@ o.spec("AeadFacadeTest", function () {
 		const ciphertext = aeadFacade.encrypt(keys, plainText, associatedData)
 		ciphertext[ciphertext.length - 1]++
 		await assertThrows(CryptoError, async () => aeadFacade.decrypt(keys, ciphertext, associatedData))
+	})
+
+	o("encrypt_adds_padding", async function () {
+		const overhead = SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES + IV_BYTE_LENGTH
+		o(aeadFacade.encrypt(keys, Uint8Array.from(""), associatedData).length).equals(4 + overhead)
+		o(aeadFacade.encrypt(keys, Uint8Array.from("1"), associatedData).length).equals(4 + overhead)
+		o(aeadFacade.encrypt(keys, Uint8Array.from("22"), associatedData).length).equals(4 + overhead)
+		o(aeadFacade.encrypt(keys, Uint8Array.from("333"), associatedData).length).equals(4 + overhead)
+		o(aeadFacade.encrypt(keys, Uint8Array.from("4444"), associatedData).length).equals(8 + overhead)
+		o(aeadFacade.encrypt(keys, Uint8Array.from("55555"), associatedData).length).equals(8 + overhead)
+	})
+
+	o("encrypt_adds_padding", async function () {
+		await assertThrows(CryptoError, async () =>
+			aeadFacade.decrypt(keys, aeadFacade.encryptInternal(keys, Uint8Array.from(""), associatedData), associatedData),
+		)
+		await assertThrows(CryptoError, async () =>
+			aeadFacade.decrypt(keys, aeadFacade.encryptInternal(keys, Uint8Array.from("no padding"), associatedData), associatedData),
+		)
+		await assertThrows(CryptoError, async () =>
+			aeadFacade.decrypt(keys, aeadFacade.encryptInternal(keys, Uint8Array.from([1, 2, 0, 0]), associatedData), associatedData),
+		)
+		await assertThrows(CryptoError, async () =>
+			aeadFacade.decrypt(keys, aeadFacade.encryptInternal(keys, Uint8Array.from([1, 2, PADDING_BYTE, 0, 0, 0, 0]), associatedData), associatedData),
+		)
 	})
 })
