@@ -241,7 +241,7 @@ pipeline {
 			} // parallel apps
 		} // stage Publishing Artifacts
         stage('notify about release') {
-            when { expression { return params.target.equals("publishToProd") } }
+            when { expression { params.generateReleaseNotes } }
             steps {
                 script {
                     def starterId = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')['userId'][0]
