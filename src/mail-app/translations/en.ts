@@ -1870,7 +1870,7 @@ export default {
 		"showInboxRules_action": "Show inbox rules",
 		"showingEventsUntil_msg": "Showing events until {untilDay}.",
 		"showMail_action": "Show encrypted mailbox",
-		"showMore_action": "SHOW MORE",
+		"showMore_action": "Show More",
 		"showMoreUpgrade_action": "Choose plan",
 		"showNewer_label": "Show next newer mail",
 		"showNone_label": "Show None",
@@ -2265,6 +2265,7 @@ export default {
 		"reIndexLocalData_msg": "Re-index all emails up to the Local Data Storage date. This may be useful if you are missing emails in search.",
 		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
 		"rebuildSearchIndex_action": "Rebuild search index",
-		"indexingEmails_msg": "Indexing emails"
+		"indexingEmails_msg": "Indexing emails",
+		"searchUntil_msg": "Search Until {1}"
 	}
 }
