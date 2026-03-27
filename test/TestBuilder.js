@@ -62,7 +62,7 @@ export async function runTestBuild({ networkDebugging = false, clean }) {
 	})
 
 	await runStep("Rolldown", async () => {
-		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js") // FIXME: this have to already exists? and is there bettr way to import
+		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
 			platform: "neutral",

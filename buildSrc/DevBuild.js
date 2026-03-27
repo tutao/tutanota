@@ -12,8 +12,7 @@ import { rolldown } from "rolldown"
 import { resolveLibs } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
-import { execSync } from "child_process"
-import { spawnSync } from "node:child_process"
+import { execSync } from "node:child_process"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -41,8 +40,8 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 			fs.rmSync(buildDir, { recursive: true, force: true })
 			fs.rmSync(liboqsIncludeDir, { recursive: true, force: true })
 			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
-			spawnSync("cargo", ["clean"])
-			spawnSync("npx", ["tsc", "--build", "--clean"])
+			execSync("cargo clean")
+			execSync("npx tsc --build --clean")
 		})
 	}
 
@@ -53,14 +52,13 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 			: await $({ stdio: "inherit", cwd: "src/crypto" })`node --experimental-strip-types make.ts ${targetDir}`
 	})
 
-	if (desktop) {
-		await runStep("Build mimimi", async () => {
-			execSync("node --experimental-strip-types make.ts", {
-				cwd: "src/mimimi",
-				stdio: "inherit",
-			})
+	// We need to build mimimi for web as well until ts modularization is done.
+	await runStep("Build mimimi", async () => {
+		execSync("node --experimental-strip-types make.ts", {
+			cwd: "src/mimimi",
+			stdio: "inherit",
 		})
-	}
+	})
 
 	await runStep("Types", async () => {
 		await $({ stdio: "inherit" })`npm run types`

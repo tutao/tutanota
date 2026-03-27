@@ -98,7 +98,6 @@ export function replaceAllMaps(toReplace: any): any {
 				? mapObject(replaceAllMaps, toReplace)
 				: toReplace
 }
-
 export async function assertThrows<T extends Error>(expected: Class<T>, fn: () => Promise<unknown>): Promise<T> {
 	try {
 		await fn()

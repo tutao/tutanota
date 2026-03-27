@@ -14,8 +14,8 @@ import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
 import replace from "@rollup/plugin-replace"
-import { rollupWasmLoader } from "../src/wasm-loader/dist/index.js"
 import { runStep } from "./buildUtils.js"
+import { execSync } from "node:child_process"
 
 /**
  * Builds the web app for production.
@@ -81,6 +81,27 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		fs.copySync(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, `/${buildDir}/braintree.html`))
 	})
 
+	await runStep("Build crypto-primitives", async () => {
+		const targetDir = path.resolve(buildDir)
+		execSync(`node --experimental-strip-types make.ts ${targetDir}`, { stdio: "inherit", cwd: "src/crypto" })
+	})
+
+	await runStep("Build mimimi", async () => {
+		execSync("node --experimental-strip-types make.ts", {
+			cwd: "src/mimimi",
+			stdio: "inherit",
+		})
+	})
+
+	await runStep("Types with emit", () => {
+		execSync("npm run types", { stdio: "inherit" })
+	})
+
+	await runStep("wasm-loader types", () => {
+		execSync("npx tsc -b tsconfig.wasm.json", { stdio: "inherit", cwd: "src" })
+	})
+
+	const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 	console.log("started bundling", measure())
 	const bundle = await rollup({
 		input: [entryFile, workerFile, powWorkerFile],

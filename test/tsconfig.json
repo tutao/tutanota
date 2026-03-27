@@ -9,6 +9,7 @@
 		"strictBindCallApply": false,
 		"outDir": "build",
 		"resolveJsonModule": true,
+		"sourceMap": false,
 		"paths": {
 			/**
 			 * Have to redefine all paths again defined in: `../tsconfig_common.json`
