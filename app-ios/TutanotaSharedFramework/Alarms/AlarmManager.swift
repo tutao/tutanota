@@ -97,7 +97,6 @@ public final class AlarmManager: AlarmProcessor, Sendable {
 		for occurrence in occurences.reversed() {
 			self.schedule(
 				alarmOccurrence: occurrence,
-				trigger: occurrence.alarmNotification.alarmInfo.trigger,
 				summary: occurrence.alarmNotification.summary,
 				alarmIdentifier: occurrence.alarmNotification.alarmInfo.alarmIdentifer
 			)
@@ -162,7 +161,7 @@ public final class AlarmManager: AlarmProcessor, Sendable {
 		self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)
 	}
 
-	private func schedule(alarmOccurrence: AlarmOccurrence, trigger: AlarmInterval, summary: String, alarmIdentifier: String) {
+	private func schedule(alarmOccurrence: AlarmOccurrence, summary: String, alarmIdentifier: String) {
 		let identifier = ocurrenceIdentifier(alarmIdentifier: alarmIdentifier, occurrence: alarmOccurrence.occurrenceNumber)
 
 		let info = ScheduledAlarmInfo(
