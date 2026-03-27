@@ -332,7 +332,6 @@ class MailLocator implements CommonLocator {
 			return new SearchViewModel(
 				searchRouter,
 				this.search,
-				this.searchFacade,
 				this.mailboxModel,
 				this.logins,
 				this.indexerFacade,

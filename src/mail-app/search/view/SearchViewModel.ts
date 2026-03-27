@@ -229,7 +229,6 @@ export class SearchViewModel {
 	constructor(
 		readonly router: SearchRouter,
 		private readonly search: SearchModel,
-		private readonly searchFacade: SearchFacade,
 		private readonly mailboxModel: MailboxModel,
 		private readonly logins: LoginController,
 		private readonly indexerFacade: Indexer,

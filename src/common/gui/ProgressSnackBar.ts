@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "./theme"
+import { Theme, theme } from "./theme"
 import { boxShadowHigh } from "./main-styles"
 import { component_size, px, size } from "./size"
 import { IconButton } from "./base/IconButton"
@@ -69,16 +69,19 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 		switch (state) {
 			case ProgressState.done:
 				return {
+					backgroundColor: theme.surface,
 					color: theme.success,
 					icon: Icons.Checkmark,
 				}
 			case ProgressState.error:
 				return {
+					backgroundColor: theme.surface,
 					color: theme.error,
 					icon: Icons.X,
 				}
 			case ProgressState.running:
 				return {
+					backgroundColor: theme.surface,
 					percentage,
 				}
 		}
@@ -87,6 +90,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 
 // If icon is passed in, it will be displayed instead of percentage number
 export interface CircleLoadingBarAttrs {
+	backgroundColor: string
 	percentage?: number
 	color?: string
 	icon?: Icons
@@ -111,7 +115,7 @@ export class CircleLoadingBar implements Component<CircleLoadingBarAttrs> {
 					height: px(component_size.button_height),
 					borderRadius: "50%",
 					// drawing a circle on the inside and a colored circle on the outside (with the rest filled with transparent)
-					background: `radial-gradient(closest-side, ${theme.surface} 79%, transparent 80% 100%), conic-gradient(${progressCircleColor} calc(var(--progress-value) * 1%), transparent 0)`,
+					background: `radial-gradient(closest-side, ${attrs.backgroundColor} 79%, transparent 80% 100%), conic-gradient(${progressCircleColor} calc(var(--progress-value) * 1%), transparent 0)`,
 					transition: "--progress-value 200ms",
 				},
 			},
