@@ -18,7 +18,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { daysToMillis, defer, freshVersioned, promiseMap, TypeRef } from "@tutao/utils"
+import { daysToMillis, defer, downcast, freshVersioned, promiseMap, TypeRef } from "@tutao/utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV, IV_BYTE_LENGTH, random } from "@tutao/crypto"
 import o from "@tutao/otest"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -82,7 +82,7 @@ o.spec("IndexedDbIndexer", () => {
 		;(mailIndexer as Writeable<MailIndexer>).mailIndexingEnabled = false
 
 		idbStub = new DbStub()
-		initSearchIndexObjectStores(idbStub)
+		initSearchIndexObjectStores(downcast(idbStub))
 		dbWithStub = new EncryptedDbWrapper(idbStub as Partial<DbFacade> as DbFacade)
 
 		core = object()

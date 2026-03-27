@@ -47,7 +47,6 @@ import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/w
 import { EntityUpdateData, entityUpdateToUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
-import type { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
@@ -59,7 +58,7 @@ export type InitParams = {
 
 const DB_VERSION: number = 3
 
-export function initSearchIndexObjectStores(db: IDBDatabase | DbStub) {
+export function initSearchIndexObjectStores(db: IDBDatabase) {
 	db.createObjectStore(SearchIndexOS, {
 		autoIncrement: true,
 	})

@@ -51,7 +51,7 @@ export async function runTestBuild({ networkDebugging = false, clean }) {
 	})
 
 	await runStep("Types", async () => {
-		await $({ stdio: "inherit" })`npx tsc --build --incremental ${true}`
+		await $({ stdio: "inherit" })`npm run test:types`
 	})
 
 	await runStep("Assets", async () => {

@@ -2,7 +2,6 @@
 	Exports the buildWebapp function that can be used for production builds.
  */
 import { rollup } from "rollup"
-import typescript from "@rollup/plugin-typescript"
 import terser from "@rollup/plugin-terser"
 import path from "node:path"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
@@ -16,6 +15,7 @@ import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
 import replace from "@rollup/plugin-replace"
 import { rollupWasmLoader } from "../src/wasm-loader/dist/index.js"
+import { runStep } from "./buildUtils.js"
 
 /**
  * Builds the web app for production.
@@ -32,36 +32,54 @@ import { rollupWasmLoader } from "../src/wasm-loader/dist/index.js"
 
 export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
 	const isCalendarApp = app === "calendar"
-	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
 	const resolvedBuildDir = path.resolve(buildDir)
-	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
-	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
-	const powWorkerFile = "src/common/api/common/pow-worker.ts"
+	const entryFile = isCalendarApp ? "src/common/dist/src/calendar-app/calendar-app.js" : "src/common/dist/src/mail-app/app.js"
+	const workerFile = isCalendarApp
+		? "src/common/dist/src/calendar-app/workerUtils/worker/calendar-worker.js"
+		: "src/common/dist/src/mail-app/workerUtils/worker/mail-worker.js"
+	const powWorkerFile = "src/common/dist/src/common/api/common/pow-worker.js"
 	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
+	const { restUrl, networkDebugging } = (() => {
+		switch (stage) {
+			case "test":
+				return { restUrl: "https://app.test.tuta.com", networkDebugging: false }
+			case "prod":
+				return { restUrl: "https://app.tuta.com", networkDebugging: false }
+			case "local":
+				return { restUrl: "http://" + os.hostname() + ":9000", networkDebugging: false }
+			case "release":
+				return { restUrl: undefined, networkDebugging: false }
+			default:
+				return { restUrl: host, networkDebugging: true }
+		}
+	})()
 
 	console.log("Building app", app)
 
-	console.log("started cleaning", measure())
-	await fs.emptyDir(buildDir)
-
-	console.log("bundling polyfill", measure())
-	const polyfillBundle = await rollup({
-		input: ["src/polyfill.js"],
-		plugins: [minify && terser(), commonjs()],
-	})
-	await polyfillBundle.write({
-		sourcemap: false,
-		format: "iife",
-		file: `${buildDir}/polyfill.js`,
+	await runStep(`Cleaning build dir ${measure()}`, () => {
+		fs.emptyDirSync(buildDir)
 	})
 
-	console.log("started copying images", measure())
-	await fs.copy(path.join(projectDir, "/resources/images"), path.join(projectDir, `/${buildDir}/images`))
-	await fs.copy(path.join(projectDir, "/resources/favicon"), path.join(projectDir, `${buildDir}/images`))
-	await fs.copy(path.join(projectDir, "/resources/pdf"), path.join(projectDir, `${buildDir}/pdf`))
-	await fs.copy(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, `${buildDir}/wordlibrary.json`))
-	await fs.copy(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, `/${buildDir}/braintree.html`))
+	await runStep(`Bundeling polyfill ${measure()}`, async () => {
+		const polyfillBundle = await rollup({
+			input: ["src/polyfill.js"],
+			plugins: [minify && terser(), commonjs()],
+		})
+		await polyfillBundle.write({
+			sourcemap: false,
+			format: "iife",
+			file: `${buildDir}/polyfill.js`,
+		})
+	})
+
+	await runStep(`Copying images ${measure()}`, () => {
+		fs.copySync(path.join(projectDir, "/resources/images"), path.join(projectDir, `/${buildDir}/images`))
+		fs.copySync(path.join(projectDir, "/resources/favicon"), path.join(projectDir, `${buildDir}/images`))
+		fs.copySync(path.join(projectDir, "/resources/pdf"), path.join(projectDir, `${buildDir}/pdf`))
+		fs.copySync(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, `${buildDir}/wordlibrary.json`))
+		fs.copySync(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, `/${buildDir}/braintree.html`))
+	})
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
@@ -69,9 +87,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
-			typescript({
-				tsconfig: tsConfig,
-			}),
 			resolveLibs(),
 			commonjs({
 				exclude: "src/**",
@@ -134,25 +149,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 import "./${builtWorkerFile}"`,
 	)
 
-	let restUrl
-	let networkDebugging
-	if (stage === "test") {
-		restUrl = "https://app.test.tuta.com"
-		networkDebugging = false
-	} else if (stage === "prod") {
-		restUrl = "https://app.tuta.com"
-		networkDebugging = false
-	} else if (stage === "local") {
-		restUrl = "http://" + os.hostname() + ":9000"
-		networkDebugging = true
-	} else if (stage === "release") {
-		restUrl = undefined
-		networkDebugging = false
-	} else {
-		// host
-		restUrl = host
-		networkDebugging = true
-	}
 	await createHtml(
 		env.create({
 			staticUrl: stage === "release" || stage === "local" ? null : restUrl,
@@ -178,7 +174,7 @@ import "./${builtWorkerFile}"`,
 		)
 	}
 
-	await bundleServiceWorker(chunks, version, minify, buildDir, tsConfig)
+	await bundleServiceWorker(chunks, version, minify, buildDir)
 }
 
 /**
@@ -186,10 +182,9 @@ import "./${builtWorkerFile}"`,
  * @param version {string}
  * @param minify {boolean}
  * @param buildDir {string}
- * @param tsConfig {string}
  * @returns {Promise<void>}
  */
-async function bundleServiceWorker(bundles, version, minify, buildDir, tsConfig) {
+async function bundleServiceWorker(bundles, version, minify, buildDir) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
@@ -203,11 +198,8 @@ async function bundleServiceWorker(bundles, version, minify, buildDir, tsConfig)
 		)
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/font.ttf"])
 	const swBundle = await rollup({
-		input: ["src/common/serviceworker/sw.ts"],
+		input: ["src/common/dist/src/common/serviceworker/sw.js"],
 		plugins: [
-			typescript({
-				tsconfig: tsConfig,
-			}),
 			minify && terser(),
 			{
 				name: "sw-banner",

@@ -63,7 +63,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	}
 
 	await runStep("Types", async () => {
-		await $({ stdio: "inherit" })`npx tsc --build --incremental ${true} ${tsConfig}`
+		await $({ stdio: "inherit" })`npm run types`
 	})
 
 	/**
@@ -120,7 +120,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
  * @param p.app {"mail"|"calendar"}
  * @return {Promise<void>}
  */
-async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
+export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
 	const isCalendarBuild = app === "calendar"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const resolvedBuildDir = path.resolve(buildDir)
@@ -128,7 +128,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
 	await runStep("Web: Rolldown", async () => {
-		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js") // FIXME: this have to already exists? and is there bettr way to import
+		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
 			transform: {

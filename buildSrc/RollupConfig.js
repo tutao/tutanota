@@ -22,6 +22,13 @@ export const dependencyMap = {
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+	"@tutao/utils": path.normalize("src/utils/dist/index.js"),
+	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
+	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
+	"@tutao/error": path.normalize("src/error/dist/index.js"),
+	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
+	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
+	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
 }
 
 /**
@@ -165,7 +172,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils") || isIn("packages/tutanota-error")) {
+	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/utils") || isIn("src/error")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -233,7 +240,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/gui") ||
 		isIn("src/common/offline") ||
 		isIn("src/common/serviceworker") ||
-		moduleId.includes(path.normalize("packages/tutanota-usagetests")) ||
+		moduleId.includes(path.normalize("src/usagetests")) ||
 		moduleId.includes("NotificationContentSelector") ||
 		moduleId.includes("NotificationPermissionsDialog") ||
 		moduleId.includes("SettingsBannerButton")
@@ -281,8 +288,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("cborg") ||
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
-		isIn("packages/tutanota-crypto/dist/error") ||
-		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js")
+		isIn("src/crypto/dist/error") ||
+		isIn("src/crypto/dist/misc/CryptoError.js")
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
@@ -320,7 +327,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "linkify"
 	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen") || isIn("src/common/api/worker/recoveryDocumentGenerator")) {
 		return "pdf"
-	} else if (isIn("src/common/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
+	} else if (isIn("src/common/api/worker") || isIn("src/crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
