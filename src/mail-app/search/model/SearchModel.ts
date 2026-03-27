@@ -4,13 +4,15 @@ import { CalendarEvent, CalendarEventTypeRef, MailTypeRef } from "../../../commo
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isEmpty, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
+import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
+import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -30,6 +32,7 @@ export class SearchModel {
 	_searchFacade: SearchFacade
 	private lastQuery: SearchQuery | null
 	private lastSearchPromise: Promise<SearchResult | void>
+	private lastSearchExtensionPromise: Promise<void>
 	cancelSignal: Stream<boolean>
 
 	constructor(
@@ -51,7 +54,21 @@ export class SearchModel {
 		})
 		this.lastQuery = null
 		this.lastSearchPromise = Promise.resolve()
+		this.lastSearchExtensionPromise = Promise.resolve()
 		this.cancelSignal = stream(false)
+	}
+
+	async getMoreSearchResults(count: number): Promise<SearchResult | null> {
+		const currentResult = this.result()
+
+		if (currentResult != null && hasMoreResults(currentResult)) {
+			const updatedResult = await this._searchFacade.getMoreSearchResults(currentResult, count)
+
+			this.result(updatedResult)
+			return updatedResult
+		} else {
+			return currentResult
+		}
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
@@ -71,9 +88,6 @@ export class SearchModel {
 
 		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {
 			// reset the result in case only the search type has changed
-			this.result(null)
-		} else if (this.indexState().progress > 0 && result && isSameTypeRef(MailTypeRef, result.restriction.type)) {
-			// reset the result if indexing is in progress and the current search result is of type mail
 			this.result(null)
 		}
 
@@ -267,6 +281,11 @@ export class SearchModel {
 			this.result(calendarResult)
 			this.lastSearchPromise = Promise.resolve(calendarResult)
 		} else {
+			// we set search end when null to be able to tell when the same search is extended
+			if (this.isSearchResultExtendableForType(restriction.type) && restriction.end == null) {
+				restriction.end = getMailIndexTimestampForSearch(this.indexState().aimedMailIndexTimestamp)
+			}
+
 			this.lastSearchPromise = this._searchFacade
 				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
 				.then((result) => {
@@ -284,6 +303,58 @@ export class SearchModel {
 		return this.lastSearchPromise
 	}
 
+	/**
+	 * Extend the current search result if needed to {@link extensionEnd}.
+	 *
+	 * @param extensionEnd timestamp to which current result should be extended
+	 */
+	async extendCurrentResult(extensionEnd: NonNullable<SearchRestriction["end"]>): Promise<void> {
+		await this.lastSearchPromise
+		await this.lastSearchExtensionPromise
+
+		const currentResult = this.result()
+		if (currentResult == null || !this.isSearchResultExtendableForType(currentResult.restriction.type)) {
+			return
+		}
+
+		const currentResultEndCutoff = Math.max(
+			// when searching, we set end restriction to aimedMailIndexTimestamp when null, so it should never be null when extending
+			assertNotNull(currentResult.restriction.end, "null end restriction when extending search"),
+			currentResult.currentIndexTimestamp,
+		)
+		// search result already complete, no need to extend
+		if (currentResult.query.trim() === "" || currentResultEndCutoff <= extensionEnd) {
+			return
+		}
+
+		if (this.lastQuery != null) {
+			// update lastQuery range to reflect the extended search
+			// because we want it to be the same search, with an extended range
+			this.lastQuery.restriction.end = extensionEnd
+		}
+
+		this.lastSearchExtensionPromise = this._searchFacade
+			.extendSearchResult(currentResult, extensionEnd)
+			.then((extendedResult) => {
+				const currentResultAgain = this.result()
+				if (currentResultAgain == null || !areResultsForTheSameQuery(currentResult, currentResultAgain)) {
+					return
+				}
+
+				this.result(extendedResult)
+			})
+			.catch(
+				ofClass(DbError, (e) => {
+					console.log("DbError while extending search result", e)
+					throw e
+				}),
+			)
+	}
+
+	private isSearchResultExtendableForType(type: SearchRestriction["type"]): boolean {
+		return isSameTypeRef(MailTypeRef, type)
+	}
+
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {
 		let isNew = false
 		let lastQuery = this.lastQuery
@@ -293,7 +364,8 @@ export class SearchModel {
 			isNew = true
 		} else if (lastQuery.restriction !== restriction) {
 			// both are the same instance
-			isNew = !isSameSearchRestriction(restriction, lastQuery.restriction)
+			isNew =
+				!isSameSearchRestriction(restriction, lastQuery.restriction) && !isSameSearchRestrictionWithRangeExtended(lastQuery.restriction, restriction)
 		}
 
 		if (isNew) this.sendCancelSignal()
@@ -309,38 +381,4 @@ export class SearchModel {
 
 function idToKey(id: IdTuple): string {
 	return id.join("/")
-}
-
-function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
-	return (
-		a.query === b.query &&
-		isSameSearchRestriction(a.restriction, b.restriction) &&
-		a.minSuggestionCount === b.minSuggestionCount &&
-		a.maxResults === b.maxResults
-	)
-}
-
-export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
-	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
-	return (
-		isSameTypeRef(a.type, b.type) &&
-		a.start === b.start &&
-		a.end === b.end &&
-		a.field === b.field &&
-		isSameAttributeIds &&
-		(a.eventSeries === b.eventSeries || (a.eventSeries === null && b.eventSeries === true) || (a.eventSeries === true && b.eventSeries === null)) &&
-		arrayEquals(a.folderIds, b.folderIds)
-	)
-}
-
-export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {
-	return a.query === b.query && isSameSearchRestriction(a.restriction, b.restriction)
-}
-
-export function hasMoreResults(searchResult: SearchResult): boolean {
-	return (
-		!isEmpty(searchResult.moreResults) ||
-		!isEmpty(searchResult.moreResultsEntries) ||
-		(!isEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
-	)
 }

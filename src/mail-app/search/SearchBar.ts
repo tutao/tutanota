@@ -7,7 +7,7 @@ import type { CalendarEvent, Contact, Mail } from "../../common/api/entities/tut
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../common/misc/KeyManager"
-import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
+import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { WhitelabelChild } from "../../common/api/entities/sys/TypeRefs.js"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../../common/api/common/TutanotaConstants"
@@ -16,7 +16,6 @@ import { styles } from "../../common/gui/styles"
 import { client } from "../../common/misc/ClientDetector"
 import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { BrowserType } from "../../common/misc/ClientConstants"
-import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
@@ -54,7 +53,6 @@ type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
 	searchResult: SearchResult | null
-	indexState: SearchIndexStateInfo
 	entities: Entries
 	selected: Entry | null
 }
@@ -74,7 +72,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
 	private domInput!: HTMLElement
-	private indexStateStream: Stream<unknown> | null = null
 	private stateStream: Stream<unknown> | null = null
 	private lastQueryStream: Stream<unknown> | null = null
 
@@ -82,7 +79,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
-			indexState: mailLocator.search?.indexState(),
 			entities: [] as Entries,
 			selected: null,
 		})
@@ -223,25 +219,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			this.onFocus()
 		}
 		keyManager.registerShortcuts(this.shortcuts)
-		this.indexStateStream = mailLocator.search.indexState.map((indexState) => {
-			// When we finished indexing, search again forcibly to not confuse anyone with old results
-			const currentResult = this.state().searchResult
-
-			if (
-				!indexState.failedIndexingUpTo &&
-				currentResult &&
-				this.state().indexState.progress !== 0 &&
-				indexState.progress === 0 &&
-				//if period is changed from search view a new search is triggered there,  and we do not want to overwrite its result
-				!this.timePeriodHasChanged(currentResult.restriction.end, indexState.aimedMailIndexTimestamp)
-			) {
-				this.doSearch(this.state().query, currentResult.restriction, m.redraw)
-			}
-
-			this.updateState({
-				indexState,
-			})
-		})
 
 		this.stateStream = this.state.map((state) => m.redraw())
 		this.lastQueryStream = mailLocator.search.lastQueryString.map((value) => {
@@ -263,13 +240,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		this.lastQueryStream?.end(true)
 
-		this.indexStateStream?.end(true)
-
 		this.closeOverlay()
-	}
-
-	private timePeriodHasChanged(oldEnd: number | null, aimedEnd: number): boolean {
-		return oldEnd !== aimedEnd
 	}
 
 	/**
