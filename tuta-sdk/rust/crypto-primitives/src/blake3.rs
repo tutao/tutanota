@@ -1,6 +1,6 @@
 use blake3::{Hash, Hasher};
 
-const DEFAULT_OUTPUT_SIZE_BYTES: usize = 32;
+pub const BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES: usize = 32;
 const BLAKE3_MAC_KEY_LENGTH_BYTES: usize = 32;
 
 /// Generic MacError regardless of the underlying MAC (HMAC, Blake3 etc.)
@@ -9,7 +9,7 @@ const BLAKE3_MAC_KEY_LENGTH_BYTES: usize = 32;
 pub struct MacError;
 
 /// Generates a BLAKE3 hash of `data`
-pub fn blake3_hash(data: &[&[u8]]) -> [u8; DEFAULT_OUTPUT_SIZE_BYTES] {
+pub fn blake3_hash(data: &[&[u8]]) -> [u8; BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES] {
 	let mut hasher = Hasher::new();
 	for d in data {
 		hasher.update(d);
@@ -21,7 +21,7 @@ pub fn blake3_hash(data: &[&[u8]]) -> [u8; DEFAULT_OUTPUT_SIZE_BYTES] {
 pub fn blake3_mac(
 	key: &[u8; BLAKE3_MAC_KEY_LENGTH_BYTES],
 	data: &[&[u8]],
-) -> [u8; DEFAULT_OUTPUT_SIZE_BYTES] {
+) -> [u8; BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES] {
 	blake3_compute_mac(key, data).into()
 }
 
@@ -36,7 +36,7 @@ fn blake3_compute_mac(key: &[u8; BLAKE3_MAC_KEY_LENGTH_BYTES], data: &[&[u8]]) -
 pub fn verify_blake3_mac(
 	key: &[u8; BLAKE3_MAC_KEY_LENGTH_BYTES],
 	data: &[&[u8]],
-	tag: [u8; DEFAULT_OUTPUT_SIZE_BYTES],
+	tag: [u8; BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES],
 ) -> Result<(), MacError> {
 	let computed_tag = blake3_compute_mac(key, data);
 	if !computed_tag.eq(&Hash::from_bytes(tag)) {

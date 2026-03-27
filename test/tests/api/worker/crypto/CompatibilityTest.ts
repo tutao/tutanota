@@ -217,17 +217,17 @@ o.spec("CompatibilityTest", function () {
 			const encryptionKey = uint8ArrayToKey(hexToUint8Array(td.encryptionKey))
 			const authenticationKey = hexToUint8Array(td.authenticationKey)
 			const keys = { encryptionKey, authenticationKey }
-			const plainText = base64ToUint8Array(td.plainTextBase64)
+			const plaintext = base64ToUint8Array(td.plaintextBase64)
 			const associatedData = base64ToUint8Array(td.associatedData)
-			const ciphertext = base64ToUint8Array(td.cipherTextBase64)
+			const ciphertext = base64ToUint8Array(td.ciphertextBase64)
 			const plaintextKey = hexToUint8Array(td.plaintextKey)
 			const encryptedKey = base64ToUint8Array(td.encryptedKey)
 
 			// encrypt data
-			const encryptedBytes = aeadFacade.encrypt(keys, plainText, associatedData)
+			const encryptedBytes = aeadFacade.encrypt(keys, plaintext, associatedData)
 			o(ciphertext).deepEquals(encryptedBytes)
 			const decryptedBytes = aeadFacade.decrypt(keys, ciphertext, associatedData)
-			o(plainText).deepEquals(decryptedBytes)
+			o(plaintext).deepEquals(decryptedBytes)
 
 			// encrypt key
 			const reEncryptedKey = aeadFacade.encrypt(keys, plaintextKey, associatedData)
