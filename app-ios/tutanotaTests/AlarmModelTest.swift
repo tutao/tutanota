@@ -41,13 +41,9 @@ struct AlarmModelTest {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarmNotification = makeAlarm(at: start, trigger: "5M")
 
+		let triggerDate = AlarmModel.calculateAlarmTime(trigger: alarmNotification.alarmInfo.trigger, eventTime: start, timeZone: dateProvider.timeZone)
 		let result = plan(alarms: [alarmNotification])
-		let expectedAlarmOccurence = AlarmOccurrence(
-			occurrenceNumber: 0,
-			eventStartDate: start,
-			alarmNotification: alarmNotification,
-			localTimeZone: dateProvider.timeZone
-		)
+		let expectedAlarmOccurence = AlarmOccurrence(occurrenceNumber: 0, eventStartDate: start, alarmNotification: alarmNotification, triggerDate: triggerDate)
 		#expect(result == [expectedAlarmOccurence])
 	}
 

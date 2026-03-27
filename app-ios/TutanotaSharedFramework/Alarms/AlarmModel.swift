@@ -11,10 +11,7 @@ public struct AlarmOccurrence: Equatable {
 	let occurrenceNumber: Int
 	let eventStartDate: Date
 	let alarmNotification: AlarmNotification
-	let localTimeZone: TimeZone
-
-	/// Calculates alarm occurence time for a given event occurnce time and trigger from alarm.
-	var triggerDate: Date { AlarmModel.calculateAlarmTime(trigger: alarmNotification.alarmInfo.trigger, eventTime: eventStartDate, timeZone: localTimeZone) }
+	let triggerDate: Date
 }
 
 /// Something that can calculate when alarms should happen
@@ -53,7 +50,8 @@ public class AlarmModel: AlarmCalculator {
 
 		for alarm in singleEventAlarms { occurrences += self.alarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: 1) }
 		for alarm in repeatingEventAlarms {
-			occurrences += self.alarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: upToForEach)  // Get the first N future occurences. (N = uptoForEach)
+			// Get the first N future occurences. (N = uptoForEach)
+			occurrences += self.alarmOccurrencesSequence(ofAlarm: alarm, maxFutureOccurrences: upToForEach)
 		}
 
 		occurrences.sort(by: { $0.eventStartDate < $1.eventStartDate })
@@ -66,12 +64,8 @@ public class AlarmModel: AlarmCalculator {
 		} else {
 			let isAllDayEvent = isAllDayEvent(startDate: alarm.eventStart, endDate: alarm.eventEnd)
 			let eventTime = isAllDayEvent ? allDayLocalDate(fromUTCDate: alarm.eventStart, inZone: dateProvider.timeZone) : alarm.eventStart
-			let singleOcurrence = AlarmOccurrence(
-				occurrenceNumber: 0,
-				eventStartDate: eventTime,
-				alarmNotification: alarm,
-				localTimeZone: dateProvider.timeZone
-			)
+			let triggerDate = AlarmModel.calculateAlarmTime(trigger: alarm.alarmInfo.trigger, eventTime: eventTime, timeZone: dateProvider.timeZone)
+			let singleOcurrence = AlarmOccurrence(occurrenceNumber: 0, eventStartDate: eventTime, alarmNotification: alarm, triggerDate: triggerDate)
 			return shouldScheduleAlarm(at: singleOcurrence.triggerDate) ? [singleOcurrence] : []
 		}
 	}
@@ -88,11 +82,16 @@ public class AlarmModel: AlarmCalculator {
 		.compactMap({ (occurrence: EventOccurrence) -> AlarmOccurrence? in
 			guard self.shouldScheduleAlarm(at: occurrence.startDate) else { return nil }  // Ignore if event occurrence is in the past
 
+			let triggerDate = AlarmModel.calculateAlarmTime(
+				trigger: alarmNotification.alarmInfo.trigger,
+				eventTime: occurrence.startDate,
+				timeZone: dateProvider.timeZone
+			)
 			let alarm = AlarmOccurrence(
 				occurrenceNumber: occurrence.occurrenceNumber,
 				eventStartDate: occurrence.startDate,
 				alarmNotification: alarmNotification,
-				localTimeZone: dateProvider.timeZone
+				triggerDate: triggerDate
 			)
 
 			guard self.shouldScheduleAlarm(at: alarm.triggerDate) else { return nil }  // Ignore if resulting alarm is in the past
