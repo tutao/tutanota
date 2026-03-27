@@ -193,9 +193,9 @@ pub struct CompressionTestData {
 #[serde(rename_all = "camelCase")]
 pub struct AeadTest {
 	#[serde(with = "Base64")]
-	pub plain_text_base64: Vec<u8>,
+	pub plaintext_base64: Vec<u8>,
 	#[serde(with = "Base64")]
-	pub cipher_text_base64: Vec<u8>,
+	pub ciphertext_base64: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub plaintext_key: Vec<u8>,
 	#[serde(with = "const_hex")]
