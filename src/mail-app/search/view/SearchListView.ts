@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, isSameTypeRef, TypeRef, YEAR_IN_MILLIS } from "@tutao/tutanota-utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { component_size, px, size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
@@ -24,6 +24,8 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { Button, ButtonType } from "../../../common/gui/base/Button"
 import { mailLocator } from "../../mailLocator"
 import { CircleLoadingBar } from "../../../common/gui/ProgressSnackBar"
+import { FULL_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { formatDate } from "../../../common/misc/Formatter"
 
 assertMainOrNode()
 
@@ -45,6 +47,7 @@ export interface SearchListViewAttrs {
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	indexStateStream: Stream<SearchIndexStateInfo>
+	extendIndex: () => unknown
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -106,58 +109,103 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 							this.listModel.stopLoading()
 						},
-						renderEndOfListMessage: (): Children => {
-							const failedIndexingUpTo = attrs.indexStateStream().failedIndexingUpTo
-							if (failedIndexingUpTo != null) {
-								const errorMessageKey =
-									attrs.indexStateStream().error === IndexingErrorReason.ConnectionLost ? "indexingFailedConnection_error" : "indexing_error"
-								return m(
-									".flex-center.items-center",
-									{
-										style: {
-											height: px(component_size.list_row_height),
-											width: "100%",
-											position: "absolute",
-											gap: px(size.spacing_4),
-										},
-										"data-testid": "indexing-mails-error",
-									},
-									m(".pl-12", lang.getTranslationText(errorMessageKey)),
-									m(Button, {
-										label: "retry_action",
-										click: () => mailLocator.indexerFacade.extendMailIndex(failedIndexingUpTo),
-										type: ButtonType.Secondary,
-									}),
-								)
-							} else if (attrs.indexStateStream().progress !== 0) {
-								const percentage = Math.trunc(attrs.indexStateStream().progress)
-								return m(
-									".flex-center.items-center",
-									{
-										style: {
-											height: px(component_size.list_row_height),
-											width: "100%",
-											position: "absolute",
-											gap: px(size.spacing_4),
-										},
-										"data-testid": "indexing-mails-progress",
-									},
-									m(CircleLoadingBar, { percentage }),
-									m(".pl-4.pr-32", lang.getTranslationText("indexingEmails_msg")),
-									m(Button, {
-										label: "cancel_action",
-										type: ButtonType.Primary,
-										click: () => {
-											mailLocator.indexerFacade.cancelMailIndexing()
-										},
-									}),
-								)
-							} else {
-								return null
-							}
-						},
+						renderEndOfListMessage: this.endOfListRender(attrs),
 					} satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>),
 		)
+	}
+
+	private endOfListRender(attrs: SearchListViewAttrs): Children {
+		const failedIndexingUpTo = attrs.indexStateStream().failedIndexingUpTo
+		if (failedIndexingUpTo != null) {
+			const errorMessageKey = attrs.indexStateStream().error === IndexingErrorReason.ConnectionLost ? "indexingFailedConnection_error" : "indexing_error"
+			return m(
+				".flex-center.items-center",
+				{
+					style: {
+						height: px(component_size.list_row_height),
+						width: "100%",
+						position: "absolute",
+						gap: px(size.spacing_4),
+					},
+					"data-testid": "indexing-mails-error",
+				},
+				m(".pl-12", lang.getTranslationText(errorMessageKey)),
+				m(Button, {
+					label: "retry_action",
+					click: () => mailLocator.indexerFacade.extendMailIndex(failedIndexingUpTo),
+					type: ButtonType.Secondary,
+				}),
+			)
+		} else if (attrs.indexStateStream().progress !== 0) {
+			const percentage = Math.trunc(attrs.indexStateStream().progress)
+			return m(
+				".flex-center.items-center",
+				{
+					style: {
+						height: px(component_size.list_row_height),
+						width: "100%",
+						position: "absolute",
+						gap: px(size.spacing_4),
+					},
+					"data-testid": "indexing-mails-progress",
+				},
+				m(CircleLoadingBar, { percentage }),
+				m(".pl-4.pr-32", lang.getTranslationText("indexingEmails_msg")),
+				m(Button, {
+					label: "cancel_action",
+					type: ButtonType.Primary,
+					click: () => {
+						mailLocator.indexerFacade.cancelMailIndexing()
+					},
+				}),
+			)
+		} else if (
+			attrs.listModel.state.loadingStatus !== ListLoadingState.Loading &&
+			attrs.listModel.state.loadingStatus !== ListLoadingState.ConnectionLost &&
+			!isSameTypeRef(attrs.currentType, ContactTypeRef) &&
+			attrs.indexStateStream().currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP
+		) {
+			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
+			return m(
+				".flex-center.items-center",
+				{
+					style: {
+						height: px(component_size.list_row_height),
+						width: "100%",
+						position: "absolute",
+						gap: px(size.spacing_4),
+					},
+					"data-testid": "indexing-mails-progress",
+				},
+				//FIXME: decide what we want to show, with the date or without
+				m(
+					"",
+					{
+						onclick: () => {
+							this.attrs.extendIndex()
+						},
+					},
+					[
+						m(".flex-center.content-accent-fg.b", lang.getTranslationText("showMore_action")),
+						m(
+							".bottom.small",
+							//FIXME: translation
+							"Search until " + formatDate(new Date(attrs.indexStateStream().currentMailIndexTimestamp - YEAR_IN_MILLIS / 2)),
+						),
+					],
+				),
+				// m(Button, {
+				// 	// FIXME: translation
+				// 	label: lang.makeTranslation("test", "Search Older"),
+				// 	type: ButtonType.Primary,
+				// 	click: () => {
+				// 		this.attrs.extendIndex()
+				// 	},
+				// }),
+			)
+		} else {
+			return null
+		}
 	}
 
 	private getRenderItems(type: TypeRef<Mail | Contact | CalendarEvent>): {

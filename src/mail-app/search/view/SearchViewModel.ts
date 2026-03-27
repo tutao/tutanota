@@ -230,7 +230,6 @@ export class SearchViewModel {
 	constructor(
 		readonly router: SearchRouter,
 		private readonly search: SearchModel,
-		private readonly searchFacade: SearchFacade,
 		private readonly mailboxModel: MailboxModel,
 		private readonly logins: LoginController,
 		private readonly indexerFacade: Indexer,
@@ -251,7 +250,6 @@ export class SearchViewModel {
 	}
 
 	async init() {
-
 		this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
 
 		this.indexStateSubscription = this.search.indexState.map((newState) => {
@@ -494,26 +492,22 @@ export class SearchViewModel {
 
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
-		if (
-			startDate &&
-			this.getCategory() === SearchCategoryTypes.mail &&
-			startDate.getTime() < this.search.indexState().currentMailIndexTimestamp
-		) {
+		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
 			this._startDate = startDate
 
-				const searchRestriction = this.getRestriction()
-				// the current search result will be extended as the range extends
-				this.indexerFacade.extendMailIndex(startDate.getTime()).then(async () => {
-					const searchRestrictionAfterIndexing = this.getRestriction()
-					// don't do anything further if the search parameters were changed
-					if (
-						!isSameSearchRestriction(searchRestriction, searchRestrictionAfterIndexing) &&
-						!isSameSearchRestrictionWithRangeExtended(searchRestriction, searchRestrictionAfterIndexing)
-					) {
-						return
-					}
-					this.offlineStorageSettings?.setTimeRange(startDate)
-				})
+			const searchRestriction = this.getRestriction()
+			// the current search result will be extended as the range extends
+			this.indexerFacade.extendMailIndex(startDate.getTime()).then(async () => {
+				const searchRestrictionAfterIndexing = this.getRestriction()
+				// don't do anything further if the search parameters were changed
+				if (
+					!isSameSearchRestriction(searchRestriction, searchRestrictionAfterIndexing) &&
+					!isSameSearchRestrictionWithRangeExtended(searchRestriction, searchRestrictionAfterIndexing)
+				) {
+					return
+				}
+				this.offlineStorageSettings?.setTimeRange(startDate)
+			})
 
 			return PaidFunctionResult.Success
 		} else {
