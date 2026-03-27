@@ -41,8 +41,6 @@ impl AeadSubKeys {
 	}
 }
 
-const AEAD_VERSION: u8 = 2;
-
 pub struct AeadFacade {
 	randomizer_facade: RandomizerFacade,
 }
@@ -103,19 +101,19 @@ impl AeadFacade {
 	) -> Vec<u8> {
 		let nonce = Nonce::generate(&self.randomizer_facade);
 		let ciphertext = aes::aes_ctr_encrypt(&sub_keys.encryption_key, padded_plaintext, &nonce);
-		let end_of_ciphertext: u32 = 1 + NONCE_BYTE_SIZE as u32 + ciphertext.len() as u32;
+		let end_of_ciphertext: u32 = NONCE_BYTE_SIZE as u32 + ciphertext.len() as u32;
 		let tag = blake3::blake3_mac(
 			sub_keys.authentication_key.as_bytes(),
 			&[
 				&end_of_ciphertext.to_be_bytes(),
-				&[AEAD_VERSION],
 				nonce.get_bytes(),
 				&ciphertext,
 				associated_data,
 			],
 		);
 
-		let mut tagged_ciphertext = vec![AEAD_VERSION];
+		let mut tagged_ciphertext =
+			Vec::with_capacity(NONCE_BYTE_SIZE + ciphertext.len() + OUT_LEN);
 		tagged_ciphertext.extend(nonce.get_bytes());
 		tagged_ciphertext.extend(&ciphertext);
 		tagged_ciphertext.extend(tag);
@@ -131,18 +129,13 @@ impl AeadFacade {
 	) -> Result<Vec<u8>, AeadDecryptError> {
 		// order: version, nonce, cipher text, tag
 
-		let nonce_offset = 1;
-		let ciphertext_offset = nonce_offset + NONCE_BYTE_SIZE;
+		let ciphertext_offset = NONCE_BYTE_SIZE;
 		if tagged_ciphertext.len() < ciphertext_offset + OUT_LEN {
 			return Err(AeadDecryptError::DecryptionError);
 		}
 		let end_of_ciphertext = tagged_ciphertext.len() - OUT_LEN;
 
-		let version = &tagged_ciphertext[..nonce_offset];
-		if version != [AEAD_VERSION] {
-			return Err(AeadDecryptError::InvalidVersionError);
-		}
-		let nonce = &tagged_ciphertext[nonce_offset..ciphertext_offset];
+		let nonce = &tagged_ciphertext[..ciphertext_offset];
 		let ciphertext = &tagged_ciphertext[ciphertext_offset..end_of_ciphertext];
 		let mut tag = [0u8; OUT_LEN];
 		tag.copy_from_slice(&tagged_ciphertext[end_of_ciphertext..]);
@@ -151,7 +144,6 @@ impl AeadFacade {
 			sub_keys.authentication_key.as_bytes(),
 			&[
 				&(end_of_ciphertext as u32).to_be_bytes(),
-				&[AEAD_VERSION],
 				nonce,
 				ciphertext,
 				associated_data,
@@ -252,7 +244,7 @@ mod tests {
 
 	#[test]
 	fn test_padding() {
-		const OVERHEAD: usize = 1 + NONCE_BYTE_SIZE + OUT_LEN;
+		const OVERHEAD: usize = NONCE_BYTE_SIZE + OUT_LEN;
 		assert_eq!(test_encrypt(b"").len(), 4 + OVERHEAD);
 		assert_eq!(test_encrypt(b"1").len(), 4 + OVERHEAD);
 		assert_eq!(test_encrypt(b"22").len(), 4 + OVERHEAD);

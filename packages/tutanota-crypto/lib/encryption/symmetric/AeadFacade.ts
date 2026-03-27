@@ -1,8 +1,7 @@
-import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { AeadSubKeys } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 import { concat } from "@tutao/tutanota-utils"
-import { bitArrayToUint8Array, generateIV, IV_BYTE_LENGTH, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
+import { bitArrayToUint8Array, generateIV, IV_BYTE_LENGTH, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify, DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "../../hashes/Blake3.js"
 import { MacTag } from "../../misc/Constants"
@@ -66,7 +65,7 @@ export class AeadFacade {
 			sjcl.mode.ctr.encrypt(new sjcl.cipher.aes(key.encryptionKey), uint8ArrayToBitArray(plaintext), uint8ArrayToBitArray(iv), []),
 		)
 
-		const unauthenticatedCiphertext = concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.Aead), iv, aesCtrCiphertext)
+		const unauthenticatedCiphertext = concat(iv, aesCtrCiphertext)
 		const unauthenticatedCiphertextLength = bitArrayToUint8Array([unauthenticatedCiphertext.length])
 
 		const tag = blake3Mac(key.authenticationKey, concat(unauthenticatedCiphertextLength, unauthenticatedCiphertext, associatedData))
@@ -83,8 +82,8 @@ export class AeadFacade {
 		const authenticatedData = concat(ciphertextWithoutMacLength, ciphertextWithoutMac, associatedData)
 		blake3MacVerify(key.authenticationKey, authenticatedData, authenticationTag as MacTag)
 
-		const iv = ciphertextWithoutMac.subarray(SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + IV_BYTE_LENGTH)
-		const aesCtrCiphertext = ciphertextWithoutMac.subarray(SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + IV_BYTE_LENGTH, ciphertextWithoutMac.length)
+		const iv = ciphertextWithoutMac.subarray(0, IV_BYTE_LENGTH)
+		const aesCtrCiphertext = ciphertextWithoutMac.subarray(IV_BYTE_LENGTH, ciphertextWithoutMac.length)
 
 		const paddedPlaintext = bitArrayToUint8Array(
 			sjcl.mode.ctr.decrypt(new sjcl.cipher.aes(key.encryptionKey), uint8ArrayToBitArray(aesCtrCiphertext), uint8ArrayToBitArray(iv), []),
