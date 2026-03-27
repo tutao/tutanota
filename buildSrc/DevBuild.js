@@ -61,7 +61,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	})
 
 	await runStep("Types", async () => {
-		await $({ stdio: "inherit" })`npm run types`
+		await $({ stdio: "inherit" })`npm run ${app}:types`
 	})
 
 	/**

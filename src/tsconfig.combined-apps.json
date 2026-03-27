@@ -1,7 +1,7 @@
 {
 	"extends": "./../tsconfig_common.json",
 	"include": ["common", "mail-app", "calendar-app", "drive-app", "../types/", "./*.ts", "../libs/luxon.js"],
-	"exclude": ["common/dist", "calendar-app/calendar-app.ts"],
+	"exclude": ["common/dist"],
 	"compilerOptions": {
 		"rootDir": "..",
 		"outDir": "common/dist",

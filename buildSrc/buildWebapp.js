@@ -94,10 +94,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	})
 
 	await runStep("Types with emit", () => {
-		execSync("npm run types", { stdio: "inherit" })
-	})
-
-	await runStep("wasm-loader types", () => {
+		execSync(`npm run ${app}:types`, { stdio: "inherit" })
 		execSync("npx tsc -b tsconfig.wasm.json", { stdio: "inherit", cwd: "src" })
 	})
 
