@@ -940,7 +940,8 @@ export class IndexerCore {
 			if (!groupData) {
 				throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
 			}
-			return transaction.put(GroupDataOS, groupId, [batchId])
+			groupData.lastBatchIds = [batchId]
+			return transaction.put(GroupDataOS, groupId, groupData)
 		})
 	}
 

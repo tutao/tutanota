@@ -914,32 +914,6 @@ o.spec("IndexerCore", () => {
 			o.check(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 	})
-	o.test("writeIndexUpdate _updateGroupDataBatchId abort in case batch has been indexed already", async function () {
-		let groupId = "my-group"
-
-		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
-
-		const batchId = "last-batch-id"
-		const deferred = defer<void>()
-		let transaction: any = {
-			get: (os, key) => {
-				o.check(os).equals(GroupDataOS)
-				o.check(key).equals(groupId)
-				let groupData: GroupData = {
-					lastBatchIds: ["1", "last-batch-id", "3"],
-				} as any
-				return Promise.resolve(groupData)
-			},
-			aborted: true,
-			abort: () => {
-				deferred.resolve()
-			},
-		}
-		const core = makeCore()
-
-		core._updateGroupDataBatchId(groupId, batchId, transaction)
-		await deferred.promise
-	})
 	o.test("writeIndexUpdate _updateGroupDataBatchId", async function () {
 		let groupId = "my-group"
 
@@ -962,7 +936,7 @@ o.spec("IndexerCore", () => {
 				o.check(key).equals(groupId)
 				o.check(JSON.stringify(value)).equals(
 					JSON.stringify({
-						lastBatchIds: ["4", "3", "2", "1"],
+						lastBatchIds: ["2"],
 					}),
 				)
 				deferred.resolve()

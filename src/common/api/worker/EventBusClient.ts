@@ -7,6 +7,7 @@ import {
 	NotAuthorizedError,
 	ServiceUnavailableError,
 	SessionExpiredError,
+	TooManyRequestsError,
 } from "../common/error/RestError"
 import {
 	createWebsocketLeaderStatus,
@@ -421,7 +422,7 @@ export class EventBusClient {
 			} else {
 				let reconnectionInterval: readonly [number, number]
 
-				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE) {
+				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE || serverCode === TooManyRequestsError.CODE) {
 					reconnectionInterval = RECONNECT_INTERVAL.LARGE
 				} else if (this.failedConnectionAttempts === 1) {
 					reconnectionInterval = RECONNECT_INTERVAL.SMALL
