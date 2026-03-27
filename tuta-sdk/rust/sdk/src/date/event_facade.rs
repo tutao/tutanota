@@ -8,10 +8,11 @@ use base64::Engine;
 use regex::{Match, Regex};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::ops::Add;
 use std::panic;
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
-use time_tz::{timezones, Offset, TimeZone};
+use time_tz::{timezones, Offset, TimeZone, Tz};
 
 pub struct DateParts(pub Option<u32>, pub u8, pub u8);
 
@@ -194,6 +195,7 @@ impl EventFacade {
 			},
 		};
 
+		// FIXME do this calculation elsewhere
 		let calc_event_start = if is_all_day_event {
 			EventFacade::get_all_day_time(&event_start_time)?
 		} else {
@@ -238,11 +240,6 @@ impl EventFacade {
 		else {
 			return Ok(generated_events);
 		};
-
-		let progenitor_offset = tz
-			.get_offset_utc(&initial_start_time)
-			.to_utc()
-			.whole_seconds();
 
 		// iteration=0 means we are at the progenitor itself, then 1, 2, 3...
 		let mut iteration: i64 = 0;
@@ -327,12 +324,30 @@ impl EventFacade {
 				repeat_interval,
 				&repeat_rule,
 				iteration,
-				progenitor_offset,
-				&time_zone,
+				tz,
 			)?;
 		}
 
 		Ok(generated_events)
+	}
+
+	fn date_time_offset_difference_in_seconds(
+		&self,
+		progenitor_start_time: &OffsetDateTime,
+		next_occurrence_start_time: &OffsetDateTime,
+		time_zone: &Tz,
+	) -> Duration {
+		let progenitor_offset: i32 = time_zone
+			.get_offset_utc(&progenitor_start_time)
+			.to_utc()
+			.whole_seconds();
+
+		let instance_offset: i32 = time_zone
+			.get_offset_utc(&next_occurrence_start_time)
+			.to_utc()
+			.whole_seconds();
+
+		Duration::seconds((progenitor_offset - instance_offset) as i64)
 	}
 
 	/// Computes the next occurrence date by advancing absolutely from the initial start time
@@ -355,18 +370,9 @@ impl EventFacade {
 		repeat_interval: i64,
 		repeat_rule: &EventRepeatRule,
 		iteration: i64,
-		progenitor_offset: i32,
-		time_zone: &str,
+		time_zone: &Tz,
 	) -> Result<OffsetDateTime, ApiCallError> {
-		let tz = match timezones::get_by_name(time_zone) {
-			Some(tz) => tz,
-			_ => {
-				log::error!("Failed to find timezone for string {}", time_zone);
-				timezones::db::UTC
-			},
-		};
-
-		let Some(mut next) = self.increment_date_by_repeat_period(
+		let Some(next_occurrence_dt_start_time) = self.increment_date_by_repeat_period(
 			initial_start_time,
 			repeat_interval * iteration,
 			&repeat_rule.frequency,
@@ -380,14 +386,18 @@ impl EventFacade {
 			});
 		};
 
-		let instance_offset = tz.get_offset_utc(&next).to_utc().whole_seconds();
-
-		// Adjust for DST difference between progenitor and this occurrence
-		next = next.replace_offset(
-			UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
+		// Adjust calculate the DST offset difference between the progenitor and this instance
+		let dst_offset_seconds: Duration = self.date_time_offset_difference_in_seconds(
+			&initial_start_time,
+			&next_occurrence_dt_start_time,
+			&time_zone,
 		);
+		// Apply the DST offset to the instance
+		// Zones with DST applied will see their start time shift backwards on the UTC+0 timeline.
+		let dst_shifted_next_occurrence_start =
+			next_occurrence_dt_start_time.add(dst_offset_seconds);
 
-		Ok(next)
+		Ok(dst_shifted_next_occurrence_start)
 	}
 
 	/// Computes the next occurrence date by advancing absolutely from the initial start time
@@ -1754,6 +1764,97 @@ mod tests {
 		}
 	}
 
+	mod calculate_next_occurrence_date_tests {
+		use super::*;
+		#[test]
+		fn test_calculate_simple_daily_recurrence() {
+			// test normal daily repeating event calculate_first_occurrence
+
+			let progenitor_start_datetime: OffsetDateTime = PrimitiveDateTime::new(
+				Date::from_calendar_date(2025, Month::January, 1).unwrap(),
+				Time::from_hms(0, 0, 0).unwrap(),
+			)
+			.assume_utc();
+			let day_repeat_interval: i64 = 1;
+			let empty_by_rule_vec: Vec<ByRule> = Vec::new();
+			let repeat_rule: EventRepeatRule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: empty_by_rule_vec,
+			};
+
+			let events_facade = EventFacade {};
+
+			let next_occurrence = events_facade.calculate_next_occurrence_date(
+				&progenitor_start_datetime,
+				day_repeat_interval,
+				&repeat_rule,
+				1,
+				timezones::db::europe::BERLIN,
+			);
+
+			let expected_date = progenitor_start_datetime.add(Duration::days(1));
+
+			assert_eq!(next_occurrence.unwrap(), expected_date)
+		}
+		#[test]
+		fn test_daily_recurrence_across_start_of_dst() {
+			let progenitor_start_datetime: OffsetDateTime = PrimitiveDateTime::new(
+				// day before beginning of dst
+				Date::from_calendar_date(2026, Month::March, 28).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+			let day_repeat_interval: i64 = 1;
+			let empty_by_rule_vec: Vec<ByRule> = Vec::new();
+			let repeat_rule: EventRepeatRule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: empty_by_rule_vec,
+			};
+
+			let events_facade = EventFacade {};
+
+			let next_occurrence = events_facade.calculate_next_occurrence_date(
+				&progenitor_start_datetime,
+				day_repeat_interval,
+				&repeat_rule,
+				1,
+				timezones::db::europe::BERLIN,
+			);
+
+			let expected_date = progenitor_start_datetime.add(Duration::hours(23));
+			assert_eq!(next_occurrence.unwrap(), expected_date)
+		}
+
+		#[test]
+		fn test_daily_recurrence_across_end_of_dst() {
+			let progenitor_start_datetime: OffsetDateTime = PrimitiveDateTime::new(
+				// day before end of dst
+				Date::from_calendar_date(2026, Month::October, 24).unwrap(),
+				Time::from_hms(12, 0, 0).unwrap(),
+			)
+			.assume_utc();
+			let day_repeat_interval: i64 = 1;
+			let empty_by_rule_vec: Vec<ByRule> = Vec::new();
+			let repeat_rule: EventRepeatRule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: empty_by_rule_vec,
+			};
+
+			let events_facade = EventFacade {};
+
+			let next_occurrence = events_facade.calculate_next_occurrence_date(
+				&progenitor_start_datetime,
+				day_repeat_interval,
+				&repeat_rule,
+				1,
+				timezones::db::europe::BERLIN,
+			);
+
+			let expected_date = progenitor_start_datetime.add(Duration::hours(25));
+			assert_eq!(next_occurrence.unwrap(), expected_date)
+		}
+	}
+
 	mod calculate_event_occurrences_tests {
 		use super::*;
 		use crate::date::event_facade::{
@@ -1820,9 +1921,12 @@ mod tests {
 					.unix_timestamp() as u64,
 			);
 
+			let event_start_time = DateTime::from_seconds(1743147215);
+			let event_end_time = DateTime::from_seconds(1743161615);
+
 			let events = events_facade.calculate_event_occurrences(
-				DateTime::from_seconds(1743147215),
-				DateTime::from_seconds(1743161615),
+				event_start_time,
+				event_end_time,
 				EventRepeatRule {
 					frequency: RepeatPeriod::Monthly,
 					by_rules: vec![ByRule {
@@ -2378,7 +2482,7 @@ mod tests {
 		}
 
 		#[test]
-		fn test_generate_all_day_event_instances() { // FIXME turn this into a simple test for all day generation that does not got throught DST, later handle DSTs on different dedicated tests.
+		fn test_generate_all_day_event_instances() {
 			let event_facade = EventFacade::new();
 
 			let event_start = Date::from_calendar_date(2026, Month::July, 01)
@@ -2393,6 +2497,59 @@ mod tests {
 
 			let max_date = DateTime::from_seconds(
 				Date::from_calendar_date(2026, Month::July, 31)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: vec![],
+			};
+
+			let events = event_facade
+				.calculate_event_occurrences(
+					DateTime::from_seconds(event_start.unix_timestamp() as u64),
+					DateTime::from_seconds(event_end.unix_timestamp() as u64),
+					repeat_rule,
+					1,
+					EndType::Never,
+					None,
+					vec![],
+					max_date,
+					"Europe/Berlin".to_string(),
+				)
+				.unwrap();
+
+			assert_eq!(events.iter().count(), 30);
+			assert!(events.iter().enumerate().all(|(index, event_start_time)| {
+				let expected_date =
+					Date::from_calendar_date(2026, Month::July, 01 * (index + 1) as u8)
+						.unwrap()
+						.midnight()
+						.assume_utc()
+						.unix_timestamp();
+				return event_start_time.as_seconds() == expected_date as u64;
+			}));
+		}
+
+		#[test]
+		fn test_generate_recurring_all_day_event_across_dst() {
+			let event_facade = EventFacade::new();
+
+			let event_start = Date::from_calendar_date(2026, Month::March, 01)
+				.unwrap()
+				.midnight()
+				.assume_utc();
+
+			let event_end = Date::from_calendar_date(2026, Month::March, 02)
+				.unwrap()
+				.midnight()
+				.assume_utc();
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2026, Month::March, 31)
 					.unwrap()
 					.midnight()
 					.assume_utc()
