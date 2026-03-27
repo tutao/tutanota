@@ -53,13 +53,8 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import {
-	compareMetaEntriesOldest,
-	filterIndexMemberships,
-	getIdFromEncSearchIndexEntry,
-	typeRefToTypeInfo,
-} from "../../../common/api/common/utils/IndexUtils.js"
+import { elementIdPart, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -109,7 +104,6 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../common/api/worker/search/IndexEncryptionUtils"
-import type { User } from "../../../common/api/entities/sys/TypeRefs"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -946,25 +940,7 @@ export class IndexerCore {
 			if (!groupData) {
 				throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
 			}
-
-			if (groupData.lastBatchIds.length > 0 && groupData.lastBatchIds.indexOf(batchId) !== -1) {
-				// concurrent indexing (multiple tabs)
-				console.warn("Abort transaction on updating group data: concurrent access", groupId, batchId)
-				transaction.abort()
-			} else {
-				const newIndex = groupData.lastBatchIds.findIndex((indexedBatchId) => firstBiggerThanSecond(batchId, indexedBatchId))
-
-				if (newIndex !== -1) {
-					groupData.lastBatchIds.splice(newIndex, 0, batchId)
-				} else {
-					groupData.lastBatchIds.push(batchId) // new batch is oldest of all stored batches
-				}
-
-				// We keep the last 1000 batch IDs
-				groupData.lastBatchIds = groupData.lastBatchIds.slice(0, 1000)
-
-				return transaction.put(GroupDataOS, groupId, groupData)
-			}
+			return transaction.put(GroupDataOS, groupId, [batchId])
 		})
 	}
 
