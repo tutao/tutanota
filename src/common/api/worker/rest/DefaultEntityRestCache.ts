@@ -870,22 +870,28 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
-		// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
-		if (update.instanceListId != null) {
-			// if there is a custom handler we follow its decision
-			let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
-			// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
-			shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
+		// we put entities into the cache when they are delivered with an EntityUpdate
+		let shouldUpdateDb = update.instance != null
 
-			if (shouldUpdateDb) {
-				try {
-					return await this.loadAndStoreInstanceFromUpdate(update)
-				} catch (e) {
-					if (isExpectedErrorForSynchronization(e)) {
-						return null
-					} else {
-						throw e
-					}
+		if (update.instanceListId != null) {
+			// list element entities
+			if (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId)) {
+				// always update the cache if the instance is already in the cached range
+				shouldUpdateDb = true
+			} else {
+				// allow storing entities that are not in the cached range if the custom cache handler wants to do so
+				shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update) ?? shouldUpdateDb
+			}
+		}
+
+		if (shouldUpdateDb) {
+			try {
+				return await this.loadAndStoreInstanceFromUpdate(update)
+			} catch (e) {
+				if (isExpectedErrorForSynchronization(e)) {
+					return null
+				} else {
+					throw e
 				}
 			}
 		}

@@ -273,8 +273,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const id4 = "id4"
 
 			o("writes batch meta on entity update", async function () {
-				const contact1 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
-				const contact2 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id2] })
+				const contact1 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1], _ownerGroup: "owner-group" })
+				const contact2 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id2], _ownerGroup: "owner-group" })
 
 				const batch = [
 					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1),
@@ -294,8 +294,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o("create is not in cache range", async function () {
 					const contact = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
 					const batch = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
 					]
 					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
@@ -350,7 +350,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						typeId: ContactTypeRef.typeId.toString(),
 						application: ContactTypeRef.app,
 						patch: null,
-						instance: null, // will be added by entityUpdateToUpdateData
+						instance: null,
 						blobInstance: null,
 					})
 					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, null, null)
@@ -368,7 +368,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						typeId: ContactTypeRef.typeId.toString(),
 						application: ContactTypeRef.app,
 						patch: null,
-						instance: null, // will be added by entityUpdateToUpdateData
+						instance: null,
 						blobInstance: null,
 					})
 					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, null, null)
@@ -454,6 +454,42 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						_permissions: "permissions",
 						_ownerGroup: "owner-group",
 					})
+
+					const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
+					const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
+					const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
+					const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
+
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, firstContact._id)).thenResolve(await toStorableInstance(firstContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, secondContact._id)).thenResolve(await toStorableInstance(secondContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, thirdContact._id)).thenResolve(await toStorableInstance(thirdContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, fourthContact._id)).thenResolve(await toStorableInstance(fourthContact))
+
+					const batch = [
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
+						await updateDataForCreate(ContactTypeRef, secondContactListId, id3, null),
+						await updateDataForCreate(ContactTypeRef, secondContactListId, id4, null),
+					]
+					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
+					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
+					o(await storage.get(ContactTypeRef, secondContactListId, id3)).equals(null)
+					o(filteredUpdates.length).equals(batch.length)
+					for (const update of batch) {
+						o(filteredUpdates.includes(update)).equals(true)
+					}
+				})
+
+				o("create events with instances are always cached", async function () {
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id1)
+					await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, id4)
+
+					const sampleContact = createTestEntity(ContactTypeRef, {
+						_permissions: "permissions",
+						_ownerGroup: "owner-group",
+					})
 					const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
 					const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
 					const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
@@ -467,9 +503,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					]
 					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id2)))).deepEquals(secondContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
 					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
-					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
-					o(await storage.get(ContactTypeRef, secondContactListId, id3)).equals(null)
 					o(filteredUpdates.length).equals(batch.length)
 					for (const update of batch) {
 						o(filteredUpdates.includes(update)).equals(true)
@@ -850,7 +886,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await cache.entityEventsReceived(
 					[
 						await updateDataForDelete(MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0])),
-						await updateDataForCreate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), mailSetEntries[0]),
+						await updateDataForCreate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), null),
 					],
 					"batchId",
 					groupId,
