@@ -78,7 +78,7 @@ export interface ListAttrs<T, R extends ViewHolder<T>> {
 
 	/** Allows for a custom message to be displayed at the end of the list
 	 * Loading and ConnectionLost messages take priority and will be displayed instead if the List is in those states */
-	renderEndOfListMessage?(): Children
+	renderEndOfListMessage?: Children
 
 	/** called when the end of the list is getting close to the viewport or when "load more" button is pressed. */
 	onLoadMore(): void
@@ -177,6 +177,8 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 						dom.vnodes = null
 						this.initializeDom(dom as HTMLElement, attrs.renderConfig)
 					}
+					// Update the end of list message regardless of state change
+					this.updateEndOfListMessage(attrs)
 					// if the state has changed or the theme has changed we need to update the DOM
 					if (this.state !== attrs.state || this.lastThemeId !== theme.themeId) {
 						this.updateDomElements(attrs)
@@ -461,17 +463,21 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			}
 		}
 
-		if (this.lastAttrs.renderEndOfListMessage && this.lastAttrs.renderEndOfListMessage() !== null) {
-			// The custom list end message takes precedence over the generic list messages
-			m.render(this.endOfListMessageChildDom, this.lastAttrs.renderEndOfListMessage())
-			this.endOfListMessageChildDom.style.display = ""
-		} else {
+		// if there is no custom end of list message, display list status message (custom end of list message is updated elsewhere)
+		if (!attrs.renderEndOfListMessage) {
 			this.updateStatus(attrs.state.loadingStatus)
 		}
 
 		this.loadMoreIfNecessary(attrs, visibleElementsHeight)
 
 		return visibleElementsHeight
+	}
+
+	private updateEndOfListMessage(attrs: ListAttrs<T, VH>) {
+		if (attrs.renderEndOfListMessage) {
+			m.render(this.endOfListMessageChildDom, attrs.renderEndOfListMessage)
+			this.endOfListMessageChildDom.style.display = ""
+		}
 	}
 
 	private readonly updateStatus = memoized((status: ListLoadingState) => {

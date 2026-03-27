@@ -2264,3 +2264,4 @@ export type TranslationKeyType =
 	| "reIndexRunInBackground_msg"
 	| "rebuildSearchIndex_action"
 	| "indexingEmails_msg"
+	| "searchUntil_msg"
