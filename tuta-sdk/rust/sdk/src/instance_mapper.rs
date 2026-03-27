@@ -1065,7 +1065,7 @@ impl<'t> Serializer for ElementValueSerializer<'t> {
 }
 
 fn unsupported(data_type: &str) -> ! {
-	panic!("Unsupported data type: {}", data_type)
+	panic!("Unsupported data type: {data_type}")
 }
 
 impl SerializeSeq for ElementValueSeqSerializer<'_> {
@@ -1126,7 +1126,7 @@ impl SerializeStruct for ElementValueStructSerializer<'_> {
 							let aggregation_type_model = type_model_provider
 								.resolve_client_type_ref(&aggregation_type_ref)
 								.ok_or_else(|| {
-									SerError(format!("Type not found: {:?}", aggregation_type_ref))
+									SerError(format!("Type not found: {aggregation_type_ref:?}"))
 								})?;
 
 							value.serialize(ElementValueSerializer::new(Some((
