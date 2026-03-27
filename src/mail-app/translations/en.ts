@@ -2261,6 +2261,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"mailExportSuggestAlternative_msg": "Preparing {current} of {total} emails for export...\n\nNote: When exporting more than 1000 mails, please use Settings -> Export instead.",
+		"mailExportSuggestAlternative_msg": "Preparing {current} of {total} emails and  exporting...\n\nNote: When exporting more than 1000 mails, please use Settings -> Export instead.",
 	}
 }
