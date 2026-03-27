@@ -151,7 +151,8 @@ struct AlarmManagerTest {
 	}
 
 	@Test func testAllDayEvent_OneDayBeforeAlarm_ScheduledAtLocalMidnight() {
-		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)  // Mar 08 2023 00:00:00 GMT0
+		// Mar 08 2023 00:00:00 GMT0
+		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)
 		let eventEndUTC = eventStartUTC.advanced(by: 24, .hours)
 
 		let alarmNotification = makeAlarm(eventStartAt: eventStartUTC, trigger: "1D")
@@ -177,8 +178,9 @@ struct AlarmManagerTest {
 		)
 	}
 
-	@Test func testRepeatingAllDayEvent_OneDayBeforeAlarm_ScheduledAtLocalMidnight_ForEachOccurrence() {
-		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)  // Mar 08 2023 00:00:00 GMT0
+	@Test func testRepeatingAllDayEvent_OneDayBeforeAlarm_ScheduledAtLocalMidnight() {
+		// Mar 08 2023 00:00:00 GMT0
+		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)
 		let eventEndUTC = eventStartUTC.advanced(by: 24, .hours)
 
 		let alarmNotification = makeAlarm(
