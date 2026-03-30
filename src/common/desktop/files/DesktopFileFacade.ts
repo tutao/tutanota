@@ -38,14 +38,13 @@ import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
-import { stringValidator } from "../../gui/base/Dialog"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 
 const TAG = "[DesktopFileFacade]"
 
 export class DesktopFileFacade implements FileFacade {
 	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
 	private lastOpenedFileManagerAt: number | null
+	private activeRequests: Map<string, AbortController> = new Map()
 
 	constructor(
 		private readonly win: ApplicationWindow,
@@ -73,36 +72,43 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async download(sourceUrl: string, fileName: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse> {
-		const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers })
+		const abortController = new AbortController()
+		this.activeRequests.set(fileId, abortController)
+		try {
+			const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers, signal: abortController.signal })
 
-		let encryptedFilePath
-		if (status === 200 && body != null) {
-			const downloadDirectory = await this.tfs.ensureEncryptedDir()
-			encryptedFilePath = path.join(downloadDirectory, fileName)
-			const readable: stream.Readable = bodyToReadable(body)
-			// debounce so that we don't post the message too often
-			const onProgress = throttle(100, (bytes: number) => {
-				this.progressTracker.downloadProgress(fileId, bytes)
-			})
-			await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
-		} else {
-			encryptedFilePath = null
+			let encryptedFilePath
+			if (status === 200 && body != null) {
+				const downloadDirectory = await this.tfs.ensureEncryptedDir()
+				encryptedFilePath = path.join(downloadDirectory, fileName)
+				const readable: stream.Readable = bodyToReadable(body)
+				// debounce so that we don't post the message too often
+				const onProgress = throttle(100, (bytes: number) => {
+					this.progressTracker.downloadProgress(fileId, bytes)
+				})
+				await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
+			} else {
+				encryptedFilePath = null
+			}
+
+			const result = {
+				statusCode: status,
+				encryptedFileUri: encryptedFilePath,
+				errorId: getHttpHeader(headersIncoming, "error-id"),
+				precondition: getHttpHeader(headersIncoming, "precondition"),
+				suspensionTime: getHttpHeader(headersIncoming, "suspension-time") ?? getHttpHeader(headersIncoming, "retry-after"),
+			}
+
+			log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
+
+			return result
+		} finally {
+			this.activeRequests.delete(fileId)
 		}
-
-		const result = {
-			statusCode: status,
-			encryptedFileUri: encryptedFilePath,
-			errorId: getHttpHeader(headersIncoming, "error-id"),
-			precondition: getHttpHeader(headersIncoming, "precondition"),
-			suspensionTime: getHttpHeader(headersIncoming, "suspension-time") ?? getHttpHeader(headersIncoming, "retry-after"),
-		}
-
-		log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
-		return result
 	}
 
 	async abortDownload(fileId: string) {
-		throw new ProgrammingError("not implemented yet")
+		this.activeRequests.get(fileId)?.abort(new CancelledError("Request canceled"))
 	}
 
 	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {
