@@ -13,6 +13,7 @@ import { canSubscribeToPlan, queryAppStoreSubscriptionOwnership, UpgradeType } f
 import { locator } from "../api/main/CommonLocator"
 import {
 	getAvailablePlansFromSubscriptionParameters,
+	getBusinessOnly,
 	getReferralCodeFromParams,
 	getRegistrationDataIdFromParams,
 	getSubscriptionParameters,
@@ -82,6 +83,7 @@ export class SignupViewModel {
 	public inlinePlanSelectorToggleSteps: number[]
 	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
 	public globalCampaignName: string | null
+	public personalPlansAvailable: boolean
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
 
@@ -126,6 +128,7 @@ export class SignupViewModel {
 		this.inlinePlanSelectorOpen = stream(false)
 		this.inlinePlanSelectorToggleSteps = [1, 2, 3]
 		this.globalCampaignName = null
+		this.personalPlansAvailable = !getBusinessOnly(urlParams)
 	}
 
 	private cleanupCalled = false

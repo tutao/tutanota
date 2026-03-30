@@ -34,6 +34,7 @@ export type PlanSelectorAttr = {
 	targetPlan: PlanType
 	onContinue?: any
 	newSignupFlow?: boolean
+	personalPlansAvailable?: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -67,12 +68,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			discountDetails,
 			onContinue,
 			newSignupFlow = false,
+			personalPlansAvailable = true,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
-
 		options.businessUse(!isPersonalPlanAvailable(availablePlans) ? true : options.businessUse())
-
 		const renderFootnoteElement = (): Children => {
 			const getLegendPriceStrProps = {
 				priceAndConfigProvider,
@@ -124,6 +124,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				!this.shouldFixButtonPos &&
 					newSignupFlow &&
 					!isIOSApp() &&
+					personalPlansAvailable &&
 					m(TertiaryButton, {
 						label: isBusiness ? "privateUse_action" : "businessUse_action",
 						width: "flex",

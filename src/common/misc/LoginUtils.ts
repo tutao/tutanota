@@ -288,6 +288,11 @@ export function getRegistrationDataIdFromParams(hashParams: Params): string | nu
 	return null
 }
 
+export function getBusinessOnly(urlParams: Params): boolean {
+	if (typeof urlParams.type !== "string") return false
+	return urlParams.type === "business"
+}
+
 async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
 	const wizard = await import("../subscription/giftcards/RedeemGiftCardWizard")
 	return wizard.loadRedeemGiftCardWizard(urlHash)
