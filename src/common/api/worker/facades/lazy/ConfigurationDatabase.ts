@@ -65,8 +65,7 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
  * Also handles maintaining and encrypting autosaved draft data as well as the SpamClassificationModel
  */
 export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStorageFacade {
-	// visible for testing
-	readonly db: LazyLoaded<ConfigDb>
+	private readonly db: LazyLoaded<ConfigDb | null>
 
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
@@ -74,9 +73,16 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		dbLoadFn: (arg0: User, arg1: KeyLoaderFacade) => Promise<ConfigDb> = (user: User, keyLoaderFacade: KeyLoaderFacade) =>
 			this.loadConfigDb(user, keyLoaderFacade),
 	) {
-		this.db = new LazyLoaded(() => {
+		this.db = new LazyLoaded(async () => {
 			const user = assertNotNull(userFacade.getLoggedInUser())
-			return dbLoadFn(user, keyLoaderFacade)
+			// this can fail if indexed db is not available (such as iOS lockdown mode), thus we need to make sure that
+			// we handle this case
+			try {
+				const db = await dbLoadFn(user, keyLoaderFacade)
+				return db.db.indexingSupported ? db : null
+			} catch (e) {
+				return null
+			}
 		})
 	}
 
@@ -85,8 +91,11 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @param draftData data to write
 	 */
 	async setAutosavedDraftData(draftData: LocalAutosavedDraftData): Promise<void> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) return
+		const config = await this.db.getAsync()
+		if (!config) {
+			return
+		}
+		const { db, metaData } = config
 
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
@@ -106,10 +115,11 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @return the locally stored draft data, if any, or null
 	 */
 	async getAutosavedDraftData(): Promise<LocalAutosavedDraftData | null> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) {
+		const config = await this.db.getAsync()
+		if (!config) {
 			return null
 		}
+		const { db, metaData } = config
 
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
@@ -133,8 +143,11 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * Deletes any locally saved draft data, if any
 	 */
 	async clearAutosavedDraftData(): Promise<void> {
-		const { db } = await this.db.getAsync()
-		if (!db.indexingSupported) return
+		const config = await this.db.getAsync()
+		if (!config) {
+			return
+		}
+		const { db } = config
 
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
@@ -153,8 +166,11 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @param model to write
 	 */
 	async setSpamClassificationModel(model: SpamClassificationModel): Promise<void> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) return
+		const config = await this.db.getAsync()
+		if (!config) {
+			return
+		}
+		const { db, metaData } = config
 
 		try {
 			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
@@ -174,10 +190,11 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @return the locally stored SpamClassificationModel for an ownerGroup, if any, or null
 	 */
 	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) {
+		const config = await this.db.getAsync()
+		if (!config) {
 			return null
 		}
+		const { db, metaData } = config
 
 		try {
 			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
@@ -201,8 +218,11 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * Deletes a SpamClassificationModel for an ownerGroup, if any
 	 */
 	async deleteSpamClassificationModel(ownerGroup: Id): Promise<void> {
-		const { db } = await this.db.getAsync()
-		if (!db.indexingSupported) return
+		const config = await this.db.getAsync()
+		if (!config) {
+			return
+		}
+		const { db } = config
 
 		try {
 			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
@@ -217,15 +237,21 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async addExternalImageRule(address: string, rule: ExternalImageRule): Promise<void> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) return
+		const config = await this.db.getAsync()
+		if (!config) {
+			return
+		}
+		const { db, metaData } = config
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		return addAddressToImageList(db, encryptedAddress, rule)
 	}
 
 	async getExternalImageRule(address: string): Promise<ExternalImageRule> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) return ExternalImageRule.None
+		const config = await this.db.getAsync()
+		if (!config) {
+			return ExternalImageRule.None
+		}
+		const { db, metaData } = config
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		const transaction = await db.createTransaction(true, [ExternalImageListOS])
 		const entry = await transaction.get(ExternalImageListOS, encryptedAddress)
@@ -245,15 +271,21 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async addNewsletterBannerRule(address: string, rule: NewsletterBannerRule): Promise<void> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) return
+		const config = await this.db.getAsync()
+		if (!config) {
+			return
+		}
+		const { db, metaData } = config
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		return addAddressToNewsletterBannerList(db, encryptedAddress, rule)
 	}
 
 	async getNewsletterBannerRule(address: string): Promise<NewsletterBannerRule> {
-		const { db, metaData } = await this.db.getAsync()
-		if (!db.indexingSupported) return NewsletterBannerRule.Allow
+		const config = await this.db.getAsync()
+		if (!config) {
+			return NewsletterBannerRule.Allow
+		}
+		const { db, metaData } = config
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		const transaction = await db.createTransaction(true, [NewsletterBannerListOS])
 		const entry = await transaction.get(NewsletterBannerListOS, encryptedAddress)
@@ -325,7 +357,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 				continue
 			}
 			const configDb = await this.db.getAsync()
-			if (configDb.db.isSameDbId(this.getDbId(event.instanceId))) {
+			if (configDb?.db.isSameDbId(this.getDbId(event.instanceId))) {
 				return updateEncryptionMetadata(configDb.db, this.keyLoaderFacade, ConfigurationMetaDataOS)
 			}
 		}
@@ -334,8 +366,8 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	async delete(userId: Id): Promise<void> {
 		const dbId = this.getDbId(userId)
 		if (this.db.isLoadedOrLoading()) {
-			const { db } = await this.db.getAsync()
-			await db.deleteDatabase(dbId)
+			const db = await this.db.getAsync()
+			await db?.db.deleteDatabase(dbId)
 		} else {
 			await DbFacade.deleteDb(dbId)
 		}
