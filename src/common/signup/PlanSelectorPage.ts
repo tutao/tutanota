@@ -101,6 +101,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 									ctx.goNext()
 								},
 								newSignupFlow: true,
+								personalPlansAvailable: data.personalPlansAvailable,
 							} satisfies PlanSelectorAttr),
 						),
 					),
