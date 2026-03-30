@@ -30,6 +30,8 @@ import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
+import { stringValidator } from "../../gui/base/Dialog"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -89,6 +91,10 @@ export class DesktopFileFacade implements FileFacade {
 
 		log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
 		return result
+	}
+
+	async abortDownload(fileId: string) {
+		throw new ProgrammingError("not implemented yet")
 	}
 
 	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {

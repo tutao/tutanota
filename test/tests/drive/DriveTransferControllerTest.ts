@@ -579,7 +579,7 @@ o.spec("DriveTransferController", function () {
 			await transferController.download(file2)
 
 			await transferController.cancelTransfer(transferId1)
-			verify(blobFacade.cancelDownload(transferId1))
+			verify(blobFacade.abortDownload(transferId1))
 		})
 		o.test("cancel download cancels waiting download", async function () {
 			const transferId1 = "transfer id 1" as TransferId
