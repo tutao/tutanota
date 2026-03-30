@@ -28,7 +28,6 @@ import {
 	isNotEmpty,
 	isNotNull,
 	newPromise,
-	ofClass,
 	promiseMap,
 } from "@tutao/tutanota-utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
@@ -77,7 +76,7 @@ export class MailIndexer {
 		return this._mailIndexingEnabled
 	}
 
-	mailboxIndexingPromise: Promise<void>
+	mailboxIndexingPromise: DeferredObject<void>
 	/** @private visibleForTesting */
 	_isIndexing: boolean = false
 	_dateProvider: DateProvider
@@ -94,7 +93,8 @@ export class MailIndexer {
 	) {
 		this._currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this._mailIndexingEnabled = false
-		this.mailboxIndexingPromise = Promise.resolve()
+		this.mailboxIndexingPromise = defer()
+		this.mailboxIndexingPromise.resolve()
 		this._dateProvider = dateProvider
 	}
 
@@ -241,7 +241,13 @@ export class MailIndexer {
 			return
 		}
 
+		if (this._isIndexing) {
+			this.cancelMailIndexing()
+			await this.mailboxIndexingPromise.promise
+		}
+
 		this.abortController = new AbortController()
+		this.mailboxIndexingPromise = defer()
 		this._isIndexing = true
 
 		const searchIndexStageInfo = this.createSearchIndexStageInfo(oldestTimestamp)
@@ -265,8 +271,6 @@ export class MailIndexer {
 			await this.infoMessageHandler.onSearchIndexStateUpdate(searchIndexStageInfo({ progress: 0 }))
 		} catch (e) {
 			console.warn("Mail indexing failed: ", e)
-			// avoid that a rejected promise is stored
-			this.mailboxIndexingPromise = Promise.resolve()
 			await this.updateCurrentIndexTimestamp(user)
 
 			// do not treat cancellation as an error during indexing
@@ -285,6 +289,7 @@ export class MailIndexer {
 			await this.infoMessageHandler.onSearchIndexStateUpdate(searchIndexStageInfo(updatedIndexState))
 		} finally {
 			this._isIndexing = false
+			this.mailboxIndexingPromise.resolve()
 		}
 	}
 
@@ -294,14 +299,7 @@ export class MailIndexer {
 	 */
 	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
 		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
-			const uncaughtPromise = this.mailboxIndexingPromise.then(() => this.indexMailboxes(user, newOldestTimestamp))
-
-			this.mailboxIndexingPromise = uncaughtPromise.catch(
-				ofClass(CancelledError, (e) => {
-					console.log("extend mail index has been cancelled", e)
-				}),
-			)
-			return uncaughtPromise
+			await this.mailboxIndexingPromise.promise.then(() => this.indexMailboxes(user, newOldestTimestamp))
 		}
 	}
 
