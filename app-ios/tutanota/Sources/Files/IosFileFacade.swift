@@ -3,6 +3,7 @@ import Foundation
 import MobileCoreServices
 import TutanotaSharedFramework
 import UniformTypeIdentifiers
+import os
 
 typealias ProgressUpdater = (String, Int) -> Void
 
@@ -12,6 +13,8 @@ class IosFileFacade: FileFacade {
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
 	private let downloadProgress: ProgressUpdater
+	private var activeDownloads = Set<String>()
+	private let activeDownloadsLock = OSAllocatedUnfairLock()
 
 	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession, downloadProgress: @escaping ProgressUpdater) {
 		self.chooser = chooser
@@ -99,12 +102,20 @@ class IosFileFacade: FileFacade {
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
 		request.allHTTPHeaderFields = headers
+		_ = self.activeDownloadsLock.withLock { self.activeDownloads.insert(fileId) }
+		defer { _ = self.activeDownloadsLock.withLock { self.activeDownloads.remove(fileId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
 		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
 			private var progressCancellable: AnyCancellable?
 			private let reporter: (_ bytesReceived: Int) -> Void
-			init(reporter: @escaping (_ bytesReceived: Int) -> Void) { self.reporter = reporter }
+			private let fileId: String
+			private let shouldCancel: (_ fileId: String) -> Bool
+			init(fileId: String, shouldCancel: @escaping (_ fileId: String) -> Bool, reporter: @escaping (_ bytesReceived: Int) -> Void) {
+				self.reporter = reporter
+				self.fileId = fileId
+				self.shouldCancel = shouldCancel
+			}
 			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
 				// We observe .fractionCompleted, as that changes frequently and accurately reacts to download progress.
 				// Other properties, such as .completedUnitCount are more abstract and do not immediately reflect progress.
@@ -112,16 +123,32 @@ class IosFileFacade: FileFacade {
 				// one of which is the *actual* download progress. It seems inaccessible however, which is why we ask task
 				// directly for the bytes received.
 				self.progressCancellable = task.progress.publisher(for: \.fractionCompleted)
-					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true).sink { _ in self.reporter(Int(task.countOfBytesReceived)) }
+					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true)
+					.sink { _ in
+						self.reporter(Int(task.countOfBytesReceived))
+						if self.shouldCancel(self.fileId) {
+							printLog("cancelling download task for fileId \(self.fileId)")
+							task.cancel()
+						}
+					}
 			}
 		}
-		let downloadDelegate = DownloadDelegate { bytesReceived in self.downloadProgress(fileId, bytesReceived) }
-		let (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request), delegate: downloadDelegate)
+		let downloadDelegate = DownloadDelegate(
+			fileId: fileId,
+			shouldCancel: { fileId in !self.activeDownloads.contains(fileId) },
+			reporter: { bytesReceived in self.downloadProgress(fileId, bytesReceived) }
+		)
+		var response: URLResponse
+		var data: Data
+		do { (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request), delegate: downloadDelegate) } catch let error
+			as URLError where error.code == URLError.cancelled
+		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
 		let httpResponse = response as! HTTPURLResponse
 		let encryptedFileUri: String?
 		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
+	func abortDownload(_ fileId: String) async { _ = self.activeDownloadsLock.withLock { self.activeDownloads.remove(fileId) } }
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
 		let encryptedPath = try FileUtils.getEncryptedFolder()
@@ -237,15 +264,3 @@ func getFileMIMEType(path: String) -> String? {
 /// From iOS13 we have a method to read headers case-insensitively: HTTPURLResponse.value(forHTTPHeaderField:)
 /// For older iOS we use this NSDictionary cast workaround as suggested by a commenter in the bug report.
 extension HTTPURLResponse { public func valueForHeaderField(_ headerField: String) -> String? { value(forHTTPHeaderField: headerField) } }
-
-//func throttle<T>(period: TimeInterval, fn: @escaping (T) -> Void) -> ((T) -> Void) {
-//  var currentValue: T? = nil
-//  var calledAt: Date? = nil
-//  return { val in
-//	if let calledAt, calledAt.timeIntervalSinceNow < period {
-//	  fn(currentValue!)
-//	} else {
-//
-//	}
-//  }
-//}

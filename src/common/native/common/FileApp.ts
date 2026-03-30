@@ -119,6 +119,10 @@ export class NativeFileApp {
 		return this.fileFacade.download(sourceUrl, filename, headers, fileId)
 	}
 
+	abortDownload(fileId: Id) {
+		return this.fileFacade.abortDownload(fileId)
+	}
+
 	/**
 	 * Get the shortened (first six bytes) of the SHA256 of the file.
 	 * @param fileUri
