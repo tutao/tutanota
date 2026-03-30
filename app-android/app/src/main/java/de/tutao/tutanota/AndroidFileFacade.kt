@@ -16,6 +16,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.showDownloadNotification
+import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.ProgressResponseBody
 import de.tutao.tutashared.TempDir
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Call
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -63,6 +65,7 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class AndroidFileFacade(
@@ -74,6 +77,7 @@ class AndroidFileFacade(
 ) : FileFacade {
 
 	val tempDir = TempDir(activity, random)
+	private val activeRequests = ConcurrentHashMap<String, Call>()
 
 	@Throws(Exception::class)
 	override suspend fun deleteFile(file: String) {
@@ -341,7 +345,7 @@ class AndroidFileFacade(
 				val responseCode = response.code
 				val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
 				val responseBody = if (responseCode in 200..299) {
-					response.body?.bytes()?.wrap() ?: byteArrayOf().wrap()
+					response.body.bytes().wrap()
 				} else {
 					byteArrayOf().wrap()
 				}
@@ -391,7 +395,7 @@ class AndroidFileFacade(
 					.header("Content-Type", "application/json")
 					.header("Cache-Control", "no-cache")
 
-				val response = defaultClient.newBuilder()
+				val call = defaultClient.newBuilder()
 					.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
 					.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
 					.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
@@ -414,33 +418,48 @@ class AndroidFileFacade(
 					}
 					.build()
 					.newCall(requestBuilder.build())
-					.execute()
-				// By this point we got the response header but we might not have read the body yet.
+				try {
+					activeRequests[fileId] = call
+					val response = call.execute()
+					// By this point we got the response header but we might not have read the body yet.
 
-				response.use { response ->
-					var encryptedFile: File? = null
-					if (response.code == 200) {
-						val inputStream = response.body.byteStream()
-						encryptedFile = File(tempDir.encrypt, filename)
-						writeFileStream(encryptedFile, inputStream)
+					response.use { response ->
+						var encryptedFile: File? = null
+						if (response.code == 200) {
+							val inputStream = response.body.byteStream()
+							encryptedFile = File(tempDir.encrypt, filename)
+							writeFileStream(encryptedFile, inputStream)
+						}
+
+						DownloadTaskResponse(
+							statusCode = response.code,
+							errorId = response.header("Error-Id"),
+							precondition = response.header("Precondition"),
+							suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
+							encryptedFileUri = encryptedFile?.toUri().toString(),
+						)
+					}.also {
+						// Cancel the progress job manually.
+						// Important to do it after we actually read the whole body.
+						// In case of an error it would get canceled automatically so we don't need to do anything.
+						// Canceling the child job will not cancel the parent as if it was an error.
+						progressJob.cancel()
 					}
-
-					DownloadTaskResponse(
-						statusCode = response.code,
-						errorId = response.header("Error-Id"),
-						precondition = response.header("Precondition"),
-						suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
-						encryptedFileUri = encryptedFile?.toUri().toString(),
-					)
-				}.also {
-					// Cancel the progress job manually.
-					// Important to do it after we actually read the whole body.
-					// In case of an error it would get canceled automatically so we don't need to do anything.
-					// Canceling the child job will not cancel the parent as if it was an error.
-					progressJob.cancel()
+				} catch (e: IOException) {
+					if (call.isCanceled()) {
+						throw CancelledError()
+					} else {
+						throw e
+					}
+				} finally {
+					activeRequests.remove(fileId)
 				}
 			}
 		}
+	}
+
+	override suspend fun abortDownload(fileId: String) {
+		this.activeRequests[fileId]?.cancel()
 	}
 
 	@Throws(IOException::class)
