@@ -19,7 +19,6 @@ import { SettingsExpander } from "./SettingsExpander.js"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
-import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ColumnWidth, TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
@@ -33,6 +32,7 @@ import { Dialog } from "../gui/base/Dialog.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { client } from "../misc/ClientDetector"
+import { showAccountDeletionDialog } from "../subscription/deletion/DeleteAccountDialogNew"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
@@ -165,9 +165,9 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 											clientVersion: env.versionNumber,
 											clientPlatform: client.getClientPlatform().valueOf().toString(),
 										})
-										showDeleteAccountDialog(surveyData)
+										showAccountDeletionDialog(locator.logins)
 									} else {
-										showDeleteAccountDialog()
+										showAccountDeletionDialog(locator.logins)
 									}
 								})
 							},

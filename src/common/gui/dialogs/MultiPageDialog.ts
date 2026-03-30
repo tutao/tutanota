@@ -125,7 +125,19 @@ export class MultiPageDialog<PageKey extends string> {
 			MultiPageDialogViewWrapper,
 			{
 				currentPageStream: this.currentPageStream,
-				renderContent: (page: stream<PageKey>) => getPages(this.dialog, this.navigateToPage, this.goBack)[page()].content,
+				renderContent: (page: PageKey) => {
+					this.updateHeaderBar()
+					// fixme: is page() always the same as currentPageStream() ?
+					const { content, onClose } = getPages(this.dialog, this.navigateToPage, this.goBack)[page]
+					this.dialog.setCloseHandler(
+						onClose == null
+							? null
+							: () => {
+									onClose()
+								},
+					)
+					return content
+				},
 				stackStream: this.pageStackStream,
 				isAnimating: this.isAnimating,
 				height,
@@ -217,7 +229,7 @@ export class MultiPageDialog<PageKey extends string> {
 
 type Props = {
 	currentPageStream: stream<string>
-	renderContent: (currentPage: stream<string>) => Children
+	renderContent: (currentPage: string) => Children
 	stackStream: stream<string[]>
 	isAnimating: stream<boolean>
 	height: number
@@ -305,23 +317,22 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 		return m("", { key: `page-${key}`, style: { width: px(this.pageWidth) } }, children)
 	}
 
-	private getFillerPage(currentPage: string, stack: string[]): stream<string> {
+	private getFillerPage(currentPage: string, stack: string[]): string {
 		const page = this.slideDirection === SlideDirection.RIGHT ? stack[stack.length - 2] : this.transitionPage()
-		return stream(page ?? currentPage)
+		return page ?? currentPage
 	}
 
 	private renderPage({ attrs: { renderContent, stackStream, currentPageStream, isAnimating } }: Vnode<Props>) {
-		const fillerPageStream = this.getFillerPage(currentPageStream(), stackStream())
+		const fillerPage = this.getFillerPage(currentPageStream(), stackStream())
 
-		const fillerPage = fillerPageStream()
 		const currentPage = currentPageStream()
 
-		const pages = [this.wrap(renderContent(fillerPageStream), fillerPage), this.wrap(renderContent(currentPageStream), currentPage)]
+		const pages = [this.wrap(renderContent(fillerPage), fillerPage), this.wrap(renderContent(currentPageStream()), currentPage)]
 
 		if (isAnimating()) {
 			return this.slideDirection === SlideDirection.RIGHT ? pages : pages.reverse()
 		} else {
-			return this.wrap(renderContent(currentPageStream), currentPage)
+			return this.wrap(renderContent(currentPageStream()), currentPage)
 		}
 	}
 

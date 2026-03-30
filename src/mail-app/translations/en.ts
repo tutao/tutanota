@@ -2267,7 +2267,18 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"beginTyping_msg": "Type in your question...",
+		"whichMailShouldTakeover_msg": "Which tuta account should take over\n{mailAddress}?",
+		"reuseMailAddressQuestion_msg": "Do you want to reuse your tuta mail address with a different tuta account?",
+		"enterPasswordForAccountDeletion_msg": "Please put in your password to confirm the deletion of your account\n{mailAddress}",
+		"checkingPasswordCorrectness_msg": "Checking if password is correct",
+		"checkingMailCorrectness_msg": "Checking if the account is available",
+		"passwordCheckingOk_msg": "Everything looks fine",
+		"mailCheckingOk_msg": "Great! This account is available",
+		"invalidMail_msg": "This account doesn't seen to be available. Please check for spelling errors and make sure it's a paid account",
+		"accountDeletionFinalQuestion_msg":"Are you sure you want to delete your account\n{mailAddress}?",
+		"addressCantBeReused_msg":"This address can not be reused",
+		"addressAddedTo_msg": "The address is available to be added to\n{mailAddress}",
 		"waitingForAppStoreConfirmation_msg": "Waiting for Apple to confirm subscription ...",
-		"beginTyping_msg": "Type in your question..."
 	}
 }
