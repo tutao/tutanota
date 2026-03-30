@@ -92,6 +92,12 @@ public class FileFacadeReceiveDispatcher {
 				fileId
 			)
 			return toJson(result)
+		case "abortDownload":
+			let fileId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.abortDownload(
+				fileId
+			)
+			return "null"
 		case "hashFile":
 			let fileUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.hashFile(

@@ -60,6 +60,10 @@ export class FileFacadeReceiveDispatcher {
 				const fileId: string = arg[3]
 				return this.facade.download(sourceUrl, filename, headers, fileId)
 			}
+			case "abortDownload": {
+				const fileId: string = arg[0]
+				return this.facade.abortDownload(fileId)
+			}
 			case "hashFile": {
 				const fileUri: string = arg[0]
 				return this.facade.hashFile(fileUri)
