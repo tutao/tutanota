@@ -3,5 +3,5 @@ import { isWebClient } from "../Env"
 import { FeatureType } from "../TutanotaConstants"
 
 export function isDriveEnabled(loginController: LoginController): boolean {
-	return isWebClient() && loginController.isInternalUserLoggedIn() && loginController.isEnabled(FeatureType.DriveInternalBeta)
+	return loginController.isInternalUserLoggedIn() && loginController.isEnabled(FeatureType.DriveInternalBeta)
 }
