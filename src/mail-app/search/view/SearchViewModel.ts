@@ -494,9 +494,15 @@ export class SearchViewModel {
 					dep.end(true)
 				}
 
-				if (this.offlineStorageSettings?.available() && this.offlineStorageSettings.getTimeRange().getTime() > newState.currentMailIndexTimestamp) {
-					// Update offline storage range as index extends so we don't lose what's already indexed if the user logs out before indexing is done
-					this.offlineStorageSettings.setTimeRange(new Date(newState.currentMailIndexTimestamp))
+				if (this.offlineStorageSettings?.available()) {
+					const offlineRange = this.offlineStorageSettings.getTimeRange().getTime()
+					const isIndexingDoneOrCancelled = newState.progress === 0 && newState.error == null
+
+					// update offline storage range as index extends to not lose what's already indexed if the user logs out before indexing is done.
+					// Update offline range when indexing is cancelled to not continue indexing on next login
+					if (offlineRange > newState.currentMailIndexTimestamp || isIndexingDoneOrCancelled) {
+						this.offlineStorageSettings.setTimeRange(new Date(newState.currentMailIndexTimestamp))
+					}
 				}
 			}
 		} else {
