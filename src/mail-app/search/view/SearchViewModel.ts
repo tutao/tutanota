@@ -250,25 +250,7 @@ export class SearchViewModel {
 
 	async init() {
 		this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
-
-		this.indexStateSubscription = this.search.indexState.map((newState) => {
-			// Indexing stopped and _startDate is outside the index range
-			if (newState.progress === 0 && (this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)) {
-				this._startDate = new Date(newState.currentMailIndexTimestamp)
-			}
-
-			// Update offline storage range as index extends so we don't lose what's already indexed if the user logs out before indexing is done
-			if (this.offlineStorageSettings?.available() && this.offlineStorageSettings.getTimeRange().getTime() > newState.currentMailIndexTimestamp) {
-				this.offlineStorageSettings.setTimeRange(new Date(newState.currentMailIndexTimestamp))
-			}
-
-			const currentResult = this.search.result()
-			if (currentResult != null && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
-				// only extend current result if the index was extended
-				this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
-			}
-		})
-
+		this.indexStateSubscription = this.search.indexState.map((newState) => this.onMailIndexStateChanged(newState))
 		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => {
 			this.onMailboxesChanged(mailboxes)
 		})
@@ -288,7 +270,7 @@ export class SearchViewModel {
 	 * We only care about indexingState when searching mails because indexState only reflects mail indexing
 	 */
 	isIndexingMails(): boolean {
-		return isSameTypeRef(MailTypeRef, this.getRestriction().type) && this.search.indexState().progress > 0
+		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().progress > 0
 	}
 
 	private readonly entityEventsListener: EntityEventsListener = {
@@ -499,8 +481,24 @@ export class SearchViewModel {
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
 		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
-			// the current search result will be extended as the range extends. the offline storage range will also be updated if needed
+			// the current search result will be extended as the range extends
 			void this.indexerFacade.extendMailIndex(startDate.getTime())
+
+			let onIndexStateUpdate = (_: SearchIndexStateInfo) => {}
+			// separate subscription to indexState so offline range is updated even when the user navigates away from search
+			const dep = this.search.indexState.map((newState) => onIndexStateUpdate(newState))
+			// when subscribing to a mithril stream, the callback is invoked immediately with the stream's current value,
+			// but we only want this to be invoked once indexing starts
+			onIndexStateUpdate = (newState) => {
+				if (newState.progress === 0) {
+					dep.end(true)
+				}
+
+				if (this.offlineStorageSettings?.available() && this.offlineStorageSettings.getTimeRange().getTime() > newState.currentMailIndexTimestamp) {
+					// Update offline storage range as index extends so we don't lose what's already indexed if the user logs out before indexing is done
+					this.offlineStorageSettings.setTimeRange(new Date(newState.currentMailIndexTimestamp))
+				}
+			}
 		} else {
 			this.searchAgain()
 		}
@@ -959,6 +957,22 @@ export class SearchViewModel {
 		return false
 	}
 
+	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
+		if (
+			newState.progress === 0 &&
+			isSameTypeRef(MailTypeRef, this.searchedType) &&
+			(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
+		) {
+			// Indexing stopped and _startDate is outside the index range
+			this._startDate = new Date(newState.currentMailIndexTimestamp)
+		}
+
+		const currentResult = this.search.result()
+		if (currentResult != null && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
+			// only extend current result if the index was extended
+			this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
+		}
+	}
 	private onSearchResultChanged(newResult: SearchResult | null): void {
 		if (newResult == null || !isSameTypeRef(MailTypeRef, newResult.restriction.type)) {
 			this.mailFilterType = new Set()
