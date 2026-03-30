@@ -107,6 +107,13 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"abortDownload" -> {
+				val fileId: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.abortDownload(
+					fileId,
+				)
+				return json.encodeToString(result)
+			}
 			"hashFile" -> {
 				val fileUri: String = json.decodeFromString(arg[0])
 				val result: String = this.facade.hashFile(

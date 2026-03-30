@@ -70,6 +70,12 @@ public protocol FileFacade {
 		_ fileId: String
 	) async throws -> DownloadTaskResponse
 	/**
+	 * abort a transfer started by FileFacade.download
+	 */
+	func abortDownload(
+		_ fileId: String
+	) async throws -> Void
+	/**
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
 	 */
 	func hashFile(

@@ -262,8 +262,16 @@ export class BlobFacade {
 		}
 	}
 
-	async cancelDownload(transferId: TransferId): Promise<void> {
+	async abortDownload(transferId: TransferId): Promise<void> {
 		this.abortControllers.get(transferId)?.abort(new CancelledError("Download canceled"))
+
+		for (const state of this.nativeDownloadProgressState.values()) {
+			if (state.transferId === transferId) {
+				for (const blob of state.referencingInstance.blobs) {
+					await this.fileApp.abortDownload(blob.blobId)
+				}
+			}
+		}
 	}
 
 	private concatenateBlobChunks(referencingInstance: BlobReferencingInstance, blobChunks: Map<Id, Uint8Array>) {
@@ -379,54 +387,64 @@ export class BlobFacade {
 		for (const blob of referencingInstance.blobs) {
 			this.nativeDownloadProgressState.set(blob.blobId, fileDownloadState)
 		}
-		const doBlobRequest = async () => {
-			blobIdToDecryptedFileUri = new Map()
-			const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
 
-			try {
-				const archiveIdToBlobs = groupBy(referencingInstance.blobs, (blob) => blob.archiveId)
-				for (const [archiveId, blobs] of archiveIdToBlobs) {
-					const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
-					for (const blob of blobs) {
-						const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey).catch(async (e: Error) => {
-							// cleanup every temporary file in the native part in case an error occurred when downloading chun
-							for (const [blobId, decryptedChunkFileUri] of blobIdToDecryptedFileUri) {
-								await this.fileApp.deleteFile(decryptedChunkFileUri)
-							}
-							throw e
-						})
-						blobIdToDecryptedFileUri.set(blob.blobId, fileUri)
-						// after blob is downloaded set the progress to the overall blob size. This is safeguard if the last
-						// chunk is not reported.
-						fileDownloadState.bytesDownloadedPerBlob.set(blob.blobId, filterInt(blob.size))
+		const controller = new AbortController()
+		this.abortControllers.set(transferId, controller)
+		try {
+			const doBlobRequest = async () => {
+				controller.signal.throwIfAborted()
+
+				blobIdToDecryptedFileUri = new Map()
+				const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
+
+				try {
+					const archiveIdToBlobs = groupBy(referencingInstance.blobs, (blob) => blob.archiveId)
+					for (const [archiveId, blobs] of archiveIdToBlobs) {
+						const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
+						for (const blob of blobs) {
+							controller.signal.throwIfAborted()
+							const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey).catch(async (e: Error) => {
+								// cleanup every temporary file in the native part in case an error occurred when downloading chun
+								for (const [blobId, decryptedChunkFileUri] of blobIdToDecryptedFileUri) {
+									await this.fileApp.deleteFile(decryptedChunkFileUri)
+								}
+								throw e
+							})
+							blobIdToDecryptedFileUri.set(blob.blobId, fileUri)
+							// after blob is downloaded set the progress to the overall blob size. This is safeguard if the last
+							// chunk is not reported.
+							fileDownloadState.bytesDownloadedPerBlob.set(blob.blobId, filterInt(blob.size))
+						}
+					}
+				} finally {
+					for (const blob of referencingInstance.blobs) {
+						this.nativeDownloadProgressState.delete(blob.blobId)
 					}
 				}
+			}
+			const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
+
+			await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+
+			// order decryptedChunkFileUris so that we can tell native to join them
+			const decryptedChunkFileUris = referencingInstance.blobs.map((blob) => assertNotNull(blobIdToDecryptedFileUri.get(blob.blobId)))
+			try {
+				const decryptedFileUri = await this.fileApp.joinFiles(fileName, decryptedChunkFileUris)
+				const size = await this.fileApp.getSize(decryptedFileUri)
+				return {
+					_type: "FileReference",
+					name: fileName,
+					mimeType,
+					size,
+					location: decryptedFileUri,
+				}
 			} finally {
-				for (const blob of referencingInstance.blobs) {
-					this.nativeDownloadProgressState.delete(blob.blobId)
+				for (const tmpBlobFile of decryptedChunkFileUris) {
+					await this.fileApp.deleteFile(tmpBlobFile)
 				}
 			}
-		}
-		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
-
-		await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-
-		// order decryptedChunkFileUris so that we can tell native to join them
-		const decryptedChunkFileUris = referencingInstance.blobs.map((blob) => assertNotNull(blobIdToDecryptedFileUri.get(blob.blobId)))
-		try {
-			const decryptedFileUri = await this.fileApp.joinFiles(fileName, decryptedChunkFileUris)
-			const size = await this.fileApp.getSize(decryptedFileUri)
-			return {
-				_type: "FileReference",
-				name: fileName,
-				mimeType,
-				size,
-				location: decryptedFileUri,
-			}
 		} finally {
-			for (const tmpBlobFile of decryptedChunkFileUris) {
-				await this.fileApp.deleteFile(tmpBlobFile)
-			}
+			this.abortControllers.delete(transferId)
 		}
 	}
 
@@ -658,11 +676,11 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		fileName: string,
 		additionalParams: Dict,
-		fileId: Id,
+		blobId: Id,
 	): Promise<FileUri> {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() =>
-				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, fileId),
+				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, blobId),
 			)
 		}
 		const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
@@ -671,7 +689,7 @@ export class BlobFacade {
 			url.toString(),
 			fileName,
 			this.createStorageAppHeaders(),
-			fileId,
+			blobId,
 		)
 		if (statusCode === 200 && encryptedFileUri != null) {
 			const decryptedFileUrl = await this.aesApp.aesDecryptFile(sessionKey, encryptedFileUri)
@@ -684,7 +702,7 @@ export class BlobFacade {
 		} else if (isSuspensionResponse(statusCode, suspensionTime)) {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() =>
-				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, fileId),
+				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, blobId),
 			)
 		} else {
 			throw handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)

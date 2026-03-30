@@ -52,6 +52,11 @@ export interface FileFacade {
 	download(sourceUrl: string, filename: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse>
 
 	/**
+	 * abort a transfer started by FileFacade.download
+	 */
+	abortDownload(fileId: string): Promise<void>
+
+	/**
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
 	 */
 	hashFile(fileUri: string): Promise<string>

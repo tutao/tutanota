@@ -73,6 +73,12 @@ interface FileFacade {
 		fileId: String,
 	): DownloadTaskResponse
 	/**
+	 * abort a transfer started by FileFacade.download
+	 */
+	suspend fun abortDownload(
+		fileId: String,
+	): Unit
+	/**
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
 	 */
 	suspend fun hashFile(
