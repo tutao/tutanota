@@ -75,7 +75,6 @@ pipeline {
 					steps {
 						echo "Building STAGING ${VERSION}"
 						sh 'npm ci'
-						sh 'npm run build-packages'
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
@@ -93,7 +92,6 @@ pipeline {
 					steps {
 						echo "Building PROD ${VERSION}"
 						sh 'npm ci'
-						sh 'npm run build-packages'
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")

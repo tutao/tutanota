@@ -16,6 +16,7 @@
 			 * See: https://github.com/microsoft/TypeScript/issues/57486
 			 */
 			"@tutao/utils": ["../src/utils"],
+			"@tutao/crypto-primitives": ["../src/crypto-primitives/crypto_primitives"],
 			"@tutao/crypto": ["../src/crypto"],
 			"@tutao/crypto/error": ["../src/crypto/error"],
 			"@tutao/error": ["../src/error"],

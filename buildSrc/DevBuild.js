@@ -12,9 +12,7 @@ import { rolldown } from "rolldown"
 import { resolveLibs } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
-import { buildRuntimePackages } from "./packageBuilderFunctions.js"
-import { sh } from "./sh.js"
-import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "./cryptoPrimitivesUtils.js"
+import { execSync } from "node:child_process"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -29,32 +27,40 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @returns {Promise<void>}
  */
 export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
+	const version = await getTutanotaAppVersion()
 	const isCalendarBuild = app === "calendar"
-	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const liboqsIncludeDir = "libs/webassembly/include"
 
 	console.log(`Building dev client stage: ${stage} host: ${host} app: ${app}`)
 
 	if (clean) {
-		await runStep("Clean", () =>
-			// parallelize rm
-			Promise.all([
-				fs.emptyDir(buildDir),
-				fs.rm(liboqsIncludeDir, { recursive: true, force: true }),
-				fs.rm(WASM_PACK_OUT_DIR, { recursive: true, force: true }),
-			]),
-		)
+		await runStep("Clean", async () => {
+			fs.rmSync(buildDir, { recursive: true, force: true })
+			fs.rmSync(liboqsIncludeDir, { recursive: true, force: true })
+			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
+			execSync("cargo clean")
+			execSync("npx tsc --build --clean")
+		})
 	}
 
-	await runStep("Packages", async () => {
-		await buildRuntimePackages()
+	await runStep("Build crypto-primitives", async () => {
+		const targetDir = path.resolve(buildDir)
+		clean
+			? await $({ stdio: "inherit", cwd: "src/crypto" })`node make ${targetDir} --clean`
+			: await $({ stdio: "inherit", cwd: "src/crypto" })`node make ${targetDir}`
 	})
 
-	const version = await getTutanotaAppVersion()
+	// We need to build mimimi for web as well until ts modularization is done.
+	await runStep("Build mimimi", async () => {
+		execSync("node make", {
+			cwd: "src/mimimi",
+			stdio: "inherit",
+		})
+	})
 
 	await runStep("Types", async () => {
-		await sh`npx tsc --project ${tsConfig} --incremental ${true} --noEmit true`
+		await $({ stdio: "inherit" })`npm run ${app ?? "mail"}:types`
 	})
 
 	/**
@@ -111,19 +117,15 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
  * @param p.app {"mail"|"calendar"}
  * @return {Promise<void>}
  */
-async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
+export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
 	const isCalendarBuild = app === "calendar"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const resolvedBuildDir = path.resolve(buildDir)
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
-	// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
-	// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
-	await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
-
 	await runStep("Web: Rolldown", async () => {
-		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
 			transform: {
@@ -205,9 +207,9 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 					targetName: "node_sqlcipher",
 				}),
 				napiPlugin({
-					nodeModule: "@tutao/node-mimimi",
 					platform,
 					architecture,
+					modulePath: "src/mimimi",
 				}),
 				// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
 				platform === "win32"

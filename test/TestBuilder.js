@@ -4,42 +4,19 @@ import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
-import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
-import { sh } from "../buildSrc/sh.js"
 import { rolldown } from "rolldown"
 import { resolveLibs } from "../buildSrc/RollupConfig.js"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
-import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "../buildSrc/cryptoPrimitivesUtils.js"
+import { $ } from "zx"
+import { execSync, spawnSync } from "node:child_process"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ networkDebugging = false, clean, fast = false }) {
-	if (clean) {
-		await runStep("Clean", async () => {
-			await fs.emptyDir("build")
-			fs.rm(projectRoot + WASM_PACK_OUT_DIR, { recursive: true, force: true })
-		})
-	}
-
-	if (!fast) {
-		await runStep("Packages", async () => {
-			await buildPackages("..")
-			// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
-			// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
-			await copyCryptoPrimitiveCrateIntoWasmDir({
-				wasmOutputDir: "build",
-				pathSourcePrefix: "../",
-			})
-		})
-
-		await runStep("Types", async () => {
-			await sh`npx tsc --incremental true --noEmit true`
-		})
-	}
-
+export async function runTestBuild({ networkDebugging = false, clean }) {
+	const buildDir = path.resolve("build")
 	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({
 		staticUrl: "http://localhost:9000",
@@ -50,14 +27,39 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 		networkDebugging,
 	})
 
+	if (clean) {
+		await runStep("Clean", async () => {
+			fs.rmSync(buildDir, { recursive: true, force: true })
+			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
+			spawnSync("cargo", ["clean"])
+			spawnSync("npx", ["tsc", "--build", "--clean"])
+		})
+	}
+
+	await runStep("Build crypto-primitives", async () => {
+		const targetDir = path.resolve(buildDir)
+		const _ = clean
+			? await $({ stdio: "inherit", cwd: "../src/crypto" })`node make ${targetDir} --clean`
+			: await $({ stdio: "inherit", cwd: "../src/crypto" })`node make ${targetDir}`
+	})
+
+	await runStep("Build mimimi", async () => {
+		execSync("node make", { cwd: "../src/mimimi", stdio: "inherit" })
+	})
+
+	await runStep("Types", async () => {
+		await $({ stdio: "inherit" })`npm run test:types`
+	})
+
 	await runStep("Assets", async () => {
 		const pjPath = path.join("..", "package.json")
 		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await createUnitTestHtml(localEnv)
 	})
+
 	await runStep("Rolldown", async () => {
-		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
 			platform: "neutral",
@@ -100,7 +102,20 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 			],
 			plugins: [
 				preludeEnvPlugin(localEnv),
-				resolveLibs(".."),
+				resolveLibs("..", {
+					"@tutao/otest": path.normalize("test/otest/dist/index.js"),
+					"@tutao/crypto/rsa": path.normalize("src/crypto/dist/encryption/Rsa.js"),
+					"@tutao/crypto/random": path.normalize("src/crypto/dist/random/SecureRandom.js"),
+					"@tutao/crypto/symmetric-cipher-utils": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricCipherUtils.js"),
+					"@tutao/crypto/symmetric-cipher-facade": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricCipherFacade.js"),
+					"@tutao/crypto/symmetric-key-deriver": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricKeyDeriver.js"),
+					"@tutao/crypto/symmetric-cipher-version": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricCipherVersion.js"),
+					"@tutao/crypto/aes-cbc-facade": path.normalize("src/crypto/dist/encryption/symmetric/AesCbcFacade.js"),
+					"@tutao/crypto/sha256": path.normalize("src/crypto/dist/hashes/Sha256.js"),
+					"@tutao/crypto/blake3": path.normalize("src/crypto/dist/hashes/Blake3.js"),
+					"@tutao/crypto/sjcl": path.normalize("src/crypto/dist/internal/sjcl.js"),
+					"@tutao/crypto/jsbn": path.normalize("src/crypto/dist/internal/crypto-jsbn-2012-08-09_1.js"),
+				}),
 				nodeGypPlugin({
 					rootDir: projectRoot,
 					platform: process.platform,

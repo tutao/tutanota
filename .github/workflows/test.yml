@@ -36,7 +36,7 @@ jobs:
           npm run check
       - name: check for FIXMEs
         run: |
-          if grep "FIXME\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
+          if grep "FIXME\|[fF]ixme" -r src buildSrc test/tests app-android/app/src app-ios/tutanota/Sources tuta-sdk --exclude-dir=dist --exclude-dir=node_modules; then
             echo 'FIXMEs in src';
             exit 1;
           else
@@ -57,7 +57,6 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: run tests
         run: |
-          npm run build-packages
           npm run test-ci
 
   test-browser:
@@ -82,7 +81,7 @@ jobs:
         # It is fine as we run our own tests in a throwaway container anyway
         run: |
           echo Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}
-          npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
+          npm run test -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
 
   build-webapp:
     runs-on: ubuntu-latest
@@ -97,7 +96,6 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: build webapp
         run: |
-          npm run build-packages
           node webapp --disable-minify
 
   build-calendar:
@@ -113,7 +111,6 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: build webapp
         run: |
-          npm run build-packages
           node webapp --disable-minify --app calendar
 
   build-desktop: # will check that offline migrations are there
@@ -129,5 +126,4 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: build desktop
         run: |
-          npm run build-packages
           node desktop --disable-minify

@@ -4,7 +4,7 @@
  */
 
 import { AssociationType, Type, ValueType } from "../src/common/api/common/EntityConstants.js"
-import { capitalizeFirstLetter } from "@tutao/tutanota-utils"
+import { capitalizeFirstLetter } from "../src/utils/dist/index.js"
 
 /**
  * @param models {object}

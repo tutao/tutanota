@@ -4,9 +4,7 @@ const globalContext = typeof window !== "undefined" ? window : typeof global !==
 const noOpFn = function () {}
 
 if (typeof performance === "undefined") {
-	// @ts-ignore
 	self.performance = {
-		// @ts-ignore
 		offset: Date.now(),
 		now: function now() {
 			// @ts-ignore
@@ -16,12 +14,10 @@ if (typeof performance === "undefined") {
 }
 
 if (typeof performance.mark !== "function") {
-	// @ts-ignore
 	performance.mark = noOpFn
 }
 
 if (typeof performance.measure !== "function") {
-	// @ts-ignore
 	performance.measure = noOpFn
 }
 
@@ -29,11 +25,10 @@ if (typeof performance.measure !== "function") {
 if (typeof BigInt === "undefined") {
 	console.log("No BigInt support in browser, stubbing...")
 
-	function BigInt(arg: any) {
+	function BigInt(arg) {
 		return arg
 	}
 
 	BigInt.polyfilled = true
-	// @ts-ignore
 	globalContext.BigInt = BigInt
 }

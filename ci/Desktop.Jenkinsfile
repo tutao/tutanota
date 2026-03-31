@@ -91,11 +91,10 @@ pipeline {
 			} // agent
 			steps {
 				sh 'npm ci'
-				sh 'npm run build-packages'
 				sh 'node webapp.js release'
 
 				// excluding web-specific and mobile specific parts which we don't need in desktop
-				stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
+				stash includes: 'build/**, src/crypto-primitives/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
 			}
 		} // stage build webapp
 		stage('Build desktop clients') {
@@ -112,14 +111,13 @@ pipeline {
 							}
 							steps {
 								bat "npm ci"
-								// building packages builds node-mimimi
-								bat "npm run build-packages"
 
+								bat "cd src\\mimimi && node make --release && cd ..\\.."
 								bat "node buildSrc\\getNodeGypLibrary.js @signalapp/sqlcipher -e node --copy-target node_sqlcipher --force-rebuild --root-dir ${WORKSPACE}"
 								bat "node buildSrc\\getNodeGypLibrary.js @indutny/simple-windows-notifications -e node --copy-target simple-windows-notifications --force-rebuild --root-dir ${WORKSPACE}"
 								// napi-rs rollup plugin expects .node for the package to be next to the entry point
 								// so we stash and unstash it as-is
-								stash includes: 'native-cache/**/*,packages/node-mimimi/dist/*.node', name: 'native_modules'
+								stash includes: 'native-cache/**/*,src/mimimi/dist/*.node', name: 'native_modules'
 							}
 						}
 				    	stage("Client") {
@@ -243,7 +241,6 @@ pipeline {
                 stage('Preparation for sign and upload') {
                     steps {
                         sh 'npm ci'
-                        sh 'npm run build-packages'
                     }
                 }
                 stage('Sign and upload') {
@@ -353,7 +350,8 @@ def initBuildArea() {
 	sh 'node -v'
 	sh 'npm -v'
     sh 'npm ci'
-    sh 'npm run build-packages'
+    sh 'cd src/mimimi && node make --release && cd -'
+    sh 'cd src/crypto && node make ../../build && cd -'
     sh 'rm -rf ./build/*'
     sh 'rm -rf ./native-cache/*'
     unstash 'web_base'

@@ -52,7 +52,7 @@ pub fn convert_version_to_i64(version: u64) -> i64 {
 /// Alphabet for encoding/decoding a base64ext string.
 /// Base64ext uses another character set than base64 in order to make it sortable.
 ///
-/// packages/tutanota-utils/lib/Encoding.ts
+/// src/utils/Encoding.ts
 const BASE64EXT_ALPHABET: Alphabet =
 	match Alphabet::new("-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz") {
 		Ok(x) => x,

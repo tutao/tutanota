@@ -13,16 +13,17 @@ program
 	.action(run)
 	.parse(process.argv)
 
-async function run(targetDir: string, options: { clean: boolean }) {
+async function run(targetDir, { clean }) {
 	if (process.platform === "win32") {
 		usePowerShell()
 	}
 
 	const cryptoPrimitivesWasmFile = path.resolve(`../../${WASM_PACK_OUT_DIR}/${CRYPTO_PRIMITIVES_WASM_FILE}`)
+	const cryptoPrimitivesWasmFileParsed = path.parse(cryptoPrimitivesWasmFile)
 	const targetPath = path.resolve(`${targetDir}/${CRYPTO_PRIMITIVES_WASM_FILE}`)
 
-	if (options.clean) {
-		fs.rmSync(path.parse(cryptoPrimitivesWasmFile).dir, { recursive: true, force: true })
+	if (clean) {
+		fs.rmSync(cryptoPrimitivesWasmFileParsed.dir, { recursive: true, force: true })
 	}
 
 	// prepare output dir that will contain our wasm files
@@ -38,10 +39,13 @@ async function run(targetDir: string, options: { clean: boolean }) {
 
 	// * we only want to build this again in case it does not exist yet.
 	// because invocation of wasm-pack leads to generation (file write) and optimization with wasm-opt (file read)
-	// which leads to problem in ci
+	// which leads to problem when we invoke this from multiple parallel steps in CI
 	// * pass --clean flag to force rebuilding
-	if (!fs.existsSync(`../../${WASM_PACK_OUT_DIR}`)) {
+	if (!fs.existsSync(cryptoPrimitivesWasmFile)) {
 		await $({ stdio: "inherit" })`npx wasm-pack build --target web --profile release-wasm ${CRYPTO_PRIMITIVES_CRATE} --out-dir ${wasmOutDir} --no-pack`
+	} else {
+		console.log("Crypto-primitives already seems to be built under: " + cryptoPrimitivesWasmFileParsed.dir)
 	}
+	console.log("Copying wasm from: " + cryptoPrimitivesWasmFile + " to: " + targetPath)
 	fs.copyFileSync(cryptoPrimitivesWasmFile, targetPath)
 }

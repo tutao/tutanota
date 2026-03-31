@@ -7,16 +7,12 @@ import fs from "node:fs"
  * Assumes that the .node file resides next to the entry point dictated by the "main" in package.json.
  * Assumes that the file name contains platform triple.
  */
-export function napiPlugin({ nodeModule, platform, architecture }) {
+export function napiPlugin({ modulePath, platform, architecture }) {
 	return {
 		name: "napiPlugin",
 		async writeBundle(opts) {
-			const resolvedModulePath = await this.resolve(nodeModule)
-			if (resolvedModulePath == null) {
-				return this.error(`Could not resolve module ${nodeModule}`)
-			}
-			const modulePath = path.dirname(resolvedModulePath.id)
-			const moduleName = removeNpmNamespacePrefix(nodeModule)
+			const moduleName = removeNpmNamespacePrefix(modulePath)
+			modulePath = path.join(path.resolve(modulePath), "/dist")
 			for (let arch of resolveArch(architecture)) {
 				const targetTuple = getTargetTupleWithLibc(platform, arch)
 				const fileName = `${moduleName}.${targetTuple}.node`
