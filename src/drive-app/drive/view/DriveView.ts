@@ -207,7 +207,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					const dropdown = new Dropdown(
 						() =>
 							newItemActions({
-								onNewFile: () => this.onNewFile(),
+								onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
 								onNewFolder: () => this.onNewFolder(),
 							}),
 						300,
@@ -335,11 +335,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								: {
 										label: "newDriveItem_action",
 										click: (ev, dom) => {
-											//
 											createDropdown({
 												lazyButtons: () =>
 													newItemActions({
-														onNewFile: () => this.onNewFile(),
+														onNewFile: () => this.onNewFile(dom.getBoundingClientRect()),
 														onNewFolder: () => this.onNewFolder(),
 													}),
 											})(ev, ev.target as HTMLElement)
@@ -433,7 +432,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(FabMenu, {
 			title: lang.getTranslation("newDriveItem_action"),
 			actions: newItemActions({
-				onNewFile: () => this.onNewFile(),
+				onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
 				onNewFolder: () => this.onNewFolder(),
 			}),
 		} satisfies FabMenuAttrs)
@@ -520,7 +519,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				},
 			},
 			loadParents: () => this.driveViewModel.getMoreParents(),
-			onNewFile: () => this.onNewFile(),
+			onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
 			onNewFolder: () =>
 				showNewFolderDialog(
 					async (folderName) => this.driveViewModel.createNewFolder(folderName),
@@ -615,8 +614,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		)
 	}
 
-	async onNewFile(): Promise<void> {
-		await showNewFileDialog((files: WebFile[] | FileReference[]) => this.driveViewModel.uploadFiles(files))
+	async onNewFile(boundingRect: DOMRect): Promise<void> {
+		await showNewFileDialog((files: WebFile[] | FileReference[]) => this.driveViewModel.uploadFiles(files), boundingRect)
 	}
 
 	async onNewFolder(): Promise<void> {

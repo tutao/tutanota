@@ -7,6 +7,7 @@ import { ExportFacade } from "./generatedipc/ExportFacade.js"
 import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse"
 import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse"
 import { MailBundle } from "../../mailFunctionality/SharedMailUtils.js"
+import { PosRect } from "../../gui/base/Dropdown"
 
 export type FileUri = string
 
@@ -29,7 +30,7 @@ export class NativeFileApp {
 	 * @param boundingRect The file chooser is opened next to the rectangle.
 	 * @param filter an optional list of allowed file extensions
 	 */
-	async openFileChooser(boundingRect: DOMRect, filter?: ReadonlyArray<string>, isFileOnly: boolean = false): Promise<Array<FileReference>> {
+	async openFileChooser(boundingRect: PosRect, filter?: ReadonlyArray<string>, isFileOnly: boolean = false): Promise<Array<FileReference>> {
 		/* The file chooser opens next to a location specified by srcRect on larger devices (iPad).
 		 * The rectangle must be specifed using values for x, y, height and width.
 		 */
