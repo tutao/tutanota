@@ -28,7 +28,6 @@ async function run({ platform }) {
 	await bumpVersionInCargoWorkspace(newVersionString)
 
 	if (platform === "all" || platform === "webdesktop") {
-		await bumpWorkspaces(newVersionString)
 		await $`npm version --no-git-tag-version ${newVersionString}`
 
 		// Need to clean and re-install to make sure that all packages
@@ -157,100 +156,4 @@ async function bumpAndroidVersionName(currentVersion, newVersionString, buildGra
 	const newBuildGradleString = buildGradleString.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
 	console.log(`Bumped Android versionName: ${currentVersion.join("\\.")} -> ${newVersionString}`)
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
-}
-
-/**
- * @return {string[]}
- */
-function getWorkspaceDirs() {
-	const packagesDir = path.resolve("./packages")
-	const relativePaths = fs.readdirSync(packagesDir)
-	return relativePaths.map((relativePath) => path.join(packagesDir, relativePath))
-}
-
-/**
- * @return {Promise<Workspace[]>}
- */
-async function getWorkspaces() {
-	const workspaces = []
-	const workspaceDirs = getWorkspaceDirs()
-	for (let workspaceDir of workspaceDirs) {
-		const packageJson = await readPackageJsonFromDir(workspaceDir)
-		workspaces.push({
-			name: packageJson.name,
-			directory: workspaceDir,
-		})
-	}
-	return workspaces
-}
-
-/**
- * @param version {string}
- * @return {Promise<void>}
- */
-async function bumpWorkspaces(version) {
-	// if we don't first bump versions of packages and _then_
-	// update the inter-package dependencies we will get an error
-	// in the middle of the process because npm can't resolve something
-	const workspaces = await getWorkspaces()
-	for (const workspace of workspaces) {
-		await bumpWorkspaceVersion(version, workspace)
-	}
-
-	for (const workspace of workspaces) {
-		const dependency = workspace.name
-		await updateDependencyForWorkspaces(version, dependency, workspaces)
-	}
-}
-
-/**
- * @param version {string}
- * @param workspace {Workspace}
- * @return {Promise<void>}
- */
-async function bumpWorkspaceVersion(version, workspace) {
-	// set --workspaces-update to false to not run install (it's slow, doesn't work sometimes and we don't need it)
-	await $`npm version --workspaces-update false --no-git-tag-version --workspace=${workspace.name} ${version}`
-}
-
-/**
- * @param directory {string}
- * @return {Promise<any>}
- */
-async function readPackageJsonFromDir(directory) {
-	const packageJsonPath = path.join(directory, "package.json")
-	const packageJsonContents = await fs.promises.readFile(packageJsonPath, { encoding: "utf8" })
-	return JSON.parse(packageJsonContents)
-}
-
-/**
- * @param version {string}
- * @param dependency {string}
- * @param workspaces {Workspace[]}
- * @return {Promise<void>}
- */
-async function updateDependencyForWorkspaces(version, dependency, workspaces) {
-	await updateDependency({ version, dependency, directory: "." })
-	for (const workspace of workspaces) {
-		const directory = workspace.directory
-		await updateDependency({ version, dependency, directory })
-	}
-}
-
-/**
- * @param {{version: string, dependency: string, directory: string}} params
- * @return {Promise<void>}
- */
-async function updateDependency({ version, dependency, directory }) {
-	const packageJson = await readPackageJsonFromDir(directory)
-
-	if (packageJson.dependencies && dependency in packageJson.dependencies) {
-		packageJson.dependencies[dependency] = version
-	}
-
-	if (packageJson.devDependencies && dependency in packageJson.devDependencies) {
-		packageJson.devDependencies[dependency] = version
-	}
-
-	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, "\t"), { encoding: "utf8" })
 }
