@@ -29,7 +29,7 @@ export interface DriveFolderViewAttrs {
 	selectionEvents: DriveFolderSelectionEvents
 	onDropFiles: (files: File[]) => unknown
 	loadParents: () => Promise<DriveFolder[]>
-	onNewFile: () => unknown
+	onNewFile: (event: MouseEvent, dom: HTMLElement) => unknown
 	onNewFolder: () => unknown
 	fileActions: FileActions
 	onMove: (items: FolderItemId[], into: FolderFolderItem) => unknown
