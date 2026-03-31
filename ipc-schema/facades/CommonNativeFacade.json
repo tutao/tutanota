@@ -133,7 +133,12 @@
 			"ret": "void"
 		},
 		"downloadProgress": {
-			"doc": "Download has progressed",
+			"doc": "Bytes downloaded so far for a given file id",
+			"arg": [{ "fileId": "string" }, { "bytes": "number" }],
+			"ret": "void"
+		},
+		"uploadProgress": {
+			"doc": "Bytes uploaded so far for a given file id",
 			"arg": [{ "fileId": "string" }, { "bytes": "number" }],
 			"ret": "void"
 		}
