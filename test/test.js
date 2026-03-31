@@ -72,7 +72,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 		spawn(command, { stdio: "inherit", shell: true })
 	})
 
-	const { default: o } = await import("@tutao/otest")
+	const { default: o } = await import("./otest/dist/otest.js")
 	console.log("\n--------------- BROWSER ---------------")
 	o.printReport(result)
 	return resultIsOk(result)

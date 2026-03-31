@@ -15,7 +15,7 @@ program
  * @param platform {string}
  * @return {string[]}
  */
-function getTargets(platform: string) {
+function getTargets(platform) {
 	switch (platform) {
 		case "win":
 		case "win32":
@@ -32,8 +32,8 @@ function getTargets(platform: string) {
 	}
 }
 
-async function run(platform: string, options: { clean: boolean; release: boolean }) {
-	if (options.clean) {
+async function run(platform, { clean, release }) {
+	if (clean) {
 		await rm("./build", { recursive: true, force: true })
 		await rm("./target", { recursive: true, force: true })
 		await rm("./dist", { recursive: true, force: true })
@@ -49,7 +49,7 @@ async function run(platform: string, options: { clean: boolean; release: boolean
 			esm: true,
 			dts: "binding.d.ts",
 			target,
-			release: options.release,
+			release: release,
 			features: ["javascript"],
 			// Even though it is documented as defaulting to true it doesn't seem to actually be the case
 			// https://github.com/napi-rs/napi-rs/issues/2419

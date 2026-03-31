@@ -9,7 +9,6 @@ import generatePackageJson from "./electron-package-json-template.js"
 import { create as createEnv, preludeEnvPlugin } from "./env.js"
 import cp from "node:child_process"
 import util from "node:util"
-import typescript from "@rollup/plugin-typescript"
 import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
 import { domainConfigs } from "./DomainConfigs.js"
@@ -17,6 +16,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import replace from "@rollup/plugin-replace"
+import typescript from "@rollup/plugin-typescript"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -132,12 +132,14 @@ export async function buildDesktop({
 
 async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
 	platform = getCanonicalPlatformName(platform)
+
+	const mainFiles = ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"]
 	const mainBundle = await rollup({
-		input: [path.join(dirname, "src/common/desktop/DesktopMain.ts"), path.join(dirname, "src/common/desktop/sqlworker.ts")],
+		input: mainFiles,
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
 		external: (id, parent, isResolved) => {
-			if (parent != null && parent.endsWith("node-mimimi/dist/binding.cjs")) return true
+			if (parent != null && parent.endsWith("mimimi/dist/binding.cjs")) return true
 			if (id.endsWith(".node")) return true
 			return ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"].includes(id)
 		},
@@ -171,10 +173,10 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			napiPlugin({
 				platform,
 				architecture,
-				nodeModule: "@tutao/node-mimimi",
+				modulePath: "src/mimimi",
 			}),
 			typescript({
-				tsconfig: "tsconfig.json",
+				tsconfig: "tsconfig-dist-rollup.json",
 				outDir,
 			}),
 			resolveLibs(),

@@ -24,6 +24,17 @@ export const dependencyMap = {
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 }
 
+export const tsImportAliases = {
+	"@tutao/utils": path.normalize("src/utils/dist/index.js"),
+	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
+	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
+	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
+	"@tutao/error": path.normalize("src/error/dist/index.js"),
+	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
+	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
+	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
+}
+
 /**
  * These are the definitions of chunks with static dependencies. Key is the chunk and values are dependencies to other chunks
  */
@@ -135,11 +146,11 @@ export const allowedImports = {
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
-export function resolveLibs(baseDir = ".") {
+export function resolveLibs(baseDir = ".", extraDependenciesMap = {}) {
 	return {
 		name: "resolve-libs",
 		resolveId(source) {
-			const value = dependencyMap[source]
+			const value = dependencyMap[source] ?? tsImportAliases[source] ?? extraDependenciesMap[source]
 			if (!value) return null
 			const id = path.join(baseDir, value)
 			return { id, resolvedBy: this.name }
@@ -165,7 +176,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils") || isIn("packages/tutanota-error")) {
+	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/utils") || isIn("src/error")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -233,7 +244,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/gui") ||
 		isIn("src/common/offline") ||
 		isIn("src/common/serviceworker") ||
-		moduleId.includes(path.normalize("packages/tutanota-usagetests")) ||
+		moduleId.includes(path.normalize("src/usagetests")) ||
 		moduleId.includes("NotificationContentSelector") ||
 		moduleId.includes("NotificationPermissionsDialog") ||
 		moduleId.includes("SettingsBannerButton")
@@ -281,8 +292,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("cborg") ||
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
-		isIn("packages/tutanota-crypto/dist/error") ||
-		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js")
+		isIn("src/crypto/error") ||
+		isIn("src/crypto/misc/CryptoError")
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
@@ -320,7 +331,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "linkify"
 	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen") || isIn("src/common/api/worker/recoveryDocumentGenerator")) {
 		return "pdf"
-	} else if (isIn("src/common/api/worker") || isIn("packages/tutanota-crypto") || moduleId.includes("argon2")) {
+	} else if (isIn("src/common/api/worker") || isIn("src/crypto") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
@@ -340,6 +351,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 			return "translation-" + language
 		} else if (isIn(`src/mail-app`) || isIn(`src/calendar-app`)) {
 			return "main"
+		} else {
+			throw new Error("I do not know which chunk? for: " + moduleId)
 		}
 	}
 }

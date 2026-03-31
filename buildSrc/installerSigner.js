@@ -43,7 +43,7 @@ import fs from "node:fs"
 import { spawnSync } from "node:child_process"
 import jsyaml from "js-yaml"
 import crypto from "node:crypto"
-import { base64ToUint8Array } from "@tutao/tutanota-utils"
+import { base64ToUint8Array } from "../src/utils/dist/Encoding.js"
 
 const SIG_ALGO = "RSASSA-PKCS1-v1_5"
 const DIGEST = "SHA-512"
@@ -114,7 +114,7 @@ async function signWithHSM(filePath, signatureFileName, dir) {
 /**
  * takes a pem-encoded private key and returns the raw der-encoded data
  * @param key {string} private key pem
- * @returns {ArrayBuffer} raw binary der-encoded private key
+ * @returns {ArrayBufferLike} raw binary der-encoded private key
  */
 
 function pemToBinaryDer(key) {
