@@ -26,6 +26,7 @@ o.spec("EntityAdapter", () => {
 			_permissions: "permissionListId",
 			_ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			_ownerKeyVersion: "99",
+			_kdfNonce: null,
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 			group: "somegroup",
 		})
@@ -36,6 +37,7 @@ o.spec("EntityAdapter", () => {
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
 		o(entityAdapter._ownerEncSessionKey).equals(groupInfo._ownerEncSessionKey!)
 		o(entityAdapter._ownerKeyVersion).equals("99")
+		o(entityAdapter._kdfNonce).equals(groupInfo._kdfNonce!)
 		o(entityAdapter._permissions).equals("permissionListId")
 		o(entityAdapter._listEncSessionKey).deepEquals(stringToUtf8Uint8Array("listEncSessionKey"))
 	})
@@ -49,6 +51,7 @@ o.spec("EntityAdapter", () => {
 			_permissions: "permissionListId",
 			_ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			_ownerKeyVersion: "99",
+			_kdfNonce: null,
 			bucketKey: createTestEntity(BucketKeyTypeRef, {
 				_id: "bucketKey",
 			}),
@@ -64,6 +67,7 @@ o.spec("EntityAdapter", () => {
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
 		o(entityAdapter._ownerEncSessionKey).equals(mail._ownerEncSessionKey!)
 		o(entityAdapter._ownerKeyVersion).equals("99")
+		o(entityAdapter._kdfNonce).equals(mail._kdfNonce!)
 		o(entityAdapter._permissions).equals("permissionListId")
 		o(entityAdapter.bucketKey).deepEquals(mailBucketKey as BucketKey)
 	})
@@ -107,6 +111,27 @@ o.spec("EntityAdapter", () => {
 
 		o(entityAdapter._ownerEncSessionKey).equals(ownerEncSk)
 		o(entityAdapter._ownerKeyVersion).equals("99")
+	})
+
+	o.test("set _kdfNonce", async () => {
+		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+
+		const mail = createTestEntity(MailTypeRef, {
+			_permissions: "permissionListId",
+			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
+			conversationEntry: ["list", "element"],
+		})
+
+		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
+
+		const kdfNonce: Uint8Array = new Uint8Array([3, 4, 5])
+
+		o(entityAdapter._kdfNonce).equals(null)
+
+		entityAdapter._kdfNonce = kdfNonce
+
+		o(entityAdapter._kdfNonce).equals(kdfNonce)
 	})
 
 	o.test("set _ownerGroup", async () => {

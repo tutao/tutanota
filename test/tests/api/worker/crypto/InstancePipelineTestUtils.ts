@@ -76,6 +76,14 @@ export const testTypeModel: TypeModel = {
 			final: true,
 			encrypted: true,
 		},
+		"16": {
+			id: 16,
+			name: "_kdfNonce",
+			type: ValueType.Bytes,
+			cardinality: Cardinality.ZeroOrOne,
+			final: true,
+			encrypted: false,
+		},
 	},
 	associations: {
 		"3": {

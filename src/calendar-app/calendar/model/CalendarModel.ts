@@ -688,8 +688,9 @@ export class CalendarModel {
 		// Add new event
 		for (const { event } of eventsForCreation) {
 			assignEventId(event, getTimeZone(), currentCalendarGroupRoot)
-			// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+			// Reset _ownerEncSessionKey, _kdfNonce because it cannot be set for new entity, it will be assigned by the CryptoFacade
 			event._ownerEncSessionKey = null
+			event._kdfNonce = null
 
 			if (event.repeatRule != null) {
 				event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
@@ -764,8 +765,9 @@ export class CalendarModel {
 		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
 		// one.
 		assignEventId(event, zone, groupRoot)
-		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+		// Reset _ownerEncSessionKey, _kdfNonce because it cannot be set for new entity, it will be assigned by the CryptoFacade
 		event._ownerEncSessionKey = null
+		event._kdfNonce = null
 		if (event.repeatRule != null) {
 			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
 		}
@@ -793,8 +795,9 @@ export class CalendarModel {
 		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
 		// one.
 		assignEventId(newEvent, zone, groupRoot)
-		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+		// Reset _ownerEncSessionKey, _kdfNonce because it cannot be set for new entity, it will be assigned by the CryptoFacade
 		newEvent._ownerEncSessionKey = null
+		newEvent._kdfNonce = null
 		if (newEvent.repeatRule != null) {
 			newEvent.repeatRule.excludedDates = newEvent.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
 		}

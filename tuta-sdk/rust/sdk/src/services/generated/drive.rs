@@ -19,13 +19,13 @@ use crate::entities::generated::drive::DriveItemServiceDeleteOut;
 use crate::entities::generated::drive::DrivePostIn;
 pub struct DriveCopyService;
 
-crate::service_impl!(declare, DriveCopyService, "drive/drivecopyservice", 3);
+crate::service_impl!(declare, DriveCopyService, "drive/drivecopyservice", 4);
 crate::service_impl!(POST, DriveCopyService, DriveCopyServicePostIn, DriveCopyServicePostOut);
 
 
 pub struct DriveFolderService;
 
-crate::service_impl!(declare, DriveFolderService, "drive/drivefolderservice", 3);
+crate::service_impl!(declare, DriveFolderService, "drive/drivefolderservice", 4);
 crate::service_impl!(POST, DriveFolderService, DriveFolderServicePostIn, DriveFolderServicePostOut);
 crate::service_impl!(PUT, DriveFolderService, DriveFolderServicePutIn, ());
 crate::service_impl!(DELETE, DriveFolderService, DriveFolderServiceDeleteIn, ());
@@ -33,7 +33,7 @@ crate::service_impl!(DELETE, DriveFolderService, DriveFolderServiceDeleteIn, ())
 
 pub struct DriveItemService;
 
-crate::service_impl!(declare, DriveItemService, "drive/driveitemservice", 3);
+crate::service_impl!(declare, DriveItemService, "drive/driveitemservice", 4);
 crate::service_impl!(POST, DriveItemService, DriveItemPostIn, DriveItemPostOut);
 crate::service_impl!(PUT, DriveItemService, DriveItemPutIn, ());
 crate::service_impl!(DELETE, DriveItemService, DriveItemDeleteIn, DriveItemServiceDeleteOut);
@@ -41,5 +41,5 @@ crate::service_impl!(DELETE, DriveItemService, DriveItemDeleteIn, DriveItemServi
 
 pub struct DriveService;
 
-crate::service_impl!(declare, DriveService, "drive/driveservice", 3);
+crate::service_impl!(declare, DriveService, "drive/driveservice", 4);
 crate::service_impl!(POST, DriveService, DrivePostIn, ());

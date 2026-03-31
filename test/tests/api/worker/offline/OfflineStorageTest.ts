@@ -598,6 +598,7 @@ o.spec("OfflineStorageDb", function () {
 						_permissions: "permissions",
 						_ownerEncSessionKey: null,
 						_ownerKeyVersion: null,
+						_kdfNonce: null,
 						contacts: "contactsId",
 						photos: null,
 					})

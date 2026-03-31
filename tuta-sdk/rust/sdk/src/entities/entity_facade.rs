@@ -23,6 +23,8 @@ use util::array::array_cast_slice;
 pub const OWNER_ENC_SESSION_KEY_FIELD: &str = "_ownerEncSessionKey";
 /// The name of the owner-encrypted session key version field in an entity
 pub const OWNER_KEY_VERSION_FIELD: &str = "_ownerKeyVersion";
+/// The name of the field that contains the kdf nonce
+pub const KDF_NONCE_FIELD: &str = "_kdfNonce";
 /// The name of the owner group field in an entity
 pub const OWNER_GROUP_FIELD: &str = "_ownerGroup";
 /// The name of the ID field in an entity
@@ -1514,19 +1516,20 @@ mod tests {
 					),
 				],
 			)]),
-		"1465"=> JsonElement::Array(vec![]),
-		"1677"=> JsonElement::Null,
-		"1728"=> JsonElement::String(
+			"1465"=> JsonElement::Array(vec![]),
+			"1677"=> JsonElement::Null,
+			"1728"=> JsonElement::String(
 				"1".to_string(),
 			),
-		"1729"=> JsonElement::Array(
+			"1729"=> JsonElement::Array(
 				vec![],
 			),
-		"1769"=> JsonElement::String(
+			"1769"=> JsonElement::String(
 				"0".to_string()
 			),
-		"1784"=> JsonElement::Null,
-		"1814" => JsonElement::String("0,1".to_string()),
+			"1784"=> JsonElement::Null,
+			"1814" => JsonElement::String("0,1".to_string()),
+			"1839" => JsonElement::Null,
 		}
 	}
 

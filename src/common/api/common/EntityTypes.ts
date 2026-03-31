@@ -235,6 +235,7 @@ export interface Entity {
 	_ownerGroup?: null | Id
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString
+	_kdfNonce?: null | Uint8Array
 	ownerEncSessionKey?: null | Uint8Array
 	ownerEncSessionKeyVersion?: null | NumberString
 	_permissions?: null | Id
