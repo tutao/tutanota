@@ -4,6 +4,7 @@ import { DRIVE_PREFIX } from "../../../common/misc/RouteChange"
 import { showNewFileDialog, showNewFolderDialog } from "../view/DriveGuiUtils"
 import { DriveViewModel } from "../view/DriveViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 
 export async function quickDriveActions(router: Router, driveViewModel: DriveViewModel): Promise<readonly QuickAction[]> {
 	const driveTabAction: QuickAction = {
@@ -26,7 +27,7 @@ export async function quickDriveActions(router: Router, driveViewModel: DriveVie
 			},
 			{
 				description: `${lang.getTranslationText("driveView_action")}: ${lang.getTranslationText("uploadFile_action")}`,
-				exec: () => showNewFileDialog((files) => driveViewModel.uploadFiles(files)),
+				exec: () => showNewFileDialog((files) => driveViewModel.uploadFiles(files), getDetachedDropdownBounds()),
 			},
 		]
 	}
