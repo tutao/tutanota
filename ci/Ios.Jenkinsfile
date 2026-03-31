@@ -180,8 +180,7 @@ def buildWebapp(String stage) {
 		sh "pwd"
 		sh "echo $PATH"
     	sh "npm ci"
-    	sh 'npm run build-packages'
-    	sh "node --max-old-space-size=8192 webapp ${stage}"
+    	sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"
     	sh "node buildSrc/prepareMobileBuild.js --app mail"
 	}
 }

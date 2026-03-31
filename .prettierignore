@@ -10,4 +10,4 @@ app-ios/
 fdroid-metadata-workaround/
 src/crypto-primitives
 target/
-packages/node-mimimi/tests
+src/mimimi/tests
