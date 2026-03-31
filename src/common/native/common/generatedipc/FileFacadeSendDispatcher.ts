@@ -37,6 +37,9 @@ export class FileFacadeSendDispatcher implements FileFacade {
 	async upload(...args: Parameters<FileFacade["upload"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "upload", ...args])
 	}
+	async abortUpload(...args: Parameters<FileFacade["abortUpload"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "abortUpload", ...args])
+	}
 	async download(...args: Parameters<FileFacade["download"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "download", ...args])
 	}

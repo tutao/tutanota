@@ -73,13 +73,21 @@ public class FileFacadeReceiveDispatcher {
 			let targetUrl = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let method = try! JSONDecoder().decode(String.self, from: arg[2].data(using: .utf8)!)
 			let headers = try! JSONDecoder().decode([String : String].self, from: arg[3].data(using: .utf8)!)
+			let fileId = try! JSONDecoder().decode(String.self, from: arg[4].data(using: .utf8)!)
 			let result = try await self.facade.upload(
 				fileUrl,
 				targetUrl,
 				method,
-				headers
+				headers,
+				fileId
 			)
 			return toJson(result)
+		case "abortUpload":
+			let fileId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.abortUpload(
+				fileId
+			)
+			return "null"
 		case "download":
 			let sourceUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let filename = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)

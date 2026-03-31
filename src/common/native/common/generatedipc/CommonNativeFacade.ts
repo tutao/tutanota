@@ -57,7 +57,12 @@ export interface CommonNativeFacade {
 	sendLogs(logs: string): Promise<void>
 
 	/**
-	 * Download has progressed
+	 * Bytes downloaded so far for a given file id
 	 */
 	downloadProgress(fileId: string, bytes: number): Promise<void>
+
+	/**
+	 * Bytes uploaded so far for a given file id
+	 */
+	uploadProgress(fileId: string, bytes: number): Promise<void>
 }

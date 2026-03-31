@@ -170,7 +170,7 @@ export class DriveTransferController {
 		const state = this.transferForId(transferId)
 		if (state?.state === "active") {
 			if (state.type === "upload") {
-				await this.driveFacade.cancelCurrentUpload(transferId)
+				await this.blobFacade.abortUpload(transferId)
 			} else if (state.type === "download") {
 				await this.blobFacade.abortDownload(transferId)
 			}
