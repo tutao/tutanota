@@ -51,7 +51,12 @@ export class FileFacadeReceiveDispatcher {
 				const targetUrl: string = arg[1]
 				const method: string = arg[2]
 				const headers: Record<string, string> = arg[3]
-				return this.facade.upload(fileUrl, targetUrl, method, headers)
+				const fileId: string = arg[4]
+				return this.facade.upload(fileUrl, targetUrl, method, headers, fileId)
+			}
+			case "abortUpload": {
+				const fileId: string = arg[0]
+				return this.facade.abortUpload(fileId)
 			}
 			case "download": {
 				const sourceUrl: string = arg[0]

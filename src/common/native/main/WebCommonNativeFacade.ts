@@ -251,4 +251,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	async downloadProgress(fileId: string, bytes: number): Promise<void> {
 		await this.blobFacade.nativeDownloadProgress(fileId, bytes)
 	}
+
+	async uploadProgress(fileId: string, bytes: number): Promise<void> {
+		await this.blobFacade.nativeUploadProgress(fileId, bytes)
+	}
 }

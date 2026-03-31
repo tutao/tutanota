@@ -62,7 +62,14 @@ interface FileFacade {
 		targetUrl: String,
 		method: String,
 		headers: Map<String, String>,
+		fileId: String,
 	): UploadTaskResponse
+	/**
+	 * abort a transfer started by FileFacade#upload
+	 */
+	suspend fun abortUpload(
+		fileId: String,
+	): Unit
 	/**
 	 * download an encrypted file to the file system and return the location of the data
 	 */
@@ -73,7 +80,7 @@ interface FileFacade {
 		fileId: String,
 	): DownloadTaskResponse
 	/**
-	 * abort a transfer started by FileFacade.download
+	 * abort a transfer started by FileFacade#download
 	 */
 	suspend fun abortDownload(
 		fileId: String,

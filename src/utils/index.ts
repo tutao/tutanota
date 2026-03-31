@@ -64,6 +64,7 @@ export {
 	setEquals,
 	setMap,
 	setDifference,
+	collectionSum,
 } from "./CollectionUtils.js"
 export {
 	YEAR_IN_MILLIS,

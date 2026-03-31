@@ -458,8 +458,13 @@ export class MailFacade {
 				const transferId = await this.blobFacade.generateTransferId()
 				if (isApp() || isDesktop()) {
 					const { location } = await this.fileApp.writeDataFile(providedFile)
-					// there is no upload progress in native yet
-					referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, senderMailGroupId, fileSessionKey)
+					referenceTokens = await this.blobFacade.encryptAndUploadNative(
+						ArchiveDataType.Attachments,
+						location,
+						senderMailGroupId,
+						fileSessionKey,
+						transferId,
+					)
 				} else {
 					referenceTokens = await this.blobFacade.encryptAndUpload(
 						ArchiveDataType.Attachments,
@@ -472,11 +477,13 @@ export class MailFacade {
 				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (isFileReference(providedFile)) {
 				const fileSessionKey = aes256RandomKey()
+				const transferId = await this.blobFacade.generateTransferId()
 				const referenceTokens = await this.blobFacade.encryptAndUploadNative(
 					ArchiveDataType.Attachments,
 					providedFile.location,
 					senderMailGroupId,
 					fileSessionKey,
+					transferId,
 				)
 				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (!containsId(existingFileIds, getLetId(providedFile))) {

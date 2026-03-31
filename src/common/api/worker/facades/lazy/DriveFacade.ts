@@ -50,8 +50,6 @@ export const enum DriveFolderType {
  * Exposes operations on the Drive.
  */
 export class DriveFacade {
-	private readonly abortControllers: Map<TransferId, AbortController> = new Map()
-
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly blobFacade: BlobFacade,
@@ -175,28 +173,26 @@ export class DriveFacade {
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
-		const abortController = new AbortController()
-		this.abortControllers.set(fileId, abortController)
-
 		const blobRefTokens: sysTypeRefs.BlobReferenceTokenWrapper[] = []
-		try {
-			if (isWebFile(file)) {
-				for await (const { referenceTokenWrapper } of this.blobFacade.streamEncryptAndUpload(
-					ArchiveDataType.DriveFile,
-					file.file,
-					assertNotNull(fileGroupId),
-					sessionKey,
-					fileId,
-					abortController.signal,
-				)) {
-					blobRefTokens.push(referenceTokenWrapper)
-				}
-			} else {
-				const tokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.DriveFile, file.location, assertNotNull(fileGroupId), sessionKey)
-				blobRefTokens.push(...tokens)
+		if (isWebFile(file)) {
+			for await (const { referenceTokenWrapper } of this.blobFacade.streamEncryptAndUpload(
+				ArchiveDataType.DriveFile,
+				file.file,
+				assertNotNull(fileGroupId),
+				sessionKey,
+				fileId,
+			)) {
+				blobRefTokens.push(referenceTokenWrapper)
 			}
-		} finally {
-			this.abortControllers.delete(fileId)
+		} else {
+			const tokens = await this.blobFacade.encryptAndUploadNative(
+				ArchiveDataType.DriveFile,
+				file.location,
+				assertNotNull(fileGroupId),
+				sessionKey,
+				fileId,
+			)
+			blobRefTokens.push(...tokens)
 		}
 
 		if (blobRefTokens.length === 0) {
@@ -216,10 +212,6 @@ export class DriveFacade {
 		const response = await this.serviceExecutor.post(driveServices.DriveItemService, data, { sessionKey })
 
 		return await this.entityClient.load(driveTypeRefs.DriveFileTypeRef, response.createdFile)
-	}
-
-	public async cancelCurrentUpload(fileId: TransferId) {
-		this.abortControllers.get(fileId)?.abort()
 	}
 
 	/**

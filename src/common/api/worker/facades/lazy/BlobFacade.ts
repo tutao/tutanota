@@ -4,6 +4,7 @@ import {
 	assertNonNull,
 	assertNotNull,
 	base64ToBase64Ext,
+	collectionSum,
 	concat,
 	filterInt,
 	getFirstOrThrow,
@@ -49,6 +50,13 @@ interface FileDownloadState {
 	bytesDownloadedPerBlob: Map<Id, number>
 }
 
+interface FileUploadState {
+	readonly transferId: TransferId
+	/** Map from blob id to the total downloaded bytes for that blob. */
+	readonly bytesUploadedPerBlob: Map<Id, number>
+	readonly totalSize: number
+}
+
 /**
  * The BlobFacade uploads and downloads blobs to/from the blob store.
  *
@@ -56,6 +64,11 @@ interface FileDownloadState {
  *
  * In case of upload it is necessary to make a request to the BlobReferenceService or use the referenceTokens returned by the BlobService PUT in some other service call.
  * Otherwise, the blobs will automatically be deleted after some time. It is not allowed to reference blobs manually in some instance.
+ *
+ * From the outside world perspective there is a single operation for a single transfer. BlobFacade's users receive
+ * progress and abort transfers as a whole. In reality there is at least one network request per blob. The progress and
+ * cancellation are done per blob request. Abort/progress is translated from per-blob into per-transfer one inside
+ * BlobFacade.
  */
 export class BlobFacade {
 	/**
@@ -65,6 +78,8 @@ export class BlobFacade {
 	 * coordinate the overall download progress for the file. This map is for looking up file state by blob id.
 	 */
 	private readonly nativeDownloadProgressState: Map<Id, FileDownloadState> = new Map()
+	/** Map from chunkId to upload state. Used for progress events and aborting the requests */
+	private readonly nativeUploadProgressState: Map<Id, FileUploadState> = new Map()
 	private readonly abortControllers: Map<TransferId, AbortController> = new Map()
 	// this will not work in multi-window scenario
 	private latestTransferId: number = 0
@@ -97,40 +112,33 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		transferId: TransferId,
 		onChunkUploaded?: (info: UploadProgressInfo) => void,
-		onCancelListener?: EventTarget,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
 
-		let uploadIsCanceledByUser = false
-		const doCancelUpload = ({ detail }: CustomEvent) => {
-			if (detail === transferId) {
-				uploadIsCanceledByUser = true
-			}
-		}
-
-		onCancelListener?.addEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+		const abortController = new AbortController()
+		this.abortControllers.set(transferId, abortController)
 
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
 			const receivedTokens: sysTypeRefs.BlobReferenceTokenWrapper[] = []
 
 			for (const chunk of chunks) {
-				if (uploadIsCanceledByUser) {
-					return []
-				}
-				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+				abortController.signal.throwIfAborted()
+				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, abortController.signal)
 				onChunkUploaded?.({ transferId, totalBytes: blobData.length, uploadedBytes: chunk.length })
 				receivedTokens.push(blobReferenceTokenWrapper)
 			}
-			// TODO: careful we need to also remove in case of a failure and inside a catch block or finally block
-			onCancelListener?.removeEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
 			return receivedTokens
 		}
 
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 
-		/* TODO: Communicate retry case to UploadProgressListener so it can reset the model state / inform the user via the UI */
-		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+		try {
+			/* TODO: Communicate retry case to UploadProgressListener so it can reset the model state / inform the user via the UI */
+			return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+		} finally {
+			this.abortControllers.delete(transferId)
+		}
 	}
 
 	/**
@@ -145,7 +153,6 @@ export class BlobFacade {
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		transferId: TransferId,
-		abortSignal: AbortSignal,
 	): AsyncGenerator<
 		{
 			uploadedBytes: number
@@ -163,7 +170,7 @@ export class BlobFacade {
 
 		const doBlobRequest = async (chunk: Uint8Array) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, (bytes) => {
+			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, abortController.signal, (bytes) => {
 				this.progressDispatcher.onChunkUploaded({
 					transferId,
 					uploadedBytes: bytesUploadedSoFar + bytes,
@@ -172,11 +179,14 @@ export class BlobFacade {
 			})
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
+		const abortController = new AbortController()
+		this.abortControllers.set(transferId, abortController)
+
 		for (const chunkBlob of splitFileIntoChunks(chunkSizeBytes, file)) {
 			const chunkData = await chunkBlob.arrayBuffer()
 			// Process the chunkData here (e.g., upload it to a server)
 			const tokenWrapper = await doBlobRequestWithRetry(async () => {
-				if (abortSignal.aborted) {
+				if (abortController.signal.aborted) {
 					throw new CancelledError("Upload aborted")
 				}
 				const response = await doBlobRequest(new Uint8Array(chunkData))
@@ -198,20 +208,48 @@ export class BlobFacade {
 		fileUri: FileUri,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
+		transferId: TransferId,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper[]> {
 		if (!isApp() && !isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const chunkUris = await this.fileApp.splitFile(fileUri, MAX_BLOB_SIZE_BYTES)
-
-		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
-		const doBlobRequest = async () => {
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return promiseMap(chunkUris, async (chunkUri) => {
-				return this.encryptAndUploadNativeChunk(chunkUri, blobServerAccessInfo, sessionKey)
-			})
+		const chunkUrisWithIds = chunkUris.map((chunkUri) => {
+			return { chunkUri, chunkId: generateFileChunkId() }
+		})
+		const [fileMeta] = await this.fileApp.getFilesMetaData([fileUri])
+		const uploadState: FileUploadState = {
+			transferId,
+			totalSize: fileMeta.size,
+			bytesUploadedPerBlob: new Map(chunkUrisWithIds.map(({ chunkUri }) => [chunkUri, 0])),
 		}
-		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+		for (const { chunkId } of chunkUrisWithIds) {
+			this.nativeUploadProgressState.set(chunkId, uploadState)
+		}
+		const abortController = new AbortController()
+		this.abortControllers.set(transferId, abortController)
+		try {
+			const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
+			const doBlobRequest = async () => {
+				if (abortController.signal.aborted) {
+					throw new CancelledError("Upload canceled")
+				}
+				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
+				return promiseMap(chunkUrisWithIds, ({ chunkId, chunkUri }) => {
+					if (abortController.signal.aborted) {
+						throw new CancelledError("Upload canceled")
+					}
+					return this.encryptAndUploadNativeChunk(chunkUri, blobServerAccessInfo, sessionKey, chunkId)
+				})
+			}
+			// important to await this one so that finally() does the cleanup at the right moment below
+			return await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+		} finally {
+			this.abortControllers.delete(transferId)
+			for (const { chunkId } of chunkUrisWithIds) {
+				this.nativeUploadProgressState.delete(chunkId)
+			}
+		}
 	}
 
 	/**
@@ -456,6 +494,7 @@ export class BlobFacade {
 		chunk: Uint8Array,
 		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
 		sessionKey: AesKey,
+		abortSignal: AbortSignal,
 		onProgress?: (bytes: number) => unknown,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper> {
 		const encryptedData = _encryptBytes(sessionKey, chunk)
@@ -474,6 +513,7 @@ export class BlobFacade {
 					body: encryptedData,
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
+					abortSignal,
 					progressListener: {
 						download() {},
 						upload(_, bytes) {
@@ -491,6 +531,7 @@ export class BlobFacade {
 		fileUri: FileUri,
 		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
 		sessionKey: AesKey,
+		chunkId: string,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper> {
 		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
 		const encryptedChunkUri = encryptedFileInfo.uri
@@ -499,7 +540,7 @@ export class BlobFacade {
 		return tryServers(
 			blobServerAccessInfo.servers,
 			async (serverUrl) => {
-				return await this.uploadNative(encryptedChunkUri, blobServerAccessInfo, serverUrl, blobHash)
+				return await this.uploadNative(encryptedChunkUri, blobServerAccessInfo, serverUrl, blobHash, chunkId)
 			},
 			`can't upload to server from native`,
 		)
@@ -510,9 +551,10 @@ export class BlobFacade {
 		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
 		serverUrl: string,
 		blobHash: string,
+		chunkId: string,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper> {
 		if (this.suspensionHandler.isSuspended()) {
-			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash))
+			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash, chunkId))
 		}
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, storageTypeRefs.BlobGetInTypeRef)
 		const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
@@ -522,6 +564,7 @@ export class BlobFacade {
 			fullUrl.toString(),
 			HttpMethod.POST,
 			this.createStorageAppHeaders(),
+			chunkId,
 		) // blobReferenceToken in the response body
 
 		if (statusCode === 201 && responseBody != null) {
@@ -530,9 +573,21 @@ export class BlobFacade {
 			throw new Error("no response body")
 		} else if (restSuspension.isSuspensionResponse(statusCode, suspensionTime)) {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
-			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash))
+			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash, chunkId))
 		} else {
 			throw restError.handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
+		}
+	}
+
+	async abortUpload(transferId: TransferId) {
+		this.abortControllers.get(transferId)?.abort(new CancelledError("Upload canceled"))
+
+		// Need to find the right entry by transfer id. Should be okay since it's linear and now very common
+		for (const [chunkId, entry] of this.nativeUploadProgressState) {
+			if (entry.transferId === transferId) {
+				await this.fileApp.abortUpload(chunkId)
+				// we keep going after finding the match to cancel all the chunks of it, just in case
+			}
 		}
 	}
 
@@ -731,12 +786,25 @@ export class BlobFacade {
 	async nativeDownloadProgress(blobId: string, bytes: number) {
 		const state = this.nativeDownloadProgressState.get(blobId)
 		if (state == null) return
-		state?.bytesDownloadedPerBlob.set(blobId, bytes)
-		const downloadedBytes = Array.from(state.bytesDownloadedPerBlob.values()).reduce((acc, v) => acc + v, 0)
+		state.bytesDownloadedPerBlob.set(blobId, bytes)
+		const downloadedBytes = collectionSum(state.bytesDownloadedPerBlob.values())
 		// report downstream on the overall transfer progress
 		this.progressDispatcher.onChunkDownloaded({
 			transferId: state.transferId,
 			downloadedBytes: downloadedBytes,
+		})
+	}
+
+	async nativeUploadProgress(chunkId: Id, bytes: number) {
+		const state = this.nativeUploadProgressState.get(chunkId)
+		if (state == null) return
+		state.bytesUploadedPerBlob.set(chunkId, bytes)
+		const uploadedBytes = collectionSum(state.bytesUploadedPerBlob.values())
+		// report downstream on the overall transfer progress
+		this.progressDispatcher.onChunkUploaded({
+			transferId: state.transferId,
+			uploadedBytes,
+			totalBytes: state.totalSize,
 		})
 	}
 }
@@ -776,4 +844,8 @@ export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id
 		throw new Error(`Parsed wrong number of blobs: ${blobCount}. Expected: ${result.size}`)
 	}
 	return result
+}
+
+function generateFileChunkId(): string {
+	return uint8ArrayToBase64(crypto.getRandomValues(new Uint8Array(6)))
 }
