@@ -100,9 +100,19 @@
 				},
 				{
 					"headers": "Map<string, string>"
-				}
+				},
+				{ "fileId": "string" }
 			],
 			"ret": "UploadTaskResponse"
+		},
+		"abortUpload": {
+			"doc": "abort a transfer started by FileFacade#upload",
+			"arg": [
+				{
+					"fileId": "string"
+				}
+			],
+			"ret": "void"
 		},
 		"download": {
 			"doc": "download an encrypted file to the file system and return the location of the data",
@@ -121,7 +131,7 @@
 			"ret": "DownloadTaskResponse"
 		},
 		"abortDownload": {
-			"doc": "abort a transfer started by FileFacade.download",
+			"doc": "abort a transfer started by FileFacade#download",
 			"arg": [
 				{
 					"fileId": "string"

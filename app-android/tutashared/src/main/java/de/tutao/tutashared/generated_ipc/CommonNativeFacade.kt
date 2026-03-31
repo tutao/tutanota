@@ -82,9 +82,16 @@ interface CommonNativeFacade {
 		logs: String,
 	): Unit
 	/**
-	 * Download has progressed
+	 * Bytes downloaded so far for a given file id
 	 */
 	suspend fun downloadProgress(
+		fileId: String,
+		bytes: Int,
+	): Unit
+	/**
+	 * Bytes uploaded so far for a given file id
+	 */
+	suspend fun uploadProgress(
 		fileId: String,
 		bytes: Int,
 	): Unit

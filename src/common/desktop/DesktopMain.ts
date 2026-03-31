@@ -327,9 +327,12 @@ async function createComponents(): Promise<Components> {
 			},
 		}
 		// re-wrapping it because commonNativeFacade will be re-created after reload to it should be lazy but FileFacade doesn't have to know that
-		const progressTracker: Pick<CommonNativeFacade, "downloadProgress"> = {
+		const progressTracker: Pick<CommonNativeFacade, "downloadProgress" | "uploadProgress"> = {
 			async downloadProgress(fileId: string, bytes: number) {
 				await window.commonNativeFacade.downloadProgress(fileId, bytes)
+			},
+			async uploadProgress(fileId: string, bytes: number) {
+				await window.commonNativeFacade.uploadProgress(fileId, bytes)
 			},
 		}
 		const dispatcher = new DesktopGlobalDispatcher(

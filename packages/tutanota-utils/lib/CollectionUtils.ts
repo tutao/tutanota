@@ -138,3 +138,14 @@ export function setDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Se
 	}
 	return result
 }
+
+/**
+ * Count a sum of all numbers in {@param collection}
+ */
+export function collectionSum(collection: Iterable<number>): number {
+	let sum = 0
+	for (const item of collection) {
+		sum += item
+	}
+	return sum
+}

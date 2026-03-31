@@ -108,8 +108,12 @@ export class NativeFileApp {
 	/**
 	 * Uploads the binary data of a file to tutadb
 	 */
-	upload(fileUrl: string, targetUrl: string, method: HttpMethod, headers: Dict): Promise<UploadTaskResponse> {
-		return this.fileFacade.upload(fileUrl, targetUrl, method, headers)
+	upload(fileUrl: string, targetUrl: string, method: HttpMethod, headers: Dict, fileId: Id): Promise<UploadTaskResponse> {
+		return this.fileFacade.upload(fileUrl, targetUrl, method, headers, fileId)
+	}
+
+	async abortUpload(fileId: Id): Promise<void> {
+		await this.fileFacade.abortUpload(fileId)
 	}
 
 	/**

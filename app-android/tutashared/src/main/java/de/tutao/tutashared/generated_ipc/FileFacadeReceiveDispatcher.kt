@@ -86,11 +86,20 @@ class FileFacadeReceiveDispatcher(
 				val targetUrl: String = json.decodeFromString(arg[1])
 				val method: String = json.decodeFromString(arg[2])
 				val headers: Map<String, String> = json.decodeFromString(arg[3])
+				val fileId: String = json.decodeFromString(arg[4])
 				val result: UploadTaskResponse = this.facade.upload(
 					fileUrl,
 					targetUrl,
 					method,
 					headers,
+					fileId,
+				)
+				return json.encodeToString(result)
+			}
+			"abortUpload" -> {
+				val fileId: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.abortUpload(
+					fileId,
 				)
 				return json.encodeToString(result)
 			}

@@ -44,7 +44,12 @@ export interface FileFacade {
 	 */
 	putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string>
 
-	upload(fileUrl: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse>
+	upload(fileUrl: string, targetUrl: string, method: string, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse>
+
+	/**
+	 * abort a transfer started by FileFacade#upload
+	 */
+	abortUpload(fileId: string): Promise<void>
 
 	/**
 	 * download an encrypted file to the file system and return the location of the data
@@ -52,7 +57,7 @@ export interface FileFacade {
 	download(sourceUrl: string, filename: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse>
 
 	/**
-	 * abort a transfer started by FileFacade.download
+	 * abort a transfer started by FileFacade#download
 	 */
 	abortDownload(fileId: string): Promise<void>
 

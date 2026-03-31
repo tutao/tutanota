@@ -58,8 +58,15 @@ public protocol FileFacade {
 		_ fileUrl: String,
 		_ targetUrl: String,
 		_ method: String,
-		_ headers: [String : String]
+		_ headers: [String : String],
+		_ fileId: String
 	) async throws -> UploadTaskResponse
+	/**
+	 * abort a transfer started by FileFacade#upload
+	 */
+	func abortUpload(
+		_ fileId: String
+	) async throws -> Void
 	/**
 	 * download an encrypted file to the file system and return the location of the data
 	 */
@@ -70,7 +77,7 @@ public protocol FileFacade {
 		_ fileId: String
 	) async throws -> DownloadTaskResponse
 	/**
-	 * abort a transfer started by FileFacade.download
+	 * abort a transfer started by FileFacade#download
 	 */
 	func abortDownload(
 		_ fileId: String
