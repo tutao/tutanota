@@ -39,7 +39,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { UploadProgressInfo, TransferId } from "../../../common/drive/DriveTypes"
+import { TransferId, UploadProgressInfo } from "../../../common/drive/DriveTypes"
 import { CancelledError } from "../../../common/error/CancelledError"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 
@@ -153,7 +153,7 @@ export class BlobFacade {
 	 */
 	async *streamEncryptAndUpload(
 		archiveDataType: ArchiveDataType,
-		file: File,
+		file: globalThis.Blob,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		transferId: TransferId,

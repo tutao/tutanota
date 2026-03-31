@@ -18,6 +18,11 @@ export interface FileReference {
 	cid?: string
 }
 
+export interface WebFile {
+	readonly _type: "WebFile"
+	file: globalThis.File
+}
+
 /**
  * Get the file extension of a filename
  * so
@@ -160,8 +165,11 @@ export function isDataFile(file: Attachment): file is DataFile {
 	return file._type === "DataFile"
 }
 
-export function isFileReference(file: Attachment): file is FileReference {
+export function isFileReference(file: Attachment | WebFile): file is FileReference {
 	return file._type === "FileReference"
+}
+export function isWebFile(file: Attachment | WebFile): file is WebFile {
+	return file._type === "WebFile"
 }
 
 export function assertOnlyFileReferences(files: Array<Attachment>): asserts files is Array<FileReference> {
@@ -183,7 +191,7 @@ export function fileListToArray(fileList: FileList): Array<File> {
 	return nativeFiles
 }
 
-export function* splitFileIntoChunks(chunkSize: number, file: File): Generator<globalThis.Blob, void> {
+export function* splitFileIntoChunks(chunkSize: number, file: globalThis.Blob): Generator<globalThis.Blob, void> {
 	if (chunkSize < 1) {
 		return
 	}
