@@ -20,7 +20,10 @@ import de.tutao.tutashared.IdTuple
 fun AllDaySection(allDayEvents: List<UIEvent>) {
 	Row(
 		verticalAlignment = Alignment.CenterVertically,
-		modifier = GlanceModifier.padding(horizontal = Dimensions.Spacing.space_12.dp, vertical = Dimensions.Spacing.space_4.dp)
+		modifier = GlanceModifier.padding(
+			horizontal = Dimensions.Spacing.space_12.dp,
+			vertical = Dimensions.Spacing.space_4.dp
+		)
 			.fillMaxWidth()
 			.background(GlanceTheme.colors.surfaceVariant),
 	) {
@@ -36,7 +39,7 @@ fun AllDaySectionPreview() {
 	AllDaySection(
 		allDayEvents = listOf(
 			UIEvent(
-				"calendarId", IdTuple("list", "elemnt"), "dd55ff", "My all day", "", "", true, 0L
+				"calendarId", IdTuple("list", "elemnt"), "dd55ff", "My all day", "", "", true
 			)
 		)
 	)
@@ -50,7 +53,7 @@ fun AllDaySectionBirthdayPreview() {
 	AllDaySection(
 		allDayEvents = listOf(
 			UIEvent(
-				"calendarId", IdTuple("list", "elemnt"), "aa55ff", "Jane Birthday", "", "", true, 0L, true
+				"calendarId", IdTuple("list", "elemnt"), "aa55ff", "Jane Birthday", "", "", true, true
 			)
 		)
 	)

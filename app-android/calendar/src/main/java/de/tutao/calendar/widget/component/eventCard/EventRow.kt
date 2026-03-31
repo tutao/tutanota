@@ -85,7 +85,6 @@ fun EventRowTodayPreview() {
 			"08:00",
 			"17:00",
 			isAllDay = false,
-			startTimestamp = startOfToday
 		),
 		actionRunCallback<ActionCallback>(),
 	)
@@ -107,7 +106,6 @@ fun EventRowTomorrowPreview() {
 			"08:00",
 			"17:00",
 			isAllDay = false,
-			startTimestamp = startOfTomorrow.toEpochMilli()
 		),
 		actionRunCallback<ActionCallback>(),
 	)
