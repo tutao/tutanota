@@ -8,9 +8,10 @@ import { matchers, object, when } from "testdouble"
 import { createTestEntity, SchedulerMock } from "../TestUtils"
 import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
 import { driveTypeRefs } from "@tutao/typerefs"
-import { ArchiveDataType } from "../../../src/app-env"
+import { ArchiveDataType } from "@tutao/app-env"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
 import * as restError from "@tutao/rest-client/error"
+import { WebFile } from "../../../src/common/api/common/utils/FileUtils"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController
@@ -43,9 +44,12 @@ o.spec("DriveTransferController", function () {
 			const fileId = "fileId" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(fileId)
 			const file = {
-				name: "file.jpg",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file.jpg",
+					size: 1024,
+				},
+			} as WebFile
 			await transferController.upload(file, "uploadFile", ["listId", "folderElementId"])
 			verify(driveFacade.uploadFile(file, fileId, "uploadFile", ["listId", "folderElementId"]))
 			o.check(transferController.state).deepEquals([
@@ -58,13 +62,21 @@ o.spec("DriveTransferController", function () {
 			const fileId2 = "fileId2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
-				name: "file1.jpg",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file1.jpg",
+					size: 1024,
+				},
+			} as WebFile
+
 			const file2 = {
-				name: "file2.jpg",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file2.jpg",
+					size: 1024,
+				},
+			} as WebFile
+
 			const uploadDeferred1 = defer<driveTypeRefs.DriveFile>()
 			const uploadDeferred2 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, "uploadFile1", ["listId", "elementId"])).thenReturn(uploadDeferred1.promise)
@@ -120,13 +132,19 @@ o.spec("DriveTransferController", function () {
 			const fileId2 = "fileId2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
-				name: "file1.jpg",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file1.jpg",
+					size: 1024,
+				},
+			} as WebFile
 			const file2 = {
-				name: "file2.jpg",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file2.jpg",
+					size: 1024,
+				},
+			} as WebFile
 			const uploadDeferred1 = defer<driveTypeRefs.DriveFile>()
 			const uploadDeferred2 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, "uploadFile1", ["listId", "elementId"])).thenReturn(uploadDeferred1.promise)
@@ -202,13 +220,19 @@ o.spec("DriveTransferController", function () {
 			const fileId2 = "fileId2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
-				name: "file1.txt",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file1.txt",
+					size: 1024,
+				},
+			} as WebFile
 			const file2 = {
-				name: "file2.txt",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file2.txt",
+					size: 1024,
+				},
+			} as WebFile
 			const deferredUpload1 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
 			const deferredUpload2 = defer<driveTypeRefs.DriveFile>()
@@ -222,7 +246,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId1,
 					type: "upload",
 					state: "active",
-					totalSize: file1.size,
+					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
 				},
@@ -230,7 +254,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId2,
 					type: "upload",
 					state: "waiting",
-					totalSize: file2.size,
+					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
 				},
@@ -244,7 +268,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId1,
 					type: "upload",
 					state: "finished",
-					totalSize: file1.size,
+					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
 				},
@@ -252,7 +276,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId2,
 					type: "upload",
 					state: "active",
-					totalSize: file2.size,
+					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
 				},
@@ -265,7 +289,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId2,
 					type: "upload",
 					state: "active",
-					totalSize: file2.size,
+					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
 				},
@@ -280,7 +304,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId2,
 					type: "upload",
 					state: "finished",
-					totalSize: file2.size,
+					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
 				},
@@ -294,9 +318,12 @@ o.spec("DriveTransferController", function () {
 			const fileId1 = "fileId1" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(fileId1)
 			const file1 = {
-				name: "file1.txt",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file1.jpg",
+					size: 1024,
+				},
+			} as WebFile
 			const deferredUpload1 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
 
@@ -310,13 +337,19 @@ o.spec("DriveTransferController", function () {
 			const fileId2 = "fileId2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
 			const file1 = {
-				name: "file1.txt",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file1.txt",
+					size: 1024,
+				},
+			} as WebFile
 			const file2 = {
-				name: "file2.txt",
-				size: 1024,
-			} as File
+				_type: "WebFile",
+				file: {
+					name: "file2.txt",
+					size: 1024,
+				},
+			} as WebFile
 			const deferredUpload1 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
 			const deferredUpload2 = defer<driveTypeRefs.DriveFile>()
@@ -331,7 +364,7 @@ o.spec("DriveTransferController", function () {
 					id: fileId1,
 					type: "upload",
 					state: "active",
-					totalSize: file1.size,
+					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
 				},
