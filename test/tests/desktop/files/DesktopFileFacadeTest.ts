@@ -95,6 +95,7 @@ o.spec("DesktopFileFacade", function () {
 				fetch(urlMatches(new URL("some://url/file")), {
 					method: "GET",
 					headers,
+					signal: matchers.anything(),
 				}),
 			).thenResolve(response)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
