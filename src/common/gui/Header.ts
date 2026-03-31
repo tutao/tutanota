@@ -48,7 +48,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 	private renderNavigation(attrs: HeaderAttrs): Children {
 		return [
 			attrs.searchBar ? m(".ml-4.flex-grow", attrs.searchBar()) : null,
-			m(".flex-grow.flex.justify-end.items-center", [
+			m(".flex-grow.flex.justify-end.items-center.pr-8", [
 				m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				m(".nav-bar-spacer"),
 				m(NavBar, this.renderButtons()),
