@@ -6,8 +6,8 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.IdTupleCustom
-import de.tutao.tutashared.IdTupleCustomOneAssociationSerializer
+import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleOneAssociationSerializer
 import de.tutao.tutashared.OneAssociationSerializer
 import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.ZeroOrOneAssociationSerializer
@@ -114,8 +114,8 @@ class EncryptedAlarmNotificationEntity(
 	@Serializable
 	class NotificationSessionKey(
 		@SerialName("1555")
-		@Serializable(with = IdTupleCustomOneAssociationSerializer::class)
-		@field:Embedded val pushIdentifier: IdTupleCustom,
+		@Serializable(with = IdTupleOneAssociationSerializer::class)
+		@field:Embedded val pushIdentifier: IdTuple,
 		@SerialName("1556")
 		val pushIdentifierSessionEncSessionKey: String,
 	)

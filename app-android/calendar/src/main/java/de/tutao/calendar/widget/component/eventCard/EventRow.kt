@@ -25,7 +25,7 @@ import androidx.glance.text.TextStyle
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutashared.IdTupleCustom
+import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.parseColor
 import java.time.Instant
@@ -79,7 +79,7 @@ fun EventRowTodayPreview() {
 		modifier = GlanceModifier,
 		UIEvent(
 			"previewCalendar",
-			IdTupleCustom("", ""),
+			IdTuple("", ""),
 			"2196f3",
 			"Hello Widget",
 			"08:00",
@@ -101,7 +101,7 @@ fun EventRowTomorrowPreview() {
 		modifier = GlanceModifier,
 		UIEvent(
 			"previewCalendar",
-			IdTupleCustom("", ""),
+			IdTuple("", ""),
 			"2196f3",
 			"Hello Widget",
 			"08:00",

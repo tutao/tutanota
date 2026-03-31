@@ -14,7 +14,7 @@ import androidx.glance.preview.Preview
 import de.tutao.calendar.widget.component.allDayRow.AllDayRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutashared.IdTupleCustom
+import de.tutao.tutashared.IdTuple
 
 @Composable
 fun AllDaySection(allDayEvents: List<UIEvent>) {
@@ -36,7 +36,7 @@ fun AllDaySectionPreview() {
 	AllDaySection(
 		allDayEvents = listOf(
 			UIEvent(
-				"calendarId", IdTupleCustom("list", "elemnt"), "dd55ff", "My all day", "", "", true, 0L
+				"calendarId", IdTuple("list", "elemnt"), "dd55ff", "My all day", "", "", true, 0L
 			)
 		)
 	)
@@ -50,7 +50,7 @@ fun AllDaySectionBirthdayPreview() {
 	AllDaySection(
 		allDayEvents = listOf(
 			UIEvent(
-				"calendarId", IdTupleCustom("list", "elemnt"), "aa55ff", "Jane Birthday", "", "", true, 0L, true
+				"calendarId", IdTuple("list", "elemnt"), "aa55ff", "Jane Birthday", "", "", true, 0L, true
 			)
 		)
 	)

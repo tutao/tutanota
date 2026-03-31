@@ -23,7 +23,7 @@ import de.tutao.tutasdk.LoggedInSdk
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
-import de.tutao.tutashared.IdTupleCustom
+import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
@@ -103,7 +103,7 @@ class WidgetRepositoryTest {
 		whenever(mockedCryptoFacade.aesEncryptData(any(), any(), any())).thenReturn(ByteArray(0))
 
 		workCalendarEvent = createTestCalendarEvent(
-			id = IdTupleCustom(
+			id = IdTuple(
 				"workCalendarList", "workCalendarEvent"
 			)
 		)
@@ -111,7 +111,7 @@ class WidgetRepositoryTest {
 		workCalendarEventsList.shortEvents = listOf(workCalendarEvent)
 
 		personalCalendarEvent = createTestCalendarEvent(
-			id = IdTupleCustom(
+			id = IdTuple(
 				"barList", "barEvent"
 			)
 		)
@@ -249,13 +249,13 @@ class WidgetRepositoryTest {
 
 		val workCalendarEventListDao = CalendarEventListDao(
 			workCalendarEventsList.shortEvents.map {
-				CalendarEventDao(IdTupleCustom(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
+				CalendarEventDao(IdTuple(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
 			},
 			listOf(),
 		)
 		val personalCalendarEventListDao = CalendarEventListDao(
 			personalCalendarEventsList.shortEvents.map {
-				CalendarEventDao(IdTupleCustom(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
+				CalendarEventDao(IdTuple(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
 			},
 			listOf(),
 		)
@@ -326,7 +326,7 @@ class WidgetRepositoryTest {
 
 		val workCalendarEventListDao = CalendarEventListDao(
 			workCalendarEventsList.shortEvents.map {
-				CalendarEventDao(IdTupleCustom(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
+				CalendarEventDao(IdTuple(it.id!!.listId, it.id!!.elementId), it.startTime, it.endTime, it.summary)
 			},
 			listOf(),
 		)
@@ -363,7 +363,7 @@ class WidgetRepositoryTest {
 
 
 fun createTestCalendarEvent(
-	id: IdTupleCustom?,
+	id: IdTuple?,
 	summary: String = "",
 	description: String = "",
 	startTime: DateTime = Date().time.toULong(),

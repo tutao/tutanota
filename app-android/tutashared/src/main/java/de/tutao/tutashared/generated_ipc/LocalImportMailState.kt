@@ -3,7 +3,8 @@
 
 package de.tutao.tutashared.ipc
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 
 /**
@@ -11,7 +12,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class LocalImportMailState(
-	val remoteStateId: de.tutao.tutashared.IdTupleCustom,
+	val remoteStateId: de.tutao.tutashared.IdTuple,
 	val status: Int,
 	val start_timestamp: Int,
 	val totalMails: Int,

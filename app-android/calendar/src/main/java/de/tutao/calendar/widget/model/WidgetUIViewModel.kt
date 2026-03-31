@@ -23,7 +23,7 @@ import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.IdTupleCustom
+import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -353,7 +353,7 @@ fun openCalendarAgenda(
 	context: Context,
 	userId: String? = "",
 	date: LocalDateTime = LocalDateTime.now(),
-	eventId: IdTupleCustom? = null
+	eventId: IdTuple? = null
 ): Action {
 	val openCalendarAgenda = Intent(context, MainActivity::class.java)
 	openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

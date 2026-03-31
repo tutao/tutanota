@@ -26,8 +26,8 @@ enum class OperationType {
 	DELETE;
 }
 
-@Serializable(with = IdTupleCustom.IdTupleSerializer::class)
-class IdTupleCustom(
+@Serializable(with = IdTuple.IdTupleSerializer::class)
+class IdTuple(
 	val listId: String,
 	val elementId: String
 ) {
@@ -40,10 +40,10 @@ class IdTupleCustom(
 	}
 
 	@OptIn(ExperimentalSerializationApi::class)
-	companion object IdTupleSerializer : KSerializer<IdTupleCustom> {
+	companion object IdTupleSerializer : KSerializer<IdTuple> {
 		override val descriptor: SerialDescriptor = listSerialDescriptor<String>()
 
-		override fun serialize(encoder: Encoder, value: IdTupleCustom) {
+		override fun serialize(encoder: Encoder, value: IdTuple) {
 			val listEncoder = encoder.beginCollection(
 				ListSerializer(String.serializer()).descriptor,
 				2
@@ -53,7 +53,7 @@ class IdTupleCustom(
 			listEncoder.endStructure(descriptor)
 		}
 
-		override fun deserialize(decoder: Decoder): IdTupleCustom {
+		override fun deserialize(decoder: Decoder): IdTuple {
 			return decoder.decodeStructure(
 				ListSerializer(String.serializer()).descriptor
 			) {
@@ -67,7 +67,7 @@ class IdTupleCustom(
 						else -> error("Unknown index $index")
 					}
 				}
-				IdTupleCustom(listId, elementId)
+				IdTuple(listId, elementId)
 			}
 
 		}
