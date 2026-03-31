@@ -389,6 +389,7 @@ fun createTestCalendarEvent(
 		errors = errors,
 		ownerGroup = null,
 		ownerEncSessionKey = null,
+		kdfNonce = null,
 		uid = null,
 		hashedUid = null,
 		invitedConfidentially = null,

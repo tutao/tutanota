@@ -58,6 +58,14 @@ export class EntityAdapter implements Entity {
 		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerKeyVersion"))] = value
 	}
 
+	get _kdfNonce(): null | Uint8Array {
+		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "_kdfNonce", this.typeModel)
+	}
+
+	set _kdfNonce(value: Uint8Array) {
+		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_kdfNonce"))] = value
+	}
+
 	get ownerEncSessionKey(): null | Uint8Array {
 		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "ownerEncSessionKey", this.typeModel)
 	}

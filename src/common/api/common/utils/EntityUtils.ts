@@ -66,6 +66,7 @@ export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	| "_owner"
 	| "_ownerGroup"
 	| "_ownerEncSessionKey"
+	| "_kdfNonce"
 	| "_ownerKeyVersion"
 	| "ownerGroup"
 	| "ownerEncSessionKey"
@@ -89,6 +90,7 @@ export type StrippedEntity<T extends Entity> =
 			| "_ownerGroup"
 			| "_ownerEncSessionKey"
 			| "_ownerKeyVersion"
+			| "_kdfNonce"
 			| "ownerGroup"
 			| "ownerEncSessionKey"
 			| "ownerKeyVersion"
@@ -512,7 +514,7 @@ export const SUBJECT_ID = 105
 export const SENDER_ID = 111
 export const ATTACHMENTS_ID = 115
 
-export const IDENTITY_FIELDS = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_permissions"]
+export const IDENTITY_FIELDS = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_kdfNonce", "_permissions"]
 export const TECHNICAL_FIELDS = ["_original", "_errors"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {

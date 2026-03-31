@@ -128,6 +128,9 @@ pub struct GroupInfo {
 	pub groupType: Option<i64>,
 	#[serde(rename = "2225")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2703")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "20")]
 	pub group: GeneratedId,
 	#[serde(rename = "687")]
@@ -653,6 +656,9 @@ pub struct AccountingInfo {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2690")]
 	pub lastUsedOffer: Option<String>,
+	#[serde(rename = "2712")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "771")]
 	pub invoiceInfo: Option<GeneratedId>,
 	#[serde(rename = "2424")]
@@ -1568,6 +1574,9 @@ pub struct PushIdentifier {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2426")]
 	pub app: i64,
+	#[serde(rename = "2709")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -2361,6 +2370,9 @@ pub struct CustomerServerProperties {
 	pub saveEncryptedIpAddressInSession: bool,
 	#[serde(rename = "2224")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2720")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "959")]
 	pub emailSenderList: Vec<EmailSenderListElement>,
 
@@ -2500,6 +2512,9 @@ pub struct AuditLogEntry {
 	pub date: DateTime,
 	#[serde(rename = "2227")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2706")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1113")]
 	pub groupInfo: Option<IdTupleGenerated>,
 	#[serde(rename = "1307")]
@@ -2777,6 +2792,9 @@ pub struct Session {
 	pub state: i64,
 	#[serde(rename = "2229")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2714")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1204")]
 	pub challenges: Vec<Challenge>,
 	#[serde(rename = "1205")]
@@ -3006,6 +3024,9 @@ pub struct WhitelabelChild {
 	pub comment: String,
 	#[serde(rename = "2230")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2716")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1268")]
 	pub customer: GeneratedId,
 
@@ -3129,6 +3150,9 @@ pub struct OrderProcessingAgreement {
 	pub signatureDate: DateTime,
 	#[serde(rename = "2231")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2718")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1336")]
 	pub signerUserGroupInfo: IdTupleGenerated,
 	#[serde(rename = "1337")]
@@ -3607,6 +3631,9 @@ pub struct UserAlarmInfo {
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "2233")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2702")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1548")]
 	pub alarmInfo: AlarmInfo,
 
@@ -3870,6 +3897,9 @@ pub struct ReceivedGroupInvitation {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2280")]
 	pub sharedGroupKeyVersion: i64,
+	#[serde(rename = "2705")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1615")]
 	pub sharedGroup: GeneratedId,
 	#[serde(rename = "1616")]
@@ -4013,6 +4043,9 @@ pub struct Invoice {
 	pub reason: Option<String>,
 	#[serde(rename = "2235")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2710")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1670")]
 	pub items: Vec<InvoiceItem>,
 	#[serde(rename = "1671")]
@@ -4051,6 +4084,9 @@ pub struct MissedNotification {
 	pub lastProcessedNotificationId: Option<GeneratedId>,
 	#[serde(rename = "2236")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2713")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1702")]
 	pub notificationInfos: Vec<NotificationInfo>,
 	#[serde(rename = "1703")]
@@ -4227,6 +4263,9 @@ pub struct GiftCard {
 	pub migrated: bool,
 	#[serde(rename = "2238")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2717")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5495,6 +5534,9 @@ pub struct GroupKeyUpdate {
 	pub groupKey: Vec<u8>,
 	#[serde(rename = "2378")]
 	pub groupKeyVersion: i64,
+	#[serde(rename = "2719")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "2379")]
 	pub bucketKey: BucketKey,
 
@@ -6262,6 +6304,9 @@ pub struct PartnerManagedCustomer {
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "2679")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2708")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "2680")]
 	pub customerInfo: IdTupleGenerated,
 

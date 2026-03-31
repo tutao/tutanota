@@ -45,6 +45,7 @@ export type File = {
 	_ownerGroup: null | Id;
 	cid: null | string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	parent: null | IdTuple;
 	subFiles: null | Subfiles;
@@ -67,6 +68,7 @@ export type FileSystem = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	files: Id;
 }
@@ -163,6 +165,7 @@ export type Contact = {
 	phoneticLast: null | string;
 	department: null | string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	mailAddresses: ContactMailAddress[];
 	phoneNumbers: ContactPhoneNumber[];
@@ -247,6 +250,7 @@ export type Mail = {
 	processNeeded: boolean;
 	sendAt: null | Date;
 	serverClassificationData: null | string;
+	_kdfNonce: null | Uint8Array;
 
 	sender: MailAddress;
 	attachments: IdTuple[];
@@ -276,6 +280,7 @@ export type MailBox = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	sentAttachments: Id;
 	receivedAttachments: Id;
@@ -348,6 +353,7 @@ export type ContactList = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	contacts: Id;
 	photos: null | PhotosRef;
@@ -450,6 +456,7 @@ export type TutanotaProperties = {
 	_ownerKeyVersion: null | NumberString;
 	userKeyVersion: null | NumberString;
 	defaultLabelCreated: boolean;
+	_kdfNonce: null | Uint8Array;
 
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
@@ -507,6 +514,7 @@ export type MailSet = {
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	color: null | string;
+	_kdfNonce: null | Uint8Array;
 
 	parentFolder: null | IdTuple;
 	entries: Id;
@@ -1155,6 +1163,7 @@ export type CalendarEvent = {
 	_ownerKeyVersion: null | NumberString;
 	sender: null | string;
 	pendingInvitation: null | boolean;
+	_kdfNonce: null | Uint8Array;
 
 	repeatRule: null | CalendarRepeatRule;
 	alarmInfos: IdTuple[];
@@ -1178,6 +1187,7 @@ export type CalendarGroupRoot = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	shortEvents: Id;
 	longEvents: Id;
@@ -1258,6 +1268,7 @@ export type UserSettingsGroupRoot = {
 	usageDataOptedIn: null | boolean;
 	_ownerKeyVersion: null | NumberString;
 	birthdayCalendarColor: null | string;
+	_kdfNonce: null | Uint8Array;
 
 	groupSettings: GroupSettings[];
 }
@@ -1486,6 +1497,7 @@ export type CalendarEventUpdate = {
 	_ownerEncSessionKey: null | Uint8Array;
 	sender: string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	file: IdTuple;
 }
@@ -1614,6 +1626,7 @@ export type EmailTemplate = {
 	title: string;
 	tag: string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	contents: EmailTemplateContent[];
 }
@@ -1649,6 +1662,7 @@ export type KnowledgeBaseEntry = {
 	title: string;
 	description: string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	keywords: KnowledgeBaseEntryKeyword[];
 }
@@ -1669,6 +1683,7 @@ export type TemplateGroupRoot = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	templates: Id;
 	knowledgeBase: Id;
@@ -1705,6 +1720,7 @@ export type MailboxProperties = {
 	_ownerEncSessionKey: null | Uint8Array;
 	reportMovedMails: NumberString;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	mailAddressProperties: MailAddressProperties[];
 }
@@ -1857,6 +1873,7 @@ export type MailDetailsDraft = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	details: MailDetails;
 }
@@ -1877,6 +1894,7 @@ export type MailDetailsBlob = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	details: MailDetails;
 }
@@ -1927,6 +1945,7 @@ export type ContactListEntry = {
 	_ownerEncSessionKey: null | Uint8Array;
 	emailAddress: string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 }
 export const ContactListGroupRootTypeRef: TypeRef<ContactListGroupRoot> = new TypeRef("tutanota", 1333)
 
@@ -1945,6 +1964,7 @@ export type ContactListGroupRoot = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	entries: Id;
 }
@@ -2641,6 +2661,7 @@ export type ClientSpamTrainingDatum = {
 	spamDecision: NumberString;
 	vectorLegacy: Uint8Array;
 	vectorWithServerClassifiers: null | Uint8Array;
+	_kdfNonce: null | Uint8Array;
 }
 export const ClientSpamTrainingDatumIndexEntryTypeRef: TypeRef<ClientSpamTrainingDatumIndexEntry> = new TypeRef("tutanota", 1747)
 
