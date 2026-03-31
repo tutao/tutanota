@@ -8,6 +8,9 @@ import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId } from "./Dr
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
+import { Mode } from "../../../common/api/common/Env"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
 
 export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownButtonAttrs[] {
 	return [
@@ -28,8 +31,23 @@ export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => un
 	]
 }
 
-export async function showNewFileDialog(uploadFiles: (files: File[]) => Promise<void>): Promise<void> {
-	const files = await showStandardsFileChooser(true)
+export async function showNewFileDialog(uploadFiles: (files: WebFile[] | FileReference[]) => Promise<void>): Promise<void> {
+	// FIXME
+	const boundingRect: DOMRect = {
+		bottom: 0,
+		left: 0,
+		right: 0,
+		top: 0,
+		toJSON(): any {},
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0,
+	}
+
+	const fileSelector = [Mode.App, Mode.Desktop].includes(env.mode) ? locator.fileApp.openFileChooser(boundingRect) : showStandardsFileChooser(true)
+
+	const files = await fileSelector
 
 	if (files) {
 		uploadFiles(files)

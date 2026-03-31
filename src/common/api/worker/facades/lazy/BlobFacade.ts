@@ -141,7 +141,7 @@ export class BlobFacade {
 	 */
 	async *streamEncryptAndUpload(
 		archiveDataType: ArchiveDataType,
-		file: File,
+		file: globalThis.Blob,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		transferId: TransferId,

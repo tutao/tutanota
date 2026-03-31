@@ -5,7 +5,7 @@ import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tu
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
 import { client } from "../misc/ClientDetector.js"
-import { deduplicateFilenames, FileReference, sanitizeFilename } from "../api/common/utils/FileUtils"
+import { deduplicateFilenames, FileReference, sanitizeFilename, WebFile } from "../api/common/utils/FileUtils"
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import * as restError from "@tutao/rest-client/error"
@@ -254,9 +254,14 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	)
 }
 
-export function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<File>> {
-	return runFileChooser<File>(allowMultiple, (e: Event, resolve) => {
+export function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<WebFile>> {
+	const selectedFiles = runFileChooser<File>(allowMultiple, (e: Event, resolve) => {
 		resolve((e.target as any).files as Array<File>)
+	})
+	return selectedFiles.then((files) => {
+		return files.map((f) => {
+			return { _type: "WebFile", file: f } as WebFile
+		})
 	})
 }
 

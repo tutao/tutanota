@@ -26,6 +26,7 @@ import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
+import { FileReference, isWebFile, WebFile } from "../../../common/api/common/utils/FileUtils"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -535,7 +536,7 @@ export class DriveViewModel {
 		}
 	}
 
-	async uploadFiles(files: File[]): Promise<void> {
+	async uploadFiles(files: WebFile[] | FileReference[]): Promise<void> {
 		if (this.roots == null) {
 			console.log("drive is not initialized")
 			return
@@ -548,7 +549,7 @@ export class DriveViewModel {
 		const takenFileNames: Set<string> = new Set(folderItems.map((item) => folderItemEntity(item).name))
 
 		for (const file of files) {
-			const newName = pickNewFileName(file.name, takenFileNames)
+			const newName = pickNewFileName(isWebFile(file) ? file.file.name : file.name, takenFileNames)
 			takenFileNames.add(newName)
 			await this.transferController.upload(file, newName, targetFolderId)
 		}

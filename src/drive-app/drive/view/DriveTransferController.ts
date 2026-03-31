@@ -9,6 +9,7 @@ import { driveTypeRefs } from "@tutao/typerefs"
 import { ArchiveDataType, SECOND_IN_MILLIS } from "@tutao/app-env"
 import { FileController } from "../../../common/file/FileController"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
+import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
 
 type DriveTransferType = "upload" | "download"
 
@@ -33,7 +34,7 @@ type QueuedTransfer =
 	| {
 			id: TransferId
 			state: "waiting" | "active" | "finished" | "failed"
-			file: File
+			file: WebFile | FileReference
 			type: "upload"
 			transferredSize: number // bytes
 			filename: string
@@ -50,12 +51,22 @@ export class DriveTransferController {
 
 	get state(): DriveTransferState[] {
 		return this.queue.map((transfer) => {
+			let fileSize: number
+			if (transfer.file._type === "WebFile") {
+				fileSize = transfer.file.file.size
+			} else if (transfer.file._type === "FileReference") {
+				fileSize = transfer.file.size
+			} else {
+				// DriveFile
+				fileSize = filterInt(transfer.file.size)
+			}
+
 			return {
 				id: transfer.id,
 				state: transfer.state,
 				type: transfer.type,
 				filename: transfer.filename,
-				totalSize: typeof transfer.file.size === "string" ? filterInt(transfer.file.size) : transfer.file.size,
+				totalSize: fileSize,
 				transferredSize: transfer.transferredSize,
 			}
 		})
@@ -68,7 +79,7 @@ export class DriveTransferController {
 		private readonly scheduler: Scheduler,
 	) {}
 
-	async upload(file: File, filename: string, targetFolderId: IdTuple) {
+	async upload(file: WebFile | FileReference, filename: string, targetFolderId: IdTuple) {
 		const transferId = await this.blobFacade.generateTransferId()
 		this.queue.push({
 			id: transferId,
