@@ -224,8 +224,7 @@ class Agenda : GlanceAppWidget() {
 				"All day today",
 				"08:00",
 				"17:00",
-				isAllDay = true,
-				startTimestamp = startOfToday
+				isAllDay = true
 			)
 		)
 
@@ -241,8 +240,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello Widget",
 				"08:00",
 				"17:00",
-				isAllDay = true,
-				startTimestamp = startOfAfterTomorrow
+				isAllDay = true
 			)
 		)
 
@@ -276,8 +274,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello Widget wiith very long event title",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = startOfToday
+				isAllDay = false
 			)
 		)
 		allDayEvents[startOfToday] = listOf(
@@ -288,8 +285,7 @@ class Agenda : GlanceAppWidget() {
 				"My all day which has a very very long title",
 				"00:00",
 				"00:00",
-				isAllDay = true,
-				startTimestamp = startOfToday
+				isAllDay = true
 			),
 			UIEvent(
 				"previewCalendar",
@@ -298,8 +294,7 @@ class Agenda : GlanceAppWidget() {
 				"Second all day event",
 				"00:00",
 				"00:00",
-				isAllDay = true,
-				startTimestamp = startOfToday
+				isAllDay = true
 			)
 		)
 
@@ -316,8 +311,7 @@ class Agenda : GlanceAppWidget() {
 					"Event #${i}",
 					"08:00",
 					"17:00",
-					isAllDay = false,
-					startTimestamp = tomorrow.toEpochMilli()
+					isAllDay = false
 				)
 			)
 		}
@@ -330,8 +324,7 @@ class Agenda : GlanceAppWidget() {
 				"Something else",
 				"00:00",
 				"00:00",
-				isAllDay = true,
-				startTimestamp = startOfTomorrow
+				isAllDay = true
 			),
 			UIEvent(
 				"previewCalendar",
@@ -340,8 +333,7 @@ class Agenda : GlanceAppWidget() {
 				"Vacations",
 				"00:00",
 				"00:00",
-				isAllDay = true,
-				startTimestamp = startOfTomorrow
+				isAllDay = true
 			)
 		)
 
@@ -356,8 +348,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello After Tomorrow Bit title",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = afterTomorrow.toEpochMilli()
+				isAllDay = false
 			),
 			UIEvent(
 				"previewCalendar",
@@ -366,8 +357,7 @@ class Agenda : GlanceAppWidget() {
 				"Meeting After Tomorrow",
 				"12:00",
 				"13:00",
-				isAllDay = false,
-				startTimestamp = afterTomorrow.toEpochMilli()
+				isAllDay = false
 			)
 		)
 
@@ -399,8 +389,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello Widget with very long name",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = startOfToday
+				isAllDay = false
 			)
 		)
 
@@ -415,8 +404,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello Tomorrow",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = tomorrow.toEpochMilli()
+				isAllDay = false
 			),
 			UIEvent(
 				"previewCalendar",
@@ -425,8 +413,7 @@ class Agenda : GlanceAppWidget() {
 				"Meeting Tomorrow",
 				"12:00",
 				"13:00",
-				isAllDay = false,
-				startTimestamp = tomorrow.toEpochMilli()
+				isAllDay = false
 			)
 		)
 
@@ -441,8 +428,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello After Tomorrow Big Title",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = afterTomorrow.toEpochMilli()
+				isAllDay = false
 			),
 			UIEvent(
 				"previewCalendar",
@@ -451,8 +437,7 @@ class Agenda : GlanceAppWidget() {
 				"Meeting After Tomorrow",
 				"12:00",
 				"13:00",
-				isAllDay = false,
-				startTimestamp = afterTomorrow.toEpochMilli()
+				isAllDay = false
 			)
 		)
 
@@ -490,8 +475,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello Tomorrow",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = tomorrow.toEpochMilli()
+				isAllDay = false
 			),
 			UIEvent(
 				"previewCalendar",
@@ -500,8 +484,7 @@ class Agenda : GlanceAppWidget() {
 				"Meeting Tomorrow",
 				"12:00",
 				"13:00",
-				isAllDay = false,
-				startTimestamp = tomorrow.toEpochMilli()
+				isAllDay = false
 			)
 		)
 
@@ -516,8 +499,7 @@ class Agenda : GlanceAppWidget() {
 				"Hello After Tomorrow Big Title",
 				"08:00",
 				"17:00",
-				isAllDay = false,
-				startTimestamp = afterTomorrow.toEpochMilli()
+				isAllDay = false
 			),
 			UIEvent(
 				"previewCalendar",
@@ -526,8 +508,7 @@ class Agenda : GlanceAppWidget() {
 				"Meeting After Tomorrow",
 				"12:00",
 				"13:00",
-				isAllDay = false,
-				startTimestamp = afterTomorrow.toEpochMilli()
+				isAllDay = false
 			)
 		)
 

@@ -189,7 +189,8 @@ class WidgetUIViewModel(
 				val startAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
 
 				val eventLocalStartTime = LocalDateTime.ofInstant(startAsInstant, zoneId)
-				val eventLocalEndTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
+				val eventLocalEndTime =
+					LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
 
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
@@ -206,7 +207,6 @@ class WidgetUIViewModel(
 					eventLocalStartTime.format(formatter),
 					eventLocalEndTime.format(formatter),
 					isAllDay,
-					loadedEvent.startTime.toLong() // FIXME check need
 				)
 
 				val referenceDate = if (isAllDay) {
@@ -256,7 +256,6 @@ class WidgetUIViewModel(
 					start.format(formatter),
 					end.format(formatter),
 					isAllDay = true,
-					it.eventDao.startTime.toLong(),
 					isBirthday = true
 				)
 
@@ -281,8 +280,8 @@ class WidgetUIViewModel(
 		normalEvents.forEach() { (startOfDay, events) ->
 			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
 				when {
-					a.startTimestamp > b.startTimestamp -> 1
-					a.startTimestamp < b.startTimestamp -> -1
+					a.startTime > b.startTime -> 1
+					a.startTime < b.startTime -> -1
 					else -> 0
 				}
 			})
