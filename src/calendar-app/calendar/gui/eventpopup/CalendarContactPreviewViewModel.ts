@@ -1,5 +1,5 @@
 import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { isNotNull } from "@tutao/tutanota-utils"
+import { isNotNull } from "@tutao/utils"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.

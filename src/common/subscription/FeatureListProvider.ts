@@ -3,7 +3,7 @@ import { PlanPrices } from "../api/entities/sys/TypeRefs"
 import { TranslationKey } from "../misc/LanguageViewModel"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { AvailablePlans, PlanName, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
-import { downcast, getFromMap } from "@tutao/tutanota-utils"
+import { downcast, getFromMap } from "@tutao/utils"
 import { isIOSApp } from "../api/common/Env.js"
 
 let dataProvider: FeatureListProvider | null = null

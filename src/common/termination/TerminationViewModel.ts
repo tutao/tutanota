@@ -15,7 +15,7 @@ import {
 } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
-import { incrementDate } from "@tutao/tutanota-utils"
+import { incrementDate } from "@tutao/utils"
 
 export class TerminationViewModel {
 	mailAddress: string

@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { ClickHandler } from "../GuiUtils.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { TabIndex } from "../../../api/common/TutanotaConstants.js"
 import { AriaRole } from "../../AriaUtils.js"
 import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"

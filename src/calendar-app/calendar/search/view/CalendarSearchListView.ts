@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../../common/api/common/Env"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../common/gui/base/List.js"
 import { component_size } from "../../../../common/gui/size.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"

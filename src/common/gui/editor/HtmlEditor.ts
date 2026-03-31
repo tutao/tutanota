@@ -5,7 +5,7 @@ import type { MaybeTranslation, TranslationKey } from "../../misc/LanguageViewMo
 import { lang } from "../../misc/LanguageViewModel"
 import { px } from "../size"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { DropDownSelector } from "../base/DropDownSelector.js"
 import { RichTextToolbar, RichTextToolbarAttrs } from "../base/RichTextToolbar.js"
 

@@ -43,7 +43,7 @@ import {
 	stringToBase64,
 	TypeRef,
 	YEAR_IN_MILLIS,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"

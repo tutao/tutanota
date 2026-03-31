@@ -18,7 +18,7 @@ import {
 	stringToBase64,
 	TypeRef,
 	YEAR_IN_MILLIS,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"

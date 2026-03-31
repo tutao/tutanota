@@ -1,5 +1,5 @@
 import { Keys, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { $Promisable, assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
@@ -523,7 +523,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 							{
 								mainActionText: dialogAttrs.button,
 								mainActionClick: async () => {
-									if (nextUnsubscribeAction.type === UnsubscribeType.MAILTO_UNSUBSCRIBE) {
+									if (nextUnsubscribeAction?.type === UnsubscribeType.MAILTO_UNSUBSCRIBE) {
 										const { newMailtoUrlMailEditor } = await import("../editor/MailEditor")
 										const newMailDialog = await newMailtoUrlMailEditor(
 											nextUnsubscribeAction.requestUrl!,
@@ -534,7 +534,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 											dialog.close()
 											newMailDialog.show()
 										}
-									} else if (nextUnsubscribeAction.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
+									} else if (nextUnsubscribeAction?.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
 										if (isApp()) {
 											mailLocator.systemFacade.openLink(nextUnsubscribeAction.requestUrl)
 										} else {
@@ -542,7 +542,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 										}
 										dialog.close()
 									} else {
-										showProgressDialog("unsubscribing_msg", viewModel.unsubscribePost(nextUnsubscribeAction))
+										showProgressDialog("unsubscribing_msg", viewModel.unsubscribePost(nextUnsubscribeAction!))
 											.then((isSuccess) => {
 												if (isSuccess || (!isSuccess && isEmpty(nextUnsubscribeActions))) {
 													return Dialog.showUnsubscribeFinishedDialog(isSuccess)

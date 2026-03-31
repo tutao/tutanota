@@ -3,7 +3,7 @@ import { layout_size, size } from "./size"
 import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/utils"
 import { client } from "../misc/ClientDetector"
 import { ThemeController } from "./ThemeController.js"
 

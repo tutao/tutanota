@@ -6,8 +6,8 @@ import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
 import { NotFoundError, PreconditionFailedError, TooManyRequestsError } from "../../../../src/common/api/common/error/RestError.js"
 import type fs from "node:fs"
-import { assertThrows } from "@tutao/tutanota-test-utils"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertThrows } from "@tutao/otest"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopUtils } from "../../../../src/common/desktop/DesktopUtils.js"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
@@ -59,7 +59,9 @@ o.spec("DesktopFileFacade", function () {
 		dp = object()
 		executor = object()
 
-		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path, executor, process as NodeJS.Process, { downloadProgress: async () => {} })
+		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path, executor, process as NodeJS.Process, {
+			downloadProgress: async () => {},
+		})
 	})
 	o.spec("saveDataFile", function () {
 		o("when there's no existing file it will be simply written", async function () {
@@ -476,6 +478,7 @@ const urlMatches = matchers.create({
 
 class BufferWritableStream extends stream.Writable {
 	readonly chunks: Buffer[] = []
+
 	constructor(readonly error: Error | null = null) {
 		super()
 	}

@@ -25,7 +25,7 @@ import { showSnackBar } from "../gui/base/SnackBar.js"
 import { client } from "../misc/ClientDetector.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getCurrentDate, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "../api/common/TutanotaConstants.js"
-import { isEmpty, noOp } from "@tutao/tutanota-utils"
+import { isEmpty, noOp } from "@tutao/utils"
 import { Dialog } from "../gui/base/Dialog.js"
 
 export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "androidPlayStore" | "supportTuta" | "suggestion" | "contactSupport"

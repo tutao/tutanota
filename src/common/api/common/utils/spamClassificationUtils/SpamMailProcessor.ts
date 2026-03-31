@@ -19,7 +19,7 @@ import {
 	ML_URL_TOKEN,
 } from "./PreprocessPatterns"
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
-import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/utils"
 import { ClientSpamTrainingDatum, Mail, MailAddress, MailDetails } from "../../../entities/tutanota/TypeRefs"
 import { getMailBodyText } from "../../CommonMailUtils"
 import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus } from "../../TutanotaConstants"

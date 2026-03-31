@@ -1,5 +1,5 @@
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
-import { assertNotNull, noOp, Thunk } from "@tutao/tutanota-utils"
+import { assertNotNull, noOp, Thunk } from "@tutao/utils"
 import { focusNext, focusPrevious, keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import m, { Children } from "mithril"

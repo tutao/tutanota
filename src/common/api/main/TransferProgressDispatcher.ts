@@ -1,4 +1,4 @@
-import { remove } from "@tutao/tutanota-utils"
+import { remove } from "@tutao/utils"
 import { DownloadProgressInfo, UploadProgressInfo } from "../common/drive/DriveTypes"
 
 export type UploadListener = (info: UploadProgressInfo) => unknown

@@ -1,4 +1,4 @@
-import { mapObject } from "@tutao/tutanota-utils"
+import { mapObject } from "@tutao/utils"
 
 export type SqlValue = null | string | number | Uint8Array
 

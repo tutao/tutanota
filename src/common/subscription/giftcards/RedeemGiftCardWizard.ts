@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { mapNullable, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { mapNullable, neverNull, noOp, ofClass } from "@tutao/utils"
 import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
 import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
 import { LoginController } from "../../api/main/LoginController"

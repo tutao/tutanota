@@ -1,4 +1,4 @@
-import { memoized } from "@tutao/tutanota-utils"
+import { memoized } from "@tutao/utils"
 import { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs"
 import { isValidSolidColorCode } from "../gui/base/Color"
 import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../api/common/TutanotaConstants"

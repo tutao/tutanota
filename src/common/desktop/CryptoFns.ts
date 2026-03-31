@@ -2,7 +2,7 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import type { Base64 } from "@tutao/tutanota-utils"
+import type { Base64 } from "@tutao/utils"
 import {
 	Aes256Key,
 	aes256RandomKey,
@@ -16,7 +16,7 @@ import {
 	uint8ArrayToKey,
 	aesDecryptUnauthenticated,
 	decryptKeyUnauthenticatedWithDeviceKeyChain,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it

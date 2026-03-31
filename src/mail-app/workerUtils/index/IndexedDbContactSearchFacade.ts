@@ -2,7 +2,7 @@ import { ContactSearchFacade } from "./ContactSearchFacade"
 import { IndexedDbSearchFacade } from "./IndexedDbSearchFacade"
 import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
-import { lazy, lazyMemoized, typedValues } from "@tutao/tutanota-utils"
+import { lazy, lazyMemoized, typedValues } from "@tutao/utils"
 import type { SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 

@@ -13,7 +13,7 @@ import { FileActions } from "./DriveFolderContentEntry"
 import { getContextActions } from "./DriveGuiUtils"
 import { DriveFolderSelectionEvents } from "./DriveFolderContent"
 import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 
 export interface DriveFolderContentMobileAttrs {
 	listState: ListState<FolderItem>

@@ -1,6 +1,6 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
@@ -23,7 +23,7 @@ type Styles = {
 }
 
 export class Editor implements ImageHandler, Component {
-	squire: SquireEditor | null
+	squire: SquireEditor | null = null
 	initialized = defer<void>()
 	domElement: HTMLElement | null = null
 	private showOutline = false
@@ -33,11 +33,11 @@ export class Editor implements ImageHandler, Component {
 	private userHasPasted = false
 	private areRelativeLinksAllowed = false
 	private styleActions = Object.freeze({
-		b: [() => this.squire.bold(), () => this.squire.removeBold(), () => this.styles.b],
-		i: [() => this.squire.italic(), () => this.squire.removeItalic(), () => this.styles.i],
-		u: [() => this.squire.underline(), () => this.squire.removeUnderline(), () => this.styles.u],
-		c: [() => this.squire.setFontFace("monospace"), () => this.squire.setFontFace(null), () => this.styles.c],
-		a: [() => this.makeLink(), () => this.squire.removeLink(), () => this.styles.a],
+		b: [() => this.squire!.bold(), () => this.squire!.removeBold(), () => this.styles.b],
+		i: [() => this.squire!.italic(), () => this.squire!.removeItalic(), () => this.styles.i],
+		u: [() => this.squire!.underline(), () => this.squire!.removeUnderline(), () => this.styles.u],
+		c: [() => this.squire!.setFontFace("monospace"), () => this.squire!.setFontFace(null), () => this.styles.c],
+		a: [() => this.makeLink(), () => this.squire!.removeLink(), () => this.styles.a],
 	} as const)
 
 	styles: Styles = {
@@ -83,7 +83,7 @@ export class Editor implements ImageHandler, Component {
 	onremove() {
 		this.domElement?.removeEventListener("paste", this.pasteListener)
 		if (this.squire) {
-			this.squire.destroy()
+			this.squire!.destroy()
 
 			this.squire = null
 			this.initialized = defer()
@@ -113,15 +113,15 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	isEmpty(): boolean {
-		return !this.squire || this.squire.getHTML() === "<div><br></div>"
+		return !this.squire || this.squire!.getHTML() === "<div><br></div>"
 	}
 
 	getValue(): string {
-		return this.isEmpty() ? "" : this.squire.getHTML()
+		return this.isEmpty() ? "" : this.squire!.getHTML()
 	}
 
 	addChangeListener(callback: (...args: Array<any>) => any) {
-		this.squire.addEventListener("input", callback)
+		this.squire!.addEventListener("input", callback)
 	}
 
 	setMinHeight(minHeight: number): Editor {
@@ -161,16 +161,16 @@ export class Editor implements ImageHandler, Component {
 		})
 
 		// Suppress paste events if pasting while disabled
-		this.squire.addEventListener("willPaste", (e: TextPasteEvent) => {
+		this.squire!.addEventListener("willPaste", (e: TextPasteEvent) => {
 			if (!this.isEnabled()) {
 				e.preventDefault()
 			}
 		})
 
-		this.squire.addEventListener("input", (_: CustomEvent<void>) => (this.userHasPasted = false))
+		this.squire!.addEventListener("input", (_: CustomEvent<void>) => (this.userHasPasted = false))
 		domElement.addEventListener("paste", this.pasteListener)
 
-		this.squire.addEventListener("pathChange", () => {
+		this.squire!.addEventListener("pathChange", () => {
 			this.getStylesAtPath()
 			m.redraw() // allow richtexttoolbar to redraw elements
 		})
@@ -199,12 +199,12 @@ export class Editor implements ImageHandler, Component {
 		return this.enabled
 	}
 
-	setHTML(html: string | null) {
-		this.squire.setHTML(html)
+	setHTML(html: string) {
+		this.squire!.setHTML(html)
 	}
 
 	getHTML(): string {
-		return this.squire.getHTML()
+		return this.squire!.getHTML()
 	}
 
 	setStyle(state: boolean, style: Style) {
@@ -217,7 +217,7 @@ export class Editor implements ImageHandler, Component {
 			return
 		}
 
-		let pathSegments: string[] = this.squire.getPath().split(">")
+		let pathSegments: string[] = this.squire!.getPath().split(">")
 
 		// lists
 		const ulIndex = pathSegments.lastIndexOf("UL")
@@ -270,9 +270,9 @@ export class Editor implements ImageHandler, Component {
 		// font
 		this.styles.c = pathSegments.some((f) => f.includes("monospace"))
 		// decorations
-		this.styles.b = this.squire.hasFormat("b")
-		this.styles.u = this.squire.hasFormat("u")
-		this.styles.i = this.squire.hasFormat("i")
+		this.styles.b = this.squire!.hasFormat("b")
+		this.styles.u = this.squire!.hasFormat("u")
+		this.styles.i = this.squire!.hasFormat("i")
 	}
 
 	/**
@@ -296,31 +296,31 @@ export class Editor implements ImageHandler, Component {
 				url = "https://" + url
 			}
 
-			this.squire.makeLink(url)
+			this.squire!.makeLink(url)
 		})
 	}
 
-	insertImage(srcAttr: string, attrs?: Record<string, string>): HTMLElement {
-		return this.squire.insertImage(srcAttr, attrs)
+	insertImage(srcAttr: string, attrs: Record<string, string>): HTMLElement {
+		return this.squire!.insertImage(srcAttr, attrs)
 	}
 
 	/**
 	 * Inserts the given html content at the current cursor position.
 	 */
 	insertHTML(html: string) {
-		this.squire.insertHTML(html)
+		this.squire!.insertHTML(html)
 	}
 
 	getDOM(): HTMLElement {
-		return this.squire.getRoot()
+		return this.squire!.getRoot()
 	}
 
 	getCursorPosition(): ClientRect {
-		return this.squire.getCursorPosition()
+		return this.squire!.getCursorPosition()
 	}
 
 	focus(): void {
-		this.squire.focus()
+		this.squire!.focus()
 
 		this.getStylesAtPath()
 	}
@@ -330,15 +330,15 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	getSelectedText(): string {
-		return this.squire.getSelectedText()
+		return this.squire!.getSelectedText()
 	}
 
 	addEventListener(type: string, handler: (arg0: Event) => void) {
-		this.squire.addEventListener(type, handler)
+		this.squire!.addEventListener(type, handler)
 	}
 
 	setSelection(range: Range) {
-		this.squire.setSelection(range)
+		this.squire!.setSelection(range)
 	}
 
 	/**

@@ -1,6 +1,6 @@
 import type { TranslationKey } from "./LanguageViewModel"
 import { Keys } from "../api/common/TutanotaConstants"
-import { lazy, mod } from "@tutao/tutanota-utils"
+import { lazy, mod } from "@tutao/utils"
 import { assertMainOrNodeBoot, isAppleDevice } from "../api/common/Env"
 import m from "mithril"
 

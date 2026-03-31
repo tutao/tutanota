@@ -2,8 +2,8 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { DialogHeaderBar } from "./DialogHeaderBar"
 import { px } from "../size"
-import type { MaybeLazy } from "@tutao/tutanota-utils"
-import { resolveMaybeLazy } from "@tutao/tutanota-utils"
+import type { MaybeLazy } from "@tutao/utils"
+import { resolveMaybeLazy } from "@tutao/utils"
 import Stream from "mithril/stream"
 
 export type DialogInjectionRightAttrs<T extends object> = {

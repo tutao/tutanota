@@ -1,5 +1,5 @@
-import type { DeferredObject } from "@tutao/tutanota-utils"
-import { defer, noOp } from "@tutao/tutanota-utils"
+import type { DeferredObject } from "@tutao/utils"
+import { defer, noOp } from "@tutao/utils"
 import type { SystemTimeout } from "../common/utils/Scheduler.js"
 import { ServiceUnavailableError, TooManyRequestsError } from "../common/error/RestError"
 

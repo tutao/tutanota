@@ -10,7 +10,7 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
-import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"

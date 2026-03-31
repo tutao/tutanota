@@ -13,7 +13,7 @@ import {
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
 import { assertMainOrNode, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
-import { assertNotNull, newPromise, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, newPromise, noOp } from "@tutao/utils"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"

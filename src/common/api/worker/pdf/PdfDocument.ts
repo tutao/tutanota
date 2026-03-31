@@ -1,7 +1,7 @@
 import { boldFontWidths, PdfDictValue, PdfObjectRef, PdfStreamEncoding, regularFontWidths } from "./PdfConstants.js"
 import { PdfWriter } from "./PdfWriter.js"
 import { Deflater } from "./Deflater.js"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { parseQrSvg } from "./qrSvg.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 

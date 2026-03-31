@@ -1,6 +1,6 @@
 import { WsConnectionState } from "../api/main/WorkerClient.js"
 import stream from "mithril/stream"
-import { identity } from "@tutao/tutanota-utils"
+import { identity } from "@tutao/utils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { WebsocketLeaderStatus } from "../api/entities/sys/TypeRefs.js"
 import { ExposedEventBus } from "../api/worker/workerInterfaces.js"

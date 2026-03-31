@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate } from "@tutao/tutanota-utils"
+import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate } from "@tutao/utils"
 import { DateTime } from "luxon"
 import { Carousel } from "../../../../common/gui/base/Carousel.js"
 import { changePeriodOnWheel, getCalendarMonth, getDayCircleClass } from "../CalendarGuiUtils.js"

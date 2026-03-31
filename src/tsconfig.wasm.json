@@ -1,0 +1,16 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["wasm-loader", "../types/"],
+	"exclude": ["wasm-loader/dist"],
+	"compilerOptions": {
+		"rootDir": "wasm-loader",
+		"outDir": "wasm-loader/dist",
+		"tsBuildInfoFile": "wasm-loader/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.utils.json"
+		}
+	]
+}

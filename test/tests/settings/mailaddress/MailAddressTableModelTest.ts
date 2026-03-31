@@ -8,11 +8,11 @@ import { EventController } from "../../../../src/common/api/main/EventController
 import { GroupInfo, MailAddressAliasTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { LimitReachedError } from "../../../../src/common/api/common/error/RestError.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "../../subscription/priceTestUtils.js"
-import { clone, noOp } from "@tutao/tutanota-utils"
+import { clone, noOp } from "@tutao/utils"
 import { PlanType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UpgradeRequiredError } from "../../../../src/common/api/main/UpgradeRequiredError.js"
 import { UserError } from "../../../../src/common/api/main/UserError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("MailAddressTableModel", function () {

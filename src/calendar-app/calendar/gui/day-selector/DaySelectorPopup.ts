@@ -8,7 +8,7 @@ import { animations, opacity, transform, TransformEnum } from "../../../../commo
 import { ease } from "../../../../common/gui/animation/Easing.js"
 import { px } from "../../../../common/gui/size.js"
 import { formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
-import { incrementMonth } from "@tutao/tutanota-utils"
+import { incrementMonth } from "@tutao/utils"
 import { styles } from "../../../../common/gui/styles.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
 

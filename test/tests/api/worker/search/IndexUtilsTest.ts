@@ -7,12 +7,12 @@ import {
 	typeRefToTypeInfo,
 	userIsGlobalAdmin,
 } from "../../../../../src/common/api/common/utils/IndexUtils.js"
-import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { aes256RandomKey, FIXED_IV, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, FIXED_IV, aesDecryptUnauthenticated } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 import {

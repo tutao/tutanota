@@ -13,7 +13,7 @@ import { client } from "../../../../common/misc/ClientDetector.js"
 import { ContactEditor } from "../../../../mail-app/contacts/ContactEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { listIdPart } from "../../../../common/api/common/utils/EntityUtils.js"
-import { stringToBase64 } from "@tutao/tutanota-utils"
+import { stringToBase64 } from "@tutao/utils"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 

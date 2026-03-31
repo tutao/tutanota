@@ -1,4 +1,4 @@
-import { Thunk } from "@tutao/tutanota-utils"
+import { Thunk } from "@tutao/utils"
 import { Scheduler } from "../../common/utils/Scheduler.js"
 import { DateProvider } from "../../common/DateProvider.js"
 

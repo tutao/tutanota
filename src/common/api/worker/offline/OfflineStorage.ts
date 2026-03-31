@@ -29,7 +29,7 @@ import {
 	typedEntries,
 	typedValues,
 	TypeRef,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
@@ -608,7 +608,7 @@ export class OfflineStorage implements CacheStorage {
 				}
 			}),
 		)
-		return storables.filter((storable) => storable !== null)
+		return storables.filter((storable) => storable !== null).map((storable) => storable!)
 	}
 
 	private async fetchRowIds(
@@ -623,21 +623,21 @@ export class OfflineStorage implements CacheStorage {
 		const resultRows = await this.allChunked(1000, ids, (idsChunk) => {
 			if (typeModel.type === TypeId.Element) {
 				return sql`SELECT elementId, rowid
-                                 FROM element_entities
-                                 WHERE type = ${typeString}
-                                   and elementId IN ${paramList(idsChunk)}`
+                           FROM element_entities
+                           WHERE type = ${typeString}
+                             and elementId IN ${paramList(idsChunk)}`
 			} else if (typeModel.type === TypeId.ListElement) {
 				return sql`SELECT elementId, listId, rowid
-                                 FROM list_entities
-                                 WHERE type = ${typeString}
-                                   and listId = ${listId}
-                                   and elementId IN ${paramList(idsChunk)}`
+                           FROM list_entities
+                           WHERE type = ${typeString}
+                             and listId = ${listId}
+                             and elementId IN ${paramList(idsChunk)}`
 			} else if (typeModel.type === TypeId.BlobElement) {
 				return sql`SELECT elementId, listId, rowid
-                                 FROM blob_element_entities
-                                 WHERE type = ${typeString}
-                                   and listId = ${listId}
-                                   and elementId IN ${paramList(idsChunk)}`
+                           FROM blob_element_entities
+                           WHERE type = ${typeString}
+                             and listId = ${listId}
+                             and elementId IN ${paramList(idsChunk)}`
 			} else {
 				throw new Error("Can't fetch row ids for invalid type")
 			}

@@ -1,5 +1,5 @@
-import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
-import { assertNotNull, defer } from "@tutao/tutanota-utils"
+import type { DeferredObject, lazy, lazyAsync } from "@tutao/utils"
+import { assertNotNull, defer } from "@tutao/utils"
 import { assertMainOrNodeBoot, isAdminClient } from "../common/Env"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"

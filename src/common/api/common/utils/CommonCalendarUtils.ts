@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS } from "@tutao/utils"
 import { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
 import { stringToCustomId, StrippedEntity } from "./EntityUtils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"

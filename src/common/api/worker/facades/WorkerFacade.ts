@@ -1,4 +1,4 @@
-import { aes256RandomKey, keyToBase64 } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
 import { Logger } from "../../common/Logger.js"
 
 /**

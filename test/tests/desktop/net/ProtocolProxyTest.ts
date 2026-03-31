@@ -3,8 +3,8 @@ import path from "node:path"
 import { OutgoingHttpHeader } from "node:http"
 import { func, matchers, object, verify, when } from "testdouble"
 import { doHandleProtocols, handleProtocols } from "../../../../src/common/desktop/net/ProtocolProxy.js"
-import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { utf8Uint8ArrayToString } from "@tutao/utils"
+import { assertThrows } from "@tutao/otest"
 
 o.spec("ProtocolProxy", function () {
 	let fetchMock

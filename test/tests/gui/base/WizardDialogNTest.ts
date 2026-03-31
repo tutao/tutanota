@@ -8,7 +8,7 @@ import { DomainDnsStatus } from "../../../../src/mail-app/settings/DomainDnsStat
 import { AddDomainData } from "../../../../src/mail-app/settings/emaildomain/AddDomainWizard.js"
 import { MailAddressTableModel } from "../../../../src/common/settings/mailaddress/MailAddressTableModel.js"
 import { object } from "testdouble"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { createTestEntity } from "../../TestUtils.js"
 
 const data: AddDomainData = {

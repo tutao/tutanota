@@ -2,7 +2,7 @@ import m, { Params } from "mithril"
 import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
-import { isSessionStorageAvailable, remove } from "@tutao/tutanota-utils"
+import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 

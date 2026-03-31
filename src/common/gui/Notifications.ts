@@ -1,4 +1,4 @@
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { isApp, isDesktop } from "../api/common/Env"
 import { CalendarNotificationIcon, MailNotificationIcon } from "./base/icons/Icons.js"
 

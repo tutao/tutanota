@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import {
 	MaybeSignedPublicKey,
 	PublicEncryptionKeyProvider,
@@ -17,10 +17,10 @@ import {
 	PublicKeySignatureTypeRef,
 	SystemKeysReturn,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import testData from "../crypto/CompatibilityTestData.json"
-import { bytesToKyberPublicKey, EncryptedPqKeyPairs, hexToRsaPublicKey, KeyPairType, PQPublicKeys, RsaPublicKey } from "@tutao/tutanota-crypto"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { bytesToKyberPublicKey, EncryptedPqKeyPairs, hexToRsaPublicKey, KeyPairType, PQPublicKeys, RsaPublicKey } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"

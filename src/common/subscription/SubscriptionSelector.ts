@@ -17,7 +17,7 @@ import {
 } from "./FeatureListProvider"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { assertNotNull, downcast, lazy, NBSP } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
 import {
 	AvailablePlanType,
 	CustomDomainType,

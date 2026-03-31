@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
 import { getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils.js"
-import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/utils"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/common/gui/base/List.js"

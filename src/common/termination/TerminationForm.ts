@@ -1,7 +1,7 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { client } from "../misc/ClientDetector.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"

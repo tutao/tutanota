@@ -13,7 +13,7 @@ import {
 import { GroupType, GroupTypeNameByCode, ShareCapability } from "../api/common/TutanotaConstants"
 import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
 import { lang } from "../misc/LanguageViewModel"
-import { downcast, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../api/common/EntityClient"
 import { NotFoundError } from "../api/common/error/RestError"
 import { UserController } from "../api/main/UserController"

@@ -15,7 +15,7 @@ import {
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
 import { component_size, px, size } from "../../../common/gui/size.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getConfidentialFontIcon } from "./MailGuiUtils.js"
@@ -140,6 +140,7 @@ export class MailRow implements VirtualRow<Mail> {
 			// Some other readers e.g. TalkBack need aria-description instead
 			// (at least if it's a child of <li>).
 			if (!client.isIos()) {
+				// @ts-ignore
 				this.domElement.ariaDescription = description
 			}
 		}

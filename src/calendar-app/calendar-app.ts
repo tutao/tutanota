@@ -5,7 +5,7 @@ import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewM
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"

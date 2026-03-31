@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { base64ToUint8Array, base64UrlToBase64 } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, base64UrlToBase64 } from "@tutao/utils"
 import { TempFs } from "../../../../src/common/desktop/files/TempFs.js"
 
 o.spec("TempFsTest", function () {

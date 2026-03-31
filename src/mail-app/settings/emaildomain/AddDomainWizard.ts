@@ -14,7 +14,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
 
-import { newPromise } from "@tutao/tutanota-utils"
+import { newPromise } from "@tutao/utils"
 
 assertMainOrNode()
 export type AddDomainData = {

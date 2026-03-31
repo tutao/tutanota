@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import n from "../nodemocker.js"
 import { DesktopContextMenu } from "../../../src/common/desktop/DesktopContextMenu.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { object } from "testdouble"
 import { WindowManager } from "../../../src/common/desktop/DesktopWindowManager.js"
 import { ContextMenuParams } from "electron"

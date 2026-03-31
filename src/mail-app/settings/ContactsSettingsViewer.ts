@@ -11,7 +11,7 @@ import { Button, ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { assert } from "@tutao/tutanota-utils"
+import { assert } from "@tutao/utils"
 import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../common/subscription/TermsAndConditions"
 
 assertMainOrNode()

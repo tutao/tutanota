@@ -75,7 +75,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/tutanota-utils"
+import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/utils"
 import { cleanMailAddress, makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"

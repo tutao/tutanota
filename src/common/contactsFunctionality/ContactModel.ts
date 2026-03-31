@@ -9,7 +9,7 @@ import {
 	ContactTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"

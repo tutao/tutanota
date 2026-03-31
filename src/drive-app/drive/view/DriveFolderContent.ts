@@ -16,7 +16,7 @@ import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 

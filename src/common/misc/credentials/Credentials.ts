@@ -1,4 +1,4 @@
-import { Base64, Base64Url } from "@tutao/tutanota-utils"
+import { Base64, Base64Url } from "@tutao/utils"
 import { CredentialType } from "./CredentialType.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"

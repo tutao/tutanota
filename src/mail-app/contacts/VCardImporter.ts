@@ -25,7 +25,7 @@ import {
 	ContactRelationshipType,
 	ContactWebsiteType,
 } from "../../common/api/common/TutanotaConstants"
-import { decodeBase64, decodeQuotedPrintable } from "@tutao/tutanota-utils"
+import { decodeBase64, decodeQuotedPrintable } from "@tutao/utils"
 import { birthdayToIsoDate, isValidBirthday } from "../../common/api/common/utils/BirthdayUtils"
 import { ParsingError } from "../../common/api/common/error/ParsingError"
 import { assertMainOrNode } from "../../common/api/common/Env"

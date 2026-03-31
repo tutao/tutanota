@@ -12,7 +12,7 @@ import { getEtId, isSameId } from "../../../common/api/common/utils/EntityUtils.
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { arrayEquals, debounce, lazy, lazyMemoized, memoized } from "@tutao/tutanota-utils"
+import { arrayEquals, debounce, lazy, lazyMemoized, memoized } from "@tutao/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"

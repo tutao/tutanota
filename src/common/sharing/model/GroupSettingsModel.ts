@@ -18,7 +18,7 @@ import { EntityClient } from "../../api/common/EntityClient"
 import { GroupInfo, GroupTypeRef } from "../../api/entities/sys/TypeRefs"
 import { getCustomSharedGroupName, getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../GroupUtils"
 import { getEtId, isSameId } from "../../api/common/utils/EntityUtils"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { noOp, ofClass } from "@tutao/utils"
 import { createGroupSettings, GroupSettings } from "../../api/entities/tutanota/TypeRefs"
 import { LockedError } from "../../api/common/error/RestError"
 

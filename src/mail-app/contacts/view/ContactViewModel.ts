@@ -5,7 +5,7 @@ import { ListElementListModel } from "../../../common/misc/ListElementListModel.
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
-import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyMemoized } from "@tutao/utils"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"

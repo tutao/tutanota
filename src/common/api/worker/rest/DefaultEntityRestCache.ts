@@ -19,7 +19,7 @@ import {
 	lazyAsync,
 	Nullable,
 	TypeRef,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,

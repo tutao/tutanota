@@ -8,9 +8,9 @@ import {
 	SpamClassifier,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { matchers, object, when } from "testdouble"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { SpamClassifierDataDealer, TrainingDataset } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { mockAttribute } from "@tutao/tutanota-test-utils"
+import { mockAttribute } from "@tutao/otest"
 import "@tensorflow/tfjs-backend-cpu"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"

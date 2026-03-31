@@ -14,7 +14,7 @@ import {
 	isSameTypeRef,
 	stringToBase64,
 	TypeRef,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { RouteSetFn, throttleRoute } from "../../../common/misc/RouteChange"
 import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../../common/api/common/Env"

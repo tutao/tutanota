@@ -1,4 +1,4 @@
-import { Base64, base64ToUint8Array, getDayShifted, getStartOfDay, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, getDayShifted, getStartOfDay, typedEntries, uint8ArrayToBase64 } from "@tutao/utils"
 import type { LanguageCode } from "./LanguageViewModel"
 import type { ThemePreference } from "../gui/theme"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"

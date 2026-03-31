@@ -1,7 +1,7 @@
 import { createCustomDomainCheckGetIn } from "../../common/api/entities/sys/TypeRefs.js"
 import type { CustomDomainCheckGetOut } from "../../common/api/entities/sys/TypeRefs.js"
 import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../common/api/common/TutanotaConstants"
-import { LazyLoaded, noOp } from "@tutao/tutanota-utils"
+import { LazyLoaded, noOp } from "@tutao/utils"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"

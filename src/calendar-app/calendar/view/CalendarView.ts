@@ -5,7 +5,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
 import {
 	CalendarEvent,
 	CalendarGroupRoot,

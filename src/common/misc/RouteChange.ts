@@ -1,6 +1,6 @@
 import m from "mithril"
 import { assertMainOrNodeBoot } from "../api/common/Env"
-import { lazyMemoized } from "@tutao/tutanota-utils"
+import { lazyMemoized } from "@tutao/utils"
 
 assertMainOrNodeBoot()
 

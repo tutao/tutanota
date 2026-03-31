@@ -31,12 +31,12 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { DataFile } from "../../../../../src/common/api/common/DataFile.js"
-import { downcast, KeyVersion, lazyNumberRange } from "@tutao/tutanota-utils"
+import { downcast, KeyVersion, lazyNumberRange } from "@tutao/utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { assertThrows, verify } from "@tutao/tutanota-test-utils"
+import { assertThrows, verify } from "@tutao/otest"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
 import {
 	BucketKeyTypeRef,
@@ -51,7 +51,7 @@ import { OwnerEncSessionKeyProvider } from "../../../../../src/common/api/worker
 import { elementIdPart, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { CryptoWrapper, VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { Recipient } from "../../../../../src/common/api/common/recipients/Recipient"
-import { AesKey } from "@tutao/tutanota-crypto"
+import { AesKey } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { SpamClassifier } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
@@ -737,7 +737,10 @@ o.spec("MailFacade test", function () {
 				mailAddressAliases: [
 					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "user@tutanota.de", enabled: true }),
 					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "deactivated-alias@tutanota.de", enabled: false }),
-					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "activated-alias-alias@tutanota.de", enabled: true }),
+					createTestEntity(MailAddressAliasTypeRef, {
+						mailAddress: "activated-alias-alias@tutanota.de",
+						enabled: true,
+					}),
 				],
 			})
 

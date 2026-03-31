@@ -1,4 +1,4 @@
-import { assertNotNull, defer, DeferredObject } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import type { DbFacade } from "./DbFacade"
 import { DbEncryptionData } from "./SearchTypes"
 

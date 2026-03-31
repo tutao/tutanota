@@ -13,7 +13,7 @@ import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/Typ
 import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
 
 import { ElementEntity } from "../../../../../src/common/api/common/EntityTypes.js"
-import { clone, TypeRef } from "@tutao/tutanota-utils"
+import { clone, TypeRef } from "@tutao/utils"
 import { hasError } from "../../../../../src/common/api/common/utils/ErrorUtils.js"
 
 o.spec("EntityUtils", function () {

@@ -12,7 +12,7 @@ import {
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { _verifyType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
-import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"

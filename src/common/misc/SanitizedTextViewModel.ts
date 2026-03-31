@@ -1,5 +1,5 @@
 import type { HtmlSanitizer } from "./HtmlSanitizer.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { convertTextToHtml } from "./Formatter.js"
 import { prepareCalendarDescription } from "../api/common/utils/CommonCalendarUtils.js"
 

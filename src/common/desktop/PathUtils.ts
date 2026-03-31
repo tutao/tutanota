@@ -1,6 +1,6 @@
 import path from "node:path"
 import { sanitizeFilename } from "../api/common/utils/FileUtils"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { promises as fs } from "node:fs"
 import { PathExports } from "./ElectronExportTypes"
 

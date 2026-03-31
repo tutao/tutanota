@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "../../api/common/Env"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
-import { clone, downcast } from "@tutao/tutanota-utils"
+import { clone, downcast } from "@tutao/utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../gui/base/Color"
 import stream from "mithril/stream"

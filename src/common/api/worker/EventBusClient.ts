@@ -19,7 +19,7 @@ import {
 	WebsocketEntityDataTypeRef,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
+import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"

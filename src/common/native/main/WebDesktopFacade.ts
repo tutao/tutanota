@@ -6,7 +6,7 @@ import { NativeShortcut } from "../common/generatedipc/NativeShortcut.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
+import { lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 
 export class WebDesktopFacade implements DesktopFacade {

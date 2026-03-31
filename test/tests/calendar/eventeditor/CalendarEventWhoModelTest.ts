@@ -31,7 +31,7 @@ import {
 	thirdAddress,
 	thirdRecipient,
 } from "../CalendarTestUtils.js"
-import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { RecipientField } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../TestUtils.js"

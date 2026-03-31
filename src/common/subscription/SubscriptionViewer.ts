@@ -33,7 +33,7 @@ import {
 	PlanConfiguration,
 	UserTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./utils/PriceUtils"

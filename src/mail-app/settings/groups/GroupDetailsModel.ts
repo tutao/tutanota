@@ -8,7 +8,7 @@ import {
 	GroupTypeRef,
 	UserTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
-import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GENERATED_MIN_ID, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { BookingItemFeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"

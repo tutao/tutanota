@@ -11,7 +11,7 @@ import { trashMails } from "./MailGuiUtils"
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { promiseMap } from "@tutao/tutanota-utils"
+import { promiseMap } from "@tutao/utils"
 import {
 	EntityEventsListener,
 	EntityUpdateData,

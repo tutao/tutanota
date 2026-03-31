@@ -28,7 +28,7 @@ import {
 import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
-import { getFirstOrThrow, Require } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, Require } from "@tutao/utils"
 import { createTestEntity } from "../TestUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
 import {

@@ -2,7 +2,7 @@ import { PartialRecipient, Recipient } from "../api/common/recipients/Recipient.
 import { RecipientsModel } from "../api/main/RecipientsModel.js"
 import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { isMailAddress } from "./FormatValidator.js"
-import { ofClass } from "@tutao/tutanota-utils"
+import { ofClass } from "@tutao/utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { ContactListEntryTypeRef, ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"

@@ -17,7 +17,7 @@ import {
 	setEquals,
 	setMap,
 	settledThen,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"

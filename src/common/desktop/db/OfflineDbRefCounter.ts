@@ -1,4 +1,4 @@
-import { defer, DeferredObject, delay } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay } from "@tutao/utils"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { log } from "../DesktopLog.js"
 import { OfflineDbFactory } from "./PerWindowSqlCipherFacade.js"
