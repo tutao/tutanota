@@ -5,7 +5,7 @@ import m, { Children, Vnode } from "mithril"
 import { DriveOperationType, DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
-import { FileReference, getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
+import { FileReference, getFileBaseNameAndExtensions, WebFile } from "../../../common/api/common/utils/FileUtils"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
@@ -19,7 +19,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { HighestTierPlans, Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
+import { Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
@@ -480,7 +480,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(DriveFolderView, {
 			selectedItemsActions: this.selectedItemsActions(listState, showMoveItemDialog),
 			onDropFiles: (files) => {
-				this.driveViewModel.uploadFiles(files)
+				this.driveViewModel.uploadFiles(
+					files.map((f) => {
+						return { _type: "WebFile", file: f }
+					}),
+				)
 			},
 			currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
 			parents: this.driveViewModel.parents,
@@ -612,7 +616,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	async onNewFile(): Promise<void> {
-		await showNewFileDialog((files: File[]) => this.driveViewModel.uploadFiles(files))
+		await showNewFileDialog((files: WebFile[] | FileReference[]) => this.driveViewModel.uploadFiles(files))
 	}
 
 	async onNewFolder(): Promise<void> {

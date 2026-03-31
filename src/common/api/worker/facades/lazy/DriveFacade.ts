@@ -39,6 +39,7 @@ import { NotFoundError } from "../../../common/error/RestError"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
+import { FileReference, isWebFile, WebFile } from "../../../common/utils/FileUtils"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -193,7 +194,7 @@ export class DriveFacade {
 	/**
 	 * @param to this is the folder where the file will be uploaded
 	 */
-	public async uploadFile(file: File, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
+	public async uploadFile(file: WebFile | FileReference, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
@@ -204,15 +205,20 @@ export class DriveFacade {
 
 		const blobRefTokens: BlobReferenceTokenWrapper[] = []
 		try {
-			for await (const { referenceTokenWrapper } of this.blobFacade.streamEncryptAndUpload(
-				ArchiveDataType.DriveFile,
-				file,
-				assertNotNull(fileGroupId),
-				sessionKey,
-				fileId,
-				abortController.signal,
-			)) {
-				blobRefTokens.push(referenceTokenWrapper)
+			if (isWebFile(file)) {
+				for await (const { referenceTokenWrapper } of this.blobFacade.streamEncryptAndUpload(
+					ArchiveDataType.DriveFile,
+					file.file,
+					assertNotNull(fileGroupId),
+					sessionKey,
+					fileId,
+					abortController.signal,
+				)) {
+					blobRefTokens.push(referenceTokenWrapper)
+				}
+			} else {
+				const tokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.DriveFile, file.location, assertNotNull(fileGroupId), sessionKey)
+				blobRefTokens.push(...tokens)
 			}
 		} finally {
 			this.abortControllers.delete(fileId)
@@ -226,7 +232,7 @@ export class DriveFacade {
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
 			fileName: fileName,
-			mimeType: getCleanedMimeType(file.type),
+			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
 			ownerEncSessionKey: ownerEncSessionKey,
 			ownerKeyVersion: String(fileGroupKey.version),
 			_ownerGroup: assertNotNull(fileGroupId),
