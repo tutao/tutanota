@@ -1,4 +1,4 @@
-import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
+import { DropdownButtonAttrs, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
@@ -12,18 +12,24 @@ import { Mode } from "../../../common/api/common/Env"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
 
-export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => unknown; onNewFolder: () => unknown }): DropdownButtonAttrs[] {
+export function newItemActions({
+	onNewFile,
+	onNewFolder,
+}: {
+	onNewFile: (event: MouseEvent, dom: HTMLElement) => unknown
+	onNewFolder: (event: MouseEvent, dom: HTMLElement) => unknown
+}): DropdownButtonAttrs[] {
 	return [
 		{
 			click: (event, dom) => {
-				onNewFolder()
+				onNewFolder(event, dom)
 			},
 			label: lang.getTranslation("createFolder_action"),
 			icon: Icons.FolderFilled,
 		},
 		{
 			click: (event, dom) => {
-				onNewFile()
+				onNewFile(event, dom)
 			},
 			label: lang.getTranslation("uploadFile_action"),
 			icon: Icons.Upload,
@@ -31,22 +37,8 @@ export function newItemActions({ onNewFile, onNewFolder }: { onNewFile: () => un
 	]
 }
 
-export async function showNewFileDialog(uploadFiles: (files: WebFile[] | FileReference[]) => Promise<void>): Promise<void> {
-	// FIXME
-	const boundingRect: DOMRect = {
-		bottom: 0,
-		left: 0,
-		right: 0,
-		top: 0,
-		toJSON(): any {},
-		x: 0,
-		y: 0,
-		width: 0,
-		height: 0,
-	}
-
+export async function showNewFileDialog(uploadFiles: (files: WebFile[] | FileReference[]) => Promise<void>, boundingRect: PosRect): Promise<void> {
 	const fileSelector = [Mode.App, Mode.Desktop].includes(env.mode) ? locator.fileApp.openFileChooser(boundingRect) : showStandardsFileChooser(true)
-
 	const files = await fileSelector
 
 	if (files) {
