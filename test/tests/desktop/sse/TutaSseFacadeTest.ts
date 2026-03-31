@@ -190,6 +190,7 @@ o.spec("TutaSseFacade", () => {
 			const missedNotification = createMissedNotification({
 				_ownerEncSessionKey: null,
 				_ownerKeyVersion: null,
+				_kdfNonce: null,
 				_ownerGroup: "ownerGroupId",
 				_permissions: "permissionsId",
 				lastProcessedNotificationId: "lastProcessedNotificationId",
@@ -385,6 +386,7 @@ o.spec("TutaSseFacade", () => {
 			const missedNotification = createMissedNotification({
 				_ownerEncSessionKey: null,
 				_ownerKeyVersion: null,
+				_kdfNonce: null,
 				_ownerGroup: "ownerGroupId",
 				_permissions: "permissionsId",
 				lastProcessedNotificationId: newLastProcessedNotificationId,

@@ -15,6 +15,7 @@ o.spec("utils", function () {
 		const ownerEncSessionKey = new Uint8Array([3, 2])
 		c1._ownerKeyVersion = "2"
 		c1._ownerEncSessionKey = ownerEncSessionKey
+		c1._kdfNonce = new Uint8Array([9, 8, 7])
 		c1._id = ["dummyListId", "dummyId"]
 		c1.firstName = "Donald"
 		c1.lastName = "Duck"

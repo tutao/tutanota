@@ -73,6 +73,7 @@ o.spec("EntityUtils", function () {
 				_type: typeRef,
 				_ownerGroup: null,
 				_ownerEncSessionKey: null,
+				_kdfNonce: null,
 			}
 		}
 

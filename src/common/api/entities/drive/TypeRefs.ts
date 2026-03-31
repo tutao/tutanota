@@ -25,6 +25,7 @@ export type DriveFolder = {
 	name: string;
 	createdDate: Date;
 	updatedDate: Date;
+	_kdfNonce: null | Uint8Array;
 
 	parent: null | IdTuple;
 	originalParent: null | IdTuple;
@@ -52,6 +53,7 @@ export type DriveFile = {
 	mimeType: string;
 	createdDate: Date;
 	updatedDate: Date;
+	_kdfNonce: null | Uint8Array;
 
 	folder: IdTuple;
 	blobs: Blob[];

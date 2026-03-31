@@ -155,13 +155,6 @@ where
 		tuple_struct enum identifier ignored_any
 	}
 
-	fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-	where
-		V: Visitor<'de>,
-	{
-		visitor.visit_map(self)
-	}
-
 	fn deserialize_any<V>(self, _value: V) -> Result<V::Value, Self::Error>
 	where
 		V: Visitor<'de>,
@@ -171,6 +164,13 @@ where
 		Err(de::Error::custom(format_args!(
 			"deserialize_any is not supported! key: `{key}`, value type: `{type_name}`",
 		)))
+	}
+
+	fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		visitor.visit_map(self)
 	}
 
 	fn deserialize_struct<V>(
@@ -305,13 +305,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			tuple_struct
 		}
 
-	fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-	where
-		V: Visitor<'de>,
-	{
-		visitor.visit_unit()
-	}
-
 	fn deserialize_any<V>(self, _: V) -> Result<V::Value, Self::Error>
 	where
 		V: Visitor<'de>,
@@ -321,17 +314,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			"deserialize_any is not supported! key: `{:?}`, value type: `{type_name}`",
 			self.type_model.name
 		)))
-	}
-
-	fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-	where
-		V: Visitor<'de>,
-	{
-		if let ElementValue::Date(date) = self.value {
-			visitor.visit_u64(date.as_millis())
-		} else {
-			Err(self.wrong_type_err("u64"))
-		}
 	}
 
 	fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -353,6 +335,17 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			visitor.visit_i64(num)
 		} else {
 			Err(self.wrong_type_err("i64"))
+		}
+	}
+
+	fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		if let ElementValue::Date(date) = self.value {
+			visitor.visit_u64(date.as_millis())
+		} else {
+			Err(self.wrong_type_err("u64"))
 		}
 	}
 
@@ -432,6 +425,22 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			visitor.visit_seq(array_deserializer)
 		} else {
 			Err(self.wrong_type_err("sequence"))
+		}
+	}
+
+	fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		if let ElementValue::Dict(dict) = self.value {
+			let de = DictionaryDeserializer::from_iterable(
+				dict,
+				self.type_model,
+				self.type_model_provider,
+			);
+			visitor.visit_map(de)
+		} else {
+			Err(self.wrong_type_err("dict"))
 		}
 	}
 
@@ -656,22 +665,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 		}
 	}
 
-	fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-	where
-		V: Visitor<'de>,
-	{
-		if let ElementValue::Dict(dict) = self.value {
-			let de = DictionaryDeserializer::from_iterable(
-				dict,
-				self.type_model,
-				self.type_model_provider,
-			);
-			visitor.visit_map(de)
-		} else {
-			Err(self.wrong_type_err("dict"))
-		}
-	}
-
 	fn deserialize_enum<V>(
 		self,
 		_: &'static str,
@@ -689,6 +682,13 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 		V: Visitor<'de>,
 	{
 		visitor.visit_str(self.value.type_variant_name())
+	}
+
+	fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		visitor.visit_unit()
 	}
 }
 
@@ -1914,6 +1914,7 @@ mod tests {
 			_listEncSessionKey: None,
 			_ownerGroup: None,
 			_ownerKeyVersion: None,
+			_kdfNonce: None,
 			_permissions: GeneratedId::test_random(),
 			created: DateTime::from_millis(1533116004052),
 			deleted: None,

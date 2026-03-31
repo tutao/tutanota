@@ -80,6 +80,7 @@ export type GroupInfo = {
 	_ownerEncSessionKey: null | Uint8Array;
 	groupType: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	group: Id;
 	mailAddressAliases: MailAddressAlias[];
@@ -401,6 +402,7 @@ export type AccountingInfo = {
 	_modified: Date;
 	_ownerKeyVersion: null | NumberString;
 	lastUsedOffer: null | string;
+	_kdfNonce: null | Uint8Array;
 
 	invoiceInfo: null | Id;
 	appStoreSubscription: null | IdTuple;
@@ -1000,6 +1002,7 @@ export type PushIdentifier = {
 	lastUsageTime: Date;
 	_ownerKeyVersion: null | NumberString;
 	app: NumberString;
+	_kdfNonce: null | Uint8Array;
 }
 export const PushIdentifierListTypeRef: TypeRef<PushIdentifierList> = new TypeRef("sys", 635)
 
@@ -1536,6 +1539,7 @@ export type CustomerServerProperties = {
 	requirePasswordUpdateAfterReset: boolean;
 	saveEncryptedIpAddressInSession: boolean;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	emailSenderList: EmailSenderListElement[];
 }
@@ -1632,6 +1636,7 @@ export type AuditLogEntry = {
 	modifiedEntity: string;
 	date: Date;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	groupInfo: null | IdTuple;
 	modifiedGroupInfo: null | IdTuple;
@@ -1812,6 +1817,7 @@ export type Session = {
 	accessKey: null | Uint8Array;
 	state: NumberString;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	challenges: Challenge[];
 	user: Id;
@@ -1970,6 +1976,7 @@ export type WhitelabelChild = {
 	deletedDate: null | Date;
 	comment: string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	customer: Id;
 }
@@ -2052,6 +2059,7 @@ export type OrderProcessingAgreement = {
 	customerAddress: string;
 	signatureDate: Date;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	signerUserGroupInfo: IdTuple;
 	customer: Id;
@@ -2370,6 +2378,7 @@ export type UserAlarmInfo = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	alarmInfo: AlarmInfo;
 }
@@ -2545,6 +2554,7 @@ export type ReceivedGroupInvitation = {
 	groupType: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
 	sharedGroupKeyVersion: NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	sharedGroup: Id;
 	sentInvitation: IdTuple;
@@ -2632,6 +2642,7 @@ export type Invoice = {
 	adminUser: null | string;
 	reason: null | string;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	items: InvoiceItem[];
 	customer: Id;
@@ -2655,6 +2666,7 @@ export type MissedNotification = {
 	_ownerEncSessionKey: null | Uint8Array;
 	lastProcessedNotificationId: null | Id;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	notificationInfos: NotificationInfo[];
 	alarmNotifications: AlarmNotification[];
@@ -2774,6 +2786,7 @@ export type GiftCard = {
 	orderDate: Date;
 	migrated: boolean;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 }
 export const GiftCardsRefTypeRef: TypeRef<GiftCardsRef> = new TypeRef("sys", 1791)
 
@@ -3631,6 +3644,7 @@ export type GroupKeyUpdate = {
 	_ownerKeyVersion: null | NumberString;
 	groupKey: Uint8Array;
 	groupKeyVersion: NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	bucketKey: BucketKey;
 }
@@ -4165,6 +4179,7 @@ export type PartnerManagedCustomer = {
 	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array;
 
 	customerInfo: IdTuple;
 }

@@ -28,6 +28,9 @@ pub struct DriveFolder {
 	pub createdDate: DateTime,
 	#[serde(rename = "11")]
 	pub updatedDate: DateTime,
+	#[serde(rename = "121")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "12")]
 	pub parent: Option<IdTupleGenerated>,
 	#[serde(rename = "13")]
@@ -74,6 +77,9 @@ pub struct DriveFile {
 	pub createdDate: DateTime,
 	#[serde(rename = "26")]
 	pub updatedDate: DateTime,
+	#[serde(rename = "122")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "27")]
 	pub folder: IdTupleGenerated,
 	#[serde(rename = "28")]

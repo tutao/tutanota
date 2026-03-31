@@ -1717,6 +1717,7 @@ impl EventFacade {
 			_ownerGroup: Some(birthday_calendar_id),
 			_ownerEncSessionKey: None,
 			_ownerKeyVersion: None,
+			_kdfNonce: None,
 			_errors: HashMap::new(),
 			sender: None,
 		}

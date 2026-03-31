@@ -20,6 +20,7 @@ export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 			_id: ["", ""],
 			_ownerEncSessionKey: null,
 			_ownerGroup: "",
+			_kdfNonce: null,
 			_permissions: "",
 			attachments: [],
 			bucketKey: null,

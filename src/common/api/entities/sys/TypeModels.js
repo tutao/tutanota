@@ -398,6 +398,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2702": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2702,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -1907,6 +1915,14 @@ export const typeModels = {
 				"name": "lastUsedOffer",
 				"id": 2690,
 				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2711": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2711,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
@@ -4131,6 +4147,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2708": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2708,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {}
@@ -6031,6 +6055,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2719": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2719,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -6327,6 +6359,14 @@ export const typeModels = {
 				"name": "_ownerKeyVersion",
 				"id": 2227,
 				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2705": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2705,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
@@ -6992,6 +7032,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2713": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2713,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -7492,6 +7540,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2715": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2715,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -7756,6 +7812,14 @@ export const typeModels = {
 				"name": "_ownerKeyVersion",
 				"id": 2231,
 				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2717": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2717,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
@@ -8926,6 +8990,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2701": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2701,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -9532,6 +9604,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2704": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2704,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -9919,6 +9999,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2709": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2709,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -10016,6 +10104,14 @@ export const typeModels = {
 				"name": "_ownerKeyVersion",
 				"id": 2236,
 				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2712": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2712,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
@@ -10426,6 +10522,14 @@ export const typeModels = {
 				"name": "_ownerKeyVersion",
 				"id": 2238,
 				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2716": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2716,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
@@ -13221,6 +13325,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2718": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2718,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -14813,6 +14925,14 @@ export const typeModels = {
 				"name": "_ownerKeyVersion",
 				"id": 2679,
 				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2707": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2707,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}

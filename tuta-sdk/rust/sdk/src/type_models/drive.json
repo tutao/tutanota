@@ -2,7 +2,7 @@
 	"0": {
 		"name": "DriveFolder",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 0,
@@ -90,6 +90,14 @@
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"121": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 121,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -125,7 +133,7 @@
 	"14": {
 		"name": "DriveFile",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 14,
@@ -221,6 +229,14 @@
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"122": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 122,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -256,7 +272,7 @@
 	"30": {
 		"name": "DriveFileRef",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 30,
@@ -322,7 +338,7 @@
 	"39": {
 		"name": "DriveFileBag",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 39,
@@ -355,7 +371,7 @@
 	"42": {
 		"name": "DriveFolderBag",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 42,
@@ -388,7 +404,7 @@
 	"45": {
 		"name": "DriveGroupRoot",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "ELEMENT_TYPE",
 		"id": 45,
@@ -472,7 +488,7 @@
 	"55": {
 		"name": "DriveUploadedFile",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 55,
@@ -537,7 +553,7 @@
 	"61": {
 		"name": "DrivePostIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 61,
@@ -594,7 +610,7 @@
 	"67": {
 		"name": "DriveItemPostIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 67,
@@ -636,7 +652,7 @@
 	"71": {
 		"name": "DriveItemPostOut",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 71,
@@ -669,7 +685,7 @@
 	"74": {
 		"name": "DriveItemPutIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 74,
@@ -719,7 +735,7 @@
 	"79": {
 		"name": "DriveItemDeleteIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 79,
@@ -761,7 +777,7 @@
 	"84": {
 		"name": "DriveFolderServicePostIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 84,
@@ -818,7 +834,7 @@
 	"89": {
 		"name": "DriveFolderServicePostOut",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 89,
@@ -851,7 +867,7 @@
 	"92": {
 		"name": "DriveRenameData",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 92,
@@ -901,7 +917,7 @@
 	"97": {
 		"name": "DriveFolderServicePutIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 97,
@@ -943,7 +959,7 @@
 	"101": {
 		"name": "DriveFolderServiceDeleteIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 101,
@@ -993,7 +1009,7 @@
 	"107": {
 		"name": "DriveCopyServicePostIn",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 107,
@@ -1035,7 +1051,7 @@
 	"115": {
 		"name": "DriveCopyServicePostOut",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 115,
@@ -1066,7 +1082,7 @@
 	"118": {
 		"name": "DriveItemServiceDeleteOut",
 		"app": "drive",
-		"version": 3,
+		"version": 4,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 118,

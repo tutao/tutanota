@@ -361,6 +361,7 @@ export class CalendarFacade {
 		event._id = existingEvent._id
 		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
 		event._ownerKeyVersion = existingEvent._ownerKeyVersion
+		event._kdfNonce = existingEvent._kdfNonce
 		event._permissions = existingEvent._permissions
 		if (existingEvent.uid == null) throw new Error("no uid set on the existing event")
 		event.uid = existingEvent.uid
