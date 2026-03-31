@@ -2,7 +2,7 @@ import type { App } from "electron"
 import type { WindowManager } from "./DesktopWindowManager"
 import { isMailAddress } from "../misc/FormatValidator"
 import { log } from "./DesktopLog"
-import type { TimeoutSetter } from "@tutao/tutanota-utils"
+import type { TimeoutSetter } from "@tutao/utils"
 import { NetExports } from "./ElectronExportTypes"
 import { Server, Socket } from "node:net"
 

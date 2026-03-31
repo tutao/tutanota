@@ -7,7 +7,7 @@ import {
 	reverse,
 	SECOND_MS,
 } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, ByRule, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"

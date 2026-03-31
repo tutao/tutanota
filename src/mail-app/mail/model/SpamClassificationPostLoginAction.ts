@@ -3,7 +3,7 @@ import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassif
 import { FeatureType } from "../../../common/api/common/TutanotaConstants"
 import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
 

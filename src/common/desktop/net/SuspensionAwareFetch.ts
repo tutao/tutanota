@@ -1,5 +1,5 @@
 import { RequestInit } from "undici"
-import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt } from "@tutao/utils"
 import { customFetch, FetchImpl, UndiciResponse } from "./NetAgent"
 import { isSuspensionResponse, SuspensionHandler } from "../../api/worker/SuspensionHandler"
 

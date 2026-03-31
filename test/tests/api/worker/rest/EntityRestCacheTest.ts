@@ -13,7 +13,7 @@ import {
 	listIdPart,
 	stringToCustomId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/utils"
 import {
 	createEntityUpdate,
 	createPatch,
@@ -41,7 +41,7 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/tutanota-test-utils"
+import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/otest"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"

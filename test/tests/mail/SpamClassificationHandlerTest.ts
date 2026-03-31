@@ -26,7 +26,6 @@ import {
 	SpamDecision,
 } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
-import { assert, assertNotNull } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils"
 import { SERVER_CLASSIFIERS_TO_TRUST, SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
@@ -37,6 +36,7 @@ import { UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../src/common/api/main/LoginController"
+import { assertNotNull, assert } from "@tutao/utils"
 
 const { anything } = matchers
 
@@ -386,7 +386,12 @@ o.spec("SpamClassificationHandlerTest", function () {
 	o("predictSpamForNewMail doesn't call classifier when sender is one of the aliases of the user", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.sender = createTestEntity(MailAddressTypeRef, { address: "alias@tuta.com", name: "Name" })
-		mailDetails.recipients.toRecipients.push(createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Name" }))
+		mailDetails.recipients.toRecipients.push(
+			createTestEntity(MailAddressTypeRef, {
+				address: "user@tuta.com",
+				name: "Name",
+			}),
+		)
 		when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["alias@tuta.com", "user@tuta.com"])
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
 

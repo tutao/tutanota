@@ -7,11 +7,11 @@ import {
 	loadEncryptionMetadata,
 	updateEncryptionMetadata,
 } from "../../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { downcast, KeyVersion } from "@tutao/tutanota-utils"
+import { downcast, KeyVersion } from "@tutao/utils"
 import { DbStub } from "../search/DbStub.js"
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -24,7 +24,8 @@ import { VersionedKey } from "../../../../../src/common/api/worker/crypto/Crypto
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 
-	o.beforeEach(function () {
+	o.beforeEach(async function () {
+		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		keyLoaderFacade = object()
 	})
 

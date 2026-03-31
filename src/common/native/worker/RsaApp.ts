@@ -1,4 +1,4 @@
-import type { Randomizer, RsaPrivateKey, RsaPublicKey } from "@tutao/tutanota-crypto"
+import type { Randomizer, RsaPrivateKey, RsaPublicKey } from "@tutao/crypto"
 import type { RsaImplementation } from "../../api/worker/crypto/RsaImplementation"
 import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
 

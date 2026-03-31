@@ -13,7 +13,6 @@ test-ca
 **/*.xcbkptlist
 **/*.xcuserstate
 **/xcuserdata
-fastlane
 android-app/app/release
 app-ios/releases
 native-cache
@@ -30,3 +29,6 @@ DerivedData/
 tuta-sdk/rust/out
 tuta-sdk/android
 import-trace.json
+src/crypto-primitives
+src/mimimi/package-lock.json
+src/licc/package-lock.json

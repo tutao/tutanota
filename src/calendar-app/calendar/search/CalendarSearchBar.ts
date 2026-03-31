@@ -12,7 +12,7 @@ import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/Tutanot
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import { styles } from "../../../common/gui/styles"
 import { client } from "../../../common/misc/ClientDetector"
-import { debounce, downcast, memoized, mod, TypeRef } from "@tutao/tutanota-utils"
+import { debounce, downcast, memoized, mod, TypeRef } from "@tutao/utils"
 import { BrowserType } from "../../../common/misc/ClientConstants"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"

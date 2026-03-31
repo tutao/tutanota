@@ -1,4 +1,4 @@
-import { KeyVersion } from "@tutao/tutanota-utils"
+import { KeyVersion } from "@tutao/utils"
 
 export type ObjectStoreName = string
 export type IndexName = string

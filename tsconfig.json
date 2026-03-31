@@ -3,34 +3,33 @@
 	"compilerOptions": {
 		"removeComments": false,
 		"declaration": false,
-		"noEmit": true,
 		"outDir": "build",
-		"incremental": true,
-		"rootDir": "."
+		"rootDir": ".",
+		"noEmit": false
 	},
-	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
-	"exclude": ["src/calendar-app.ts"],
+	"files": [],
+	"exclude": ["**/dist"],
 	"references": [
 		{
-			"path": "./packages/tutanota-utils"
+			"path": "./src/tsconfig.error.json"
 		},
 		{
-			"path": "./packages/tutanota-crypto"
+			"path": "./src/tsconfig.crypto.json"
 		},
 		{
-			"path": "./packages/tutanota-test-utils"
+			"path": "./src/tsconfig.utils.json"
 		},
 		{
-			"path": "./packages/tutanota-error"
+			"path": "./src/tsconfig.mimimi.json"
 		},
 		{
-			"path": "./packages/tuta-wasm-loader"
+			"path": "./src/tsconfig.wasm.json"
 		},
 		{
-			"path": "./packages/node-mimimi"
+			"path": "./src/tsconfig.usagetests.json"
 		},
 		{
-			"path": "./packages/tutanota-usagetests"
+			"path": "./src/tsconfig.combined-apps.json"
 		}
 	]
 }

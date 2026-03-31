@@ -46,7 +46,7 @@ import {
 	verifyHmacSha256Async,
 	x25519Decapsulate,
 	x25519Encapsulate,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import {
 	base64ToUint8Array,
 	byteArraysToBytes,
@@ -58,7 +58,7 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
 	Versioned,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/common/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
@@ -69,7 +69,7 @@ import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
-import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "../../../../../packages/tutanota-crypto/lib/hashes/Blake3"
+import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 
 const originalRandom = random.generateRandomData
 
@@ -457,19 +457,19 @@ o.spec("CompatibilityTest", function () {
 				object: bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex)),
 				version: 0,
 			}
-			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
+			const originalSignature = bytesToEd25519Signature(hexToUint8Array(td.signature))
 			const message = hexToUint8Array(td.message)
 
 			// make sure encoding and decoding round trips yield the same results again
 			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(alicePrivateKey.object))).deepEquals(td.alicePrivateKeyHex)
 			o(uint8ArrayToHex(ed25519PublicKeyToBytes(alicePublicKey))).deepEquals(td.alicePublicKeyHex)
-			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
+			o(uint8ArrayToHex(ed25519SignatureToBytes(originalSignature))).deepEquals(td.signature)
 
 			const { encodedKeyPairForSigning } = publicKeySignatureFacade.serializePublicKeyForSigning(versionedPublicEncryptionKey)
 			o(encodedKeyPairForSigning).deepEquals(message)
 
 			const { signature: reproducedSignature } = await publicKeySignatureFacade.signPublicKey(versionedEncryptionKeyPair, alicePrivateKey)
-			o(reproducedSignature).deepEquals(signature)
+			o(reproducedSignature).deepEquals(ed25519SignatureToBytes(originalSignature))
 
 			o(await publicKeySignatureFacade.verifyPublicKeySignature(versionedPublicEncryptionKey, alicePublicKey, reproducedSignature)).equals(true)
 		}
@@ -523,7 +523,7 @@ o.spec("CompatibilityTest", function () {
 async function createEd25519Facade(): Promise<Ed25519Facade> {
 	if (typeof process !== "undefined") {
 		const { readFile } = await import("node:fs/promises")
-		const wasmBuffer = await readFile("build/crypto_primitives_bg.wasm")
+		const wasmBuffer = await readFile("../src/crypto-primitives/crypto_primitives_bg.wasm")
 		return new WASMEd25519Facade(wasmBuffer)
 	} else {
 		return new WASMEd25519Facade()

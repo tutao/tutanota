@@ -1,7 +1,7 @@
 /**
  * This is a little wrapper around electron-updater to decouple logic.
  */
-import { downcast, newPromise, noOp } from "@tutao/tutanota-utils"
+import { downcast, newPromise, noOp } from "@tutao/utils"
 import path from "node:path"
 import fs from "node:fs"
 import { app } from "electron"

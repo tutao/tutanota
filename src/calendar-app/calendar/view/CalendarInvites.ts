@@ -2,7 +2,7 @@ import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, assertNotNull, clone, filterInt, Require } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, clone, filterInt, Require } from "@tutao/utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"

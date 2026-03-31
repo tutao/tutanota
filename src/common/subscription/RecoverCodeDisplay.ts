@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Hex } from "@tutao/tutanota-utils"
+import { Hex } from "@tutao/utils"
 import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { locator } from "../api/main/CommonLocator"

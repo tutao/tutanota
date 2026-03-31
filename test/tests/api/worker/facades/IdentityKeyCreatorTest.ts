@@ -6,7 +6,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade } from "../../../../../src/
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AsymmetricKeyPair, Ed25519KeyPair, KeyPairType, MacTag } from "@tutao/tutanota-crypto"
+import { AsymmetricKeyPair, Ed25519KeyPair, KeyPairType, MacTag } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
@@ -18,7 +18,7 @@ import {
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
@@ -26,7 +26,7 @@ import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/S
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
-import { Versioned } from "@tutao/tutanota-utils"
+import { Versioned } from "@tutao/utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 const { anything, argThat, captor } = matchers

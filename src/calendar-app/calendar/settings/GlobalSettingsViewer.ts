@@ -3,7 +3,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env.js"
 import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../../common/settings/AccountMaintenanceSettings.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
 import {
 	CustomerPropertiesTypeRef,
 	CustomerServerProperties,

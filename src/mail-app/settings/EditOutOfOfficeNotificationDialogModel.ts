@@ -2,7 +2,7 @@ import type { OutOfOfficeNotification, OutOfOfficeNotificationMessage } from "..
 import { createOutOfOfficeNotification, createOutOfOfficeNotificationMessage } from "../../common/api/entities/tutanota/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/tutanota-utils"
+import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/utils"
 import { OutOfOfficeNotificationMessageType } from "../../common/api/common/TutanotaConstants"
 import { InvalidDataError, PreconditionFailedError } from "../../common/api/common/error/RestError"
 import type { EntityClient } from "../../common/api/common/EntityClient"

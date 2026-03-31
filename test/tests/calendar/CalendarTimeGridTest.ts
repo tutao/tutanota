@@ -11,7 +11,7 @@ import {
 import { Time } from "../../../src/common/calendar/date/Time"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubble"
-import { clone, incrementDate } from "@tutao/tutanota-utils"
+import { clone, incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
 import { CalendarRepeatRuleTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"

@@ -15,7 +15,7 @@ import {
 	PQKeyPairs,
 	RsaKeyPair,
 	rsaPublicKeyToHex,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import {
 	createKeyPair,
 	Group,
@@ -35,12 +35,12 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { matchers, object, reset, verify, when } from "testdouble"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { freshVersioned, hexToUint8Array, KeyVersion } from "@tutao/tutanota-utils"
+import { freshVersioned, hexToUint8Array, KeyVersion } from "@tutao/utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
@@ -420,7 +420,10 @@ o.spec("KeyLoaderFacadeTest", function () {
 				// make sure the user is up-to-date
 				when(userFacade.getMembership(group._id)).thenReturn(membership)
 
-				const outOfDateGroup = createTestEntity(GroupTypeRef, { ...group, groupKeyVersion: String(parseKeyVersion(group.groupKeyVersion) - 1) })
+				const outOfDateGroup = createTestEntity(GroupTypeRef, {
+					...group,
+					groupKeyVersion: String(parseKeyVersion(group.groupKeyVersion) - 1),
+				})
 				when(entityClient.load(GroupTypeRef, group._id)).thenResolve(outOfDateGroup)
 
 				const loadedKeyPair = await keyLoaderFacade.loadKeypair(group._id, parseKeyVersion(membership.groupKeyVersion))

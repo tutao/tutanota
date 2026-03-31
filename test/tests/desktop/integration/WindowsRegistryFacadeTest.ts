@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/common/desktop/integration/WindowsRegistryFacade.js"
 import { CommandExecutor, CommandOutput } from "../../../../src/common/desktop/CommandExecutor"
 import { object, verify, when } from "testdouble"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 
 o.spec("WindowsRegistryFacade", () => {
 	let executor: CommandExecutor

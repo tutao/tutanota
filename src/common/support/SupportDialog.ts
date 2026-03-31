@@ -21,7 +21,7 @@ import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage
 import { Keys } from "../api/common/TutanotaConstants.js"
 import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../gui/base/Dialog.js"
-import { Thunk } from "@tutao/tutanota-utils"
+import { Thunk } from "@tutao/utils"
 
 assertMainOrNode()
 

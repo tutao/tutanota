@@ -6,11 +6,11 @@ import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"
 import { assertWorkerOrNode, isMainOrNode } from "../../../common/api/common/Env.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
-import { random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/crypto"
 import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
 import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 assertWorkerOrNode()
 

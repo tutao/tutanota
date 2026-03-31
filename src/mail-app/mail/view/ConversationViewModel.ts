@@ -13,7 +13,7 @@ import {
 	ofClass,
 	settledThen,
 	TypeRef,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"

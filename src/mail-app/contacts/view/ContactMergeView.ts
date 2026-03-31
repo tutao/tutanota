@@ -6,7 +6,7 @@ import { ContactAddressType, ContactMergeAction, getContactSocialType, Keys } fr
 import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { formatContactDate } from "../../../common/contactsFunctionality/ContactUtils.js"
-import { defer, DeferredObject, delay, downcast, Thunk } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay, downcast, Thunk } from "@tutao/utils"
 import { HtmlEditor, HtmlEditorMode } from "../../../common/gui/editor/HtmlEditor"
 import { ButtonType } from "../../../common/gui/base/Button.js"
 import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"

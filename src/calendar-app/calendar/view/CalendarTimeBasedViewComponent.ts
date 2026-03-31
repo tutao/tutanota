@@ -10,7 +10,7 @@ import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, Tim
 import { EventWrapper, ScrollByListener } from "./CalendarViewModel"
 import { EventBubbleInteractions } from "../../../common/calendar/gui/CalendarEventBubble"
 import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "./EventDragHandler"
-import { isEmpty, isToday, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { isEmpty, isToday, neverNull, ofClass } from "@tutao/utils"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { PageView } from "../../../common/gui/base/PageView"
 import { AllDaySection, AllDaySectionAttrs } from "../../../common/calendar/gui/AllDaySection"

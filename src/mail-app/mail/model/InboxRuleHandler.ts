@@ -1,7 +1,7 @@
 import { InboxRule, Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, ProcessingState } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, Nullable } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"

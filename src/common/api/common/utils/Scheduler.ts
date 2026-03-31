@@ -1,4 +1,4 @@
-import type { Thunk } from "@tutao/tutanota-utils"
+import type { Thunk } from "@tutao/utils"
 import { DateProvider } from "../DateProvider.js"
 
 export type ScheduledTimeoutId = TimeoutID

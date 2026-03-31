@@ -13,7 +13,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 	Versioned,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	AccountType,
 	asCryptoProtoocolVersion,
@@ -76,7 +76,7 @@ import {
 	PublicKey,
 	sha256Hash,
 	X25519PublicKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
@@ -84,7 +84,7 @@ import { UpdatePermissionKeyService, UpdateSessionKeysService } from "../../enti
 import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"

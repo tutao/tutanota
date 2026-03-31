@@ -7,7 +7,7 @@ import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import { CustomColorEditorPreview } from "./CustomColorEditorPreview"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { BaseThemeId } from "../../gui/theme"
 
 export type SimpleCustomColorEditorAttrs = {

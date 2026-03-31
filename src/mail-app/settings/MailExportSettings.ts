@@ -4,7 +4,7 @@ import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/b
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { mailLocator } from "../mailLocator"
-import { first } from "@tutao/tutanota-utils"
+import { first } from "@tutao/utils"
 import { LoginController } from "../../common/api/main/LoginController"
 import { FailedMailDisplay, MailExportController } from "../native/main/MailExportController.js"
 import Stream from "mithril/stream"

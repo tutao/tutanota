@@ -1,6 +1,6 @@
 import m from "mithril"
 import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { assertSystemFolderOfType } from "../../mail/model/MailUtils.js"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"

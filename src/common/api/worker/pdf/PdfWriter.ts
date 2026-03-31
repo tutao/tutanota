@@ -1,7 +1,7 @@
 import { PdfObject } from "./PdfObject.js"
 import { GENERATION_NUMBER, NEW_LINE, PDF_DEFAULT_OBJECTS, PDF_METADATA, PdfDictValue, PdfObjectRef, PdfStreamEncoding } from "./PdfConstants.js"
 import { PdfStreamObject } from "./PdfStreamObject.js"
-import { concat, hexToUint8Array } from "@tutao/tutanota-utils"
+import { concat, hexToUint8Array } from "@tutao/utils"
 import { Deflater } from "./Deflater.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 

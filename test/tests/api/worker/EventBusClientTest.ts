@@ -13,7 +13,7 @@ import {
 	WebsocketEntityDataTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"

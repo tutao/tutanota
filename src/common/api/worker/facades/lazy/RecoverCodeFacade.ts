@@ -1,18 +1,9 @@
 import { asKdfType } from "../../../common/TutanotaConstants.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "../../../entities/sys/TypeRefs.js"
-import { assertNotNull, type Hex, KeyVersion, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { assertNotNull, type Hex, KeyVersion, uint8ArrayToHex } from "@tutao/utils"
 import { LoginFacade } from "../LoginFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import {
-	Aes256Key,
-	aes256RandomKey,
-	AesKey,
-	createAuthVerifier,
-	createAuthVerifierAsBase64Url,
-	decryptKey,
-	encryptKey,
-	keyToUint8Array,
-} from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, AesKey, createAuthVerifier, createAuthVerifierAsBase64Url, decryptKey, encryptKey, keyToUint8Array } from "@tutao/crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"

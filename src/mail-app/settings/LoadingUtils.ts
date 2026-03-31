@@ -1,6 +1,6 @@
 import type { Customer } from "../../common/api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
-import { neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { neverNull, promiseMap } from "@tutao/utils"
 import { GroupType } from "../../common/api/common/TutanotaConstants"
 import { getGroupInfoDisplayName, getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"
 import { locator } from "../../common/api/main/CommonLocator"

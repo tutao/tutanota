@@ -1,6 +1,6 @@
 import { LoginController } from "../api/main/LoginController.js"
 import { GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, splitInChunks, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, splitInChunks, stringToUtf8Uint8Array } from "@tutao/utils"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { FileController } from "../file/FileController.js"
 import { createDataFile } from "../api/common/DataFile.js"

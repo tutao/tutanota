@@ -1,6 +1,6 @@
 import { Transport } from "../../api/common/threading/Transport.js"
 import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { defer, DeferredObject } from "@tutao/utils"
 import { assertMainOrNode } from "../../api/common/Env.js"
 
 assertMainOrNode()

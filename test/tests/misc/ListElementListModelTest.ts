@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { getElementId, getListId, sortCompareById } from "../../../src/common/api/common/utils/EntityUtils.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { defer, DeferredObject } from "@tutao/utils"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { OperationType } from "../../../src/common/api/common/TutanotaConstants.js"

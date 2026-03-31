@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { TutaCredentials } from "@tutao/node-mimimi"
+export { TutaCredentials } from "@tutao/mimimi"

@@ -1,4 +1,4 @@
-import { newPromise, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { newPromise, uint8ArrayToBase64 } from "@tutao/utils"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { RegistrationCaptchaService } from "../../api/entities/sys/Services.js"

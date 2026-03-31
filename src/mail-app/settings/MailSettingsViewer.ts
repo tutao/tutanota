@@ -18,7 +18,7 @@ import {
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "../../common/api/common/TutanotaConstants"
-import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../common/gui/base/Dialog"

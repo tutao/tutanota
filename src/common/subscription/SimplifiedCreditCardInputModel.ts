@@ -2,7 +2,7 @@ import { createCreditCard, CreditCard } from "../api/entities/sys/TypeRefs.js"
 import { LanguageViewModel, TranslationKey } from "../misc/LanguageViewModel.js"
 import { CCViewModel } from "./SimplifiedCreditCardInput.js"
 import { isValidCreditCardNumber } from "../misc/FormatValidator.js"
-import { typedValues } from "@tutao/tutanota-utils"
+import { typedValues } from "@tutao/utils"
 
 // we're using string values to make it easy to iterate all card types
 export enum CardType {

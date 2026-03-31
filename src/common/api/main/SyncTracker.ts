@@ -1,4 +1,4 @@
-import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { defer, DeferredObject } from "@tutao/utils"
 
 /**
  * This tracker stores the state of the initial sync, after ending processing

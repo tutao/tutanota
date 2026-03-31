@@ -15,10 +15,10 @@ import {
 	uint8ArrayToKey,
 	X25519KeyPair,
 	X25519PublicKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import {
 	asCryptoProtoocolVersion,
 	CryptoProtocolVersion,
@@ -26,7 +26,7 @@ import {
 	EncryptionKeyVerificationState,
 	PresentableKeyVerificationState,
 } from "../../common/TutanotaConstants.js"
-import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"

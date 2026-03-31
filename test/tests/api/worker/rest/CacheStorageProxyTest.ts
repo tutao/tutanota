@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { func, instance, object, when } from "testdouble"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 import { LateInitializedCacheStorageImpl, OfflineStorageArgs } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
 import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"

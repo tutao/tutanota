@@ -1,9 +1,9 @@
 import n from "../nodemocker.js"
 import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import type { CryptoFunctions } from "../../../src/common/desktop/CryptoFns.js"
-import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/common/desktop/files/TempFs.js"
 

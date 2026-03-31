@@ -1,5 +1,5 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { clone, lastIndex } from "@tutao/tutanota-utils"
+import { clone, lastIndex } from "@tutao/utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { layout_size, px, size } from "../../gui/size"

@@ -1,5 +1,5 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
-import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { Challenge } from "../entities/sys/TypeRefs.js"
 import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
 import { SessionType } from "../common/SessionType.js"

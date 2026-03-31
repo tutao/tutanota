@@ -2,7 +2,7 @@ import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -134,7 +134,7 @@ export class ProcessInboxHandler {
 		const mailGroupId = assertNotNull(mail._ownerGroup)
 		if (this.processedMailsByMailGroup.has(mailGroupId)) {
 			const existingData = assertNotNull(this.processedMailsByMailGroup.get(mailGroupId))
-			const datumIsAlreadyAdded = existingData.some((existingDatum) => isSameId(existingDatum.mailId, finalProcessInboxDatum.mailId))
+			const datumIsAlreadyAdded = existingData.some((existingDatum) => isSameId(existingDatum.mailId, finalProcessInboxDatum?.mailId ?? null))
 			if (!datumIsAlreadyAdded) {
 				this.processedMailsByMailGroup.get(mailGroupId)?.push(finalProcessInboxDatum)
 			}

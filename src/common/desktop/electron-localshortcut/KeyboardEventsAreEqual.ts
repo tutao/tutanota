@@ -1,4 +1,4 @@
-import { isAsciiChar } from "@tutao/tutanota-utils"
+import { isAsciiChar } from "@tutao/utils"
 
 function _lower(key: any) {
 	if (typeof key !== "string") {

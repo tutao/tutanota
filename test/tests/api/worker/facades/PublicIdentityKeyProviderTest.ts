@@ -3,10 +3,10 @@ import { Group, GroupTypeRef, IdentityKeyGetIn, IdentityKeyGetOut, IdentityKeyPa
 import { matchers, object, verify, when } from "testdouble"
 import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"
 import { createTestEntity } from "../../../TestUtils"
-import { Aes256Key, bytesToEd25519PublicKey, Ed25519PublicKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, bytesToEd25519PublicKey, Ed25519PublicKey } from "@tutao/crypto"
 import { SigningKeyPairType } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
-import { arrayEquals, hexToUint8Array } from "@tutao/tutanota-utils"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { arrayEquals, hexToUint8Array } from "@tutao/utils"
+import { assertThrows } from "@tutao/otest"
 import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/Services"
 import { PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/common/api/common/TutanotaConstants"
@@ -17,7 +17,7 @@ import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/Servi
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor

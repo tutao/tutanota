@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { deduplicate, identity, incrementDate } from "@tutao/tutanota-utils"
+import { deduplicate, identity, incrementDate } from "@tutao/utils"
 import { getRangeOfDays, getStartOfWeek, isSameEventInstance } from "../../../common/calendar/date/CalendarUtils"
 import { WeekStart } from "../../../common/api/common/TutanotaConstants"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"

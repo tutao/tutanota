@@ -28,7 +28,7 @@ import {
 	setDifference,
 	TypeRef,
 	YEAR_IN_MILLIS,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"

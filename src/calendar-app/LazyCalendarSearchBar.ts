@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import type { SearchBarAttrs } from "../mail-app/search/SearchBar.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/utils"
 import { CalendarSearchBar } from "./calendar/search/CalendarSearchBar.js"
 
 /**

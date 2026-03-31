@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { BYTE_RANGE, PasswordGenerator } from "../../../src/common/misc/passwords/PasswordGenerator.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 
 o.spec("PasswordGenerator", function () {
 	let generator: PasswordGenerator

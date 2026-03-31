@@ -8,7 +8,7 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
+import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import {
 	createMembershipAddData,
 	createMembershipRemoveData,
@@ -29,7 +29,7 @@ import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { AesKey, PQKeyPairs } from "@tutao/crypto"
 import { IdentityKeyCreator } from "./IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
 

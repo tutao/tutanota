@@ -1,5 +1,5 @@
 import { createWizardDialog, WizardPageWrapper, wizardPageWrapper } from "../../../gui/base/WizardDialog.js"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setupwizardpages/SetupCongraulationsPage.js"
 import { DeviceConfig } from "../../../misc/DeviceConfig.js"
 import { SetupNotificationsPage, SetupNotificationsPageAttrs } from "./setupwizardpages/SetupNotificationsPage.js"

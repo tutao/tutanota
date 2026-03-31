@@ -6,7 +6,7 @@ import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
 import { elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { groupByAndMap, isEmpty, promiseFilter } from "@tutao/tutanota-utils"
+import { groupByAndMap, isEmpty, promiseFilter } from "@tutao/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 
 /**

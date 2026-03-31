@@ -8,7 +8,7 @@ import { elementIdPart, getElementId } from "../../../common/api/common/utils/En
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
-import { last, Thunk } from "@tutao/tutanota-utils"
+import { last, Thunk } from "@tutao/utils"
 import { MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"

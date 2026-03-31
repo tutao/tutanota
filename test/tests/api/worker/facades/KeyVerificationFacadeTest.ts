@@ -1,13 +1,12 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { matchers, object, verify, when } from "testdouble"
-import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
-import { bytesToEd25519PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { bytesToEd25519PublicKey, Ed25519PublicKey, sha256Hash } from "@tutao/crypto"
 import testData from "../crypto/CompatibilityTestData.json"
 import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { createTestEntity } from "../../../TestUtils"
-import { assertThrows } from "@tutao/tutanota-test-utils"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
@@ -19,7 +18,7 @@ import { PublicKeySignatureTypeRef } from "../../../../../src/common/api/entitie
 const { anything } = matchers
 
 const PUBLIC_KEY_BYTES = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
-const PUBLIC_KEY = bytesToEd25519PublicKey(PUBLIC_KEY_BYTES)
+const PUBLIC_KEY: Ed25519PublicKey = bytesToEd25519PublicKey(PUBLIC_KEY_BYTES)
 const PUBLIC_KEY_FINGERPRINT = uint8ArrayToHex(sha256Hash(concat(new Uint8Array([0]), new Uint8Array([SigningKeyPairType.Ed25519]), PUBLIC_KEY_BYTES)))
 
 let trustDBEntry: TrustDBEntry
@@ -86,7 +85,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(
 					maybeSignedPublicKey.publicKey,
-					trustDBEntry.publicIdentityKey.object,
+					trustDBEntry.publicIdentityKey.object.key,
 					maybeSignedPublicKey.signature!.signature,
 				),
 			).thenResolve(false)
@@ -140,7 +139,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(
 					maybeSignedPublicKey.publicKey,
-					trustDBEntry.publicIdentityKey.object,
+					trustDBEntry.publicIdentityKey.object.key,
 					maybeSignedPublicKey.signature!.signature,
 				),
 			).thenResolve(true)
@@ -183,14 +182,14 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 			publicKey = {
 				version: 0,
-				object: PUBLIC_KEY,
+				object: { key: PUBLIC_KEY, type: SigningKeyPairType.Ed25519 },
 			}
 			concatenation = keyVerification.concatenateFingerprint(publicKey)
 			verifyKeyMetadata(concatenation, 0, SigningKeyPairType.Ed25519)
 
 			publicKey = {
 				version: 5,
-				object: PUBLIC_KEY,
+				object: { key: PUBLIC_KEY, type: SigningKeyPairType.Ed25519 },
 			}
 			concatenation = keyVerification.concatenateFingerprint(publicKey)
 			verifyKeyMetadata(concatenation, 5, SigningKeyPairType.Ed25519)

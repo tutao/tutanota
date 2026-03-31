@@ -2,13 +2,13 @@ import o from "@tutao/otest"
 import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey } from "@tutao/crypto"
 import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
 import { object } from "testdouble"
-import { KeyVersion } from "@tutao/tutanota-utils"
+import { KeyVersion } from "@tutao/utils"
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { assertThrows } from "@tutao/otest"
+import { CryptoError } from "@tutao/crypto/error"
 
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache

@@ -1,6 +1,6 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
 import { ImportMailState, ImportMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, first, isEmpty } from "@tutao/utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"

@@ -9,7 +9,7 @@ import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewM
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../api/common/Env"
-import { $Promisable } from "@tutao/tutanota-utils"
+import { $Promisable } from "@tutao/utils"
 import { windowFacade } from "../../misc/WindowFacade.js"
 
 assertMainOrNode()

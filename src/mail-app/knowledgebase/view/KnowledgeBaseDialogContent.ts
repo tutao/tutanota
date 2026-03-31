@@ -10,7 +10,7 @@ import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { makeListSelectionChangedScrollHandler } from "../../../common/gui/base/GuiUtils.js"
-import { ofClass } from "@tutao/tutanota-utils"
+import { ofClass } from "@tutao/utils"
 
 export type KnowledgebaseDialogContentAttrs = {
 	readonly onTemplateSelect: (arg0: EmailTemplate) => void

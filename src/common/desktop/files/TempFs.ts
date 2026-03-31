@@ -1,7 +1,7 @@
 import path from "node:path"
 import { ElectronExports, FsExports } from "../ElectronExportTypes.js"
 import { CryptoFunctions } from "../CryptoFns.js"
-import { base64ToBase64Url, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
 

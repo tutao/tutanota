@@ -1,6 +1,6 @@
 import type { WindowManager } from "../DesktopWindowManager"
 import type { ChildProcessExports, ElectronExports, FsExports } from "../ElectronExportTypes"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/utils"
 import type { WindowsRegistryFacade } from "./WindowsRegistryFacade"
 
 export interface DesktopIntegrator {

@@ -1,4 +1,4 @@
-import { assert } from "@tutao/tutanota-utils"
+import { assert } from "@tutao/utils"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 
 /** the single source of truth for this configuration */

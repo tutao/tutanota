@@ -1,0 +1,28 @@
+{
+	"extends": "./../tsconfig_common.json",
+	"include": ["common", "mail-app", "calendar-app", "drive-app", "../types/", "./*.ts", "../libs/luxon.js"],
+	"exclude": ["common/dist"],
+	"compilerOptions": {
+		"rootDir": "..",
+		"outDir": "common/dist",
+		"tsBuildInfoFile": "common/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.mimimi.json"
+		},
+		{
+			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "tsconfig.crypto.json"
+		},
+		{
+			"path": "tsconfig.error.json"
+		},
+		{
+			"path": "tsconfig.usagetests.json"
+		}
+	]
+}

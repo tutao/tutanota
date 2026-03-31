@@ -1,6 +1,6 @@
 import { lang } from "../../misc/LanguageViewModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "../../../common/api/common/TutanotaConstants"
 import m, { Children, Component, Vnode } from "mithril"

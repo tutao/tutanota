@@ -1,7 +1,7 @@
 import { BaseThemeId, Theme } from "../gui/theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
-import { mapNullable } from "@tutao/tutanota-utils"
+import { mapNullable } from "@tutao/utils"
 
 assertMainOrNodeBoot()
 

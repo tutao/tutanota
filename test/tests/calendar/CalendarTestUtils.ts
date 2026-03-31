@@ -23,7 +23,7 @@ import {
 	UserTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../../src/common/api/common/utils/EntityUtils.js"
-import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
+import { downcast, LazyLoaded } from "@tutao/utils"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,

@@ -12,7 +12,7 @@ import {
 	ServiceDefinition,
 } from "../../common/ServiceRequest.js"
 import { Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
-import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
+import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
 import { RestClient } from "./RestClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { assertWorkerOrNode } from "../../common/Env"

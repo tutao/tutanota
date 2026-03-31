@@ -6,7 +6,7 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { px } from "../../../../common/gui/size.js"
 import { theme } from "../../../../common/gui/theme.js"
 
-import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "@tutao/tutanota-utils"
+import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "@tutao/utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { TextField, TextFieldType } from "../../../../common/gui/base/TextField.js"

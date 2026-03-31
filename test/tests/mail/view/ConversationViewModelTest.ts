@@ -14,7 +14,7 @@ import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailView
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
-import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/utils"
 import { matchers, object, when } from "testdouble"
 import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"

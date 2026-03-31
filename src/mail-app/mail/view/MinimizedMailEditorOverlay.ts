@@ -12,7 +12,7 @@ import { MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewMo
 import { MinimizedEditorOverlay } from "./MinimizedEditorOverlay"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import Stream from "mithril/stream"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
