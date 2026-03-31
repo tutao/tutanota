@@ -12,6 +12,8 @@ import androidx.lifecycle.ViewModel
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.BirthdayEventDao
+import de.tutao.calendar.widget.data.CalendarEventDao
+import de.tutao.calendar.widget.data.CalendarEventListDao
 import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.UIEvent
@@ -20,6 +22,7 @@ import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.widgetDataStore
+import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -27,8 +30,8 @@ import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.isAllDayEventByTimes
-import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,166 +72,71 @@ class WidgetUIViewModel(
 		now: LocalDateTime
 	): WidgetUIData? {
 		Log.i(TAG, "Init loadUIState")
-		val allDayEvents: HashMap<Long, List<UIEvent>> = HashMap()
-		val normalEvents: HashMap<Long, List<UIEvent>> = HashMap()
+		val allDayEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
+		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
+		val zoneId = this.calendar.timeZone.toZoneId()
 
-		val zone = ZoneId.systemDefault()
-		val todayMidnight = now.toLocalDate().atStartOfDay(zone).toInstant()
-		val tomorrowMidnight = now
-			.plusDays(1)
-			.toLocalDate()
-			.atStartOfDay(zone)
-			.toInstant()
-
-		val settings: SettingsDao?
-		val lastSync: LastSyncDao?
-		val calendars: List<String>
-
-		try {
-			settings = repository.loadSettings(widgetDataStore, widgetId) ?: return WidgetUIData(
-				normalEvents,
-				allDayEvents
+		val (settings, calendars, credentials, lastSync) = this.getInitialUiState(widgetDataStore)
+			?: return WidgetUIData(
+				hashMapOf(),
+				hashMapOf()
 			)
-			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
-			settings.calendars.entries.forEach { (calendarId, calendar) ->
-				Log.d(TAG, "$calendarId - ${calendar.name}")
-			}
-			lastSync = repository.loadLastSync(widgetDataStore, widgetId)
-			Log.i(TAG, "Widget last sync at $lastSync")
-
-			sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
-			calendars = settings.calendars.keys.toList()
-		} catch (e: Exception) {
-			// We couldn't load widget settings, so we must show an error to User
-			_error.value = WidgetError(
-				"Error reading from DataStore (WidgetId $widgetId)",
-				e.stackTraceToString(),
-				WidgetErrorType.UNEXPECTED
-			)
-			return null
-		}
-
-		val credentials = try {
-			this.credentialsFacade.loadByUserId(settings.userId)
-		} catch (_: Exception) {
-			null
-		}
-
-		if (credentials == null) {
-			_error.value = WidgetError(
-				"Missing credentials for user ${settings.userId}",
-				"",
-				WidgetErrorType.CREDENTIALS
-			)
-			Log.w(TAG, "Missing credentials for user ${settings.userId} during widget setup")
-
-			return null
-		}
 
 		// Force is set as True when worker detects that it's a new day
 		val forceRemoteEventsFetch = lastSync?.force ?: false
-		val calendarToEventsListMap =
-			if ((lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null) {
-				try {
-					val loggedInSdk = this.sdk.login(credentials.toSdkCredentials())
+		val calendarToEventsListMap = this.getCalendarEvents(
+			(lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null,
+			this.sdk,
+			credentials,
+			widgetCacheDataStore,
+			settings,
+			calendars
+		)
 
-					repository.loadEvents(
-						widgetCacheDataStore,
-						widgetId,
-						settings.userId,
-						calendars,
-						credentials,
-						loggedInSdk,
-						cryptoFacade
-					)
-				} catch (e: LoginException) {
-					// Fallback to cached events. We don't set an error here because we still able to display "something"
-					// to the user.
-					Log.e(
-						TAG,
-						"Missing credentials for user ${settings.userId} when trying to load widget content}", e
-					)
-					repository.loadEventsFromCache(
-						widgetCacheDataStore,
-						widgetId,
-						calendars,
-						credentials,
-						cryptoFacade
-					)
-				} catch (e: Exception) {
-					Log.e(TAG, "Unknown exception occurred", e)
-					repository.loadEventsFromCache(
-						widgetCacheDataStore,
-						widgetId,
-						calendars,
-						credentials,
-						cryptoFacade
-					)
-				}
-			} else {
-				repository.loadEventsFromCache(
-					widgetCacheDataStore,
-					widgetId,
-					calendars,
-					credentials,
-					cryptoFacade
-				)
-			}
-
-		val startOfToday = midnightInDate(ZoneId.systemDefault(), now)
+		val startOfToday = now.toLocalDate()
 		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
 		allDayEvents[startOfToday] = listOf()
+
+		val todayMidnight = startOfToday.atStartOfDay(zoneId).toInstant()
+		val tomorrowMidnight = startOfToday
+			.plusDays(1)
+			.atStartOfDay(zoneId)
+			.toInstant()
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			Log.d(TAG, "Creating UIEvents from calendar $calendarId")
 
-			val allServerPersistedEvents = eventList.shortEvents.plus(eventList.longEvents)
-			allServerPersistedEvents.forEach { loadedEvent ->
-				val zoneId = ZoneId.systemDefault()
+			val shortAndLongEvents = eventList.shortEvents.plus(eventList.longEvents)
 
-				val startAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
-
-				val eventLocalStartTime = LocalDateTime.ofInstant(startAsInstant, zoneId)
-				val eventLocalEndTime =
-					LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
-
-				val formatter = DateTimeFormatter.ofPattern("HH:mm")
-
-				val isAllDay = isAllDayEventByTimes(
-					Date.from(Instant.ofEpochMilli(loadedEvent.startTime.toLong())),
-					Date.from(Instant.ofEpochMilli(loadedEvent.endTime.toLong()))
-				) || (loadedEvent.startTime.toLong() < todayMidnight.toEpochMilli() && loadedEvent.endTime.toLong() >= tomorrowMidnight.toEpochMilli())
-
-				val event = UIEvent(
+			shortAndLongEvents.forEach { loadedEvent ->
+				val event = this.makeUiEvent(
+					loadedEvent,
+					todayMidnight,
+					tomorrowMidnight,
+					zoneId,
 					calendarId,
-					loadedEvent.id,
-					settings.calendars[calendarId]?.color ?: "2196f3",
-					loadedEvent.summary,
-					eventLocalStartTime.format(formatter),
-					eventLocalEndTime.format(formatter),
-					isAllDay,
+					settings
 				)
 
-				val referenceDate = if (isAllDay) {
-					val eventDate = LocalDateTime.ofInstant(startAsInstant, ZoneOffset.UTC)
-					LocalDateTime
-						.of(LocalDate.of(eventDate.year, eventDate.month, eventDate.dayOfMonth), LocalTime.MIDNIGHT)
-						.atZone(ZoneId.systemDefault()).toLocalDateTime()
+				val eventStartAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
+				val eventStartDate = if (event.isDisplayedAsAllDay) {
+					eventStartAsInstant.atZone(ZoneId.of(ZoneOffset.UTC.id)).toLocalDate()
 				} else {
-					eventLocalStartTime
+					val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
+					eventLocalStartTime.toLocalDate()
 				}
 
-				val startOfDay = midnightInDate(zoneId, referenceDate)
-				if (startOfDay >= startOfToday) {
-					if (!normalEvents.containsKey(startOfDay)) {
-						normalEvents[startOfDay] = listOf()
-						allDayEvents[startOfDay] = listOf()
+				val eventHappensTodayOrInTheFuture = !eventStartDate.isBefore(startOfToday)
+				if (eventHappensTodayOrInTheFuture) {
+					if (!normalEvents.containsKey(eventStartDate)) {
+						normalEvents[eventStartDate] = listOf()
+						allDayEvents[eventStartDate] = listOf()
 					}
 
-					if (isAllDay) {
-						allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
+					if (event.isDisplayedAsAllDay) {
+						allDayEvents[eventStartDate] = allDayEvents[eventStartDate]!!.plusElement(event)
 					} else {
-						normalEvents[startOfDay] = normalEvents[startOfDay]!!.plus(event)
+						normalEvents[eventStartDate] = normalEvents[eventStartDate]!!.plusElement(event)
 					}
 				}
 			}
@@ -242,36 +150,31 @@ class WidgetUIViewModel(
 			}
 
 			eventList.birthdayEvents.map {
-				val zoneId = ZoneId.systemDefault()
-				val startAsInstant = Instant.ofEpochMilli(it.eventDao.startTime.toLong())
-				val start = LocalDateTime.ofInstant(startAsInstant, zoneId)
-				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), zoneId)
-				val formatter = DateTimeFormatter.ofPattern("HH:mm")
+				val eventStartAsInstant = Instant.ofEpochMilli(it.eventDao.startTime.toLong())
 
+				val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
+				val eventLocalEndTime =
+					LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), zoneId)
+				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 				val event = UIEvent(
 					calendarId,
 					it.eventDao.id,
 					calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
 					summary = buildBirthdayEventTitle(it),
-					start.format(formatter),
-					end.format(formatter),
-					isAllDay = true,
+					eventLocalStartTime.format(formatter),
+					eventLocalEndTime.format(formatter),
+					isDisplayedAsAllDay = true,
 					isBirthday = true
 				)
 
-				val eventDate = LocalDateTime.ofInstant(startAsInstant, ZoneOffset.UTC)
-				val referenceDate = LocalDateTime
-					.of(LocalDate.of(eventDate.year, eventDate.month, eventDate.dayOfMonth), LocalTime.MIDNIGHT)
-					.atZone(ZoneId.systemDefault()).toLocalDateTime()
-
-				val startOfDay = midnightInDate(zoneId, referenceDate)
-				if (startOfDay >= startOfToday) {
-
-					if (!allDayEvents.containsKey(startOfDay)) {
-						normalEvents[startOfDay] = listOf()
-						allDayEvents[startOfDay] = listOf()
+				val eventStartDate = eventStartAsInstant.atZone(ZoneId.of(ZoneOffset.UTC.id)).toLocalDate()
+				val eventHappensTodayOrInTheFuture = !eventStartDate.isBefore(startOfToday)
+				if (eventHappensTodayOrInTheFuture) {
+					if (!allDayEvents.containsKey(eventStartDate)) {
+						normalEvents[eventStartDate] = listOf()
+						allDayEvents[eventStartDate] = listOf()
 					}
-					allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
+					allDayEvents[eventStartDate] = allDayEvents[eventStartDate]!!.plus(event)
 				}
 			}
 		}
@@ -279,11 +182,7 @@ class WidgetUIViewModel(
 		Log.d(TAG, "Sorting events by start time")
 		normalEvents.forEach() { (startOfDay, events) ->
 			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
-				when {
-					a.startTime > b.startTime -> 1
-					a.startTime < b.startTime -> -1
-					else -> 0
-				}
+				LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
 			})
 
 			normalEvents[startOfDay] = sorted
@@ -293,6 +192,154 @@ class WidgetUIViewModel(
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)
 
 		return uiState.value
+	}
+
+	private suspend fun getInitialUiState(widgetDataStore: DataStore<Preferences>): WidgetSetupData? {
+		val widgetStoredData = try {
+			this.loadStoredWidgetSettingsAndUpdateCalendarRenderInfo(widgetDataStore)
+		} catch (e: Exception) {
+			// We couldn't load widget settings, so we must show an error to User
+			_error.value = WidgetError(
+				"Error reading from DataStore (WidgetId $widgetId)",
+				e.stackTraceToString(),
+				WidgetErrorType.UNEXPECTED
+			)
+			return null
+		}
+		if (widgetStoredData == null) {
+			return null
+		}
+
+		val userId = widgetStoredData.first.userId
+		val credentials = try {
+			this.credentialsFacade.loadByUserId(userId)
+		} catch (_: Exception) {
+			null
+		}
+		if (credentials == null) {
+			_error.value = WidgetError(
+				"Missing credentials for user ${userId}",
+				"",
+				WidgetErrorType.CREDENTIALS
+			)
+			Log.w(TAG, "Missing credentials for user ${userId} during widget setup")
+
+			return null
+		}
+
+		return WidgetSetupData(widgetStoredData.first, widgetStoredData.second, credentials, widgetStoredData.third)
+	}
+
+	private fun makeUiEvent(
+		loadedEvent: CalendarEventDao,
+		todayMidnight: Instant?,
+		tomorrowMidnight: Instant?,
+		zoneId: ZoneId?,
+		calendarId: GeneratedId,
+		settings: SettingsDao
+	): UIEvent {
+		val eventStartAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
+		val eventEndAsInstant = Instant.ofEpochMilli(loadedEvent.endTime.toLong())
+
+		val eventTakesEntireDay = eventStartAsInstant < todayMidnight && eventEndAsInstant >= tomorrowMidnight
+		val isConsideredAllDay = isAllDayEventByTimes(
+			Date.from(eventStartAsInstant), Date.from(eventEndAsInstant)
+		) || eventTakesEntireDay
+
+		val formatter = DateTimeFormatter.ofPattern("HH:mm")
+		val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
+		val eventLocalEndTime = LocalDateTime.ofInstant(eventEndAsInstant, zoneId)
+
+		return UIEvent(
+			calendarId,
+			loadedEvent.id,
+			settings.calendars[calendarId]?.color ?: "2196f3",
+			loadedEvent.summary,
+			eventLocalStartTime.format(formatter),
+			eventLocalEndTime.format(formatter),
+			isConsideredAllDay,
+		)
+	}
+
+	private suspend fun getCalendarEvents(
+		shouldFetchFromServer: Boolean,
+		sdk: Sdk?,
+		credentials: UnencryptedCredentials,
+		widgetCacheDataStore: DataStore<Preferences>,
+		settings: SettingsDao,
+		calendars: List<GeneratedId>
+	): Map<GeneratedId, CalendarEventListDao> {
+		if (shouldFetchFromServer && sdk != null) {
+			try {
+				val loggedInSdk = sdk.login(credentials.toSdkCredentials())
+
+				return repository.loadEvents(
+					widgetCacheDataStore,
+					widgetId,
+					settings.userId,
+					calendars,
+					credentials,
+					loggedInSdk,
+					cryptoFacade
+				)
+			} catch (e: LoginException) {
+				// Fallback to cached events. We don't set an error here because we still able to display "something"
+				// to the user.
+				Log.e(
+					TAG,
+					"Missing credentials for user ${settings.userId} when trying to load widget content}", e
+				)
+				return repository.loadEventsFromCache(
+					widgetCacheDataStore,
+					widgetId,
+					calendars,
+					credentials,
+					cryptoFacade
+				)
+			} catch (e: Exception) {
+				Log.e(TAG, "Unknown exception occurred", e)
+				return repository.loadEventsFromCache(
+					widgetCacheDataStore,
+					widgetId,
+					calendars,
+					credentials,
+					cryptoFacade
+				)
+			}
+		} else {
+			return repository.loadEventsFromCache(
+				widgetCacheDataStore,
+				widgetId,
+				calendars,
+				credentials,
+				cryptoFacade
+			)
+		}
+	}
+
+	private data class WidgetSetupData(
+		val userSettings: SettingsDao,
+		val selectedCalendarIds: List<GeneratedId>,
+		val credentials: UnencryptedCredentials,
+		val lastSync: LastSyncDao?,
+	)
+
+	private suspend fun loadStoredWidgetSettingsAndUpdateCalendarRenderInfo(
+		widgetDataStore: DataStore<Preferences>,
+	): Triple<SettingsDao, List<GeneratedId>, LastSyncDao?>? {
+		val settings = repository.loadSettings(widgetDataStore, widgetId) ?: return null
+		Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
+		settings.calendars.entries.forEach { (calendarId, calendar) ->
+			Log.d(TAG, "$calendarId - ${calendar.name}")
+		}
+
+		val lastSync = repository.loadLastSync(widgetDataStore, widgetId)
+		Log.i(TAG, "Widget last sync at $lastSync")
+
+		sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
+		val calendars = settings.calendars.keys.toList()
+
+		return Triple(settings, calendars, lastSync)
 	}
 
 	private suspend fun loadCalendars(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
