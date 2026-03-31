@@ -18,6 +18,7 @@ import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "../../../src/common/
 import { elementIdPart, getElementId } from "../../../src/common/api/common/utils/EntityUtils"
 import { FolderItemId } from "../../../src/drive-app/drive/view/DriveUtils"
 import { DriveTransferController } from "../../../src/drive-app/drive/view/DriveTransferController"
+import { WebFile } from "../../../src/common/api/common/utils/FileUtils"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
@@ -258,7 +259,15 @@ o.spec("DriveViewModel", function () {
 
 	o.spec("uploadFiles", function () {
 		o.test("when uploading a single file it succeeds", async function () {
-			const webFiles: File[] = [{ name: "meow", size: 10 } as File]
+			const webFiles: WebFile[] = [
+				{
+					_type: "WebFile",
+					file: {
+						name: "meow",
+						size: 1024,
+					} as File,
+				},
+			]
 
 			await driveViewModel.displayFolder(rootIds.root)
 			await driveViewModel.uploadFiles(webFiles)
@@ -267,7 +276,22 @@ o.spec("DriveViewModel", function () {
 		})
 
 		o.test("when uploading two files with the same name, the second one gets renamed", async function () {
-			const webFiles: File[] = [{ name: "meow", size: 10 } as File, { name: "meow", size: 20 } as File]
+			const webFiles: WebFile[] = [
+				{
+					_type: "WebFile",
+					file: {
+						name: "meow",
+						size: 1024,
+					} as File,
+				},
+				{
+					_type: "WebFile",
+					file: {
+						name: "meow",
+						size: 512,
+					} as File,
+				},
+			]
 
 			await driveViewModel.displayFolder(rootIds.root)
 			await driveViewModel.uploadFiles(webFiles)
@@ -279,7 +303,22 @@ o.spec("DriveViewModel", function () {
 		o.test(
 			"when uploading two files with the same name, the second one conflicts with an existing folder after renaming but gets renamed again",
 			async function () {
-				const webFiles: File[] = [{ name: "meow", size: 10 } as File, { name: "meow", size: 20 } as File]
+				const webFiles: WebFile[] = [
+					{
+						_type: "WebFile",
+						file: {
+							name: "meow",
+							size: 1024,
+						} as File,
+					},
+					{
+						_type: "WebFile",
+						file: {
+							name: "meow",
+							size: 512,
+						} as File,
+					},
+				]
 
 				const existingFolders: DriveFolder[] = [createTestEntity(DriveFolderTypeRef, { _id: ["lid1", "eid0"], name: `meow (copy)` })]
 				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
