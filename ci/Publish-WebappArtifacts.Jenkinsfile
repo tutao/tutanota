@@ -95,17 +95,5 @@ pipeline {
                 }
             }
         } // stage publish release notes
-
-        stage('Publish npm modules') {
-			when { expression { return params.PUBLISH_NPM_MODULES } }
-			steps {
-                sh 'npm ci'
-                sh 'npm run build-packages'
-                // .npmrc expects $NPM_TOKEN
-                withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-                    sh "npm --workspaces publish --access public"
-                }
-			} // steps
-        } // stage publish npm modules
     } // stages
 } // pipeline

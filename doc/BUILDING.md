@@ -1,6 +1,7 @@
 ## Building and running your own Tuta Mail web client
 
-You can build your own Tuta Mail client and run it locally. Remember that you have to update your Tuta Mail client on your
+You can build your own Tuta Mail client and run it locally. Remember that you have to update your Tuta Mail client on
+your
 own. If you prefer the auto-update feature, you can use the official [mail](https://app.tuta.com) client.
 
 Instructions here will produce a *release* version of the client. For *debug* version see [HACKING.md](./HACKING.md).
@@ -22,11 +23,10 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 5. Synchronize submodules: `git submodule sync --recursive`
 6. Update submodules: `git submodule update`
 7. run `npm ci` to install dependencies.
-8. Build packages: `npm run build-packages`
-9. Build the web part: `node webapp prod`
-10. Switch into the build directory: `cd build`
-11. Run the local server e.g. `npx serve build -s -p 9000` or `python -m SimpleHTTPServer 9000`.
-12. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
+8. Build the web part: `node webapp prod`
+9. Switch into the build directory: `cd build`
+10. Run the local server e.g. `npx serve build -s -p 9000` or `python -m SimpleHTTPServer 9000`.
+11. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
 > If you try building without initializing the submodules, you might end up with
 > the following error:
@@ -40,7 +40,8 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 
 ## Building and running your own Tuta Mail Android app
 
-If you build and install the Tuta Mail Android app by yourself, keep in mind that you will not get updates automatically.
+If you build and install the Tuta Mail Android app by yourself, keep in mind that you will not get updates
+automatically.
 If you prefer the auto-update feature, download the app from the Google Play Store or F-Droid.
 The APK is also published on the GitHub releases page https://github.com/tutao/tutanota/releases.
 You can add https://github.com/tutao/tutanota/releases.atom to your feed reader to get notified about available updates.
@@ -60,14 +61,12 @@ You can add https://github.com/tutao/tutanota/releases.atom to your feed reader 
 5. Synchronize submodules: `git submodule sync --recursive`
 6. Update submodules: `git submodule update`
 7. Install dependencies: `npm ci`
-8. Build packages: `npm run build-packages`
-9. Create a keystore if you don't have
-   one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
-10.
+8. Create a keystore if you don't have one:
+   `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
+9. run
+   `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
 
-run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
-
-11. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)
+10. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)
 
 ## Building and running your own Tuta Mail Desktop client
 
@@ -91,8 +90,7 @@ Keep in mind that your own build of Tuta Mail Desktop will not update automatica
 
 ### Build:
 
-1. Build packages: `npm run build-packages`
-2. Run `node desktop --custom-desktop-release`.
+1. Run `node desktop --custom-desktop-release`.
 
 The client for your platform will be in `build/desktop/`. Note that you can add `--unpacked` to the build command to
 skip the packaging of the installer. This will yield a directory containing the client that can be run without

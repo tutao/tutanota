@@ -68,7 +68,7 @@ Current preferred way looks roughly like that:
 
 ```typescript
 // Defining
-import {Component} from "mithril"
+import { Component } from "mithril"
 
 type Attrs = { param1: string, paramTwo?: number }
 
@@ -81,7 +81,7 @@ class MyComponent implements Component<Attrs> {
 // Usage
 
 // ...
-m(MyComponent, {param1: "Mithril", param2: 1})
+m(MyComponent, { param1: "Mithril", param2: 1 })
 ```
 
 ### Network
@@ -195,16 +195,10 @@ To run all TypeScript tests:
 npm test
 ```
 
-To run only the primary project tests and no tests for the modules:
-
-```bash
-npm run test:app
-```
-
 To run only specific tests:
 
 ```bash
-npm run test:app -- -f 'CalendarModel'
+npm run test -- -f 'CalendarModel'
 ```
 
 To run only specific tests without npm:
@@ -216,19 +210,19 @@ node test -f CalendarModel
 To run tests in browser:
 
 ```bash
-npm run test:app -- -br
+npm run test -- -br
 ```
 
 To run tests only in browser:
 
 ```bash
-npm run test:app -- --no-run -br
+npm run test -- --no-run -br
 ```
 
 To show all test options:
 
 ```bash
-npm:run test:app -- --help
+npm:run test -- --help
 ```
 
 ## Chunking rules

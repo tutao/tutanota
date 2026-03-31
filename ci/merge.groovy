@@ -108,7 +108,6 @@ pipeline {
 						sh '''
 							node buildSrc/getNodeGypLibrary.js @signalapp/sqlcipher --copy-target node_sqlcipher --environment node --root-dir . &
 							PID1=$!
-							npm run build-packages &
 							PID2=$!
 							wait $PID1
 							EXIT_CODE1=$?
@@ -223,7 +222,7 @@ pipeline {
 								}
 							}
 							steps {
-								sh 'npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
+								sh 'npm run test -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 							}
 						}
 						stage("android tests") {
@@ -242,21 +241,7 @@ pipeline {
 						}
 					}
 				}
-				stage("packages test") {
-					agent {
-						node {
-							label 'linux'
-							customWorkspace linuxWorkspaceClones[0]
-						}
-					}
-					when {
-						expression { hasRelevantChangesIn(changeset, "packages") }
-					}
-					steps {
-						sh 'npm run --if-present test -ws'
-					}
-				}
-				stage("build web app") {
+				stage("build mail web app") {
 					agent {
 						node {
 							label 'linux'
@@ -264,10 +249,10 @@ pipeline {
 						}
 					}
 					steps {
-						sh 'node webapp --disable-minify'
+						sh 'node webapp --disable-minify --app mail'
 					}
 				}
-				stage("build web app calendar") {
+				stage("build calendar web app") {
 					agent {
 						node {
 							label 'linux'
@@ -511,7 +496,7 @@ boolean shouldRunNpmCi() {
 
 void findFixmes() {
 	sh '''
-		if grep "FIXME\\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources tuta-sdk; then
+		if grep "FIXME\\|[fF]ixme" -r src buildSrc test/tests app-android/app/src app-ios/tutanota/Sources tuta-sdk --exclude-dir=dist --exclude-dir=node_modules; then
 			echo 'FIXMEs in src';
 			exit 1;
 		else
