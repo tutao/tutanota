@@ -45,6 +45,7 @@ import type { SignupView, SignupViewAttrs, SignupViewModel } from "../common/sig
 import type { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import type { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
+import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -236,7 +237,11 @@ import("./translations/en.js")
 							if (mailLocator.logins.isEnabled(FeatureType.DriveInternalBeta)) {
 								model.register(async () => {
 									const { quickDriveActions } = await import("../drive-app/drive/model/DriveQuickActions.js")
-									return quickDriveActions(mailLocator.throttledRouter(), await mailLocator.driveViewModel())
+									return quickDriveActions(
+										mailLocator.throttledRouter(),
+										await mailLocator.driveViewModel(),
+										await mailLocator.driveFilePicker(),
+									)
 								})
 							}
 							model.register(async () => {
@@ -607,6 +612,7 @@ import("./translations/en.js")
 					driveViewModel: DriveViewModel
 					bottomNav: () => Children
 					lazySearchBar: () => Children
+					filePicker: DriveFilePicker
 				}
 			>(
 				{
@@ -614,6 +620,7 @@ import("./translations/en.js")
 						const { DriveView } = await import("../drive-app/drive/view/DriveView.js")
 						const { lazySearchBar } = await import("./LazySearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const filePicker = await mailLocator.driveFilePicker()
 						return {
 							component: DriveView,
 							cache: cache ?? {
@@ -625,16 +632,18 @@ import("./translations/en.js")
 									m(lazySearchBar, {
 										placeholder: lang.get("searchCalendar_placeholder"),
 									}),
+								filePicker,
 							},
 						}
 					},
-					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, lazySearchBar, filePicker }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						driveViewModel,
 						bottomNav,
 						lazySearchBar,
 						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
+						filePicker,
 					}),
 				},
 				mailLocator.logins,
