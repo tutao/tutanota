@@ -55,7 +55,7 @@ export const themes = (): Themes => {
 	const lightRed = Object.freeze<Theme>({
 		...semanticColorsLight,
 		themeId: isCalendarApp ? "light_secondary" : "light",
-		logo: getAppLogo(),
+		logo: getAppLogo("#d0c4c4"),
 		// Basic color tokens
 		primary: "#8F4A4E",
 		on_primary: "#FFFFFF",
