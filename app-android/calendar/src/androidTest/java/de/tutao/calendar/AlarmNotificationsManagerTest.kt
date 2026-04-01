@@ -6,7 +6,7 @@ import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.DateProvider
-import de.tutao.tutashared.IdTupleCustom
+import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmIntervalUnit
@@ -250,7 +250,7 @@ class AlarmNotificationsManagerTest {
 			throw RuntimeException(cryptoError)
 		}
 		val notificationSessionKey = EncryptedAlarmNotificationEntity.NotificationSessionKey(
-			IdTupleCustom("listId", pushIdentifierElementId),
+			IdTuple("listId", pushIdentifierElementId),
 			encSessionKey.toBase64()
 		)
 		val calendar = Calendar.getInstance()
