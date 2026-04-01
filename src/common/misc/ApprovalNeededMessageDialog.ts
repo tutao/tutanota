@@ -4,20 +4,28 @@ import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import m from "mithril"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { ApprovalStatus, Keys } from "../api/common/TutanotaConstants.js"
-import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
 import { theme } from "../gui/theme"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { locator } from "../api/main/CommonLocator"
+import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
+import { DialogHeaderBar, type DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import { ButtonType } from "../gui/base/Button"
+import { Icon, IconSize } from "../gui/base/Icon"
+import { Icons } from "../gui/base/icons/Icons"
 
 // Function for rendering the more info link
 function renderMoreInfoLink(link: InfoLink) {
 	return [
-		m(".block", { style: { "text-align": "center" } }, [
+		m(".block", { style: { "text-align": "justify", "align-content": "center" } }, [
 			m(ExternalLink, {
 				text: lang.get("whyThisHappens_msg"),
 				href: link,
 				isCompanySite: true,
+			}),
+			m(Icon, {
+				icon: Icons.OpenOutline,
+				size: IconSize.PX24,
 			}),
 		]),
 	]
@@ -63,32 +71,32 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 	}
 
 	const { promise, resolve } = defer<void>()
-
+	const actionBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "close_alt",
+				click: () => dialog.close(),
+				type: ButtonType.Secondary,
+			},
+		],
+		middle: "oneStep_label",
+	}
 	const dialog = new Dialog(DialogType.EditSmall, {
 		view: () => [
-			m(
-				".dialog-header.plr-24.flex-space-between.dialog-header-line-height",
+			m(DialogHeaderBar, actionBarAttrs),
+			m("div.mb-8.mlr-12", [
 				m(
-					"#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b",
-					{
-						"data-testid": `dialog:${lang.getTestId("oneStep_label")}`,
-					},
-					[m("", lang.getTranslationText("oneStep_label"))],
-				),
-			),
-			m("div.mt-16.mb-16.mlr-12", [
-				m(
-					"p",
+					"p.mb-4",
 					{
 						style: {
-							"text-align": "center",
+							"text-align": "justify",
 						},
 					},
 					lang.getTranslationText(approvalStatus === ApprovalStatus.DELAYED ? "approvalWaitNoticeFastTrack_msg" : "approvalWaitNotice_msg"),
 				),
 				renderMoreInfoLink(InfoLink.AccountApprovalFaq),
 				m(
-					".flex-center.col.gap-8.mt-16",
+					".flex-center.col.gap-8.mt-24",
 					m(BannerButton, buttonAutomaticApproval),
 					approvalStatus === ApprovalStatus.DELAYED && m(LoginButton, buttonFastTrack),
 				),
