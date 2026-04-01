@@ -138,7 +138,7 @@ export class ContactListViewModel {
 			const searchedContacts = await this.contactModel.searchForContacts(selected[0].emailAddress, "mailAddresses", 10)
 			// need an exact match
 			const contacts = searchedContacts.filter((contact) =>
-				contact.mailAddresses.map((mailAddress) => mailAddress.address).includes(selected[0].emailAddress),
+				contact.mailAddresses.map((mailAddress) => mailAddress.address.toLowerCase()).includes(selected[0].emailAddress.toLowerCase()),
 			)
 			const nowSelected = this.getSelectedContactListEntries() ?? []
 			if (arrayEquals(selected, nowSelected)) {
