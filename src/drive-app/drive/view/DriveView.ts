@@ -23,7 +23,7 @@ import { Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "../../..
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
-import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFileDialog, showNewFolderDialog } from "./DriveGuiUtils"
+import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFolderDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
@@ -48,6 +48,7 @@ import { DriveSelectedItemsActions } from "./DriveFolderNav"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { MessageBanner } from "../../../common/gui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
+import { DriveFilePicker } from "./DriveFilePicker"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -56,6 +57,7 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
+	filePicker: DriveFilePicker
 }
 
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
@@ -81,9 +83,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		}
 	}
 
-	protected files: (DataFile | FileReference)[] = []
-
 	private driveViewModel: DriveViewModel
+	private filePicker: DriveFilePicker
 	private shortcuts: Shortcut[]
 	private operationUpdatesSubscription: Stream<unknown> | null = null
 
@@ -135,6 +136,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		super()
 
 		this.driveViewModel = vnode.attrs.driveViewModel
+		this.filePicker = vnode.attrs.filePicker
 		this.init()
 		const onTrash = (itemIds: FolderItemId[]) => {
 			this.driveViewModel.moveToTrash(itemIds)
@@ -615,7 +617,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	async onNewFile(boundingRect: DOMRect): Promise<void> {
-		await showNewFileDialog((files: WebFile[] | FileReference[]) => this.driveViewModel.uploadFiles(files), boundingRect)
+		const files = await this.filePicker.pickFiles(boundingRect)
+		await this.driveViewModel.uploadFiles(files)
 	}
 
 	async onNewFolder(): Promise<void> {
