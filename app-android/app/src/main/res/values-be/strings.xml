@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Калі ласка, зарэгіструйся ў праграме-календары</string>
     <string name="widgetOpenApp_action">Адкрыць праграму</string>
     <string name="widgetNoEvents_msg">Няма падзей</string>
+    <string name="widgetNoEventsToday_msg">Сёння няма падзей</string>
     <string name="widgetDescription_msg">Паказаць сённяшнія надыходзячыя падзеі</string>
     <string name="birthdayCalendar_label">Дні народзінаў</string>
     <string name="birthdayEvent_title">{name} мае ДзНар</string>

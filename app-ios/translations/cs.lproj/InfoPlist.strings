@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Otevřít aplikaci";
 TutaoWidgetUnexpectedErrorMsg = "Jejda! Něco se pokazilo.";
 TutaoWidgetSendLogsAction = "Odeslat protokol";
 TutaoWidgetNoEventsMsg = "Žádné události";
+TutaoWidgetNoEventsTodayMsg = "Dnes žádné události";
 TutaoWidgetCredentialsErrorMsg = "Žádné přihlašovací údaje k dispozici";
 TutaoAccountLabel = "Uživatel";
 TutaoCalendarsLabel = "Kalendáře";

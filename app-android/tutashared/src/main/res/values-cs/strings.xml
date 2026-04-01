@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Přihlaste se prosím v aplikaci Calendar</string>
     <string name="widgetOpenApp_action">Otevřít aplikaci</string>
     <string name="widgetNoEvents_msg">Žádné události</string>
+    <string name="widgetNoEventsToday_msg">Dnes žádné události</string>
     <string name="widgetDescription_msg">Zobrazit dnešní nadcházející události</string>
     <string name="birthdayCalendar_label">Narozeniny</string>
     <string name="birthdayEvent_title">Narozeniny: {name}</string>
