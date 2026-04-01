@@ -39,6 +39,7 @@ import {
 	memoizedWithHiddenArgument,
 	neverNull,
 	ofClass,
+	onceAsync,
 	stringToBase64,
 	TypeRef,
 	YEAR_IN_MILLIS,
@@ -248,7 +249,7 @@ export class SearchViewModel {
 		this._listModel = this.createList()
 	}
 
-	async init() {
+	readonly init = onceAsync(async () => {
 		this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
 		this.indexStateSubscription = this.search.indexState.map((newState) => this.onMailIndexStateChanged(newState))
 		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => {
@@ -256,7 +257,7 @@ export class SearchViewModel {
 		})
 		this.eventController.addEntityListener(this.entityEventsListener)
 		await this.offlineStorageSettings?.init()
-	}
+	})
 
 	getRestriction(): SearchRestriction {
 		return this.router.getRestriction()

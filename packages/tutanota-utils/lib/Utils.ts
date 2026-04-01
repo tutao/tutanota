@@ -345,17 +345,30 @@ export function throttleStart<F extends (...args: any[]) => Promise<any>>(period
 
 /**
  * Returns an async function that will only be executed once until it has settled. Subsequent calls will return the
- * original promise if it hasn't yet resolved.
- *
- * If the function throws before it can be awaited, it will not be caught.
+ * original promise if it hasn't yet resolved. If it has, it will execute the function again and return its promise.
  */
-export function singleAsync<T, R>(fn: () => Promise<R>): () => Promise<R> {
+export function singleAsync<R>(fn: () => Promise<R>): () => Promise<R> {
 	let promise: Promise<R> | null = null
 	return async () => {
 		if (promise != null) {
 			return promise
 		} else {
 			promise = fn().finally(() => (promise = null))
+			return promise
+		}
+	}
+}
+
+/**
+ * Returns an async function that will only be executed once. Subsequent calls will return the original promise
+ */
+export function onceAsync<R>(fn: () => Promise<R>): () => Promise<R> {
+	let promise: Promise<R> | null = null
+	return async () => {
+		if (promise != null) {
+			return promise
+		} else {
+			promise = fn()
 			return promise
 		}
 	}

@@ -187,6 +187,7 @@ export {
 	assertValidURL,
 	createResizeObserver,
 	singleAsync,
+	onceAsync,
 	isAsciiChar,
 } from "./Utils.js"
 export type {
