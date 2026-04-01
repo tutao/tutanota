@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
-import { layout_size, px, size, size as sizes } from "../size.js"
+import { layout_size, px, size } from "../size.js"
 import { theme } from "../theme.js"
 
 export interface DesktopBaseHeaderAttrs {
@@ -23,7 +23,7 @@ export class DesktopBaseHeader implements ClassComponent<DesktopBaseHeaderAttrs>
 
 	private renderLogo(width: number) {
 		return m(
-			".logo-height",
+			".logo-height.flex.items-center",
 			{
 				...landmarkAttrs(AriaLandmarks.Banner, "Tuta logo"),
 				style: {
