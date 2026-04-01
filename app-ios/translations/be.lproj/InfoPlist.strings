@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Адкрыць праграму";
 TutaoWidgetUnexpectedErrorMsg = "Матухна! Штось пайшло не туды.";
 TutaoWidgetSendLogsAction = "Даслаць рапарты";
 TutaoWidgetNoEventsMsg = "Няма падзей";
+TutaoWidgetNoEventsTodayMsg = "Сёння няма падзей";
 TutaoWidgetCredentialsErrorMsg = "Няма даных уваходу";
 TutaoAccountLabel = "Карыстальнік";
 TutaoCalendarsLabel = "Календары";

@@ -1870,7 +1870,7 @@ export default {
 		"showInboxRules_action": "Regeln anzeigen",
 		"showingEventsUntil_msg": "Zeigt alle Termine bis {untilDay} an.",
 		"showMail_action": "Mailbox entschlüsseln",
-		"showMore_action": "Mehr Anzeigen",
+		"showMore_action": "MEHR ANZEIGEN",
 		"showMoreUpgrade_action": "Abo auswählen",
 		"showNewer_label": "Nächst neuere anzeigen",
 		"showNone_label": "Keine anzeigen",
@@ -2108,7 +2108,7 @@ export default {
 		"unencryptedTransmission_msg": "Die in den Spam-Ordner verschoben(en) E-Mail(s) werden unverschlüsselt an den Server übertragen, um den Spam-Schutz zu verbessern.",
 		"unknownError_msg": "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuche es später erneut.",
 		"unknownRepetition_msg": "Der Termin ist Teil einer Serie.",
-		"unlimited_label": "Unlimited",
+		"unlimited_label": "Unbegrenzt",
 		"unlockCredentials_action": "Zugangsdaten Entschlüsseln",
 		"unprocessedBookings_msg": "In deinem Konto sind unbearbeitete Buchungen in Höhe von insgesamt {amount}. Der Betrag wird mit der nächsten Rechnung von deinem Kontostand bzw. deinem Zahlungsmittel abgezogen.",
 		"unread_label": "Ungelesen",
@@ -2260,12 +2260,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails...\n\nHinweis: Beim exportieren von mehr als 1000 E-Mails, empfehlen wir die Funktion unter Einstellungen -> Export zu verwenden.",
-		"reIndexLocalData_msg": "Re-index all emails up to the Local Data Storage date. This may be useful if you are missing emails in search.",
-		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
-		"rebuildSearchIndex_action": "Rebuild search index",
-		"indexingEmails_msg": "Indexing emails",
-		"searchUntil_msg": "Search Until {1}"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

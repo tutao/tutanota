@@ -2,7 +2,7 @@
     <string name="reminder_label">Opomnik</string>
     <string name="pushNewMail_msg">Prejeli ste novo e-pošto.</string>
     <string name="notificationSync_msg">Sinhroniziranje obvestil</string>
-    <string name="scheduleAlarmError_msg">Alarma ni bilo mogoče nastaviti. Prosimo, posodobite aplikacijo.</string>
+    <string name="scheduleAlarmError_msg">Alarma ni bilo mogoče nastaviti. Posodobite aplikacijo.</string>
     <string name="wantToSendReport_msg">Nekaj nepričakovanega se je zgodilo. Ali želite poslati poročilo? Lahko dodate sporočila, da nam pomagate popraviti to napako.</string>
     <string name="downloadCompleted_msg">Prenos končan</string>
     <string name="unlockCredentials_action">Odkleni poverilnice</string>
@@ -13,9 +13,10 @@
     <string name="calendars_label">Koledarji</string>
     <string name="widgetNoCredentialsInfo_msg">Poverilnice niso na voljo</string>
     <string name="widgetUnexpectedError_msg">Ups! Nekaj se je zalomilo.</string>
-    <string name="widgetCredentialsError_msg">Prosimo, prijavite se v aplikacijo koledar</string>
+    <string name="widgetCredentialsError_msg">Prijavite se v aplikacijo koledar</string>
     <string name="widgetOpenApp_action">Odpri aplikacijo</string>
     <string name="widgetNoEvents_msg">Ni dogodkov</string>
+    <string name="widgetNoEventsToday_msg">Danes ni dogodkov</string>
     <string name="widgetDescription_msg">Prihajajoči dogodki danes</string>
     <string name="birthdayCalendar_label">Rojstni dnevi</string>
     <string name="birthdayEvent_title">Rojstni dan osebe {name}</string>

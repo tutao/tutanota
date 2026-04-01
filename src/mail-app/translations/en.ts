@@ -1870,7 +1870,7 @@ export default {
 		"showInboxRules_action": "Show inbox rules",
 		"showingEventsUntil_msg": "Showing events until {untilDay}.",
 		"showMail_action": "Show encrypted mailbox",
-		"showMore_action": "Show More",
+		"showMore_action": "SHOW MORE",
 		"showMoreUpgrade_action": "Choose plan",
 		"showNewer_label": "Show next newer mail",
 		"showNone_label": "Show None",
@@ -2260,12 +2260,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"mailExportSuggestAlternative_msg": "Preparing {current} of {total} emails for export...\n\nNote: When exporting more than 1000 mails, please use Settings -> Export instead.",
-		"reIndexLocalData_msg": "Re-index all emails up to the Local Data Storage date. This may be useful if you are missing emails in search.",
-		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
-		"rebuildSearchIndex_action": "Rebuild search index",
-		"indexingEmails_msg": "Indexing emails",
-		"searchUntil_msg": "Search Until {1}"
+		"zoomOut_action": "Zoom Out"
 	}
 }
