@@ -1,21 +1,11 @@
 import o from "@tutao/otest"
 import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "@tutao/crypto"
 import { matchers, object, verify } from "testdouble"
-import { assertNotNull } from "@tutao/utils"
+import { loadWasmFromFileOrNetwork } from "./WebAssemblyTestUtils"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
-		const loadWasmInNode: ArrayBuffer = await node(async () => {
-			const { default: fs } = await import("node:fs")
-			return fs.readFileSync("../src/crypto-primitives/crypto_primitives_bg.wasm")
-		})()
-		const loadWasmInBrowser: ArrayBuffer = await browser(async () => {
-			const r = await fetch("/crypto_primitives_bg.wasm")
-			return await r.arrayBuffer()
-		})()
-
-		let wasmBuffer = assertNotNull(loadWasmInNode ?? loadWasmInBrowser)
-		await initEd25519(wasmBuffer)
+		await initEd25519(await loadWasmFromFileOrNetwork("crypto_primitives_bg.wasm"))
 	})
 
 	o("valid Ed25519 round trip", function () {
