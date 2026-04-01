@@ -383,14 +383,6 @@ export const CustomDomainTypeCount: Record<CustomDomainType, number> = {
 	[CustomDomainType.UNLIMITED]: -1,
 }
 
-export const CustomDomainTypeCountName: Record<CustomDomainType, string> = {
-	[CustomDomainType.NONE]: "0",
-	[CustomDomainType.ONE]: "1",
-	[CustomDomainType.THREE]: "3",
-	[CustomDomainType.TEN]: "10",
-	[CustomDomainType.UNLIMITED]: "∞",
-}
-
 export enum PlanType {
 	Premium = "0",
 	Pro = "2",
