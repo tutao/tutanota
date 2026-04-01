@@ -162,7 +162,7 @@ export const component_size = {
 	bottom_nav_bar: 50,
 	navbar_button_width: 80,
 	navbar_edge_width_mobile: 58,
-	header_logo_height: 38,
+	header_logo_height: 36,
 	list_row_height: 68,
 	dot_size: 7,
 	checkbox_size: 14,
