@@ -11,7 +11,6 @@ import {
 	FeatureListItem,
 	FeatureListProvider,
 	getDisplayNameOfPlanType,
-	ReplacementKey,
 	SelectedSubscriptionOptions,
 	UpgradePriceType,
 } from "./FeatureListProvider"
@@ -20,8 +19,6 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/tutanota-utils"
 import {
 	AvailablePlanType,
-	CustomDomainType,
-	CustomDomainTypeCountName,
 	HighlightedPlans,
 	LegacyPlans,
 	NewBusinessPlans,
@@ -34,7 +31,15 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator.js"
-import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
+import {
+	getApplePriceStr,
+	getFeaturePlaceholderReplacement,
+	getPriceStr,
+	hasAppleIntroOffer,
+	shouldHideBusinessPlans,
+	shouldShowApplePrices,
+	UpgradeType,
+} from "./utils/SubscriptionUtils.js"
 import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -538,7 +543,7 @@ function localizeFeatureListItem(
 	targetSubscription: PlanType,
 	attrs: SubscriptionSelectorAttr,
 ): BuyOptionDetailsAttr["categories"][0]["features"][0] | null {
-	const text = tryGetTranslation(item.text, getReplacement(item.replacements, targetSubscription, attrs))
+	const text = tryGetTranslation(item.text, getFeaturePlaceholderReplacement(item.replacements, targetSubscription, attrs.priceAndConfigProvider))
 	if (text == null) {
 		return null
 	}
@@ -579,31 +584,6 @@ function tryGetTranslation(key: TranslationKey, replacements?: Record<string, st
 	} catch (e) {
 		console.log("could not translate feature text for key", key, "hiding feature item")
 		return null
-	}
-}
-
-/**
- * get a string to insert into a translation with a slot.
- * if no key is found, undefined is returned and nothing is replaced.
- */
-export function getReplacement(
-	key: ReplacementKey | undefined,
-	subscription: PlanType,
-	attrs: SubscriptionSelectorAttr,
-): Record<string, string | number> | undefined {
-	const { priceAndConfigProvider } = attrs
-	switch (key) {
-		case "customDomains": {
-			const customDomainType = downcast<CustomDomainType>(priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.customDomainType)
-			return { "{amount}": CustomDomainTypeCountName[customDomainType] }
-		}
-		case "mailAddressAliases":
-			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.nbrOfAliases }
-		case "storage":
-			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.storageGb }
-		case "label": {
-			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.maxLabels }
-		}
 	}
 }
 

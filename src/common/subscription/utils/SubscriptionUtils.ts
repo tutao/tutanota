@@ -1,11 +1,11 @@
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { TranslationKey } from "../../misc/LanguageViewModel"
 import {
 	AccountType,
 	AvailablePlans,
 	AvailablePlanType,
 	BookingItemFeatureType,
 	CustomDomainType,
-	CustomDomainTypeCountName,
+	CustomDomainTypeCount,
 	getClientType,
 	getPaymentMethodType,
 	LegacyBusinessPlans,
@@ -450,7 +450,7 @@ export function getFeaturePlaceholderReplacement(
 	switch (key) {
 		case "customDomains": {
 			const customDomainType = downcast<CustomDomainType>(priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.customDomainType)
-			return { "{amount}": CustomDomainTypeCountName[customDomainType] }
+			return { "{amount}": CustomDomainTypeCount[customDomainType] }
 		}
 		case "mailAddressAliases":
 			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.nbrOfAliases }
