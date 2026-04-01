@@ -1,30 +1,10 @@
 import o, { assertThrows } from "@tutao/otest"
 import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "@tutao/crypto"
-import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
-import * as fs from "node:fs"
-import { execSync } from "node:child_process"
+import { loadWasmExports, loadWasmModuleFallback } from "./WebAssemblyTestUtils.js"
 
 o.spec("Argon2id", function () {
-	o.before(async () => {
-		const currentPath = process.cwd()
-
-		execSync("make -f Makefile_argon2 build", {
-			cwd: "../libs/webassembly",
-			env: {
-				...process.env,
-				WASM: `${currentPath}/argon2.wasm`,
-			},
-			stdio: "inherit",
-		})
-	})
-
-	// We remove them after the tests since we don't need them anymore
-	o.after(() => {
-		fs.rmSync("./argon2.wasm")
-	})
-
 	o("GenerateKeyFromPassphrase", async function () {
-		const argon2 = (await loadWasmModuleFromFile("./argon2.wasm")) as Argon2IDExports
+		const argon2 = (await loadWasmExports("argon2.wasm")) as Argon2IDExports
 
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()

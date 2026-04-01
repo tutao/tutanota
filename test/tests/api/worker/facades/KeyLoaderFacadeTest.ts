@@ -2,7 +2,6 @@ import o from "@tutao/otest"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
-import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import {
 	aes256RandomKey,
 	aesEncrypt,
@@ -42,6 +41,7 @@ import { CacheManagementFacade } from "../../../../../src/common/api/worker/faca
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
+import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache

@@ -5,7 +5,8 @@ import { generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "
 import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade"
-import { loadLibOQSWASM } from "../WASMTestUtils"
+
+import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 o.spec("CryptoWrapperTest", function () {
 	let cryptoWrapper: CryptoWrapper

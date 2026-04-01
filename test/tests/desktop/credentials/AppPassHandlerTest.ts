@@ -11,7 +11,8 @@ import { CredentialEncryptionMode } from "../../../../src/common/misc/credential
 import { CancelledError } from "../../../../src/common/api/common/error/CancelledError.js"
 import { assertThrows } from "@tutao/otest"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
-import { loadArgon2WASM } from "../../api/worker/WASMTestUtils.js"
+
+import { loadArgon2WASM } from "../../crypto/WebAssemblyTestUtils"
 
 o.spec("AppPassHandler", () => {
 	let crypto: DesktopNativeCryptoFacade
