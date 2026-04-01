@@ -160,11 +160,11 @@ import type { QuickActionsModel } from "../common/misc/quickactions/QuickActions
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
-import { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 
 assertMainOrNode()
 
@@ -1332,7 +1332,7 @@ class MailLocator implements CommonLocator {
 		}
 	}
 
-	readonly driveViewModel = lazyMemoized(async () => {
+	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
 		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
@@ -1359,6 +1359,16 @@ class MailLocator implements CommonLocator {
 	async showMoveItemDialog(items: FolderItem[], moveItems: MoveItems) {
 		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
 		showMoveDialog(this.entityClient, this.driveFacade, items, moveItems)
+	}
+
+	async driveFilePicker(): Promise<DriveFilePicker> {
+		if (isDesktop() || isApp()) {
+			const { AppFilePicker } = await import("../drive-app/drive/view/DriveFilePicker.js")
+			return new AppFilePicker(this.fileApp)
+		} else {
+			const { WebFilePicker } = await import("../drive-app/drive/view/DriveFilePicker.js")
+			return new WebFilePicker()
+		}
 	}
 }
 

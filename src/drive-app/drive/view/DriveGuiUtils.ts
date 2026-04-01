@@ -1,16 +1,12 @@
-import { DropdownButtonAttrs, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown"
+import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { showStandardsFileChooser } from "../../../common/file/FileController"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
-import { Mode } from "../../../common/api/common/Env"
-import { locator } from "../../../common/api/main/CommonLocator"
-import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
 
 export function newItemActions({
 	onNewFile,
@@ -35,15 +31,6 @@ export function newItemActions({
 			icon: Icons.Upload,
 		},
 	]
-}
-
-export async function showNewFileDialog(uploadFiles: (files: WebFile[] | FileReference[]) => Promise<void>, boundingRect: PosRect): Promise<void> {
-	const fileSelector = [Mode.App, Mode.Desktop].includes(env.mode) ? locator.fileApp.openFileChooser(boundingRect) : showStandardsFileChooser(true)
-	const files = await fileSelector
-
-	if (files) {
-		uploadFiles(files)
-	}
 }
 
 export async function showNewFolderDialog(createFolder: (folderName: string) => Promise<void>, updateUi: () => void): Promise<void> {

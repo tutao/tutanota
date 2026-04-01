@@ -198,11 +198,7 @@ export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile
  * @param allowMultiple allow selecting multiple files
  * @param allowedExtensions Array of extensions strings without "."
  */
-export function runFileChooser<T>(
-	allowMultiple: boolean,
-	onChangeCallback: (e: Event, resolve: (value: Array<T> | PromiseLike<Array<T>>) => void) => void,
-	allowedExtensions?: Array<string>,
-): Promise<Array<T>> {
+export function runFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<File[]> {
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
 	const fileInput = document.getElementById("hiddenFileChooser")
@@ -227,9 +223,9 @@ export function runFileChooser<T>(
 	}
 
 	newFileInput.style.display = "none"
-	const promise: Promise<Array<T>> = newPromise((resolve) => {
+	const promise: Promise<File[]> = newPromise((resolve) => {
 		newFileInput.addEventListener("change", (e: Event) => {
-			onChangeCallback(e, resolve)
+			resolve(newFileInput.files != null ? Array.from(newFileInput.files) : [])
 		})
 		newFileInput.addEventListener("cancel", () => resolve([]))
 	})
@@ -239,30 +235,19 @@ export function runFileChooser<T>(
 	return promise
 }
 
-export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
-	return runFileChooser<DataFile>(
-		allowMultiple,
-		(e: Event, resolve) => {
-			readLocalFiles((e.target as any).files)
-				.then(resolve)
-				.catch(async (e) => {
-					console.log(e)
-					await Dialog.message("couldNotAttachFile_msg")
-					resolve([])
-				})
-		},
-		allowedExtensions,
-	)
+export async function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+	const files = await runFileChooser(allowMultiple, allowedExtensions)
+	return readLocalFiles(files).catch(async (e) => {
+		console.log(e)
+		await Dialog.message("couldNotAttachFile_msg")
+		return []
+	})
 }
 
-export function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<WebFile>> {
-	const selectedFiles = runFileChooser<File>(allowMultiple, (e: Event, resolve) => {
-		resolve((e.target as any).files as Array<File>)
-	})
-	return selectedFiles.then((files) => {
-		return files.map((f) => {
-			return { _type: "WebFile", file: f } as WebFile
-		})
+export async function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<WebFile>> {
+	const selectedFiles = await runFileChooser(allowMultiple, allowedExtensions)
+	return selectedFiles.map((f) => {
+		return { _type: "WebFile", file: f }
 	})
 }
 
