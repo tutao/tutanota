@@ -21,8 +21,8 @@ import { Ed25519Facade, EncodedEd25519Signature } from "../../../../../src/commo
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade"
-import { loadLibOQSWASM } from "../WASMTestUtils"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest"
+import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 o.spec("PublicKeySignatureFacadeTest", function () {
 	let ed25519Facade: Ed25519Facade
