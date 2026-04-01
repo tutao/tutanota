@@ -7,7 +7,7 @@ assertMainOrNodeBoot()
 
 export function getTutaLogo(): string {
 	if (isColorLight(theme.surface)) {
-		return getTutaLogoSvg()
+		return getTutaLogoSvg(theme.outline_variant)
 	}
 	return getTutaLogoSvg("#fff")
 }
