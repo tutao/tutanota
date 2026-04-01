@@ -203,7 +203,7 @@ export function last<T>(theArray: ReadonlyArray<T>): T | null | undefined {
 	return theArray[theArray.length - 1]
 }
 
-export function isEmpty<T>(array: ReadonlyArray<T>): boolean {
+export function isEmpty(array: ReadonlyArray<unknown>): boolean {
 	return array.length === 0
 }
 
