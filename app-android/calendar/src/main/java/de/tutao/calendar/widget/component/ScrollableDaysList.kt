@@ -14,10 +14,9 @@ import de.tutao.calendar.widget.component.todayCard.TodayCard
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutashared.midnightInDate
-import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.LocalTime
 
 @Composable
 fun ScrollableDaysList(
@@ -28,7 +27,7 @@ fun ScrollableDaysList(
 
 	// only need to get keys of normalEvents list all days with events are included in both lists on WidgetUIData
 	val sortedDaysList = data.normalEvents.keys.sorted()
-	val startOfToday = midnightInDate(ZoneId.systemDefault(), LocalDateTime.now())
+	val startOfToday = LocalDate.now()
 
 	// we only have to check the normal events list because both normalEvents and allDayEvents lists are created whenever there are any events on a day.
 	val hasToday = sortedDaysList.contains(startOfToday)
@@ -43,7 +42,9 @@ fun ScrollableDaysList(
 		itemsIndexed(renderedDaysList) { dayIndex, startOfDay ->
 			val normalEvents = data.normalEvents[startOfDay] ?: listOf()
 			val allDayEvents = data.allDayEvents[startOfDay] ?: listOf()
-			val currentDay = LocalDateTime.ofInstant(Instant.ofEpochMilli(startOfDay), ZoneId.systemDefault())
+
+			val currentDay = LocalDateTime.of(startOfDay, LocalTime.MIDNIGHT)
+
 			val isFirstDay = dayIndex == 0
 			val topPadding = if (!isFirstDay) {
 				Dimensions.Spacing.space_8.dp
