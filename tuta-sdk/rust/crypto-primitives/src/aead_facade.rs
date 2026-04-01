@@ -17,7 +17,7 @@ pub enum AeadDecryptError {
 ///
 /// Usually these will be derived from the same key with different contexts.
 /// The AEAD scheme requires 256-bit keys, so that's all we allow here.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 #[cfg_attr(any(test, feature = "test_utils"), derive(Debug))]
 pub struct AeadSubKeys {
 	encryption_key: Aes256Key,
@@ -25,11 +25,37 @@ pub struct AeadSubKeys {
 }
 
 impl AeadSubKeys {
-	pub fn derive(input_key: &GenericAesKey, kdf_nonce: &[u8], instance_type_id: &str) -> Self {
-		const UNIT_SEPARATOR: char = '\u{001f}';
+	// '\u{001f}' is the unit separator
+	const AEAD_GROUP_KEY_NONCE_DERIVATION: &'static str =
+		concat!("GK and nonce instanceMessageKey", "\u{001f}");
+	const AEAD_SESSION_KEY_DERIVATION: &'static str = concat!("SK instanceSessionKey", "\u{001f}");
+
+	pub fn derive_from_group_key(
+		group_key: &GenericAesKey,
+		kdf_nonce: &[u8],
+		instance_type_id: &str,
+	) -> Self {
 		let key_bytes = blake3::blake3_kdf(
-			&[input_key.as_bytes(), kdf_nonce],
-			&format!("GK and nonce instanceMessageKey{UNIT_SEPARATOR}{instance_type_id}"),
+			&[group_key.as_bytes(), kdf_nonce],
+			&format!(
+				"{}{}",
+				Self::AEAD_GROUP_KEY_NONCE_DERIVATION,
+				instance_type_id
+			),
+			2 * AES_256_KEY_SIZE,
+		);
+		Self {
+			encryption_key: Aes256Key::from_bytes(&key_bytes[..AES_256_KEY_SIZE])
+				.expect("kdf should derive the correct number of bytes"),
+			authentication_key: Aes256Key::from_bytes(&key_bytes[AES_256_KEY_SIZE..])
+				.expect("kdf should derive the correct number of bytes"),
+		}
+	}
+
+	pub fn derive_from_session_key(session_key: &Aes256Key, instance_type_id: &str) -> Self {
+		let key_bytes = blake3::blake3_kdf(
+			&[session_key.as_bytes()],
+			&format!("{}{}", Self::AEAD_SESSION_KEY_DERIVATION, instance_type_id),
 			2 * AES_256_KEY_SIZE,
 		);
 		Self {
@@ -182,7 +208,7 @@ mod tests {
 		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
 		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
 		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
 		let ciphertext = aead_facade.encrypt(&sub_keys, plaintext, encryption_associated_data);
 		let decryption_associated_data =
 			decryption_associated_data.unwrap_or_else(|| encryption_associated_data);
@@ -226,7 +252,7 @@ mod tests {
 		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
 		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
 		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
 		let mut ciphertext = aead_facade.encrypt(&sub_keys, plaintext, associated_data);
 		let ciphertext_len = ciphertext.len();
 		*ciphertext.get_mut(ciphertext_len - 1).unwrap() += 1;
@@ -240,7 +266,7 @@ mod tests {
 		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
 		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
 		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
 		let associated_data = b"test";
 		aead_facade.encrypt(&sub_keys, plaintext.to_vec(), associated_data)
 	}
@@ -262,7 +288,7 @@ mod tests {
 		let input_key: [u8; 32] = randomizer_facade.generate_random_array();
 		let input_key = GenericAesKey::from_bytes(&input_key).unwrap();
 		let kdf_nonce: [u8; NONCE_BYTE_SIZE] = randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
 		let associated_data = b"test";
 		let ciphertext =
 			aead_facade.encrypt_internal(&sub_keys, wrongly_padded_plaintext, associated_data);
@@ -292,7 +318,7 @@ mod tests {
 	}
 
 	#[test]
-	fn compatibility_test() {
+	fn compatibility_test_aead() {
 		let test_data = get_compatibility_test_data();
 		for aead_test in test_data.aead_tests {
 			let randomizer = RandomizerFacade::from_core(TestRng::new(aead_test.seed));
@@ -327,6 +353,149 @@ mod tests {
 				.decrypt(&keys, &re_encrypted_key, associated_data)
 				.unwrap();
 			assert_eq!(&plaintext_key, &decrypted_key);
+		}
+	}
+
+	mod key_derivation {
+		use crate::aead_facade::AeadSubKeys;
+		use crate::aes::{Aes128Key, Aes256Key};
+		use crate::compatibility_test_utils::get_compatibility_test_data;
+		use crate::key::GenericAesKey;
+		use crate::randomizer_facade::test_util::make_thread_rng_facade;
+		const GLOBAL_MAIL_TYPE_ID: &str = "tutanota/97";
+
+		fn make_test_keys() -> ([u8; 32], Aes256Key, Aes128Key) {
+			let randomizer_facade = make_thread_rng_facade();
+			let kdf_nonce: [u8; 32] = randomizer_facade.generate_random_array();
+			let aes_256_key =
+				Aes256Key::from_bytes(&randomizer_facade.generate_random_array::<32>()).unwrap();
+			let aes_128_key =
+				Aes128Key::from_bytes(&randomizer_facade.generate_random_array::<16>()).unwrap();
+			(kdf_nonce, aes_256_key, aes_128_key)
+		}
+
+		#[test]
+		fn derive_from_group_key_and_nonce_is_reproducible() {
+			let (kdf_nonce, aes_256_key, _) = make_test_keys();
+			let derived_keys = AeadSubKeys::derive_from_group_key(
+				&GenericAesKey::Aes256(aes_256_key.clone()),
+				&kdf_nonce,
+				GLOBAL_MAIL_TYPE_ID,
+			);
+			let derived_keys_second = AeadSubKeys::derive_from_group_key(
+				&GenericAesKey::Aes256(aes_256_key),
+				&kdf_nonce,
+				GLOBAL_MAIL_TYPE_ID,
+			);
+			assert_eq!(derived_keys, derived_keys_second)
+		}
+
+		#[test]
+		fn derive_from_group_key_and_nonce_is_reproducible_for_legacy_128bit_group_key() {
+			let (kdf_nonce, _, aes_128_key) = make_test_keys();
+			let derived_keys = AeadSubKeys::derive_from_group_key(
+				&GenericAesKey::Aes128(aes_128_key.clone()),
+				&kdf_nonce,
+				GLOBAL_MAIL_TYPE_ID,
+			);
+			let derived_keys_second = AeadSubKeys::derive_from_group_key(
+				&GenericAesKey::Aes128(aes_128_key),
+				&kdf_nonce,
+				GLOBAL_MAIL_TYPE_ID,
+			);
+			assert_eq!(derived_keys, derived_keys_second)
+		}
+
+		#[test]
+		fn derive_from_session_key_is_reproducible() {
+			let (_, session_key, _) = make_test_keys();
+			let derived_keys =
+				AeadSubKeys::derive_from_session_key(&session_key, GLOBAL_MAIL_TYPE_ID);
+			let derived_keys_second =
+				AeadSubKeys::derive_from_session_key(&session_key, GLOBAL_MAIL_TYPE_ID);
+			assert_eq!(derived_keys, derived_keys_second)
+		}
+
+		#[test]
+		fn domain_separation_between_key_derivations() {
+			let (kdf_nonce, aes_256_key, _) = make_test_keys();
+			let derived_keys_group_key = AeadSubKeys::derive_from_group_key(
+				&GenericAesKey::Aes256(aes_256_key.clone()),
+				&kdf_nonce,
+				GLOBAL_MAIL_TYPE_ID,
+			);
+			let derived_keys_session_key =
+				AeadSubKeys::derive_from_session_key(&aes_256_key, GLOBAL_MAIL_TYPE_ID);
+			assert_ne!(
+				derived_keys_group_key.encryption_key,
+				derived_keys_session_key.encryption_key
+			);
+			assert_ne!(
+				derived_keys_group_key.authentication_key,
+				derived_keys_session_key.authentication_key
+			)
+		}
+
+		#[test]
+		fn compatibility_test_aead_key_derivation() {
+			let test_data = get_compatibility_test_data();
+			for test in test_data.aead_key_derivation_tests {
+				let group_key_256 = GenericAesKey::from_bytes(&test.group_key256_hex).unwrap();
+				let encryption_key_from_256 =
+					Aes256Key::from_bytes(&test.encryption_key_from256_hex).unwrap();
+				let authentication_key_from_256 =
+					Aes256Key::from_bytes(&test.authentication_key_from256_hex).unwrap();
+
+				let keys_from_256 = AeadSubKeys::derive_from_group_key(
+					&group_key_256,
+					&test.kdf_nonce_hex,
+					&test.global_instance_type_id,
+				);
+				assert_eq!(
+					keys_from_256,
+					AeadSubKeys {
+						encryption_key: encryption_key_from_256,
+						authentication_key: authentication_key_from_256
+					}
+				);
+
+				let group_key_128 = GenericAesKey::from_bytes(&test.group_key128_hex).unwrap();
+				let encryption_key_from_128 =
+					Aes256Key::from_bytes(&test.encryption_key_from128_hex).unwrap();
+				let authentication_key_from_128 =
+					Aes256Key::from_bytes(&test.authentication_key_from128_hex).unwrap();
+
+				let keys_from_128 = AeadSubKeys::derive_from_group_key(
+					&group_key_128,
+					&test.kdf_nonce_hex,
+					&test.global_instance_type_id,
+				);
+				assert_eq!(
+					keys_from_128,
+					AeadSubKeys {
+						encryption_key: encryption_key_from_128,
+						authentication_key: authentication_key_from_128
+					}
+				);
+
+				let session_key = Aes256Key::from_bytes(&test.session_key_hex).unwrap();
+				let encryption_key_from_session_key =
+					Aes256Key::from_bytes(&test.encryption_key_from_session_key_hex).unwrap();
+				let authentication_key_from_session_key =
+					Aes256Key::from_bytes(&test.authentication_key_from_session_key_hex).unwrap();
+
+				let keys_from_session_key = AeadSubKeys::derive_from_session_key(
+					&session_key,
+					&test.global_instance_type_id,
+				);
+				assert_eq!(
+					keys_from_session_key,
+					AeadSubKeys {
+						encryption_key: encryption_key_from_session_key,
+						authentication_key: authentication_key_from_session_key
+					}
+				);
+			}
 		}
 	}
 }
