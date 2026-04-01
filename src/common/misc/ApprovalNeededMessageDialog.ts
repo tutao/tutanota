@@ -3,22 +3,29 @@ import { InfoLink, lang } from "./LanguageViewModel.js"
 import { assertNotNull, defer } from "@tutao/utils"
 import m from "mithril"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
-import { Keys } from "@tutao/app-env"
-import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
 import { theme } from "../gui/theme"
-import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
+import { CommonButtonAttrs, PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { locator } from "../api/main/CommonLocator"
-import { ApprovalStatus } from "@tutao/app-env"
+import { ApprovalStatus, Keys } from "@tutao/app-env"
+import { Icon, IconSize } from "../gui/base/Icon"
+import { Icons } from "../gui/base/icons/Icons"
 
 // Function for rendering the more info link
 function renderMoreInfoLink(link: InfoLink) {
 	return [
-		m(".block", { style: { "text-align": "center" } }, [
+		m(".flex", { style: { "text-align": "justify", "align-content": "center" } }, [
 			m(ExternalLink, {
 				text: lang.get("whyThisHappens_msg"),
 				href: link,
 				isCompanySite: true,
+			}),
+			m(Icon, {
+				icon: Icons.OpenOutline,
+				size: IconSize.PX24,
+				style: {
+					fill: theme.on_surface,
+				},
 			}),
 		]),
 	]
@@ -51,11 +58,9 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 		resolve()
 	}
 	//Button Attributes for automatic approval button
-	const buttonAutomaticApproval: BannerButtonAttrs = {
-		text: "waitApprovalButton_action",
-		click: closeAction,
-		borderColor: theme.primary,
-		color: theme.primary,
+	const buttonAutomaticApproval: CommonButtonAttrs = {
+		label: "waitApprovalButton_action",
+		onclick: closeAction,
 	}
 	//Button Attributes for fast-track button
 	const buttonFastTrack: PrimaryButtonAttrs = {
@@ -64,7 +69,6 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 	}
 
 	const { promise, resolve } = defer<void>()
-
 	const dialog = new Dialog(DialogType.EditSmall, {
 		view: () => [
 			m(
@@ -77,20 +81,20 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 					[m("", lang.getTranslationText("oneStep_label"))],
 				),
 			),
-			m("div.mt-16.mb-16.mlr-12", [
+			m("div.mlr-16.mb-16", [
 				m(
-					"p",
+					"p.mb-4",
 					{
 						style: {
-							"text-align": "center",
+							"text-align": "justify",
 						},
 					},
 					lang.getTranslationText(approvalStatus === ApprovalStatus.DELAYED ? "approvalWaitNoticeFastTrack_msg" : "approvalWaitNotice_msg"),
 				),
 				renderMoreInfoLink(InfoLink.AccountApprovalFaq),
 				m(
-					".flex-center.col.gap-8.mt-16",
-					m(BannerButton, buttonAutomaticApproval),
+					".flex-center.col.gap-8.mt-24",
+					m(SecondaryButton, buttonAutomaticApproval),
 					approvalStatus === ApprovalStatus.DELAYED && m(PrimaryButton, buttonFastTrack),
 				),
 			]),
