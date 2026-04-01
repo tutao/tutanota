@@ -198,6 +198,33 @@ pipeline {
 				}
 			}
 		}
+		stage("Build preps") {
+		    parallel {
+		        stage("make crypto") {
+		            agent {
+		                node {
+		                    label 'linux'
+		                    customWorkspace linuxWorkspaceClones[0]
+		                }
+                    }
+                    steps {
+                        sh 'cd src/crypto && node make ../../build && node make ../../build-calendar-app && node make ../../test/build && cd -'
+                   }
+                }
+
+                stage("make mimimi") {
+                    agent {
+		                node {
+		                    label 'linux'
+		                    customWorkspace linuxWorkspaceClones[1]
+		                }
+                    }
+                    steps {
+                        sh 'cd src/mimimi && node make --release && cd -'
+                   }
+                }
+		    }
+		}
 		stage("Testing and Building") {
 			parallel {
 				stage("tests") {
