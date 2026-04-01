@@ -103,7 +103,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 					replacementKey: "mailAddressAliases",
 				},
 				{
-					label: "pricing.comparisonCustomDomains_msg",
+					label: "pricing.comparisonUnlimitedDomains_msg",
 					icon: Icons.GlobeOutline,
 					replacementKey: "customDomains",
 				},
