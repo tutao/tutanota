@@ -90,7 +90,6 @@ import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/co
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
@@ -102,6 +101,7 @@ import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/Entit
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 const { anything, argThat } = matchers
 
