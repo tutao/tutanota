@@ -14,13 +14,13 @@ import {
 	AvailablePlanType,
 	BookingItemFeatureType,
 	CustomDomainType,
-	CustomDomainTypeCountName,
 	isIOSApp,
 	LegacyPrivatePlans,
 	NewBusinessPlans,
 	NewPaidPlans,
 	PaymentMethodType,
 	PlanType,
+	CustomDomainTypeCount
 } from "@tutao/app-env"
 import { CacheMode } from "../../api/worker/rest/EntityRestClient"
 
@@ -495,7 +495,7 @@ export function getFeaturePlaceholderReplacement(
 	switch (key) {
 		case "customDomains": {
 			const customDomainType = downcast<CustomDomainType>(priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.customDomainType)
-			return { "{amount}": CustomDomainTypeCountName[customDomainType] }
+			return { "{amount}": CustomDomainTypeCount[customDomainType] }
 		}
 		case "mailAddressAliases":
 			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.nbrOfAliases }
