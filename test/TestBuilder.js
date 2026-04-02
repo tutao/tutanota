@@ -15,7 +15,7 @@ import { execSync, spawnSync } from "node:child_process"
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ networkDebugging = false, clean }) {
+export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	const buildDir = path.resolve("build")
 	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({
@@ -44,7 +44,8 @@ export async function runTestBuild({ networkDebugging = false, clean }) {
 	})
 
 	await runStep("Build mimimi", async () => {
-		execSync("node make", { cwd: "../src/mimimi", stdio: "inherit" })
+		const mimiMakeCmd = ci ? "node make --release" : "node make"
+		execSync(mimiMakeCmd, { cwd: "../src/mimimi", stdio: "inherit" })
 	})
 
 	await runStep("Types", async () => {
