@@ -9,6 +9,7 @@ import {
 	ContactTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
+	_areContactsNamesSimilar,
 	_areResidualContactFieldsEqual,
 	_compareBirthdays,
 	_compareContactsForMerge,
@@ -21,7 +22,9 @@ import {
 	_getMergedOtherField,
 	_getMergedPhoneNumbers,
 	_getMergedSocialIds,
+	_normalizeContactName,
 	getMergeableContacts,
+	_isPartOfFullName,
 	mergeContacts,
 } from "../../../src/mail-app/contacts/ContactMergeUtils.js"
 import {
@@ -222,6 +225,85 @@ o.spec("ContactMergeUtilsTest", function () {
 		c2 = createEmailPhoneContact("anton", "", null)
 		o(_compareFullName(c1, c2)).equals(ContactComparisonResult.Equal)
 	})
+
+	o.test("testAreContactsNamesSimilar", function () {
+		let c1 = createEmailPhoneContact(" anton  dmitri ", "  schmidt  ", null)
+		let c2 = createEmailPhoneContact("anton dmitri", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("ANtoN dmiTri", "SChmidt", null)
+		c2 = createEmailPhoneContact("anton dmitri", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("anton dmitri schmidt", "", null)
+		c2 = createEmailPhoneContact("anton dmitri", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("", "anton dmitri schmidt", null)
+		c2 = createEmailPhoneContact("anton dmitri", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("anton", "dmitri schmidt", null)
+		c2 = createEmailPhoneContact("anton dmitri", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("schmidt", "anton", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true) //mistake?
+		c1 = createEmailPhoneContact("anton", "", null)
+		c2 = createEmailPhoneContact("", "anton", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("anton", "", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("", "anton", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("dimitri anton", "", null)
+		c2 = createEmailPhoneContact("anton", "dimitri", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(true)
+		c1 = createEmailPhoneContact("marianton", "dschmidt", null)
+		c2 = createEmailPhoneContact("", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("", "schmid", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("", "midt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("anto", "", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("nton", "", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+		c1 = createEmailPhoneContact("anton", "schmidt", null)
+		c2 = createEmailPhoneContact("nton", "schmid", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+		c1 = createEmailPhoneContact("dimitri anton", "schmidt", null)
+		c2 = createEmailPhoneContact("anton dimitri", "schmidt", null)
+		o.check(_areContactsNamesSimilar(c1, c2)).equals(false)
+	})
+
+	o.test("testIsPartOfFullName", function () {
+		o.check(_isPartOfFullName("", "")).equals(true)
+		o.check(_isPartOfFullName("anton schmidt", "")).equals(true)
+		o.check(_isPartOfFullName("anton schmidt", "schmidt")).equals(true)
+		o.check(_isPartOfFullName("anton schmidt", "dschmidt")).equals(false)
+		o.check(_isPartOfFullName("anton schmidt", "schmid")).equals(false)
+		o.check(_isPartOfFullName("anton schmidt", "anton")).equals(true)
+		o.check(_isPartOfFullName("anton schmidt", "nton")).equals(false)
+		o.check(_isPartOfFullName("anton schmidt", "anto")).equals(false)
+		o.check(_isPartOfFullName("anton dimitri schmidt", "dimitri")).equals(true)
+		o.check(_isPartOfFullName("anton dimitri schmidt", "dimi")).equals(false)
+		o.check(_isPartOfFullName("anton dimitri schmidt", "mitri")).equals(false)
+	})
+
+	o.test("testNormalizeContactName", function () {
+		o.check(_normalizeContactName("")).equals("")
+		o.check(_normalizeContactName("     ")).equals("")
+		o.check(_normalizeContactName("   JOHN  ")).equals("john")
+		o.check(_normalizeContactName("   JOHN   Pier   ")).equals("john pier")
+	})
+
 	o("testComparePhonenumbers", function () {
 		let c1 = createFilledContactPhoneNumbers([])
 		let c2 = createFilledContactPhoneNumbers([])

@@ -1,12 +1,7 @@
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../common/api/common/TutanotaConstants"
 import { neverNull } from "@tutao/tutanota-utils"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import type { Contact } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactMailAddress } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { Birthday } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactAddress } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactPhoneNumber } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactSocialId } from "../../common/api/entities/tutanota/TypeRefs.js"
+import type { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../common/api/entities/tutanota/TypeRefs.js"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -161,17 +156,49 @@ export function _compareFullName(contact1: Contact, contact2: Contact): ContactC
 		return IndifferentContactComparisonResult.BothEmpty
 	} else if ((!contact1.firstName && !contact1.lastName) || (!contact2.firstName && !contact2.lastName)) {
 		return IndifferentContactComparisonResult.OneEmpty
-	} else if (
-		contact1.firstName.toLowerCase() === contact2.firstName.toLowerCase() &&
-		contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() &&
-		contact1.lastName
-	) {
-		return ContactComparisonResult.Similar
-	} else if ((!contact1.firstName || !contact2.firstName) && contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() && contact1.lastName) {
+	} else if (_areContactsNamesSimilar(contact1, contact2)) {
 		return ContactComparisonResult.Similar
 	} else {
 		return ContactComparisonResult.Unique
 	}
+}
+
+export function _areContactsNamesSimilar(c1: Contact, c2: Contact): boolean {
+	if ((!c1.firstName && !c1.lastName) || (!c2.firstName && !c2.lastName)) {
+		// we do not consider empty contacts to be similar
+		return false
+	}
+
+	const c1FirstName = _normalizeContactName(c1.firstName)
+	const c1LastName = _normalizeContactName(c1.lastName)
+	const c1FullName = `${c1FirstName} ${c1LastName}`
+
+	const c2FirstName = _normalizeContactName(c2.firstName)
+	const c2LastName = _normalizeContactName(c2.lastName)
+	const c2FullName = `${c2FirstName} ${c2LastName}`
+
+	return (
+		(_isPartOfFullName(c1FullName, c2FirstName) && _isPartOfFullName(c1FullName, c2LastName)) ||
+		(_isPartOfFullName(c2FullName, c1FirstName) && _isPartOfFullName(c2FullName, c1LastName))
+	)
+}
+
+export function _isPartOfFullName(fullName: string, name: string): boolean {
+	if (!name.length) return true
+
+	const indexOfName = fullName.indexOf(name)
+	if (indexOfName === -1) return false
+
+	// name is part of fullName and is surrounded by empty space
+	return fullName.charAt(indexOfName - 1).trim() === "" && fullName.charAt(indexOfName + name.length).trim() === ""
+}
+
+export function _normalizeContactName(name: string): string {
+	return name
+		.toLowerCase()
+		.split(" ")
+		.filter((s) => s)
+		.join(" ")
 }
 
 /**
