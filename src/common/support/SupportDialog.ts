@@ -22,6 +22,8 @@ import { Keys } from "../api/common/TutanotaConstants.js"
 import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { size } from "../gui/size"
 
 assertMainOrNode()
 
@@ -76,155 +78,173 @@ export async function showSupportDialog(logins: LoginController) {
 		}
 	}
 
-	const dialog = new MultiPageDialog<SupportDialogPageName>("home", (dialog, navigateToPage, goBack) => ({
-		home: {
-			title: lang.get("supportMenu_label"),
-			content: m(SupportLandingPage, {
-				data,
-				toCategoryDetail: () => {
-					const selectedCategory = data.selectedCategory()
+	const supportData = await showProgressDialog(
+		"pleaseWait_msg",
+		locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly }),
+	)
+	data.categories = filterCategories(supportData)
 
-					if (selectedCategory) {
-						data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
-						data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
-					}
-					navigateToPage("categoryDetail")
-				},
-				countFaqLinkTrigger: () => {
-					const topicStage = getSupportUsageTestStage(1)
-					topicStage.setMetric({ name: "Topic", value: "clickedFaqLink" })
-					topicStage.complete()
-				},
-			}),
-			rightAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "done_action", title: "done_action" },
-		},
-		categoryDetail: {
-			content: m(SupportCategoryPage, {
-				data,
-				goToContactSupport: () => {
-					if (data.canHaveEmailSupport) {
-						navigateToPage("contactSupport")
-					} else {
-						navigateToPage("emailSupportBehindPaywall")
-					}
-				},
-				goToTopicDetailPage: () => {
-					const selectedTopic = data.selectedTopic()
+	const SECTION_BUTTON_PIXEL_HEIGHT = size.core_56 + size.spacing_8
+	const STATIC_CONTENT_PIXEL_HEIGHT = 232
+	// this height allows the static content + all categories to fit on the dialog without scrolling and with perfect
+	// padding (24px on the sides and on the bottom)
+	// we're adding one category because of the static support link.
+	// the height is limited automatically by the dialog; if there's too many categories, a scroll bar appears.
+	const dialogHeight = STATIC_CONTENT_PIXEL_HEIGHT + (data.categories.length + 1) * SECTION_BUTTON_PIXEL_HEIGHT
 
-					if (selectedTopic) {
-						data.contactTemplate(getTopicContactTemplate(selectedTopic, lang.languageTag))
-						data.helpText(getTopicHelpText(selectedTopic, lang.languageTag))
+	const dialog = new MultiPageDialog<SupportDialogPageName>(
+		"home",
+		(dialog, navigateToPage, goBack) => ({
+			home: {
+				title: lang.get("supportMenu_label"),
+				content: m(SupportLandingPage, {
+					data,
+					toCategoryDetail: () => {
+						const selectedCategory = data.selectedCategory()
+
+						if (selectedCategory) {
+							data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
+							data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
+						}
+						navigateToPage("categoryDetail")
+					},
+					countFaqLinkTrigger: () => {
 						const topicStage = getSupportUsageTestStage(1)
-						topicStage.setMetric({ name: "Topic", value: selectedTopic.issueEN.replaceAll(" ", "") })
-						void topicStage.complete()
-					}
+						topicStage.setMetric({ name: "Topic", value: "clickedFaqLink" })
+						topicStage.complete()
+					},
+				}),
+				rightAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "done_action", title: "done_action" },
+			},
+			categoryDetail: {
+				content: m(SupportCategoryPage, {
+					data,
+					goToContactSupport: () => {
+						if (data.canHaveEmailSupport) {
+							navigateToPage("contactSupport")
+						} else {
+							navigateToPage("emailSupportBehindPaywall")
+						}
+					},
+					goToTopicDetailPage: () => {
+						const selectedTopic = data.selectedTopic()
 
-					navigateToPage("topicDetail")
-				},
-			}),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-			rightAction: {
-				type: ButtonType.Secondary,
-				label: "done_action",
-				title: "done_action",
-				click: () => {
-					dialog.onClose()
+						if (selectedTopic) {
+							data.contactTemplate(getTopicContactTemplate(selectedTopic, lang.languageTag))
+							data.helpText(getTopicHelpText(selectedTopic, lang.languageTag))
+							const topicStage = getSupportUsageTestStage(1)
+							topicStage.setMetric({ name: "Topic", value: selectedTopic.issueEN.replaceAll(" ", "") })
+							void topicStage.complete()
+						}
+
+						navigateToPage("topicDetail")
+					},
+				}),
+				title: lang.get("supportMenu_label"),
+				leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
+				rightAction: {
+					type: ButtonType.Secondary,
+					label: "done_action",
+					title: "done_action",
+					click: () => {
+						dialog.onClose()
+					},
 				},
 			},
-		},
-		topicDetail: {
-			content: m(SupportTopicPage, {
-				data,
-				dialog,
-				goToSolutionWasHelpfulPage: () => {
-					navigateToPage("solutionWasHelpful")
+			topicDetail: {
+				content: m(SupportTopicPage, {
+					data,
+					dialog,
+					goToSolutionWasHelpfulPage: () => {
+						navigateToPage("solutionWasHelpful")
+					},
+					goToContactSupportPage: () => {
+						if (data.canHaveEmailSupport) {
+							navigateToPage("contactSupport")
+						} else {
+							navigateToPage("emailSupportBehindPaywall")
+						}
+					},
+					closeDialog: () => {
+						dialog.onClose()
+					},
+				}),
+				title: lang.get("supportMenu_label"),
+				leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
+				rightAction: {
+					type: ButtonType.Secondary,
+					label: "done_action",
+					title: "done_action",
+					click: () => {
+						dialog.onClose()
+					},
 				},
-				goToContactSupportPage: () => {
-					if (data.canHaveEmailSupport) {
+			},
+			contactSupport: {
+				content: m(ContactSupportPage, { data, onSuccess: () => navigateToPage("supportRequestSent") }),
+				title: lang.get("supportMenu_label"),
+				leftAction: {
+					type: ButtonType.Secondary,
+					click: withConfirmation(() => goBack(), "supportBackLostRequest_msg"),
+					label: "back_action",
+					title: "back_action",
+				},
+				rightAction: {
+					type: ButtonType.Secondary,
+					label: "done_action",
+					title: "done_action",
+					click: withConfirmation(() => dialog.onClose(), "supportCloseLostRequest_msg"),
+				},
+			},
+			solutionWasHelpful: {
+				content: m(SupportSuccessPage, { dialog }),
+				title: lang.get("supportMenu_label"),
+				rightAction: {
+					type: ButtonType.Secondary,
+					click: () => {
+						const stage = locator.usageTestController.getTest("support.rating").getStage(0)
+						stage.setMetric({ name: "Result", value: "Dismissed" })
+						void stage.complete()
+
+						dialog.onClose()
+					},
+					label: "done_action",
+					title: "done_action",
+				},
+			},
+			supportRequestSent: {
+				content: m(SupportRequestSentPage, { data }),
+				title: lang.get("supportMenu_label"),
+				rightAction: {
+					type: ButtonType.Secondary,
+					label: "done_action",
+					title: "done_action",
+					click: () => {
+						dialog.onClose()
+					},
+				},
+			},
+			emailSupportBehindPaywall: {
+				content: m(EmailSupportUnavailablePage, {
+					data,
+					goToContactSupportPage: () => {
 						navigateToPage("contactSupport")
-					} else {
-						navigateToPage("emailSupportBehindPaywall")
-					}
-				},
-				closeDialog: () => {
-					dialog.onClose()
-				},
-			}),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-			rightAction: {
-				type: ButtonType.Secondary,
-				label: "done_action",
-				title: "done_action",
-				click: () => {
-					dialog.onClose()
+					},
+				}),
+				title: lang.get("supportMenu_label"),
+				leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
+				rightAction: {
+					type: ButtonType.Secondary,
+					label: "done_action",
+					title: "done_action",
+					click: () => {
+						dialog.onClose()
+					},
 				},
 			},
-		},
-		contactSupport: {
-			content: m(ContactSupportPage, { data, onSuccess: () => navigateToPage("supportRequestSent") }),
-			title: lang.get("supportMenu_label"),
-			leftAction: {
-				type: ButtonType.Secondary,
-				click: withConfirmation(() => goBack(), "supportBackLostRequest_msg"),
-				label: "back_action",
-				title: "back_action",
-			},
-			rightAction: {
-				type: ButtonType.Secondary,
-				label: "done_action",
-				title: "done_action",
-				click: withConfirmation(() => dialog.onClose(), "supportCloseLostRequest_msg"),
-			},
-		},
-		solutionWasHelpful: {
-			content: m(SupportSuccessPage, { dialog }),
-			title: lang.get("supportMenu_label"),
-			rightAction: {
-				type: ButtonType.Secondary,
-				click: () => {
-					const stage = locator.usageTestController.getTest("support.rating").getStage(0)
-					stage.setMetric({ name: "Result", value: "Dismissed" })
-					void stage.complete()
-
-					dialog.onClose()
-				},
-				label: "done_action",
-				title: "done_action",
-			},
-		},
-		supportRequestSent: {
-			content: m(SupportRequestSentPage, { data }),
-			title: lang.get("supportMenu_label"),
-			rightAction: {
-				type: ButtonType.Secondary,
-				label: "done_action",
-				title: "done_action",
-				click: () => {
-					dialog.onClose()
-				},
-			},
-		},
-		emailSupportBehindPaywall: {
-			content: m(EmailSupportUnavailablePage, {
-				data,
-				goToContactSupportPage: () => {
-					navigateToPage("contactSupport")
-				},
-			}),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-			rightAction: {
-				type: ButtonType.Secondary,
-				label: "done_action",
-				title: "done_action",
-				click: () => {
-					dialog.onClose()
-				},
-			},
-		},
-	})).getDialog()
+		}),
+		dialogHeight,
+	).getDialog()
 
 	dialog
 		.addShortcut({
@@ -236,8 +256,6 @@ export async function showSupportDialog(logins: LoginController) {
 		})
 		.show()
 
-	const supportData = await locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly })
-	data.categories = filterCategories(supportData)
 	// redraw is needed to tell the SupportLandingPage to change the progress icon to the actual data
 	m.redraw()
 }

@@ -1052,6 +1052,9 @@ styles.registerStyle("main", () => {
 		".full-width": {
 			width: "100%",
 		},
+		".stretch-height": {
+			"min-height": "stretch",
+		},
 		".half-width": {
 			width: "50%",
 		},
