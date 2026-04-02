@@ -2,11 +2,12 @@ import { AllIcons, Icon, IconSize } from "../Icon.js"
 import { lang, MaybeTranslation, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { ClickHandler } from "../GuiUtils.js"
-import { Card } from "../Card.js"
+import { Card, CardAttrs } from "../Card.js"
 import { ButtonColor, getColors } from "../Button.js"
 import { Icons } from "../icons/Icons.js"
 import { BaseButton } from "./BaseButton.js"
 import { AriaRole } from "../../AriaUtils.js"
+import { px, size } from "../../size"
 
 export interface SectionButtonAttrs {
 	/**
@@ -73,14 +74,26 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 				class: `flash button-min-height flex items-center full-width ${vnode.attrs.classes ?? ""}`,
 				label: text,
 				disabled: isDisabled,
+				style: {
+					minHeight: px(size.core_56),
+				},
 				role: AriaRole.MenuItem,
 				onclick,
 			},
-			m(Card, { classes: ["flex", "justify-between", "flex-grow", "items-center"] }, [
-				leftIcon || injectionLeft ? m(".flex.items-center.mr-8", [leftPart]) : null,
-				m("span.flex-grow.full-width.white-space", lang.getTranslationText(text)),
-				rightPart,
-			]),
+			m(
+				Card,
+				{
+					classes: ["flex", "justify-between", "flex-grow", "items-center", "stretch-height"],
+					style: {
+						padding: px(size.spacing_16),
+					},
+				} satisfies CardAttrs,
+				[
+					leftIcon || injectionLeft ? m(".flex.items-center.mr-8", [leftPart]) : null,
+					m("span.flex-grow.full-width.white-space", lang.getTranslationText(text)),
+					rightPart,
+				],
+			),
 		)
 	}
 }
