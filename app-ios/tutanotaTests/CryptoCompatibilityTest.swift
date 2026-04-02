@@ -47,21 +47,71 @@ struct AesTestData: Decodable {
 
 struct AeadTestData: Decodable {
 	@HexData var seed: Data
-	@Base64Data var plainText: Data
-	@Base64Data var cipherText: Data
+	@Base64Data var plaintext: Data
+	@Base64Data var ciphertext: Data
 	@HexData var plaintextKey: Data
 	@HexData var encryptionKey: Data
+	@HexData var authenticationKey: Data
 	@Base64Data var encryptedKey: Data
 	@Base64Data var associatedData: Data
 
 	enum CodingKeys: String, CodingKey {
 		case seed
-		case plainText = "plainTextBase64"
-		case cipherText = "cipherTextBase64"
+		case plaintext = "plaintextBase64"
+		case ciphertext = "ciphertextBase64"
 		case plaintextKey
 		case encryptionKey
+		case authenticationKey
 		case encryptedKey
 		case associatedData
+	}
+}
+
+struct Blake3TestData: Decodable {
+	@HexData var key: Data
+	var context: String
+	var lengthInBytes: Int
+	@HexData var kdfOutput: Data
+	@HexData var data: Data
+	@HexData var tag: Data
+	@HexData var digest: Data
+
+	enum CodingKeys: String, CodingKey {
+		case key = "keyHex"
+		case context
+		case lengthInBytes
+		case kdfOutput = "kdfOutputHex"
+		case data = "dataHex"
+		case tag = "tagHex"
+		case digest = "digestHex"
+	}
+}
+
+struct AeadKeyDerivationTestData: Decodable {
+	@HexData var groupKey256: Data
+	@HexData var groupKey128: Data
+	@HexData var sessionKey: Data
+	@HexData var kdfNonce: Data
+	var globalInstanceTypeId: String
+	@HexData var encryptionKeyFrom256: Data
+	@HexData var authenticationKeyFrom256: Data
+	@HexData var encryptionKeyFrom128: Data
+	@HexData var authenticationKeyFrom128: Data
+	@HexData var encryptionKeyFromSessionKey: Data
+	@HexData var authenticationKeyFromSessionKey: Data
+
+	enum CodingKeys: String, CodingKey {
+		case groupKey256 = "groupKey256Hex"
+		case groupKey128 = "groupKey128Hex"
+		case sessionKey = "sessionKeyHex"
+		case kdfNonce = "kdfNonceHex"
+		case globalInstanceTypeId
+		case encryptionKeyFrom256 = "encryptionKeyFrom256Hex"
+		case authenticationKeyFrom256 = "authenticationKeyFrom256Hex"
+		case encryptionKeyFrom128 = "encryptionKeyFrom128Hex"
+		case authenticationKeyFrom128 = "authenticationKeyFrom128Hex"
+		case encryptionKeyFromSessionKey = "encryptionKeyFromSessionKeyHex"
+		case authenticationKeyFromSessionKey = "authenticationKeyFromSessionKeyHex"
 	}
 }
 
@@ -186,6 +236,8 @@ struct EncryptedTestData: Decodable {
 	let kyberEncryptionTests: [KyberTestData]
 	let ed25519Tests: [Ed25519TestData]
 	let aeadTests: [AeadTestData]
+	let blake3Tests: [Blake3TestData]
+	let aeadKeyDerivationTests: [AeadKeyDerivationTestData]
 }
 
 // used for testing Swift code
