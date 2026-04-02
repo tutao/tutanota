@@ -986,6 +986,7 @@ export class SearchViewModel {
 			this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
 		}
 	}
+
 	private onSearchResultChanged(newResult: SearchResult | null): void {
 		if (newResult == null || !isSameTypeRef(MailTypeRef, newResult.restriction.type)) {
 			this.mailFilterType = new Set()

@@ -52,6 +52,11 @@ const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
 
 const TAG = "MailIndexer"
 
+const enum MailIndexingAbortReason {
+	Cancelled = "MailIndexingCancelled",
+	Restarting = "MailIndexingRestarting",
+}
+
 export class MailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
 	// There are two scenarios in which new mails are indexed:
@@ -212,7 +217,11 @@ export class MailIndexer {
 	}
 
 	cancelMailIndexing() {
-		this.abortController.abort("cancelMailIndexing")
+		this.abortController.abort(MailIndexingAbortReason.Cancelled)
+	}
+
+	cancelMailIndexingBeforeRestart() {
+		this.abortController.abort(MailIndexingAbortReason.Restarting)
 	}
 
 	async doInitialMailIndexing(user: User): Promise<void> {
@@ -242,7 +251,7 @@ export class MailIndexer {
 		}
 
 		if (this._isIndexing) {
-			this.cancelMailIndexing()
+			this.cancelMailIndexingBeforeRestart()
 			await this.mailboxIndexingPromise.promise
 		}
 
@@ -274,14 +283,15 @@ export class MailIndexer {
 			await this.updateCurrentIndexTimestamp(user)
 
 			// do not treat cancellation as an error during indexing
-			const success = e instanceof CancelledError
+			const cancelled = e instanceof CancelledError
+			const restarting = cancelled && e.reason === MailIndexingAbortReason.Restarting
 			const updatedIndexState: Partial<SearchIndexStateInfo> = {
-				progress: 0,
-				failedIndexingUpTo: success ? null : oldestTimestamp,
-				error: success ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
+				progress: restarting ? 1 : 0,
+				failedIndexingUpTo: cancelled ? null : oldestTimestamp,
+				error: cancelled ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
 			}
 
-			if (success) {
+			if (cancelled) {
 				// only update aimedMailIndexTimestamp when indexing is cancelled but not when it fails, since user can retry indexing on failure
 				updatedIndexState.aimedMailIndexTimestamp = this.currentIndexTimestamp
 			}
@@ -461,8 +471,8 @@ export class MailIndexer {
 			loading(),
 			newPromise<T>((_, reject) => {
 				// return right away if already aborted
-				if (this.abortController.signal.aborted) reject(new CancelledError("mail indexing canceled"))
-				listener = () => reject(new CancelledError("mail indexing canceled"))
+				if (this.abortController.signal.aborted) reject(new CancelledError("mail indexing canceled", this.abortController.signal.reason))
+				listener = () => reject(new CancelledError("mail indexing canceled", this.abortController.signal.reason))
 				this.abortController.signal.addEventListener("abort", listener, { once: true })
 			}),
 		]).finally(() => {
@@ -500,7 +510,9 @@ export class MailIndexer {
 	}
 
 	private assertNotCancelled(where: string) {
-		if (this.abortController.signal.aborted) throw new CancelledError(`cancelled indexing in ${where}`)
+		if (this.abortController.signal.aborted) {
+			throw new CancelledError(`cancelled indexing in ${where}`, this.abortController.signal.reason)
+		}
 	}
 
 	async updateCurrentIndexTimestamp(user: User): Promise<void> {
