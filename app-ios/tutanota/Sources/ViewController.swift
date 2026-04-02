@@ -76,7 +76,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
 				urlSession: urlSession,
-				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.downloadProgress(fileId, bytes) } }
+				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.downloadProgress(fileId, bytes) } },
+				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
