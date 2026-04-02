@@ -2,34 +2,11 @@ import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { InfoLink, lang } from "./LanguageViewModel.js"
 import { assertNotNull, defer } from "@tutao/utils"
 import m from "mithril"
-import { ExternalLink } from "../gui/base/ExternalLink.js"
-import { theme } from "../gui/theme"
 import { CommonButtonAttrs, PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { locator } from "../api/main/CommonLocator"
+import { renderMoreInfoLink } from "./news/MoreInfoLink"
 import { ApprovalStatus, Keys } from "@tutao/app-env"
-import { Icon, IconSize } from "../gui/base/Icon"
-import { Icons } from "../gui/base/icons/Icons"
-
-// Function for rendering the more info link
-function renderMoreInfoLink(link: InfoLink) {
-	return [
-		m(".flex", { style: { "text-align": "justify", "align-content": "center" } }, [
-			m(ExternalLink, {
-				text: lang.get("whyThisHappens_msg"),
-				href: link,
-				isCompanySite: true,
-			}),
-			m(Icon, {
-				icon: Icons.OpenOutline,
-				size: IconSize.PX24,
-				style: {
-					fill: theme.on_surface,
-				},
-			}),
-		]),
-	]
-}
 
 // Function that will be called if user presses fast-track buttons
 // Opens a new MailEditor Window with prefilled mailto and subject
@@ -91,7 +68,7 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 					},
 					lang.getTranslationText(approvalStatus === ApprovalStatus.DELAYED ? "approvalWaitNoticeFastTrack_msg" : "approvalWaitNotice_msg"),
 				),
-				renderMoreInfoLink(InfoLink.AccountApprovalFaq),
+				renderMoreInfoLink(InfoLink.AccountApprovalFaq, "whyThisHappens_msg"),
 				m(
 					".flex-center.col.gap-8.mt-24",
 					m(SecondaryButton, buttonAutomaticApproval),

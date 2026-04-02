@@ -1,6 +1,9 @@
-import { InfoLink, lang } from "../LanguageViewModel.js"
+import { InfoLink, lang, TranslationKey } from "../LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { ExternalLink, relDocument } from "../../gui/base/ExternalLink.js"
+import { Icon, IconSize } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
+import { theme } from "../../gui/theme"
 
 export type MoreInfoLinkAttrs = {
 	link: InfoLink
@@ -53,4 +56,24 @@ export class MoreInfoLink implements Component<MoreInfoLinkAttrs> {
 			),
 		)
 	}
+}
+
+// Function for rendering the more info link in a new style
+export function renderMoreInfoLink(link: InfoLink, message: TranslationKey) {
+	return [
+		m(".flex", { style: { "text-align": "justify", "align-content": "center" } }, [
+			m(ExternalLink, {
+				text: lang.getTranslation(message).text,
+				href: link,
+				isCompanySite: true,
+			}),
+			m(Icon, {
+				icon: Icons.OpenOutline,
+				size: IconSize.PX24,
+				style: {
+					fill: theme.on_surface,
+				},
+			}),
+		]),
+	]
 }

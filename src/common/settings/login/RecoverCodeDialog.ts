@@ -13,7 +13,7 @@ import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../gui/QrCodeScanner.js"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor.js"
-import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
+import { MoreInfoLink, renderMoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
@@ -69,7 +69,7 @@ export function showRecoverCodeDialog(recoverCode: Hex): Promise<void> {
 			title: "recoveryCode_label",
 			child: {
 				view: () => [
-					m(".pt-16.pb-16", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link: InfoLink.RecoverCode, isSmall: true })])]),
+					m(".pt-16.pb-16.text-justify", [lang.get("recoveryCode_msg"), renderMoreInfoLink(InfoLink.RecoverCode, "moreInformation_action")]),
 					m(RecoverCodeDisplay, {
 						column: true,
 						recoverCode,

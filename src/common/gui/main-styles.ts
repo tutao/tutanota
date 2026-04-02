@@ -1013,6 +1013,9 @@ styles.registerStyle("main", () => {
 		".text-center": {
 			"text-align": "center",
 		},
+		".text-justify": {
+			"text-align": "justify",
+		},
 		".right": {
 			"text-align": "right",
 		},
