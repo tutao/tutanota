@@ -924,7 +924,7 @@ export class Dialog implements ModalComponent {
 		dialog = new Dialog(type, {
 			view: () => [
 				m(DialogHeaderBar, actionBarAttrs),
-				m(".dialog-max-height.plr-24.pb-16.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
+				m(".dialog-max-height.plr-24.pb-24.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
 			],
 		}).setCloseHandler(doCancel)
 		dialog.addShortcut({
