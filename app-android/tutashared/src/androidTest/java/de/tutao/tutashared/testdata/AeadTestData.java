@@ -5,10 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 public class AeadTestData {
-	private String plainTextBase64;
-	private String cipherTextBase64;
+	private String plaintextBase64;
+	private String ciphertextBase64;
 	private String plaintextKey;
 	private String encryptionKey;
+	private String authenticationKey;
 	private String encryptedKey;
 	private String seed;
 	private String associatedData;
@@ -21,31 +22,32 @@ public class AeadTestData {
 	}
 
 	@JsonIgnore
-	public AeadTestData(String plainTextBase64, String cipherTextBase64, String plaintextKey,
-						String encryptionKey, String encryptedKey, String seed, String associatedData) {
-		this.plainTextBase64 = plainTextBase64;
-		this.cipherTextBase64 = cipherTextBase64;
+	public AeadTestData(String plaintextBase64, String ciphertextBase64, String plaintextKey,
+						String encryptionKey, String encryptedKey, String seed, String associatedData, String authenticationKey) {
+		this.plaintextBase64 = plaintextBase64;
+		this.ciphertextBase64 = ciphertextBase64;
 		this.plaintextKey = plaintextKey;
 		this.encryptionKey = encryptionKey;
+		this.authenticationKey = authenticationKey;
 		this.encryptedKey = encryptedKey;
 		this.seed = seed;
 		this.associatedData = associatedData;
 	}
 
-	public String getPlainTextBase64() {
-		return plainTextBase64;
+	public String getPlaintextBase64() {
+		return plaintextBase64;
 	}
 
-	public void setPlainTextBase64(String plainTextBase64) {
-		this.plainTextBase64 = plainTextBase64;
+	public void setPlaintextBase64(String plaintextBase64) {
+		this.plaintextBase64 = plaintextBase64;
 	}
 
-	public String getCipherTextBase64() {
-		return cipherTextBase64;
+	public String getCiphertextBase64() {
+		return ciphertextBase64;
 	}
 
-	public void setCipherTextBase64(String cipherTextBase64) {
-		this.cipherTextBase64 = cipherTextBase64;
+	public void setCiphertextBase64(String ciphertextBase64) {
+		this.ciphertextBase64 = ciphertextBase64;
 	}
 
 	public String getPlaintextKey() {
@@ -64,9 +66,16 @@ public class AeadTestData {
 		this.encryptionKey = encryptionKey;
 	}
 
-
 	public String getEncryptedKey() {
 		return encryptedKey;
+	}
+
+	public String getAuthenticationKey() {
+		return authenticationKey;
+	}
+
+	public void setAuthenticationKey(String authenticationKey) {
+		this.authenticationKey = authenticationKey;
 	}
 
 	public void setEncryptedKey(String encryptedKey) {
