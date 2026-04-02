@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "@tutao/crypto"
 import { matchers, object, verify } from "testdouble"
 import { loadWasmFromFileOrNetwork } from "./WebAssemblyTestUtils"
+import { assertNotNull } from "@tutao/utils"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
@@ -44,15 +45,20 @@ o.spec("Ed25519Test", function () {
 		o(verified).equals(false)
 	})
 
-	o("verify generateKeyPair invokes Crypto.getRandom", function () {
-		const originalGetRandom = global.crypto.getRandomValues
-		const cryptoSpy = object(global.crypto)
+	o("verify generateKeyPair invokes Crypto.getRandom - browserLike", () => {
+		const originalGetRandom = window.crypto.getRandomValues
+
+		const cryptoSpy = object(window.crypto)
 		try {
-			global.crypto.getRandomValues = cryptoSpy.getRandomValues
-			const ed25519keypair = generateEd25519KeyPair()
+			// browser will have .window object in global scope
+			// in browser globalThis points to window object
+			assertNotNull(window)
+			window.crypto.getRandomValues = cryptoSpy.getRandomValues
+
+			assertNotNull(generateEd25519KeyPair())
 			verify(cryptoSpy.getRandomValues(matchers.anything()))
 		} finally {
-			global.crypto.getRandomValues = originalGetRandom
+			window.crypto.getRandomValues = originalGetRandom
 		}
 	})
 })
