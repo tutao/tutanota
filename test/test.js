@@ -7,9 +7,10 @@ await program
 	.addOption(new Option("-f, --filter <query>", "Filter for tests and specs to run only matching tests"))
 	.addOption(new Option("--no-run", "Do not run the tests in node"))
 	.addOption(new Option("-b, --browser", "Start the web server and run the tests in browser").default(false))
+	.addOption(new Option("--ci", "use ci config for build steps").default(false))
 	.addOption(new Option("--browser-cmd <path>", "Command used to run the browser").default("xdg-open"))
-	.action(async ({ clean, integration, filter, run, browser, browserCmd }) => {
-		await runTestBuild({ clean })
+	.action(async ({ clean, integration, filter, run, browser, browserCmd, ci }) => {
+		await runTestBuild({ clean, ci })
 		console.log("build finished!")
 
 		let nodeOk
