@@ -1,12 +1,7 @@
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../common/api/common/TutanotaConstants"
 import { neverNull } from "@tutao/tutanota-utils"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import type { Contact } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactMailAddress } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { Birthday } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactAddress } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactPhoneNumber } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactSocialId } from "../../common/api/entities/tutanota/TypeRefs.js"
+import type { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../common/api/entities/tutanota/TypeRefs.js"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -161,17 +156,19 @@ export function _compareFullName(contact1: Contact, contact2: Contact): ContactC
 		return IndifferentContactComparisonResult.BothEmpty
 	} else if ((!contact1.firstName && !contact1.lastName) || (!contact2.firstName && !contact2.lastName)) {
 		return IndifferentContactComparisonResult.OneEmpty
-	} else if (
-		contact1.firstName.toLowerCase() === contact2.firstName.toLowerCase() &&
-		contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() &&
-		contact1.lastName
-	) {
+	} else if (_compareFullNameForSimilar(contact1, contact2) || _compareFullNameForSimilar(contact2, contact1)) {
 		return ContactComparisonResult.Similar
 	} else if ((!contact1.firstName || !contact2.firstName) && contact1.lastName.toLowerCase() === contact2.lastName.toLowerCase() && contact1.lastName) {
 		return ContactComparisonResult.Similar
 	} else {
 		return ContactComparisonResult.Unique
 	}
+}
+
+let _compareFullNameForSimilar = (contact1: Contact, contact2: Contact) => {
+	return [contact1.firstName.toLowerCase(), contact1.lastName.toLowerCase()].every((contactField) =>
+		`${contact2.firstName.toLowerCase()} ${contact2.lastName.toLowerCase()}`.includes(contactField),
+	)
 }
 
 /**
