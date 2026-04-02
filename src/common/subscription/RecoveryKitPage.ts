@@ -28,6 +28,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 		const { newAccountData } = attrs.ctx.viewModel
 		assertNotNull(newAccountData)
 
+		const column = styles.bodyWidth < 770
 		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
 				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
@@ -41,13 +42,22 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 			),
 			m(`p${styles.isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
 
-			m(".flex.gap-16", [
+			m(
+				".flex.gap-16",
 				m(".flex.col.flex-grow.gap-32", [
-					m(RecoverCodeDisplay, {
-						column: styles.bodyWidth < 770,
-						recoverCode: newAccountData!.recoverCode,
-						mailAddress: newAccountData!.mailAddress,
-					}),
+					m(
+						".p-32.border-radius-16",
+						{
+							style: {
+								"background-color": theme.surface_container_high,
+							},
+						},
+						m(RecoverCodeDisplay, {
+							column,
+							recoverCode: newAccountData!.recoverCode,
+							mailAddress: newAccountData!.mailAddress,
+						}),
+					),
 					m(".flex.full-width.justify-start", [
 						m(Checkbox, {
 							label: () => lang.get("recovery_kit_page_checkbox_msg"),
@@ -69,7 +79,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 						}),
 					]),
 				]),
-			]),
+			),
 		])
 	}
 	private async close(data: SignupViewModel) {
