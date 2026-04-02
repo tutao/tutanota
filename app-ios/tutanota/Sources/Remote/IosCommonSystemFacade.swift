@@ -48,7 +48,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
 		request.httpBody = body.data(using: .utf8)
 		request.setValue("text/plain", forHTTPHeaderField: "Content-Type")
 		request.setValue("\(body.lengthOfBytes(using: .utf8))", forHTTPHeaderField: "Content-Length")
-		let (data, httpResponse) = try await httpClient.fetch(
+		let (_, httpResponse) = try await httpClient.fetch(
 			url: request.url!,
 			method: HttpMethod.post,
 			headers: request.allHTTPHeaderFields!,
