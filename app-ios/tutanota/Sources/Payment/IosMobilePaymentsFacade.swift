@@ -58,10 +58,8 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				)
 
 			let unit = product.subscription!.subscriptionPeriod.unit
-			let formatStyle = product.priceFormatStyle
 			switch unit {
 			case .year:
-				let monthlyPrice = product.price / 12
 				let yearlyPerYearPrice = product.displayPrice
 				let introductoryPrice = product.subscription?.introductoryOffer?.displayPrice
 				let isEligible: Bool = await product.subscription!.isEligibleForIntroOffer
