@@ -25,6 +25,8 @@ public class TestData {
 	List<HkdfTestData> hkdfTests = new LinkedList<>();
 	List<HmacSha256TestData> hmacSha256Tests = new LinkedList<>();
 	List<AeadTestData> aeadTests = new LinkedList<>();
+	List<Blake3TestData> blake3Tests = new LinkedList<>();
+	List<AeadKeyDerivationTestData> aeadKeyDerivationTests = new LinkedList<>();
 
 	public TestData addRsaEncryptionTest(EncryptionTestData test) {
 		this.rsaEncryptionTests.add(test);
@@ -117,6 +119,16 @@ public class TestData {
 		return this;
 	}
 
+	public TestData addBlake3Test(Blake3TestData test) {
+		this.blake3Tests.add(test);
+		return this;
+	}
+
+	public TestData addAeadKeyDerivationTests(AeadKeyDerivationTestData test) {
+		this.aeadKeyDerivationTests.add(test);
+		return this;
+	}
+
 	public List<EncryptionTestData> getRsaEncryptionTests() {
 		return rsaEncryptionTests;
 	}
@@ -173,7 +185,6 @@ public class TestData {
 		return ed25519tests;
 	}
 
-
 	public List<PQCryptTestData> getPQCryptEncryptionTests() {
 		return pqCryptEncryptionTests;
 	}
@@ -196,6 +207,14 @@ public class TestData {
 
 	public void setAeadTests(List<AeadTestData> aeadTests) {
 		this.aeadTests = aeadTests;
+	}
+
+	public List<Blake3TestData> getBlake3Tests() {
+		return blake3Tests;
+	}
+
+	public List<AeadKeyDerivationTestData> getAeadKeyDerivationTests() {
+		return aeadKeyDerivationTests;
 	}
 }
 
