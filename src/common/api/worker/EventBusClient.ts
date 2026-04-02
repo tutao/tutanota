@@ -40,7 +40,7 @@ import { EntityAdapter } from "./crypto/EntityAdapter"
 import { AttributeModel } from "../common/AttributeModel"
 import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
 import { hasError, isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
-import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "./LastProcessedEventBatchStorageFacade"
 import { DateProvider } from "../common/DateProvider"
@@ -92,7 +92,13 @@ export const enum ConnectMode {
 export interface EventBusListener {
 	onCounterChanged(counter: WebsocketCounterData): unknown
 
-	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, eventQueueProgressMonitorId?: ProgressMonitorId): Promise<void>
+	onEntityEventsReceived(
+		events: readonly EntityUpdateData[],
+		batchId: Id,
+		groupId: Id,
+		progressMonitorId: Nullable<ProgressMonitorId>,
+		isInitialSyncDone: boolean,
+	): Promise<void>
 
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
@@ -112,11 +118,12 @@ export class EventBusClient {
 	private immediateReconnect: boolean = false // if true tries to reconnect immediately after the websocket is closed
 
 	private lastAntiphishingMarkersId: Id | null = null
+	private isInitialSyncDone: boolean = false
 
 	private reconnectTimer: TimeoutID | null
 	private connectTimer: TimeoutID | null
 
-	private progressMonitor: IProgressMonitor | null = null
+	private progressMonitor: ProgressMonitorDelegate | null = null
 
 	/**
 	 * Represents a currently retried executing due to a ServiceUnavailableError
@@ -298,9 +305,12 @@ export class EventBusClient {
 				})
 				const groupId = entityUpdateData.eventBatchOwner
 				const batchId = entityUpdateData.eventBatchId
-
+				if (this.isInitialSyncDone && !this.progressMonitor?.isDone()) {
+					// the initial sync is done; this is to add work for entity updates we receive right after the initial sync is done,
+					// such as two entity updates per mail after the ProcessInboxService call. We complete this added work in the EventController
+					await this.progressMonitor?.updateTotalWork(this.progressMonitor.totalWork + 1)
+				}
 				await this.processEventBatch(updates, batchId, groupId)
-				this.progressMonitor?.workDone(1)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
@@ -334,7 +344,7 @@ export class EventBusClient {
 			}
 			case MessageType.InitialSyncDone: {
 				console.log("Reached final event, sync is done")
-				this.progressMonitor?.completed()
+				this.isInitialSyncDone = true
 				this.listener.onSyncDone()
 				break
 			}
@@ -347,10 +357,9 @@ export class EventBusClient {
 				if (this.progressMonitor == null) {
 					// add and finish some work directly, to immediately show some progress and start estimating
 					this.progressMonitor = new ProgressMonitorDelegate(this.progressTracker, workEstimate * 1.2)
-
-					this.progressMonitor.workDone(0.1 * workEstimate)
+					await this.progressMonitor.workDone(0.1 * workEstimate)
 				} else {
-					this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + workEstimate * 1.2)
+					await this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + workEstimate * 1.2)
 				}
 				break
 			}
@@ -609,7 +618,13 @@ export class EventBusClient {
 			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(entityUpdates, batchId, groupId)
 			if (!this.isTerminated()) {
-				await this.listener.onEntityEventsReceived(filteredEvents, batchId, groupId)
+				await this.listener.onEntityEventsReceived(
+					filteredEvents,
+					batchId,
+					groupId,
+					(await this.progressMonitor?.progressMonitorId) ?? null,
+					this.isInitialSyncDone,
+				)
 			}
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {

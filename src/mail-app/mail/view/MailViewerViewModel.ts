@@ -215,7 +215,7 @@ export class MailViewerViewModel {
 				}
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: OnEntityUpdateReceivedPriority.HIGH,
 	}
 
 	private async determineRelevantRecipient() {

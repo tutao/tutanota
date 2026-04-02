@@ -204,7 +204,9 @@ o.spec("EventBusClientTest", function () {
 
 		const filteredEvents: EntityUpdateData[] = []
 		when(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(filteredEvents)
-		when(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
+		when(
+			listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
+		).thenResolve()
 
 		// call twice as if it was received in parallel
 		const p1 = socket.onmessage?.({

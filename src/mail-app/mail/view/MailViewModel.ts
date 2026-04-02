@@ -65,6 +65,8 @@ export interface UndoAction {
 	onClear: () => unknown
 }
 
+const SYNC_RELOAD_DEBOUNCE_MS = 1000
+
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	/** Beware: this can be a label. */
@@ -446,8 +448,8 @@ export class MailViewModel {
 
 	private readonly onceInit = lazyMemoized(() => {
 		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			onEntityUpdatesReceived: (updates, _, isInitialSyncDone) => this.entityEventsReceived(updates, isInitialSyncDone),
+			priority: OnEntityUpdateReceivedPriority.HIGH,
 		})
 	})
 
@@ -697,7 +699,7 @@ export class MailViewModel {
 		return movedMailIds.flat()
 	}
 
-	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean) {
 		// capturing the state so that if we switch mailSets, we won't run into race conditions
 		const folder = this._folder
 		const listModel = this.listModel
@@ -722,9 +724,20 @@ export class MailViewModel {
 				}
 			}
 
-			await listModel.handleEntityUpdate(update)
+			if (isInitialSyncDone) {
+				await listModel.handleEntityUpdate(update)
+			} else {
+				this.debouncedReload(listModel)
+			}
 		}
 	}
+
+	/**
+	 * When handling missedEntityUpdates, we reload the entire listModel instead of inserting/updating/removing individual mails.
+	 */
+	private readonly debouncedReload = debounce(SYNC_RELOAD_DEBOUNCE_MS, (listModel: MailSetListModel) => {
+		listModel.reload()
+	})
 
 	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData<ImportMailState>) {
 		// We delete the range of MailSetEntries for the targetFolder entries list of the import.

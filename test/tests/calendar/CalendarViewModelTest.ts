@@ -430,7 +430,7 @@ o.spec("CalendarViewModel", function () {
 				assertNotNull(wrapperToDrag.event.uid),
 			)
 			entityClientMock.addListInstances(updatedEventFromServer.event)
-			await entityListeners[0].onEntityUpdatesReceived([entityUpdate], assertNotNull(wrapperToDrag.event._ownerGroup), null)
+			await entityListeners[0].onEntityUpdatesReceived([entityUpdate], assertNotNull(wrapperToDrag.event._ownerGroup), true)
 			o(viewModel.temporaryEvents.some((eventWrapper) => eventWrapper.event.uid === wrapperToDrag.event.uid)).equals(false)("Transient event removed")
 		})
 	})

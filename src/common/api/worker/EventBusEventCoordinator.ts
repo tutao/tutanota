@@ -13,7 +13,7 @@ import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { OperationType, RolloutType } from "../common/TutanotaConstants.js"
-import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyAsync, Nullable } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -48,11 +48,12 @@ export class EventBusEventCoordinator implements EventBusListener {
 		events: readonly EntityUpdateData[],
 		batchId: Id,
 		groupId: Id,
-		eventQueueProgressMonitorId?: ProgressMonitorId,
+		progressMonitorId: Nullable<ProgressMonitorId>,
+		isInitialSyncDone: boolean,
 	): Promise<void> {
 		await this.entityEventsReceived(events)
 		await (await this.mailFacade()).entityEventsReceived(events)
-		await this.eventController.onEntityUpdateReceived(events, groupId, eventQueueProgressMonitorId)
+		await this.eventController.onEntityUpdateReceived(events, groupId, progressMonitorId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
 		if (!isTest() && !isAdminClient()) {

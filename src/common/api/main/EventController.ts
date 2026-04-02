@@ -1,4 +1,4 @@
-import { identity } from "@tutao/tutanota-utils"
+import { debounce, identity, Nullable } from "@tutao/tutanota-utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -6,6 +6,7 @@ import { assertMainOrNode } from "../common/Env"
 import { OperationStatusUpdate, WebsocketCounterData } from "../entities/sys/TypeRefs"
 import { EntityEventsListener, EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { ProgressTracker } from "./ProgressTracker"
 
 assertMainOrNode()
 
@@ -15,12 +16,17 @@ const TAG = "[EventController]"
 
 export type OperationStatusUpdateListener = (update: OperationStatusUpdate) => Promise<unknown>
 
+const PROGRESS_MONITOR_DEBOUNCE_MS = 1000
+
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
 	private entityListeners: Set<EntityEventsListener> = new Set()
 	private readonly operationListeners: Set<OperationStatusUpdateListener> = new Set()
 
-	constructor(private readonly logins: LoginController) {}
+	constructor(
+		private readonly logins: LoginController,
+		private readonly progressTracker: ProgressTracker,
+	) {}
 
 	addEntityListener(listener: EntityEventsListener) {
 		if (this.entityListeners.has(listener)) {
@@ -53,7 +59,8 @@ export class EventController {
 	async onEntityUpdateReceived(
 		entityUpdates: readonly EntityUpdateData[],
 		eventOwnerGroupId: Id,
-		eventQueueProgressMonitorId?: ProgressMonitorId,
+		progressMonitorId: Nullable<ProgressMonitorId>,
+		isInitialSyncDone: boolean,
 	): Promise<void> {
 		if (this.logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
@@ -64,10 +71,25 @@ export class EventController {
 			)
 
 			for (const listener of listenersByPriorities) {
-				await listener.onEntityUpdatesReceived(entityUpdates, eventOwnerGroupId, eventQueueProgressMonitorId ?? null)
+				await listener.onEntityUpdatesReceived(entityUpdates, eventOwnerGroupId, isInitialSyncDone)
+			}
+			if (progressMonitorId !== null && !this.progressTracker.getMonitor(progressMonitorId)?.isDone()) {
+				await this.progressTracker.workDoneForMonitor(progressMonitorId, 1)
+			}
+			if (progressMonitorId !== null && isInitialSyncDone) {
+				this.debouncedComplete(progressMonitorId)
 			}
 		}
 	}
+
+	/**
+	 * Complete the progress monitor if we do not receive any more updates
+	 * for a second after the initial sync is done
+	 */
+	private readonly debouncedComplete = debounce(PROGRESS_MONITOR_DEBOUNCE_MS, (progressMonitorId: ProgressMonitorId) => {
+		console.log(TAG, "Completing event queue progress monitor")
+		this.progressTracker.getMonitor(progressMonitorId)?.completed()
+	})
 
 	async onCountersUpdateReceived(update: WebsocketCounterData): Promise<void> {
 		this.countersStream(update)

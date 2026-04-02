@@ -262,7 +262,7 @@ o.spec("ConversationViewModel", function () {
 					},
 				],
 				"mailGroupId",
-				null,
+				true,
 			)
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
@@ -301,7 +301,7 @@ o.spec("ConversationViewModel", function () {
 					},
 				],
 				"mailGroupId",
-				null,
+				true,
 			)
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
@@ -329,7 +329,7 @@ o.spec("ConversationViewModel", function () {
 					},
 				],
 				"mailGroupId",
-				null,
+				true,
 			)
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
@@ -355,7 +355,7 @@ o.spec("ConversationViewModel", function () {
 					},
 				],
 				"mailGroupId",
-				null,
+				true,
 			)
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
@@ -398,7 +398,7 @@ o.spec("ConversationViewModel", function () {
 					},
 				],
 				"mailGroupId",
-				null,
+				true,
 			)
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))

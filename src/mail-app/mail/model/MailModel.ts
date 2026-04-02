@@ -97,15 +97,14 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
 		private readonly processInboxHandler: () => ProcessInboxHandler,
-		private readonly progressTracker: ProgressTracker,
 		private readonly bulkMailLoader: BulkMailLoader,
 	) {}
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
 		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, _, eventQueueProgressMonitorId) => this.entityEventsReceived(updates, eventQueueProgressMonitorId),
-			priority: OnEntityUpdateReceivedPriority.LOW,
+			onEntityUpdatesReceived: (updates, _) => this.entityEventsReceived(updates),
+			priority: OnEntityUpdateReceivedPriority.HIGH,
 		})
 
 		this.eventController.getCountersStream().map((update) => {
@@ -195,7 +194,7 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventQueueProgressMonitorId: Nullable<ProgressMonitorId> = null): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 				await this.init()
@@ -228,16 +227,6 @@ export class MailModel {
 				}
 				if (isWebClient()) {
 					this._showNotification(targetFolder, mail)
-				}
-			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
-				if (eventQueueProgressMonitorId) {
-					const mailId: IdTuple = [update.instanceListId, update.instanceId]
-					const mail = await this.loadMail(mailId)
-
-					// complete work when the mail is processed or deleted
-					if (mail == null || !mail.processNeeded) {
-						this.progressTracker.workDoneForMonitor(eventQueueProgressMonitorId, 1)
-					}
 				}
 			}
 		}

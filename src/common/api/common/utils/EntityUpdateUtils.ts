@@ -69,10 +69,6 @@ export enum OnEntityUpdateReceivedPriority {
 }
 
 export type EntityEventsListener = {
-	onEntityUpdatesReceived: (
-		updates: ReadonlyArray<EntityUpdateData>,
-		eventOwnerGroupId: Id,
-		eventQueueProgressMonitorId: Nullable<ProgressMonitorId>,
-	) => Promise<unknown>
+	onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id, isInitialSyncDone: boolean) => Promise<unknown>
 	priority: OnEntityUpdateReceivedPriority
 }
