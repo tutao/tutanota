@@ -914,7 +914,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "switchArchive_action",
 			},
 			{
-				key: Keys.S,
+				key: Keys.SEVEN,
 				exec: () => {
 					this.mailViewModel.switchToFolder(MailSetKind.SPAM)
 					return true
