@@ -238,7 +238,7 @@ pipeline {
 								}
 							}
 							steps {
-								sh 'cd test && node test'
+								sh 'npm run test-ci'
 							}
 						}
 						stage("browser tests") {
@@ -249,7 +249,7 @@ pipeline {
 								}
 							}
 							steps {
-								sh 'npm run test -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
+								sh 'npm run test-ci -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 							}
 						}
 						stage("android tests") {
