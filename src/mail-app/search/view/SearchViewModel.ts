@@ -90,7 +90,6 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { isMailDeletable } from "../../mail/model/MailChecks"
-import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -502,7 +501,13 @@ export class SearchViewModel {
 					// update offline storage range as index extends to not lose what's already indexed if the user logs out before indexing is done.
 					// Update offline range when indexing is cancelled to not continue indexing on next login
 					if (offlineRange > newState.currentMailIndexTimestamp || isIndexingDoneOrCancelled) {
-						this.offlineStorageSettings.setTimeRange(new Date(newState.currentMailIndexTimestamp))
+						this.offlineStorageSettings.setTimeRange(
+							new Date(
+								newState.currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP
+									? newState.aimedMailIndexTimestamp
+									: newState.currentMailIndexTimestamp,
+							),
+						)
 					}
 				}
 			}
