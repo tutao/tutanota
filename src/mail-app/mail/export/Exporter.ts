@@ -14,7 +14,7 @@ import { MailBundle, MailExportMode } from "../../../common/mailFunctionality/Sh
 import { generateExportFileName, mailToEmlFile } from "./emlUtils.js"
 import { elementIdPart } from "../../../common/api/common/utils/EntityUtils"
 
-const EXPORT_CHUNK_SIZE = 1000
+const EXPORT_CHUNK_SIZE = 10000
 
 export async function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
 	return mode === "eml" ? mailToEmlFile(bundle, fileName) : locator.fileApp.mailToMsg(bundle, fileName)
