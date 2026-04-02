@@ -121,9 +121,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	private getIconForPaymentMethodSetting(accountingInfo: sysTypeRefs.AccountingInfo | null) {
 		if (this.customer?.type === AccountType.PAID && isIOSApp()) {
-			return Icons.InfoOutline
+			return Icons.InfoFilled
 		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
-			return Icons.InfoOutline
+			return Icons.InfoFilled
 		}
 		return Icons.PenFilled
 	}
