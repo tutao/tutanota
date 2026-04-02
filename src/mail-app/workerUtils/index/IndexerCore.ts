@@ -300,7 +300,7 @@ export class IndexerCore {
 		return await this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
 			return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
 				if (groupData) {
-					return groupData.lastBatchId
+					return lastThrow(groupData.lastBatchIds)
 				} else {
 					return null
 				}
@@ -935,7 +935,7 @@ export class IndexerCore {
 			if (!groupData) {
 				throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
 			}
-			groupData.lastBatchId = batchId
+			groupData.lastBatchIds = [batchId]
 			return transaction.put(GroupDataOS, groupId, groupData)
 		})
 	}

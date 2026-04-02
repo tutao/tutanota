@@ -158,7 +158,8 @@ o.spec("Index Utils", () => {
 			groupType: GroupType.User,
 		})
 		const user = createTestEntity(UserTypeRef, {
-			memberships: [adminGroup, contactGroup, customerGroup, externalGroup, fileGroup, mailGroup, mailingListGroup, userGroup],
+			memberships: [adminGroup, contactGroup, customerGroup, externalGroup, fileGroup, mailGroup, mailingListGroup],
+			userGroup: userGroup,
 		})
 		o(filterIndexMemberships(user)).deepEquals([contactGroup, mailGroup])
 	})

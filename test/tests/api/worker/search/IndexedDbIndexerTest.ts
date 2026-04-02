@@ -1,12 +1,4 @@
-import {
-	createEntityEventBatch,
-	createEntityUpdate,
-	EntityEventBatch,
-	EntityEventBatchTypeRef,
-	EntityUpdateTypeRef,
-	GroupMembershipTypeRef,
-	UserTypeRef,
-} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/mail-app/workerUtils/index/IndexedDbIndexer.js"
@@ -16,7 +8,7 @@ import { mock } from "@tutao/tutanota-test-utils"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
-import { elementIdPart, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { daysToMillis, defer, freshVersioned, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV } from "@tutao/tutanota-crypto"
 import o from "@tutao/otest"
@@ -108,7 +100,7 @@ o.spec("IndexedDbIndexer", () => {
 
 	o.spec("init with db", function () {
 		const loadedGroupData = {
-			lastBatchId: "someDummyId",
+			lastBatchIds: [],
 			indexTimestamp: 0,
 			groupType: GroupType.User,
 		}
@@ -275,13 +267,17 @@ o.spec("IndexedDbIndexer", () => {
 				}),
 				createTestEntity(GroupMembershipTypeRef),
 			],
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
+				groupType: GroupType.User,
+				group: "user-group-id",
+			}),
 		})
 		const groupData = {
 			groupType: GroupType.MailingList,
 		}
 		const t = await idbStub.createTransaction()
 		t.put(GroupDataOS, deletedGroupId, groupData)
-		t.put(GroupDataOS, contactGroupId, { groupType: GroupType.Mail })
+		t.put(GroupDataOS, contactGroupId, { groupType: GroupType.Contact })
 
 		const indexer = indexerTemplate
 
@@ -297,6 +293,10 @@ o.spec("IndexedDbIndexer", () => {
 				{
 					id: mailGroupId,
 					type: GroupType.Mail,
+				},
+				{
+					id: "user-group-id",
+					type: GroupType.User,
 				},
 			],
 		})
@@ -449,39 +449,23 @@ o.spec("IndexedDbIndexer", () => {
 				{
 					groupId: "group-mail",
 					groupData: {
-						lastBatchId: lastProcessedBatchId,
+						lastBatchIds: [lastProcessedBatchId],
 						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 						groupType: GroupType.Mail,
 					},
 				},
 				{
-					groupId: "group-team",
-					groupData: {
-						lastBatchId: lastProcessedBatchId,
-						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-						groupType: GroupType.MailingList,
-					},
-				},
-				{
 					groupId: "group-contact",
 					groupData: {
-						lastBatchId: lastProcessedBatchId,
+						lastBatchIds: [lastProcessedBatchId],
 						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 						groupType: GroupType.Contact,
 					},
 				},
 				{
-					groupId: "group-customer",
-					groupData: {
-						lastBatchId: lastProcessedBatchId,
-						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-						groupType: GroupType.Customer,
-					},
-				},
-				{
 					groupId: "group-user",
 					groupData: {
-						lastBatchId: lastProcessedBatchId,
+						lastBatchIds: [lastProcessedBatchId],
 						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 						groupType: GroupType.User,
 					},
@@ -497,7 +481,7 @@ o.spec("IndexedDbIndexer", () => {
 				groupId: groupId,
 				groupData: {
 					groupType: GroupType.Mail,
-					lastBatchId: "someDummyId",
+					lastBatchIds: [],
 					indexTimestamp: 1,
 				},
 			},

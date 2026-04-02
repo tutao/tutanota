@@ -925,7 +925,7 @@ o.spec("IndexerCore", () => {
 				o.check(os).equals(GroupDataOS)
 				o.check(key).equals(groupId)
 				let groupData: GroupData = {
-					lastBatchId: "1",
+					lastBatchIds: ["1"],
 				} as any
 				return Promise.resolve(groupData)
 			},
@@ -935,7 +935,7 @@ o.spec("IndexerCore", () => {
 				o.check(key).equals(groupId)
 				o.check(JSON.stringify(value)).equals(
 					JSON.stringify({
-						lastBatchId: "2",
+						lastBatchIds: ["2"],
 					}),
 				)
 				deferred.resolve()

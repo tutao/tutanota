@@ -292,8 +292,8 @@ export class IndexedDbIndexer implements Indexer {
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
 		try {
-			await this.writeServerTimestamp()
 			await this.throwIfOutOfDate()
+			await this.writeServerTimestamp()
 		} catch (e) {
 			if (e instanceof OutOfSyncError) {
 				await this.disableMailIndexing()
@@ -367,12 +367,14 @@ export class IndexedDbIndexer implements Indexer {
 
 	/** @private visibleForTesting */
 	_loadGroupDiff(user: User): Promise<GroupDiff> {
-		let currentGroups: Array<GroupDiffGroup> = filterIndexMemberships(user).map((m) => {
-			return {
-				id: m.group,
-				type: getMembershipGroupType(m),
-			}
-		})
+		let currentGroups: Array<GroupDiffGroup> = filterIndexMemberships(user)
+			.concat(user.userGroup)
+			.map((m) => {
+				return {
+					id: m.group,
+					type: getMembershipGroupType(m),
+				}
+			})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
 			return t.getAll(GroupDataOS).then(
 				(
@@ -430,8 +432,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * @private visibleForTesting
 	 */
 	_loadGroupData(user: User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
-		let memberships = user.memberships
-		memberships.push(user.userGroup)
+		let memberships = filterIndexMemberships(user).concat(user.userGroup)
 
 		const restrictTo = restrictToTheseGroups // type check
 
@@ -448,7 +449,7 @@ export class IndexedDbIndexer implements Indexer {
 			return {
 				groupId: membership.group,
 				groupData: {
-					lastBatchId: lastProcessedBatchId,
+					lastBatchIds: [lastProcessedBatchId],
 					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 					groupType: getMembershipGroupType(membership),
 				} as GroupData,
@@ -545,8 +546,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private async throwIfOutOfDate(): Promise<void> {
-		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
-		const lastIndexTimeMs = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
+		const lastIndexTimeMs = await this.readServerTimestamp()
 
 		if (lastIndexTimeMs != null) {
 			const now = this.serverDateProvider.now()
@@ -561,6 +561,12 @@ export class IndexedDbIndexer implements Indexer {
 				)
 			}
 		}
+	}
+
+	private async readServerTimestamp() {
+		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
+		const lastIndexTimeMs = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
+		return lastIndexTimeMs
 	}
 
 	private async writeServerTimestamp() {

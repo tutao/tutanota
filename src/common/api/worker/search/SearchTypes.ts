@@ -29,7 +29,7 @@ export type EncryptedSearchIndexEntryWithHash = {
 	idHash: number
 }
 export type GroupData = {
-	lastBatchId: Id
+	lastBatchIds: Id[]
 	indexTimestamp: number
 	groupType: GroupType
 }

@@ -1,4 +1,4 @@
-import { assertWorkerOrNode } from "../common/Env"
+import { assertWorkerOrNode, isOfflineStorageAvailable, isTest } from "../common/Env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -46,6 +46,7 @@ import { LastProcessedEventBatchStorageFacade } from "./LastProcessedEventBatchS
 import { DateProvider } from "../common/DateProvider"
 import { ExposedProgressTracker } from "../main/ProgressTracker"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
+import { filterIndexMemberships } from "../common/utils/IndexUtils"
 
 assertWorkerOrNode()
 
@@ -187,7 +188,6 @@ export class EventBusClient {
 		// has been opened for all given groups, when the groupsToLastEventBatchIds query parameter is set on
 		// init or reconnect.
 		let groupsToLastEventBatchIdsQuery = "&groupsToLastEventBatchIds="
-		// const eventGroups = isWebClient() ? this.eventGroups() : filterIndexMemberships(this.userFacade.getLoggedInUser()).map((g) => g.group)
 		const eventGroups = this.eventGroups()
 		const groupsToLastEventBatchIds = new Map<Id, Id>()
 		for (const groupId of eventGroups) {
@@ -639,10 +639,16 @@ export class EventBusClient {
 	}
 
 	private eventGroups(): Id[] {
-		return this.userFacade
-			.getLoggedInUser()
-			.memberships.filter((membership) => membership.groupType !== GroupType.MailingList)
-			.map((membership) => membership.group)
-			.concat(this.userFacade.getLoggedInUser().userGroup.group)
+		const user = this.userFacade.getLoggedInUser()
+		if (isOfflineStorageAvailable() || isTest()) {
+			return user.memberships
+				.filter((membership) => membership.groupType !== GroupType.MailingList)
+				.concat(user.userGroup)
+				.map((membership) => membership.group)
+		} else {
+			return filterIndexMemberships(user)
+				.concat(user.userGroup)
+				.map((membership) => membership.group)
+		}
 	}
 }
