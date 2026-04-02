@@ -208,9 +208,11 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 		}
 
 		return [
-			hasActiveCampaign ? m(MessageBanner, { type: "warning", translation: lang.getTranslation("buyGiftcardWhileCampaignActive_msg") }) : null,
+			hasActiveCampaign
+				? m(".plr-48", m(MessageBanner, { type: "warning", translation: lang.getTranslation("buyGiftcardWhileCampaignActive_msg") }))
+				: null,
 			m(
-				".flex-center.full-width.pt-32",
+				".flex-center.full-width",
 				m(
 					".pt-32", // Needed to center SVG
 					{
