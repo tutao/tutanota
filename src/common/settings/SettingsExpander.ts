@@ -6,6 +6,7 @@ import { ifAllowedTutaLinks } from "../gui/base/GuiUtils.js"
 import type { lazy, Thunk } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
+import { MoreInfoLink } from "../misc/news/MoreInfoLink.js"
 
 export type SettingsExpanderAttrs = {
 	id?: string
@@ -45,7 +46,7 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 				vnode.children,
 			),
 			infoMsg ? m("small", lang.getTranslationText(infoMsg)) : null,
-			infoLinkId ? ifAllowedTutaLinks(locator.logins, infoLinkId, (link) => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])) : null,
+			infoLinkId ? ifAllowedTutaLinks(locator.logins, infoLinkId, (link) => m(MoreInfoLink, { link, isSmall: true })) : null,
 		])
 	}
 }

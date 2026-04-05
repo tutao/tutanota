@@ -37,7 +37,6 @@ export class MoreInfoLink implements Component<MoreInfoLinkAttrs> {
 			{
 				class: `${vnode.attrs.class} ${vnode.attrs.isSmall ? "small" : ""}`,
 			},
-			lang.get("moreInfo_msg") + " ",
 			m(
 				"span.text-break",
 				{
@@ -46,6 +45,7 @@ export class MoreInfoLink implements Component<MoreInfoLinkAttrs> {
 				[
 					m(ExternalLink, {
 						href: vnode.attrs.link,
+						text: lang.get("moreInfo_msg"),
 						isCompanySite: true,
 						specialType,
 					}),
