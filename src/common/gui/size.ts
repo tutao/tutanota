@@ -157,7 +157,7 @@ export const component_size = {
 	icon_segment_control_button_height: 36,
 	icon_segment_control_button_width: 48,
 
-	navbar_height: 70,
+	navbar_height: 72,
 	navbar_height_mobile: 52,
 	bottom_nav_bar: 50,
 	navbar_button_width: 80,
