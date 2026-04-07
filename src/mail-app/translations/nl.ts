@@ -2238,7 +2238,7 @@ export default {
 		"whitelabelThemeDetected_msg": "Een op maat gemaakte thema is voor dit account gedetecteerd. Wilt u hem nu toepassen?",
 		"who_label": "Wie",
 		"whyLeave_msg": "We vinden het jammer dat u weggaat! Wat kunnen we verbeteren?",
-		"whyThisHappens_msg": "\n[Waarom gebeurt dit →]",
+		"whyThisHappens_msg": "\nWaarom gebeurt dit",
 		"widgetCredentialsError_msg": "Log alstublieft in op de kalender-app",
 		"widgetDescription_msg": "Toon actuele evenementen",
 		"widgetMissingConfigurationError_msg": "Widget instellen",

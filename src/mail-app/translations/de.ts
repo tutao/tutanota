@@ -2244,7 +2244,7 @@ export default {
 		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für diesen Account erkannt. Möchtest du es jetzt anwenden?",
 		"who_label": "Wer",
 		"whyLeave_msg": "Schade, dass du kündigen möchtest. Wie können wir uns verbessern?",
-		"whyThisHappens_msg": "[Erfahre warum das passiert →]",
+		"whyThisHappens_msg": "Erfahre warum das passiert",
 		"widgetCredentialsError_msg": "Bitte melde dich in der Kalender-App an",
 		"widgetDescription_msg": "Heute anstehenden Termine anzeigen",
 		"widgetMissingConfigurationError_msg": "Bitte konfiguriere dieses Widget",

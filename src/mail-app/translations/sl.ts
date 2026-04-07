@@ -2238,7 +2238,7 @@ export default {
 		"whitelabelThemeDetected_msg": "Za ta račun je bila zaznana tema po meri. Želite uporabiti to temo?",
 		"who_label": "Kdo",
 		"whyLeave_msg": "Žal nam je, da odhajate! Kaj lahko izboljšamo?",
-		"whyThisHappens_msg": "[Preberite, zakaj se to dogaja →]",
+		"whyThisHappens_msg": "Preberite, zakaj se to dogaja",
 		"widgetCredentialsError_msg": "Prijavite se v aplikacijo koledar",
 		"widgetDescription_msg": "Prihajajoči dogodki danes",
 		"widgetMissingConfigurationError_msg": "Nastavite ta pripomoček",

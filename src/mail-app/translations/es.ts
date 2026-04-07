@@ -2238,7 +2238,7 @@ export default {
 		"whitelabelThemeDetected_msg": "Se ha detectado un tema personalizado para esta cuenta. ¿Quieres aplicarlo ahora?",
 		"who_label": "Quién",
 		"whyLeave_msg": "¡Sentimos mucho que te vayas! ¿Qué podríamos mejorar en el futuro?",
-		"whyThisHappens_msg": "[Saber por qué sucede →]",
+		"whyThisHappens_msg": "Saber por qué sucede",
 		"widgetCredentialsError_msg": "Inicia sesión en la aplicación Calendario",
 		"widgetDescription_msg": "Mostrar los próximos eventos de hoy",
 		"widgetMissingConfigurationError_msg": "Configura este widget",

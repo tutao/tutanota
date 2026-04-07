@@ -2244,7 +2244,7 @@ export default {
 		"whitelabelThemeDetected_msg": "A custom theme has been detected for this account. Do you want to apply it now?",
 		"who_label": "Who",
 		"whyLeave_msg": "We're sorry to see you go! Where can we improve?",
-		"whyThisHappens_msg": "[Learn why this happens →]",
+		"whyThisHappens_msg": "Learn why this happens",
 		"widgetCredentialsError_msg": "Please login on the Calendar App",
 		"widgetDescription_msg": "Show today's upcoming events",
 		"widgetMissingConfigurationError_msg": "Please configure this widget",
