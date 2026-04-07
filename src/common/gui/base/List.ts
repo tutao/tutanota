@@ -414,8 +414,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// if resize didn't kick in yet, measure it right away once
 		if (this.height === 0) this.height = this.containerDom!.clientHeight
 		const rowHeight = attrs.renderConfig.itemHeight
-		// the added list row height is for the end of list message
-		this.innerDom!.style.height = px(attrs.state.items.length * rowHeight + component_size.list_row_height)
+		// added list row height for either the end of list message or loading indicator
+		const endOfListHeight = attrs.renderEndOfListMessage || attrs.state.loadingStatus !== ListLoadingState.Done ? component_size.list_row_height : 0
+		this.innerDom!.style.height = px(attrs.state.items.length * rowHeight + endOfListHeight)
 		if (attrs.state.activeIndex != null && attrs.state.activeIndex !== this.activeIndex) {
 			const index = attrs.state.activeIndex
 			const desiredPosition = attrs.state.activeIndex * rowHeight

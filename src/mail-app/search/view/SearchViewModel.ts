@@ -273,6 +273,13 @@ export class SearchViewModel {
 		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().progress > 0
 	}
 
+	/**
+	 * We only care about indexingState when searching mails because indexState only reflects mail indexing
+	 */
+	isIndexingMailsFailed(): boolean {
+		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().failedIndexingUpTo != null
+	}
+
 	private readonly entityEventsListener: EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
@@ -897,12 +904,12 @@ export class SearchViewModel {
 
 				const updatedResult = await this.search.getMoreSearchResults(count)
 				if (!updatedResult || (isEmpty(updatedResult.results) && !hasMoreResults(updatedResult))) {
-					return { items: [], complete: !this.isIndexingMails() }
+					return { items: [], complete: !this.isIndexingMails() && !this.isIndexingMailsFailed() }
 				}
 
 				const { items, newSearchResult } = await this.loadSearchResults(updatedResult, startId)
 				const entries = items.map((instance) => new SearchResultListEntry(instance))
-				const complete = !hasMoreResults(newSearchResult) && !this.isIndexingMails()
+				const complete = !hasMoreResults(newSearchResult) && !this.isIndexingMails() && !this.isIndexingMailsFailed()
 
 				return { items: entries, complete }
 			},
