@@ -6,8 +6,8 @@ import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { locator } from "../api/main/CommonLocator"
 import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { assertNotNull, lazy } from "@tutao/utils"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { DisplayMode, LoginViewModel } from "../login/LoginViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { getSafeAreaInsetBottom } from "../gui/HtmlUtils"
@@ -42,7 +42,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 			m(
 				".flex-center.full-width.pt-32",
 				{ style: { "padding-bottom": px(bottomPad) } },
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "ok_action",
 					class: "small-login-button",
 					disabled: this.disabled,

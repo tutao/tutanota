@@ -15,7 +15,7 @@ import { locator } from "../api/main/CommonLocator"
 import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { runPowChallenge } from "./captcha/Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { deviceConfig } from "../misc/DeviceConfig"
@@ -238,7 +238,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						],
 				m(
 					".mt-32.mb-32",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: "next_action",
 						onclick: submit,
 						disabled: !this._confirmTerms() && !this.isNextButtonDisabled,

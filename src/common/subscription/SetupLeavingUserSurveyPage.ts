@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "../gui/styles.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 
 export interface SetupLeavingUserSurveyPageAttrs {
@@ -59,7 +59,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 								margin: styles.isDesktopLayout() ? "auto 0 0 0" : "16px 0 0 0", // positions the button at the very bottom of the flex wrapper box for consistency
 							},
 						},
-						m(LoginButton, {
+						m(PrimaryButton, {
 							label: vnode.attrs.nextButtonLabel,
 							onclick: () => vnode.attrs.closeAction(),
 							class: vnode.attrs.nextButtonEnabled ? "no-hover disabled-button" : "",

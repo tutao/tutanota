@@ -13,7 +13,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
 import { DnsRecordTable } from "./DnsRecordTable.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { assertEnumValue, sysTypeRefs } from "@tutao/typerefs"
@@ -39,7 +39,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 						renderCheckResult(a.data.domainStatus),
 						m(
 							".flex-center.full-width.pt-32.mb-32",
-							m(LoginButton, {
+							m(PrimaryButton, {
 								label: "finish_action",
 								class: "small-login-button",
 								// We check if all DNS records are set correctly and let the user confirm before leaving if not

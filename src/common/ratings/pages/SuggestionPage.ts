@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Card } from "../../gui/base/Card.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { sysServices } from "@tutao/typerefs"
@@ -65,7 +65,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 				},
 				m(
 					".align-self-center.full-width",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: "submit_action",
 						disabled: this.textFieldInput.trim() === "",
 						onclick: () => void this.onSendButtonClick(),

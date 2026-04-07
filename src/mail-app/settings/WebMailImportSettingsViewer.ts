@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { Mode } from "@tutao/app-env"
@@ -24,7 +24,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 				m(".p", lang.get("mailImportNoImportOnWeb_label")),
 				m(
 					".flex-start.mt-32",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						width: "flex",
 						label: "mailImportDownloadDesktopClient_label",
 						onclick: () => {

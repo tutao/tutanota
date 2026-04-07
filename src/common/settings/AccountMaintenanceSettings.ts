@@ -5,7 +5,7 @@ import { entityUpdateUtils, GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typeref
 import { ExpandableTable } from "./ExpandableTable.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { SettingsExpander } from "./SettingsExpander.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
@@ -138,7 +138,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 								width: "200px",
 							},
 						},
-						m(LoginButton, {
+						m(PrimaryButton, {
 							label: "adminDeleteAccount_action",
 							onclick: () => {
 								const isPremium = locator.logins.getUserController().isPaidAccount()

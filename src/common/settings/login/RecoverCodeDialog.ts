@@ -9,7 +9,7 @@ import * as restError from "@tutao/rest-client/error"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { getEtId, isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../gui/QrCodeScanner.js"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor.js"
@@ -204,7 +204,7 @@ export class RecoverCodeInput implements Component<RecoverCodeInputAttrs> {
 				: m(this.editor),
 			m(
 				".mt-8",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: this.isScanning ? "cancel_action" : "keyManagement.qrCode_label",
 					icon: this.isScanning ? Icons.X : Icons.QRCodeSimple,
 					onclick: () => {

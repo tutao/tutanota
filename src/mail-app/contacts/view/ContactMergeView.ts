@@ -15,8 +15,8 @@ import { TextField } from "../../../common/gui/base/TextField.js"
 import { TextDisplayArea } from "../../../common/gui/base/TextDisplayArea"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 import { ContactAddressType } from "@tutao/app-env"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 
 export class ContactMergeView {
 	dialog: Dialog
@@ -121,7 +121,7 @@ export class ContactMergeView {
 			[
 				m(".flex-center.mt-16", [
 					m(".full-width.max-width-s", [
-						m(LoginButton, {
+						m(PrimaryButton, {
 							label: "mergeContacts_action",
 							onclick: () => this._close(ContactMergeAction.Merge),
 						}),
