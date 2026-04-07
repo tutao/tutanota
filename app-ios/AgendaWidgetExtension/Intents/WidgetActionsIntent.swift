@@ -11,9 +11,9 @@ import TutanotaSharedFramework
 import WidgetKit
 
 enum WidgetActions: String, AppEnum {
-	static var typeDisplayRepresentation: TypeDisplayRepresentation = "Widget Actions"
+	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Widget Actions"
 
-	static var caseDisplayRepresentations: [WidgetActions: DisplayRepresentation] = [
+	static let caseDisplayRepresentations: [WidgetActions: DisplayRepresentation] = [
 		.agenda: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "agenda")),
 		.eventDetails: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "eventDetails")),
 		.eventEditor: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "eventEditor")),
@@ -42,8 +42,8 @@ struct WidgetActionsIntent: AppIntent {
 	}
 
 	static var title: LocalizedStringResource { "WidgetActionIntent" }
-	static var openAppWhenRun: Bool = true
-	static var isDiscoverable: Bool = false
+	static let openAppWhenRun: Bool = true
+	static let isDiscoverable: Bool = false
 
 	@Parameter(title: "UserId") var userId: String
 	@Parameter(title: "Date") var date: Date
@@ -51,7 +51,7 @@ struct WidgetActionsIntent: AppIntent {
 	@Parameter(title: "EventID") var eventId: String?
 	@Parameter(title: "Extras") var logs: [String]?
 
-	func perform() async throws -> some IntentResult {
+	@MainActor func perform() async throws -> some IntentResult {
 		var components = URLComponents()
 		let encodedEventId = eventId?.data(using: .utf8)?.base64EncodedString()
 		components.scheme = "tutacalendar"
@@ -69,7 +69,7 @@ struct WidgetActionsIntent: AppIntent {
 			return .result()
 		}
 
-		await EnvironmentValues().openURL(url)
+		EnvironmentValues().openURL(url)
 		return .result()
 	}
 }

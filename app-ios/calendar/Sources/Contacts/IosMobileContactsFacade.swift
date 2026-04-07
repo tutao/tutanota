@@ -2,11 +2,8 @@ import Contacts
 import DictionaryCoding
 
 /// Handles synchronization between contacts in Tuta and contacts on the device.
-class IosMobileContactsFacade: MobileContactsFacade {
-	private let userDefaults: UserDefaults
+final class IosMobileContactsFacade: MobileContactsFacade {
 	private let ERROR_DOMAIN = "de.tutao.calendar.ContactFacade"
-
-	init(userDefault: UserDefaults) { self.userDefaults = userDefault }
 
 	func findSuggestions(_ query: String) async throws -> [ContactSuggestion] {
 		try await acquireContactsPermission()
@@ -25,7 +22,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 	private func queryContactSuggestions(query: String, upTo: Int) throws -> [ContactSuggestion] {
 		let contactsStore = CNContactStore()
-		let keysToFetch: [CNKeyDescriptor] = [
+		let keysToFetch: [any CNKeyDescriptor] = [
 			CNContactEmailAddressesKey as NSString,  // only NSString is CNKeyDescriptor
 			CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
 		]

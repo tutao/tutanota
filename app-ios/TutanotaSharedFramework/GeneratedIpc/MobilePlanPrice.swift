@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct MobilePlanPrice : Codable {
+public struct MobilePlanPrice : Codable, Sendable {
 	public init(
 		name: String,
 		rawMonthlyPerMonth: Int,

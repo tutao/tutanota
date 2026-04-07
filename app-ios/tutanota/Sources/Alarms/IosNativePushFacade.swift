@@ -1,7 +1,7 @@
 import Foundation
 import TutanotaSharedFramework
 
-class IosNativePushFacade: NativePushFacade {
+final class IosNativePushFacade: NativePushFacade {
 
 	func setReceiveCalendarNotificationConfig(_ pushIdentifier: String, _ value: Bool) {
 		self.notificationStorage.setReceiveCalendarNotificationConfig(pushIdentifier, value)
@@ -11,29 +11,29 @@ class IosNativePushFacade: NativePushFacade {
 	}
 	private let appDelegate: AppDelegate
 	private let alarmManager: AlarmManager
-	private let notificationStorage: NotificationStorage
+	private let notificationStorage: UserPrefsNotificationStorage
 	private let keychainManager: KeychainManager
-	private let commonNativeFacade: CommonNativeFacade
+	private let invalidateAlarms: @Sendable () async throws -> Void
 
 	init(
 		appDelegate: AppDelegate,
 		alarmManager: AlarmManager,
-		notificationStorage: NotificationStorage,
+		notificationStorage: UserPrefsNotificationStorage,
 		keychainManager: KeychainManager,
-		commonNativeFacade: CommonNativeFacade
+		invalidateAlarms: @escaping @Sendable () async throws -> Void
 	) {
 		self.appDelegate = appDelegate
 		self.alarmManager = alarmManager
 		self.notificationStorage = notificationStorage
 		self.keychainManager = keychainManager
-		self.commonNativeFacade = commonNativeFacade
+		self.invalidateAlarms = invalidateAlarms
 	}
 
 	func getPushIdentifier() async throws -> String? {
 		if let sseInfo = notificationStorage.sseInfo, sseInfo.userIds.isEmpty {
 			TUTSLog("Sending alarm invalidation")
 			self.notificationStorage.clear()
-			try await self.commonNativeFacade.invalidateAlarms()
+			try await self.invalidateAlarms()
 		}
 
 		return try await self.appDelegate.registerForPushNotifications()

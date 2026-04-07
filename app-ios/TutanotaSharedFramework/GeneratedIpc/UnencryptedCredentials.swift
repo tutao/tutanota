@@ -4,7 +4,7 @@
 /**
  * Credentials ready to be used at runtime
  */
-public struct UnencryptedCredentials : Codable {
+public struct UnencryptedCredentials : Codable, Sendable {
 	public init(
 		credentialInfo: CredentialsInfo,
 		accessToken: String,

@@ -4,7 +4,7 @@
 /**
  * Local import mail state, to show progress during an mail import.
  */
-public struct LocalImportMailState : Codable {
+public struct LocalImportMailState : Codable, Sendable {
 	public init(
 		remoteStateId: IdTuple,
 		status: Int,

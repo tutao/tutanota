@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct ContactSyncResult : Codable {
+public struct ContactSyncResult : Codable, Sendable {
 	public init(
 		createdOnDevice: [StructuredContact],
 		editedOnDevice: [StructuredContact],

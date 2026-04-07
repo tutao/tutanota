@@ -1,25 +1,22 @@
 import Foundation
+import os
 
-/**
- * intercepts and proxies all requests to api:// and apis:// URLs rom the webview
- */
-class ApiSchemeHandler: NSObject, WKURLSchemeHandler {
-
+/// Intercepts and proxies all requests to api:// and apis:// URLs rom the webview
+public final class ApiSchemeHandler: NSObject, WKURLSchemeHandler, Sendable {
 	private let regex: NSRegularExpression
 	private let urlSession: URLSession
-	// We need to synchronize access to the dictionary because tasks start/get cancelled/complete on diffent threads.
-	// It *should* be fine to just lock it without resorting to a serial queue.
-	private let dictLock = UnfairLock()
-	private var taskDict = [URLRequest: URLSessionDataTask]()
+	/// Map from original request id to Swift task which executes a "real" request
+	/// We need to synchronize access to the dictionary because tasks start/get cancelled/complete on diffent threads.
+	private let dictLock = OSAllocatedUnfairLock<[ObjectIdentifier: Task<(), Never>]>(initialState: [:])
 
-	init(urlSession: URLSession) {
+	public init(urlSession: URLSession) {
 		// docs say that schemes are case insensitive
 		self.regex = try! NSRegularExpression(pattern: "^api", options: .caseInsensitive)
 		self.urlSession = urlSession
 		super.init()
 	}
 
-	func rewriteRequest(_ oldRequest: URLRequest) -> URLRequest {
+	public func rewriteRequest(_ oldRequest: URLRequest) -> URLRequest {
 		let urlString = oldRequest.url!.absoluteString
 		let range = NSRange(location: 0, length: urlString.count)
 		let newUrlString = self.regex.stringByReplacingMatches(in: urlString, range: range, withTemplate: "http")
@@ -29,36 +26,31 @@ class ApiSchemeHandler: NSObject, WKURLSchemeHandler {
 		return newRequest
 	}
 
-	func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+	public func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
+		// Change URL on the request to a real one
 		let newRequest = self.rewriteRequest(urlSchemeTask.request)
-		let task = self.urlSession.dataTask(with: newRequest) { data, response, err in
-			defer { self.dictLock.locked { self.taskDict.removeValue(forKey: urlSchemeTask.request) } }
-
-			// It is an error to call anything on WKURLSchemeTask after
-			// webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask)
-			// was called. It is unclear how cancel() works so to avoid crashes
-			// we manually check for it.
-			let taskFromDict = self.dictLock.locked { self.taskDict[urlSchemeTask.request] }
-			if taskFromDict == nil { return }
-
-			if let err {
-				if (err as NSError).domain == NSURLErrorDomain && (err as NSError).code == NSURLErrorCancelled { return }
-				urlSchemeTask.didFailWithError(err)
-				return
-			}
-			urlSchemeTask.didReceive(response!)
-			urlSchemeTask.didReceive(data!)
-			urlSchemeTask.didFinish()
+		let taskIdentifier = ObjectIdentifier(urlSchemeTask)
+		// Non-detached task will execute with the same isolation as this function which
+		// lets us sidestep isolation problems of WKURLSchemeTask.
+		let task = Task {
+			defer { _ = self.dictLock.withLock { dict in dict.removeValue(forKey: taskIdentifier) } }
+			do {
+				let (data, response) = try await self.urlSession.data(for: newRequest)
+				urlSchemeTask.didReceive(response)
+				urlSchemeTask.didReceive(data)
+				urlSchemeTask.didFinish()
+			} catch is CancellationError {
+				// Not allowed to interact with a task if it's canceled
+			} catch { urlSchemeTask.didFailWithError(error) }
 		}
-		self.dictLock.locked { self.taskDict[urlSchemeTask.request] = task }
-		task.resume()
+		self.dictLock.withLock { dict in dict[taskIdentifier] = task }
 	}
 
-	func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
-		self.dictLock.locked {
-			guard let task = self.taskDict[urlSchemeTask.request] else { return }
-			if task.state == .running || task.state == .suspended { task.cancel() }
-			self.taskDict.removeValue(forKey: urlSchemeTask.request)
+	public func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
+		let taskIdentifier = ObjectIdentifier(urlSchemeTask)
+		self.dictLock.withLock { taskDict in
+			let task = taskDict.removeValue(forKey: taskIdentifier)
+			task?.cancel()
 		}
 	}
 
@@ -67,17 +59,17 @@ class ApiSchemeHandler: NSObject, WKURLSchemeHandler {
 /**
  * intercepts asset:// requests and serves them from the asset directory
  */
-class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
+public class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
 
 	private let folderPath: String
 
-	init(folderPath: String) {
+	public init(folderPath: String) {
 		self.folderPath = (folderPath as NSString).standardizingPath
 		TUTSLog("folderPath: \(self.folderPath)")
 		super.init()
 	}
 
-	func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+	public func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
 		let newFilePath = urlSchemeTask.request.url!.path
 		let appendedPath: NSString = (self.folderPath as NSString).appendingPathComponent(newFilePath) as NSString
 		let requestedFilePath = appendedPath.standardizingPath
@@ -100,7 +92,7 @@ class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
 		}
 	}
 
-	func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
+	public func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
 		// we're doing the asset load synchronously, so we won't get a chance to cancel.
 	}
 
@@ -111,6 +103,8 @@ class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
 			return "application/application/vnd.iccprofile"
 		} else if let mimeType = getFileMIMEType(path: path) {
 			return mimeType
+		} else if path.hasSuffix(".cmap") {
+			return "text/plain"  // used for invoices; no good mime type for cmap, so just use plain text
 		} else if path.hasSuffix(".woff2") {
 			return "font/woff2"
 		} else if path.hasSuffix(".woff") {

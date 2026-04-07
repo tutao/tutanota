@@ -1,14 +1,14 @@
 import Combine
-import Mockingbird
+import Mockable
 import Testing
 import TutanotaSharedFramework
 
 struct NotificationsHandlerTest {
-	private var alarmManager: AlarmManagerMock
-	private var notificationStorage: NotificationStorageMock
-	private var notificationsHandler: NotificationsHandler
-	private let dateProvider = mock(DateProvider.self)
-	private var httpClient: HttpClientMock! = mock(HttpClient.self)
+	private var alarmManager: MockAlarmProcessor
+	private var notificationStorage: MockNotificationStorage
+	private let notificationsHandler: NotificationsHandler
+	private let dateProvider = MockDateProvider()
+	private let httpClient = MockHttpClient()
 
 	let userId1 = "userId1"
 	let userId2 = "userId2"
@@ -17,28 +17,19 @@ struct NotificationsHandlerTest {
 	init() {
 		sseInfo = SSEInfo(pushIdentifier: "pushIdentifier", sseOrigin: "sseorigin.com", userIds: [userId1, userId2])
 
-		initMockingbird()
-
-		alarmManager = mock(AlarmManager.self)
-			.initialize(
-				alarmPersistor: mock(AlarmPersistor.self),
-				alarmCryptor: mock(AlarmCryptor.self),
-				alarmScheduler: mock(AlarmScheduler.self),
-				alarmCalculator: mock(AlarmCalculator.self)
-			)
-		notificationStorage = mock(NotificationStorage.self).initialize(userPreferencesProvider: mock(UserPreferencesProvider.self))
+		alarmManager = MockAlarmProcessor(policy: .relaxedVoid)
+		notificationStorage = MockNotificationStorage()
 		notificationsHandler = NotificationsHandler(
 			alarmManager: alarmManager,
 			notificationStorage: notificationStorage,
 			httpClient: httpClient,
 			dateProvider: dateProvider
 		)
-
-		given(dateProvider.now).willReturn(Date.init(timeIntervalSince1970: 1))
+		given(dateProvider).now.willReturn(Date.init(timeIntervalSince1970: 1))
 	}
 
 	@Test func downloadsAndProcessesAlarms_noAlarms() async throws {
-		given(notificationStorage.sseInfo).willReturn(sseInfo)
+		given(notificationStorage).sseInfo.willReturn(sseInfo)
 		let newLastProcessedNotificationId = "newLastProcessedNotificationId"
 		let notification = MissedNotification(alarmNotifications: [], lastProcessedNotificationId: newLastProcessedNotificationId)
 		let data = try! JSONEncoder().encode(notification)
@@ -46,21 +37,22 @@ struct NotificationsHandlerTest {
 		// the first date is the one when the task is schduled and the seond one is when the request is made
 		let firstDate = Date(timeIntervalSince1970: 0)
 		let secondDate = Date(timeIntervalSince1970: 1)
-		given(notificationStorage.lastMissedNotificationCheckTime).willReturn(sequence(of: firstDate, secondDate))
-		given(await httpClient.fetch(url: any(), method: .get, headers: any(), body: nil)).willReturn((data, response))
+		var checkTimes = [firstDate, secondDate]
+		given(notificationStorage).lastMissedNotificationCheckTime.willProduce { checkTimes.removeFirst() }
+		given(notificationStorage).lastProcessedNotificationId.willReturn(nil)
+		given(httpClient).fetch(url: .any, method: .value(.get), headers: .any, body: .value(nil)).willReturn((data, response))
 
 		await notificationsHandler.fetchMissedNotifications()
 
-		verify(notificationStorage.lastMissedNotificationCheckTime).wasCalled()
+		verify(notificationStorage).lastMissedNotificationCheckTime().getCalled(.atLeastOnce)
 
-		verify(await httpClient.fetch(url: any(), method: .get, headers: any(), body: nil)).wasCalled()
-		verify(alarmManager.processNewAlarms([], nil)).wasCalled()
-		verify(notificationStorage.lastProcessedNotificationId = newLastProcessedNotificationId).wasCalled()
-		verify(notificationStorage.lastMissedNotificationCheckTime = secondDate).wasCalled()
+		verify(httpClient).fetch(url: .any, method: .value(.get), headers: .any, body: .value(nil)).called(.once)
+		verify(alarmManager).processNewAlarms(.value([]), .value(nil)).called(.once)
+		verify(notificationStorage).lastProcessedNotificationId(newValue: .value(newLastProcessedNotificationId)).setCalled(.once)
+		verify(notificationStorage).lastMissedNotificationCheckTime(newValue: .value(secondDate)).setCalled(.once)
 	}
-
 	@Test func downloadsAndProcessesAlarms_WithAlarms() async throws {
-		given(notificationStorage.sseInfo).willReturn(sseInfo)
+		given(notificationStorage).sseInfo.willReturn(sseInfo)
 		let alarm = EncryptedAlarmNotification(
 			operation: .Create,
 			summary: "",
@@ -73,57 +65,52 @@ struct NotificationsHandlerTest {
 		)
 		let notification = MissedNotification(alarmNotifications: [alarm], lastProcessedNotificationId: "newLastProcessedNotificationId")
 		let data = try! JSONEncoder().encode(notification)
-
 		let response = HTTPURLResponse()
-		given(await httpClient.fetch(url: any(), method: .get, headers: any(), body: nil)).willReturn((data, response))
-
+		given(httpClient).fetch(url: .any, method: .value(.get), headers: .any, body: .value(nil)).willReturn((data, response))
+		given(notificationStorage).lastMissedNotificationCheckTime.willReturn(nil)
+		given(notificationStorage).lastProcessedNotificationId.willReturn(nil)
 		await notificationsHandler.fetchMissedNotifications()
-
-		verify(alarmManager.processNewAlarms([alarm], nil)).wasCalled()
+		verify(alarmManager).processNewAlarms(.value([alarm]), .value(nil)).called(.once)
 	}
-
 	@Test func downloadsAndProcessesAlarms_skipsAlreadyFetched() async throws {
-		given(notificationStorage.sseInfo).willReturn(sseInfo)
+		given(notificationStorage).sseInfo.willReturn(sseInfo)
 		let oldLastId = "oldLastId"
-		given(notificationStorage.lastProcessedNotificationId).willReturn(oldLastId)
+		given(notificationStorage).lastProcessedNotificationId.willReturn(oldLastId)
 		let notification = MissedNotification(alarmNotifications: [], lastProcessedNotificationId: "newLastProcessedNotificationId")
 		let data = try! JSONEncoder().encode(notification)
 		let response = HTTPURLResponse()
 		// It's hard to control the order of invocations so we don't do the parallel invocations and instead
 		// just check that the time of the request is before the last response and then skip the request.
-		given(notificationStorage.lastMissedNotificationCheckTime).willReturn(Date(timeIntervalSince1970: 20))
-		given(await httpClient.fetch(url: any(), method: .get, headers: any(), body: nil)).willReturn((data, response))
-		given(dateProvider.now).willReturn(Date(timeIntervalSince1970: 10))
-
+		given(notificationStorage).lastMissedNotificationCheckTime.willReturn(Date(timeIntervalSince1970: 20))
+		given(httpClient).fetch(url: .any, method: .value(.get), headers: .any, body: .value(nil)).willReturn((data, response))
+		given(dateProvider).now.willReturn(Date(timeIntervalSince1970: 10))
 		await notificationsHandler.fetchMissedNotifications()
-
-		verify(await httpClient.fetch(url: any(), method: any(), headers: any(), body: any())).wasNeverCalled()
+		verify(httpClient).fetch(url: .any, method: .any, headers: .any, body: .any).called(.never)
 	}
-
 	@Test func downloadsAndProcessesAlarms_callIfReceivedWhenInflight() async throws {
-		given(notificationStorage.sseInfo).willReturn(sseInfo)
+		// Doesn't actually test anything in parallel, just checks that the checkTime comparison works correctly with the time
+		// that the call was scheduled.
+		given(notificationStorage).sseInfo.willReturn(sseInfo)
 		let oldLastId = "oldLastId"
-		given(notificationStorage.lastProcessedNotificationId).willReturn(oldLastId)
+		given(notificationStorage).lastProcessedNotificationId.willReturn(oldLastId)
 		let notification = MissedNotification(alarmNotifications: [], lastProcessedNotificationId: "newLastProcessedNotificationId")
 		let data = try! JSONEncoder().encode(notification)
 		let response = HTTPURLResponse()
-
-		given(notificationStorage.lastMissedNotificationCheckTime).willReturn(Date(timeIntervalSince1970: 10))
-		given(await httpClient.fetch(url: any(), method: .get, headers: any(), body: nil)).willReturn((data, response))
+		given(notificationStorage).lastMissedNotificationCheckTime.willReturn(Date(timeIntervalSince1970: 10))
+		given(httpClient).fetch(url: .any, method: .value(.get), headers: .any, body: .value(nil)).willReturn((data, response))
 		// call was scheduled after the last response, do make the call
-		given(dateProvider.now).willReturn(Date(timeIntervalSince1970: 20))
-
+		dateProvider.reset()
+		given(dateProvider).now.willReturn(Date(timeIntervalSince1970: 20))
 		await notificationsHandler.fetchMissedNotifications()
-
-		verify(await httpClient.fetch(url: any(), method: any(), headers: any(), body: any())).wasCalled(1)
+		verify(httpClient).fetch(url: .any, method: .any, headers: .any, body: .any).called(.once)
 	}
-
 	@Test func downloadsAndProcessesAlarms_removesUserIfNotAuthenticated() async throws {
 		var sseInfo = self.sseInfo
-		given(notificationStorage.sseInfo).will { sseInfo }
-		given(notificationStorage.removeUser(userId1)).will { _ in sseInfo.userIds.removeFirst() }
+		given(notificationStorage).sseInfo.willProduce { sseInfo }
+		given(notificationStorage).removeUser(.value(userId1)).willProduce { _ in sseInfo.userIds.removeFirst() }
 		let oldLastId = "oldLastId"
-		given(notificationStorage.lastProcessedNotificationId).willReturn(oldLastId)
+		given(notificationStorage).lastMissedNotificationCheckTime.willReturn(nil)
+		given(notificationStorage).lastProcessedNotificationId.willReturn(oldLastId)
 		let emptyData = Data()
 		let notAuthenticatedResponse = HTTPURLResponse(
 			url: URL(string: "https://example.com")!,
@@ -131,19 +118,18 @@ struct NotificationsHandlerTest {
 			httpVersion: nil,
 			headerFields: nil
 		)!
-
 		let notification = MissedNotification(alarmNotifications: [], lastProcessedNotificationId: "newLastProcessedNotificationId")
 		let data = try! JSONEncoder().encode(notification)
 		let response = HTTPURLResponse()
-		given(await httpClient.fetch(url: any(), method: .get, headers: dict(containing: ("userIds", userId2)), body: nil)).willReturn((data, response))
-		given(await httpClient.fetch(url: any(), method: .get, headers: dict(containing: ("userIds", userId1)), body: nil))
+		given(httpClient).fetch(url: .any, method: .value(.get), headers: .matching(dictContains(["userIds": userId2])), body: .value(nil))
+			.willReturn((data, response))
+		given(httpClient).fetch(url: .any, method: .value(.get), headers: .matching(dictContains(["userIds": userId1])), body: .value(nil))
 			.willReturn((emptyData, notAuthenticatedResponse))
-
 		await notificationsHandler.fetchMissedNotifications()
-
-		verify(await httpClient.fetch(url: any(), method: any(), headers: dict(containing: ("userIds", userId1)), body: any())).wasCalled(1)
-		verify(await httpClient.fetch(url: any(), method: any(), headers: dict(containing: ("userIds", userId2)), body: any())).wasCalled(1)
-		verify(notificationStorage.removeUser(userId1)).wasCalled()
+		verify(httpClient).fetch(url: .any, method: .any, headers: .matching(dictContains(["userIds": userId1])), body: .any).called(.once)
+		verify(httpClient).fetch(url: .any, method: .any, headers: .matching(dictContains(["userIds": userId1])), body: .any).called(.once)
+		verify(httpClient).fetch(url: .any, method: .any, headers: .matching(dictContains(["userIds": userId2])), body: .any).called(.once)
+		verify(notificationStorage).removeUser(.value(userId1)).called(.once)
 	}
 }
 

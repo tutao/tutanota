@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class FileFacadeReceiveDispatcher {
-	let facade: FileFacade
-	init(facade: FileFacade) {
+public final class FileFacadeReceiveDispatcher: Sendable {
+	let facade: any FileFacade
+	init(facade: any FileFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

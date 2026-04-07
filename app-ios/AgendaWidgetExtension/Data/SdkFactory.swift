@@ -12,8 +12,12 @@ class SdkFactory {
 		let urlSession: URLSession = makeUrlSession()
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
-		let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
+		let keychainEncryption = KeychainManagerKeychainEncryption(keychainManager: keychainManager)
+		let credentialsFacade = IosNativeCredentialsFacade(
+			keychainEncryption: keychainEncryption,
+			credentialsDb: credentialsDb,
+			cryptoFns: CommonCryptoCryptoFunctions()
+		)
 
 		let remoteStorage = RemoteStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 

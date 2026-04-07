@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct NativeShortcut : Codable {
+public struct NativeShortcut : Codable, Sendable {
 	public init(
 		key: NativeKey,
 		ctrl: Bool?,

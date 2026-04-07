@@ -66,7 +66,7 @@ public enum SharedItem {
 	}
 }
 
-@MainActor private func load(item attachment: NSItemProvider, ident: String, andConvertWith converter: (String, NSSecureCoding) -> SharedItem?) async
+@MainActor private func load(item attachment: NSItemProvider, ident: String, andConvertWith converter: (String, any NSSecureCoding) -> SharedItem?) async
 	-> SharedItem?
 {
 	guard let coding = try? await attachment.loadItem(forTypeIdentifier: ident, options: nil) else {
@@ -186,7 +186,7 @@ public func getUniqueInfoLocation() -> String {
 	return String(timestamp)
 }
 
-func codingToUrl(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+func codingToUrl(_ ident: String, _ coding: any NSSecureCoding) -> SharedItem? {
 	guard let decodedURL: URL = (coding as? URL) ?? ((coding as? NSURL) as? URL) else {
 		TUTSLog("could not convert coding \(String(describing: coding)) to URL")
 		return nil
@@ -194,7 +194,7 @@ func codingToUrl(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
 	return .fileUrl(ident: ident, content: decodedURL)
 }
 
-func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+func codingToImage(_ ident: String, _ coding: any NSSecureCoding) -> SharedItem? {
 	guard let uiImage = coding as? UIImage else {
 		TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
 		return nil
@@ -203,7 +203,7 @@ func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
 	return .image(ident: ident, content: uiImage)
 }
 
-private func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+private func codingToText(_ ident: String, _ coding: any NSSecureCoding) -> SharedItem? {
 	guard let decodedText = coding as? String ?? (coding as? URL)?.absoluteString else {
 		TUTSLog("could not convert coding \(String(describing: coding)) to String")
 		return nil
@@ -212,7 +212,7 @@ private func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedIt
 	return .text(ident: ident, content: decodedText)
 }
 
-private func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+private func codingToVCard(_ ident: String, _ coding: any NSSecureCoding) -> SharedItem? {
 	guard let vcardData = coding as? Data, let vcardString = String(data: vcardData, encoding: .utf8) else {
 		TUTSLog("could not convert vcard to data: \(String(describing: coding))")
 		return nil

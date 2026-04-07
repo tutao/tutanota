@@ -1,7 +1,7 @@
 import Foundation
 import TutanotaSharedFramework
 
-class IosThemeFacade: ThemeFacade {
+final class IosThemeFacade: ThemeFacade {
 
 	let themeManager: ThemeManager
 	let viewController: ViewController

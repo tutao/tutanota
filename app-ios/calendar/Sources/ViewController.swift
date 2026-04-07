@@ -11,13 +11,14 @@ public enum InteropActions: String {
 }
 
 /// Main screen of the app.
-class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate, MainPageLoader {
 	private let themeManager: ThemeManager
 	private let alarmManager: AlarmManager
 	private let notificationsHandler: NotificationsHandler
 	private var bridge: RemoteBridge!
 	private var webView: WKWebView!
 	private var sqlCipherFacade: IosSqlCipherFacade
+	private var commonNativeFacade: (any CommonNativeFacade)!
 
 	private var keyboardSize = 0
 	private var isDarkTheme = false
@@ -26,13 +27,13 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
 		themeManager: ThemeManager,
 		keychainManager: KeychainManager,
-		notificationStorage: NotificationStorage,
+		notificationStorage: UserPrefsNotificationStorage,
 		alarmManager: AlarmManager,
 		notificaionsHandler: NotificationsHandler,
 		credentialsEncryption: IosNativeCredentialsFacade,
 		blobUtils: BlobUtil,
 		contactsSynchronization: IosMobileContactsFacade,
-		userPreferencesProvider: UserPreferencesProvider,
+		userPreferencesProvider: any UserPreferencesProvider,
 		urlSession: URLSession
 	) {
 
@@ -65,31 +66,34 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
 		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
-		self.bridge = RemoteBridge(
-			webView: self.webView,
-			viewController: self,
+		let globalDispatcher = IosGlobalDispatcher(
 			commonSystemFacade: commonSystemFacade,
+			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent),
 			fileFacade: IosFileFacade(
-				chooser: TUTFileChooser(viewController: self),
+				chooser: TUTFileChooser(viewController: self, openSettings: { UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) }),
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
 				urlSession: urlSession,
-				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.downloadProgress(fileId, bytes) } }
+				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.downloadProgress(fileId, bytes) } }
 			),
+			mobileContactsFacade: IosMobileContactsFacade(),
+			mobilePaymentsFacade: IosMobilePaymentsFacade(),
+			mobileSystemFacade: IosMobileSystemFacade(viewController: self, userPreferencesProvider: userPreferencesProvider, appLockHandler: AppLockHandler()),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
-			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
-			appDelegate: self.appDelegate,
-			alarmManager: self.alarmManager,
-			notificationStorage: notificationStorage,
-			keychainManager: keychainManager,
-			webAuthnFacade: IosWebauthnFacade(viewController: self),
+			nativePushFacade: IosNativePushFacade(
+				appDelegate: appDelegate,
+				alarmManager: alarmManager,
+				notificationStorage: notificationStorage,
+				keychainManager: keychainManager,
+				invalidateAlarms: { [weak self] in try await self?.commonNativeFacade.invalidateAlarms() }
+			),
 			sqlCipherFacade: self.sqlCipherFacade,
-			contactsSynchronization: contactsSynchronization,
-			userPreferencesProvider: userPreferencesProvider,
-			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent)
+			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
+			webAuthnFacade: IosWebauthnFacade(viewController: self)
 		)
-
+		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
+		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
 	}
 
 	required init?(coder: NSCoder) { fatalError("Not NSCodable") }
@@ -112,7 +116,11 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	/// Implementation of WKNavigationDelegate
 	/// Handles links being clicked inside the webview
-	func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+	func webView(
+		_ webView: WKWebView,
+		decidePolicyFor navigationAction: WKNavigationAction,
+		decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
+	) {
 		guard let requestUrl = navigationAction.request.url else {
 			decisionHandler(.cancel)
 			return
@@ -165,9 +173,9 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
 		super.traitCollectionDidChange(previousTraitCollection)
-		Task.detached { @MainActor in
+		Task { @MainActor in
 			self.applyTheme(self.themeManager.currentThemeWithFallback)
-			try? await self.bridge.commonNativeFacade.updateTheme()
+			try? await self.commonNativeFacade.updateTheme()
 		}
 	}
 
@@ -181,8 +189,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 		let theme = self.themeManager.currentThemeWithFallback
 		self.applyTheme(theme)
-		self.notificationsHandler.initialize()
 
+		Task.detached { await self.notificationsHandler.initialize() }
 		Task { @MainActor in self._loadMainPage(params: [:]) }
 	}
 
@@ -243,7 +251,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			return
 		}
 
-		do { try await self.bridge.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
+		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
 			printLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
@@ -263,7 +271,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 		do {
 			if interopAction.name == InteropActions.openSettings.rawValue {
-				try await self.bridge.commonNativeFacade.openSettings(interopAction.value!)
+				try await self.commonNativeFacade.openSettings(interopAction.value!)
 			} else if interopAction.name == InteropActions.widget.rawValue {
 				try await handleWidgetActions(url, interopAction)
 			}
@@ -271,22 +279,26 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	}
 
 	func handleWidgetActions(_ url: URL, _ interopAction: URLQueryItem) async throws {
-		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw TutanotaError(message: "Invalid Widget Action URL") }
-		guard let queryItems = components.queryItems else { throw TutanotaError(message: "Invalid Widget Action URL") }
+		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw GenericTutanotaError(message: "Invalid Widget Action URL") }
+		guard let queryItems = components.queryItems else { throw GenericTutanotaError(message: "Invalid Widget Action URL") }
 
-		guard let userId = queryItems.first(where: { $0.name == "userId" })?.value else { throw TutanotaError(message: "Missing userId for Widget Action URL") }
-		guard let date = queryItems.first(where: { $0.name == "date" })?.value else { throw TutanotaError(message: "Missing date for Widget Action URL") }
+		guard let userId = queryItems.first(where: { $0.name == "userId" })?.value else {
+			throw GenericTutanotaError(message: "Missing userId for Widget Action URL")
+		}
+		guard let date = queryItems.first(where: { $0.name == "date" })?.value else {
+			throw GenericTutanotaError(message: "Missing date for Widget Action URL")
+		}
 		let eventId = queryItems.first(where: { $0.name == "eventId" })?.value
 
 		if interopAction.value == WidgetActions.sendLogs.rawValue { return try await sendLogsFromWidget() }
 
 		let action = interopAction.value == WidgetActions.eventEditor.rawValue ? CalendarOpenAction.event_editor : CalendarOpenAction.agenda
-		try await self.bridge.commonNativeFacade.openCalendar(userId, action, date, eventId)
+		try await self.commonNativeFacade.openCalendar(userId, action, date, eventId)
 	}
 
 	func sendLogsFromWidget() async throws {
 		let logs = readSharingInfo(infoLocation: WIDGET_LOGS_LOCATION)
-		try await self.bridge.commonNativeFacade.sendLogs(logs?.text ?? "")
+		try await self.commonNativeFacade.sendLogs(logs?.text ?? "")
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
@@ -298,7 +310,7 @@ private class LittleNavigationDelegate: NSObject, WKNavigationDelegate {
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { if let action = self.action { action() } }
 
-	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { TUTSLog("FAILED NAVIGATION >{") }
+	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) { TUTSLog("FAILED NAVIGATION >{") }
 }
 
 extension ViewController: ASWebAuthenticationPresentationContextProviding {

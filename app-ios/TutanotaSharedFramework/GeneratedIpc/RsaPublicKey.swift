@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct RsaPublicKey : Codable {
+public struct RsaPublicKey : Codable, Sendable {
 	public init(
 		version: Int,
 		keyLength: Int,

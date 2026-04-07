@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct StructuredRelationship : Codable {
+public struct StructuredRelationship : Codable, Sendable {
 	public init(
 		person: String,
 		type: ContactRelationshipType,

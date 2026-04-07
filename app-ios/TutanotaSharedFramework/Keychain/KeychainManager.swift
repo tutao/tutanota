@@ -9,23 +9,28 @@ private let TAG = "de.tutao.tutanota.notificationkey."
 private let KEY_PERMANENTLY_INVALIDATED_ERROR_DOMAIN = "de.tutao.tutashared.KeyPermanentlyInvalidatedError"
 private let CREDENTIAL_AUTHENTICATION_ERROR_DOMAIN = "de.tutao.tutashared.CredentialAuthenticationError"
 
-class KeyPermanentlyInvalidatedError: TutanotaError {
-	init(underlyingError: Error) { super.init(message: underlyingError.localizedDescription, underlyingError: underlyingError) }
-	init(message: String) { super.init(message: message, underlyingError: nil) }
-	override init(message: String, underlyingError: Error?) { super.init(message: message, underlyingError: underlyingError) }
-
-	override var name: String { get { KEY_PERMANENTLY_INVALIDATED_ERROR_DOMAIN } }
+struct KeyPermanentlyInvalidatedError: TutanotaError {
+	static let name: String = KEY_PERMANENTLY_INVALIDATED_ERROR_DOMAIN
+	let message: String
+	let underlyingError: (any Error)?
 }
 
-public class CredentialAuthenticationError: TutanotaError {
-	public init(underlyingError: Error) { super.init(message: underlyingError.localizedDescription, underlyingError: underlyingError) }
-	override public init(message: String, underlyingError: Error?) { super.init(message: message, underlyingError: underlyingError) }
-
-	public override var name: String { get { CREDENTIAL_AUTHENTICATION_ERROR_DOMAIN } }
+public struct CredentialAuthenticationError: TutanotaError {
+	public static let name: String = CREDENTIAL_AUTHENTICATION_ERROR_DOMAIN
+	public let message: String
+	public let underlyingError: (any Error)?
+	public init(message: String, underlyingError: (any Error)?) {
+		self.message = message
+		self.underlyingError = underlyingError
+	}
+	public init(underlyingError: any Error) {
+		self.message = underlyingError.localizedDescription
+		self.underlyingError = underlyingError
+	}
 }
 
 /// Class that is able to use items in sytem keychain
-public class KeychainManager: NSObject {
+public final class KeychainManager: NSObject, Sendable {
 	/// The only key that should be for used for encryption from now on. Corresponds to `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`.
 	private static let DATA_KEY_ALIAS = "AfterFirstUnlockDataKey"
 	private static let LEGACY_DEVICE_LOCK_DATA_KEY_ALIAS = "DeviceLockDataKey"
@@ -101,7 +106,7 @@ public class KeychainManager: NSObject {
 	/// Does automatically generate the required key if needed.
 	///  - throws KeyPermanentlyInvalidatedError if the key is not valid anymore
 	///  - throws CredentialAuthenticationError
-	public func encryptData(encryptionMode: CredentialEncryptionMode, data: Data) throws -> Data {
+	public func encryptData(encryptionMode: CredentialEncryptionMode, data: Data) async throws -> Data {
 		let context = laContext()
 		// When encrypting data we want to use the new key if we are on the `CredentialEncryptionMode.deviceLock`.
 		// We shouldn't need to generate other keys ever but we keep them for now.
@@ -116,11 +121,11 @@ public class KeychainManager: NSObject {
 		let encryptedData = SecKeyCreateEncryptedData(publicKey, Self.DATA_ALGORITHM, data as CFData, &error) as Data?
 
 		guard let encryptedData else {
-			switch try self.handleKeychainError(error!, keyTag: keyTag, context: context) {
+			switch try await self.handleKeychainError(error!, keyTag: keyTag, context: context) {
 			case .unrecoverable(let error): throw error
 			case .recoverable(let error):
 				TUTSLog("Trying to recover from error \(error)")
-				return try self.encryptData(encryptionMode: encryptionMode, data: data)
+				return try await self.encryptData(encryptionMode: encryptionMode, data: data)
 			}
 		}
 		return encryptedData
@@ -129,7 +134,7 @@ public class KeychainManager: NSObject {
 	/// Encrypt `encryptedData` using keychain-backed key for the `encryptionmode`.
 	///  - throws KeyPermanentlyInvalidatedError if the key does not exist or is not valid anymore
 	///  - throws CredentialAuthenticationError
-	public func decryptData(encryptionMode: CredentialEncryptionMode, encryptedData: Data) throws -> Data {
+	public func decryptData(encryptionMode: CredentialEncryptionMode, encryptedData: Data) async throws -> Data {
 		let context = laContext()
 		// When decrypting data we only want to get an existing key and we prefer the new key and then fallback to the legacy key
 		func fetchKey() throws -> (SecKey?, String) {
@@ -145,17 +150,17 @@ public class KeychainManager: NSObject {
 		}
 
 		let (key, tag) = try fetchKey()
-		guard let key else { throw KeyPermanentlyInvalidatedError(message: "Key for mode \(encryptionMode) not found") }
+		guard let key else { throw KeyPermanentlyInvalidatedError(message: "Key for mode \(encryptionMode) not found", underlyingError: nil) }
 
 		var error: Unmanaged<CFError>?
 		let decryptedData = SecKeyCreateDecryptedData(key, Self.DATA_ALGORITHM, encryptedData as CFData, &error) as Data?
 
 		guard let decryptedData else {
-			switch try self.handleKeychainError(error!, keyTag: tag, context: context) {
+			switch try await self.handleKeychainError(error!, keyTag: tag, context: context) {
 			case .unrecoverable(let error): throw error
 			case .recoverable(let error):
 				TUTSLog("Trying to recover from error \(error)")
-				return try self.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData)
+				return try await self.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData)
 			}
 		}
 		return decryptedData
@@ -209,7 +214,7 @@ public class KeychainManager: NSObject {
 		if let accessControl {
 			return accessControl
 		} else {
-			let error = error!.takeRetainedValue() as Error as NSError
+			let error = error!.takeRetainedValue() as (any Error) as NSError
 			fatalError(error.debugDescription)
 		}
 	}
@@ -224,19 +229,19 @@ public class KeychainManager: NSObject {
 		return keyTag.data(using: .utf8)!
 	}
 
-	private func handleKeychainError(_ error: Unmanaged<CFError>, keyTag: String, context: LAContext) throws -> HandledKeychainError {
+	@MainActor private func handleKeychainError(_ error: Unmanaged<CFError>, keyTag: String, context: LAContext) async throws -> HandledKeychainError {
 		let parsedError = self.parseKeychainError(error)
 		switch parsedError {
 		case .authFailure(let error): return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
 		case .lockout(error: let error):
-			let (result, promptError) = blockOn { cb in self.showPasswordPrompt(context: context, reason: error.localizedDescription, cb) }
-			if let error = promptError {
-				return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
-			} else if result == .some(false) {
-				return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
-			} else {
-				return .recoverable(error: CredentialAuthenticationError(underlyingError: error))
-			}
+			do {
+				let result = try await self.showPasswordPrompt(context: context, reason: error.localizedDescription)
+				if result == .some(false) {
+					return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
+				} else {
+					return .recoverable(error: CredentialAuthenticationError(underlyingError: error))
+				}
+			} catch { return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error)) }
 		case .keyPermanentlyInvalidated(let error):
 			try self.deleteKey(tag: keyTag)
 			let message = "Keychain operation failed for \(keyTag)"
@@ -254,12 +259,12 @@ public class KeychainManager: NSObject {
 		return context
 	}
 
-	private func showPasswordPrompt(context: LAContext, reason: String, _ completion: @escaping (Bool?, Error?) -> Void) {
-		DispatchQueue.main.async { context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason, reply: completion) }
+	@MainActor private func showPasswordPrompt(context: LAContext, reason: String) async throws -> Bool {
+		try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
 	}
 
 	private func parseKeychainError(_ error: Unmanaged<CFError>) -> KeychainError {
-		let e = error.takeRetainedValue() as Error as NSError
+		let e = error.takeRetainedValue() as (any Error) as NSError
 
 		#if !targetEnvironment(simulator)
 			if e.domain == TKError.errorDomain && e.code == TKError.Code.corruptedData.rawValue { return .keyPermanentlyInvalidated(error: e) }
@@ -277,8 +282,8 @@ public class KeychainManager: NSObject {
 }
 
 private enum HandledKeychainError {
-	case recoverable(error: Error)
-	case unrecoverable(error: Error)
+	case recoverable(error: any Error)
+	case unrecoverable(error: any Error)
 }
 
 private enum KeychainError {

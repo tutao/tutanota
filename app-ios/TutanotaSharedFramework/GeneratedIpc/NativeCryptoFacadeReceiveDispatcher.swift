@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class NativeCryptoFacadeReceiveDispatcher {
-	let facade: NativeCryptoFacade
-	init(facade: NativeCryptoFacade) {
+public final class NativeCryptoFacadeReceiveDispatcher: Sendable {
+	let facade: any NativeCryptoFacade
+	init(facade: any NativeCryptoFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

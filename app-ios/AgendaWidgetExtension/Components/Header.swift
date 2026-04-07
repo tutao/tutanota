@@ -14,7 +14,6 @@ struct Header: View {
 	let startOfToday = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
 	let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
 	var body: some View {
-		let hasAllDayEventsToday = allDayEvents.count > 0
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 		return HStack(alignment: .top) {

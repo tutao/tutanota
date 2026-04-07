@@ -8,12 +8,12 @@ public struct ScheduledAlarmInfo: Equatable {
 	let eventDate: Date
 }
 
-public protocol AlarmScheduler {
+public protocol AlarmScheduler: Sendable {
 	func schedule(info: ScheduledAlarmInfo)
 	func unscheduleAll(occurrenceIds: [String])
 }
 
-public class SystemAlarmScheduler: AlarmScheduler {
+public final class SystemAlarmScheduler: AlarmScheduler {
 	public init() {}
 	public func schedule(info: ScheduledAlarmInfo) {
 		let formattedTime = DateFormatter.localizedString(from: info.eventDate, dateStyle: .short, timeStyle: .short)

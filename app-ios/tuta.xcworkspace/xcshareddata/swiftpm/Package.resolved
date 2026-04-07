@@ -1,5 +1,5 @@
 {
-  "originHash" : "caec9ec7383dcdd08a9fd2a3eb27eaf1dcb31c13e289c9e707eabbb788eb2ea1",
+  "originHash" : "d5b7b163675a5a49deac0c2ca3bc750f0286a943ca191c27f39f49f02147b43b",
   "pins" : [
     {
       "identity" : "dictionarycoding",
@@ -11,12 +11,12 @@
       }
     },
     {
-      "identity" : "mockingbird",
+      "identity" : "mockable",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/birdrides/mockingbird",
+      "location" : "https://github.com/Kolos65/Mockable",
       "state" : {
-        "revision" : "6e0d473df6b975719e145f6aebf90990c634700e",
-        "version" : "0.20.0"
+        "revision" : "bd20509c34ca3205003677747ad8dcb70d18b7ca",
+        "version" : "0.6.2"
       }
     },
     {
@@ -24,8 +24,26 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
       "state" : {
-        "revision" : "919eb1d83e02121cdb434c7bfc1f0c66ef17febe",
-        "version" : "1.0.2"
+        "revision" : "b601256eab081c0f92f059e12818ac1d4f178ff7",
+        "version" : "1.3.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax",
+      "state" : {
+        "revision" : "4799286537280063c85a32f09884cfbca301b1a1",
+        "version" : "602.0.0"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "dfd70507def84cb5fb821278448a262c6ff2bbad",
+        "version" : "1.9.0"
       }
     }
   ],

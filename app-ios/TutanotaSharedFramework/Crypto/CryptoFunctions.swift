@@ -1,5 +1,25 @@
+import Foundation
+public import Mockable
+
+@Mockable public protocol CryptoFunctions: Sendable {
+	func aesGenerateKey() -> Data
+
+	func aesDecryptData(_ data: Data, withKey key: Data) throws -> Data
+
+	func aesDecryptKey(_ encryptedKey: Data, withKey key: Data) throws -> Data
+	func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data) throws -> Data
+
+	func aesEncryptKey(_ keyToBeEncrypted: Data, withKey key: Data) throws -> Data
+}
+
+extension CryptoFunctions {
+	func aesEncryptData(_ data: Data, withKey key: Data) throws -> Data {
+		try self.aesEncryptData(data, withKey: key, withIV: TutanotaSharedFramework.aesGenerateIV())
+	}
+}
+
 /// Wrapper for common crypto operations to aid injection/testing
-public class CryptoFunctions {
+public final class CommonCryptoCryptoFunctions: CryptoFunctions, Sendable {
 	public init() {}
 
 	public func aesGenerateKey() -> Data { TutanotaSharedFramework.aesGenerateKey() }
@@ -8,7 +28,7 @@ public class CryptoFunctions {
 
 	public func aesDecryptKey(_ encryptedKey: Data, withKey key: Data) throws -> Data { try TutanotaSharedFramework.aesDecryptKey(encryptedKey, withKey: key) }
 
-	public func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data = TutanotaSharedFramework.aesGenerateIV()) throws -> Data {
+	public func aesEncryptData(_ data: Data, withKey key: Data, withIV iv: Data) throws -> Data {
 		try TutanotaSharedFramework.aesEncryptData(data, withKey: key, withIV: iv)
 	}
 

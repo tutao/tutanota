@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 public let FILES_ERROR_DOMAIN = "tutanota_files"
 let SHARED_CONTENT_DIRNAME = "shared-content"
@@ -67,4 +68,11 @@ public class FileUtils {
 		try FileManager.default.createDirectory(atPath: encryptedFolderPath, withIntermediateDirectories: true, attributes: nil)
 		return encryptedFolderPath
 	}
+}
+
+public func getFileMIMETypeWithDefault(path: String) -> String { getFileMIMEType(path: path) ?? "application/octet-stream" }
+
+public func getFileMIMEType(path: String) -> String? {
+	let fileExtension = URL(fileURLWithPath: path).pathExtension
+	return UTType(filenameExtension: fileExtension)?.preferredMIMEType
 }

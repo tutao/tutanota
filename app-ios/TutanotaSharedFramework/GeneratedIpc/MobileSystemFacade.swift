@@ -6,7 +6,7 @@ import Foundation
 /**
  * Common operations implemented by each mobile platform.
  */
-public protocol MobileSystemFacade {
+public protocol MobileSystemFacade : Sendable {
 	/**
 	 * Redirect the user to Phone's Settings
 	 */

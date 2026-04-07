@@ -5,16 +5,15 @@ import TutanotaSharedFramework
 import UniformTypeIdentifiers
 import os
 
-typealias ProgressUpdater = (String, Int) -> Void
+typealias ProgressUpdater = @Sendable (String, Int) -> Void
 
-class IosFileFacade: FileFacade {
+final class IosFileFacade: FileFacade {
 	private let chooser: TUTFileChooser
 	private let viewer: FileViewer
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
 	private let downloadProgress: ProgressUpdater
-	private var activeDownloads = Set<String>()
-	private let activeDownloadsLock = OSAllocatedUnfairLock()
+	private let activeDownloadsLock = OSAllocatedUnfairLock<Set<String>>(initialState: Set())
 
 	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession, downloadProgress: @escaping ProgressUpdater) {
 		self.chooser = chooser
@@ -60,7 +59,7 @@ class IosFileFacade: FileFacade {
 
 	func deleteFile(_ file: String) async throws {
 		do { try FileManager.default.removeItem(atPath: file) } catch {
-			if let err = error as? NSError, err.code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
+			if (error as NSError).code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
 			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
 		}
 	}
@@ -103,8 +102,8 @@ class IosFileFacade: FileFacade {
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
 		request.allHTTPHeaderFields = headers
-		_ = self.activeDownloadsLock.withLock { self.activeDownloads.insert(fileId) }
-		defer { _ = self.activeDownloadsLock.withLock { self.activeDownloads.remove(fileId) } }
+		_ = self.activeDownloadsLock.withLock { $0.insert(fileId) }
+		defer { _ = self.activeDownloadsLock.withLock { $0.remove(fileId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
 		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
@@ -136,7 +135,7 @@ class IosFileFacade: FileFacade {
 		}
 		let downloadDelegate = DownloadDelegate(
 			fileId: fileId,
-			shouldCancel: { fileId in !self.activeDownloads.contains(fileId) },
+			shouldCancel: { fileId in self.activeDownloadsLock.withLock { !$0.contains(fileId) } },
 			reporter: { bytesReceived in self.downloadProgress(fileId, bytesReceived) }
 		)
 		var response: URLResponse
@@ -149,7 +148,7 @@ class IosFileFacade: FileFacade {
 		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
-	func abortDownload(_ fileId: String) async { _ = self.activeDownloadsLock.withLock { self.activeDownloads.remove(fileId) } }
+	func abortDownload(_ fileId: String) async { _ = self.activeDownloadsLock.withLock { $0.remove(fileId) } }
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
 		let encryptedPath = try FileUtils.getEncryptedFolder()
@@ -163,7 +162,7 @@ class IosFileFacade: FileFacade {
 	func zipDirectory(fileUrl: URL) throws -> String {
 		var returnPath: String = ""
 		var err: NSError?
-		var ourError: Error?
+		var ourError: (any Error)?
 		NSFileCoordinator()
 			.coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &err) { (zipUrl) in
 				do {
@@ -176,7 +175,7 @@ class IosFileFacade: FileFacade {
 					return
 				}
 			}
-		if let e = err ?? ourError { throw TutanotaError(message: "could not read directory at \(fileUrl)", underlyingError: e) }
+		if let e = err ?? ourError { throw GenericTutanotaError(message: "could not read directory at \(fileUrl)", underlyingError: e) }
 		return returnPath
 	}
 

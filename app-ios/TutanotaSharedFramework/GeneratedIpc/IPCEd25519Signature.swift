@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct IPCEd25519Signature : Codable {
+public struct IPCEd25519Signature : Codable, Sendable {
 	public init(
 		signature: DataWrapper
 	) {

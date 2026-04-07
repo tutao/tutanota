@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public protocol NativeInterface {
+public protocol NativeInterface : Sendable {
 	func sendRequest(requestType: String, args: [String]) async throws -> String
 }
 

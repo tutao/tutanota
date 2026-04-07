@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
-	private let transport: NativeInterface
-	public init(transport: NativeInterface) { self.transport = transport }
+public final class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
+	private let transport: any NativeInterface
+	public init(transport: any NativeInterface) { self.transport = transport }
 	
 	 public func createMailEditor(
 		_ filesUris: [String],

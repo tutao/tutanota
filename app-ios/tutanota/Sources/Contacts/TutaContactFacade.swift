@@ -5,20 +5,20 @@ import Foundation
 private let CONTACTS_MAPPINGS = "ContactsMappings"
 
 /// Manages the available `UserContactMapping`s and provides functionality to handle non-Tuta contacts
-class TutaContactFacade {
+final class TutaContactFacade: Sendable {
 	private let nativeContactStoreFacade: NativeContactStoreFacade
-	private let userDefaults: UserDefaults
+	private let userDefaults: any UserPreferencesProvider
 
-	init(userDefault: UserDefaults) {
+	init(userDefaults: any UserPreferencesProvider) {
 		nativeContactStoreFacade = NativeContactStoreFacade()
-		self.userDefaults = userDefault
+		self.userDefaults = userDefaults
 	}
 
 	/// Returns the local container from the `NativeContactStoreFacade`
 	func getLocalContainer() -> String { nativeContactStoreFacade.getLocalContainer() }
 
 	private func getMappingsDictionary() -> [String: [String: Any]] {
-		self.userDefaults.dictionary(forKey: CONTACTS_MAPPINGS) as! [String: [String: Any]]? ?? [:]
+		self.userDefaults.getDictionary(forKey: CONTACTS_MAPPINGS) as! [String: [String: Any]]? ?? [:]
 	}
 
 	fileprivate func readContactList(_ dict: inout [String: Any], _ username: String) -> UserContactList {

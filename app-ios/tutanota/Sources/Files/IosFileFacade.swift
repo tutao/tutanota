@@ -5,9 +5,9 @@ import TutanotaSharedFramework
 import UniformTypeIdentifiers
 import os
 
-typealias ProgressUpdater = (String, Int) -> Void
+typealias ProgressUpdater = @Sendable (String, Int) -> Void
 
-class IosFileFacade: FileFacade {
+final class IosFileFacade: FileFacade {
 	private let chooser: TUTFileChooser
 	private let viewer: FileViewer
 	private let schemeHandler: ApiSchemeHandler
@@ -15,8 +15,7 @@ class IosFileFacade: FileFacade {
 	private let downloadProgress: ProgressUpdater
 	private let uploadProgress: ProgressUpdater
 	/// Map from fileId to the corresponding task
-	private var activeTransfers = [String: URLSessionTask]()
-	private let activeTransfersLock = OSAllocatedUnfairLock()
+	private let activeTransfersLock = OSAllocatedUnfairLock(initialState: [String: URLSessionTask]())
 
 	init(
 		chooser: TUTFileChooser,
@@ -154,7 +153,7 @@ class IosFileFacade: FileFacade {
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
 		request.allHTTPHeaderFields = headers
-		defer { _ = self.activeTransfersLock.withLock { self.activeTransfers.removeValue(forKey: fileId) } }
+		defer { _ = self.activeTransfersLock.withLock { $0.removeValue(forKey: fileId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
 		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
@@ -177,7 +176,7 @@ class IosFileFacade: FileFacade {
 			}
 		}
 		let downloadDelegate = DownloadDelegate(
-			taskCreated: { task in self.activeTransfersLock.withLock { self.activeTransfers[fileId] = task } },
+			taskCreated: { task in self.activeTransfersLock.withLock { $0[fileId] = task } },
 			reporter: { bytesReceived in self.downloadProgress(fileId, bytesReceived) }
 		)
 		var response: URLResponse
@@ -192,7 +191,7 @@ class IosFileFacade: FileFacade {
 	}
 	func abortDownload(_ fileId: String) async {
 		TUTSLog("Abort download for \(fileId) \(activeTransfers[fileId] != nil) \(activeTransfers)")
-		self.activeTransfers[fileId]?.cancel()
+		 self.activeDownloadsLock.withLock { $0[fileId]?.cancel() }
 	}
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
@@ -207,7 +206,7 @@ class IosFileFacade: FileFacade {
 	func zipDirectory(fileUrl: URL) throws -> String {
 		var returnPath: String = ""
 		var err: NSError?
-		var ourError: Error?
+		var ourError: (any Error)?
 		NSFileCoordinator()
 			.coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &err) { (zipUrl) in
 				do {
@@ -220,7 +219,7 @@ class IosFileFacade: FileFacade {
 					return
 				}
 			}
-		if let e = err ?? ourError { throw TutanotaError(message: "could not read directory at \(fileUrl)", underlyingError: e) }
+		if let e = err ?? ourError { throw GenericTutanotaError(message: "could not read directory at \(fileUrl)", underlyingError: e) }
 		return returnPath
 	}
 
@@ -296,13 +295,6 @@ extension DownloadTaskResponse {
 			encryptedFileUri: encryptedFileUri
 		)
 	}
-}
-
-func getFileMIMETypeWithDefault(path: String) -> String { getFileMIMEType(path: path) ?? "application/octet-stream" }
-
-func getFileMIMEType(path: String) -> String? {
-	let fileExtension = URL(fileURLWithPath: path).pathExtension
-	return UTType(filenameExtension: fileExtension)?.preferredMIMEType
 }
 
 /// Reading header fields from HTTPURLResponse.allHeaderFields is case-sensitive, it is a bug: https://bugs.swift.org/browse/SR-2429

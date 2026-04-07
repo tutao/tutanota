@@ -318,13 +318,13 @@ private func hexComponents(fromHex hex: String, sizeDivisor: Int) throws -> [Dat
 	var d = [Data]()
 	while offset < converted.count {
 		// Make sure we can read a full size
-		guard offset + 2 <= converted.count else { throw TutanotaError(message: "Badly formatted hex components string (size cutoff)") }
+		guard offset + 2 <= converted.count else { throw GenericTutanotaError(message: "Badly formatted hex components string (size cutoff)") }
 
 		// Get the size count
 		let sizeBytes = (Int(converted[offset]) << 8 | Int(converted[offset + 1])) / sizeDivisor  // big endian
 
 		offset += 2
-		guard offset + sizeBytes <= converted.count else { throw TutanotaError(message: "Badly formatted hex components string (size cutoff)") }
+		guard offset + sizeBytes <= converted.count else { throw GenericTutanotaError(message: "Badly formatted hex components string (size cutoff)") }
 		d.append(Data(converted[offset..<offset + sizeBytes]))
 		offset += sizeBytes
 	}

@@ -12,9 +12,9 @@ private let REMOTE_ORIGIN_KEY = "remoteOrigin"
 public struct Origin: Codable { public let url: String }
 
 public class RemoteStorage {
-	private let userPreferencesProvider: UserPreferencesProvider
+	private let userPreferencesProvider: any UserPreferencesProvider
 
-	public init(userPreferencesProvider: UserPreferencesProvider) { self.userPreferencesProvider = userPreferencesProvider }
+	public init(userPreferencesProvider: any UserPreferencesProvider) { self.userPreferencesProvider = userPreferencesProvider }
 
 	public func getRemoteOrigin() -> Origin? {
 		let dict = self.userPreferencesProvider.getObject(forKey: REMOTE_ORIGIN_KEY)

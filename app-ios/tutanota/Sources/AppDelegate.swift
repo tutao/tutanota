@@ -8,16 +8,16 @@ public let TUTA_MAIL_MAILTO_SCHEME = "tutamailto"
 public let TUTANOTA_SCHEME = "tutanota"
 public let MAILTO_SCHEME = "mailto"
 
-@UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+@main class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
 
-	private var remoteNotificationsContinuation: CheckedContinuation<String, Error>?
+	private var remoteNotificationsContinuation: CheckedContinuation<String, any Error>?
 	private var alarmManager: AlarmManager!
 	private var notificationsHandler: NotificationsHandler!
 	private var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
 
-	private var notificationStorage: NotificationStorage!
+	private var notificationStorage: UserPrefsNotificationStorage!
 
 	@MainActor func registerForPushNotifications() async throws -> String {
 		#if targetEnvironment(simulator)
@@ -35,9 +35,9 @@ public let MAILTO_SCHEME = "mailto"
 		spawnTransactionFinisher()
 
 		let userPreferencesProvider = UserPreferencesProviderImpl()
-		self.notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
+		self.notificationStorage = UserPrefsNotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
+		let keychainEncryption = KeychainManagerKeychainEncryption(keychainManager: keychainManager)
 		let dateProvider: SystemDateProvider = SystemDateProvider()
 
 		let alarmModel = AlarmModel(dateProvider: dateProvider)
@@ -60,7 +60,7 @@ public let MAILTO_SCHEME = "mailto"
 		let credentialsEncryption = IosNativeCredentialsFacade(
 			keychainEncryption: keychainEncryption,
 			credentialsDb: credentialsDb,
-			cryptoFns: CryptoFunctions()
+			cryptoFns: CommonCryptoCryptoFunctions()
 		)
 
 		self.viewController = ViewController(
@@ -72,7 +72,7 @@ public let MAILTO_SCHEME = "mailto"
 			notificaionsHandler: notificationsHandler,
 			credentialsEncryption: credentialsEncryption,
 			blobUtils: BlobUtil(),
-			contactsSynchronization: IosMobileContactsFacade(userDefault: UserDefaults.standard),
+			contactsSynchronization: IosMobileContactsFacade(userDefaults: userPreferencesProvider),
 			userPreferencesProvider: userPreferencesProvider,
 			urlSession: self.urlSession
 		)
@@ -112,7 +112,7 @@ public let MAILTO_SCHEME = "mailto"
 		self.remoteNotificationsContinuation = nil
 	}
 
-	func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+	func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: any Error) {
 		self.remoteNotificationsContinuation?.resume(with: .failure(error))
 		self.remoteNotificationsContinuation = nil
 	}
@@ -157,18 +157,20 @@ public let MAILTO_SCHEME = "mailto"
 	func application(
 		_ application: UIApplication,
 		didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-		fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+		fetchCompletionHandler completionHandler: @escaping @Sendable (UIBackgroundFetchResult) -> Void
 	) {
 		let apsDict = userInfo["aps"] as! [String: Any]
 
 		let contentAvailable = apsDict["content-available"]
 		TUTSLog("Received background notification, content-available: \(String(describing: contentAvailable))")
 		if contentAvailable as? Int == 1 {
-			self.notificationsHandler.fetchMissedNotifications { result in
-				TUTSLog("Fetched missed notification after notification \(String(describing: result))")
-				switch result {
-				case .success: completionHandler(.newData)
-				case .failure: completionHandler(.failed)
+			Task {
+				await self.notificationsHandler.fetchMissedNotifications { result in
+					TUTSLog("Fetched missed notification after notification \(String(describing: result))")
+					switch result {
+					case .success: completionHandler(.newData)
+					case .failure: completionHandler(.failed)
+					}
 				}
 			}
 		}
@@ -196,9 +198,13 @@ public let MAILTO_SCHEME = "mailto"
 	func handleWithSdk(mailId: [String], userId: String, actionIdentifier: String) async throws {
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
-		let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
-		let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+		let keychainEncryption = KeychainManagerKeychainEncryption(keychainManager: keychainManager)
+		let credentialsFacade = IosNativeCredentialsFacade(
+			keychainEncryption: keychainEncryption,
+			credentialsDb: credentialsDb,
+			cryptoFns: CommonCryptoCryptoFunctions()
+		)
+		let notificationStorage = UserPrefsNotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 		guard let origin = notificationStorage.sseInfo?.sseOrigin else { return }
 		guard let unencryptedCredentials = try await credentialsFacade.loadByUserId(userId) else { return }
 		guard let encryptedPassphraseKey = unencryptedCredentials.encryptedPassphraseKey else { return }
@@ -241,7 +247,7 @@ public let MAILTO_SCHEME = "mailto"
 
 	// everything is handled on the server. nothing to do here (should run infinitely in the background)
 	private func spawnTransactionFinisher() {
-		Task.detached {
+		Task.detached { @concurrent in
 			for await result in Transaction.updates {
 				let transaction = IosMobilePaymentsFacade.checkVerified(result)
 				await transaction.finish()

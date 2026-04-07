@@ -1,4 +1,4 @@
-public typealias AsyncRunnable = () async -> Void
+public typealias AsyncRunnable = @Sendable () async -> Void
 
 /// A queue for async tasks.
 /// Runs tasks sequentially, has unbounded buffer.

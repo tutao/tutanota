@@ -13,9 +13,9 @@ struct WidgetCredential: AppEntity {
 	var id: String
 	var email: String
 
-	static var defaultQuery: CredentialsQuery = CredentialsQuery()
+	static let defaultQuery: CredentialsQuery = CredentialsQuery()
 
-	static var typeDisplayRepresentation: TypeDisplayRepresentation = "Credential"
+	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Credential"
 
 	var displayRepresentation: DisplayRepresentation {
 		let emailUser = String(email.split(separator: "@").first ?? "")
@@ -26,11 +26,11 @@ struct WidgetCredential: AppEntity {
 		do {
 			let credentialsDb = try CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 			let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-			let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
+			let keychainEncryption = KeychainManagerKeychainEncryption(keychainManager: keychainManager)
 			let credentialsFacade = IosNativeCredentialsFacade(
 				keychainEncryption: keychainEncryption,
 				credentialsDb: credentialsDb,
-				cryptoFns: CryptoFunctions()
+				cryptoFns: CommonCryptoCryptoFunctions()
 			)
 			let credentials = try await credentialsFacade.loadAll()
 			return credentials.map { WidgetCredential(id: $0.credentialInfo.userId, email: $0.credentialInfo.login) }

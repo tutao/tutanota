@@ -3,7 +3,7 @@
 
 import Foundation
 
-public protocol ThemeFacade {
+public protocol ThemeFacade : Sendable {
 	func getThemes(
 	) async throws -> [[String : String]]
 	func setThemes(

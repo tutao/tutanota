@@ -1,6 +1,6 @@
 import Foundation
 
-public class ExternalCalendarFacadeImpl: ExternalCalendarFacade {
+public final class ExternalCalendarFacadeImpl: ExternalCalendarFacade {
 	private let urlSession: URLSession
 	private let userAgent: String
 

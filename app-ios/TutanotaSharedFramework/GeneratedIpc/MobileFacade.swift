@@ -6,7 +6,7 @@ import Foundation
 /**
  * Common operations used by mobile platforms.
  */
-public protocol MobileFacade {
+public protocol MobileFacade : Sendable {
 	/**
 	 * Android: Called when 'hardware' back key is pressed. Returns `true` if the web app consumed the event.
 	 */

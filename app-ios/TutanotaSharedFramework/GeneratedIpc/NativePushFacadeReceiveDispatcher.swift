@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class NativePushFacadeReceiveDispatcher {
-	let facade: NativePushFacade
-	init(facade: NativePushFacade) {
+public final class NativePushFacadeReceiveDispatcher: Sendable {
+	let facade: any NativePushFacade
+	init(facade: any NativePushFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

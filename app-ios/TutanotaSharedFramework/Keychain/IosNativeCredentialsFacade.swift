@@ -5,15 +5,19 @@ struct NotImplemented: Error {
 
 }
 
-public class IosNativeCredentialsFacade: NativeCredentialsFacade {
+public final class IosNativeCredentialsFacade: NativeCredentialsFacade {
 	private static let ENCRYPTION_MODE_KEY = "credentialEncryptionMode"
 	private static let CREDENTIALS_ENCRYPTION_KEY_KEY = "credentialsEncryptionKey"
 
-	private let keychainEncryption: KeychainEncryption
-	private let credentialsDb: CredentialsStorage
-	private let cryptoFns: CryptoFunctions
+	private let keychainEncryption: (any KeychainEncryption & Sendable)
+	private let credentialsDb: (any CredentialsStorage & Sendable)
+	private let cryptoFns: (any CryptoFunctions & Sendable)
 
-	public init(keychainEncryption: KeychainEncryption, credentialsDb: CredentialsStorage, cryptoFns: CryptoFunctions) {
+	public init(
+		keychainEncryption: any (KeychainEncryption & Sendable),
+		credentialsDb: any (CredentialsStorage & Sendable),
+		cryptoFns: any (CryptoFunctions & Sendable)
+	) {
 		self.keychainEncryption = keychainEncryption
 		self.credentialsDb = credentialsDb
 		self.cryptoFns = cryptoFns
@@ -40,7 +44,7 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 	}
 	public func loadByUserId(_ id: String) async throws -> UnencryptedCredentials? {
 		guard let credentialsKey = try await self.getCredentialsEncryptionKey() else {
-			throw KeyPermanentlyInvalidatedError(message: "Credentials key is missing, cannot decrypt credentials")
+			throw KeyPermanentlyInvalidatedError(message: "Credentials key is missing, cannot decrypt credentials", underlyingError: nil)
 		}
 		// We do two migrations here: one, from any other `CredentialEncryptionMode` to `.deviceLock`, another:
 		// from `.deviceLock` key that is only accessible in foreground to the one that's accessible after
@@ -99,7 +103,7 @@ public class IosNativeCredentialsFacade: NativeCredentialsFacade {
 				encryptedPassword: persistedCredentials.encryptedPassword,
 				encryptedPassphraseKey: persistedCredentials.encryptedPassphraseKey
 			)
-		} catch { throw KeyPermanentlyInvalidatedError(underlyingError: error) }
+		} catch { throw KeyPermanentlyInvalidatedError(message: error.localizedDescription, underlyingError: error) }
 	}
 
 	private func createCredentialEncryptionKey() async throws -> Data {

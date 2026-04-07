@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AlarmPersistor {
+public protocol AlarmPersistor: Sendable {
 	var alarms: [EncryptedAlarmNotification] { get }
 
 	func clear()
@@ -8,13 +8,13 @@ public protocol AlarmPersistor {
 	func store(alarms: [EncryptedAlarmNotification])
 }
 
-public class AlarmPreferencePersistor: AlarmPersistor {
+public final class AlarmPreferencePersistor: AlarmPersistor {
 	public var alarms: [EncryptedAlarmNotification] { get { notificationStorage.alarms } }
 
-	let notificationStorage: NotificationStorage
+	let notificationStorage: UserPrefsNotificationStorage
 	let keychainManager: KeychainManager
 
-	public init(notificationsStorage: NotificationStorage, keychainManager: KeychainManager) {
+	public init(notificationsStorage: UserPrefsNotificationStorage, keychainManager: KeychainManager) {
 		self.notificationStorage = notificationsStorage
 		self.keychainManager = keychainManager
 	}

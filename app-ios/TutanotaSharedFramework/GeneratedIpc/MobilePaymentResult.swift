@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct MobilePaymentResult : Codable {
+public struct MobilePaymentResult : Codable, Sendable {
 	public init(
 		result: MobilePaymentResultType,
 		transactionID: String?,

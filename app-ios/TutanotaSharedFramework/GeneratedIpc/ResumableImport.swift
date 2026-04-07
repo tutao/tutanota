@@ -4,7 +4,7 @@
 /**
  * State Id and number of remaining mails of resumable import
  */
-public struct ResumableImport : Codable {
+public struct ResumableImport : Codable, Sendable {
 	public init(
 		remoteStateId: IdTuple,
 		remainingEmlCount: Int

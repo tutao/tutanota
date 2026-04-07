@@ -1,11 +1,11 @@
 import Foundation
 
-public protocol AlarmCryptor {
+public protocol AlarmCryptor: Sendable {
 	func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification
 	func storeNewDeviceSessionKey(pushIdentifierId: String, sessionKey: Key) throws
 }
 
-public class KeychainAlarmCryptor: AlarmCryptor {
+public final class KeychainAlarmCryptor: AlarmCryptor {
 	private let keychainManager: KeychainManager
 
 	public init(keychainManager: KeychainManager) { self.keychainManager = keychainManager }
@@ -17,7 +17,7 @@ public class KeychainAlarmCryptor: AlarmCryptor {
 	}
 
 	private func resolveSessionkey(alarmNotification: EncryptedAlarmNotification) -> Key? {
-		var lastError: Error?
+		var lastError: (any Error)?
 		for notificationSessionKey in alarmNotification.notificationSessionKeys {
 			do {
 				let pushIdentifierSessionKey = try self.keychainManager.getKey(keyId: notificationSessionKey.getPushIdentifier().elementId)

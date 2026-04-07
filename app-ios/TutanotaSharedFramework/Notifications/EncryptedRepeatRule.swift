@@ -1,5 +1,5 @@
 import Foundation
-import tutasdk
+public import tutasdk
 
 public enum RepeatPeriod: Int, SimpleStringDecodable {
 	case daily = 0
@@ -103,7 +103,7 @@ public struct EncryptedRepeatRule: Codable, Hashable {
 	public let excludedDates: [EncryptedDateWrapper]
 	public let advancedRules: [EncryptedAdvancedRuleWrapper]
 
-	public init(from decoder: Decoder) throws {
+	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		if let excludedDates = try container.decodeIfPresent([EncryptedDateWrapper].self, forKey: .excludedDates) {
 			self.excludedDates = excludedDates

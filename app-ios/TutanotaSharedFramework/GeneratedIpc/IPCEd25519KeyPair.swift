@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct IPCEd25519KeyPair : Codable {
+public struct IPCEd25519KeyPair : Codable, Sendable {
 	public init(
 		publicKey: IPCEd25519PublicKey,
 		privateKey: IPCEd25519PrivateKey

@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct WebAuthnSignChallenge : Codable {
+public struct WebAuthnSignChallenge : Codable, Sendable {
 	public init(
 		challenge: DataWrapper,
 		domain: String,

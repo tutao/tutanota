@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public enum PermissionType: String, Codable {
+public enum PermissionType: String, Codable, Sendable {
 	case contacts = "0"
 	case ignore_battery_optimization = "1"
 	case notification = "2"

@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class MobileContactsFacadeReceiveDispatcher {
-	let facade: MobileContactsFacade
-	init(facade: MobileContactsFacade) {
+public final class MobileContactsFacadeReceiveDispatcher: Sendable {
+	let facade: any MobileContactsFacade
+	init(facade: any MobileContactsFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

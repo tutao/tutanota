@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct KyberEncapsulation : Codable {
+public struct KyberEncapsulation : Codable, Sendable {
 	public init(
 		ciphertext: DataWrapper,
 		sharedSecret: DataWrapper

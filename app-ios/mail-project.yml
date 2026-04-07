@@ -15,7 +15,7 @@ include:
   - path: "./common.yml"
 targets:
   tutanota:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "application"
     sources:
       - path: "translations"
@@ -44,7 +44,7 @@ targets:
           ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
         GCC_PREPROCESSOR_DEFINITIONS:
-          ["SQLITE_HAS_CODEC=1", "SQLITE_ENABLE_FTS5=1", "$(inherited)"]
+          [ "SQLITE_HAS_CODEC=1", "SQLITE_ENABLE_FTS5=1", "$(inherited)" ]
         OTHER_CFLAGS[arch=*]:
           [
             "-DSQLITE_HAS_CODEC",
@@ -57,6 +57,12 @@ targets:
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        SWIFT_VERSION: "6.0"
+        SWIFT_UPCOMING_FEATURE_6_0: "YES"
+        SWIFT_APPROACHABLE_CONCURRENCY: "YES"
+        SWIFT_UPCOMING_FEATURE_INTERNAL_IMPORTS_BY_DEFAULT: "YES"
+        SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: "YES"
+        SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: "YES"
       configs:
         Debug Development:
           PRODUCT_NAME: "Tuta D"
@@ -73,7 +79,6 @@ targets:
       groups:
         - "codeSigning"
     dependencies:
-      - package: Atomics
       - sdk: CryptoTokenKit.framework
         embed: false
       - package: DictionaryCoding
@@ -90,8 +95,10 @@ targets:
         embed: false
       - framework: StoreKit.framework
         embed: false
+      - package: Mockable
+        product: "Mockable"
   tutanotaTests:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
     sources:
       - path: "tutanotaTests"
@@ -113,6 +120,8 @@ targets:
       SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
       IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+      SWIFT_VERSION: "6.0"
+      SWIFT_APPROACHABLE_CONCURRENCY: "YES"
     dependencies:
       - target: "tutanota"
       - target: "TutanotaSharedFramework"
@@ -121,8 +130,6 @@ targets:
     platform: "iOS"
     sources:
       - path: "TutanotaSharedTests"
-      - path: "MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"
-        optional: true # The file will be generated in the "Generate Mockingbird Mocks" stage
     settings:
       GCC_NO_COMMON_BLOCKS: "YES"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
@@ -136,60 +143,53 @@ targets:
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
+      SWIFT_VERSION: "6.0"
+      SWIFT_APPROACHABLE_CONCURRENCY: "YES"
     dependencies:
       - target: "tutanota"
       - target: "TutanotaSharedFramework"
         embed: false
-      - package: "Mockingbird"
       - framework: tutasdk.framework
         embed: false
-    preBuildScripts:
-      - path: "buildScripts/generate-mockingbird.sh"
-        name: "Generate Mockingbird Mocks"
-        shell: "/bin/sh"
-        showEnvVars: true
-        basedOnDependencyAnalysis: false
-        outputFiles:
-          [
-            "$(SRCROOT)/MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift",
-          ]
+      - package: Mockable
+        product: "Mockable"
 schemes:
   tuta debug:
     build:
       targets:
-        tutanota: ["analyze", "test", "run", "profile"]
-        tutanotaTests: ["test"]
+        tutanota: [ "analyze", "test", "run", "profile" ]
+        tutanotaTests: [ "test" ]
     run:
       config: "Debug Development"
       storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Development"
-      targets: ["tutanotaTests"]
+      targets: [ "tutanotaTests" ]
     archive:
       config: "Release Development"
   tuta staging:
     build:
       targets:
         tutanota: "all"
-        tutanotaTests: ["test"]
+        tutanotaTests: [ "test" ]
     run:
       config: "Debug Staging"
       storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Staging"
-      targets: ["tutanotaTests"]
+      targets: [ "tutanotaTests" ]
     archive:
       config: "Release Staging"
   tuta prod:
     build:
       targets:
         tutanota: "all"
-        tutanotaTests: ["test"]
+        tutanotaTests: [ "test" ]
     run:
       config: "Debug Production"
       storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Production"
-      targets: ["tutanotaTests"]
+      targets: [ "tutanotaTests" ]
     archive:
       config: "Release Production"

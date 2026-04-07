@@ -9,14 +9,10 @@ private typealias TutaToStructuredContacts = [String: StructuredContact]
 private let CONTACT_BOOK_ID = "APPLE_DEFAULT"
 
 /// Handles synchronization between contacts in Tuta and contacts on the device.
-class IosMobileContactsFacade: MobileContactsFacade {
-	private let userDefaults: UserDefaults
+final class IosMobileContactsFacade: MobileContactsFacade {
 	private let contactFacade: TutaContactFacade
 
-	init(userDefault: UserDefaults) {
-		self.userDefaults = userDefault
-		self.contactFacade = TutaContactFacade(userDefault: userDefault)
-	}
+	init(userDefaults: any UserPreferencesProvider) { self.contactFacade = TutaContactFacade(userDefaults: userDefaults) }
 
 	func findSuggestions(_ query: String) async throws -> [ContactSuggestion] {
 		try await acquireContactsPermission()

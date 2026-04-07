@@ -6,7 +6,7 @@ import tutasdk
 var suspensionEndTime: Date?
 
 class NotificationService: UNNotificationServiceExtension {
-	private let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+	private let notificationStorage = UserPrefsNotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 
 	private var contentHandler: ((UNNotificationContent) -> Void)?
 	private var bestAttemptContent: UNMutableNotificationContent?
@@ -52,8 +52,12 @@ class NotificationService: UNNotificationServiceExtension {
 
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
-		let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
+		let keychainEncryption = KeychainManagerKeychainEncryption(keychainManager: keychainManager)
+		let credentialsFacade = IosNativeCredentialsFacade(
+			keychainEncryption: keychainEncryption,
+			credentialsDb: credentialsDb,
+			cryptoFns: CommonCryptoCryptoFunctions()
+		)
 
 		let mailId = content.userInfo["mailId"] as? [String]
 		let userId = content.userInfo["userId"] as? String
@@ -141,7 +145,7 @@ class NotificationService: UNNotificationServiceExtension {
 	///
 	private func populateNotification(content: UNMutableNotificationContent, mail: tutasdk.Mail, credentials: UnencryptedCredentials) async throws {
 		// Init
-		let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+		let notificationStorage = UserPrefsNotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 
 		let userId = content.userInfo["userId"] as? String
 
