@@ -4,7 +4,7 @@ import { RecipientKeyVerificationRecoveryModel } from "../../../misc/RecipientKe
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { RadioSelector, type RadioSelectorAttrs } from "../../../gui/base/RadioSelector"
 import { ResolvableRecipient } from "../../../api/main/RecipientsModel"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { Card } from "../../../gui/base/Card"
 import { TitleSection } from "../../../gui/TitleSection"
@@ -61,7 +61,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 					}),
 				]),
 			),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				label: "keyManagement.reverifyRecipient_action",
 				onclick: async () => {
 					vnode.attrs.goToInfoPage()

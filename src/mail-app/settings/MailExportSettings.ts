@@ -12,7 +12,7 @@ import { Button, ButtonType } from "../../common/gui/base/Button"
 import { IconButton } from "../../common/gui/base/IconButton"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
-import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { ColumnWidth, Table } from "../../common/gui/base/Table"
@@ -128,7 +128,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 			m(".flex-start.mt-12", this.renderExportInfoText()),
 			m(
 				".flex-start.mt-8",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					width: "flex",
 					label: "export_action",
 					onclick: () => {
@@ -157,7 +157,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 		return [
 			m(
 				".flex-start.mt-8",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					width: "flex",
 					label: "open_action",
 					onclick: () => this.onOpenClicked(controller),

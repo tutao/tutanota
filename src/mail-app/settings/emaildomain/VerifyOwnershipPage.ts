@@ -20,7 +20,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { getCustomMailDomains } from "../../../common/api/common/utils/CustomerUtils.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 
@@ -56,7 +56,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 			createDnsRecordTable([vnode.attrs.data.expectedVerificationRecord]),
 			m(
 				".flex-center.full-width.pt-32.mb-32",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "next_action",
 					class: "small-login-button",
 					onclick: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),

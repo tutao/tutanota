@@ -6,7 +6,7 @@ import { Icons, SecondFactorImage } from "../../gui/base/icons/Icons"
 import { theme } from "../../gui/theme"
 import type { Thunk } from "@tutao/tutanota-utils"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
 type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
@@ -83,7 +83,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 		let items
 		const { state } = webauthn
 
-		const doWebAuthnButton = m(LoginButton, {
+		const doWebAuthnButton = m(PrimaryButton, {
 			label: "useSecurityKey_action",
 			onclick: () => webauthn.doWebauthn(),
 		})

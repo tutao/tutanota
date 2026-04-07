@@ -31,7 +31,7 @@ import {
 	PlanTypeToName,
 } from "../api/common/TutanotaConstants.js"
 import { px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import { isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator.js"
 import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
@@ -48,7 +48,7 @@ const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	},
 ]
 
-export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<LoginButtonAttrs>>
+export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<PrimaryButtonAttrs>>
 
 export type SubscriptionSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -72,7 +72,7 @@ export function getActionButtonBySubscription(actionButtons: SubscriptionActionB
 	if (ret == null) {
 		throw new ProgrammingError("Plan is not valid")
 	}
-	return () => m(LoginButton, ret())
+	return () => m(PrimaryButton, ret())
 }
 
 type ExpanderTargets = AvailablePlanType | "All"

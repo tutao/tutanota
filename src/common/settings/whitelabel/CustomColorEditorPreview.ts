@@ -8,7 +8,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { isApp, isDesktop } from "../../api/common/Env.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { ProcessingState } from "../../api/common/TutanotaConstants"
 
@@ -40,7 +40,7 @@ export class CustomColorEditorPreview implements Component {
 							width: px(BUTTON_WIDTH),
 						},
 					},
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
 						onclick: noOp,
 					}),

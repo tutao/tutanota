@@ -1,7 +1,7 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
-import { LoginButton, SecondaryButton, TertiaryButton } from "../gui/base/buttons/LoginButton"
+import { PrimaryButton, SecondaryButton, TertiaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { lang } from "../misc/LanguageViewModel"
 import { px, size } from "../gui/size"
 import { theme } from "../gui/theme"
@@ -42,7 +42,7 @@ export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<Si
 							}),
 							m(
 								".flex-center.full-width.pt-32",
-								m(LoginButton, {
+								m(PrimaryButton, {
 									label: "next_action",
 									width: "full",
 									icon: Icons.EyeFilled,
@@ -82,7 +82,7 @@ export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<Si
 
 			m(
 				"full-width.pt-l",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "next_action",
 					size: "md",
 					width: "full",

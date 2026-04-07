@@ -6,7 +6,7 @@ import { locator } from "../../api/main/CommonLocator"
 import { px } from "../../gui/size"
 import { copyToClipboard } from "../ClipboardUtils"
 import { InfoLink, lang } from "../LanguageViewModel.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
 import { newPromise } from "@tutao/tutanota-utils"
@@ -97,7 +97,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 			]),
 			m(
 				".flex",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "apply_action",
 					onclick: () => okAction(),
 				}),

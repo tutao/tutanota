@@ -5,7 +5,7 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { theme } from "../../../gui/theme"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -55,7 +55,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 					}),
 				]),
 			),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				label: "deleteKey_action",
 				onclick: async () => {
 					await vnode.attrs.model.deleteAndReloadTrustedKey()

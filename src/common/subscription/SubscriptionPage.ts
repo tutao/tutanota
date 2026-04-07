@@ -15,7 +15,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
-import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { PlanSelector } from "./PlanSelector.js"
 import { styles } from "../gui/styles.js"
@@ -59,7 +59,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices)
 		const promotionMessage = planPrices.getRawPricingData().messageTextId as TranslationKeyType
 
-		const createPaidPlanActionButtons = (planType: PlanType): lazy<LoginButtonAttrs> => {
+		const createPaidPlanActionButtons = (planType: PlanType): lazy<PrimaryButtonAttrs> => {
 			const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
 			const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
 
@@ -74,7 +74,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 				return {
 					label: "pricing.select_action",
 					onclick: () => this.selectFree(data),
-				} as LoginButtonAttrs
+				} as PrimaryButtonAttrs
 			},
 			[PlanType.Revolutionary]: createPaidPlanActionButtons(PlanType.Revolutionary),
 			[PlanType.Legend]: createPaidPlanActionButtons(PlanType.Legend),

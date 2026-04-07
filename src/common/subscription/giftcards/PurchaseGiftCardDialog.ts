@@ -25,7 +25,7 @@ import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { px } from "../../gui/size"
 import { Icon, IconSize } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { MessageBanner } from "../../gui/base/MessageBanner"
 
 class PurchaseGiftCardModel {
@@ -147,7 +147,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 							),
 						),
 						actionButton: () =>
-							m(LoginButton, {
+							m(PrimaryButton, {
 								style: {
 									opacity: model.selectedPackage === index ? "0" : "1",
 								},
@@ -175,7 +175,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 					onMessageChanged: (message) => (model.message = message),
 				}),
 				renderAcceptGiftCardTermsCheckbox(model.confirmed, (checked) => (model.confirmed = checked), "pt-32"),
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "buy_action",
 					class: "mt-32 mb-32",
 					onclick: () => this.onBuyButtonPressed(model, onGiftCardPurchased).catch(ofClass(UserError, showUserError)),
