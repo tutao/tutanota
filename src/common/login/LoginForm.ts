@@ -6,7 +6,7 @@ import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { Keys } from "@tutao/app-env"
 import { useKeyHandler } from "../misc/KeyManager.js"
@@ -130,7 +130,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					: null,
 				m(
 					".pt-16",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
 						onclick: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),

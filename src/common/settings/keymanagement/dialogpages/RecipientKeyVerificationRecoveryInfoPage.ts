@@ -2,7 +2,7 @@ import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../misc/LanguageViewModel"
 import { TitleSection } from "../../../gui/TitleSection"
 import { Icons } from "../../../gui/base/icons/Icons"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { RecipientKeyVerificationRecoveryModel } from "../../../misc/RecipientKeyVerificationRecoveryModel"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
@@ -44,7 +44,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 					}),
 				]),
 			),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
 				label: lang.makeTranslation("reject_recommended", `${lang.get("reject_action")} (${lang.get("recommended_action")})`),
 				onclick: async () => vnode.attrs.goToRejectPage(),

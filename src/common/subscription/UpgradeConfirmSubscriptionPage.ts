@@ -20,7 +20,7 @@ import { assertNotNull, base64ExtToBase64, base64ToUint8Array, neverNull, ofClas
 import { locator } from "../api/main/CommonLocator"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
@@ -193,7 +193,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			),
 			m(
 				".flex-center.full-width.pt-32",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
 					class: "small-login-button",
 					onclick: () => this.upgrade(attrs.data),

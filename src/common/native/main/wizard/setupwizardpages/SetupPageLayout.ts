@@ -1,6 +1,6 @@
 import { emitWizardEvent, WizardEventType } from "../../../../gui/base/WizardDialog.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { LoginButton } from "../../../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../../gui/base/buttons/VariantButtons.js"
 import { TranslationKey } from "../../../../misc/LanguageViewModel.js"
 
 interface SetupPageLayoutAttrs {
@@ -21,7 +21,7 @@ export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 				class: attrs.class,
 			}),
 			children,
-			m(LoginButton, {
+			m(PrimaryButton, {
 				label: attrs.buttonLabel ?? "next_action",
 				class: "wizard-next-button",
 				onclick: (_, dom) => {

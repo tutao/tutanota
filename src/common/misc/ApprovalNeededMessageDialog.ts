@@ -6,7 +6,7 @@ import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { Keys } from "@tutao/app-env"
 import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
 import { theme } from "../gui/theme"
-import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
+import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { locator } from "../api/main/CommonLocator"
 import { ApprovalStatus } from "@tutao/app-env"
@@ -57,7 +57,7 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 		color: theme.primary,
 	}
 	//Button Attributes for fast-track button
-	const buttonFastTrack: LoginButtonAttrs = {
+	const buttonFastTrack: PrimaryButtonAttrs = {
 		label: "fastTrackButtonApproval_action",
 		onclick: fastTrackAction,
 	}
@@ -90,7 +90,7 @@ export async function showApprovalNeededMessageDialog(approvalStatus: ApprovalSt
 				m(
 					".flex-center.col.gap-8.mt-16",
 					m(BannerButton, buttonAutomaticApproval),
-					approvalStatus === ApprovalStatus.DELAYED && m(LoginButton, buttonFastTrack),
+					approvalStatus === ApprovalStatus.DELAYED && m(PrimaryButton, buttonFastTrack),
 				),
 			]),
 		],

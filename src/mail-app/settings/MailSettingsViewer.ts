@@ -53,7 +53,7 @@ import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pic
 import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
 import { client } from "../../common/misc/ClientDetector"
 import { ProgressBar, ProgressBarType } from "../../common/gui/base/ProgressBar"
-import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 
@@ -468,7 +468,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				: [
 						m(
 							".mt-16",
-							m(LoginButton, {
+							m(PrimaryButton, {
 								width: "flex",
 								label: "rebuildSearchIndex_action",
 								onclick: () => this.confirmClearData(),

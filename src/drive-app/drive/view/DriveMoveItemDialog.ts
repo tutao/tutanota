@@ -2,7 +2,7 @@ import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../../../common/gui/theme"
 import { DriveBreadcrumbs, DriveBreadcrumbsAttrs } from "./DriveBreadcrumbs"
-import { LoginButton, TertiaryButton, TertiaryButtonAttrs } from "../../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton, TertiaryButton, TertiaryButtonAttrs } from "../../../common/gui/base/buttons/VariantButtons.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { driveTypeRefs } from "@tutao/typerefs"
@@ -229,7 +229,7 @@ export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBr
 						color: theme.on_surface_variant,
 					},
 				}),
-				m(LoginButton, {
+				m(PrimaryButton, {
 					size: "md",
 					label: "createFolder_action",
 					width: styles.isDesktopLayout() ? "flex" : "full",

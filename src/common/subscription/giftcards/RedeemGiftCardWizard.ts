@@ -31,7 +31,7 @@ import { countryList } from "@tutao/app-env"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
 import { signup } from "../utils/PaymentUtils"
 import { MessageBanner } from "../../gui/base/MessageBanner"
@@ -221,7 +221,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 			),
 			m(
 				".flex-center.full-width.pt-32",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "existingAccount_label",
 					class: "small-login-button",
 					onclick: () => nextPage(GetCredentialsMethod.Login),
@@ -229,7 +229,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 			),
 			m(
 				".flex-center.full-width.pt-32.pb-16",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "register_label",
 					class: "small-login-button",
 					onclick: () => nextPage(GetCredentialsMethod.Signup),
@@ -438,7 +438,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 			),
 			m(
 				".flex-center.full-width.pt-8.pb-16",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "redeem_label",
 					class: "small-login-button",
 					onclick: () => {

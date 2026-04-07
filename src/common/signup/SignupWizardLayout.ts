@@ -15,7 +15,7 @@ import { getTutaLogo, getTutaLogoSignetSvg } from "../gui/base/Logo"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { theme } from "../gui/theme"
 import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
-import { LoginButton } from "../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
@@ -317,7 +317,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 											canTogglePlanSelector &&
 												m(
 													"",
-													m(LoginButton, {
+													m(PrimaryButton, {
 														label: this.seeOtherPlansLabel,
 														onclick: () => {
 															viewModel.inlinePlanSelectorOpen(true)
