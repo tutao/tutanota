@@ -182,7 +182,8 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						height: px(1),
 						display: "block",
 						border: "none",
-						backgroundColor: localTheme.outline_variant,
+						opacity: isSelected ? 0.5 : 1.0,
+						backgroundColor: isSelected ? localTheme.primary : localTheme.outline_variant,
 					},
 				}),
 				m(
