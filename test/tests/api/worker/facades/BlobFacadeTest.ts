@@ -3,20 +3,18 @@ import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "
 import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/rest-client"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
-import { ArchiveDataType } from "../../../../../src/app-env"
+import { ArchiveDataType, Mode, ProgrammingError } from "@tutao/app-env"
 import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { TransferId } from "../../../../../src/common/api/common/drive/DriveTypes"
-import { Mode } from "../../../../../src/app-env"
 
 const { anything, captor } = matchers
 
@@ -135,6 +133,7 @@ o.spec("BlobFacade", function () {
 			env.networkDebugging = false
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcde" as TransferId
 
 			const expectedReferenceTokens = [sysTypeRefs.createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 			const uploadedFileUri = "rawFileUri"
@@ -159,21 +158,30 @@ o.spec("BlobFacade", function () {
 			when(aesAppMock.aesEncryptFile(sessionKey, chunkUris[0])).thenResolve(encryptedFileInfo)
 			const blobHash = "blobHash"
 			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
-			when(fileAppMock.upload(anything(), anything(), anything(), anything())).thenResolve({
+			when(fileAppMock.upload(anything(), anything(), anything(), anything(), anything())).thenResolve({
 				statusCode: 201,
 				responseBody: stringToUtf8Uint8Array(JSON.stringify(blobServiceResponse)),
 			})
+			when(fileAppMock.getFilesMetaData([uploadedFileUri])).thenResolve([
+				{ size: 1024, location: uploadedFileUri, name: "file1", cid: "abc", _type: "FileReference", mimeType: "" },
+			])
 
 			const referenceTokens = await withOverriddenEnv({ mode: Mode.Desktop }, () =>
-				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey),
+				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey, transferId),
 			)
 
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(
-				fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, HttpMethod.POST, {
-					v: String(storageTypeModels[storageTypeRefs.BlobGetInTypeRef.typeId].version),
-					cv: env.versionNumber,
-				}),
+				fileAppMock.upload(
+					encryptedFileInfo.uri,
+					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					HttpMethod.POST,
+					{
+						v: String(storageTypeModels[storageTypeRefs.BlobGetInTypeRef.typeId].version),
+						cv: env.versionNumber,
+					},
+					anything(),
+				),
 			)
 		})
 	})

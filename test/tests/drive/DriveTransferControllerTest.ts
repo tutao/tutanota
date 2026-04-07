@@ -329,7 +329,7 @@ o.spec("DriveTransferController", function () {
 
 			await transferController.upload(file1, "filename", ["listId", "elementId"])
 			await transferController.cancelTransfer(fileId1)
-			verify(driveFacade.cancelCurrentUpload(fileId1))
+			verify(blobFacade.abortUpload(fileId1))
 		})
 
 		o.test("cancel cancels waiting upload", async function () {
