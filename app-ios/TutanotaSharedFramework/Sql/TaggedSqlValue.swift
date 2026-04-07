@@ -17,7 +17,7 @@ public enum SqlType: String {
 	case string(value: String)
 	case bytes(value: DataWrapper)  // Uint8Array
 
-	public func encode(to encoder: Encoder) throws {
+	public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 
 		switch self {
@@ -36,7 +36,7 @@ public enum SqlType: String {
 		}
 	}
 
-	public init(from decoder: Decoder) throws {
+	public init(from decoder: any Decoder) throws {
 		let typeString = try decoder.container(keyedBy: CodingKeys.self).decode(String.self, forKey: .type)
 		guard let type = SqlType(rawValue: typeString) else { fatalError("unknown sql type \(typeString), can't decode") }
 		switch type {

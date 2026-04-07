@@ -4,7 +4,7 @@
 /**
  * Represents an account/list from the device's phonebook.
  */
-public struct ContactBook : Codable {
+public struct ContactBook : Codable, Sendable {
 	public init(
 		id: String,
 		name: String?

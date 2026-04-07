@@ -1,4 +1,5 @@
 import Foundation
+public import Mockable
 
 // iOS (13.3 at least) has a limit on saved alarms which was empirically inferred.
 // It means that only *last* X alarms are stored in the internal plist by SpringBoard.
@@ -10,10 +11,17 @@ let SYSTEM_ALARM_LIMIT = 64
 private let TAG = "AlarmManager"
 private func log(_ message: String) { TUTSLog("\(TAG) \(message)") }
 
+@Mockable public protocol AlarmProcessor: Sendable {
+	func processNewAlarms(_ encryptedAlarmNotifications: [EncryptedAlarmNotification], _ newDeviceSessionKey: String?) throws
+	func resetStoredState()
+	func rescheduleAlarms()
+	func unscheduleAllAlarms(userId: String?)
+}
+
 /// Entry point for dealing with alarms
 /// Receives alarm notifications and makes sure that the persisted state is correct and that alarms are scheduled with the system.
 /// We can only schedule limited number of alarms ahead so they need to be periodically re-scheduled.
-public class AlarmManager {
+public final class AlarmManager: AlarmProcessor, Sendable {
 	private let alarmPersistor: any AlarmPersistor
 	private let alarmCryptor: any AlarmCryptor
 	private let alarmScheduler: any AlarmScheduler
@@ -35,7 +43,7 @@ public class AlarmManager {
 		}
 		// We will modify this list and the overwrite persisted alarms with what is inside this list
 		var savedNotifications = self.alarmPersistor.alarms
-		var resultError: Error?
+		var resultError: (any Error)?
 		for alarmNotification in encryptedAlarmNotifications {
 			try self.storeNewKeyIfNeeded(alarmNotification, newDeviceSessionKey)
 

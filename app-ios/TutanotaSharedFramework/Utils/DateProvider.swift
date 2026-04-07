@@ -1,11 +1,12 @@
 import Foundation
+public import Mockable
 
-public protocol DateProvider {
+@Mockable public protocol DateProvider: Sendable {
 	var now: Date { get }
 	var timeZone: TimeZone { get }
 }
 
-public class SystemDateProvider: DateProvider {
+public final class SystemDateProvider: DateProvider {
 	public init() {}
 	public var now: Date { get { Date() } }
 

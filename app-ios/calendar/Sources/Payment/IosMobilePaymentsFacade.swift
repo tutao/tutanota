@@ -1,7 +1,7 @@
 import CryptoKit
 import StoreKit
 
-public class IosMobilePaymentsFacade: MobilePaymentsFacade {
+public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 	private let ALL_PURCHASEABLE_PLANS = ["revolutionary", "legend"]
 	private let MOBILE_PAYMENT_DOMAIN = "de.tutao.calendar.MobilePayment"
 
@@ -58,10 +58,8 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				)
 
 			let unit = product.subscription!.subscriptionPeriod.unit
-			let formatStyle = product.priceFormatStyle
 			switch unit {
 			case .year:
-				let monthlyPrice = product.price / 12
 				let yearlyPerYearPrice = product.displayPrice
 				let introductoryPrice = product.subscription?.introductoryOffer?.displayPrice
 				let isEligible: Bool = await product.subscription!.isEligibleForIntroOffer

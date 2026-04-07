@@ -1,13 +1,13 @@
 import Contacts
 
-public enum ContactAddressType: String, Codable {
+public enum ContactAddressType: String, Codable, Sendable {
 	case _private = "0"
 	case work = "1"
 	case other = "2"
 	case custom = "3"
 }
 
-public enum ContactPhoneNumberType: String, Codable {
+public enum ContactPhoneNumberType: String, Codable, Sendable {
 	case _private = "0"
 	case work = "1"
 	case mobile = "2"
@@ -16,13 +16,13 @@ public enum ContactPhoneNumberType: String, Codable {
 	case custom = "5"
 }
 
-public enum ContactCustomDateType: String, Codable {
+public enum ContactCustomDateType: String, Codable, Sendable {
 	case anniversary = "0"
 	case other = "1"
 	case custom = "2"
 }
 
-public enum ContactMessengerHandleType: String, Codable {
+public enum ContactMessengerHandleType: String, Codable, Sendable {
 	case signal = "0"
 	case whatsapp = "1"
 	case telegram = "2"
@@ -31,7 +31,7 @@ public enum ContactMessengerHandleType: String, Codable {
 	case custom = "5"
 }
 
-public enum ContactRelationshipType: String, Codable {
+public enum ContactRelationshipType: String, Codable, Sendable {
 	case parent = "0"
 	case brother = "1"
 	case sister = "2"
@@ -46,7 +46,7 @@ public enum ContactRelationshipType: String, Codable {
 	case custom = "11"
 }
 
-public enum ContactWebsiteType: String, Codable {
+public enum ContactWebsiteType: String, Codable, Sendable {
 	case _private = "0"
 	case work = "1"
 	case other = "2"

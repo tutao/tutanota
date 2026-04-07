@@ -4,7 +4,7 @@
 /**
  * Similar to browser's built-in PublicKeyCredentialDescriptor but we only specify ID here
  */
-public struct WebauthnKeyDescriptor : Codable {
+public struct WebauthnKeyDescriptor : Codable, Sendable {
 	public init(
 		id: DataWrapper
 	) {

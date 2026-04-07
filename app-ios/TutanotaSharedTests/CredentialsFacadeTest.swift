@@ -1,21 +1,19 @@
-import Mockingbird
+import Mockable
 import Testing
 import TutanotaSharedFramework
 
 struct CredentialsFacadeTest {
-	private let keychainEncryption = mock(KeychainEncryption.self)
-		.initialize(keychainManager: mock(KeychainManager.self).initialize(keyGenerator: mock(KeyGenerator.self).initialize()))
-	private let credentialsDb = mock(CredentialsStorage.self)
-	private let cryptoFns = mock(CryptoFunctions.self).initialize()
+	private let keychainEncryption = MockKeychainEncryption()
+	private let credentialsDb = MockCredentialsStorage(policy: .relaxedVoid)
+	private let cryptoFns = MockCryptoFunctions()
 	private var facade: IosNativeCredentialsFacade!
-
 	init() {
-		initMockingbird()
-
 		facade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: cryptoFns)
-		given(keychainEncryption.requiresKeyAccessMigration()).willReturn(false)
+		given(keychainEncryption).requiresKeyAccessMigration().willReturn(false)
+		// We need to do it for some reason, maybe because we @retroactively implement protocol below
+		Matcher.register(PersistedCredentials.self)
+		Matcher.register(UnencryptedCredentials.self)
 	}
-
 	private let encryptedCredentials1 = PersistedCredentials(
 		credentialInfo: CredentialsInfo(login: "login1@test.com", userId: "user1", type: CredentialType._internal),
 		accessToken: Data([0x01, 0x0a, 0x0e]).wrap(),
@@ -23,7 +21,6 @@ struct CredentialsFacadeTest {
 		encryptedPassword: "pw1",
 		encryptedPassphraseKey: nil
 	)
-
 	private let decryptedCredentials1 = UnencryptedCredentials(
 		credentialInfo: CredentialsInfo(login: "login1@test.com", userId: "user1", type: CredentialType._internal),
 		accessToken: "decAccessToken1",
@@ -31,7 +28,6 @@ struct CredentialsFacadeTest {
 		encryptedPassword: "pw1",
 		encryptedPassphraseKey: nil
 	)
-
 	private let encryptedCredentials2 = PersistedCredentials(
 		credentialInfo: CredentialsInfo(login: "login2@test.com", userId: "user2", type: CredentialType._internal),
 		accessToken: Data([0x02, 0x0a, 0x0e]).wrap(),
@@ -39,7 +35,6 @@ struct CredentialsFacadeTest {
 		encryptedPassword: "pw2",
 		encryptedPassphraseKey: Data([0x02, 0x0b, 0x0e]).wrap()
 	)
-
 	private let decryptedCredentials2 = UnencryptedCredentials(
 		credentialInfo: CredentialsInfo(login: "login2@test.com", userId: "user2", type: CredentialType._internal),
 		accessToken: "decAccessToken2",
@@ -47,108 +42,104 @@ struct CredentialsFacadeTest {
 		encryptedPassword: "pw2",
 		encryptedPassphraseKey: Data([0x02, 0x0b, 0x0e]).wrap()
 	)
-
 	private let encCredentialsKey = Data([0x0e])
 	private let decCredentialsKey = Data([0x0d])
 	private let reEncryptedCredentialsKey = Data([0x03])
-
 	@Test func test_deleteByUserId_deletes_it_from_the_db() async throws {
 		let userId = "user1"
 		try await facade.deleteByUserId(userId)
-		verify(credentialsDb.delete(userId: userId)).wasCalled()
+		verify(credentialsDb).delete(userId: .value(userId)).called(.once)
 	}
-
 	@Test func test_GetCredentialEncryptionode_returns_null_from_the_db() async throws {
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(nil)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(nil)
 		let mode = try await facade.getCredentialEncryptionMode()
-		XCTAssertNil(mode)
+		#expect(mode == nil)
 	}
-
 	@Test func test_GetCredentialEncryptionode_returns_value_from_the_db() async throws {
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(.systemPassword)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(.systemPassword)
 		let mode = try await facade.getCredentialEncryptionMode()
-		XCTAssertEqual(CredentialEncryptionMode.systemPassword, mode)
+		#expect(mode == .systemPassword)
 	}
-
 	@Test func test_loadAll_returns_credentials_from_the_db() async throws {
-		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
+		given(credentialsDb).getAll().willReturn([encryptedCredentials1, encryptedCredentials2])
 		let loadedCredentials = try await facade.loadAll()
-		XCTAssertEqual([encryptedCredentials1, encryptedCredentials2], loadedCredentials)
+		#expect(loadedCredentials == [encryptedCredentials1, encryptedCredentials2])
 	}
-
 	@Test func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_wo_passphraseKey() async throws {
-		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
-		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
-		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .deviceLock)).willReturn(decCredentialsKey)
-		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
-		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
+		given(credentialsDb).getCredentialEncryptionKey().willReturn(encCredentialsKey)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(CredentialEncryptionMode.deviceLock)
+		given(credentialsDb).getAll().willReturn([encryptedCredentials1, encryptedCredentials2])
+		given(keychainEncryption).decryptUsingKeychain(.value(encCredentialsKey), .value(.deviceLock)).willReturn(decCredentialsKey)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials1.databaseKey!.data), withKey: .value(decCredentialsKey))
+			.willReturn(decryptedCredentials1.databaseKey!.data)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials1.accessToken.data), withKey: .value(decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
+
 		let loadedCredential = try await facade.loadByUserId("user1")
 		#expect(decryptedCredentials1 == loadedCredential)
 	}
-
 	@Test func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_w_passphraseKey() async throws {
-		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
-		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
-		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .deviceLock)).willReturn(decCredentialsKey)
-		given(cryptoFns.aesDecryptData(encryptedCredentials2.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials2.databaseKey!.data)
-		given(cryptoFns.aesDecryptData(encryptedCredentials2.accessToken.data, withKey: decCredentialsKey))
+		given(credentialsDb).getCredentialEncryptionKey().willReturn(encCredentialsKey)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(CredentialEncryptionMode.deviceLock)
+		given(credentialsDb).getAll().willReturn([encryptedCredentials1, encryptedCredentials2])
+		given(keychainEncryption).decryptUsingKeychain(.value(encCredentialsKey), .value(.deviceLock)).willReturn(decCredentialsKey)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials2.databaseKey!.data), withKey: .value(decCredentialsKey))
+			.willReturn(decryptedCredentials2.databaseKey!.data)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials2.accessToken.data), withKey: .value(decCredentialsKey))
 			.willReturn(decryptedCredentials2.accessToken.data(using: .utf8)!)
 		let loadedCredential = try await facade.loadByUserId("user2")
-		XCTAssertEqual(decryptedCredentials2, loadedCredential)
+		#expect(loadedCredential == decryptedCredentials2)
 	}
-
 	@Test func test_loadByUserId_$_when_another_mode_is_selected_the_migration_is_done() async throws {
-		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.systemPassword)
-		given(credentialsDb.getAll()).willReturn([encryptedCredentials1])
-		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .systemPassword)).willReturn(decCredentialsKey)
-		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
-		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
+		given(credentialsDb).getCredentialEncryptionKey().willReturn(encCredentialsKey)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(CredentialEncryptionMode.systemPassword)
+		given(credentialsDb).getAll().willReturn([encryptedCredentials1])
+		given(keychainEncryption).decryptUsingKeychain(.value(encCredentialsKey), .value(.systemPassword)).willReturn(decCredentialsKey)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials1.databaseKey!.data), withKey: .value(decCredentialsKey))
+			.willReturn(decryptedCredentials1.databaseKey!.data)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials1.accessToken.data), withKey: .value(decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
-		given(await keychainEncryption.encryptUsingKeychain(decCredentialsKey, .deviceLock)).willReturn(reEncryptedCredentialsKey)
+		given(keychainEncryption).encryptUsingKeychain(.value(decCredentialsKey), .value(.deviceLock)).willReturn(reEncryptedCredentialsKey)
 		let loadedCredential = try await facade.loadByUserId("user1")
-		XCTAssertEqual(decryptedCredentials1, loadedCredential)
-		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: reEncryptedCredentialsKey)).wasCalled()
+		#expect(loadedCredential == decryptedCredentials1)
+		verify(credentialsDb).setCredentialEncryptionKey(encryptionKey: .value(reEncryptedCredentialsKey)).called(.once)
 	}
-
 	@Test func test_loadByUserId_$_when_key_access_migration_is_required_the_migration_is_done() async throws {
-		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
-		given(keychainEncryption.requiresKeyAccessMigration()).willReturn(true)
-		given(credentialsDb.getAll()).willReturn([encryptedCredentials1])
-		given(await keychainEncryption.decryptUsingKeychain(encCredentialsKey, .deviceLock)).willReturn(decCredentialsKey)
-		given(cryptoFns.aesDecryptData(encryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey)).willReturn(decryptedCredentials1.databaseKey!.data)
-		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
+		given(credentialsDb).getCredentialEncryptionKey().willReturn(encCredentialsKey)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(CredentialEncryptionMode.deviceLock)
+		// we have to reset the default mock for requiresKeyAccessMigration()
+		keychainEncryption.reset()
+		given(keychainEncryption).requiresKeyAccessMigration().willReturn(true)
+		given(credentialsDb).getAll().willReturn([encryptedCredentials1])
+		given(keychainEncryption).decryptUsingKeychain(.value(encCredentialsKey), .value(.deviceLock)).willReturn(decCredentialsKey)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials1.databaseKey!.data), withKey: .value(decCredentialsKey))
+			.willReturn(decryptedCredentials1.databaseKey!.data)
+		given(cryptoFns).aesDecryptData(.value(encryptedCredentials1.accessToken.data), withKey: .value(decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
-		given(await keychainEncryption.encryptUsingKeychain(decCredentialsKey, .deviceLock)).willReturn(reEncryptedCredentialsKey)
+		given(keychainEncryption).encryptUsingKeychain(.value(decCredentialsKey), .value(.deviceLock)).willReturn(reEncryptedCredentialsKey)
 		let loadedCredential = try await facade.loadByUserId("user1")
-		XCTAssertEqual(decryptedCredentials1, loadedCredential)
-		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: reEncryptedCredentialsKey)).wasCalled()
+		#expect(loadedCredential == decryptedCredentials1)
+		verify(credentialsDb).setCredentialEncryptionKey(encryptionKey: .value(reEncryptedCredentialsKey)).called(.once)
 	}
-
 	@Test func test_store_$_when_there_is_no_key_it_generates_and_stores_one() async throws {
-		given(credentialsDb.getCredentialEncryptionKey()).willReturn(nil)
-		given(cryptoFns.aesGenerateKey()).willReturn(decCredentialsKey)
-		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
-		given(credentialsDb.getAll()).willReturn([])
-		given(await keychainEncryption.encryptUsingKeychain(decCredentialsKey, .deviceLock)).willReturn(encCredentialsKey)
-		given(cryptoFns.aesEncryptData(decryptedCredentials1.databaseKey!.data, withKey: decCredentialsKey, withIV: any()))
+		given(credentialsDb).getCredentialEncryptionKey().willReturn(nil)
+		given(cryptoFns).aesGenerateKey().willReturn(decCredentialsKey)
+		given(credentialsDb).getCredentialEncryptionMode().willReturn(CredentialEncryptionMode.deviceLock)
+		given(credentialsDb).getAll().willReturn([])
+		given(keychainEncryption).encryptUsingKeychain(.value(decCredentialsKey), .value(.deviceLock)).willReturn(encCredentialsKey)
+		given(cryptoFns).aesEncryptData(.value(decryptedCredentials1.databaseKey!.data), withKey: .value(decCredentialsKey), withIV: .any)
 			.willReturn(encryptedCredentials1.databaseKey!.data)
-		given(cryptoFns.aesEncryptData(decryptedCredentials1.accessToken.data(using: .utf8)!, withKey: decCredentialsKey, withIV: any()))
+		given(cryptoFns).aesEncryptData(.value(decryptedCredentials1.accessToken.data(using: .utf8)!), withKey: .value(decCredentialsKey), withIV: .any)
 			.willReturn(encryptedCredentials1.accessToken.data)
 		try await facade.store(decryptedCredentials1)
-		verify(credentialsDb.store(credentials: encryptedCredentials1)).wasCalled()
+		verify(credentialsDb).store(credentials: .value(encryptedCredentials1)).called(.once)
 	}
-
 	@Test func test_migrate_stores_everything() async throws {
 		try await facade.migrateToNativeCredentials([encryptedCredentials1, encryptedCredentials2], .biometrics, encCredentialsKey.wrap())
-		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: encCredentialsKey)).wasCalled()
-		verify(credentialsDb.setCredentialEncryptionMode(encryptionMode: .biometrics)).wasCalled()
-		verify(credentialsDb.store(credentials: encryptedCredentials1)).wasCalled()
-		verify(credentialsDb.store(credentials: encryptedCredentials2)).wasCalled()
+		verify(credentialsDb).setCredentialEncryptionKey(encryptionKey: .value(encCredentialsKey)).called(.once)
+		verify(credentialsDb).setCredentialEncryptionMode(encryptionMode: .value(.biometrics)).called(.once)
+		verify(credentialsDb).store(credentials: .value(encryptedCredentials1)).called(.once)
+		verify(credentialsDb).store(credentials: .value(encryptedCredentials2)).called(.once)
 	}
 }
 

@@ -3,7 +3,7 @@
 
 import Foundation
 
-public protocol SqlCipherFacade {
+public protocol SqlCipherFacade : Sendable {
 	func openDb(
 		_ userId: String,
 		_ dbKey: DataWrapper

@@ -6,7 +6,7 @@ import Foundation
 /**
  * implementation of the WebAuthn protocol
  */
-public protocol WebAuthnFacade {
+public protocol WebAuthnFacade : Sendable {
 	/**
 	 * register for webauthn
 	 */

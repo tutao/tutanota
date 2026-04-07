@@ -97,4 +97,4 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 	}
 }
 
-private func CryptoError(message: String) -> Error { TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: message) }
+private func CryptoError(message: String) -> any Error { TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: message) }

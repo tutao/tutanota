@@ -4,7 +4,7 @@
 /**
  * Key definition for shortcuts.
  */
-public struct NativeKey : Codable {
+public struct NativeKey : Codable, Sendable {
 	public init(
 		code: Int,
 		name: String

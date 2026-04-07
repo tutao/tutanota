@@ -6,7 +6,7 @@ import Foundation
 /**
  * Push notifications and alarms operations
  */
-public protocol NativePushFacade {
+public protocol NativePushFacade : Sendable {
 	func getPushIdentifier(
 	) async throws -> String?
 	func storePushIdentifierLocally(

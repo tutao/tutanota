@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct StructuredWebsite : Codable {
+public struct StructuredWebsite : Codable, Sendable {
 	public init(
 		url: String,
 		type: ContactWebsiteType,

@@ -14,13 +14,13 @@ let DEFAULT_CALENDAR_NAME = translate("TutaoDefaultCalendarNameTitle", default: 
 let DEFAULT_CALENDAR_COLOR = "23f520"
 
 struct CalendarEntity: AppEntity {
-	static var defaultQuery: CalendarQuery = CalendarQuery()
+	static let defaultQuery: CalendarQuery = CalendarQuery()
 
 	var id: String
 	var name: String
 	var color: String
 
-	static var typeDisplayRepresentation: TypeDisplayRepresentation = "Calendar"
+	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Calendar"
 
 	var displayRepresentation: DisplayRepresentation { DisplayRepresentation(title: LocalizedStringResource(stringLiteral: name)) }
 

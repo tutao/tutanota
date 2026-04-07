@@ -4,7 +4,7 @@
 /**
  * Search-in-page result by Electron.
  */
-public struct ElectronResult : Codable {
+public struct ElectronResult : Codable, Sendable {
 	public init(
 		matches: Int,
 		activeMatchOrdinal: Int

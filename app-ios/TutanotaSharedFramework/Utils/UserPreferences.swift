@@ -3,7 +3,7 @@ import Foundation
 /// User settings provider
 ///
 /// This is abstracted into an interface for better testability.
-public protocol UserPreferencesProvider {
+public protocol UserPreferencesProvider: Sendable {
 	/// Get the settings object for the given key.
 	///
 	/// Parameters:
@@ -27,7 +27,10 @@ public protocol UserPreferencesProvider {
 /// User preferences implementation.
 ///
 /// This interacts with the actual user preferences for the Tuta app.
-public class UserPreferencesProviderImpl: UserPreferencesProvider {
+public final class UserPreferencesProviderImpl: UserPreferencesProvider,
+	// UserDefaults is thread-safe but not marked as such
+	@unchecked Sendable
+{
 	private let userDefault = UserDefaults(suiteName: getAppGroupName())!
 	public init() {}
 

@@ -1,4 +1,5 @@
 import Foundation
+public import Mockable
 
 public enum HttpMethod: String {
 	case get = "GET"
@@ -8,7 +9,9 @@ public enum HttpMethod: String {
 	case patch = "PATCH"
 }
 
-public protocol HttpClient { func fetch(url: URL, method: HttpMethod, headers: [String: String], body: Data?) async throws -> (Data, HTTPURLResponse) }
+@Mockable public protocol HttpClient: Sendable {
+	func fetch(url: URL, method: HttpMethod, headers: [String: String], body: Data?) async throws -> (Data, HTTPURLResponse)
+}
 
 public extension HttpClient {
 	func fetch(url: URL, method: HttpMethod = .get, headers: [String: String] = [:], body: Data? = nil) async throws -> (Data, HTTPURLResponse) {
@@ -16,7 +19,7 @@ public extension HttpClient {
 	}
 }
 
-public class URLSessionHttpClient: HttpClient {
+public final class URLSessionHttpClient: HttpClient {
 	private let session: URLSession
 
 	public init(session: URLSession) { self.session = session }

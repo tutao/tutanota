@@ -4,7 +4,7 @@
 /**
  * Key definition for shortcuts.
  */
-public struct PersistedCredentials : Codable {
+public struct PersistedCredentials : Codable, Sendable {
 	public init(
 		credentialInfo: CredentialsInfo,
 		accessToken: DataWrapper,

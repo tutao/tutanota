@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class NativeCredentialsFacadeReceiveDispatcher {
-	let facade: NativeCredentialsFacade
-	init(facade: NativeCredentialsFacade) {
+public final class NativeCredentialsFacadeReceiveDispatcher: Sendable {
+	let facade: any NativeCredentialsFacade
+	init(facade: any NativeCredentialsFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

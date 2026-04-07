@@ -6,7 +6,7 @@ import Foundation
 /**
  * Common operations used by all native platforms.
  */
-public protocol CommonNativeFacade {
+public protocol CommonNativeFacade : Sendable {
 	/**
 	 * Opens mail editor to write a new email. If `mailToUrlString` is specified it takes priority.
 	 */

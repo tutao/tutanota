@@ -4,7 +4,7 @@
 /**
  * Result of the `encryptFile()` operation.
  */
-public struct EncryptedFileInfo : Codable {
+public struct EncryptedFileInfo : Codable, Sendable {
 	public init(
 		uri: String,
 		unencryptedSize: Int

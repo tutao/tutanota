@@ -31,7 +31,8 @@
 		"check": "npm run style:check && npm run lint:check",
 		"fix": "npm run style:fix && npm run lint:fix",
 		"trace-imports": "node --import ./buildSrc/review/import-hooks.js",
-		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json"
+		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json",
+		"ios:generate-project": "cd app-ios && xcodegen --spec mail-project.yml && xcodegen --spec calendar-project.yml"
 	},
 	"dependencies": {
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#35b3e9acdbd9f186675523eb7a38af4899cb0bea",

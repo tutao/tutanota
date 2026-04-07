@@ -17,7 +17,7 @@ export class SwiftGenerator implements LangGenerator {
 	handleStructDefinition(definition: StructDefinition): string {
 		const acc = new Accumulator()
 		this.generateDocComment(acc, definition.doc)
-		acc.line(`public struct ${definition.name} : Codable {`)
+		acc.line(`public struct ${definition.name} : Codable, Sendable {`)
 		const fieldGenerator = acc.indent()
 
 		fieldGenerator.line("public init(")
@@ -59,7 +59,7 @@ export class SwiftGenerator implements LangGenerator {
 		acc.line("import Foundation")
 		acc.line()
 		this.generateDocComment(acc, definition.doc)
-		acc.line(`public protocol ${definition.name} {`)
+		acc.line(`public protocol ${definition.name} : Sendable {`)
 		const methodAcc = acc.indent()
 		for (const [name, methodDefinition] of Object.entries(definition.methods)) {
 			this.generateDocComment(methodAcc, methodDefinition.doc)
@@ -93,10 +93,10 @@ export class SwiftGenerator implements LangGenerator {
 		const acc = new Accumulator()
 		acc.line("import Foundation")
 		acc.line()
-		acc.line(`public class ${definition.name}ReceiveDispatcher {`)
+		acc.line(`public final class ${definition.name}ReceiveDispatcher: Sendable {`)
 		const methodAcc = acc.indent()
-		methodAcc.line(`let facade: ${definition.name}`)
-		methodAcc.line(`init(facade: ${definition.name}) {`)
+		methodAcc.line(`let facade: any ${definition.name}`)
+		methodAcc.line(`init(facade: any ${definition.name}) {`)
 		methodAcc.indent().line(`self.facade = facade`)
 		methodAcc.line(`}`)
 
@@ -144,7 +144,7 @@ export class SwiftGenerator implements LangGenerator {
 
 	generateGlobalDispatcher(name: string, facadeNames: Array<string>): string {
 		return new Accumulator()
-			.line(`public class ${name} {`)
+			.line(`public final class ${name}: Sendable {`)
 			.indented((acc) =>
 				acc
 					.lines(facadeNames.map((facadeName) => `private let ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher`))
@@ -152,7 +152,7 @@ export class SwiftGenerator implements LangGenerator {
 					.line(`public init(`)
 					.indented((acc) =>
 						acc.lines(
-							facadeNames.map((name) => `${minusculize(name)} : ${name}`),
+							facadeNames.map((name) => `${minusculize(name)} : any ${name}`),
 							{ suffix: ",", trailing: false },
 						),
 					)
@@ -186,10 +186,10 @@ export class SwiftGenerator implements LangGenerator {
 		const acc = new Accumulator()
 		acc.line("import Foundation")
 		acc.line()
-		acc.line(`public class ${definition.name}SendDispatcher : ${definition.name} {`)
+		acc.line(`public final class ${definition.name}SendDispatcher : ${definition.name} {`)
 		const classBodyAcc = acc.indent()
-		classBodyAcc.line(`private let transport: NativeInterface`)
-		classBodyAcc.line(`public init(transport: NativeInterface) { self.transport = transport }`)
+		classBodyAcc.line(`private let transport: any NativeInterface`)
+		classBodyAcc.line(`public init(transport: any NativeInterface) { self.transport = transport }`)
 		classBodyAcc.line()
 		for (const [methodName, methodDefinition] of Object.entries(definition.methods)) {
 			SwiftGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition, "public")
@@ -232,7 +232,7 @@ export class SwiftGenerator implements LangGenerator {
 
 	private static generateNativeInterface(): string {
 		const acc = new Accumulator()
-		acc.line(`public protocol NativeInterface {`)
+		acc.line(`public protocol NativeInterface : Sendable {`)
 		acc.indent().line(`func sendRequest(requestType: String, args: [String]) async throws -> String`)
 		acc.line(`}`)
 		acc.line()
@@ -250,7 +250,7 @@ export class SwiftGenerator implements LangGenerator {
 	generateEnum({ name, values, doc }: EnumDefinition): string {
 		return new Accumulator()
 			.do((acc) => this.generateDocComment(acc, doc))
-			.line(`public enum ${name}: String, Codable {`)
+			.line(`public enum ${name}: String, Codable, Sendable {`)
 			.indented((acc) => acc.lines(values.map((value, index) => `case ${camelCaseToSnakeCase(value)} = "${index}"`))) // enums are snake_case
 			.line("}")
 			.finish()

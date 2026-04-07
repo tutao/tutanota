@@ -2,7 +2,7 @@ import Contacts
 
 public func acquireContactsPermission() async throws {
 	let hasPermission = await requestContactsPermission()
-	if !hasPermission { throw PermissionError(message: "Missing permission to handle contacts") }
+	if !hasPermission { throw PermissionError(message: "Missing permission to handle contacts", underlyingError: nil) }
 }
 
 private func requestContactsPermission() async -> Bool {

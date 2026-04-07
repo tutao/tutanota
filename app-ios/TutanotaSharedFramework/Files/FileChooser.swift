@@ -1,25 +1,22 @@
 import Photos
-import PhotosUI
-import TutanotaSharedFramework
+public import PhotosUI
 import UIKit
 
 /// Utility class which shows pickers for files.
-class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIPopoverPresentationControllerDelegate,
+public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIPopoverPresentationControllerDelegate,
 	UIDocumentPickerDelegate
 {
 	private let sourceController: UIViewController
-	private let cameraImage: UIImage
-	private let photoLibImage: UIImage
 	private let imagePickerController: UIImagePickerController
 	private let supportedUTIs: [String]
-	private var resultHandler: ((sending Result<[String], Error>) -> Void)?
+	private var resultHandler: ((sending Result<[String], any Error>) -> Void)?
+	private let openSettings: () -> Void
 
-	init(viewController: UIViewController) {
+	public init(viewController: UIViewController, openSettings: @escaping () -> Void) {
 		supportedUTIs = ["public.content", "public.archive", "public.data"]
 		sourceController = viewController
+		self.openSettings = openSettings
 		imagePickerController = UIImagePickerController()
-		cameraImage = IconFactory.createFontImage(iconId: TUT_ICON_CAMERA, fontName: "ionicons", fontSize: 34)
-		photoLibImage = IconFactory.createFontImage(iconId: TUT_ICON_FILES, fontName: "ionicons", fontSize: 34)
 		super.init()
 		imagePickerController.delegate = self
 	}
@@ -90,17 +87,17 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 	}
 
 	// from UIPopoverPresentationControllerDelegate
-	func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) { sendResult(filePath: nil) }
+	public func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) { sendResult(filePath: nil) }
 
-	func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+	public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
 		copyFileToLocalFolderAndSendResult(srcUrl: url, filename: url.lastPathComponent)
 	}
 
 	// from UIDocumentPickerDelegate protocol
-	func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) { sendResult(filePath: nil) }
+	public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) { sendResult(filePath: nil) }
 
 	// from UIImagePickerControllerDelegate protocol
-	func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+	public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
 		// we have to copy the file into a folder of this app.
 		let targetFolder: String
 		do { targetFolder = try FileUtils.getDecryptedFolder() } catch {
@@ -141,7 +138,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 	}
 
 	// from UIImagePickerControllerDelegate protocol
-	func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+	public func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
 		sourceController.dismiss(animated: true) { [weak self] in self?.sendResult(filePath: nil) }
 	}
 
@@ -155,7 +152,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 		}
 	}
 
-	private func copyToLocalFolder(srcUrl: URL, filename: String) throws -> URL {
+	nonisolated private func copyToLocalFolder(srcUrl: URL, filename: String) throws -> URL {
 		let fileManager = FileManager.default
 		let decryptedFolder: String = try FileUtils.getDecryptedFolder()
 
@@ -172,7 +169,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 		return targetUrl
 	}
 
-	func generateFileName(prefixString: String, withExtension extensionString: String?) -> String {
+	nonisolated func generateFileName(prefixString: String, withExtension extensionString: String?) -> String {
 		let time = Date()
 		let df = DateFormatter()
 		df.dateFormat = "hhmmss"
@@ -195,7 +192,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 		resultHandler = nil
 	}
 
-	func sendError(error: Error) {
+	func sendError(error: any Error) {
 		resultHandler?(.failure(error))
 		resultHandler = nil
 	}
@@ -211,12 +208,9 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 		let cancelAction = UIAlertAction(title: cancelActionLabel, style: .cancel, handler: nil)
 		alertController.addAction(cancelAction)
 
-		let settingsAction = UIAlertAction(title: settingsActionLabel, style: .default) { _ in
-			UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!, options: [:], completionHandler: nil)
-		}
+		let settingsAction = UIAlertAction(title: settingsActionLabel, style: .default) { _ in self.openSettings() }
 		alertController.addAction(settingsAction)
-		let keyWindow = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.last
-		keyWindow?.rootViewController?.present(alertController, animated: true, completion: nil)
+		sourceController.present(alertController, animated: true, completion: nil)
 		sendResult(filePath: nil)
 	}
 
@@ -230,49 +224,45 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
 	/**
         Invoked when user finished picking the files.
      */
-	func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+	public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
 		picker.dismiss(animated: true, completion: nil)
+		Task {
+			var urls = [URL]()
 
-		// Each item can be of different type. We must ask the result what type we can
-		// get, ask to load it and then copy the result to the local folder because URL
-		// will stop being valid after the callback returns.
-		// We use waitGroup to wait for all of these async callbacks.
-		let waitGroup = DispatchGroup()
-		var urls = [URL]()
-
-		func requestFileOfType(result: PHPickerResult, type: String) -> Bool {
-			if result.itemProvider.hasItemConformingToTypeIdentifier(type) {
-				waitGroup.enter()
-				result.itemProvider.loadFileRepresentation(forTypeIdentifier: type) { (url, error) in
-					if let url {
-						do {
-							let resultUrl = try self.copyToLocalFolder(srcUrl: url, filename: url.lastPathComponent)
-							urls.append(resultUrl)
-						} catch { TUTSLog("Error while copying \(type) to local folder: \(error)") }
-					} else {
-						TUTSLog("Error while loading \(type): \(error.debugDescription)")
+			func requestFileOfType(result: PHPickerResult, type: String) async -> URL? {
+				if result.itemProvider.hasItemConformingToTypeIdentifier(type) {
+					return try? await withCheckedThrowingContinuation { cont in
+						result.itemProvider.loadFileRepresentation(forTypeIdentifier: type) { (url, error) in
+							if let error {
+								cont.resume(throwing: error)
+							} else {
+								let copyResult = Result { try self.copyToLocalFolder(srcUrl: url!, filename: url!.lastPathComponent) }
+								cont.resume(with: copyResult)
+							}
+						}
 					}
-					waitGroup.leave()
+				} else {
+					return nil
 				}
-				return true
-			} else {
-				return false
 			}
-		}
-
-		for result in results {
-			var succeeded = false
-			// Try out multiple formats until we get one which is supported.
-			// We request jpeg and png instead of public.image to not get .heic
-			// if Apple changes their default public.image format
-			for type in ["public.jpeg", "public.png", "public.movie"] where requestFileOfType(result: result, type: type) {
-				succeeded = true
-				break
+			func getFileCopy(result: PHPickerResult) async -> URL? {
+				for type in ["public.jpeg", "public.png", "public.movie"] {
+					if let resultUrl = await requestFileOfType(result: result, type: type) { return resultUrl }
+				}
+				return nil
 			}
-			if !succeeded { TUTSLog("Could not copy result of unknown type: \(result)") }
-		}
 
-		// Notify us when all callbacks have returned so that we can send the result
-		waitGroup.notify(queue: DispatchQueue.main) { self.sendMultipleResults(filePaths: urls.map { $0.path }) }
+			for result in results {
+				// Try out multiple formats until we get one which is supported.
+				// We request jpeg and png instead of public.image to not get .heic
+				// if Apple changes their default public.image format
+				if let resultUrl = await getFileCopy(result: result) {
+					urls.append(resultUrl)
+				} else {
+					TUTSLog("Could not copy result of unknown type: \(result)")
+				}
+			}
+			self.sendMultipleResults(filePaths: urls.map { $0.path })
+		}
 	}
 }

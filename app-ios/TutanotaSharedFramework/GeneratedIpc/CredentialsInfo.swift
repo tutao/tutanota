@@ -4,7 +4,7 @@
 /**
  * Key definition for shortcuts.
  */
-public struct CredentialsInfo : Codable {
+public struct CredentialsInfo : Codable, Sendable {
 	public init(
 		login: String,
 		userId: String,

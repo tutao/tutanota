@@ -6,7 +6,7 @@ import Foundation
 /**
  * Contact-related funcionality on mobile.
  */
-public protocol MobileContactsFacade {
+public protocol MobileContactsFacade : Sendable {
 	/**
 	 * Find suggestions in the OS contact provider.
 	 */

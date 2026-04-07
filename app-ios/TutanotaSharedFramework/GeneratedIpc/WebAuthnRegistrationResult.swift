@@ -4,7 +4,7 @@
 /**
  * Result of Webauthn registration with hardware key.
  */
-public struct WebAuthnRegistrationResult : Codable {
+public struct WebAuthnRegistrationResult : Codable, Sendable {
 	public init(
 		rpId: String,
 		rawId: DataWrapper,

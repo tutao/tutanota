@@ -6,7 +6,7 @@ import Foundation
 /**
  * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
  */
-public protocol FileFacade {
+public protocol FileFacade : Sendable {
 	/**
 	 * Opens the file with the built-in viewer or external program.
 	 */

@@ -1,16 +1,16 @@
-import Contacts
+@preconcurrency import Contacts
 import Foundation
 
-private let ALL_SUPPORTED_CONTACT_KEYS: [CNKeyDescriptor] =
+private let ALL_SUPPORTED_CONTACT_KEYS: [any CNKeyDescriptor] =
 	[
 		CNContactIdentifierKey, CNContactGivenNameKey, CNContactFamilyNameKey, CNContactNicknameKey, CNContactOrganizationNameKey, CNContactBirthdayKey,
 		CNContactEmailAddressesKey, CNContactPhoneNumbersKey, CNContactPostalAddressesKey, CNContactDatesKey, CNContactDepartmentNameKey,
 		CNContactInstantMessageAddressesKey, CNContactMiddleNameKey, CNContactNameSuffixKey, CNContactPhoneticGivenNameKey, CNContactPhoneticMiddleNameKey,
 		CNContactPhoneticFamilyNameKey, CNContactRelationsKey, CNContactUrlAddressesKey, CNContactNamePrefixKey, CNContactJobTitleKey,
-	] as [CNKeyDescriptor]
+	] as [any CNKeyDescriptor]
 
 /// Provides a simplified interface for the iOS Contacts framework
-class NativeContactStoreFacade {
+final class NativeContactStoreFacade: Sendable {
 
 	/// Query the local container, ignoring the user's choices for the default contacts location.
 	/// This prevent other apps, as Gmail or even iCloud, from 'stealing' and moving our contacts to their lists.
@@ -74,7 +74,7 @@ class NativeContactStoreFacade {
 		// we now need to create a request to remove all contacts from the user that match an id in idsToRemove
 		// it is OK if we are missing some contacts, as they are likely already deleted
 		let store = CNContactStore()
-		let fetch = self.makeContactFetchRequest(forKeys: [CNContactIdentifierKey] as [CNKeyDescriptor])
+		let fetch = self.makeContactFetchRequest(forKeys: [CNContactIdentifierKey] as [any CNKeyDescriptor])
 
 		fetch.predicate = CNContact.predicateForContactsInGroup(withIdentifier: group.identifier)
 		let save = CNSaveRequest()
@@ -105,7 +105,7 @@ class NativeContactStoreFacade {
 	/// Returns the full names and email addresses of any contacts that match the name `query` (case insensitive)
 	func queryContactSuggestions(query: String, upTo: Int) throws -> [ContactSuggestion] {
 		let contactsStore = CNContactStore()
-		let keysToFetch: [CNKeyDescriptor] = [
+		let keysToFetch: [any CNKeyDescriptor] = [
 			CNContactEmailAddressesKey as NSString,  // only NSString is CNKeyDescriptor
 			CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
 		]
@@ -155,7 +155,7 @@ class NativeContactStoreFacade {
 	/// Remove one or more contacts from the contact store via their local iOS contact IDs
 	func delete(localContacts nativeIdentifiersToRemove: [String]) throws {
 		let store = CNContactStore()
-		let fetch = makeContactFetchRequest(forKeys: [CNContactIdentifierKey] as [CNKeyDescriptor])
+		let fetch = makeContactFetchRequest(forKeys: [CNContactIdentifierKey] as [any CNKeyDescriptor])
 
 		fetch.predicate = CNContact.predicateForContacts(withIdentifiers: nativeIdentifiersToRemove)
 		let save = CNSaveRequest()
@@ -177,7 +177,7 @@ class NativeContactStoreFacade {
 	}
 
 	/// Create a fetch request that also loads data for a set of keys on each contact, ensuring that only real, non-unified contacts are pulled from the contact store.
-	private func makeContactFetchRequest(forKeys keysToFetch: [CNKeyDescriptor]) -> CNContactFetchRequest {
+	private func makeContactFetchRequest(forKeys keysToFetch: [any CNKeyDescriptor]) -> CNContactFetchRequest {
 		let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch)
 		fetchRequest.unifyResults = false
 		return fetchRequest

@@ -1,6 +1,6 @@
 /// How to encrypt credentials
-public enum CredentialEncryptionMode: String, Codable, CaseIterable {
-	public static var allCases: [CredentialEncryptionMode] = [.deviceLock, .systemPassword, .biometrics]
+public enum CredentialEncryptionMode: String, Codable, CaseIterable, Sendable {
+	public static let allCases: [CredentialEncryptionMode] = [.deviceLock, .systemPassword, .biometrics]
 
 	/// Automatic unlock when the system is initialized
 	/// The only mode that should be used now.

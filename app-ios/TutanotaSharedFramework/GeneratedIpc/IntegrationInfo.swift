@@ -4,7 +4,7 @@
 /**
  * Status of desktop integration.
  */
-public struct IntegrationInfo : Codable {
+public struct IntegrationInfo : Codable, Sendable {
 	public init(
 		isMailtoHandler: Bool,
 		isAutoLaunchEnabled: Bool,
