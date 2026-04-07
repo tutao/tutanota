@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons, TutaFavicon } from "../../gui/base/icons/Icons.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { Card } from "../../gui/base/Card.js"
-import { SectionButton, SectionButtonAttrs } from "../../gui/base/buttons/SectionButton.js"
+import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
@@ -22,7 +22,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 			".pt-16.pb-16",
 			m(
 				Card,
-				{ shouldDivide: true },
+				{ classes: ["mb-8"] },
 				m("div.pt-8.pb-8.plr-12", [
 					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
 					m("p", lang.get("supportNoDirectSupport_msg")),
@@ -38,15 +38,15 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 						},
 					}),
 				]),
-				m(SectionButton, {
-					text: { text: "Tuta FAQ", testId: "" },
-					leftIcon: { icon: Icons.TutaFavicon, title: "supportMenu_label" },
-					rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
-					onclick: () => {
-						windowFacade.openLink("https://tuta.com/support")
-					},
-				}),
 			),
+			m(SectionButton, {
+				text: { text: "Tuta FAQ", testId: "" },
+				leftIcon: { icon: Icons.TutaFavicon, title: "supportMenu_label" },
+				rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
+				onclick: () => {
+					windowFacade.openLink("https://tuta.com/support")
+				},
+			}),
 			this.renderUpgradeButton(data, goToContactSupportPage),
 		)
 	}

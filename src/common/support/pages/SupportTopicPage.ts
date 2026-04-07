@@ -134,7 +134,7 @@ class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 		return m(
 			".flex.flex-column.gap-8",
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.get("wasThisHelpful_msg")),
-			m(Card, { shouldDivide: true }, [
+			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", [
 				m(SectionButton, {
 					text: "yes_label",
 					onclick: () => {

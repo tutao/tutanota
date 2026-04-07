@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Card } from "../../gui/base/Card.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
@@ -8,6 +7,7 @@ import { client } from "../../misc/ClientDetector"
 import { TUTA_CALENDAR_APP_STORE_URL, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Dialog } from "../../gui/base/Dialog.js"
+import { Card } from "../../gui/base/Card"
 
 type SupportSuccessPageAttrs = {
 	dialog: Dialog
@@ -19,7 +19,6 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 			".pt-16.pb-16",
 			m(
 				Card,
-				{ shouldDivide: true },
 				m(
 					".plr-12",
 					m(".h4.center.pb-8.pt-8", lang.get("supportSuccess_msg")),
@@ -36,8 +35,8 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 						}),
 					),
 				),
-				this.renderAppStoreLinks(vnode.attrs.dialog),
 			),
+			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", this.renderAppStoreLinks(vnode.attrs.dialog)),
 		)
 	}
 
@@ -75,7 +74,8 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 				windowFacade.openLink(url)
 			},
-			rightIcon: { icon: Icons.OpenFilled, title: "open_action" },
+			rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
+			leftIcon: { icon: Icons.LogoAppStore, title: "rateAppStore_action" },
 		})
 	}
 
@@ -92,7 +92,8 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 				windowFacade.openLink(url)
 			},
-			rightIcon: { icon: Icons.OpenFilled, title: "open_action" },
+			rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
+			leftIcon: { icon: Icons.LogoPlaystore, title: "rateGooglePlay_action" },
 		})
 	}
 }

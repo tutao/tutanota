@@ -24,7 +24,7 @@ export class SupportCategoryPage implements Component<Props> {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 
-		return m(".pt-16.pb-16.flex.col.gap-16", [
+		return m(".pt-16.pb-16.flex.col", [
 			m(Card, [
 				m(
 					"",
@@ -32,7 +32,7 @@ export class SupportCategoryPage implements Component<Props> {
 					m("p.mt-4.mb-8", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 				),
 			]),
-			m(Card, { shouldDivide: true }, [
+			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", [
 				currentlySelectedCategory!.topics.map((topic) =>
 					m(SectionButton, {
 						text: { text: getTopicIssue(topic, languageTag), testId: "" },
@@ -49,7 +49,6 @@ export class SupportCategoryPage implements Component<Props> {
 							topicStage.setMetric({ name: "Topic", value: `${currentlySelectedCategory.nameEN.replaceAll(" ", "")}_other` })
 							void topicStage.complete()
 						}
-
 						goToContactSupport()
 					},
 				}),
