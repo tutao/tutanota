@@ -147,6 +147,11 @@ class MainActivity : FragmentActivity() {
 					lifecycleScope.launch {
 						commonNativeFacade.downloadProgress(fileId, bytes)
 					}
+				},
+				{ fileId, bytes ->
+					lifecycleScope.launch {
+						commonNativeFacade.uploadProgress(fileId, bytes)
+					}
 				})
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)

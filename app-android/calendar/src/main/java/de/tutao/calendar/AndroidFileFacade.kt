@@ -48,8 +48,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okio.Buffer
 import okio.BufferedSink
-import okio.buffer
 import okio.source
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BoundedInputStream
@@ -73,7 +73,8 @@ class AndroidFileFacade(
 	private val localNotificationsFacade: LocalNotificationsFacade,
 	private val random: SecureRandom,
 	private val defaultClient: OkHttpClient,
-	private val downloadProgress: (fileId: String, bytesDownloaded: Int) -> Unit
+	private val downloadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
+	private val uploadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
 ) : FileFacade {
 
 	val tempDir = TempDir(activity, random)
@@ -291,73 +292,123 @@ class AndroidFileFacade(
 		return getFileInfo(activity, Uri.parse(file)).name
 	}
 
+	@OptIn(FlowPreview::class)
 	@Throws(IOException::class)
 	override suspend fun upload(
 		fileUrl: String,
 		targetUrl: String,
 		method: String,
-		headers: Map<String, String>
-	): UploadTaskResponse =
-		withContext(Dispatchers.IO) {
-			val parsedUri = Uri.parse(fileUrl)
-			val contentResolver = activity.contentResolver
-			val contentType = contentResolver.getType(parsedUri)
-			val response = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!.use { fd ->
+		headers: Map<String, String>,
+		fileId: String,
+	): UploadTaskResponse {
+		return coroutineScope {
+			// See `download` for a description of how this works.
+			val flow = MutableSharedFlow<Int>(0, 1, BufferOverflow.DROP_OLDEST)
+			val progressJob = launch(Dispatchers.Default) {
+				flow
+					.sample(50)
+					.collect { total -> this@AndroidFileFacade.uploadProgress(fileId, total) }
 
-				val requestBody: RequestBody = object : RequestBody() {
-					override fun contentLength(): Long {
-						return fd.length
-					}
-
-					override fun contentType(): MediaType? {
-						return contentType?.toMediaTypeOrNull()
-					}
-
-					@Throws(IOException::class)
-					override fun writeTo(sink: BufferedSink) {
-						fd.createInputStream().use { inputStream -> sink.writeAll(inputStream.source().buffer()) }
-					}
-				}
-
-				val requestBuilder = Request.Builder()
-					.url(targetUrl)
-					.method(method, requestBody)
-					.headers(headers.toHeaders())
-					.header("Content-Type", "application/octet-stream")
-					.header("Cache-Control", "no-cache")
-
-				// infinite timeout
-				// - the server stops listening after 10 minutes -> SocketException
-				// - if the internet connection dies -> SocketException
-				// we don't want to time out in case of a slow connection because we may already be
-				// waiting for the response code while the TCP stack is still busy sending our data
-				defaultClient.newBuilder()
-					.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-					.writeTimeout(0, TimeUnit.SECONDS)
-					.readTimeout(0, TimeUnit.SECONDS)
-					.build()
-					.newCall(requestBuilder.build())
-					.execute()
 			}
 
-			response.use { response ->
-				// this would run into the read timeout if the upload is still running
-				val responseCode = response.code
-				val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
-				val responseBody = if (responseCode in 200..299) {
-					response.body.bytes().wrap()
-				} else {
-					byteArrayOf().wrap()
+			withContext(Dispatchers.IO) {
+				val parsedUri = Uri.parse(fileUrl)
+				val contentResolver = activity.contentResolver
+				val contentType = contentResolver.getType(parsedUri)
+
+				try {
+					val response = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!.use { fd ->
+
+						val requestBody: RequestBody = object : RequestBody() {
+							override fun contentLength(): Long {
+								return fd.length
+							}
+
+							override fun contentType(): MediaType? {
+								return contentType?.toMediaTypeOrNull()
+							}
+
+							@Throws(IOException::class)
+							override fun writeTo(sink: BufferedSink) {
+								val buffer = Buffer()
+								var total: Long = 0
+
+								fd.createInputStream().source().use { source ->
+									val chunkSize = 8192L // 8 KB (Okio segment size)
+
+									while (true) {
+										val read = source.read(buffer, chunkSize)
+										if (read == -1L) {
+											break
+										}
+
+										sink.write(buffer, read)
+										total += read
+
+										// .toInt() is fine because the read buffer is always small enough
+										//this@AndroidFileFacade.uploadProgress(fileId, total.toInt())
+										flow.tryEmit(total.toInt())
+									}
+								}
+							}
+						}
+
+						val requestBuilder = Request.Builder()
+							.url(targetUrl)
+							.method(method, requestBody)
+							.headers(headers.toHeaders())
+							.header("Content-Type", "application/octet-stream")
+							.header("Cache-Control", "no-cache")
+
+						// infinite timeout
+						// - the server stops listening after 10 minutes -> SocketException
+						// - if the internet connection dies -> SocketException
+						// we don't want to time out in case of a slow connection because we may already be
+						// waiting for the response code while the TCP stack is still busy sending our data
+						val call = defaultClient.newBuilder()
+							.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+							.writeTimeout(0, TimeUnit.SECONDS)
+							.readTimeout(0, TimeUnit.SECONDS)
+							.build()
+							.newCall(requestBuilder.build())
+
+						this@AndroidFileFacade.activeRequests[fileId] = call
+
+						call.execute()
+					}
+
+					response.use { response ->
+						// this would run into the read timeout if the upload is still running
+						val responseCode = response.code
+						val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
+						val responseBody = if (responseCode in 200..299) {
+							response.body.bytes().wrap()
+						} else {
+							byteArrayOf().wrap()
+						}
+						UploadTaskResponse(
+							statusCode = responseCode,
+							errorId = response.header("Error-Id"),
+							precondition = response.header("Precondition"),
+							suspensionTime = suspensionTime,
+							responseBody = responseBody
+						)
+					}.also {
+						progressJob.cancel()
+					}
+				} catch (e: IOException) {
+					val isCancelled = this@AndroidFileFacade.activeRequests[fileId]?.isCanceled() ?: false
+					if (isCancelled) {
+						throw CancelledError()
+					} else {
+						throw e
+					}
+				} finally {
+					this@AndroidFileFacade.activeRequests.remove(fileId)
 				}
-				UploadTaskResponse(
-					statusCode = responseCode,
-					errorId = response.header("Error-Id"),
-					precondition = response.header("Precondition"),
-					suspensionTime = suspensionTime,
-					responseBody = responseBody
-				)
 			}
 		}
+	}
 
 	@OptIn(FlowPreview::class)
 	@Throws(IOException::class)
@@ -459,6 +510,10 @@ class AndroidFileFacade(
 	}
 
 	override suspend fun abortDownload(fileId: String) {
+		this.activeRequests[fileId]?.cancel()
+	}
+
+	override suspend fun abortUpload(fileId: String) {
 		this.activeRequests[fileId]?.cancel()
 	}
 
