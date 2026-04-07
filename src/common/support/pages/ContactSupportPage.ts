@@ -122,7 +122,7 @@ export class ContactSupportPage implements Component<Props> {
 
 	view({ attrs: { data, onSuccess, isRating } }: Vnode<Props>): Children {
 		return m(
-			".flex.flex-column.pt-16.height-100p.gap-16",
+			".flex.flex-column.pt-16.height-100p.gap-8",
 			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-8", data.helpText()))),
 			m(
 				Card,
@@ -137,70 +137,14 @@ export class ContactSupportPage implements Component<Props> {
 			),
 
 			m(
-				".flex.flex-column.gap-16.pb-16",
+				".flex.flex-column.gap-8.pb-24",
 				{
 					style: {
 						marginTop: "auto",
 					},
 				},
-				m(
-					Card,
-					{
-						shouldDivide: true,
-					},
-					[
-						m(SectionButton, {
-							text: "attachFiles_action",
-							rightIcon: { icon: Icons.Paperclip, title: "attachFiles_action" },
-							isDisabled: this.sendMailModel == null,
-							onclick: async (_, dom) => {
-								await chooseAndAttachFile(this.sendMailModel!, dom.getBoundingClientRect())
-								m.redraw()
-							},
-						}),
-						(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
-							m(
-								".flex.center-vertically.flex-space-between.pb-8.pt-8",
-								{ style: { paddingInline: px(size.spacing_8) } },
-								m("span.smaller", attachment.name),
-								m(
-									BaseButton,
-									{
-										label: "remove_action",
-										onclick: () => {
-											this.sendMailModel?.removeAttachment(attachment)
-											m.redraw()
-										},
-										class: "flex justify-between flash",
-									},
-									m(Icon, {
-										icon: Icons.TrashFilled,
-										style: {
-											fill: getColors(ButtonColor.Content).button,
-											paddingInline: px((size.icon_24 - size.icon_16) / 2),
-										},
-										title: lang.get("remove_action"),
-									}),
-								),
-							),
-						),
-					],
-				),
-				m(
-					Card,
-					m(".flex.gap-8.items-center", [
-						m(
-							Switch,
-							{
-								checked: data.shouldIncludeLogs(),
-								onclick: (checked) => data.shouldIncludeLogs(checked),
-								ariaLabel: lang.get("sendLogs_action"),
-								variant: "expanded",
-							},
-							lang.get("sendLogs_action"),
-						),
-					]),
-				),
+				this.renderAttachmentList(),
+				this.renderAttachLogsSwitch(data),
 				m(
 					".align-self-center.full-width",
 					m(PrimaryButton, {
@@ -239,6 +183,71 @@ export class ContactSupportPage implements Component<Props> {
 					}),
 				),
 			),
+		)
+	}
+
+	private renderAttachmentList() {
+		return m(
+			Card,
+			{
+				shouldDivide: true,
+			},
+			[
+				m(SectionButton, {
+					text: "attachFiles_action",
+					rightIcon: { icon: Icons.Paperclip, title: "attachFiles_action" },
+					isDisabled: this.sendMailModel == null,
+					onclick: async (_, dom) => {
+						await chooseAndAttachFile(this.sendMailModel!, dom.getBoundingClientRect())
+						m.redraw()
+					},
+				}),
+				(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
+					m(
+						".flex.center-vertically.flex-space-between.pb-8.pt-8",
+						{ style: { paddingInline: px(size.spacing_8) } },
+						m("span.smaller", attachment.name),
+						m(
+							BaseButton,
+							{
+								label: "remove_action",
+								onclick: () => {
+									this.sendMailModel?.removeAttachment(attachment)
+									m.redraw()
+								},
+								class: "flex justify-between flash",
+							},
+							m(Icon, {
+								icon: Icons.TrashFilled,
+								style: {
+									fill: getColors(ButtonColor.Content).button,
+									paddingInline: px((size.icon_24 - size.icon_16) / 2),
+								},
+								title: lang.get("remove_action"),
+							}),
+						),
+					),
+				),
+			],
+		)
+	}
+
+	private renderAttachLogsSwitch(data: SupportDialogState) {
+		return m(
+			Card,
+			{ style: { padding: "8px 16px" } },
+			m(".flex.gap-8.items-center", [
+				m(
+					Switch,
+					{
+						checked: data.shouldIncludeLogs(),
+						onclick: (checked) => data.shouldIncludeLogs(checked),
+						ariaLabel: lang.get("sendLogs_action"),
+						variant: "expanded",
+					},
+					lang.get("sendLogs_action"),
+				),
+			]),
 		)
 	}
 
