@@ -8,7 +8,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 
@@ -44,7 +44,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 			}),
 			m(
 				".flex-center.full-width.pt-32.mb-32",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "next_action",
 					class: "small-login-button",
 					onclick: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),

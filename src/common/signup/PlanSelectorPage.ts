@@ -4,7 +4,7 @@ import { SignupViewModel } from "./SignupView"
 import { getCurrentPaymentInterval, shouldShowApplePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "../subscription/utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../misc/TranslationKey"
-import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
+import { PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import { PlanSelector, PlanSelectorAttr, SubscriptionActionButtons } from "../subscription/PlanSelector"
 import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { getAsLazy } from "@tutao/tutanota-utils"
@@ -24,7 +24,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
 		const promotionMessage = planPrices!.getRawPricingData().messageTextId as TranslationKeyType
 
-		const button: LoginButtonAttrs = {
+		const button: PrimaryButtonAttrs = {
 			label: "pricing.select_action",
 			onclick: () => {},
 		}

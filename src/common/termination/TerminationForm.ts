@@ -7,7 +7,7 @@ import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
 import { DatePicker } from "../../calendar-app/calendar/gui/pickers/DatePicker.js"
 import { liveDataAttrs } from "../gui/AriaUtils.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
@@ -131,7 +131,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 				),
 				m(
 					".mt-16",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: "termination_action",
 						onclick: () => {
 							a.onSubmit(this.surveyResult)

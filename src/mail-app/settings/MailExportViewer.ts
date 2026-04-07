@@ -5,7 +5,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
-import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 
@@ -51,7 +51,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 				m(".p", lang.get("mailExportOnlyOnDesktop_label")),
 				m(
 					".flex-start.mt-32",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						width: "flex",
 						label: "downloadDesktopClient_label",
 						onclick: () => {

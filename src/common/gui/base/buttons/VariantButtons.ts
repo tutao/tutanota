@@ -56,14 +56,14 @@ function renderVariantButton(attrs: CommonButtonAttrs, variant: ButtonVariant): 
 
 // disable eslint errors as long as the extended ButtonAttrs are empty
 
-export interface LoginButtonAttrs extends CommonButtonAttrs {}
+export interface PrimaryButtonAttrs extends CommonButtonAttrs {}
 
 export interface SecondaryButtonAttrs extends CommonButtonAttrs {}
 
 export interface TertiaryButtonAttrs extends CommonButtonAttrs {}
 
-export class LoginButton implements ClassComponent<LoginButtonAttrs> {
-	view({ attrs }: Vnode<LoginButtonAttrs>): Children {
+export class PrimaryButton implements ClassComponent<PrimaryButtonAttrs> {
+	view({ attrs }: Vnode<PrimaryButtonAttrs>): Children {
 		return renderVariantButton(attrs, "primary")
 	}
 }

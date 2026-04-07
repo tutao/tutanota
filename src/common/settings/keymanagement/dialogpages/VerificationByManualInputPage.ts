@@ -5,7 +5,7 @@ import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { Icon, IconSize } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
@@ -88,7 +88,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								publicKeyVersion: publicIdentity.trustDbEntry.publicIdentityKey.version,
 							}),
 						),
-						m(LoginButton, {
+						m(PrimaryButton, {
 							class: "flex-center row center-vertically",
 							label: "yes_label",
 							onclick: async () => {
@@ -101,7 +101,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								class: "mr-8 flex-center",
 							}),
 						}),
-						m(LoginButton, {
+						m(PrimaryButton, {
 							class: "flex-center row center-vertically",
 							label: "no_label",
 							onclick: async () => {

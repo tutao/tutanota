@@ -19,7 +19,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 
 assertMainOrNode()
@@ -81,7 +81,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			locator.logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(
 				".flex-center.full-width.pt-32.mb-32",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "next_action",
 					class: "small-login-button",
 					onclick: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),

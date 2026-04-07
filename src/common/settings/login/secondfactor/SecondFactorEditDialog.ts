@@ -22,7 +22,7 @@ import { IconButton, IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { NotAuthorizedError } from "../../../api/common/error/RestError"
 
 export interface SecondFactorEditDialogAttrs {
@@ -155,7 +155,7 @@ export class SecondFactorEditDialog {
 			isApp()
 				? m(
 						".pt-16",
-						m(LoginButton, {
+						m(PrimaryButton, {
 							label: "addOpenOTPApp_action",
 							onclick: () => this.openOtpLink(),
 						}),

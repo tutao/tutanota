@@ -5,7 +5,7 @@ import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
 import { component_size, px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs, TertiaryButton, TertiaryButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton, PrimaryButtonAttrs, TertiaryButton, TertiaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
@@ -132,7 +132,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							order: styles.isMobileLayout() ? 1 : -1,
 						},
 					} satisfies TertiaryButtonAttrs),
-				m(LoginButton, {
+				m(PrimaryButton, {
 					// The label text for go european campaign shall not be translated.
 					label: "continue_action",
 					width: getContinueButtonWidth(),
@@ -243,4 +243,4 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 export type AvailablePlans = PlanType.Revolutionary | PlanType.Legend | PlanType.Free
 
-export type SubscriptionActionButtons = Record<AvailablePlans, lazy<LoginButtonAttrs>>
+export type SubscriptionActionButtons = Record<AvailablePlans, lazy<PrimaryButtonAttrs>>

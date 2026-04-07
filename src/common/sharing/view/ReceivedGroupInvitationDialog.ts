@@ -15,7 +15,7 @@ import type { GroupSharingTexts } from "../GroupGuiUtils.js"
 import { getTextsForGroupType } from "../GroupGuiUtils.js"
 import { GroupType, UpgradePromptType } from "../../api/common/TutanotaConstants.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
@@ -101,7 +101,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 					]),
 					isMember
 						? null
-						: m(LoginButton, {
+						: m(PrimaryButton, {
 								label: "acceptInvitation_action",
 								onclick: onAcceptClicked,
 							}),

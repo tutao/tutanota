@@ -51,7 +51,7 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { client } from "../misc/ClientDetector.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
@@ -282,7 +282,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 										width: "200px",
 									},
 								},
-								m(LoginButton, {
+								m(PrimaryButton, {
 									label: "invoicePay_action",
 									onclick: () => this.showPayDialog(this.amountOwed()),
 								}),

@@ -11,7 +11,7 @@ import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tuta
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
@@ -210,7 +210,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 					),
 					m(
 						".flex-center.full-width.pt-32.pb-32",
-						m(LoginButton, {
+						m(PrimaryButton, {
 							size: "md",
 							label: isAppStorePayment ? "checkoutWithAppStore_action" : "confirmAndPay_action",
 							width: styles.isMobileLayout() ? "full" : "flex",

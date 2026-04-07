@@ -22,7 +22,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LoginScreenHeader } from "../../../common/gui/LoginScreenHeader.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 import { UnencryptedCredentials } from "../../../common/native/common/generatedipc/UnencryptedCredentials.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
@@ -244,7 +244,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	renderAutoLoginButton(): Children {
 		return m(
 			".pt-32",
-			m(LoginButton, {
+			m(PrimaryButton, {
 				label: "showMail_action",
 				onclick: () => this.viewModel.loginWithStoredCredentials(),
 			}),
@@ -271,7 +271,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 			),
 			m(
 				".pt-16",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "showMail_action",
 					onclick: () => this.viewModel.formLogin(),
 				}),
