@@ -65,7 +65,7 @@ export interface UndoAction {
 	onClear: () => unknown
 }
 
-const SYNC_RELOAD_DEBOUNCE_MS = 1000
+const SYNC_RELOAD_DEBOUNCE_MS = 500
 
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
