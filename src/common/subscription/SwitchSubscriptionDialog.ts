@@ -31,7 +31,7 @@ import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, dow
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { countryList } from "@tutao/app-env"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
-import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
@@ -185,7 +185,7 @@ export async function showSwitchDialog({
 			({
 				label: "pricing.select_action",
 				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
-			}) satisfies LoginButtonAttrs,
+			}) satisfies PrimaryButtonAttrs,
 		[PlanType.Revolutionary]: createPlanButton(
 			dialog,
 			PlanType.Revolutionary,
@@ -287,7 +287,7 @@ function createPlanButton(
 	newPaymentInterval: stream<PaymentInterval>,
 	accountingInfo: sysTypeRefs.AccountingInfo,
 	shouldApplyDiscount: boolean = false,
-): lazy<LoginButtonAttrs> {
+): lazy<PrimaryButtonAttrs> {
 	return () => ({
 		label: "buy_action",
 		...(shouldApplyDiscount && { class: "go-european-button" }),

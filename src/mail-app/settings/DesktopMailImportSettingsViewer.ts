@@ -17,7 +17,7 @@ import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js
 import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.js"
 import { mailLocator } from "../mailLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
-import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
 import { client } from "../../common/misc/ClientDetector"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
@@ -150,7 +150,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			m(".flex-start.mt-12", this.renderImportInfoText()),
 			m(
 				".flex-start.mt-8",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					width: "flex",
 					label: "import_action",
 					onclick: (_, dom) => this.onImportButtonClick(dom),

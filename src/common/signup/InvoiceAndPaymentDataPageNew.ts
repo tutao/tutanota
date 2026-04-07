@@ -12,7 +12,7 @@ import { RadioSelector, RadioSelectorAttrs } from "../gui/base/RadioSelector"
 import { getVisiblePaymentMethods, updatePaymentData, validateInvoiceData, validatePaymentData } from "../subscription/utils/PaymentUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { ProgrammingError } from "@tutao/app-env"
-import { LoginButton } from "../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { theme } from "../gui/theme"
 import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
@@ -146,7 +146,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
 			m(
 				".flex-shrink.justify-end.mt-16",
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "verifyCreditCard_action",
 					size: "md",
 					width: styles.isMobileLayout() ? "full" : "flex",
@@ -286,7 +286,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 					lang.getTranslationText(isPaypalConnected ? "paymentDataPayPalChangeAccount_msg" : "paymentDataPayPalLogin_msg"),
 				),
 				isPaypalConnected &&
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: "continue_action",
 						size: "md",
 						width: styles.isMobileLayout() ? "full" : "flex",
@@ -316,7 +316,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
 			m(
 				`.flex-shrink${styles.isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
-				m(LoginButton, {
+				m(PrimaryButton, {
 					label: "continue_action",
 					size: "md",
 					width: "flex",

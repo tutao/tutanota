@@ -11,7 +11,7 @@ import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { locator } from "../../api/main/CommonLocator"
 import { EmailDomainData, isPaidPlanDomain } from "../../settings/mailaddress/MailAddressesUtils.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { deviceConfig } from "../../misc/DeviceConfig"
 import { PowSolution } from "../../api/common/pow-worker"
 import { NewAccountData } from "../../subscription/UpgradeSubscriptionWizard"
@@ -263,7 +263,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 						],
 				m(
 					`.flex.flex-end${styles.isMobileLayout() ? ".mt-24.mb-24" : ".mt-32.mb-32"}`,
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: this.readonly ? "continue_action" : "create_new_account_label",
 						onclick: submit,
 						disabled:

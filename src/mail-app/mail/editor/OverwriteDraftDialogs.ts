@@ -4,7 +4,7 @@ import { TitleSection } from "../../../common/gui/TitleSection"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { theme } from "../../../common/gui/theme"
 import { Card } from "../../../common/gui/base/Card"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { ButtonType } from "../../../common/gui/base/Button"
@@ -71,7 +71,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 				iconOptions: { color: theme.error },
 			}),
 			m(Card, m(".plr-12.flex.flex-column.gap-16.center", lang.get("confirmOverwriteServerDraft_msg"))),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
 				label: "yes_label",
 				onclick: () => {
@@ -86,7 +86,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 					},
 				}),
 			}),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
 				label: "no_label",
 				onclick: () => {
@@ -149,14 +149,14 @@ class OverwriteDraftDialog implements Component<OverwriteDraftDialogAttrs> {
 				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
 			}),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
 				label: "discardDraft_action",
 				onclick: () => {
 					vnode.attrs.overwriteChoice("discard")
 				},
 			}),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
 				label: "cancel_action",
 				onclick: () => {

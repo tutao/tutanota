@@ -6,7 +6,7 @@ import { Thunk } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { Card } from "../../gui/base/Card.js"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { MailMethod } from "@tutao/app-env"
 import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
@@ -204,7 +204,7 @@ export class ContactSupportPage implements Component<Props> {
 				),
 				m(
 					".align-self-center.full-width",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: "send_action",
 						disabled: this.sendMailModel == null,
 						onclick: async () => {

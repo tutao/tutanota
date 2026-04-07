@@ -19,7 +19,6 @@ import { ProgrammingError } from "@tutao/app-env"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
 import { px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
 import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
@@ -35,6 +34,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "@tutao/app-env"
+import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -47,7 +47,7 @@ const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	},
 ]
 
-export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<LoginButtonAttrs>>
+export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<PrimaryButtonAttrs>>
 
 export type SubscriptionSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -71,7 +71,7 @@ export function getActionButtonBySubscription(actionButtons: SubscriptionActionB
 	if (ret == null) {
 		throw new ProgrammingError("Plan is not valid")
 	}
-	return () => m(LoginButton, ret())
+	return () => m(PrimaryButton, ret())
 }
 
 type ExpanderTargets = AvailablePlanType | "All"

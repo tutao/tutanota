@@ -5,7 +5,7 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { theme } from "../../../gui/theme"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { Card } from "../../../gui/base/Card"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 
 type VerificationErrorAcceptPageAttrs = {
 	contactMailAddress: string
@@ -37,7 +37,7 @@ export class RecipientKeyVerificationRecoveryAcceptPage implements Component<Ver
 				]),
 			),
 			vnode.attrs.goToUnverifiedRecipientsPage
-				? m(LoginButton, {
+				? m(PrimaryButton, {
 						label: "continue_action",
 						onclick: async () => {
 							vnode.attrs.goToUnverifiedRecipientsPage?.()

@@ -17,8 +17,7 @@ import { countryList } from "@tutao/app-env"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval } from "./utils/PriceUtils.js"
-
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { client } from "../misc/ClientDetector.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { createAccount, getVisiblePaymentMethods, validateInvoiceData, validatePaymentData } from "./utils/PaymentUtils"
@@ -111,7 +110,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 						]),
 						m(
 							".flex-center.full-width.pt-32",
-							m(LoginButton, {
+							m(PrimaryButton, {
 								label: "next_action",
 								class: "small-login-button",
 								onclick: async () => {

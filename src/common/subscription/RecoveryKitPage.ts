@@ -7,7 +7,7 @@ import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
 import { px } from "../gui/size"
 import { theme } from "../gui/theme"
-import { LoginButton } from "../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { Checkbox } from "../gui/base/Checkbox"
 import { styles } from "../gui/styles"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
@@ -58,7 +58,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 						}),
 					]),
 					m(".flex.justify-end", [
-						m(LoginButton, {
+						m(PrimaryButton, {
 							width: styles.isMobileLayout() ? "full" : "flex",
 							label: "recovery_kit_page_continue_label",
 							onclick: async () => {

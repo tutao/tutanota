@@ -12,7 +12,7 @@ import { checkURLString, isIcal } from "../../../common/calendar/gui/ImportExpor
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import type { CalendarModel } from "../model/CalendarModel.js"
 import { DEFAULT_ERROR } from "@tutao/app-env"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
@@ -170,7 +170,7 @@ export function showCreateEditCalendarDialog({
 					m(".mt-16.mb-16.h6.b", lang.get(titleTextId)),
 					warningMessage ? warningMessage() : null,
 					sourceUrlInputField(urlStream, errorMessageStream),
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: okTextId,
 						onclick: () => {
 							externalCalendarValidator()

@@ -20,9 +20,9 @@ import { IconButton, IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
 import * as restError from "@tutao/rest-client/error"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 
 export interface SecondFactorEditDialogAttrs {
 	allowCancel?: boolean
@@ -159,7 +159,7 @@ export class SecondFactorEditDialog {
 			isApp()
 				? m(
 						".pt-16",
-						m(LoginButton, {
+						m(PrimaryButton, {
 							label: "addOpenOTPApp_action",
 							onclick: () => this.openOtpLink(),
 						}),

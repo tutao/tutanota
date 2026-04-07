@@ -3,7 +3,7 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import { lang } from "../../../misc/LanguageViewModel"
 import { TitleSection } from "../../../gui/TitleSection"
 import { Icons } from "../../../gui/base/icons/Icons"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { theme } from "../../../gui/theme"
 import { QrCodePageErrorType } from "./VerificationByQrCodeInputPage"
 import { IdentityKeyVerificationMethod } from "@tutao/app-env"
@@ -52,7 +52,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 				icon: Icons.FailureOutline,
 				iconOptions: { color: theme.error },
 			}),
-			m(LoginButton, {
+			m(PrimaryButton, {
 				label: "retry_action",
 				onclick: async () => {
 					// we're treating this like a fresh usage test invocation

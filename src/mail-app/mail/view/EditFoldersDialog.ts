@@ -9,7 +9,7 @@ import { INPUT } from "../../../common/gui/base/Dialog.js"
 import { ease } from "../../../common/gui/animation/Easing.js"
 import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
 import { styles } from "../../../common/gui/styles.js"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
 
 export class EditFoldersDialog implements ModalComponent {
 	private visible: boolean
@@ -105,7 +105,7 @@ export class EditFoldersDialog implements ModalComponent {
 			[
 				m(
 					".plr-8.mt-16.mb-16",
-					m(LoginButton, {
+					m(PrimaryButton, {
 						label: "done_action",
 						onclick: () => this.close(),
 					}),
