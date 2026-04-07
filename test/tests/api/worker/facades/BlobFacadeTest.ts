@@ -147,6 +147,7 @@ o.spec("BlobFacade", function () {
 			env.networkDebugging = false
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
+			const transferId = "abcde" as TransferId
 
 			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 			const uploadedFileUri = "rawFileUri"
@@ -169,22 +170,31 @@ o.spec("BlobFacade", function () {
 			when(aesAppMock.aesEncryptFile(sessionKey, chunkUris[0])).thenResolve(encryptedFileInfo)
 			const blobHash = "blobHash"
 			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
-			when(fileAppMock.upload(anything(), anything(), anything(), anything())).thenResolve({
+			when(fileAppMock.upload(anything(), anything(), anything(), anything(), anything())).thenResolve({
 				statusCode: 201,
 				responseBody: stringToUtf8Uint8Array(JSON.stringify(blobServiceResponse)),
 			})
+			when(fileAppMock.getFilesMetaData([uploadedFileUri])).thenResolve([
+				{ size: 1024, location: uploadedFileUri, name: "file1", cid: "abc", _type: "FileReference", mimeType: "" },
+			])
 
 			env.versionNumber = "274.250306.0"
 			const referenceTokens = await withOverriddenEnv({ mode: Mode.Desktop }, () =>
-				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey),
+				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey, transferId),
 			)
 
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(
-				fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, HttpMethod.POST, {
-					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
-					cv: env.versionNumber,
-				}),
+				fileAppMock.upload(
+					encryptedFileInfo.uri,
+					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					HttpMethod.POST,
+					{
+						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						cv: env.versionNumber,
+					},
+					anything(),
+				),
 			)
 		})
 	})
