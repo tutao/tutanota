@@ -4,7 +4,7 @@
 /**
  * Result of Webauthn authentication with hardware key.
  */
-public struct WebAuthnSignResult : Codable {
+public struct WebAuthnSignResult : Codable, Sendable {
 	public init(
 		rawId: DataWrapper,
 		clientDataJSON: DataWrapper,

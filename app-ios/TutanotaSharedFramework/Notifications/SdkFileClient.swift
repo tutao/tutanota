@@ -1,5 +1,5 @@
 import Foundation
-import tutasdk
+public import tutasdk
 
 public class SdkFileClient: FileClient {
 	public init() {}
@@ -7,7 +7,7 @@ public class SdkFileClient: FileClient {
 	// all of the interaction with that component should always return error compatible to rust's
 	// Result::E type. Throwing any other class of Error, uniffi wont be able to convert to Rust Error type
 	// and thread will panic in uniffi layer
-	private func mapExceptionToError(e: Error) -> FileClientError {
+	private func mapExceptionToError(e: any Error) -> FileClientError {
 		// currently we are not aware of all the exception thrown and we also do not need specific info for FileClient,
 		// Improvement idea would be to check `e` and convert it to correct error type
 		// See: SdkFileClient.kt ( kotlin )

@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct StructuredCustomDate : Codable {
+public struct StructuredCustomDate : Codable, Sendable {
 	public init(
 		dateIso: String,
 		type: ContactCustomDateType,

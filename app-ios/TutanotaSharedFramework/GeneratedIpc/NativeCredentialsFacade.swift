@@ -6,7 +6,7 @@ import Foundation
 /**
  * Operations for credential encryption operations using OS keychain.
  */
-public protocol NativeCredentialsFacade {
+public protocol NativeCredentialsFacade : Sendable {
 	func getSupportedEncryptionModes(
 	) async throws -> [CredentialEncryptionMode]
 	func loadAll(

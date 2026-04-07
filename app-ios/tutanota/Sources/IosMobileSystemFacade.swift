@@ -7,18 +7,18 @@ import TutanotaSharedFramework
 
 private let APP_LOCK_METHOD = "AppLockMethod"
 
-class IosMobileSystemFacade: MobileSystemFacade {
-	func requestWidgetRefresh() async throws {}
-	func storeServerRemoteOrigin(_ origin: String) async throws {}
+final class IosMobileSystemFacade: MobileSystemFacade {
 	private let viewController: ViewController
-	private let userPreferencesProvider: UserPreferencesProvider
+	private let userPreferencesProvider: any UserPreferencesProvider
 	private let appLockHandler: AppLockHandler
 
-	init(viewController: ViewController, userPreferencesProvider: UserPreferencesProvider, appLockHandler: AppLockHandler) {
+	init(viewController: ViewController, userPreferencesProvider: any UserPreferencesProvider, appLockHandler: AppLockHandler) {
 		self.viewController = viewController
 		self.userPreferencesProvider = userPreferencesProvider
 		self.appLockHandler = appLockHandler
 	}
+	func requestWidgetRefresh() async throws {}
+	func storeServerRemoteOrigin(_ origin: String) async throws {}
 
 	func getAppLockMethod() async throws -> TutanotaSharedFramework.AppLockMethod {
 		self.userPreferencesProvider.getObject(forKey: APP_LOCK_METHOD).map { method in AppLockMethod(rawValue: method as! String)! } ?? .none
@@ -39,11 +39,9 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		return supportedMethods
 	}
 
-	func goToSettings() async throws {
-		DispatchQueue.main.async {
-			let url = URL(string: UIApplication.openSettingsURLString)!
-			UIApplication.shared.open(url)
-		}
+	@MainActor func goToSettings() async throws {
+		let url = URL(string: UIApplication.openSettingsURLString)!
+		await UIApplication.shared.open(url)
 	}
 
 	@MainActor func openLink(_ uri: String) async throws -> Bool { await UIApplication.shared.open(URL(string: uri)!, options: [:]) }
@@ -81,27 +79,27 @@ class IosMobileSystemFacade: MobileSystemFacade {
 			return
 		case PermissionType.notification:
 			let isPermissionGranted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
-			if !isPermissionGranted { throw PermissionError(message: "Notification Permission was not granted.") }
+			if !isPermissionGranted { throw PermissionError(message: "Notification Permission was not granted.", underlyingError: nil) }
 		case PermissionType.camera:
 			let status = AVCaptureDevice.authorizationStatus(for: .video)
 			var granted = status == .authorized
 
 			if status == .notDetermined { granted = await AVCaptureDevice.requestAccess(for: .video) }
-			if !granted { throw PermissionError(message: "Camera access was not granted.") }
+			if !granted { throw PermissionError(message: "Camera access was not granted.", underlyingError: nil) }
 		}
 	}
 
 	func openMailApp(_ query: String) async throws { TUTSLog("Tried to open Mail App from Mail App") }
-	func openCalendarApp(_ query: String) async throws {
+	@MainActor func openCalendarApp(_ query: String) async throws {
 		guard let decodedQuery = String(data: Data(base64Encoded: query)!, encoding: .utf8) else {
-			throw TutanotaSharedFramework.TutanotaError(message: "Failed to decode query string during interop")
+			throw GenericTutanotaError(message: "Failed to decode query string during interop")
 		}
 		let url = "tutacalendar://interop?\(decodedQuery)"
 
-		if let url = URL(string: url), await UIApplication.shared.canOpenURL(url) {
-			DispatchQueue.main.async { UIApplication.shared.open(url) }
+		if let url = URL(string: url), UIApplication.shared.canOpenURL(url) {
+			await UIApplication.shared.open(url)
 		} else {
-			DispatchQueue.main.async { UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id6657977811")!) }
+			await UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id6657977811")!)
 		}
 	}
 	func getInstallationDate() async throws -> String {

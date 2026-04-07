@@ -151,7 +151,7 @@ struct AlarmManagerTest {
 
 // MARK: stubs
 
-class AlarmPersistorStub: AlarmPersistor {
+final class AlarmPersistorStub: AlarmPersistor, @unchecked Sendable {
 	var alarms: [EncryptedAlarmNotification] = []
 
 	func add(alarm: EncryptedAlarmNotification) { self.alarms.append(alarm) }
@@ -161,14 +161,14 @@ class AlarmPersistorStub: AlarmPersistor {
 	func clear() { self.alarms = [] }
 }
 
-class AlarmCryptorStub: AlarmCryptor {
+final class AlarmCryptorStub: AlarmCryptor, @unchecked Sendable {
 	var alarms: [String: AlarmNotification] = [:]
 
 	func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification {
 		if let alarm = self.alarms[alarm.getAlarmInfo().alarmIdentifier] {
 			return alarm
 		} else {
-			throw TutanotaError(message: "Failed to 'decrypt' alarm \(alarm.getAlarmInfo().alarmIdentifier)")
+			throw GenericTutanotaError(message: "Failed to 'decrypt' alarm \(alarm.getAlarmInfo().alarmIdentifier)")
 		}
 	}
 
@@ -178,7 +178,7 @@ class AlarmCryptorStub: AlarmCryptor {
 	}
 }
 
-class AlarmSchedulerStub: AlarmScheduler {
+final class AlarmSchedulerStub: AlarmScheduler, @unchecked Sendable {
 	var scheduled: [ScheduledAlarmInfo] = []
 	var unscheduled: [String] = []
 
@@ -187,7 +187,7 @@ class AlarmSchedulerStub: AlarmScheduler {
 	func unscheduleAll(occurrenceIds: [String]) { self.unscheduled += occurrenceIds }
 }
 
-class DateProviderStub: DateProvider {
+class DateProviderStub: DateProvider, @unchecked Sendable {
 	// Mon Mar 06 2023 16:52:24 GMT+0100 (Central European Standard Time)
 	var now: Date = Date(timeIntervalSince1970: 1678117944)
 

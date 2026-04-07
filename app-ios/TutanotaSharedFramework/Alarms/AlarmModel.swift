@@ -17,7 +17,7 @@ public struct AlarmOccurence: Equatable {
 }
 
 /// Something that can calculate when alarms should happen
-public protocol AlarmCalculator {
+public protocol AlarmCalculator: Sendable {
 	/// Calcuate the soonest alarm occurences up to the specified limits
 	/// note: return type would ideally not be required to be boxed but it's the easiest until proper upper bound inference is available at runtime
 	/// see https://forums.swift.org/t/inferred-result-type-requires-explicit-coercion/59602/2
@@ -34,10 +34,10 @@ public protocol AlarmCalculator {
 /// see https://forums.swift.org/t/se-0353-constrained-existential-types/56853/22
 func prefix(_ s: some Sequence<AlarmOccurence>, _ maxLength: Int) -> any Sequence<AlarmOccurence> { s.prefix(maxLength) }
 
-public class AlarmModel: AlarmCalculator {
-	private let dateProvider: DateProvider
+public final class AlarmModel: AlarmCalculator {
+	private let dateProvider: any DateProvider
 
-	public init(dateProvider: DateProvider) { self.dateProvider = dateProvider }
+	public init(dateProvider: any DateProvider) { self.dateProvider = dateProvider }
 
 	public func futureOccurrences(acrossAlarms alarms: [AlarmNotification], upToForEach: Int, upToOverall: Int) -> any BidirectionalCollection<AlarmOccurence> {
 		var occurrences = [AlarmOccurence]()
@@ -131,7 +131,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 	let repeatRule: RepeatRule
 	let cal: Calendar
 	let calendarComponent: Calendar.Component
-	let dateProvider: DateProvider
+	let dateProvider: any DateProvider
 	fileprivate let eventFacade = EventFacade()
 	fileprivate lazy var byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
 	fileprivate lazy var sdkRepeatRule = EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)

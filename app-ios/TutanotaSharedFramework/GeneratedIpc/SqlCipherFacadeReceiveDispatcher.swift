@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class SqlCipherFacadeReceiveDispatcher {
-	let facade: SqlCipherFacade
-	init(facade: SqlCipherFacade) {
+public final class SqlCipherFacadeReceiveDispatcher: Sendable {
+	let facade: any SqlCipherFacade
+	init(facade: any SqlCipherFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

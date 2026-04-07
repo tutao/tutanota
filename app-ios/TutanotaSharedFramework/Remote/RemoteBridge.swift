@@ -2,86 +2,35 @@ import Atomics
 import CryptoTokenKit
 import DictionaryCoding
 import Foundation
-import TutanotaSharedFramework
+import os
 
 /// Gateway for communicating with Javascript code in WebView. Can send messages and handle requests.
-class RemoteBridge: NSObject, NativeInterface {
+public final class RemoteBridge:  // NSObject is needed because of WKScriptMessageHandler conformance
+	NSObject, NativeInterface
+{
 	private let webView: WKWebView
-	private let viewController: ViewController
 	private let commonSystemFacade: IosCommonSystemFacade
-	var commonNativeFacade: CommonNativeFacade!
-	private var mobileFacade: MobileFacade!
-	private var globalDispatcher: IosGlobalDispatcher!
-	private var sqlCipherFacade: IosSqlCipherFacade!
+	private let globalDispatcher: IosGlobalDispatcher
 
 	private let requestId = ManagedAtomic<Int64>(0)
-	private let requestsLock = NSLock()
-	private var requests = [String: CheckedContinuation<String, Error>]()
+	private let requestsLock = OSAllocatedUnfairLock(initialState: [String: CheckedContinuation<String, any Error>]())
 
-	init(
-		webView: WKWebView,
-		viewController: ViewController,
-		commonSystemFacade: IosCommonSystemFacade,
-		fileFacade: FileFacade,
-		nativeCredentialsFacade: NativeCredentialsFacade,
-		nativeCryptoFacade: NativeCryptoFacade,
-		themeFacade: ThemeFacade,
-		appDelegate: AppDelegate,
-		alarmManager: AlarmManager,
-		notificationStorage: NotificationStorage,
-		keychainManager: KeychainManager,
-		webAuthnFacade: WebAuthnFacade,
-		sqlCipherFacade: IosSqlCipherFacade,
-		contactsSynchronization: IosMobileContactsFacade,
-		userPreferencesProvider: UserPreferencesProvider,
-		externalCalendarFacade: ExternalCalendarFacadeImpl
-	) {
+	@MainActor public init(webView: WKWebView, commonSystemFacade: IosCommonSystemFacade, globalDispatcher: IosGlobalDispatcher) {
 		self.webView = webView
-		self.viewController = viewController
 		self.commonSystemFacade = commonSystemFacade
-		self.mobileFacade = nil
-		self.commonNativeFacade = nil
-		self.globalDispatcher = nil
-		self.sqlCipherFacade = sqlCipherFacade
-
+		self.globalDispatcher = globalDispatcher
 		super.init()
-		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self)
-		let nativePushFacade = IosNativePushFacade(
-			appDelegate: appDelegate,
-			alarmManager: alarmManager,
-			notificationStorage: notificationStorage,
-			keychainManager: keychainManager,
-			commonNativeFacade: self.commonNativeFacade
-		)
-		self.globalDispatcher = IosGlobalDispatcher(
-			commonSystemFacade: commonSystemFacade,
-			externalCalendarFacade: externalCalendarFacade,
-			fileFacade: fileFacade,
-			mobileContactsFacade: IosMobileContactsFacade(userDefault: UserDefaults.standard),
-			mobilePaymentsFacade: IosMobilePaymentsFacade(),
-			mobileSystemFacade: IosMobileSystemFacade(
-				viewController: self.viewController,
-				userPreferencesProvider: userPreferencesProvider,
-				appLockHandler: AppLockHandler()
-			),
-			nativeCredentialsFacade: nativeCredentialsFacade,
-			nativeCryptoFacade: nativeCryptoFacade,
-			nativePushFacade: nativePushFacade,
-			sqlCipherFacade: sqlCipherFacade,
-			themeFacade: themeFacade,
-			webAuthnFacade: webAuthnFacade
-		)
-		self.mobileFacade = MobileFacadeSendDispatcher(transport: self)
+
 		self.webView.configuration.userContentController.add(self, name: "nativeApp")
 	}
 
 	/** Part of the NativeInterface. Sends request to the web part. Should not be used directly but through the send dispatchers. */
-	func sendRequest(requestType: String, args: [String]) async throws -> String {
+	@concurrent public func sendRequest(requestType: String, args: [String]) async throws -> String {
 		let newRequestId = self.requestId.wrappingIncrementThenLoad(ordering: .sequentiallyConsistent)
 		let requestId = "app\(newRequestId)"
 		await self.commonSystemFacade.awaitForInit()
 		return try await withCheckedThrowingContinuation { continuation in
-			self.requestsLock.withLock { self.requests[requestId] = continuation }
+			self.requestsLock.withLock { requests in requests[requestId] = continuation }
 			let parts: [String] = ["request", requestId, requestType] + args
 			self.postMessage(encodedMessage: parts.joined(separator: "\n"))
 		}
@@ -93,20 +42,9 @@ class RemoteBridge: NSObject, NativeInterface {
 		self.postMessage(encodedMessage: parts.joined(separator: "\n"))
 	}
 
-	private func sendErrorResponse(requestId: String, err: Error) {
-		let responseError: ResponseError
+	private func sendErrorResponse(requestId: String, err: any Error) {
 		var parts: [String] = ["requestError", requestId]
-		if let err = err as? TutanotaError {
-			responseError = ResponseError(name: err.name, message: err.message, stack: err.underlyingError.debugDescription)
-		} else {
-			let nsError = err as NSError
-			let userInfo = nsError.userInfo
-			let message = userInfo["message"] as? String ?? err.localizedDescription
-			let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as! NSError?
-
-			responseError = ResponseError(name: nsError.domain, message: message, stack: underlyingError?.debugDescription ?? "")
-		}
-
+		let responseError = err.toResponseError()
 		TUTSLog("Error: \(err) \(err.localizedDescription) \(responseError.name) \(responseError.message) \(responseError.stack)")
 		parts.append(toJson(responseError))
 
@@ -131,7 +69,7 @@ class RemoteBridge: NSObject, NativeInterface {
 	}
 
 	private func handleRequest(type: String, requestId: String, args: String) {
-		Task {
+		Task { @concurrent in
 			do {
 				let value: String = try await self.handleRequest(method: type, args: args)
 				self.sendResponse(requestId: requestId, value: value)
@@ -163,19 +101,12 @@ class RemoteBridge: NSObject, NativeInterface {
 	}
 
 	private func getAndRemoveRequest(id: String) -> CheckedContinuation<String, any Error>? {
-		self.requestsLock.withLock {
-			if let request = self.requests[id] {
-				self.requests.removeValue(forKey: id)
-				return request
-			} else {
-				return nil
-			}
-		}
+		self.requestsLock.withLock { requests in requests.removeValue(forKey: id) }
 	}
 }
 
 extension RemoteBridge: WKScriptMessageHandler {
-	func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+	public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
 		let body = message.body as! String
 		let parts = body.split(separator: "\n", maxSplits: 2, omittingEmptySubsequences: false)
 		// type
@@ -200,6 +131,23 @@ extension RemoteBridge: WKScriptMessageHandler {
 			let arguments = String(requestParams[1])
 			self.handleRequest(type: requestType, requestId: requestId, args: arguments)
 		default: fatalError("unknown message type \(type)")
+		}
+	}
+}
+
+extension Error {
+	func toResponseError() -> ResponseError {
+		if let err = self as? TutanotaError {
+			// "name" is a static property so we need to get the dynamic type of err.
+			// We could also write an extension that returns Self.name.
+			return ResponseError(name: type(of: err).name, message: err.message, stack: err.underlyingError.debugDescription)
+		} else {
+			let nsError = self as NSError
+			let userInfo = nsError.userInfo
+			let message = userInfo["message"] as? String ?? self.localizedDescription
+			let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as! NSError?
+
+			return ResponseError(name: nsError.domain, message: message, stack: underlyingError?.debugDescription ?? "")
 		}
 	}
 }

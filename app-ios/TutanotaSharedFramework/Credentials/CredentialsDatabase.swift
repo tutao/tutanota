@@ -1,8 +1,9 @@
+public import Mockable
 import Sqlcipher
 
 /// Access and modify credentials and related data.
 /// Separate protocol to facilitate mocking.
-public protocol CredentialsStorage {
+@Mockable public protocol CredentialsStorage: Sendable {
 	func getAll() throws -> [PersistedCredentials]
 	func store(credentials: PersistedCredentials) throws
 	func delete(userId: String) throws
@@ -15,7 +16,7 @@ public protocol CredentialsStorage {
 
 public func credentialsDatabasePath() -> URL { makeDbPath(fileName: "credentials.sqlite") }
 
-public class CredentialsDatabase: CredentialsStorage {
+public final class CredentialsDatabase: CredentialsStorage {
 	private let db: SqliteDb
 
 	public init(dbPath: String) throws {

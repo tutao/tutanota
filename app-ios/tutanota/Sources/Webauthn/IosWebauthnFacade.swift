@@ -4,34 +4,34 @@ import TutanotaSharedFramework
 
 let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"
 
-class IosWebauthnFacade: WebAuthnFacade {
+@MainActor final class IosWebauthnFacade: WebAuthnFacade {
 
 	private let viewController: ViewController
 	private weak var currentSession: ASWebAuthenticationSession?
 
 	init(viewController: ViewController) { self.viewController = viewController }
 
-	@MainActor func register(_ challenge: WebAuthnRegistrationChallenge) async throws -> WebAuthnRegistrationResult {
+	func register(_ challenge: WebAuthnRegistrationChallenge) async throws -> WebAuthnRegistrationResult {
 		let url = try await sendRequest(challengeDomain: challenge.domain, challengeJson: toJson(challenge), actionType: "register")
 
-		let result: TaggedWebauthnResult<WebAuthnRegistrationResult> = try self.parseResult(url: url)
+		let result: TaggedWebauthnResult<WebAuthnRegistrationResult> = try await self.parseResult(url: url)
 		switch result {
 		case let .success(value): return value
 		case let .error(_, stack): throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
 		}
 	}
 
-	@MainActor func sign(_ challenge: WebAuthnSignChallenge) async throws -> WebAuthnSignResult {
+	func sign(_ challenge: WebAuthnSignChallenge) async throws -> WebAuthnSignResult {
 		let url = try await sendRequest(challengeDomain: challenge.domain, challengeJson: toJson(challenge), actionType: "sign")
 
-		let result: TaggedWebauthnResult<WebAuthnSignResult> = try self.parseResult(url: url)
+		let result: TaggedWebauthnResult<WebAuthnSignResult> = try await self.parseResult(url: url)
 		switch result {
 		case let .success(value): return value
 		case let .error(_, stack): throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
 		}
 	}
 
-	@MainActor private func sendRequest(challengeDomain: String, challengeJson: String, actionType: String) async throws -> URL {
+	private func sendRequest(challengeDomain: String, challengeJson: String, actionType: String) async throws -> URL {
 		try await withCheckedThrowingContinuation { continuation in
 			var urlComponents = URLComponents(string: challengeDomain)!
 			urlComponents.queryItems = [
@@ -64,7 +64,7 @@ class IosWebauthnFacade: WebAuthnFacade {
 		return result
 	}
 
-	@MainActor func abortCurrentOperation() async throws { self.currentSession?.cancel() }
+	func abortCurrentOperation() async throws { await Task { @MainActor in self.currentSession?.cancel() }.value }
 
 	func isSupported() async throws -> Bool { true }
 
@@ -73,7 +73,7 @@ class IosWebauthnFacade: WebAuthnFacade {
 	func canAttemptChallengeForU2FAppId(_ appId: String) async throws -> Bool { true }
 }
 
-enum TaggedWebauthnResult<T: Decodable>: Decodable {
+enum TaggedWebauthnResult<T: Decodable & Sendable>: Decodable, Sendable {
 	case success(value: T)
 	case error(name: String, stack: String)
 
@@ -84,7 +84,7 @@ enum TaggedWebauthnResult<T: Decodable>: Decodable {
 		case value
 	}
 
-	init(from decoder: Decoder) throws {
+	init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		let type = try container.decode(String.self, forKey: .type)
 		switch type {
@@ -95,7 +95,7 @@ enum TaggedWebauthnResult<T: Decodable>: Decodable {
 			let name = try container.decode(String.self, forKey: .name)
 			let stack = try container.decode(String.self, forKey: .stack)
 			self = .error(name: name, stack: stack)
-		default: throw TutanotaError(message: "Invalid type: \(type)")
+		default: throw GenericTutanotaError(message: "Invalid type: \(type)", underlyingError: nil)
 		}
 	}
 }

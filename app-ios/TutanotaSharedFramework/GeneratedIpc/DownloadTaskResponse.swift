@@ -4,7 +4,7 @@
 /**
  * Result of the download operation done via native. 'suspensionTime' is from either 'Retry-After' or 'Suspension-Time' headers.
  */
-public struct DownloadTaskResponse : Codable {
+public struct DownloadTaskResponse : Codable, Sendable {
 	public init(
 		statusCode: Int,
 		errorId: String?,

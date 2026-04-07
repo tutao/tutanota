@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class WebAuthnFacadeReceiveDispatcher {
-	let facade: WebAuthnFacade
-	init(facade: WebAuthnFacade) {
+public final class WebAuthnFacadeReceiveDispatcher: Sendable {
+	let facade: any WebAuthnFacade
+	init(facade: any WebAuthnFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

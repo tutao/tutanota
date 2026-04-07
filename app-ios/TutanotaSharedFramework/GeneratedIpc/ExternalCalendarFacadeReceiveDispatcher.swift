@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class ExternalCalendarFacadeReceiveDispatcher {
-	let facade: ExternalCalendarFacade
-	init(facade: ExternalCalendarFacade) {
+public final class ExternalCalendarFacadeReceiveDispatcher: Sendable {
+	let facade: any ExternalCalendarFacade
+	init(facade: any ExternalCalendarFacade) {
 		self.facade = facade
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {

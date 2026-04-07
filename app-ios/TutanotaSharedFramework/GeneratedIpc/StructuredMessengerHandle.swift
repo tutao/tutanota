@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct StructuredMessengerHandle : Codable {
+public struct StructuredMessengerHandle : Codable, Sendable {
 	public init(
 		handle: String,
 		type: ContactMessengerHandleType,

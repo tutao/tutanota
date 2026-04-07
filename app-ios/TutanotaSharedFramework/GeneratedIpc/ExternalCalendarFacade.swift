@@ -6,7 +6,7 @@ import Foundation
 /**
  * Common external calendar operations that must be completed on native side
  */
-public protocol ExternalCalendarFacade {
+public protocol ExternalCalendarFacade : Sendable {
 	/**
 	 * Fetches the content of an external calendar and return it as a string
 	 */

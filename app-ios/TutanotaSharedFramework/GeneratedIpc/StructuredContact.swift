@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct StructuredContact : Codable {
+public struct StructuredContact : Codable, Sendable {
 	public init(
 		id: String?,
 		firstName: String,

@@ -4,7 +4,7 @@
 /**
  * Result of the file upload operation done via native. 'suspensionTime' is from either 'Retry-After' or 'Suspension-Time' headers.
  */
-public struct UploadTaskResponse : Codable {
+public struct UploadTaskResponse : Codable, Sendable {
 	public init(
 		statusCode: Int,
 		errorId: String?,

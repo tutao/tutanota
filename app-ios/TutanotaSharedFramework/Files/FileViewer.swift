@@ -2,14 +2,14 @@ import Foundation
 import QuickLook
 import UIKit
 
-class FileViewer {
+@MainActor public class FileViewer {
 	private let viewController: UIViewController
 	/** We need to hold a reference to current preview otherwise it deallocs too early. Previewer does not retain delegates. */
 	private var currentPreview: Delegate?
 
-	init(viewController: UIViewController) { self.viewController = viewController }
+	public init(viewController: UIViewController) { self.viewController = viewController }
 
-	@MainActor func openFile(path: String) async {
+	public func openFile(path: String) async {
 		let previewController = QLPreviewController()
 
 		let fileUrl = URL(fileURLWithPath: path)
@@ -27,7 +27,7 @@ class FileViewer {
 	}
 }
 
-private class Delegate: NSObject, UIDocumentInteractionControllerDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate {
+private class Delegate: NSObject, nonisolated UIDocumentInteractionControllerDelegate, QLPreviewControllerDataSource, @MainActor QLPreviewControllerDelegate {
 	let fileUrl: URL
 	let completionHandler: () -> Void
 
@@ -38,9 +38,9 @@ private class Delegate: NSObject, UIDocumentInteractionControllerDelegate, QLPre
 
 	func numberOfPreviewItems(in controller: QLPreviewController) -> Int { 1 }
 
-	func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem { fileUrl as NSURL }
+	func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> any QLPreviewItem { fileUrl as NSURL }
 
 	func previewControllerDidDismiss(_ controller: QLPreviewController) { completionHandler() }
 
-	func previewController(_ controller: QLPreviewController, shouldOpen url: URL, for item: QLPreviewItem) -> Bool { true }
+	func previewController(_ controller: QLPreviewController, shouldOpen url: URL, for item: any QLPreviewItem) -> Bool { true }
 }

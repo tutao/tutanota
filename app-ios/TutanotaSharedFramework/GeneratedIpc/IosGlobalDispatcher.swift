@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public class IosGlobalDispatcher {
+public final class IosGlobalDispatcher: Sendable {
 	private let commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private let externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private let fileFacade: FileFacadeReceiveDispatcher
@@ -16,18 +16,18 @@ public class IosGlobalDispatcher {
 	private let webAuthnFacade: WebAuthnFacadeReceiveDispatcher
 	
 	public init(
-		commonSystemFacade : CommonSystemFacade,
-		externalCalendarFacade : ExternalCalendarFacade,
-		fileFacade : FileFacade,
-		mobileContactsFacade : MobileContactsFacade,
-		mobilePaymentsFacade : MobilePaymentsFacade,
-		mobileSystemFacade : MobileSystemFacade,
-		nativeCredentialsFacade : NativeCredentialsFacade,
-		nativeCryptoFacade : NativeCryptoFacade,
-		nativePushFacade : NativePushFacade,
-		sqlCipherFacade : SqlCipherFacade,
-		themeFacade : ThemeFacade,
-		webAuthnFacade : WebAuthnFacade
+		commonSystemFacade : any CommonSystemFacade,
+		externalCalendarFacade : any ExternalCalendarFacade,
+		fileFacade : any FileFacade,
+		mobileContactsFacade : any MobileContactsFacade,
+		mobilePaymentsFacade : any MobilePaymentsFacade,
+		mobileSystemFacade : any MobileSystemFacade,
+		nativeCredentialsFacade : any NativeCredentialsFacade,
+		nativeCryptoFacade : any NativeCryptoFacade,
+		nativePushFacade : any NativePushFacade,
+		sqlCipherFacade : any SqlCipherFacade,
+		themeFacade : any ThemeFacade,
+		webAuthnFacade : any WebAuthnFacade
 	) {
 		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
 		self.externalCalendarFacade = ExternalCalendarFacadeReceiveDispatcher(facade: externalCalendarFacade)

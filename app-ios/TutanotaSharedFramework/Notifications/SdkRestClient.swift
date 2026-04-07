@@ -1,4 +1,4 @@
-import tutasdk
+public import tutasdk
 
 public class SdkRestClient: RestClient {
 	private let urlSession: URLSession
@@ -25,7 +25,7 @@ public class SdkRestClient: RestClient {
 		} catch { throw mapExceptionToError(e: error) }
 	}
 	// see: SdkFileClient::mapExceptionToError
-	private func mapExceptionToError(e: Error) -> RestClientError {
+	private func mapExceptionToError(e: any Error) -> RestClientError {
 		// why we don't match on e? see: sdkFileClient::mapExceptionToError
 		TUTSLog("Exception in SdkRestClient: \(e). Assuming .Unknown")
 		if let e = e as? URLError {

@@ -3,15 +3,15 @@ import Foundation
 private let MISSED_NOTIFICATION_TTL_SEC: Int64 = 30 * 24 * 60 * 60  // 30 days
 
 /// Downloads notifications and dispatches them to AlarmManager
-public class NotificationsHandler {
-	private let alarmManager: AlarmManager
-	private let notificationStorage: NotificationStorage
-	private let httpClient: HttpClient
-	private let dateProvider: DateProvider
+public final actor NotificationsHandler {
+	private let alarmManager: any AlarmProcessor
+	private let notificationStorage: any NotificationStorage
+	private let httpClient: any HttpClient
+	private let dateProvider: any DateProvider
 	private let taskQueue = AsyncQueue()
 	private var suspensionTime: UInt64
 
-	public init(alarmManager: AlarmManager, notificationStorage: NotificationStorage, httpClient: HttpClient, dateProvider: DateProvider) {
+	public init(alarmManager: any AlarmProcessor, notificationStorage: any NotificationStorage, httpClient: any HttpClient, dateProvider: any DateProvider) {
 		self.alarmManager = alarmManager
 		self.notificationStorage = notificationStorage
 		self.httpClient = httpClient

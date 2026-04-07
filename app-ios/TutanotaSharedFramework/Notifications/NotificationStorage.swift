@@ -1,5 +1,6 @@
 import DictionaryCoding
 import Foundation
+public import Mockable
 
 private let SSE_INFO_KEY = "sseInfo"
 private let ALARMS_KEY = "repeatingAlarmNotification"
@@ -9,10 +10,20 @@ private let EXTENDED_NOTIFICATION_MODE = "extendedNotificationMode"
 private let RECEIVE_CALENDAR_NOTIFICATION_CONFIG = "receiveCalendarNotificationConfig"
 private let NOTIFICAITON_COUNT_KEY = "notificationCount"
 
-public class NotificationStorage {
-	private let userPreferencesProvider: UserPreferencesProvider
+@Mockable
+public protocol NotificationStorage:  // Make properties writable on let references by requirng a class
+	AnyObject, Sendable
+{
+	var sseInfo: SSEInfo? { get }
+	var lastProcessedNotificationId: String? { get set }
+	var lastMissedNotificationCheckTime: Date? { get set }
+	func removeUser(_ userId: String)
+}
 
-	public init(userPreferencesProvider: UserPreferencesProvider) { self.userPreferencesProvider = userPreferencesProvider }
+public final class UserPrefsNotificationStorage: NotificationStorage {
+	private let userPreferencesProvider: any UserPreferencesProvider
+
+	public init(userPreferencesProvider: any UserPreferencesProvider) { self.userPreferencesProvider = userPreferencesProvider }
 
 	public var sseInfo: SSEInfo? {
 		get {

@@ -5,7 +5,8 @@
 //  Created by Tutao GmbH on 24.04.25.
 //
 import TutanotaSharedFramework
-import tutasdk
+// Generated protocols are still not Sendable see https://github.com/mozilla/uniffi-rs/issues/1674
+@preconcurrency import tutasdk
 
 // Start of day to list of events
 /**

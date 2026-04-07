@@ -1,35 +1,36 @@
 import Combine
 import Foundation
-import TutanotaSharedFramework
 
 enum InitState {
 	case waitingForInit
 	case initReceived
 }
 
-class IosCommonSystemFacade: CommonSystemFacade {
+public protocol MainPageLoader { func loadMainPage(params: [String: String]) async }
 
-	private let viewController: ViewController
+// actor to make access to the init data safe
+public actor IosCommonSystemFacade: CommonSystemFacade {
+	@MainActor private let viewController: any MainPageLoader
 	private let urlSession: URLSession
 	private var initialized = CurrentValueSubject<InitState, Never>(.waitingForInit)
 	// according to the docs the return value of sink should be held
 	// because otherwise the stream will be canceled
 	private var cancellables: [AnyCancellable] = []
-	init(viewController: ViewController, urlSession: URLSession) {
+	@MainActor public init(viewController: any MainPageLoader, urlSession: URLSession) {
 		self.viewController = viewController
 		self.urlSession = urlSession
 	}
 
-	func initializeRemoteBridge() async throws { self.initialized.send(.initReceived) }
+	public func initializeRemoteBridge() async throws { self.initialized.send(.initReceived) }
 
-	func reload(_ query: [String: String]) async throws {
+	public func reload(_ query: [String: String]) async throws {
 		self.initialized = CurrentValueSubject(.waitingForInit)
-		await self.viewController.loadMainPage(params: query)
+		await Task { @MainActor in await self.viewController.loadMainPage(params: query) }.value
 	}
 
-	func getLog() async throws -> String { getLogs() }
+	public func getLog() async throws -> String { getLogs() }
 
-	func awaitForInit() async {
+	public func awaitForInit() async {
 		/// awaiting for the first and hopefully only void object in this publisher
 		/// could be simpler but .values is iOS > 15
 		if self.initialized.value == .initReceived { return }
@@ -42,7 +43,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
 		}
 	}
 
-	func executePostRequest(_ postUrl: String, _ body: String) async throws -> Bool {
+	public func executePostRequest(_ postUrl: String, _ body: String) async throws -> Bool {
 		let httpClient = URLSessionHttpClient(session: self.urlSession)
 		var request = URLRequest(url: URL(string: postUrl)!)
 		request.httpBody = body.data(using: .utf8)

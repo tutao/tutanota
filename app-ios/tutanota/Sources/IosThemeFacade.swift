@@ -1,7 +1,7 @@
 import Foundation
 import TutanotaSharedFramework
 
-class IosThemeFacade: ThemeFacade {
+final class IosThemeFacade: ThemeFacade {
 
 	let themeManager: ThemeManager
 	let viewController: ViewController
@@ -13,16 +13,16 @@ class IosThemeFacade: ThemeFacade {
 
 	func getThemes() async throws -> [[String: String]] { self.themeManager.themes }
 
-	func setThemes(_ themes: [[String: String]]) async throws {
+	@MainActor func setThemes(_ themes: [[String: String]]) async throws {
 		self.themeManager.themes = themes
-		await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
+		self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
 	}
 
 	func getThemePreference() async throws -> ThemePreference? { self.themeManager.themePreference }
 
-	func setThemePreference(_ themePrefernece: ThemePreference) async throws {
+	@MainActor func setThemePreference(_ themePrefernece: ThemePreference) async throws {
 		self.themeManager.themePreference = themePrefernece
-		await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
+		self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
 	}
 
 	func prefersDark() async throws -> Bool { UITraitCollection.current.userInterfaceStyle == .dark }

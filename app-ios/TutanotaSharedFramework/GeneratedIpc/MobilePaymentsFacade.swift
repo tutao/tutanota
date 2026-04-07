@@ -6,7 +6,7 @@ import Foundation
 /**
  * Operations for handling mobile payments.
  */
-public protocol MobilePaymentsFacade {
+public protocol MobilePaymentsFacade : Sendable {
 	/**
 	 * Display a pop-up for the user to start a subscription
 	 */

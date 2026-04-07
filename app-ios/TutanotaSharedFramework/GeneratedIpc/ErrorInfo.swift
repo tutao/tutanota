@@ -4,7 +4,7 @@
 /**
  * When the error happens in the native we serialize it via this structure.
  */
-public struct ErrorInfo : Codable {
+public struct ErrorInfo : Codable, Sendable {
 	public init(
 		name: String?,
 		message: String?,

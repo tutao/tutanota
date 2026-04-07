@@ -27,7 +27,7 @@ struct WidgetError {
 }
 
 struct WidgetErrorHandler {
-	public static func writeLogs(logs: String) async throws {
+	@concurrent public static func writeLogs(logs: String) async throws {
 		let sharingInfo = SharingInfo(identifier: "Widget", text: logs, fileUrls: [])
 
 		try writeSharingInfo(info: sharingInfo, infoLocation: WIDGET_LOGS_LOCATION)

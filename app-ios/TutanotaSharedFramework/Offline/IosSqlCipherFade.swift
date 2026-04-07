@@ -1,5 +1,5 @@
 import Combine
-import Sqlcipher
+public import Sqlcipher
 
 enum ListIdLockState {
 	case waitingForListIdUnlock

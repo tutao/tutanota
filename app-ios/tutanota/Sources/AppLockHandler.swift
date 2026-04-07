@@ -1,7 +1,10 @@
 import Foundation
 import LocalAuthentication
 
-public class AppLockHandler {
+public class AppLockHandler:
+	// LAContext is safe to pass between threads
+	@unchecked Sendable
+{
 	private let context = LAContext()
 
 	public func showAppLockPrompt(_ method: AppLockMethod) async throws {

@@ -9,13 +9,14 @@ public let OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
 public let OPEN_SETTINGS = "settings"
 
 /// Main screen of the app.
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, MainPageLoader {
 	private let themeManager: ThemeManager
 	private let alarmManager: AlarmManager
 	private let notificationsHandler: NotificationsHandler
 	private var bridge: RemoteBridge!
 	private(set) var webView: WKWebView!
 	private var sqlCipherFacade: IosSqlCipherFacade
+	private var commonNativeFacade: (any CommonNativeFacade)!
 
 	private var keyboardSize = 0
 	private var isDarkTheme = false
@@ -24,13 +25,13 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
 		themeManager: ThemeManager,
 		keychainManager: KeychainManager,
-		notificationStorage: NotificationStorage,
+		notificationStorage: UserPrefsNotificationStorage,
 		alarmManager: AlarmManager,
 		notificaionsHandler: NotificationsHandler,
 		credentialsEncryption: IosNativeCredentialsFacade,
 		blobUtils: BlobUtil,
 		contactsSynchronization: IosMobileContactsFacade,
-		userPreferencesProvider: UserPreferencesProvider,
+		userPreferencesProvider: any UserPreferencesProvider,
 		urlSession: URLSession
 	) {
 
@@ -67,32 +68,35 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
-		self.bridge = RemoteBridge(
-			webView: self.webView,
-			viewController: self,
+		let globalDispatcher = IosGlobalDispatcher(
 			commonSystemFacade: commonSystemFacade,
+			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent),
 			fileFacade: IosFileFacade(
-				chooser: TUTFileChooser(viewController: self),
+				chooser: TUTFileChooser(viewController: self, openSettings: { UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) }),
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
 				urlSession: urlSession,
-				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.downloadProgress(fileId, bytes) } },
-				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.bridge.commonNativeFacade.uploadProgress(fileId, bytes) } }
+				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.downloadProgress(fileId, bytes) } },
+				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),
+			mobileContactsFacade: IosMobileContactsFacade(userDefaults: userPreferencesProvider),
+			mobilePaymentsFacade: IosMobilePaymentsFacade(),
+			mobileSystemFacade: IosMobileSystemFacade(viewController: self, userPreferencesProvider: userPreferencesProvider, appLockHandler: AppLockHandler()),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
+			nativePushFacade: IosNativePushFacade(
+				appDelegate: self.appDelegate,
+				alarmManager: self.alarmManager,
+				notificationStorage: notificationStorage,
+				keychainManager: keychainManager,
+				invalidateAlarms: { [weak self] in try await self?.commonNativeFacade.invalidateAlarms() }
+			),
+			sqlCipherFacade: sqlCipherFacade,
 			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
-			appDelegate: self.appDelegate,
-			alarmManager: self.alarmManager,
-			notificationStorage: notificationStorage,
-			keychainManager: keychainManager,
-			webAuthnFacade: IosWebauthnFacade(viewController: self),
-			sqlCipherFacade: self.sqlCipherFacade,
-			contactsSynchronization: contactsSynchronization,
-			userPreferencesProvider: userPreferencesProvider,
-			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent)
+			webAuthnFacade: IosWebauthnFacade(viewController: self)
 		)
-
+		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
+		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
 	}
 
 	required init?(coder: NSCoder) { fatalError("Not NSCodable") }
@@ -180,9 +184,9 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
 		super.traitCollectionDidChange(previousTraitCollection)
-		Task.detached { @MainActor in
+		Task { @MainActor in
 			self.applyTheme(self.themeManager.currentThemeWithFallback)
-			try? await self.bridge.commonNativeFacade.updateTheme()
+			try? await self.commonNativeFacade.updateTheme()
 		}
 	}
 
@@ -196,8 +200,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 		let theme = self.themeManager.currentThemeWithFallback
 		self.applyTheme(theme)
-		self.notificationsHandler.initialize()
 
+		Task.detached { await self.notificationsHandler.initialize() }
 		Task { @MainActor in self._loadMainPage(params: [:]) }
 	}
 
@@ -275,7 +279,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 			return
 		}
 
-		do { try await self.bridge.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
+		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
 			TUTSLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
@@ -283,7 +287,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	func handleMailto(_ url: URL) async throws {
 		let mailTo = MailtoData(url: url)
-		try await self.bridge.commonNativeFacade.createMailEditor([], mailTo?.body ?? "", mailTo?.toRecipients ?? [], mailTo?.subject ?? "", url.absoluteString)
+		try await self.commonNativeFacade.createMailEditor([], mailTo?.body ?? "", mailTo?.toRecipients ?? [], mailTo?.subject ?? "", url.absoluteString)
 	}
 
 	func handleInterop(_ url: URL) async throws {
@@ -294,9 +298,9 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 		switch info.name {
 		case OPEN_CONTACT_EDITOR_CONTACT_ID:
-			do { try await self.bridge.commonNativeFacade.openContactEditor(info.value!) } catch { TUTSLog("failed to open contact editor: \(error)") }
-		case OPEN_SETTINGS: do { try await self.bridge.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
-		default: throw TutanotaError(message: "Invalid interop operation")
+			do { try await self.commonNativeFacade.openContactEditor(info.value!) } catch { TUTSLog("failed to open contact editor: \(error)") }
+		case OPEN_SETTINGS: do { try await self.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
+		default: throw GenericTutanotaError(message: "Invalid interop operation", underlyingError: nil)
 		}
 	}
 
@@ -308,7 +312,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		let requestedPath = "?mail=\(mailid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"
 
 		Task(priority: .userInitiated) {
-			do { try await self.bridge.commonNativeFacade.openMailBox(userId, address, requestedPath) } catch {
+			do { try await self.commonNativeFacade.openMailBox(userId, address, requestedPath) } catch {
 				TUTSLog("Failed to open mail: \(requestedPath) from notification: \(error)")
 			}
 		}

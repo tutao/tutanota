@@ -7,20 +7,20 @@ import WidgetKit
 
 private let APP_LOCK_METHOD = "AppLockMethod"
 
-class IosMobileSystemFacade: MobileSystemFacade {
+final class IosMobileSystemFacade: MobileSystemFacade {
+	private let viewController: ViewController
+	private let userPreferencesProvider: any UserPreferencesProvider
+	private let appLockHandler: AppLockHandler
+
+	init(viewController: ViewController, userPreferencesProvider: any UserPreferencesProvider, appLockHandler: AppLockHandler) {
+		self.viewController = viewController
+		self.userPreferencesProvider = userPreferencesProvider
+		self.appLockHandler = appLockHandler
+	}
 	func requestWidgetRefresh() async throws { WidgetCenter.shared.reloadAllTimelines() }
 	func storeServerRemoteOrigin(_ origin: String) async throws {
 		let remoteStorage = RemoteStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 		remoteStorage.storeOrigin(origin)
-	}
-	private let viewController: ViewController
-	private let userPreferencesProvider: UserPreferencesProvider
-	private let appLockHandler: AppLockHandler
-
-	init(viewController: ViewController, userPreferencesProvider: UserPreferencesProvider, appLockHandler: AppLockHandler) {
-		self.viewController = viewController
-		self.userPreferencesProvider = userPreferencesProvider
-		self.appLockHandler = appLockHandler
 	}
 
 	func getAppLockMethod() async throws -> TutanotaSharedFramework.AppLockMethod {
@@ -42,18 +42,12 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		return supportedMethods
 	}
 
-	func goToSettings() async throws {
-		DispatchQueue.main.async {
-			let url = URL(string: UIApplication.openSettingsURLString)!
-			UIApplication.shared.open(url)
-		}
+	@MainActor func goToSettings() async throws {
+		let url = URL(string: UIApplication.openSettingsURLString)!
+		await UIApplication.shared.open(url)
 	}
 
-	@MainActor func openLink(_ uri: String) async throws -> Bool {
-		await withCheckedContinuation({ continuation in
-			UIApplication.shared.open(URL(string: uri)!, options: [:]) { success in continuation.resume(returning: success) }
-		})
-	}
+	@MainActor func openLink(_ uri: String) async throws -> Bool { await UIApplication.shared.open(URL(string: uri)!, options: [:]) }
 
 	@MainActor func shareText(_ text: String, _ title: String) async throws -> Bool {
 		// code from here: https://stackoverflow.com/a/35931947
@@ -88,7 +82,7 @@ class IosMobileSystemFacade: MobileSystemFacade {
 			return
 		case PermissionType.notification:
 			let isPermissionGranted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
-			if !isPermissionGranted { throw TutanotaSharedFramework.PermissionError(message: "Notification Permission was not granted.") }
+			if !isPermissionGranted { throw PermissionError(message: "Notification Permission was not granted.") }
 		case PermissionType.camera:
 			let status = AVCaptureDevice.authorizationStatus(for: .video)
 			var granted = status == .authorized
@@ -99,16 +93,16 @@ class IosMobileSystemFacade: MobileSystemFacade {
 
 	}
 
-	func openMailApp(_ query: String) async throws {
+	@MainActor func openMailApp(_ query: String) async throws {
 		guard let decodedQuery = String(data: Data(base64Encoded: query)!, encoding: .utf8) else {
-			throw TutanotaSharedFramework.TutanotaError(message: "Failed to decode query string during interop")
+			throw GenericTutanotaError(message: "Failed to decode query string during interop")
 		}
 		let url = "tutamail://interop?\(decodedQuery)"
 
-		if let url = URL(string: url), await UIApplication.shared.canOpenURL(url) {
-			DispatchQueue.main.async { UIApplication.shared.open(url) }
+		if let url = URL(string: url), UIApplication.shared.canOpenURL(url) {
+			await UIApplication.shared.open(url, options: [:])
 		} else {
-			DispatchQueue.main.async { UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id922429609")!) }
+			await UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id922429609")!)
 		}
 	}
 
@@ -128,5 +122,5 @@ class IosMobileSystemFacade: MobileSystemFacade {
 
 	func openCalendarApp(_ query: String) async throws { TUTSLog("Tried to open Calendar App from Calendar App") }
 
-	func print() async throws { throw TutanotaError(message: "Not implemented") }
+	func print() async throws { throw GenericTutanotaError(message: "Not implemented") }
 }

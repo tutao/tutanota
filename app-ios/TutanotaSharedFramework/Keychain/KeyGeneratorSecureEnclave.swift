@@ -3,7 +3,7 @@ import LocalAuthentication
 
 /// Secure enclave and also CryptoTokenKit are unavailable in the simulator. We need to conditionally compile based on the target environment
 /// otherwise the app will crash in the simulator when it tries to load the dynamic lib
-public class KeyGenerator {
+public final class KeyGenerator: Sendable {
 	public init() {}
 
 	func generateKey(tag: String, accessControl: SecAccessControl) throws -> SecKey {
@@ -17,7 +17,7 @@ public class KeyGenerator {
 
 		var error: Unmanaged<CFError>?
 		guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
-			let e = error!.takeRetainedValue() as Error as NSError
+			let e = error!.takeRetainedValue() as (any Error) as NSError
 			let tutanotaError = TUTErrorFactory.wrapNativeError(withDomain: TUT_ERROR_DOMAIN, message: "Failed to generate data key for \(tag)", error: e)
 			throw tutanotaError
 		}

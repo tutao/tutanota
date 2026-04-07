@@ -4,7 +4,7 @@ import TutanotaSharedFramework
 
 let WEBAUTHN_ERROR_DOMAIN = "de.tutao.calendar.Webauthn"
 
-class IosWebauthnFacade: WebAuthnFacade {
+@MainActor class IosWebauthnFacade: WebAuthnFacade {
 
 	private let viewController: ViewController
 	private weak var currentSession: ASWebAuthenticationSession?
@@ -84,7 +84,7 @@ enum TaggedWebauthnResult<T: Decodable>: Decodable {
 		case value
 	}
 
-	init(from decoder: Decoder) throws {
+	init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		let type = try container.decode(String.self, forKey: .type)
 		switch type {
@@ -95,7 +95,7 @@ enum TaggedWebauthnResult<T: Decodable>: Decodable {
 			let name = try container.decode(String.self, forKey: .name)
 			let stack = try container.decode(String.self, forKey: .stack)
 			self = .error(name: name, stack: stack)
-		default: throw TutanotaError(message: "Invalid type: \(type)")
+		default: throw GenericTutanotaError(message: "Invalid type: \(type)")
 		}
 	}
 }

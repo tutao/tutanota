@@ -55,6 +55,13 @@ targets:
           ]
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        SWIFT_VERSION: "6.0"
+        SWIFT_UPCOMING_FEATURE_6_0: "YES"
+        SWIFT_APPROACHABLE_CONCURRENCY: "YES"
+        SWIFT_UPCOMING_FEATURE_INTERNAL_IMPORTS_BY_DEFAULT: "YES"
+        SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: "YES"
+        SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: "YES"
       configs:
         Debug Development:
           PRODUCT_NAME: "Tuta CD"
@@ -89,6 +96,8 @@ targets:
       - framework: StoreKit.framework
         embed: false
       - target: AgendaWidgetExtension
+      - package: Mockable
+        product: "Mockable"
   AgendaWidgetExtension:
     templates: [ "formatAndLint" ]
     type: "app-extension"
@@ -102,6 +111,8 @@ targets:
         PRODUCT_MODULE_NAME: "AgendaWidget"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).AgendaWidget"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SWIFT_VERSION: "6.0"
+        SWIFT_APPROACHABLE_CONCURRENCY: "YES"
       groups:
         - "codeSigning"
     dependencies:
@@ -124,6 +135,8 @@ targets:
         PRODUCT_MODULE_NAME: "WidgetConfigIntent"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).WidgetConfigIntent"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SWIFT_VERSION: "6.0"
+        SWIFT_APPROACHABLE_CONCURRENCY: "YES"
       groups:
         - "codeSigning"
     dependencies:
@@ -145,6 +158,8 @@ targets:
         PRODUCT_MODULE_NAME: "WidgetActionsIntent"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).WidgetActionsIntent"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SWIFT_VERSION: "6.0"
+        SWIFT_APPROACHABLE_CONCURRENCY: "YES"
       groups:
         - "codeSigning"
     dependencies:
@@ -177,6 +192,8 @@ targets:
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
       SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
+      SWIFT_VERSION: "6.0"
+      SWIFT_APPROACHABLE_CONCURRENCY: "YES"
     dependencies:
       - target: "calendar"
       - target: "TutanotaSharedFramework"
@@ -185,8 +202,6 @@ targets:
     platform: "iOS"
     sources:
       - path: "TutanotaSharedTests"
-      - path: "MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"
-        optional: true # The file will be generated in the "Generate Mockingbird Mocks" stage
     settings:
       GCC_NO_COMMON_BLOCKS: "YES"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
@@ -200,23 +215,16 @@ targets:
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
+      SWIFT_VERSION: "6.0"
+      SWIFT_APPROACHABLE_CONCURRENCY: "YES"
     dependencies:
       - target: "calendar"
       - target: "TutanotaSharedFramework"
         embed: false
-      - package: "Mockingbird"
       - framework: tutasdk.framework
         embed: false
-    preBuildScripts:
-      - path: "buildScripts/generate-mockingbird.sh"
-        name: "Generate Mockingbird Mocks"
-        shell: "/bin/sh"
-        showEnvVars: true
-        basedOnDependencyAnalysis: false
-        outputFiles:
-          [
-            "$(SRCROOT)/MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift",
-          ]
+      - package: Mockable
+        product: "Mockable"
 schemes:
   calendar debug:
     build:

@@ -6,7 +6,7 @@ import Foundation
 /**
  * Common operations implemented by each platform.
  */
-public protocol CommonSystemFacade {
+public protocol CommonSystemFacade : Sendable {
 	/**
 	 * Must be called before any other methods are called.
 	 */

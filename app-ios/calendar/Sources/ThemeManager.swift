@@ -9,10 +9,10 @@ private let THEMES = "themes"
 private let LIGHT_FALLBACK_THEME = ["themeId": "light-fallback", "surface": "#ffffff"]
 private let DARK_FALLBACK_THEME = ["themeId": "dark-fallback", "surface": "#dddddd"]
 
-class ThemeManager: NSObject {
-	private let userPreferencesProvider: UserPreferencesProvider
+final class ThemeManager: Sendable {
+	private let userPreferencesProvider: any UserPreferencesProvider
 
-	init(userProferencesProvider: UserPreferencesProvider) { self.userPreferencesProvider = userProferencesProvider }
+	init(userProferencesProvider: any UserPreferencesProvider) { self.userPreferencesProvider = userProferencesProvider }
 
 	public var themePreference: ThemePreference? {
 		get { userPreferencesProvider.getObject(forKey: SELECTED_THEME) as! ThemePreference? }

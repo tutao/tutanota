@@ -3,7 +3,7 @@
 
 import Foundation
 
-public protocol NativeCryptoFacade {
+public protocol NativeCryptoFacade : Sendable {
 	func rsaEncrypt(
 		_ publicKey: RsaPublicKey,
 		_ data: DataWrapper,
