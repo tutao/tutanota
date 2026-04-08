@@ -218,6 +218,10 @@ export class EventBusClient {
 			groupsToLastEventBatchIdsQuery += groupId + "=" + lastEventBatchId + ";"
 		}
 
+		if (groupsToLastEventBatchIds.size === 0) {
+			this.isInitialSyncDone = true
+		}
+
 		const path = "/event?" + authQuery + (groupsToLastEventBatchIds.size > 0 ? groupsToLastEventBatchIdsQuery : "")
 
 		this.unsubscribeFromOldWebsocket()
