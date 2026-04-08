@@ -7,6 +7,7 @@ import { EphemeralCacheStorage } from "./rest/EphemeralCacheStorage"
 import { IndexingNotSupportedError } from "../common/error/IndexingNotSupportedError"
 import { InvalidDatabaseStateError } from "../common/error/InvalidDatabaseStateError"
 import { MailIndexer } from "../../../mail-app/workerUtils/index/MailIndexer"
+import { OfflineDbClosedError } from "../common/error/OfflineDbClosedError"
 
 export interface LastProcessedEventBatchStorageFacade {
 	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null>
@@ -69,20 +70,39 @@ export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastP
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
 	async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
-		const { query, params } = sql`SELECT batchId
-                                    from lastUpdateBatchIdPerGroupId
-                                    WHERE groupId = ${groupId}`
-		const row = (await this.sqlCipherFacade.get(query, params)) as { batchId: TaggedSqlValue } | null
-		return (row?.batchId?.value ?? null) as Id | null
+		try {
+			const { query, params } = sql`SELECT batchId
+									  from lastUpdateBatchIdPerGroupId
+									  WHERE groupId = ${groupId}`
+			const row = (await this.sqlCipherFacade.get(query, params)) as { batchId: TaggedSqlValue } | null
+			return (row?.batchId?.value ?? null) as Id | null
+		} catch (e) {
+			if (e instanceof OfflineDbClosedError) {
+				return null
+			} else {
+				throw e
+			}
+		}
 	}
 
 	async putLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
-		const { query, params } = sql`INSERT
-        OR REPLACE INTO lastUpdateBatchIdPerGroupId VALUES (
-        ${groupId},
-        ${batchId}
-        )`
-		await this.sqlCipherFacade.run(query, params)
+		try {
+			const { query, params } = sql`INSERT
+        	OR REPLACE INTO lastUpdateBatchIdPerGroupId VALUES (
+        	${groupId},
+			${batchId}
+        	)`
+			await this.sqlCipherFacade.run(query, params)
+		} catch (e) {
+			if (e instanceof OfflineDbClosedError) {
+				// We do nothing if we get an OfflineDbClosedError. This is a valid case when creating an account.
+				// We do not want to stop the PayPal hook and the general registration flow from working by throwing an error here.
+				// After the user has logged in, they would anyway receive updates for the applicable groups
+				// and save a correct last processed batch id for them into the offline storage.
+			} else {
+				throw e
+			}
+		}
 	}
 }
 

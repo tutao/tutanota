@@ -42,6 +42,7 @@ import {
 	findLastIndex,
 	getFromMap,
 	groupByAndMap,
+	last,
 	lastThrow,
 	mergeMaps,
 	neverNull,
@@ -300,7 +301,7 @@ export class IndexerCore {
 		return await this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
 			return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
 				if (groupData) {
-					return lastThrow(groupData.lastBatchIds)
+					return last(groupData.lastBatchIds) ?? null
 				} else {
 					return null
 				}
