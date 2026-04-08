@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { lang } from "../../misc/LanguageViewModel.js"
@@ -8,6 +7,7 @@ import { TUTA_CALENDAR_APP_STORE_URL, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_A
 import { locator } from "../../api/main/CommonLocator.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Card } from "../../gui/base/Card"
+import { SecondaryButton } from "../../gui/base/buttons/VariantButtons"
 
 type SupportSuccessPageAttrs = {
 	dialog: Dialog
@@ -21,8 +21,8 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 				Card,
 				m(
 					".plr-12",
-					m(".h4.center.pb-8.pt-8", lang.get("supportSuccess_msg")),
-					m("p.center.m-0", lang.get("supportRatingRequest_msg")),
+					m(".h4.pb-8.pt-8", lang.get("supportSuccess_msg")),
+					m("p.m-0", lang.get("supportRatingRequest_msg")),
 					m(
 						".mt-32.mb-8",
 						{},
@@ -36,7 +36,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 					),
 				),
 			),
-			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", this.renderAppStoreLinks(vnode.attrs.dialog)),
+			m(".pb-8.pt-8.flex.row.gap-8.fit-height.box-content", this.renderAppStoreLinks(vnode.attrs.dialog)),
 		)
 	}
 
@@ -62,8 +62,9 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	}
 
 	private renderAppStoreLink(url: string, onClick: VoidFunction) {
-		return m(SectionButton, {
-			text: "rateAppStore_action",
+		return m(SecondaryButton, {
+			label: "rateAppStore_action",
+			class: "flex-grow",
 			onclick: () => {
 				const usageTest = locator.usageTestController.getTest("support.rating")
 				const stage = usageTest.getStage(0)
@@ -74,14 +75,14 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 				windowFacade.openLink(url)
 			},
-			rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
-			leftIcon: { icon: Icons.LogoAppStore, title: "rateAppStore_action" },
+			icon: Icons.OpenOutline,
 		})
 	}
 
 	private renderGooglePlayLink(url: string, onClick: VoidFunction) {
-		return m(SectionButton, {
-			text: "rateGooglePlay_action",
+		return m(SecondaryButton, {
+			label: "rateGooglePlay_action",
+			class: "flex-grow",
 			onclick: () => {
 				const usageTest = locator.usageTestController.getTest("support.rating")
 				const stage = usageTest.getStage(0)
@@ -92,8 +93,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 				windowFacade.openLink(url)
 			},
-			rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
-			leftIcon: { icon: Icons.LogoPlaystore, title: "rateGooglePlay_action" },
+			icon: Icons.OpenOutline,
 		})
 	}
 }
