@@ -73,23 +73,12 @@ export class EventController {
 			for (const listener of listenersByPriorities) {
 				await listener.onEntityUpdatesReceived(entityUpdates, eventOwnerGroupId, isInitialSyncDone)
 			}
+
 			if (progressMonitorId !== null && !this.progressTracker.getMonitor(progressMonitorId)?.isDone()) {
 				await this.progressTracker.workDoneForMonitor(progressMonitorId, 1)
 			}
-			if (progressMonitorId !== null && isInitialSyncDone) {
-				this.debouncedComplete(progressMonitorId)
-			}
 		}
 	}
-
-	/**
-	 * Complete the progress monitor if we do not receive any more updates
-	 * for a second after the initial sync is done
-	 */
-	private readonly debouncedComplete = debounce(PROGRESS_MONITOR_DEBOUNCE_MS, (progressMonitorId: ProgressMonitorId) => {
-		console.log(TAG, "Completing event queue progress monitor")
-		this.progressTracker.getMonitor(progressMonitorId)?.completed()
-	})
 
 	async onCountersUpdateReceived(update: WebsocketCounterData): Promise<void> {
 		this.countersStream(update)

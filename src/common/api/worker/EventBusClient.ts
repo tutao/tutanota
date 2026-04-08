@@ -118,12 +118,22 @@ export class EventBusClient {
 	private immediateReconnect: boolean = false // if true tries to reconnect immediately after the websocket is closed
 
 	private lastAntiphishingMarkersId: Id | null = null
-	private isInitialSyncDone: boolean = false
 
 	private reconnectTimer: TimeoutID | null
 	private connectTimer: TimeoutID | null
 
 	private progressMonitor: ProgressMonitorDelegate | null = null
+	private isInitialSyncDone: boolean = false
+	/**
+	 * The artificial work that is added as an overstatement, to make sure the progress bar is not completed too early.
+	 * e.g. group 1 has 5 batches, group 2 has 10000 batches; since sending the messages for group 2 takes time,
+	 * it is possible that the progress bar is completed before the group 2 messages are sent from the server.
+	 *
+	 * In this case, we add 1 artificial work to the progress bar, complete 0.5 of it immediately after adding it,
+	 * and the remaining 0.5 after we receive the initialSyncDone message. Since we receive the initialSyncDone message
+	 * only after the group2 also sends its messages, we can be sure that the progress bar is not completed too early.
+	 */
+	private artificialWorkEstimate: number = 0
 
 	/**
 	 * Represents a currently retried executing due to a ServiceUnavailableError
@@ -305,12 +315,13 @@ export class EventBusClient {
 				})
 				const groupId = entityUpdateData.eventBatchOwner
 				const batchId = entityUpdateData.eventBatchId
+
 				if (this.isInitialSyncDone && !this.progressMonitor?.isDone()) {
 					// the initial sync is done; this is to add work for entity updates we receive right after the initial sync is done,
 					// such as two entity updates per mail after the ProcessInboxService call. We complete this added work in the EventController
 					await this.progressMonitor?.updateTotalWork(this.progressMonitor.totalWork + 1)
 				}
-				await this.processEventBatch(updates, batchId, groupId)
+				await this.processEventBatch(updates, batchId, groupId, this.isInitialSyncDone)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
@@ -345,6 +356,7 @@ export class EventBusClient {
 			case MessageType.InitialSyncDone: {
 				console.log("Reached final event, sync is done")
 				this.isInitialSyncDone = true
+				await this.progressMonitor?.workDone(this.artificialWorkEstimate / 2)
 				this.listener.onSyncDone()
 				break
 			}
@@ -353,11 +365,11 @@ export class EventBusClient {
 				if (workEstimate === 0) {
 					break
 				}
-
 				if (this.progressMonitor == null) {
+					this.artificialWorkEstimate = workEstimate * 0.2
 					// add and finish some work directly, to immediately show some progress and start estimating
 					this.progressMonitor = new ProgressMonitorDelegate(this.progressTracker, workEstimate * 1.2)
-					await this.progressMonitor.workDone(0.1 * workEstimate)
+					await this.progressMonitor.workDone(this.artificialWorkEstimate / 2)
 				} else {
 					await this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + workEstimate * 1.2)
 				}
@@ -613,18 +625,13 @@ export class EventBusClient {
 		}
 	}
 
-	private async processEventBatch(entityUpdates: EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
+	private async processEventBatch(entityUpdates: EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		try {
 			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(entityUpdates, batchId, groupId)
 			if (!this.isTerminated()) {
-				await this.listener.onEntityEventsReceived(
-					filteredEvents,
-					batchId,
-					groupId,
-					(await this.progressMonitor?.progressMonitorId) ?? null,
-					this.isInitialSyncDone,
-				)
+				const progressMonitorId = (await this.progressMonitor?.progressMonitorId) ?? null
+				await this.listener.onEntityEventsReceived(filteredEvents, batchId, groupId, progressMonitorId, isInitialSyncDone)
 			}
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {
@@ -633,7 +640,7 @@ export class EventBusClient {
 				const retryPromise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 					// if we have a websocket reconnect we have to stop retrying
 					if (this.serviceUnavailableRetry === retryPromise) {
-						return this.processEventBatch(entityUpdates, batchId, groupId)
+						return this.processEventBatch(entityUpdates, batchId, groupId, isInitialSyncDone)
 					} else {
 						throw new CancelledError("stop retry processing after service unavailable due to reconnect")
 					}

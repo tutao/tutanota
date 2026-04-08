@@ -736,6 +736,7 @@ export class MailViewModel {
 	 * When handling missedEntityUpdates, we reload the entire listModel instead of inserting/updating/removing individual mails.
 	 */
 	private readonly debouncedReload = debounce(SYNC_RELOAD_DEBOUNCE_MS, (listModel: MailSetListModel) => {
+		console.log("reload listModel due to missedEntityUpdates")
 		listModel.reload()
 	})
 
