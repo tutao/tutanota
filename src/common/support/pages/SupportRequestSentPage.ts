@@ -37,9 +37,9 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 			m(
 				Card,
 				m(
-					"",
-					m(".h4.center.pb-8.pt-8", lang.get("supportRequestReceived_title")),
-					m("p.center.m-0", lang.get("supportRequestReceived_msg")),
+					".plr-16",
+					m(".h4.pb-8.pt-8", lang.get("supportRequestReceived_title")),
+					m("p.m-0", lang.get("supportRequestReceived_msg")),
 					m(
 						".mt-32.mb-8",
 						{},
