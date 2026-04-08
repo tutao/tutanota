@@ -174,14 +174,14 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		)
 		const resumeMailImportIconButtonAttrs: IconButtonAttrs = {
 			title: "resumeMailImport_action",
-			icon: Icons.PlayFilled,
+			icon: Icons.PlayOutline,
 			click: () => this.mailImporter().onResumeBtnClick(),
 			size: ButtonSize.Normal,
 			hidden: this.mailImporter().shouldDisableResumeButton(),
 		}
 		const pauseMailImportIconButtonAttrs: IconButtonAttrs = {
 			title: "pauseMailImport_action",
-			icon: Icons.PauseFilled,
+			icon: Icons.PauseOutline,
 			click: () => {
 				this.mailImporter().onPauseBtnClick()
 			},
