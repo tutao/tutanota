@@ -74,6 +74,13 @@ export class ServiceWorker {
 			return
 		}
 
+		// If request contains t-src, we need to always send the request to server
+		// because otherwise the signup source is not tracked correctly.
+		const hasTutaSrcQueryParam = evt.request.url.toLowerCase().includes("t-src=")
+		if (hasTutaSrcQueryParam) {
+			return
+		}
+
 		const urlWithoutParams = urlWithoutQuery(evt.request.url)
 
 		if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
