@@ -92,7 +92,7 @@ import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/Ins
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
-	CalendarWebLastProcessedEventBatchStorageFacade,
+	NoOpLastProcessedEventBatchStorageFacade,
 	LastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
@@ -286,7 +286,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		if (isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
-			return new CalendarWebLastProcessedEventBatchStorageFacade()
+			return new NoOpLastProcessedEventBatchStorageFacade()
 		}
 	})
 

@@ -119,6 +119,7 @@ import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveF
 import {
 	IndexedDbLastProcessedEventBatchStorageFacade,
 	LastProcessedEventBatchStorageFacade,
+	NoOpLastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
@@ -338,7 +339,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	let offlineStorageProvider
-	if (isOfflineStorageAvailable() && !isAdminClient()) {
+	if (isOfflineStorageAvailable()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
@@ -400,8 +401,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
-		} else {
+		} else if (isBrowser()) {
 			return new IndexedDbLastProcessedEventBatchStorageFacade(indexerCore, ephemeralStorageProvider, mailIndexer)
+		} else {
+			return new NoOpLastProcessedEventBatchStorageFacade()
 		}
 	})
 

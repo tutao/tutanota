@@ -86,7 +86,7 @@ export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastP
 	}
 }
 
-export class CalendarWebLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchStorageFacade {
+export class NoOpLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchStorageFacade {
 	constructor() {}
 
 	async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
