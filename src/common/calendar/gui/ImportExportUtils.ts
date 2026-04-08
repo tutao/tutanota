@@ -313,7 +313,7 @@ export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null):
 	return {
 		frequency: repeatRule.frequency ?? "",
 		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
+		endValue: repeatRule.endValue ?? null,
 		interval: repeatRule.interval ?? "",
 		timeZone: repeatRule.timeZone ?? "",
 		excludedDates: repeatRule.excludedDates
@@ -354,7 +354,7 @@ export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): Stripped
 	return {
 		frequency: repeatRule.frequency ?? "",
 		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
+		endValue: repeatRule.endValue ?? null,
 		interval: repeatRule.interval ?? "",
 		timeZone: repeatRule.timeZone ?? "",
 		excludedDates: repeatRule.excludedDates.map(createDateWrapper),
