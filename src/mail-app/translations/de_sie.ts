@@ -2267,6 +2267,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"waitingForAppStoreConfirmation_msg": "Warte auf Bestätigung des Abonnements von Apple ..."
+		"waitingForAppStoreConfirmation_msg": "Warte auf Bestätigung des Abonnements von Apple ...",
+		"beginTyping_msg": "Geben Sie Ihre Frage ein..."
 	}
 }

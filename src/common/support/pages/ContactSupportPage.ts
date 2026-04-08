@@ -23,6 +23,7 @@ import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { PlanTypeToName } from "@tutao/typerefs"
+import { theme } from "../../gui/theme"
 
 type Props = {
 	data: SupportDialogState
@@ -123,67 +124,73 @@ export class ContactSupportPage implements Component<Props> {
 
 	view({ attrs: { data, onSuccess, isRating } }: Vnode<Props>): Children {
 		return m(
-			".flex.flex-column.pt-16.height-100p.gap-8",
-			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-8", data.helpText()))),
+			".flex-space-between.flex-column.pt-16.height-100p",
+			this.renderTitleSection(data),
+			this.renderEditForm(data),
+			this.renderSendButton(data, isRating, onSuccess),
+		)
+	}
+
+	private renderTitleSection(data: SupportDialogState) {
+		return m(Card, m(".plr-8", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-16", data.helpText())))
+	}
+
+	renderEditForm(data: SupportDialogState): Children {
+		return m(".flex.col.gap-8", [
+			m(".small.uppercase.b.text-ellipsis.pt-8", { style: { color: theme.on_surface } }, lang.get("supportForm_whatWentWrong_msg")),
 			m(
 				Card,
 				{
 					classes: ["child-text-editor", "rel", "height-100p"],
 					style: {
-						padding: "0",
+						padding: "8",
 					},
 				},
-				this.htmlEditor?.isEmpty() && !this.htmlEditor?.isActive() && m("span.text-editor-placeholder", lang.get("supportForm_whatWentWrong_msg")),
+				this.htmlEditor?.isEmpty() && !this.htmlEditor?.isActive() && m("span.text-editor-placeholder", lang.get("beginTyping_msg")),
 				this.htmlEditor != null && m(this.htmlEditor),
 			),
+			this.renderAttachmentList(),
+			this.renderAttachLogsSwitch(data),
+		])
+	}
 
-			m(
-				".flex.flex-column.gap-8.pb-24",
-				{
-					style: {
-						marginTop: "auto",
-					},
+	private renderSendButton(data: SupportDialogState, isRating: boolean | undefined, onSuccess: () => unknown) {
+		return m(
+			".align-self-center.full-width.pb-24.pt-8",
+			m(PrimaryButton, {
+				label: "send_action",
+				disabled: this.sendMailModel == null,
+				onclick: async () => {
+					if (!this.sendMailModel) {
+						return
+					}
+
+					if (data.isSupportRequestEmpty) {
+						this.htmlEditor?.editor.domElement?.focus()
+						return
+					}
+
+					const customerId = (await locator.logins.getUserController().loadCustomerInfo()).customer
+					let mailBody = data.shouldIncludeLogs()
+						? `${data.supportRequestHtml}${clientInfoString(new Date(), true).message}`
+						: data.supportRequestHtml
+					mailBody += `<br>Customer ID: ${customerId}`
+					const sanitisedBody = this.htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
+						blockExternalContent: true,
+					}).html
+
+					this.sendMailModel.setBody(sanitisedBody)
+					this.sendMailModel.setSubject(await this.getSubject(data, isRating))
+
+					if (data.shouldIncludeLogs()) {
+						this.sendMailModel.attachFiles(data.logs())
+					}
+
+					await this.sendMailModel.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
+
+					onSuccess()
 				},
-				this.renderAttachmentList(),
-				this.renderAttachLogsSwitch(data),
-				m(
-					".align-self-center.full-width",
-					m(PrimaryButton, {
-						label: "send_action",
-						disabled: this.sendMailModel == null,
-						onclick: async () => {
-							if (!this.sendMailModel) {
-								return
-							}
-
-							if (data.isSupportRequestEmpty) {
-								this.htmlEditor?.editor.domElement?.focus()
-								return
-							}
-
-							const customerId = (await locator.logins.getUserController().loadCustomerInfo()).customer
-							let mailBody = data.shouldIncludeLogs()
-								? `${data.supportRequestHtml}${clientInfoString(new Date(), true).message}`
-								: data.supportRequestHtml
-							mailBody += `<br>Customer ID: ${customerId}`
-							const sanitisedBody = this.htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
-								blockExternalContent: true,
-							}).html
-
-							this.sendMailModel.setBody(sanitisedBody)
-							this.sendMailModel.setSubject(await this.getSubject(data, isRating))
-
-							if (data.shouldIncludeLogs()) {
-								this.sendMailModel.attachFiles(data.logs())
-							}
-
-							await this.sendMailModel.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
-
-							onSuccess()
-						},
-					}),
-				),
-			),
+			}),
 		)
 	}
 

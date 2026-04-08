@@ -7,12 +7,11 @@ import { Dialog } from "../../gui/base/Dialog.js"
 import { Thunk, noOp, makeSingleUse } from "@tutao/utils"
 import { Card } from "../../gui/base/Card.js"
 import { theme } from "../../gui/theme.js"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
+import { PrimaryButton, SecondaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { isSupportVisibilityEnabled, SupportVisibilityMask } from "../SupportVisibilityMask"
 import { fastTrackAction } from "../../misc/ApprovalNeededMessageDialog"
 import { ApprovalStatus } from "@tutao/app-env"
@@ -85,10 +84,10 @@ export class SupportTopicPage implements Component<Props> {
 					Card,
 					{
 						rootElementType: "div",
-						classes: ["scroll", "mb-16"],
+						classes: ["scroll", "mb-16", "plr-16"],
 					},
-					m(".h4.m-0.pb-16", issue),
-					m.trust(sanitisedSolution),
+					m(".h4.m-0.pb-16.plr-16", issue),
+					m(".plr-16", m.trust(sanitisedSolution)),
 					buttonText &&
 						!locator.logins.getUserController().isFreeAccount() &&
 						m(
@@ -132,11 +131,12 @@ interface WasThisHelpfulAttrs {
 class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 	view({ attrs: { goToContactSupportPage, goToSolutionWasHelpfulPage, topicName } }: Vnode<WasThisHelpfulAttrs>): Children {
 		return m(
-			".flex.flex-column.gap-8",
+			".flex.flex-column.gap-8.full-width",
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.get("wasThisHelpful_msg")),
-			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", [
-				m(SectionButton, {
-					text: "yes_label",
+			m(".flex.row.gap-8.justify-center", [
+				m(SecondaryButton, {
+					label: "yes_label",
+					class: "flex-grow",
 					onclick: () => {
 						const solutionStage = getSupportUsageTestStage(2)
 						solutionStage.setMetric({ name: "Result", value: topicName.replaceAll(" ", "") + "_helpful" })
@@ -144,10 +144,11 @@ class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 
 						goToSolutionWasHelpfulPage()
 					},
-					rightIcon: { icon: Icons.Checkmark, title: "yes_label" },
+					icon: Icons.SuccessFilled,
 				}),
-				m(SectionButton, {
-					text: "no_label",
+				m(SecondaryButton, {
+					label: "no_label",
+					class: "flex-grow",
 					onclick: () => {
 						const solutionStage = getSupportUsageTestStage(2)
 						solutionStage.setMetric({ name: "Result", value: topicName.replaceAll(" ", "") + "_notHelpful" })
@@ -155,6 +156,7 @@ class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 
 						goToContactSupportPage()
 					},
+					icon: Icons.FailureFilled,
 				}),
 			]),
 		)

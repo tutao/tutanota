@@ -2267,6 +2267,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"waitingForAppStoreConfirmation_msg": "Waiting for Apple to confirm subscription ..."
+		"waitingForAppStoreConfirmation_msg": "Waiting for Apple to confirm subscription ...",
+		"beginTyping_msg": "Type in your question..."
 	}
 }
