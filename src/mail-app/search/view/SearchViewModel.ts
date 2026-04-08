@@ -978,13 +978,16 @@ export class SearchViewModel {
 
 	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
 		if (
-			newState.progress === 0 &&
-			newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
 			isSameTypeRef(MailTypeRef, this.searchedType) &&
+			newState.progress === 0 &&
+			newState.error == null &&
+			newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
 			(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
 		) {
-			// Indexing stopped and _startDate is outside the index range
-			this._startDate = new Date(newState.currentMailIndexTimestamp)
+			// Indexing was cancelled and _startDate is outside the index range
+			const newStartTimestamp =
+				newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : newState.currentMailIndexTimestamp
+			this._startDate = new Date(newStartTimestamp)
 		}
 
 		const currentResult = this.search.result()
