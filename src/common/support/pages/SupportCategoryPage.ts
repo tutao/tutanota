@@ -4,8 +4,9 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { getCategoryIntroduction, getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
-import { Card } from "../../gui/base/Card.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
+import { TitleSection } from "../../gui/TitleSection"
+import { AllIcons } from "../../gui/base/Icon"
 
 type Props = {
 	data: SupportDialogState
@@ -25,13 +26,11 @@ export class SupportCategoryPage implements Component<Props> {
 		const currentlySelectedCategory = selectedCategory()
 
 		return m(".pt-16.pb-16.flex.col", [
-			m(Card, [
-				m(
-					"",
-					m(".h4.mb-0", getCategoryName(currentlySelectedCategory!, languageTag)),
-					m("p.mt-4.mb-8", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
-				),
-			]),
+			m(TitleSection, {
+				icon: currentlySelectedCategory?.icon as AllIcons,
+				title: getCategoryName(currentlySelectedCategory!, languageTag),
+				subTitle: getCategoryIntroduction(currentlySelectedCategory!, languageTag),
+			}),
 			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", [
 				currentlySelectedCategory!.topics.map((topic) =>
 					m(SectionButton, {
