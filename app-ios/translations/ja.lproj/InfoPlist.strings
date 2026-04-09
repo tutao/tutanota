@@ -21,6 +21,7 @@ TutaoWidgetSendLogsAction = "ログを送信";
 TutaoWidgetNoEventsMsg = "予定なし";
 TutaoWidgetCredentialsErrorMsg = "使用可能な認証情報はありません";
 TutaoAccountLabel = "ユーザー";
+TutaoCalendarsLabel = "カレンダー";
 TutaoNoTitleLabel = "<無題>";
 TutaoWidgetDescription = "今日の予定イベントを見る";
 TutaoDefaultCalendarNameTitle = "個人用";
