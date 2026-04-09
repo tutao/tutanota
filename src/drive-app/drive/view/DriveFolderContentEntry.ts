@@ -4,10 +4,10 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton"
-import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
+import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"
 import { modal } from "../../../common/gui/base/Modal"
-import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
+import { FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { getContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
@@ -16,6 +16,7 @@ export interface FileActions {
 	onCut: (f: FolderItem) => unknown
 	onCopy: (f: FolderItem) => unknown
 	onOpenItem: (f: FolderItem) => unknown
+	onDownload: (f: FolderItem) => unknown
 	onTrash: (f: FolderItem) => unknown
 	onRename: (f: FolderItem) => unknown
 	onRestore: (f: FolderItem) => unknown
@@ -62,7 +63,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			onDragEnd,
 			onDropInto,
 			isCut,
-			fileActions: { onCopy, onCut, onTrash, onRestore, onOpenItem, onRename, onStartMove, onDelete },
+			fileActions: { onCopy, onCut, onTrash, onRestore, onOpenItem, onRename, onStartMove, onDelete, onDownload },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
@@ -125,7 +126,10 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				oncontextmenu: (e: MouseEvent) => {
 					e.preventDefault()
 					e.stopPropagation()
-					const dropdown = new Dropdown(() => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete), 300)
+					const dropdown = new Dropdown(
+						() => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload),
+						300,
+					)
 					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 					modal.displayUnique(dropdown, false)
 				},
@@ -178,7 +182,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 									// is focused programmatically
 									tabindex: TabIndex.Programmatic,
 								},
-								childAttrs: () => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete),
+								childAttrs: () => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload),
 							}),
 							oncreate: (vnode: VnodeDOM<IconButtonAttrs, _NoLifecycle<IconButton>>) => {
 								this.moreButtonDom = vnode.dom as HTMLElement

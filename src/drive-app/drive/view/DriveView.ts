@@ -4,8 +4,7 @@ import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
 import { DriveOperationType, DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
-import { DataFile } from "../../../common/api/common/DataFile"
-import { FileReference, getFileBaseNameAndExtensions, WebFile } from "../../../common/api/common/utils/FileUtils"
+import { getFileBaseNameAndExtensions, WebFile } from "../../../common/api/common/utils/FileUtils"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
@@ -532,6 +531,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					if (item.type === "folder") {
 						this.driveViewModel.navigateToFolder(item.folder._id)
 					} else {
+						this.driveViewModel.openFile(item.file)
+					}
+				},
+				onDownload: (item: FolderItem) => {
+					if (item.type === "file") {
 						this.driveViewModel.downloadFile(item.file)
 					}
 				},
@@ -566,28 +570,32 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	private selectedItemsActions(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): DriveSelectedItemsActions {
 		const isListingTrash = this.driveViewModel.currentFolder?.type === DriveFolderType.Trash
+		const selectedItems = Array.from(listState.selectedItems)
+		const hasSelectedItems = isNotEmpty(selectedItems)
+
 		return {
-			onTrash:
-				isListingTrash || listState.selectedItems.size === 0
-					? null
-					: () => this.driveViewModel.moveToTrash(Array.from(listState.selectedItems).map(folderItemToId)),
+			onTrash: isListingTrash || listState.selectedItems.size === 0 ? null : () => this.driveViewModel.moveToTrash(selectedItems.map(folderItemToId)),
 			onDelete:
-				isListingTrash && listState.selectedItems.size > 0
+				isListingTrash && hasSelectedItems
 					? async () => {
 							this.deleteItems()
 						}
 					: null,
-			onRestore:
-				isListingTrash && listState.selectedItems.size > 0 ? () => this.driveViewModel.restoreFromTrash(Array.from(listState.selectedItems)) : null,
-			onCut: !isListingTrash && listState.selectedItems.size > 0 ? () => this.driveViewModel.cut(Array.from(listState.selectedItems)) : null,
-			onCopy: !isListingTrash && listState.selectedItems.size > 0 ? () => this.driveViewModel.copy(Array.from(listState.selectedItems)) : null,
+			onRestore: isListingTrash && hasSelectedItems ? () => this.driveViewModel.restoreFromTrash(selectedItems) : null,
+			onCut: !isListingTrash && hasSelectedItems ? () => this.driveViewModel.cut(selectedItems) : null,
+			onCopy: !isListingTrash && hasSelectedItems ? () => this.driveViewModel.copy(selectedItems) : null,
 			onPaste: !isListingTrash && this.driveViewModel.clipboard ? () => this.onPaste() : null,
 			onMove:
-				!isListingTrash && listState.selectedItems.size > 0
-					? () =>
-							showMoveItemDialog(Array.from(listState.selectedItems), (items, destinationFolder) =>
-								this.driveViewModel.moveItems(items, destinationFolder._id),
-							)
+				!isListingTrash && hasSelectedItems
+					? () => showMoveItemDialog(selectedItems, (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
+					: null,
+			onDownload:
+				!isListingTrash && hasSelectedItems && this.driveViewModel.isDownloadPermitted(selectedItems)
+					? () => {
+							for (const item of selectedItems) {
+								this.driveViewModel.downloadFile(item.file)
+							}
+						}
 					: null,
 		}
 	}

@@ -119,8 +119,8 @@ export abstract class FileController {
 	/**
 	 * Download a file from the server to the filesystem
 	 */
-	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DownloadReturn> {
-		const transferId = await this.blobFacade.generateTransferId()
+	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments, transferId?: TransferId): Promise<DownloadReturn> {
+		transferId ??= await this.blobFacade.generateTransferId()
 		return { transferIds: [transferId], promise: this.doDownload([{ file, transferId }], DownloadPostProcessing.Write, { archiveType }) }
 	}
 

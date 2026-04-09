@@ -385,7 +385,7 @@ o.spec("DriveTransferController", function () {
 				transferIds: [transferId],
 			})
 
-			await transferController.download(file)
+			await transferController.download(file, "open")
 			verify(fileController.open(file, ArchiveDataType.DriveFile, transferId))
 			const expectedTransferState: DriveTransferState = {
 				id: transferId,
@@ -416,8 +416,8 @@ o.spec("DriveTransferController", function () {
 				promise: deferredDownload2.promise,
 				transferIds: [transferId2],
 			})
-			await transferController.download(file1)
-			await transferController.download(file2)
+			await transferController.download(file1, "open")
+			await transferController.download(file2, "open")
 			deferredDownload1.reject(new CancelledError("download failed"))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
@@ -460,8 +460,8 @@ o.spec("DriveTransferController", function () {
 				promise: deferredDownload2.promise,
 				transferIds: [transferId2],
 			})
-			await transferController.download(file1)
-			await transferController.download(file2)
+			await transferController.download(file1, "open")
+			await transferController.download(file2, "open")
 			deferredDownload1.reject(new ConnectionError("download failed"))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
@@ -525,8 +525,8 @@ o.spec("DriveTransferController", function () {
 				transferIds: [transferId2],
 			})
 
-			await transferController.download(file1)
-			await transferController.download(file2)
+			await transferController.download(file1, "open")
+			await transferController.download(file2, "open")
 			o.check(transferController.state).deepEquals([
 				{
 					id: transferId1,
@@ -609,8 +609,8 @@ o.spec("DriveTransferController", function () {
 				transferIds: [transferId2],
 			})
 
-			await transferController.download(file1)
-			await transferController.download(file2)
+			await transferController.download(file1, "open")
+			await transferController.download(file2, "open")
 
 			await transferController.cancelTransfer(transferId1)
 			verify(blobFacade.abortDownload(transferId1))
@@ -633,8 +633,8 @@ o.spec("DriveTransferController", function () {
 				transferIds: [transferId2],
 			})
 
-			await transferController.download(file1)
-			await transferController.download(file2)
+			await transferController.download(file1, "open")
+			await transferController.download(file2, "open")
 
 			await transferController.cancelTransfer(transferId2)
 			o.check(transferController.state).deepEquals([
