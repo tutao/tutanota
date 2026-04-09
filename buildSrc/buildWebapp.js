@@ -16,7 +16,7 @@ import { visualizer } from "rollup-plugin-visualizer"
 import replace from "@rollup/plugin-replace"
 import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
-import typescript from "@rollup/plugin-typescript"
+import { rolldown } from "rolldown"
 
 /**
  * Builds the web app for production.
@@ -96,21 +96,14 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 	console.log("started bundling", measure())
-	const bundle = await rollup({
+	const bundle = await rolldown({
+		context: "globalThis",
 		input: [entryFile, workerFile, powWorkerFile],
 		preserveEntrySignatures: false,
-		perf: true,
+		treeshake: false,
+		tsconfig: isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json",
 		plugins: [
-			typescript({
-				tsconfig: "./tsconfig-dist-rollup.json",
-				compilerOptions: {
-					outDir: buildDir,
-				},
-			}),
 			resolveLibs(),
-			commonjs({
-				exclude: "src/**",
-			}),
 			minify && terser(),
 			analyzer(projectDir, buildDir),
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
@@ -143,17 +136,21 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		],
 	})
 
-	console.log("bundling timings: ")
-	for (let [k, v] of Object.entries(bundle.getTimings())) {
-		console.log(k, v[0])
-	}
 	console.log("started writing bundles into", buildDir, measure())
 	const output = await bundle.write({
 		sourcemap: true,
 		format: "esm",
+		minify: true,
 		dir: buildDir,
-		manualChunks(id, { getModuleInfo, getModuleIds }) {
-			return getChunkName(id, { getModuleInfo })
+		codeSplitting: {
+			groups: [
+				{
+					name(moduleId, ctx) {
+						if (moduleId.endsWith("rolldown/runtime.js")) return "rolldown"
+						return getChunkName(moduleId, ctx?.getModuleInfo(moduleId).code)
+					},
+				},
+			],
 		},
 		chunkFileNames: (chunkInfo) => {
 			return "[name]-[hash].js"
@@ -217,14 +214,9 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 			),
 		)
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/font.ttf"])
-	const swBundle = await rollup({
+	const swBundle = await rolldown({
 		input: ["src/common/serviceworker/sw.ts"],
 		plugins: [
-			typescript({
-				tsconfig: "tsconfig-dist-rollup.json",
-				outDir: buildDir,
-			}),
-			minify && terser(),
 			{
 				name: "sw-banner",
 				banner() {
@@ -239,6 +231,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 		sourcemap: true,
 		format: "iife",
 		file: `${buildDir}/sw.js`,
+		minify,
 	})
 }
 

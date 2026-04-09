@@ -1,5 +1,5 @@
-import type { TypeModel } from "../../common/EntityTypes"
-import { Type } from "../../common/EntityConstants"
+import type { TypeModel } from "../../common/EntityTypes.js"
+import { Type } from "../../common/EntityConstants.js"
 
 export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	if (listId != null) {

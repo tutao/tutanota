@@ -8,7 +8,7 @@ import { typeModels as accountingTypeModels } from "../entities/accounting/TypeM
 import { typeModels as gossipTypeModels } from "../entities/gossip/TypeModels.js"
 import { typeModels as storageTypeModels } from "../entities/storage/TypeModels.js"
 import { typeModels as usageTypeModels } from "../entities/usage/TypeModels.js"
-import { typeModels as driveTypeModels } from "../entities/drive/TypeModels"
+import { typeModels as driveTypeModels } from "../entities/drive/TypeModels.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import baseModelInfo from "../entities/base/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"

@@ -24,16 +24,7 @@ export const dependencyMap = {
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 }
 
-export const tsImportAliases = {
-	"@tutao/utils": path.normalize("src/utils/dist/index.js"),
-	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
-	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
-	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
-	"@tutao/error": path.normalize("src/error/dist/index.js"),
-	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
-	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
-	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
-}
+export const tsImportAliases = {}
 
 /**
  * These are the definitions of chunks with static dependencies. Key is the chunk and values are dependencies to other chunks
@@ -160,20 +151,18 @@ export function resolveLibs(baseDir = ".", extraDependenciesMap = {}) {
 
 /**
  * Returns the chunk name for the given moduleId which is usually the file path.
- * @param moduleId Rollup moduleId usually the file path.
- * @param getModuleInfo Helper function to get information about the ES module.
+ * @param {string } moduleId Rollup moduleId usually the file path.
+ * @param {string | null} code Get the source code for moduleId. is: getModuleInfo(moduleId).code
  * @returns {string} Chunk name
  */
-export function getChunkName(moduleId, { getModuleInfo }) {
+export function getChunkName(moduleId, code, im) {
 	// See HACKING.md for rules
-	const moduleInfo = getModuleInfo(moduleId)
-	const code = moduleInfo.code
-	if (code == null) {
-		console.log("SYNTHETIC MODULE??", moduleId)
-	}
-
 	function isIn(subpath) {
 		return moduleId.includes(path.normalize(subpath))
+	}
+
+	if (code == null) {
+		throw new Error("No code for: " + moduleId + " imported from: " + im)
 	}
 
 	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/utils") || isIn("src/error")) {
@@ -411,9 +400,12 @@ export function bundleDependencyCheckPlugin() {
 
 	return {
 		name: "bundle-dependency-check",
-		generateBundle(outOpts, bundle) {
-			// retrieves getModule function from plugin context.
-			const getModuleInfo = this.getModuleInfo.bind(this)
+		generateBundle(_outOpts, bundle) {
+			console.log("=== all modules ===")
+			Object.values(bundle).forEach((chunk) => {
+				Object.keys(chunk?.modules ?? {}).forEach((moduleId) => console.log(moduleId))
+			})
+			console.log("=== end all modules ===")
 
 			for (const chunk of Object.values(bundle)) {
 				// https://www.rollupjs.org/plugin-development/#generatebundle
@@ -426,17 +418,29 @@ export function bundleDependencyCheckPlugin() {
 					if (moduleId.includes(path.normalize("src/mail-app/translations"))) {
 						continue
 					}
-					const ownChunk = getChunkName(moduleId, { getModuleInfo })
+
+					const moduleInfo = this.getModuleInfo(moduleId)
+					if (moduleInfo == null) {
+						console.log("No module info for: " + moduleId)
+						continue
+					}
+					const ownChunk = getChunkName(moduleId, moduleInfo.code)
 					if (!allowedImports[ownChunk]) {
 						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
 
-					for (const importedId of getModuleInfo(moduleId).importedIds) {
+					for (const importedId of moduleInfo.importedIds) {
 						// static dependencies on translation files are not allowed
 						if (importedId.includes(path.normalize("src/mail-app/translations"))) {
 							pushToMapEntry(staticLangImports, moduleId, importedId)
 						}
-						const importedChunk = getChunkName(importedId, { getModuleInfo })
+						const importedModuleInfo = this.getModuleInfo(importedId)
+						if (importedModuleInfo.code == null) {
+							console.log("No code for: " + importedId + " imported from: " + moduleId)
+							console.log(importedModuleInfo)
+							continue
+						}
+						const importedChunk = getChunkName(importedId, importedModuleInfo.code, moduleId)
 						if (!allowedImports[importedChunk]) {
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
