@@ -121,9 +121,9 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 								title: "more_label",
 							},
 							childAttrs: () => {
-								const { onCopy, onCut, onDelete, onOpenItem, onRename, onRestore, onStartMove, onTrash } = this.fileActions()
+								const { onCopy, onCut, onDelete, onDownload, onRename, onRestore, onStartMove, onTrash } = this.fileActions()
 								if (this.item) {
-									return getContextActions(this.item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete)
+									return getContextActions(this.item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload)
 								} else {
 									return []
 								}
