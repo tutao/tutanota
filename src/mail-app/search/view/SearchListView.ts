@@ -47,7 +47,8 @@ export interface SearchListViewAttrs {
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	indexStateStream: Stream<SearchIndexStateInfo>
-	extendIndex: () => unknown
+	currentStartDate: Date | null
+	extendSearchResult: (extendDate: Date) => unknown
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -120,6 +121,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 			return null
 		}
 
+		const sixMonthsBeforeStartDate = attrs.currentStartDate ? new Date(attrs.currentStartDate.getTime() - YEAR_IN_MILLIS / 2) : null
 		const failedIndexingUpTo = attrs.indexStateStream().failedIndexingUpTo
 		let innerChildren: Children
 		if (failedIndexingUpTo != null) {
@@ -132,7 +134,11 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 					type: ButtonType.Secondary,
 				}),
 			]
-		} else if (attrs.indexStateStream().progress !== 0) {
+		} else if (
+			attrs.indexStateStream().progress !== 0 &&
+			(attrs.currentStartDate == null || attrs.currentStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp)
+		) {
+			// we show progress only when currentStartDate is outside index range to indicate that more results might still show
 			const percentage = Math.trunc(attrs.indexStateStream().progress)
 			innerChildren = [
 				m(CircleLoadingBar, { percentage, backgroundColor: theme.surface_container }),
@@ -146,15 +152,17 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				}),
 			]
 		} else if (
-			(attrs.listModel.state.loadingStatus === ListLoadingState.Done || attrs.listModel.state.loadingStatus === ListLoadingState.Idle) &&
-			attrs.indexStateStream().currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP
+			attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
+			attrs.indexStateStream().currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+			sixMonthsBeforeStartDate &&
+			sixMonthsBeforeStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp
 		) {
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(
 				"",
 				{
 					onclick: () => {
-						this.attrs.extendIndex()
+						this.attrs.extendSearchResult(sixMonthsBeforeStartDate)
 					},
 				},
 				[
@@ -162,7 +170,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 					m(
 						".bottom.small",
 						lang.getTranslation("searchUntil_msg", {
-							"{1}": formatDate(new Date(attrs.indexStateStream().currentMailIndexTimestamp - YEAR_IN_MILLIS / 2)),
+							"{1}": formatDate(sixMonthsBeforeStartDate),
 						}).text,
 					),
 				],

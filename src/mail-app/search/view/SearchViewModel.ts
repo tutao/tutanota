@@ -290,8 +290,8 @@ export class SearchViewModel {
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
-		const query = args.query ?? ""
-		let restriction
+		const query: string = args.query ?? ""
+		let restriction: SearchRestriction
 		try {
 			restriction = getRestriction(requestedPath)
 		} catch (e) {
@@ -304,82 +304,67 @@ export class SearchViewModel {
 		const lastQuery = this.search.lastQueryString()
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 		const listModel = this._listModel
+
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
-		if (Object.hasOwn(args, "query") && this.search.isNewSearch(query, restriction)) {
-			listModel.updateLoadingStatus(ListLoadingState.Loading)
-			this.search
-				.search(
-					{
-						query,
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
-				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
-				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		} else if (lastQuery && this.search.isNewSearch(lastQuery, restriction)) {
-			// If query is not set for some reason (e.g. switching search type), use the last query value
-			listModel.selectNone()
-			listModel.updateLoadingStatus(ListLoadingState.Loading)
-			this.search
-				.search(
-					{
-						query: lastQuery,
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
-				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
-				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		} else if (!Object.hasOwn(args, "query") && !lastQuery) {
-			// no query at all yet
+		// If query is not set for some reason (e.g. switching search type), use the last query value
+		const searchQuery = Object.hasOwn(args, "query") ? query : lastQuery
+		if (searchQuery == null) {
+			// no search query at all yet
 			listModel.updateLoadingStatus(ListLoadingState.Done)
+		} else if (this.search.isNewSearch(searchQuery, restriction)) {
+			listModel.updateLoadingStatus(ListLoadingState.Loading)
+			this.search
+				.search(
+					{
+						query: searchQuery,
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					},
+					this.progressTracker,
+				)
+				.then(() => listModel.updateLoadingStatus(ListLoadingState.Idle))
+				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		}
 
 		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			this.loadAndSelectIfNeeded(args.id)
-		} else {
-			if (isSameTypeRef(restriction.type, MailTypeRef)) {
-				this._selectedMailField = restriction.field
-				this._startDate = restriction.end ? new Date(restriction.end) : null
-				this._endDate = restriction.start ? new Date(restriction.start) : null
-				this._selectedMailFolder = restriction.folderIds
-				this.loadAndSelectIfNeeded(args.id)
-				this.latestMailRestriction = restriction
-			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
-				this._startDate = restriction.start ? new Date(restriction.start) : null
-				this._endDate = restriction.end ? new Date(restriction.end) : null
-				this._includeRepeatingEvents = restriction.eventSeries ?? true
-				this.latestCalendarRestriction = restriction
+		} else if (isSameTypeRef(restriction.type, MailTypeRef)) {
+			this._selectedMailField = restriction.field
+			this._startDate = restriction.end ? new Date(restriction.end) : null
+			this._endDate = restriction.start ? new Date(restriction.start) : null
+			this._selectedMailFolder = restriction.folderIds
+			this.loadAndSelectIfNeeded(args.id)
+			this.latestMailRestriction = restriction
+		} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
+			this._startDate = restriction.start ? new Date(restriction.start) : null
+			this._endDate = restriction.end ? new Date(restriction.end) : null
+			this._includeRepeatingEvents = restriction.eventSeries ?? true
+			this.latestCalendarRestriction = restriction
 
-				// Check if user is trying to search in a birthday calendar while using a free account
-				const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
-				if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+			// Check if user is trying to search in a birthday calendar while using a free account
+			const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
+			if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+				this._selectedCalendar = listIdsOrBirthdayCalendarId
+			} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
+				const availableCalendars = this.getAvailableCalendars(true)
+				if (availableCalendars.some(isBirthdayCalendarInfo)) {
 					this._selectedCalendar = listIdsOrBirthdayCalendarId
-				} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
-					const availableCalendars = this.getAvailableCalendars(true)
-					if (availableCalendars.some(isBirthdayCalendarInfo)) {
-						this._selectedCalendar = listIdsOrBirthdayCalendarId
-					}
-					this._selectedCalendar = null
-					return
 				}
+				this._selectedCalendar = null
+				return
+			}
 
-				if (args.id != null) {
-					try {
-						const { start, id } = decodeCalendarSearchKey(args.id)
-						this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
-							entry = entry as CalendarEvent
-							return id === getElementId(entry) && start === entry.startTime.getTime()
-						})
-					} catch (err) {
-						console.log("Invalid ID, selecting none")
-						this.listModel.selectNone()
-					}
+			if (args.id != null) {
+				try {
+					const { start, id } = decodeCalendarSearchKey(args.id)
+					this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
+						entry = entry as CalendarEvent
+						return id === getElementId(entry) && start === entry.startTime.getTime()
+					})
+				} catch (err) {
+					console.log("Invalid ID, selecting none")
+					this.listModel.selectNone()
 				}
 			}
 		}
@@ -488,6 +473,8 @@ export class SearchViewModel {
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
 		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
+			// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
+			this._listModel.updateLoadingStatus(ListLoadingState.Idle)
 			// the current search result will be extended as the range extends
 			void this.indexerFacade.extendMailIndex(startDate.getTime())
 
@@ -991,9 +978,11 @@ export class SearchViewModel {
 		}
 
 		const currentResult = this.search.result()
-		if (currentResult != null && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
-			// only extend current result if the index was extended
-			this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
+		const isCurrentResultComplete = currentResult == null || (this._startDate != null && this._startDate.getTime() > currentResult.currentIndexTimestamp)
+
+		// only extend result when index is extended and result isn't already complete
+		if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
+			void this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
 		}
 	}
 

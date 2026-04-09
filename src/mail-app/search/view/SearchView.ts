@@ -27,7 +27,6 @@ import {
 	ofClass,
 	setDifference,
 	TypeRef,
-	YEAR_IN_MILLIS,
 } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
@@ -263,12 +262,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
 					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
 					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
-					extendIndex: () => {
-						//this.searchViewModel.
-						const currentStart = this.searchViewModel.startDate
-						if (currentStart) {
-							this.searchViewModel.selectStartDate(new Date(currentStart.getTime() - YEAR_IN_MILLIS / 2))
-						}
+					currentStartDate: this.searchViewModel.startDate,
+					extendSearchResult: (extendDate: Date) => {
+						void this.searchViewModel.selectStartDate(extendDate)
 					},
 				} satisfies SearchListViewAttrs),
 			),

@@ -11,7 +11,7 @@ import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonit
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
+import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
@@ -395,8 +395,7 @@ export class SearchModel {
 			isNew = true
 		} else if (lastQuery.restriction !== restriction) {
 			// both are the same instance
-			isNew =
-				!isSameSearchRestriction(restriction, lastQuery.restriction) && !isSameSearchRestrictionWithRangeExtended(lastQuery.restriction, restriction)
+			isNew = !isSameSearchRestriction(restriction, lastQuery.restriction)
 		}
 
 		if (isNew) this.sendCancelSignal()
