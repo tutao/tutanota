@@ -2,6 +2,7 @@ import { Contact, ContactTypeRef, MailTypeRef } from "../../../common/api/entiti
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	arrayHashSigned,
+	assertNotNull,
 	asyncFind,
 	contains,
 	downcast,
@@ -152,7 +153,8 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				end: extensionEnd,
 			},
 		}).then(() => {
-			result.restriction.end = extensionEnd
+			const restrictionEnd = assertNotNull(result.restriction.end, "null end restriction when extending search")
+			result.restriction.end = Math.min(restrictionEnd, extensionEnd)
 			result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
 			result.results.sort(compareNewestFirst)
 			return result

@@ -36,7 +36,13 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	}
 
 	extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
-		const resultEndCutoff = Math.max(assertNotNull(result.restriction.end, "null end restriction when extending search"), result.currentIndexTimestamp)
+		const restrictionEnd = assertNotNull(result.restriction.end, "null end restriction when extending search")
+		const resultEndCutoff = Math.max(restrictionEnd, result.currentIndexTimestamp)
+
+		if (extensionEnd > resultEndCutoff) {
+			throw new ProgrammingError("search extensionEnd newer than resultEndCutoff")
+		}
+
 		const extensionRestriction: SearchRestriction = {
 			...result.restriction,
 			start: resultEndCutoff,
@@ -69,6 +75,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			}
 
 			extensionResult.restriction.start = result.restriction.start
+			extensionResult.restriction.end = Math.min(restrictionEnd, extensionEnd)
 			extensionResult.moreResultsEntries = moreResultsEntries
 			extensionResult.results = result.results
 			return extensionResult
