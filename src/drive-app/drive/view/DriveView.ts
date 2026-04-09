@@ -271,8 +271,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	private renderMobileActionBar(showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
-		const { onCopy, onCut, onDelete, onRestore, onTrash, onMove } = this.selectedItemsActions(this.driveViewModel.listState(), showMoveItemDialog)
+		const { onCopy, onCut, onDelete, onRestore, onTrash, onMove, onDownload } = this.selectedItemsActions(
+			this.driveViewModel.listState(),
+			showMoveItemDialog,
+		)
 		const actionsAttrs: MobileActionAttrs[] = []
+		if (onDownload) {
+			actionsAttrs.push({
+				title: "download_action",
+				action: onDownload,
+				icon: Icons.DownloadFilled,
+			})
+		}
 		if (onRestore) {
 			actionsAttrs.push({
 				title: "restoreFromTrash_action",
@@ -315,6 +325,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				icon: Icons.TrashFilled,
 			})
 		}
+
 		return m(MobileActionBar, {
 			actions: actionsAttrs,
 		})
