@@ -165,13 +165,14 @@ export class ListModel<ItemType, IdType> {
 			return this.loadInitial()
 		}
 
-		if (this.loading && this.state.loadingStatus === ListLoadingState.Loading) {
-			await this.loading
-		}
-
 		if (this.rawState.loadingStatus === ListLoadingState.ConnectionLost) {
 			return
 		}
+
+		if (this.rawState.loadingStatus === ListLoadingState.Loading) {
+			await this.loading
+		}
+
 		this.rawStateStream(this.defaultRawStateStream)
 		await this.doLoad()
 	}
