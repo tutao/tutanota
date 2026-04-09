@@ -161,10 +161,15 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	async reload() {
-		if (this.rawState.loadingStatus === ListLoadingState.Loading) {
-			return this.loading
+		if (this.initialLoading == null) {
+			return this.loadInitial()
 		}
-		if (this.initialLoading == null || (this.rawState.loadingStatus !== ListLoadingState.Idle && this.rawState.loadingStatus !== ListLoadingState.Done)) {
+
+		if (this.loading && this.state.loadingStatus === ListLoadingState.Loading) {
+			await this.loading
+		}
+
+		if (this.rawState.loadingStatus === ListLoadingState.ConnectionLost) {
 			return
 		}
 		this.rawStateStream(this.defaultRawStateStream)

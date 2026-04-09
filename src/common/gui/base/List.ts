@@ -23,12 +23,12 @@ export type ListState<T> = Readonly<{
 }>
 
 export enum ListLoadingState {
-	/** not loading anything */
+	/** not loading anything or not loaded all items yet */
 	Idle,
 	Loading,
 	/** loading was cancelled, e.g. because of the network error or explicit user request */
 	ConnectionLost,
-	/** finished loading */
+	/** finished loading all items */
 	Done,
 }
 

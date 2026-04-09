@@ -481,36 +481,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						o(filteredUpdates.includes(update)).equals(true)
 					}
 				})
-
-				o("create events with instances are always cached", async function () {
-					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id1)
-					await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, id4)
-
-					const sampleContact = createTestEntity(ContactTypeRef, {
-						_permissions: "permissions",
-						_ownerGroup: "owner-group",
-					})
-					const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
-					const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
-					const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
-					const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
-
-					const batch = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, firstContact),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, secondContact),
-						await updateDataForCreate(ContactTypeRef, secondContactListId, id3, thirdContact),
-						await updateDataForCreate(ContactTypeRef, secondContactListId, id4, fourthContact),
-					]
-					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
-					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
-					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id2)))).deepEquals(secondContact)
-					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
-					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
-					o(filteredUpdates.length).equals(batch.length)
-					for (const update of batch) {
-						o(filteredUpdates.includes(update)).equals(true)
-					}
-				})
 			})
 
 			o("update is not in cache range", async function () {

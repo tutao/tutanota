@@ -111,42 +111,65 @@ o.spec("ListModel", function () {
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
 		})
 
-		o("when reload is called it reloads only if the list model is in Idle state", async function () {
+		o("when reload is called it reloads if the list model is in Idle or Done state", async function () {
 			const initialLoading = listModel.loadInitial()
 			fetchDefer.resolve({ items: [], complete: false })
 			await initialLoading
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
 			fetchDefer = defer()
-			const reloading = listModel.reload()
+			const reloading1 = listModel.reload()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
-			const knowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
+			const knowledgeBaseEntry1 = createTestEntity(KnowledgeBaseEntryTypeRef, {
 				_id: [listId, timestampToGeneratedId(10)],
 			})
 
 			fetchDefer.resolve({
-				items: [knowledgeBaseEntry],
+				items: [knowledgeBaseEntry1],
 				complete: true,
 			})
 
-			await reloading
+			await reloading1
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
-			o(listModel.state.items).deepEquals([knowledgeBaseEntry])
+			o(listModel.state.items).deepEquals([knowledgeBaseEntry1])
+
+			fetchDefer = defer()
+			const reloading2 = listModel.reload()
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
+
+			const knowledgeBaseEntry2 = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: [listId, timestampToGeneratedId(20)],
+			})
+
+			fetchDefer.resolve({
+				items: [knowledgeBaseEntry2],
+				complete: true,
+			})
+
+			await reloading2
+
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
+			o(listModel.state.items).deepEquals([knowledgeBaseEntry2])
 		})
 
-		o("when reload is called and initialLoading is null it does nothing", async function () {
+		o("when reload is called and initialLoading is null it does do the initial load", async function () {
 			const result = listModel.reload()
+			fetchDefer.resolve({ items: [], complete: false })
 
-			o(await result).equals(undefined)
+			await result
+
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
 		})
 
-		o("when reload is called on already loading list model it does not start another load", async function () {
+		o("when reload is called on already loading list model it does start another load after the current one is done", async function () {
 			const initialLoading = listModel.loadInitial()
-			fetchDefer.resolve({ items: [], complete: true })
+			fetchDefer.resolve({ items: [], complete: false })
 			await initialLoading
+
+			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			fetchDefer = defer()
 
 			const reload1 = listModel.reload()
 			const reload2 = listModel.reload()
@@ -156,6 +179,7 @@ o.spec("ListModel", function () {
 			fetchDefer.resolve({ items: [], complete: true })
 
 			await reload1
+			await reload2
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
 		})
