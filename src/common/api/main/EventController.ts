@@ -16,8 +16,6 @@ const TAG = "[EventController]"
 
 export type OperationStatusUpdateListener = (update: OperationStatusUpdate) => Promise<unknown>
 
-const PROGRESS_MONITOR_DEBOUNCE_MS = 1000
-
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
 	private entityListeners: Set<EntityEventsListener> = new Set()

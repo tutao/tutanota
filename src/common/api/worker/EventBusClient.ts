@@ -112,6 +112,8 @@ export interface EventBusListener {
 	onOperationStatusUpdate(update: OperationStatusUpdate): unknown
 }
 
+const PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS = 1000
+
 export class EventBusClient {
 	private state: EventBusState
 	private socket: WebSocket | null
@@ -124,16 +126,19 @@ export class EventBusClient {
 
 	private progressMonitor: ProgressMonitorDelegate | null = null
 	private isInitialSyncDone: boolean = false
+
 	/**
 	 * The artificial work that is added as an overstatement, to make sure the progress bar is not completed too early.
 	 * e.g. group 1 has 5 batches, group 2 has 10000 batches; since sending the messages for group 2 takes time,
 	 * it is possible that the progress bar is completed before the group 2 messages are sent from the server.
 	 *
-	 * In this case, we add 1 artificial work to the progress bar, complete 0.5 of it immediately after adding it,
-	 * and the remaining 0.5 after we receive the initialSyncDone message. Since we receive the initialSyncDone message
-	 * only after the group2 also sends its messages, we can be sure that the progress bar is not completed too early.
+	 * In this case, we add 25 artificial work to the progress bar, and complete it
+	 * (with a Timeout of PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS), when we receive the initialSyncDone message.
+	 * Since we receive the initialSyncDone message only after the group2 also sends its messages,
+	 * we can be sure that the progress bar is not completed too early.
 	 */
-	private artificialWorkEstimate: number = 0
+	private readonly artificialWorkEstimate = 25
+	private readonly initialWorkDone = 25
 
 	/**
 	 * Represents a currently retried executing due to a ServiceUnavailableError
@@ -359,23 +364,28 @@ export class EventBusClient {
 			}
 			case MessageType.InitialSyncDone: {
 				console.log("Reached final event, sync is done")
+
 				this.isInitialSyncDone = true
-				await this.progressMonitor?.workDone(this.artificialWorkEstimate / 2)
 				this.listener.onSyncDone()
+
+				setTimeout(() => this.progressMonitor?.workDone(this.artificialWorkEstimate), PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS)
 				break
 			}
 			case MessageType.InitialSyncWorkEstimate: {
-				const workEstimate = Number.parseInt(value)
-				if (workEstimate === 0) {
+				const newWorkEstimate = Number.parseInt(value)
+				if (newWorkEstimate === 0) {
 					break
 				}
+
 				if (this.progressMonitor == null) {
-					this.artificialWorkEstimate = workEstimate * 0.2
-					// add and finish some work directly, to immediately show some progress and start estimating
-					this.progressMonitor = new ProgressMonitorDelegate(this.progressTracker, workEstimate * 1.2)
-					await this.progressMonitor.workDone(this.artificialWorkEstimate / 2)
+					// add and finish some work (25) directly, to immediately show some progress and start estimating
+					this.progressMonitor = new ProgressMonitorDelegate(
+						this.progressTracker,
+						newWorkEstimate + this.artificialWorkEstimate + this.initialWorkDone,
+					)
+					await this.progressMonitor.workDone(this.initialWorkDone)
 				} else {
-					await this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + workEstimate * 1.2)
+					await this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + newWorkEstimate)
 				}
 				break
 			}

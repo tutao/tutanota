@@ -65,7 +65,7 @@ export interface UndoAction {
 	onClear: () => unknown
 }
 
-const SYNC_RELOAD_DEBOUNCE_MS = 500
+const SYNC_RELOAD_DEBOUNCE_MS = 1000
 
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
@@ -727,7 +727,7 @@ export class MailViewModel {
 			if (isInitialSyncDone) {
 				await listModel.handleEntityUpdate(update)
 			} else {
-				this.debouncedReload(listModel)
+				this.debouncedListReload(listModel)
 			}
 		}
 	}
@@ -735,9 +735,9 @@ export class MailViewModel {
 	/**
 	 * When handling missedEntityUpdates, we reload the entire listModel instead of inserting/updating/removing individual mails.
 	 */
-	private readonly debouncedReload = debounce(SYNC_RELOAD_DEBOUNCE_MS, (listModel: MailSetListModel) => {
+	private readonly debouncedListReload = debounce(SYNC_RELOAD_DEBOUNCE_MS, async (listModel: MailSetListModel) => {
 		console.log("reload listModel due to missedEntityUpdates")
-		listModel.reload()
+		await listModel.reload()
 	})
 
 	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData<ImportMailState>) {
