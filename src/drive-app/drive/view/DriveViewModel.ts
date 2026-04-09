@@ -21,7 +21,17 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../common/api/common/drive/DriveTypes"
-import { deduplicateItemNames, FolderItem, folderItemEntity, FolderItemId, folderItemToId, loadFolderContents, moveItems, pickNewFileName } from "./DriveUtils"
+import {
+	deduplicateItemNames,
+	FileFolderItem,
+	FolderItem,
+	folderItemEntity,
+	FolderItemId,
+	folderItemToId,
+	loadFolderContents,
+	moveItems,
+	pickNewFileName,
+} from "./DriveUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
@@ -531,7 +541,7 @@ export class DriveViewModel {
 			if (activeItem.type === "folder") {
 				this.navigateToFolder(activeItem.folder._id)
 			} else {
-				this.downloadFile(activeItem.file)
+				this.openFile(activeItem.file)
 			}
 		}
 	}
@@ -575,8 +585,16 @@ export class DriveViewModel {
 		}
 	}
 
+	async openFile(file: driveTypeRefs.DriveFile): Promise<void> {
+		this.transferController.download(file, "open")
+	}
 	async downloadFile(file: driveTypeRefs.DriveFile): Promise<void> {
-		this.transferController.download(file)
+		this.transferController.download(file, "download")
+	}
+
+	// Multi-select downloading is only permitted if the selection does not contain any folders.
+	isDownloadPermitted(items: FolderItem[]): items is FileFolderItem[] {
+		return !items.some((item) => item.type === "folder")
 	}
 
 	getCurrentColumnSortOrder() {

@@ -99,12 +99,22 @@ export function getContextActions(
 	onTrash: (f: FolderItem) => unknown,
 	onStartMove: (f: FolderItem) => unknown,
 	onDelete: (f: FolderItem) => unknown,
+	onDownload: (f: FolderItem) => unknown,
 ): DropdownChildAttrs[] {
 	const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
 
 	// Caution: when adding actions, make sure they match the order in the action bar.
 	const actions: DropdownChildAttrs[] = []
 	if (!itemInTrash) {
+		if (item.type === "file") {
+			actions.push({
+				label: "download_action",
+				icon: Icons.DownloadFilled,
+				click: () => {
+					onDownload(item)
+				},
+			})
+		}
 		actions.push(
 			{
 				label: "rename_action",

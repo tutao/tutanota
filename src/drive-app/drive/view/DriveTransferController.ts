@@ -30,6 +30,7 @@ type QueuedTransfer =
 			type: "download"
 			transferredSize: number // bytes
 			filename: string
+			intent: "download" | "open"
 	  }
 	| {
 			id: TransferId
@@ -126,12 +127,18 @@ export class DriveTransferController {
 				this.drainQueue("upload")
 			}
 		} else {
-			const { id, file } = transfer
+			const { id, file, intent } = transfer
 			this.startDownload(transfer.id)
 			try {
-				await (
-					await this.fileController.open(file, ArchiveDataType.DriveFile, transfer.id)
-				).promise
+				if (intent === "open") {
+					await (
+						await this.fileController.open(file, ArchiveDataType.DriveFile, transfer.id)
+					).promise
+				} else {
+					await (
+						await this.fileController.download(file, ArchiveDataType.DriveFile, transfer.id)
+					).promise
+				}
 				this.finishDownload(transfer.id)
 			} catch (e) {
 				if (e instanceof CancelledError) {
@@ -197,7 +204,7 @@ export class DriveTransferController {
 		}
 	}
 
-	async download(file: driveTypeRefs.DriveFile) {
+	async download(file: driveTypeRefs.DriveFile, intent: "download" | "open") {
 		const transferId = await this.blobFacade.generateTransferId()
 		this.queue.push({
 			id: transferId,
@@ -206,6 +213,7 @@ export class DriveTransferController {
 			type: "download",
 			transferredSize: 0,
 			filename: file.name,
+			intent: intent,
 		})
 		this.drainQueue("download")
 	}

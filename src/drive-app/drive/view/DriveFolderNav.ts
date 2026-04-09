@@ -25,6 +25,7 @@ export interface DriveSelectedItemsActions {
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
 	onMove: (() => unknown) | null
+	onDownload: (() => unknown) | null
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
@@ -34,7 +35,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			parents,
 			loadParents,
 			onDropInto,
-			selectedItemsActions: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onMove },
+			selectedItemsActions: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onMove, onDownload },
 		},
 	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
@@ -64,6 +65,13 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 						})
 					: null,
 				isNotNull(onPaste) && [onRestore, onDelete, onCopy, onCut, onTrash].some(isNotNull) ? m(".nav-bar-spacer") : null,
+				onDownload
+					? m(IconButton, {
+							title: "download_action",
+							click: onDownload,
+							icon: Icons.DownloadFilled,
+						})
+					: null,
 				onRestore
 					? m(IconButton, {
 							title: "restoreFromTrash_action",
