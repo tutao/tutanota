@@ -12,7 +12,7 @@ import { formatDateTime } from "../../../common/misc/Formatter"
 import { FileActions } from "./DriveFolderContentEntry"
 import { getContextActions } from "./DriveGuiUtils"
 import { DriveFolderSelectionEvents } from "./DriveFolderContent"
-import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
+import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 import { assertNotNull } from "@tutao/tutanota-utils"
 
 export interface DriveFolderContentMobileAttrs {
@@ -95,7 +95,7 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 							this.iconDom = vnode.dom as HTMLElement
 						},
 						style: {
-							fill: theme.on_surface_variant,
+							fill: theme.drive_folder,
 							display: "block",
 							margin: "4px auto",
 						},
@@ -146,6 +146,7 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 		const icon = item.type === "file" ? getFileIcon(assertNotNull(displayType)) : Icons.FolderFilled
 		// SAFETY: we only use our sanitized icons
 		this.iconDom.innerHTML = IconsSvg[icon]
+		this.iconDom.style.fill = getItemIconFill(displayType)
 
 		this.selectionSetter(selected, multiselect)
 	}
