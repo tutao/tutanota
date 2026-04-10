@@ -12,10 +12,10 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { ServerModelParsedInstance } from "@tutao/typeRefs"
+import { TypeModelResolver } from "@tutao/typeRefs"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { object, when } from "testdouble"
 import { verify } from "@tutao/otest"
 

@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
-import type { OutOfOfficeNotification } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
@@ -22,7 +22,7 @@ import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
 
-export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
+export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(
 		outOfOfficeNotification,
 		locator.entityClient,

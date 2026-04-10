@@ -13,7 +13,7 @@ import { completeSupportTutaStage, SupportTutaButtonType } from "../UserSatisfac
 import { px } from "../../gui/size.js"
 import { assertNotNull, last, neverNull } from "@tutao/utils"
 import { BookingTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
+import { GENERATED_MAX_ID } from "@tutao/typeRefs"
 import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
 
 interface SupportTutaPageAttrs {

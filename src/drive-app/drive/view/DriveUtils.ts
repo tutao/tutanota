@@ -1,8 +1,8 @@
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
-import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
+import { driveTypeRefs } from "@tutao/typeRefs"
+import { getElementId } from "@tutao/typeRefs"
 import { partition } from "@tutao/utils"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {

@@ -55,7 +55,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
-import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
+import { GENERATED_MAX_ID } from "@tutao/typeRefs"
 import { createDropdown } from "../gui/base/Dropdown.js"
 
 assertMainOrNode()

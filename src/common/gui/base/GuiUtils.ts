@@ -14,7 +14,7 @@ import { DropDownSelector } from "./DropDownSelector.js"
 import { IconButtonAttrs } from "./IconButton.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
-import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isColorLight, isValidCSSHexColor } from "./Color.js"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "./DropDownSelectorNew"
 import { theme } from "../theme"
@@ -286,7 +286,7 @@ export function getIfLargeScroll(oldPosition: number | null, newPosition: number
 	return difference > 10
 }
 
-export function getContactTitle(contact: Contact) {
+export function getContactTitle(contact: tutanotaTypeRefs.Contact) {
 	const title = contact.title ? `${contact.title} ` : ""
 	const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "
 	const fullName = `${contact.firstName}${middleName}${contact.lastName} `

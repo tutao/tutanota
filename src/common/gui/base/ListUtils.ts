@@ -1,4 +1,4 @@
-import { ListElement } from "../../api/common/utils/EntityUtils.js"
+import { ListElement } from "@tutao/typeRefs"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { mapLazily, NBSP } from "@tutao/utils"

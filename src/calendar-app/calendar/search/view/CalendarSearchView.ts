@@ -4,7 +4,7 @@ import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchVie
 import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
-import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "@tutao/utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
@@ -56,7 +56,7 @@ import { formatDate } from "../../../../common/misc/Formatter"
 import { createDropdown } from "../../../../common/gui/base/Dropdown"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
-import { isSameId } from "../../../../common/api/common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 import { CalendarInfo } from "../../model/CalendarModel"
 
 assertMainOrNode()
@@ -75,14 +75,15 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
 
-	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
-		new LazyLoaded(async () => {
-			const calendars = await this.searchViewModel.getAvailableCalendars(false)
-			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
-			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
-			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
-			return eventPreviewModel
-		}).load(),
+	private getSanitizedPreviewData: (event: tutanotaTypeRefs.CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized(
+		(event: tutanotaTypeRefs.CalendarEvent) =>
+			new LazyLoaded(async () => {
+				const calendars = await this.searchViewModel.getAvailableCalendars(false)
+				const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
+				const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
+				eventPreviewModel.sanitizeDescription().then(() => m.redraw())
+				return eventPreviewModel
+			}).load(),
 	)
 
 	private getContactPreviewData = memoized((id: string) =>
@@ -235,7 +236,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		})
 	}
 
-	private renderEventPreview(event: CalendarEvent) {
+	private renderEventPreview(event: tutanotaTypeRefs.CalendarEvent) {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
@@ -252,7 +253,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return null
 	}
 
-	private renderContactPreview(contact: Contact) {
+	private renderContactPreview(contact: tutanotaTypeRefs.Contact) {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
@@ -269,7 +270,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		)
 	}
 
-	private renderEventDetails(selectedEvent: CalendarEvent) {
+	private renderEventDetails(selectedEvent: tutanotaTypeRefs.CalendarEvent) {
 		return m(
 			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(

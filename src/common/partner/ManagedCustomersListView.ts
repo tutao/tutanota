@@ -24,7 +24,7 @@ import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
 import { ManagedCustomerViewer } from "./ManagedCustomerViewer"
-import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "@tutao/typeRefs"
 
 assertMainOrNode()
 

@@ -7,7 +7,7 @@ import { Icons } from "../../common/gui/base/icons/Icons"
 import { createDropdown, DropdownButtonAttrs } from "../../common/gui/base/Dropdown.js"
 import type { Language } from "../../common/misc/LanguageViewModel"
 import { lang } from "../../common/misc/LanguageViewModel"
-import type { EmailTemplate, TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getLanguageName, TemplateEditorModel } from "./TemplateEditorModel"
 import { locator } from "../../common/api/main/CommonLocator"
 import { showUserError } from "../../common/misc/ErrorHandlerImpl"
@@ -20,7 +20,7 @@ import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 /**
  * Creates an Editor Popup in which you can create a new template or edit an existing one
  */
-export function showTemplateEditor(template: EmailTemplate | null, templateGroupRoot: TemplateGroupRoot): void {
+export function showTemplateEditor(template: tutanotaTypeRefs.EmailTemplate | null, templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot): void {
 	const entityClient = locator.entityClient
 	const editorModel = new TemplateEditorModel(template, templateGroupRoot, entityClient)
 

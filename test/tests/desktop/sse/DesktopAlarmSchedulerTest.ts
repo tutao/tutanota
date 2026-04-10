@@ -23,7 +23,7 @@ import { formatNotificationForDisplay } from "../../../../src/calendar-app/calen
 import { createTestEntity } from "../../TestUtils"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification"
 import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions.js"
-import { ServerModelUntypedInstance } from "../../../../src/common/api/common/EntityTypes"
+import { ServerModelUntypedInstance } from "@tutao/typeRefs"
 
 const oldTimezone = process.env.TZ
 const userId = "userId1"

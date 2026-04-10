@@ -1,6 +1,5 @@
 import { DateTime } from "luxon"
-import type { Birthday } from "../api/entities/tutanota/TypeRefs.js"
-import { createBirthday } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 /**
@@ -124,7 +123,7 @@ export function _getNumDaysInMonth(month: number, year: number): number {
  * Parses a birthday string containing either day and month or day and month and year. The year may be 4 or 2 digits. If it is 2 digits and after the current year, 1900 + x is used, 2000 + x otherwise.
  * @return A birthday object containing the data form the given text or null if the text could not be parsed.
  */
-export function parseBirthday(text: string, referenceDateRenderer: (refdate: Date) => string): Birthday | null {
+export function parseBirthday(text: string, referenceDateRenderer: (refdate: Date) => string): tutanotaTypeRefs.Birthday | null {
 	try {
 		const referenceParts = _cleanupAndSplit(referenceDateRenderer(referenceDate))
 
@@ -174,7 +173,7 @@ export function parseBirthday(text: string, referenceDateRenderer: (refdate: Dat
 		} else {
 			year = null
 		}
-		return createBirthday({ day, month, year })
+		return tutanotaTypeRefs.createBirthday({ day, month, year })
 	} catch (e) {
 		return null
 	}

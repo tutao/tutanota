@@ -1,10 +1,10 @@
 import m, { Component, Vnode } from "mithril"
-import { component_size, px, size } from "../../../common/gui/size"
+import { component_size, px } from "../../../common/gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { PositionRect } from "../../../common/gui/base/Overlay"
 import { displayOverlay } from "../../../common/gui/base/Overlay"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
@@ -39,7 +39,7 @@ export type CalendarSearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = CalendarEvent | ShowMoreAction
+export type Entry = tutanotaTypeRefs.CalendarEvent | ShowMoreAction
 type Entries = Array<Entry>
 export type CalendarSearchBarState = {
 	query: string
@@ -294,7 +294,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		},
 	]
 
-	private selectResult(result: CalendarEvent | ShowMoreAction | null) {
+	private selectResult(result: tutanotaTypeRefs.CalendarEvent | ShowMoreAction | null) {
 		const { query } = this.state()
 
 		if (result != null) {
@@ -323,7 +323,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		return getRestriction(m.route.get())
 	}
 
-	private updateSearchUrl(query: string, selected?: CalendarEvent) {
+	private updateSearchUrl(query: string, selected?: tutanotaTypeRefs.CalendarEvent) {
 		searchRouter.routeTo(query, this.getRestriction(), selected && encodeCalendarSearchKey(selected))
 	}
 

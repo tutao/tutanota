@@ -17,9 +17,9 @@ import { LoginController } from "../../api/main/LoginController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { GroupInfo, GroupTypeRef } from "../../api/entities/sys/TypeRefs"
 import { getCustomSharedGroupName, getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../GroupUtils"
-import { getEtId, isSameId } from "../../api/common/utils/EntityUtils"
+import { getEtId, isSameId } from "@tutao/typeRefs"
 import { noOp, ofClass } from "@tutao/utils"
-import { createGroupSettings, GroupSettings } from "../../api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { LockedError } from "../../api/common/error/RestError"
 
 /** When there is only a single name that can be edited */
@@ -101,14 +101,14 @@ export class GroupSettingsModel {
 		await this.entityClient.update(groupInfo)
 	}
 
-	async updateGroupSettings(groupInfo: GroupInfo, newSettings: Partial<GroupSettings>) {
+	async updateGroupSettings(groupInfo: GroupInfo, newSettings: Partial<tutanotaTypeRefs.GroupSettings>) {
 		const { userSettingsGroupRoot } = this.loginController.getUserController()
 		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => isSameId(gc.group, groupInfo.group)) ?? null
 
 		if (existingGroupSettings) {
 			Object.assign(existingGroupSettings, newSettings)
 		} else {
-			const newGroupSettings = createGroupSettings({
+			const newGroupSettings = tutanotaTypeRefs.createGroupSettings({
 				group: groupInfo.group,
 				color: "",
 				name: "",

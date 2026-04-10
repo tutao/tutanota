@@ -3,12 +3,12 @@ import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade.j
 import { ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/mail-app/workerUtils/index/IndexedDbIndexer.js"
 import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
-import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import o, { mock } from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
-import { timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { timestampToGeneratedId } from "@tutao/typeRefs"
 import { daysToMillis, defer, downcast, freshVersioned, promiseMap, TypeRef } from "@tutao/utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV } from "@tutao/crypto"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -27,7 +27,7 @@ import type { GroupData } from "../../../../../src/common/api/worker/search/Sear
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
-import { ClientModelInfo, ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typeRefs"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {

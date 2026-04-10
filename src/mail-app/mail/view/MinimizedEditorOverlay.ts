@@ -8,9 +8,9 @@ import { px } from "../../../common/gui/size"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
 import { trashMails } from "./MailGuiUtils"
-import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 import { promiseMap } from "@tutao/utils"
 import {
 	EntityEventsListener,
@@ -40,7 +40,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		this._listener = {
 			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
 				return promiseMap(updates, (update) => {
-					if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
+					if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) && update.operation === OperationType.DELETE) {
 						let draft = minimizedEditor.sendMailModel.getDraft()
 
 						if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {

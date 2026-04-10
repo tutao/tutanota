@@ -22,7 +22,7 @@ import { deepEqual } from "@tutao/utils"
 import { ButtonColor, getColors } from "../../../../common/gui/base/Button.js"
 import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
-import { CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
@@ -492,7 +492,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
-	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {
+	private getTranslatedRepeatRule(rule: tutanotaTypeRefs.CalendarRepeatRule | null, isAllDay: boolean): string {
 		if (rule == null) return lang.get("calendarRepeatIntervalNoRepeat_label")
 
 		const frequency = formatRepetitionFrequency(rule)

@@ -10,7 +10,7 @@ import {
 	SymmetricCipherFacade,
 	ValueDecryptor,
 } from "@tutao/crypto"
-import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
+import { Cardinality, ValueType } from "@tutao/typeRefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { CryptoMapper, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
@@ -29,7 +29,7 @@ import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/com
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { assertThrows } from "@tutao/otest"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, ModelMapper } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, ModelMapper } from "@tutao/typeRefs"
 
 o.spec("CryptoMapper", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE

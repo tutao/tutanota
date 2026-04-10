@@ -1,9 +1,6 @@
 import { OperationType } from "../TutanotaConstants.js"
-import { EntityUpdate, Patch } from "../../entities/sys/TypeRefs.js"
-import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
+import { BlobElementEntity, isSameId, ListElementEntity, ServerModelParsedInstance, SomeEntity, sysTypeRefs } from "@tutao/typeRefs"
 import { AppName, getTypeString, isSameTypeRef, Nullable, TypeRef } from "@tutao/utils"
-import { isSameId } from "./EntityUtils.js"
-import { ProgressMonitorId } from "./ProgressMonitor"
 
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
@@ -18,11 +15,11 @@ export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
 
 	// emptyList: when server did not send patchList, or empty re-write to the server database.
 	// length > 0: normal case for patch
-	patches: Nullable<Array<Patch>>
+	patches: Nullable<Array<sysTypeRefs.Patch>>
 }
 
 export async function entityUpdateToUpdateData<T extends SomeEntity>(
-	update: EntityUpdate,
+	update: sysTypeRefs.EntityUpdate,
 	instance: Nullable<ServerModelParsedInstance> = null,
 	blobInstance: Nullable<ServerModelParsedInstance> = null,
 ): Promise<EntityUpdateData<T>> {
@@ -55,13 +52,14 @@ export function getLogStringForEntityEvent(event: EntityUpdateData): string {
 	return `event: ${getTypeString(event.typeRef)}, listId: ${event.instanceListId}, elementId: ${event.instanceId}, operation: ${event.operation}, patches: ${getLogStringForPatches(event.patches ?? [])} ;`
 }
 
-export function getLogStringForPatches(patches: Array<Patch>) {
+export function getLogStringForPatches(patches: Array<sysTypeRefs.Patch>) {
 	let message = ""
 	for (const patch of patches) {
 		message += "Patch Operation: " + patch.patchOperation + " Patched Attribute: " + patch.attributePath + " ;"
 	}
 	return message
 }
+
 export enum OnEntityUpdateReceivedPriority {
 	LOW = 1,
 	NORMAL = 2,

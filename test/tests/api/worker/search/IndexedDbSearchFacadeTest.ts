@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import type { TypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
@@ -10,14 +10,7 @@ import {
 	SearchRestriction,
 	SearchResult,
 } from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import {
-	compareOldestFirst,
-	elementIdPart,
-	firstBiggerThanSecond,
-	generatedIdToTimestamp,
-	listIdPart,
-	timestampToGeneratedId,
-} from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { compareOldestFirst, elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "@tutao/typeRefs"
 import type { Base64 } from "@tutao/utils"
 import { groupBy, numberRange, splitInChunks } from "@tutao/utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
@@ -28,7 +21,7 @@ import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo } from "@tutao/typeRefs"
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"

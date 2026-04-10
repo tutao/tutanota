@@ -1,10 +1,9 @@
 import m, { Children } from "mithril"
 
 import { showTemplateEditor } from "./TemplateEditor"
-import type { EmailTemplate } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { EmailTemplateTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { isSameId } from "../../common/api/common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { ShareCapability } from "../../common/api/common/TutanotaConstants"
@@ -33,6 +32,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
 assertMainOrNode()
 
+type EmailTemplate = tutanotaTypeRefs.EmailTemplate
 /**
  *  List that is rendered within the template Settings
  */
@@ -88,11 +88,11 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			},
 			fetch: async (_lastFetchedEntity, _count) => {
 				// load all entries at once to apply custom sort order
-				const allEntries = await this.entityClient.loadAll(EmailTemplateTypeRef, this.templateListId())
+				const allEntries = await this.entityClient.loadAll(tutanotaTypeRefs.EmailTemplateTypeRef, this.templateListId())
 				return { items: allEntries, complete: true }
 			},
 			loadSingle: (_listId: Id, elementId: Id) => {
-				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
+				return this.entityClient.load<EmailTemplate>(tutanotaTypeRefs.EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
@@ -164,7 +164,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
+			if (isUpdateForTypeRef(tutanotaTypeRefs.EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}

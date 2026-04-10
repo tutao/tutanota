@@ -24,15 +24,8 @@ import {
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import { ValueType } from "../../common/EntityConstants.js"
-import {
-	CalendarEventUidIndexTypeRef,
-	ClientSpamTrainingDatumIndexEntryTypeRef,
-	ClientSpamTrainingDatumTypeRef,
-	MailDetailsBlobTypeRef,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
+import { ValueType } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -43,18 +36,18 @@ import {
 	get_IdValue,
 	isCustomIdType,
 	listIdPart,
-} from "../../common/utils/EntityUtils"
+} from "@tutao/typeRefs"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode, isTest } from "../../common/Env"
-import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "@tutao/typeRefs"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
-import { TypeModelResolver } from "../../common/EntityFunctions"
-import { AttributeModel } from "../../common/AttributeModel"
+import { EntityUpdateData, isUpdateForTypeRef, getLogStringForEntityEvent } from "../../common/utils/EntityUpdateUtils.js"
+import { TypeModelResolver } from "@tutao/typeRefs"
+import { AttributeModel, hasError } from "@tutao/typeRefs"
 import { collapseId, expandId } from "./RestClientIdUtils"
-import { PatchMerger } from "../offline/PatchMerger"
-import { hasError, isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
+import { PatchMerger } from "@tutao/instancePipeline"
+import { isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
 import { LastProcessedEventBatchStorageFacade } from "../LastProcessedEventBatchStorageFacade"
 
 assertWorkerOrNode()
@@ -77,13 +70,13 @@ const IGNORED_TYPES = [
 	// when doing automatic calendar updates, we will miss uid index entity updates if we're using the cache.
 	// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
 	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
-	CalendarEventUidIndexTypeRef,
+	tutanotaTypeRefs.CalendarEventUidIndexTypeRef,
 	KeyRotationTypeRef,
 	UserGroupRootTypeRef,
 	UserGroupKeyDistributionTypeRef,
 	AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
-	ClientSpamTrainingDatumTypeRef,
-	ClientSpamTrainingDatumIndexEntryTypeRef,
+	tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef,
+	tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef,
 ] as const
 
 /**
@@ -94,7 +87,7 @@ const IGNORED_TYPES = [
  * OfflineStorage.ensureBase64Ext). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
  * are other ways to cache customId types (see implementation of CustomCacheHandler)
  */
-const CACHEABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
+const CACHEABLE_CUSTOMID_TYPES = [tutanotaTypeRefs.MailSetEntryTypeRef, GroupKeyTypeRef] as const
 
 export interface EntityRestCache extends EntityRestInterface {
 	/**
@@ -791,14 +784,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					if (isUpdateForTypeRef(MailTypeRef, update)) {
+					if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
 						// delete mailDetails if they are available (as we don't send an event for this type)
 						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
 							let mailDetailsId = mail.mailDetails
 							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 							if (mailDetailsId != null) {
-								await this.storage.deleteIfExists(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), elementIdPart(mailDetailsId))
+								await this.storage.deleteIfExists(
+									tutanotaTypeRefs.MailDetailsBlobTypeRef,
+									listIdPart(mailDetailsId),
+									elementIdPart(mailDetailsId),
+								)
 							}
 						}
 					} else {
@@ -930,8 +927,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			// save MailDetails blobs
 			const blobInstanceOnUpdate = update.blobInstance
-			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, MailTypeRef)) {
-				await this.storage.put(MailDetailsBlobTypeRef, blobInstanceOnUpdate)
+			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, tutanotaTypeRefs.MailTypeRef)) {
+				await this.storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobInstanceOnUpdate)
 			}
 			return update
 		} else {

@@ -21,7 +21,7 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "../../../../../src/common/api/common/error/RestError.js"
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 
 o.spec("RestErrorTest", function () {
 	o("handleRestError should create the correct error classes", () => {

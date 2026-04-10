@@ -1,5 +1,4 @@
-import type { OutOfOfficeNotification, OutOfOfficeNotificationMessage } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { createOutOfOfficeNotification, createOutOfOfficeNotificationMessage } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/utils"
@@ -24,7 +23,7 @@ export const enum RecipientMessageType {
 const FAILURE_UPGRADE_REQUIRED = "outofoffice.not_available_on_current_plan"
 
 export class EditOutOfOfficeNotificationDialogModel {
-	outOfOfficeNotification: OutOfOfficeNotification
+	outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification
 	enabled: Stream<boolean> = stream<boolean>(false)
 	startDate: Stream<Date> = stream(new Date())
 	endDate: Stream<Date> = stream(new Date())
@@ -40,7 +39,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 	_languageViewModel: LanguageViewModel
 
 	constructor(
-		outOfOfficeNotification: OutOfOfficeNotification | null,
+		outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification | null,
 		entityClient: EntityClient,
 		userController: UserController,
 		languageViewModel: LanguageViewModel,
@@ -54,7 +53,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 
 		if (!outOfOfficeNotification) {
 			this.startDate(getStartOfDay(new Date()))
-			this.outOfOfficeNotification = createOutOfOfficeNotification({
+			this.outOfOfficeNotification = tutanotaTypeRefs.createOutOfOfficeNotification({
 				notifications: [],
 				enabled: false,
 				endDate: null,
@@ -115,7 +114,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 	 * Return OutOfOfficeNotification created from input data.
 	 * @throws UserError if time period is invalid
 	 * */
-	getNotificationFromData(): OutOfOfficeNotification {
+	getNotificationFromData(): tutanotaTypeRefs.OutOfOfficeNotification {
 		let startDate: Date | null = null
 		let endDate: Date | null = null
 
@@ -133,10 +132,10 @@ export class EditOutOfOfficeNotificationDialogModel {
 			}
 		}
 
-		const notificationMessages: OutOfOfficeNotificationMessage[] = []
+		const notificationMessages: tutanotaTypeRefs.OutOfOfficeNotificationMessage[] = []
 
 		if (this.isDefaultMessageEnabled()) {
-			const defaultNotification: OutOfOfficeNotificationMessage = createOutOfOfficeNotificationMessage({
+			const defaultNotification = tutanotaTypeRefs.createOutOfOfficeNotificationMessage({
 				subject: this.defaultSubject().trim(),
 				message: this.defaultMessage().trim(),
 				type: OutOfOfficeNotificationMessageType.Default,
@@ -145,7 +144,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 		}
 
 		if (this.isOrganizationMessageEnabled()) {
-			const organizationNotification: OutOfOfficeNotificationMessage = createOutOfOfficeNotificationMessage({
+			const organizationNotification = tutanotaTypeRefs.createOutOfOfficeNotificationMessage({
 				subject: this.organizationSubject().trim(),
 				message: this.organizationMessage().trim(),
 				type: OutOfOfficeNotificationMessageType.InsideOrganization,

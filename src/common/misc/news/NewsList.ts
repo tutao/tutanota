@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { NewsId } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { NewsListItem } from "./NewsListItem.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
@@ -8,7 +8,7 @@ import { Dialog } from "../../gui/base/Dialog.js"
 
 export interface NewsListAttrs {
 	liveNewsListItems: Record<string, NewsListItem>
-	liveNewsIds: NewsId[]
+	liveNewsIds: tutanotaTypeRefs.NewsId[]
 	dialog: Dialog
 }
 

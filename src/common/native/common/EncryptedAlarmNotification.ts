@@ -1,4 +1,4 @@
-import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../api/common/EntityTypes"
+import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "@tutao/typeRefs"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,
@@ -6,10 +6,10 @@ import {
 	NotificationSessionKey,
 	NotificationSessionKeyTypeRef,
 } from "../../api/entities/sys/TypeRefs"
-import { AttributeModel } from "../../api/common/AttributeModel"
-import { isSameId } from "../../api/common/utils/EntityUtils"
+import { AttributeModel } from "@tutao/typeRefs"
+import { isSameId } from "@tutao/typeRefs"
 import { assertNotNull, Base64, base64ToUint8Array } from "@tutao/utils"
-import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
+import { ClientTypeModelResolver, TypeModelResolver } from "@tutao/typeRefs"
 
 export class EncryptedAlarmNotification {
 	private constructor(

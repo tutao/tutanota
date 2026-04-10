@@ -29,7 +29,6 @@ export let tsImportAliases = {
 	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
 	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
 	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
-	"@tutao/error": path.normalize("src/error/dist/index.js"),
 	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
 	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
 	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),

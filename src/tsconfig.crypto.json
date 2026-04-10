@@ -16,6 +16,9 @@
 			"path": "tsconfig.error.json"
 		},
 		{
+			"path": "tsconfig.appEnv.json"
+		},
+		{
 			"path": "tsconfig.crypto-primitives.json"
 		}
 	]

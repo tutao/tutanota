@@ -19,7 +19,7 @@ import { SuggestionPage } from "./pages/SuggestionPage.js"
 import { isApp, isIOSApp } from "../api/common/Env.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import Stream from "mithril/stream"
-import { SupportCategory, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SupportDialogState } from "../support/SupportDialog.js"
 import { showSnackBar } from "../gui/base/SnackBar.js"
 import { client } from "../misc/ClientDetector.js"
@@ -38,8 +38,8 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 
 	const data: SupportDialogState = {
 		canHaveEmailSupport: true,
-		selectedCategory: Stream<SupportCategory | null>(null),
-		selectedTopic: Stream<SupportTopic | null>(null),
+		selectedCategory: Stream<tutanotaTypeRefs.SupportCategory | null>(null),
+		selectedTopic: Stream<tutanotaTypeRefs.SupportTopic | null>(null),
 		categories: [],
 		supportRequestHtml: "",
 		isSupportRequestEmpty: true,

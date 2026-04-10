@@ -1,26 +1,26 @@
 import { CustomCacheHandler } from "./CustomCacheHandler"
-import { CalendarEvent, CalendarEventTypeRef } from "../../../entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { CacheStorage, Range } from "../DefaultEntityRestCache"
-import { TypeModelResolver } from "../../../common/EntityFunctions"
-import { ServerModelParsedInstance, TypeModel } from "../../../common/EntityTypes"
+import { TypeModelResolver } from "@tutao/typeRefs"
+import { ServerModelParsedInstance, TypeModel } from "@tutao/typeRefs"
 import { EntityRestClient } from "../EntityRestClient"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../../common/utils/EntityUtils"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
-import { AttributeModel } from "../../../common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 
 /**
  * implements range loading in JS because the custom Ids of calendar events prevent us from doing
  * this effectively in the database.
  */
-export class CustomCalendarEventCacheHandler implements CustomCacheHandler<CalendarEvent> {
+export class CustomCalendarEventCacheHandler implements CustomCacheHandler<tutanotaTypeRefs.CalendarEvent> {
 	constructor(
 		private readonly entityRestClient: EntityRestClient,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
-	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
-		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
-		const typeModel = await this.typeModelResolver.resolveServerTypeReference(CalendarEventTypeRef)
+	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<tutanotaTypeRefs.CalendarEvent[]> {
+		const range = await storage.getRangeForList(tutanotaTypeRefs.CalendarEventTypeRef, listId)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(tutanotaTypeRefs.CalendarEventTypeRef)
 
 		// if offline db for this list is empty load from server
 		let rawList: Array<ServerModelParsedInstance> = []
@@ -28,22 +28,28 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 			let chunk: Array<ServerModelParsedInstance> = []
 			let currentMinId = CUSTOM_MIN_ID
 			while (true) {
-				chunk = await this.entityRestClient.loadParsedInstancesRange(CalendarEventTypeRef, listId, currentMinId, LOAD_MULTIPLE_LIMIT, false)
+				chunk = await this.entityRestClient.loadParsedInstancesRange(
+					tutanotaTypeRefs.CalendarEventTypeRef,
+					listId,
+					currentMinId,
+					LOAD_MULTIPLE_LIMIT,
+					false,
+				)
 				rawList.push(...chunk)
 				if (chunk.length < LOAD_MULTIPLE_LIMIT) break
 				const lastEvent = chunk[chunk.length - 1]
 				currentMinId = eventElementId(typeModel, lastEvent)
 			}
-			await storage.putMultiple(CalendarEventTypeRef, rawList)
+			await storage.putMultiple(tutanotaTypeRefs.CalendarEventTypeRef, rawList)
 
 			// we have all events now
-			await storage.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
+			await storage.setNewRangeForList(tutanotaTypeRefs.CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
 		} else {
 			this.assertCorrectRange(range)
-			rawList = await storage.getWholeListParsed(CalendarEventTypeRef, listId)
+			rawList = await storage.getWholeListParsed(tutanotaTypeRefs.CalendarEventTypeRef, listId)
 			console.log(`CalendarEvent list ${listId} has ${rawList.length} events`)
 		}
-		const unsortedList = await this.entityRestClient.mapInstancesToEntity(CalendarEventTypeRef, rawList)
+		const unsortedList = await this.entityRestClient.mapInstancesToEntity(tutanotaTypeRefs.CalendarEventTypeRef, rawList)
 
 		const sortedList = reverse
 			? unsortedList
@@ -62,7 +68,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 	}
 
 	async getElementIdsInCacheRange(storage: CacheStorage, listId: Id, ids: Array<Id>): Promise<Array<Id>> {
-		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
+		const range = await storage.getRangeForList(tutanotaTypeRefs.CalendarEventTypeRef, listId)
 		if (range) {
 			this.assertCorrectRange(range)
 			// assume none of the given Ids are already cached to make sure they are loaded now

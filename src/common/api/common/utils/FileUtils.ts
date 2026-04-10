@@ -1,6 +1,5 @@
 import { assertNotNull, downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/utils"
-import type { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
-import { FileTypeRef as TutanotaFileTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DataFile } from "../DataFile"
 import type { Attachment } from "../../../mailFunctionality/SendMailModel.js"
 
@@ -146,13 +145,13 @@ export function isReservedFilename(filename: string): boolean {
 	return (env.platformId === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
 
-export function isTutanotaFile(file: Attachment): file is TutanotaFile {
+export function isTutanotaFile(file: Attachment): file is tutanotaTypeRefs.File {
 	return (
 		file._type &&
 		typeof file._type === "object" &&
 		Object.hasOwn(file._type, "app") &&
 		Object.hasOwn(file._type, "typeId") &&
-		isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
+		isSameTypeRef(downcast(file._type), tutanotaTypeRefs.FileTypeRef)
 	)
 }
 

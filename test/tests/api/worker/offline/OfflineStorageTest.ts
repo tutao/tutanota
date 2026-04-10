@@ -14,7 +14,7 @@ import {
 	getElementId,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../../../../src/common/api/common/utils/EntityUtils.js"
+} from "@tutao/typeRefs"
 import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, getTypeString, lastThrow, mapNullable, promiseMap, typedKeys, TypeRef } from "@tutao/utils"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import {
@@ -41,7 +41,7 @@ import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/off
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlType, untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
 import { AccountType, FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS, MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
+import { Type as TypeId } from "@tutao/typeRefs"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
@@ -49,11 +49,11 @@ import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
-import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { Entity, ServerModelParsedInstance, SomeEntity } from "@tutao/typeRefs"
+import { TypeModelResolver } from "@tutao/typeRefs"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
-import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "../../../../../src/common/api/entities/storage/TypeRefs"
+import { storageTypeRefs } from "@tutao/typeRefs"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 

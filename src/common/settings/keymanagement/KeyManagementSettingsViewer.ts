@@ -26,7 +26,7 @@ import { showInfoSnackbar, showSnackBar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
 import { GroupTypeRef } from "../../api/entities/sys/TypeRefs"
-import { isSameId } from "../../api/common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 /**

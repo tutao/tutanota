@@ -29,13 +29,7 @@ import { ColumnWidth, createRowActions } from "../../common/gui/base/Table.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../common/gui/base/Dropdown.js"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { showDnsCheckDialog } from "./CheckDomainDnsStatusDialog"
-import {
-	GENERATED_MAX_ID,
-	generatedIdToTimestamp,
-	getElementId,
-	sortCompareByReverseId,
-	timestampToGeneratedId,
-} from "../../common/api/common/utils/EntityUtils"
+import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, sortCompareByReverseId, timestampToGeneratedId } from "@tutao/typeRefs"
 import { showRejectedSendersInfoDialog } from "./RejectedSendersInfoDialog"
 import { showAddDomainWizard } from "./emaildomain/AddDomainWizard"
 import { getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"

@@ -4,7 +4,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { LoginController } from "../../../common/api/main/LoginController"
 import { getIndentedFolderNameForDropdown, getPathToFolderString } from "./MailUtils"
 import { Router } from "../../../common/gui/ScopedRouter"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId } from "@tutao/typeRefs"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"

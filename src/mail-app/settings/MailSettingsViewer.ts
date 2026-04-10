@@ -1,13 +1,7 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isApp, isBrowser } from "../../common/api/common/Env"
 import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
-import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
-import {
-	MailboxPropertiesTypeRef,
-	MailSetTypeRef,
-	OutOfOfficeNotificationTypeRef,
-	TutanotaPropertiesTypeRef,
-} from "../../common/api/entities/tutanota/TypeRefs.js"
+import { elementIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	Const,
 	FeatureType,
@@ -55,7 +49,6 @@ import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../commo
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { getFolderName } from "../mail/model/MailUtils.js"
-import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
 import { client } from "../../common/misc/ClientDetector"
@@ -68,7 +61,7 @@ const MINIMUM_DISPLAYED_STORAGE_IN_BYTES = 10000
 
 export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_signature: Stream<string>
-	_mailboxProperties: LazyLoaded<MailboxProperties>
+	_mailboxProperties: LazyLoaded<tutanotaTypeRefs.MailboxProperties>
 	_reportMovedMails: ReportMovedMailsType
 	_defaultSender: string
 	_defaultUnconfidential: boolean | null
@@ -78,7 +71,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>
 	_inboxRulesExpanded: Stream<boolean>
 	_indexStateWatch: Stream<any> | null
-	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
+	_outOfOfficeNotification: LazyLoaded<tutanotaTypeRefs.OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 	private _storageFieldValue: Stream<string>
 	private customerInfo: CustomerInfo | null
@@ -130,7 +123,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this.updateStorageField(this.customerInfo).then(() => m.redraw())
 	}
 
-	private async getMailboxGroupRoot(): Promise<MailboxGroupRoot> {
+	private async getMailboxGroupRoot(): Promise<tutanotaTypeRefs.MailboxGroupRoot> {
 		// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
 		const { mailboxGroupRoot } = await mailLocator.mailboxModel.getUserMailboxDetails()
 		return mailboxGroupRoot
@@ -328,7 +321,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			// Don't group means normal view instead of conversation
 			items: [
 				{ name: lang.get("mailListGroupingDontGroup_label"), value: MailListDisplayMode.MAILS },
-				{ name: lang.get("mailListGroupingGroupByConversation_label"), value: MailListDisplayMode.CONVERSATIONS },
+				{
+					name: lang.get("mailListGroupingGroupByConversation_label"),
+					value: MailListDisplayMode.CONVERSATIONS,
+				},
 			],
 			selectedValue: deviceConfig.getConversationViewShowOnlySelectedMail() ? MailListDisplayMode.MAILS : deviceConfig.getMailListDisplayMode(),
 			disabled: deviceConfig.getConversationViewShowOnlySelectedMail(),
@@ -453,6 +449,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			this.renderRebuildSearchIndex(),
 		]
 	}
+
 	private renderRebuildSearchIndex() {
 		const searchIndexStateInfo = mailLocator.search.indexState()
 		return m(
@@ -503,7 +500,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateTutanotaPropertiesSettings(props: TutanotaProperties) {
+	_updateTutanotaPropertiesSettings(props: tutanotaTypeRefs.TutanotaProperties) {
 		if (props.defaultSender) {
 			this._defaultSender = props.defaultSender
 		}
@@ -525,7 +522,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	_updateInboxRules(props: TutanotaProperties): void {
+	_updateInboxRules(props: tutanotaTypeRefs.TutanotaProperties): void {
 		mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
 			this._inboxRulesTableLines(
 				await promiseMap(props.inboxRules, async (rule, index) => {
@@ -575,15 +572,15 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
-			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				const props = await mailLocator.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
+			if (isUpdateForTypeRef(tutanotaTypeRefs.TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				const props = await mailLocator.entityClient.load(tutanotaTypeRefs.TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
 				this._updateInboxRules(props)
-			} else if (isUpdateForTypeRef(MailSetTypeRef, update)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
 				this._updateInboxRules(mailLocator.logins.getUserController().props)
-			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
-			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update)) {
 				this._mailboxProperties.reload().then(() => this._updateMailboxPropertiesSettings())
 			}
 		}

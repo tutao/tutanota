@@ -48,7 +48,7 @@ import {
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { OwnerEncSessionKeyProvider } from "../../../../../src/common/api/worker/rest/EntityRestClient"
-import { elementIdPart, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId } from "@tutao/typeRefs"
 import { CryptoWrapper, VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { Recipient } from "../../../../../src/common/api/common/recipients/Recipient"
 import { AesKey } from "@tutao/crypto"

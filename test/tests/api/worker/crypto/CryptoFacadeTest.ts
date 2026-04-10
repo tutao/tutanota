@@ -76,11 +76,11 @@ import {
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/crypto"
-import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
+import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "@tutao/typeRefs"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
-import { elementIdPart, getListId, isSameId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { elementIdPart, getListId, isSameId, listIdPart } from "@tutao/typeRefs"
 import { HttpMethod, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
@@ -96,7 +96,7 @@ import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"

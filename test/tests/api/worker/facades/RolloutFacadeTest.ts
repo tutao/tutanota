@@ -4,7 +4,7 @@ import { RolloutAction, RolloutFacade } from "../../../../../src/common/api/work
 import { func, matchers, object, verify, when } from "testdouble"
 import { RolloutService } from "../../../../../src/common/api/entities/sys/Services"
 import { createTestEntity } from "../../../TestUtils"
-import { RolloutGetOutTypeRef, RolloutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { RolloutType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 

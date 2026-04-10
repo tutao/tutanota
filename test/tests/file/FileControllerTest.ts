@@ -7,7 +7,7 @@ import { FileReference } from "../../../src/common/api/common/utils/FileUtils.js
 import { neverNull } from "@tutao/utils"
 import { DataFile } from "../../../src/common/api/common/DataFile.js"
 import { BlobTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { FileTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
 import { FileControllerBrowser } from "../../../src/common/file/FileControllerBrowser.js"
 import { ConnectionError } from "../../../src/common/api/common/error/RestError.js"

@@ -7,7 +7,7 @@ import { EventController } from "../../api/main/EventController"
 import { getInvitationGroupType, loadReceivedGroupInvitations, ShareableGroupType } from "../GroupUtils"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import type { LoginController } from "../../api/main/LoginController"
-import { getLetId, isSameId } from "../../api/common/utils/EntityUtils"
+import { getLetId, isSameId } from "@tutao/typeRefs"
 import { promiseMap } from "@tutao/utils"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../api/common/utils/EntityUpdateUtils.js"
 

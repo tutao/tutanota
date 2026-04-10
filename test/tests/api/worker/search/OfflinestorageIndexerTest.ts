@@ -7,7 +7,7 @@ import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHan
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/common/api/common/TutanotaConstants"
 
 o.spec("OfflineStorageIndexer", () => {

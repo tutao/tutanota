@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { Contact, File as TutanotaFile, Mail, MailSet, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { BadRequestError, LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
@@ -56,7 +56,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { elementIdPart, getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, getIds, isSameId } from "@tutao/typeRefs"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
@@ -73,6 +73,8 @@ import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalenda
 import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
 
+type Mail = tutanotaTypeRefs.Mail
+type MailSet = tutanotaTypeRefs.MailSet
 const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 
 /**
@@ -228,7 +230,7 @@ async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, ma
 		confirmActionText: "deleteContacts_msg",
 	}
 
-	showContactSelectionDialog(attrs, matchingContacts, async (dialog: Dialog, selectedContacts: Contact[]) => {
+	showContactSelectionDialog(attrs, matchingContacts, async (dialog: Dialog, selectedContacts: tutanotaTypeRefs.Contact[]) => {
 		showProgressDialog("pleaseWait_msg", contactModel.eraseContacts(selectedContacts))
 		dialog.close()
 	})
@@ -266,7 +268,7 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 	}
 }
 
-async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxModel, undoModel: UndoModel, movedMails: readonly MovedMails[]) {
+async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxModel, undoModel: UndoModel, movedMails: readonly tutanotaTypeRefs.MovedMails[]) {
 	// With move we only have two cases: either we move all emails that are in one mailbox to a specific folder or
 	// we are moving emails in different mailboxes to respective mailSets of the same type (e.g. user moves some emails
 	// in search into spam, mails of each mailbox go into their own spam folder).
@@ -399,7 +401,7 @@ export async function simpleMoveToSystemFolder(
 		warnUsersIfMovingContactMailToSpam(contactModel, mailModel, mailIds)
 	}
 
-	let movedMails: MovedMails[]
+	let movedMails: tutanotaTypeRefs.MovedMails[]
 	try {
 		movedMails = await mailModel.simpleMoveMails(mailIds, targetFolder)
 	} catch (e) {
@@ -561,7 +563,11 @@ function createInlineImageReference(file: DataFile, cid: string): InlineImageRef
 	}
 }
 
-export async function loadInlineImages(fileController: FileController, attachments: Array<TutanotaFile>, referencedCids: Array<string>): Promise<InlineImages> {
+export async function loadInlineImages(
+	fileController: FileController,
+	attachments: Array<tutanotaTypeRefs.File>,
+	referencedCids: Array<string>,
+): Promise<InlineImages> {
 	const filesToLoad = getReferencedAttachments(attachments, referencedCids)
 	const inlineImages = new Map()
 	return promiseMap(filesToLoad, async (file) => {
@@ -573,7 +579,7 @@ export async function loadInlineImages(fileController: FileController, attachmen
 	}).then(() => inlineImages)
 }
 
-export function getReferencedAttachments(attachments: Array<TutanotaFile>, referencedCids: Array<string>): Array<TutanotaFile> {
+export function getReferencedAttachments(attachments: Array<tutanotaTypeRefs.File>, referencedCids: Array<string>): Array<tutanotaTypeRefs.File> {
 	return attachments.filter((file) => referencedCids.find((rcid) => file.cid === rcid))
 }
 
@@ -895,7 +901,7 @@ export function showLabelsPopup(
 // A temporary solution, we should try to use non-modal progress indicators
 export async function showDownloadProgressDialog(
 	transferProgressDispatcher: TransferProgressDispatcher,
-	files: readonly TutanotaFile[],
+	files: readonly tutanotaTypeRefs.File[],
 	downloadReturn: DownloadReturn,
 ): Promise<unknown> {
 	const progressStream = stream(0)

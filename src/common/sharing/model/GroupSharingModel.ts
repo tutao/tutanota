@@ -2,7 +2,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { EventController } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
-import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
+import { getElementId, getEtId, isSameId } from "@tutao/typeRefs"
 import type { Group, GroupInfo, GroupMember, SentGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { GroupMemberTypeRef, GroupTypeRef, SentGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
@@ -12,7 +12,7 @@ import type { GroupMemberInfo } from "../GroupUtils"
 import { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { UserError } from "../../api/main/UserError"
-import type { MailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../../misc/LanguageViewModel"
 import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
@@ -150,7 +150,11 @@ export class GroupSharingModel {
 			: Promise.reject(new Error("User does not have permission to cancel this invitation")) // TODO error type
 	}
 
-	async sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Recipient>, capability: ShareCapability): Promise<Array<MailAddress>> {
+	async sendGroupInvitation(
+		sharedGroupInfo: GroupInfo,
+		recipients: Array<Recipient>,
+		capability: ShareCapability,
+	): Promise<Array<tutanotaTypeRefs.MailAddress>> {
 		const externalRecipients: string[] = []
 		for (let recipient of recipients) {
 			const resolved = await this.recipientsModel.initialize(recipient).resolve()

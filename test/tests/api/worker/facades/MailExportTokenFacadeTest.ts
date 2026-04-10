@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { func, matchers, object, when } from "testdouble"
-import { createMailExportTokenServicePostOut } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailExportTokenService } from "../../../../../src/common/api/entities/tutanota/Services"
 import { AccessExpiredError, TooManyRequestsError } from "../../../../../src/common/api/common/error/RestError"
 import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"

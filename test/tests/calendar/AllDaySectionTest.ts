@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { AllDaySection } from "../../../src/common/calendar/gui/AllDaySection"
 import { createTestEntity } from "../TestUtils"
-import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calendar/date/CalendarUtils"
 import { ColumnBounds } from "../../../src/common/calendar/gui/CalendarTimeGrid"
 

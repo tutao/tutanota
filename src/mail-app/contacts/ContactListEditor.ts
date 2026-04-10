@@ -1,4 +1,4 @@
-import { ContactListGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -12,7 +12,7 @@ import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextFiel
 import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.js"
 import { clone, lazy, noOp } from "@tutao/utils"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel.js"
-import { isSameId } from "../../common/api/common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 import { Keys } from "../../common/api/common/TutanotaConstants.js"
 import { isMailAddress } from "../../common/misc/FormatValidator.js"
 import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUtils.js"
@@ -20,7 +20,7 @@ import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { ContactListEditorModel } from "./ContactListEditorModel"
 
 export async function showContactListEditor(
-	contactListGroupRoot: ContactListGroupRoot | null,
+	contactListGroupRoot: tutanotaTypeRefs.ContactListGroupRoot | null,
 	headerText: TranslationKey,
 	save: (name: string, addresses: Array<string>) => void,
 	addressesOnList?: Array<string>,

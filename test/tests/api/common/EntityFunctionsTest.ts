@@ -1,12 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ClientModelInfo, ServerModelInfo, ServerModels } from "../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo, ServerModelInfo, ServerModels } from "@tutao/typeRefs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { Cardinality, Type, ValueType } from "../../../../src/common/api/common/EntityConstants"
+import { Cardinality, Type, ValueType } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { object } from "testdouble"
-import { TypeModel } from "../../../../src/common/api/common/EntityTypes"
-import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
+import { TypeModel } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { clientModelAsServerModel } from "../../TestUtils"
 
 o.spec("EntityFunctionsTest", function () {

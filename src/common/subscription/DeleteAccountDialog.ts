@@ -6,7 +6,7 @@ import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js
 import { neverNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
-import { getEtId } from "../api/common/utils/EntityUtils"
+import { getEtId } from "@tutao/typeRefs"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { SurveyData } from "../api/entities/sys/TypeRefs.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"

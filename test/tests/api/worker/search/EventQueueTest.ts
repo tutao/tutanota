@@ -3,7 +3,7 @@ import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/Ev
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
-import { Mail, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { spy } from "@tutao/otest"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 

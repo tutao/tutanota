@@ -21,7 +21,7 @@ import { PreconditionFailedError } from "../api/common/error/RestError.js"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { isSameId } from "../api/common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 
 export type MailboxDetail = {
 	mailbox: MailBox

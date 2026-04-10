@@ -1,7 +1,7 @@
 import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { LazyLoaded } from "@tutao/utils"
-import { Contact } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { User } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { createNewContact, isTutaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { PresentableKeyVerificationState } from "../../../src/common/api/common/TutanotaConstants"

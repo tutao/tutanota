@@ -83,7 +83,7 @@ import { RecoverCodeFacade } from "../../../../../src/common/api/worker/facades/
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/ShareFacade.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
-import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
 import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
@@ -95,7 +95,7 @@ import {
 	PubDistKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"

@@ -34,7 +34,7 @@ import {
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId, StrippedEntity } from "../../api/common/utils/EntityUtils"
+import { isSameId, StrippedEntity } from "@tutao/typeRefs"
 import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { DateProvider } from "../../api/common/DateProvider"

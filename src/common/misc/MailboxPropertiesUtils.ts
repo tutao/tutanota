@@ -1,11 +1,11 @@
-import type { MailboxProperties } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ReportMovedMailsType } from "../api/common/TutanotaConstants"
 import { downcast } from "@tutao/utils"
 
 /**
  * @returns ALWAYS_ASK if not set yet.
  */
-export function getReportMovedMailsType(props: MailboxProperties | null): ReportMovedMailsType {
+export function getReportMovedMailsType(props: tutanotaTypeRefs.MailboxProperties | null): ReportMovedMailsType {
 	if (!props) {
 		return ReportMovedMailsType.ALWAYS_ASK
 	}
@@ -13,6 +13,6 @@ export function getReportMovedMailsType(props: MailboxProperties | null): Report
 	return downcast(props.reportMovedMails)
 }
 
-export function getSenderName(mailboxProperties: MailboxProperties, senderAddress: string): string | null {
+export function getSenderName(mailboxProperties: tutanotaTypeRefs.MailboxProperties, senderAddress: string): string | null {
 	return mailboxProperties.mailAddressProperties.find((a) => a.mailAddress === senderAddress)?.senderName ?? null
 }

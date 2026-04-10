@@ -10,7 +10,7 @@ import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/Servi
 import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
-import { Entity, ModelValue, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { Entity, ModelValue, ServerModelParsedInstance } from "@tutao/typeRefs"
 import { assertNotNull, base64ToUint8Array, downcast, noOp, Nullable, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/restClient"
 import {
@@ -38,9 +38,9 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
-import { createPatch, Customer, CustomerTypeRef, Patch } from "../../../../../src/common/api/entities/sys/TypeRefs"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
-import { PatchOperationType } from "../../../../../src/common/api/common/EntityFunctions"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { AttributeModel } from "@tutao/typeRefs"
+import { PatchOperationType } from "@tutao/typeRefs"
 import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage"
 import { createSystemMail } from "../../common/mail/CommonMailUtilsTest"

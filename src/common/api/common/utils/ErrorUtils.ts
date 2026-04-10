@@ -1,7 +1,5 @@
 // @bundleInto:common
 
-import { downcast } from "@tutao/utils"
-import { Entity, ParsedInstance } from "../EntityTypes"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -29,8 +27,7 @@ import {
 } from "../error/RestError.js"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
-import { CryptoError } from "@tutao/crypto/error"
-import { SessionKeyNotFoundError } from "../error/SessionKeyNotFoundError.js"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { SseError } from "../error/SseError.js"
 import { ProgrammingError } from "../error/ProgrammingError.js"
 import { RecipientsNotFoundError } from "../error/RecipientsNotFoundError.js"
@@ -58,32 +55,10 @@ import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
-import { InvalidModelError } from "../error/InvalidModelError"
+import { InvalidModelError } from "@tutao/appEnv"
 import { MoveCycleError } from "../error/MoveCycleError"
 import { MoveToTrashError } from "../error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../error/MoveDestinationIsSourceError"
-
-function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {
-	return Object.keys(obj).length === 0
-}
-
-/**
- * Checks if the given instance (Entity or ParsedInstance) has an error in the _errors property which is usually written
- * if decryption fails for some reason in InstanceMapper.
- * @param instance the instance to check for errors.
- * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
- * @returns {boolean} true if error was found (for the given key).
- */
-export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
-	const downCastedInstance = downcast(instance)
-	if (!instance) {
-		return true
-	} else {
-		const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
-
-		return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
-	}
-}
 
 //If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "<at>bundleInto:common-min"
 /**

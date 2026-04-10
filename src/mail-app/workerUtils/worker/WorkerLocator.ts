@@ -59,7 +59,7 @@ import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAc
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../../../common/api/common/error/RestError.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
@@ -72,7 +72,7 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
@@ -85,15 +85,13 @@ import { EphemeralCacheStorage } from "../../../common/api/worker/rest/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import type { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
-import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
-import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
 import type { ContactIndexer } from "../index/ContactIndexer"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
@@ -102,7 +100,7 @@ import { DateProvider } from "../../../common/api/common/DateProvider"
 import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
 import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
-import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
+import { PatchMerger } from "@tutao/instancePipeline"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
@@ -315,7 +313,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const contactSuggestionFacade = lazyMemoized(async () => {
 		const { SuggestionFacade } = await import("../index/SuggestionFacade")
-		return new SuggestionFacade(ContactTypeRef, await db(), typeModelResolver)
+		return new SuggestionFacade(tutanotaTypeRefs.ContactTypeRef, await db(), typeModelResolver)
 	})
 
 	const contactIndexer = lazyMemoized(async (): Promise<ContactIndexer> => {
@@ -349,15 +347,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 			const customCacheHandler = new CustomCacheHandlerMap(
 				{
-					ref: CalendarEventTypeRef,
+					ref: tutanotaTypeRefs.CalendarEventTypeRef,
 					handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
 				},
 				{
-					ref: MailTypeRef,
+					ref: tutanotaTypeRefs.MailTypeRef,
 					handler: new CustomMailEventCacheHandler(mailIndexer),
 				},
 				{
-					ref: UserTypeRef,
+					ref: sysTypeRefs.UserTypeRef,
 					handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
 				},
 			)
@@ -378,7 +376,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
-			ref: UserTypeRef,
+			ref: sysTypeRefs.UserTypeRef,
 			handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
 		})
 		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
@@ -652,7 +650,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			return mainInterface.loginListener.onLoginFailure(reason)
 		},
 
-		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
+		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null): Promise<void> {
 			return mainInterface.loginListener.onSecondFactorChallenge(sessionId, challenges, mailAddress)
 		},
 	}

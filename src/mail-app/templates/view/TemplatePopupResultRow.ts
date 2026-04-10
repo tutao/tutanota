@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../../../common/gui/size"
-import type { EmailTemplate } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../model/TemplatePopupModel.js"
 import { TEMPLATE_LIST_ENTRY_HEIGHT } from "./TemplateConstants.js"
 
 export type TemplateResultRowAttrs = {
-	template: EmailTemplate
+	template: tutanotaTypeRefs.EmailTemplate
 }
 
 /**

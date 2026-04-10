@@ -1,6 +1,6 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../../LanguageViewModel.js"
 import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
@@ -20,7 +20,7 @@ export class UpdateColorCustomizationNews implements NewsListItem {
 		return this.userController.isGlobalAdmin() && this.userController.isWhitelabelAccount()
 	}
 
-	render(newsId: NewsId, dialog: Dialog): Children {
+	render(newsId: tutanotaTypeRefs.NewsId, dialog: Dialog): Children {
 		const acknowledge = () => {
 			this.newsModel.acknowledgeNews(newsId.newsItemId).then(m.redraw)
 		}

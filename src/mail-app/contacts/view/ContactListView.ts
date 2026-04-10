@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { component_size } from "../../../common/gui/size"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -19,6 +19,8 @@ export interface ContactListViewAttrs {
 	onSingleSelection: () => unknown
 	contactViewModel: ContactViewModel
 }
+
+type Contact = tutanotaTypeRefs.Contact
 
 export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 	private contactViewModel: ContactViewModel | null = null

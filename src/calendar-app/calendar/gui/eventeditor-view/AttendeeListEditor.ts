@@ -28,7 +28,7 @@ import { PasswordInput } from "../../../../common/gui/PasswordInput.js"
 import { Switch } from "../../../../common/gui/base/Switch.js"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils"
-import { createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaModelInfo, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils"
 
 export type AttendeeListEditorAttrs = {
@@ -139,7 +139,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							} else {
 								const name = contact != null ? getContactDisplayName(contact) : ""
 								const cleanAddress = cleanMailAddress(address)
-								whoModel.addAttendee(createEncryptedMailAddress({ address: cleanAddress, name }))
+								whoModel.addAttendee(tutanotaTypeRefs.createEncryptedMailAddress({ address: cleanAddress, name }))
 							}
 						},
 						search: recipientsSearch,

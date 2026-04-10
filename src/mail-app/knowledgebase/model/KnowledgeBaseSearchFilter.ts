@@ -1,6 +1,9 @@
-import type { KnowledgeBaseEntry } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
 
-export function knowledgeBaseSearch(input: string, allEntries: ReadonlyArray<KnowledgeBaseEntry>): ReadonlyArray<KnowledgeBaseEntry> {
+export function knowledgeBaseSearch(
+	input: string,
+	allEntries: ReadonlyArray<tutanotaTypeRefs.KnowledgeBaseEntry>,
+): ReadonlyArray<tutanotaTypeRefs.KnowledgeBaseEntry> {
 	return search(input, allEntries, ["title", "description", "keywords.keyword"], false)
 }

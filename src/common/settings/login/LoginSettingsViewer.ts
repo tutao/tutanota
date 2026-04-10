@@ -21,13 +21,13 @@ import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.
 import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { elementIdPart, getElementId } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId } from "@tutao/typeRefs"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
-import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
@@ -367,7 +367,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(SessionTypeRef, update)) {
 				await this._updateSessions()
-			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) || isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) || isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
 				m.redraw()
 			}
 

@@ -3,14 +3,7 @@
 import { DAY_IN_MILLIS, downcast } from "@tutao/utils"
 import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
-import {
-	CalendarEventAttendee,
-	ContactCustomDate,
-	ContactRelationship,
-	ContactSocialId,
-	MailSet,
-	UserSettingsGroupRoot,
-} from "../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
@@ -29,9 +22,9 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 
 export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 
-export const getMailFolderType = (folder: MailSet): MailSetKind => downcast(folder.folderType)
+export const getMailFolderType = (folder: tutanotaTypeRefs.MailSet): MailSetKind => downcast(folder.folderType)
 
-export function isFolder(folder: MailSet): boolean {
+export function isFolder(folder: tutanotaTypeRefs.MailSet): boolean {
 	switch (folder.folderType) {
 		case MailSetKind.CUSTOM:
 		case MailSetKind.INBOX:
@@ -53,19 +46,19 @@ export function isFolder(folder: MailSet): boolean {
 /**
  * @return true if {@link mailSet} is a read-only folder (see {@link READ_ONLY_SYSTEM_FOLDERS} for more info)
  */
-export function isFolderReadOnly(mailSet: MailSet) {
+export function isFolderReadOnly(mailSet: tutanotaTypeRefs.MailSet) {
 	return READ_ONLY_SYSTEM_FOLDERS.includes(mailSet.folderType as MailSetKind)
 }
 
-export function isPermanentDeleteAllowedForFolder(mailSet: MailSet) {
+export function isPermanentDeleteAllowedForFolder(mailSet: tutanotaTypeRefs.MailSet) {
 	return isPermanentDeleteAllowedMailSetKind(mailSet.folderType as MailSetKind)
 }
 
-export function isNestableMailSet(mailSet: MailSet): boolean {
+export function isNestableMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
 	return mailSet.folderType === MailSetKind.CUSTOM
 }
 
-export function isVisibleSystemMailSet(mailSet: MailSet): boolean {
+export function isVisibleSystemMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
 	switch (mailSet.folderType) {
 		case MailSetKind.INBOX:
 		case MailSetKind.SENT:
@@ -84,7 +77,7 @@ export function isVisibleSystemMailSet(mailSet: MailSet): boolean {
 	}
 }
 
-export function canHaveDescendents(mailSet: MailSet): boolean {
+export function canHaveDescendents(mailSet: tutanotaTypeRefs.MailSet): boolean {
 	switch (mailSet.folderType) {
 		case MailSetKind.CUSTOM:
 		case MailSetKind.INBOX:
@@ -103,7 +96,7 @@ export function canHaveDescendents(mailSet: MailSet): boolean {
 	}
 }
 
-export function isEditableMailSet(mailSet: MailSet): boolean {
+export function isEditableMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
 	switch (mailSet.folderType) {
 		case MailSetKind.CUSTOM:
 		case MailSetKind.LABEL:
@@ -141,11 +134,11 @@ export function isPermanentDeleteAllowedMailSetKind(mailsetKind: MailSetKind) {
 	}
 }
 
-export function isTopLevelMailSet(mailSet: MailSet): boolean {
+export function isTopLevelMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
 	return mailSet.parentFolder == null
 }
 
-export function isLabel(folder: MailSet): boolean {
+export function isLabel(folder: tutanotaTypeRefs.MailSet): boolean {
 	return folder.folderType === MailSetKind.LABEL
 }
 
@@ -236,7 +229,7 @@ export const SYSTEM_FOLDERS = [
 ] as const
 export type SystemFolderType = (typeof SYSTEM_FOLDERS)[number]
 
-export function getMailSetKind(folder: MailSet): MailSetKind {
+export function getMailSetKind(folder: tutanotaTypeRefs.MailSet): MailSetKind {
 	return folder.folderType as MailSetKind
 }
 
@@ -333,9 +326,9 @@ export const enum ContactCustomDateType {
 	CUSTOM = "2",
 }
 
-export const getContactSocialType = (contactSocialId: ContactSocialId): ContactSocialType => downcast(contactSocialId.type)
-export const getCustomDateType = (customDate: ContactCustomDate): ContactCustomDateType => downcast(customDate.type)
-export const getRelationshipType = (relationship: ContactRelationship): ContactRelationshipType => downcast(relationship.type)
+export const getContactSocialType = (contactSocialId: tutanotaTypeRefs.ContactSocialId): ContactSocialType => downcast(contactSocialId.type)
+export const getCustomDateType = (customDate: tutanotaTypeRefs.ContactCustomDate): ContactCustomDateType => downcast(customDate.type)
+export const getRelationshipType = (relationship: tutanotaTypeRefs.ContactRelationship): ContactRelationshipType => downcast(relationship.type)
 
 export const enum OperationType {
 	CREATE = "0",
@@ -858,7 +851,7 @@ export const enum WeekStart {
 	SATURDAY = "2",
 }
 
-export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStart {
+export function getWeekStart(userSettings: tutanotaTypeRefs.UserSettingsGroupRoot): WeekStart {
 	return downcast(userSettings.startOfTheWeek)
 }
 
@@ -1284,7 +1277,7 @@ export enum CalendarAttendeeStatus {
 	TENTATIVE = "4",
 }
 
-export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatus {
+export function getAttendeeStatus(attendee: tutanotaTypeRefs.CalendarEventAttendee): CalendarAttendeeStatus {
 	return downcast(attendee.status)
 }
 

@@ -22,7 +22,7 @@ import {
 	User,
 	UserTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { GENERATED_MAX_ID } from "../../../src/common/api/common/utils/EntityUtils.js"
+import { GENERATED_MAX_ID } from "@tutao/typeRefs"
 import { downcast, LazyLoaded } from "@tutao/utils"
 import {
 	CalendarEvent,

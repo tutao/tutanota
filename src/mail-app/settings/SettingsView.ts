@@ -28,7 +28,7 @@ import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
 import { layout_size } from "../../common/gui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
-import { getEtId } from "../../common/api/common/utils/EntityUtils"
+import { getEtId } from "@tutao/typeRefs"
 import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../../common/sharing/view/GroupSharingDialog"
@@ -39,7 +39,7 @@ import { getNullableSharedGroupName, getSharedGroupName, isSharedGroupOwner } fr
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "../../common/settings/SettingsFolderRow.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import { createUserAreaGroupDeleteData, UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitationFolderRow"
 import { TemplateGroupService } from "../../common/api/entities/tutanota/Services"
 import { exportUserCsv, loadUserExportData } from "../../common/settings/UserDataExporter.js"
@@ -627,7 +627,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				"pleaseWait_msg",
 				locator.serviceExecutor.delete(
 					TemplateGroupService,
-					createUserAreaGroupDeleteData({
+					tutanotaTypeRefs.createUserAreaGroupDeleteData({
 						group: templateInfo.groupInfo.group,
 					}),
 				),
@@ -803,7 +803,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				await this._customDomains.getAsync()
 				m.redraw()
-			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update) || isUpdateForTypeRef(GroupInfoTypeRef, update)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update) || isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				await this.reloadTemplateData()
 				m.redraw()
 			}

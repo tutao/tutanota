@@ -3,14 +3,14 @@ import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBo
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { theme } from "../../../common/gui/theme"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 
 assertMainOrNode()
 
 export interface MultiContactViewerAttrs {
-	selectedEntities: Contact[]
+	selectedEntities: tutanotaTypeRefs.Contact[]
 	selectNone: () => unknown
 }
 

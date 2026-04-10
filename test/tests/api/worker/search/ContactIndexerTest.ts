@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { Contact, ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
@@ -10,7 +10,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { TypeRef } from "@tutao/utils"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
-import { BlobElementEntity, ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
+import { BlobElementEntity, ListElementEntity } from "@tutao/typeRefs"
 
 import { noPatchesAndInstance } from "../EventBusClientTest"
 

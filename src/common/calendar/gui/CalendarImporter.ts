@@ -2,7 +2,7 @@ import { DataFile } from "../../api/common/DataFile.js"
 import { utf8Uint8ArrayToString } from "@tutao/utils"
 import { getTimeZone } from "../date/CalendarUtils.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
@@ -43,12 +43,12 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
  * @param title
  */
 export function showEventsImportDialog(
-	events: CalendarEvent[],
+	events: tutanotaTypeRefs.CalendarEvent[],
 	okAction: (dialog: Dialog) => unknown,
 	title: MaybeTranslation,
 	calendarInfo: CalendarInfoBase,
 ) {
-	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
+	const renderConfig: RenderConfig<tutanotaTypeRefs.CalendarEvent, KindaCalendarRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
@@ -100,12 +100,12 @@ export function showEventsImportDialog(
 							selectedItems: new Set(),
 						},
 						onLoadMore() {},
-						onRangeSelectionTowards(item: CalendarEvent) {},
+						onRangeSelectionTowards(item: tutanotaTypeRefs.CalendarEvent) {},
 						onRetryLoading() {},
-						onSingleSelection(item: CalendarEvent) {},
-						onSingleTogglingMultiselection(item: CalendarEvent) {},
+						onSingleSelection(item: tutanotaTypeRefs.CalendarEvent) {},
+						onSingleTogglingMultiselection(item: tutanotaTypeRefs.CalendarEvent) {},
 						onStopLoading() {},
-					} satisfies ListAttrs<CalendarEvent, KindaCalendarRow>),
+					} satisfies ListAttrs<tutanotaTypeRefs.CalendarEvent, KindaCalendarRow>),
 				),
 			]),
 		],

@@ -5,7 +5,7 @@ import {
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { splitArrayAt, splitUint8Array } from "@tutao/utils"

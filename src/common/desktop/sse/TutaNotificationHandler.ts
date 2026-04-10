@@ -7,19 +7,19 @@ import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncry
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/utils"
 import { log } from "../DesktopLog"
-import tutanotaModelInfo from "../../api/entities/tutanota/ModelInfo"
+import { tutanotaModelInfo } from "@tutao/typeRefs"
 import { handleRestError } from "../../api/common/error/RestError"
-import { MailAddressTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { StrippedEntity } from "../../api/common/utils/EntityUtils"
-import { EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
-import { AttributeModel } from "../../api/common/AttributeModel"
+import { StrippedEntity } from "@tutao/typeRefs"
+import { EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "@tutao/typeRefs"
+import { AttributeModel } from "@tutao/typeRefs"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
-import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
 
 const TAG = "[notifications]"
@@ -138,8 +138,8 @@ export class TutaNotificationHandler {
 
 			const untypedInstances = (await response.json()) as Array<ServerModelUntypedInstance>
 
-			const mailModel = await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)
-			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
+			const mailModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailAddressTypeRef)
 
 			result.push(
 				...(await Promise.all(

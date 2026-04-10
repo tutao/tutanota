@@ -25,10 +25,10 @@ import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { CustomerPropertiesTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { UserSettingsGroupRootTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { createTestEntity } from "../TestUtils.js"
-import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo } from "@tutao/typeRefs"
 
 const { anything } = matchers
 

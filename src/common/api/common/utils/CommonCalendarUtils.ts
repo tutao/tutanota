@@ -1,10 +1,11 @@
 import { DAY_IN_MILLIS } from "@tutao/utils"
-import { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
-import { stringToCustomId, StrippedEntity } from "./EntityUtils"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { stringToCustomId } from "@tutao/utils"
+import { StrippedEntity } from "@tutao/typeRefs"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
 
-export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
+export type CalendarEventTimes = Pick<tutanotaTypeRefs.CalendarEvent, "startTime" | "endTime">
 
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
@@ -250,13 +251,13 @@ export function formatJSDate(date: Date) {
 	return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
 }
 
-export function isSameExternalEvent(calendarEvent: CalendarEvent, icsCalendarEvent: IcsCalendarEvent) {
+export function isSameExternalEvent(calendarEvent: tutanotaTypeRefs.CalendarEvent, icsCalendarEvent: IcsCalendarEvent) {
 	const sameUid = calendarEvent.uid === icsCalendarEvent.uid
 	const sameRecurrenceId = calendarEvent.recurrenceId?.getTime() === icsCalendarEvent.recurrenceId?.getTime()
 
 	return sameUid && sameRecurrenceId
 }
-export function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
+export function makeEmptyCalendarEvent(): StrippedEntity<tutanotaTypeRefs.CalendarEvent> {
 	return {
 		alarmInfos: [],
 		invitedConfidentially: null,

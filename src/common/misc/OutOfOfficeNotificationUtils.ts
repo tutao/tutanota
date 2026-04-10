@@ -1,15 +1,13 @@
-import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
-import { OutOfOfficeNotificationTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { formatDate } from "./Formatter"
 import { lang } from "./LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
-import { MailboxGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getDayShifted } from "@tutao/utils"
 
 /**
  * Returns true if notifications are currently sent.
  */
-export function isNotificationCurrentlyActive(notification: OutOfOfficeNotification, currentDate: Date): boolean {
+export function isNotificationCurrentlyActive(notification: tutanotaTypeRefs.OutOfOfficeNotification, currentDate: Date): boolean {
 	if (notification.enabled) {
 		if (notification.startDate && !notification.endDate) {
 			return currentDate >= notification.startDate
@@ -24,7 +22,7 @@ export function isNotificationCurrentlyActive(notification: OutOfOfficeNotificat
 	}
 }
 
-export function formatActivateState(notification: OutOfOfficeNotification | null): string {
+export function formatActivateState(notification: tutanotaTypeRefs.OutOfOfficeNotification | null): string {
 	if (notification && notification.enabled) {
 		let timeRange = ""
 
@@ -63,11 +61,14 @@ export function getDefaultNotificationLabel(organizationMessageEnabled: boolean)
  * Loads the out of office notification from the server and shifts the end date (from the first second of the following day to the first second of the last day)
  * which is needed to display the correct end date.
  */
-export function loadOutOfOfficeNotification(): Promise<OutOfOfficeNotification | null> {
+export function loadOutOfOfficeNotification(): Promise<tutanotaTypeRefs.OutOfOfficeNotification | null> {
 	const mailMembership = locator.logins.getUserController().getUserMailGroupMembership()
-	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {
+	return locator.entityClient.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {
 		if (grouproot.outOfOfficeNotification) {
-			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, grouproot.outOfOfficeNotification)
+			return locator.entityClient.load<tutanotaTypeRefs.OutOfOfficeNotification>(
+				tutanotaTypeRefs.OutOfOfficeNotificationTypeRef,
+				grouproot.outOfOfficeNotification,
+			)
 		} else {
 			return null
 		}

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EmailTemplateContentTypeRef, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { TemplateEditorModel } from "../../../src/mail-app/settings/TemplateEditorModel.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { downcast } from "@tutao/utils"

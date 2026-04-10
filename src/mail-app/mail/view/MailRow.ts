@@ -1,6 +1,6 @@
 import { getMailFolderType, MailSetKind, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
-import type { Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
 import m, { Children } from "mithril"
 import Badge from "../../../common/gui/base/Badge"
@@ -56,11 +56,11 @@ const ELLIPSIS = "\u2026"
 
 const MAX_DISPLAYED_LABELS = 6
 
-export class MailRow implements VirtualRow<Mail> {
+export class MailRow implements VirtualRow<tutanotaTypeRefs.Mail> {
 	top: number
 	private domElement: HTMLElement | null = null
 
-	entity: Mail | null = null
+	entity: tutanotaTypeRefs.Mail | null = null
 	private subjectDom!: HTMLElement
 	private senderDom!: HTMLElement
 
@@ -78,15 +78,15 @@ export class MailRow implements VirtualRow<Mail> {
 
 	constructor(
 		private readonly showFolderIcon: boolean,
-		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailSet>,
-		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
+		private readonly getLabelsForMail: (mail: tutanotaTypeRefs.Mail) => ReadonlyArray<tutanotaTypeRefs.MailSet>,
+		private readonly onSelected: (mail: tutanotaTypeRefs.Mail, selected: boolean) => unknown,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
 		this.top = 0
 		this.entity = null
 	}
 
-	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
+	update(mail: tutanotaTypeRefs.Mail, selected: boolean, isInMultiSelect: boolean): void {
 		const oldEntity = this.entity
 		this.entity = mail
 		const oldHighlightedStrings = this.highlightedStrings
@@ -146,7 +146,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 	}
 
-	private updateLabels(mail: Mail): readonly MailSet[] {
+	private updateLabels(mail: tutanotaTypeRefs.Mail): readonly tutanotaTypeRefs.MailSet[] {
 		const labels = this.getLabelsForMail(mail)
 
 		for (const [i, element] of this.labelsDom.entries()) {
@@ -400,7 +400,7 @@ export class MailRow implements VirtualRow<Mail> {
 		)
 	}
 
-	private iconsText(mail: Mail): { iconText: string; description: string } {
+	private iconsText(mail: tutanotaTypeRefs.Mail): { iconText: string; description: string } {
 		let iconText = ""
 		let description = ""
 

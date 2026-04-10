@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { ImportMailGetInTypeRef, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { assertThrows } from "@tutao/otest"
-import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { TypeModelResolver } from "@tutao/typeRefs"
 
 o.spec("EntityAdapter", () => {
 	let typeModelResolver: TypeModelResolver

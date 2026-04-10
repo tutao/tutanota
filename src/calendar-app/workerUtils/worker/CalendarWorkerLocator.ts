@@ -67,20 +67,18 @@ import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper, InstancePipeline } from "@tutao/instancePipeline"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
-import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { ClientModelInfo, ServerModelInfo, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
-import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
+import { PatchMerger } from "@tutao/instancePipeline"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
@@ -237,7 +235,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
-				ref: CalendarEventTypeRef,
+				ref: tutanotaTypeRefs.CalendarEventTypeRef,
 				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
 			})
 

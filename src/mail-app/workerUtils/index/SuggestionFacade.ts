@@ -1,7 +1,7 @@
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/utils"
 import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "@tutao/crypto"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
-import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 
 export type SuggestionsType = Record<string, string[]>

@@ -13,7 +13,7 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { PublicKeySignatureTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 const { anything } = matchers
 

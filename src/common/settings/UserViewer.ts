@@ -18,7 +18,7 @@ import { HtmlEditor as Editor, HtmlEditorMode } from "../gui/editor/HtmlEditor.j
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { isSameId } from "../api/common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/CommonLocator.js"

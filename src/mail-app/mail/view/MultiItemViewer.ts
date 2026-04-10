@@ -3,7 +3,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { lang, Translation, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
 import { theme } from "../../../common/gui/theme"
-import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
@@ -75,7 +75,7 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 	}
 }
 
-export function getMailSelectionMessage(selectedEntities: ReadonlyArray<Mail>): Translation {
+export function getMailSelectionMessage(selectedEntities: ReadonlyArray<tutanotaTypeRefs.Mail>): Translation {
 	let nbrOfSelectedMails = selectedEntities.length
 	let isConversationViewDisabled = deviceConfig.getConversationViewShowOnlySelectedMail()
 

@@ -15,7 +15,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import tutanotaModelInfo from "../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { Mail, MailAddressTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"

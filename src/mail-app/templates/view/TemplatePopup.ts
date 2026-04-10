@@ -14,8 +14,7 @@ import type { LanguageCode } from "../../../common/misc/LanguageViewModel"
 import { lang, languageByCode } from "../../../common/misc/LanguageViewModel"
 import type { windowSizeListener } from "../../../common/misc/WindowFacade"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import type { EmailTemplate, TemplateGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { TemplateGroupRootTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { ButtonAttrs } from "../../../common/gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
@@ -30,6 +29,8 @@ import { getConfirmation } from "../../../common/gui/base/GuiUtils"
 import { ScrollSelectList } from "../../../common/gui/ScrollSelectList"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH } from "./TemplateConstants.js"
+
+type EmailTemplate = tutanotaTypeRefs.EmailTemplate
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
@@ -356,7 +357,7 @@ export class TemplatePopup implements ModalComponent {
 							title: "editTemplate_action",
 							click: () =>
 								locator.entityClient
-									.load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
+									.load(tutanotaTypeRefs.TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
 									.then((groupRoot) => this.showTemplateEditor(selectedTemplate, groupRoot)),
 							icon: Icons.PenFilled,
 							colors: ButtonColor.DrawerNav,
@@ -469,7 +470,7 @@ export class TemplatePopup implements ModalComponent {
 		return this.focusedBeforeShown
 	}
 
-	showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: TemplateGroupRoot) {
+	showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: tutanotaTypeRefs.TemplateGroupRoot) {
 		import("../../settings/TemplateEditor.js").then((editor) => {
 			editor.showTemplateEditor(templateToEdit, groupRoot)
 		})

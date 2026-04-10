@@ -1,19 +1,19 @@
 import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { elementIdPart } from "@tutao/typeRefs"
 import { DesktopConfigKey } from "../config/ConfigKeys"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, Base64, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/utils"
 import { log } from "../DesktopLog"
 import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
-import { ClientModelUntypedInstance, ServerModelUntypedInstance, UntypedInstance } from "../../api/common/EntityTypes"
+import { ClientModelUntypedInstance, ServerModelUntypedInstance, UntypedInstance } from "@tutao/typeRefs"
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "../../api/entities/sys/TypeRefs"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
-import { AttributeModel } from "../../api/common/AttributeModel"
-import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
+import { AttributeModel } from "@tutao/typeRefs"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk

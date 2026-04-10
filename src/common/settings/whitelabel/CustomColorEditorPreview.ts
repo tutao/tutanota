@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import { component_size, layout_size, px } from "../../gui/size"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { createMail, createMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailRow } from "../../../mail-app/mail/view/MailRow"
 import { noOp } from "@tutao/utils"
 import { IconButton } from "../../gui/base/IconButton.js"
@@ -98,9 +98,9 @@ export class CustomColorEditorPreview implements Component {
 			clientSpamClassifierResult: null,
 			processNeeded: true,
 			serverClassificationData: "0,1",
-		} satisfies Partial<Mail>
-		const mail = createMail({
-			sender: createMailAddress({
+		} satisfies Partial<tutanotaTypeRefs.Mail>
+		const mail = tutanotaTypeRefs.createMail({
+			sender: tutanotaTypeRefs.createMailAddress({
 				address: "m.mustermann@example.com",
 				name: "Max Mustermann",
 				contact: null,
@@ -112,8 +112,8 @@ export class CustomColorEditorPreview implements Component {
 			sendAt: null,
 			...mailTemplate,
 		})
-		const mail2 = createMail({
-			sender: createMailAddress({
+		const mail2 = tutanotaTypeRefs.createMail({
+			sender: tutanotaTypeRefs.createMailAddress({
 				address: "m.mustermann@example.com",
 				name: "Max Mustermann",
 				contact: null,

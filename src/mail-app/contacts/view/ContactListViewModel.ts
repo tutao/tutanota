@@ -8,7 +8,7 @@ import {
 	ContactTypeRef,
 	createContactListEntry,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { getEtId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getEtId, isSameId } from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"

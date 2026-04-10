@@ -1,4 +1,6 @@
 export { ProgrammingError } from "./ProgrammingError"
 export { TutanotaError } from "./TutanotaError"
 export { CancelledError } from "./CancelledError"
+export * from "./InvalidModelError"
 export * from "./Env"
+export * from "./TutanotaConstants"

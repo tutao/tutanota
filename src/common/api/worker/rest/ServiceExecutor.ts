@@ -1,4 +1,5 @@
-import { HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
+import { TypeModelResolver } from "@tutao/typeRefs"
+import { MediaType, HttpMethod } from "@tutao/restClient"
 import {
 	DeleteService,
 	ExtraServiceParams,
@@ -11,7 +12,7 @@ import {
 	ReturnTypeFromRef,
 	ServiceDefinition,
 } from "../../common/ServiceRequest.js"
-import { Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
+import { Entity, ServerModelUntypedInstance } from "@tutao/typeRefs"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
 import { RestClient } from "@tutao/restClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
@@ -19,9 +20,9 @@ import { assertWorkerOrNode } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
-import { InstancePipeline } from "../crypto/InstancePipeline"
-import { EntityAdapter } from "../crypto/EntityAdapter"
-import { AttributeModel } from "../../common/AttributeModel"
+import { InstancePipeline } from "@tutao/instancePipeline"
+import { EntityAdapter } from "@tutao/instancePipeline"
+import { AttributeModel } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 

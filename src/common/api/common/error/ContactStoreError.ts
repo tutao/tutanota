@@ -1,4 +1,4 @@
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 
 /**
  * Errors related to the native contact store/phone book.

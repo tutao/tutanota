@@ -9,14 +9,14 @@ import {
 	ModelMapper,
 	valueToDefault,
 } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
-import { AssociationType, Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
+import { AssociationType, Cardinality, ValueType } from "@tutao/typeRefs"
 import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
-import { ClientModelParsedInstance, ModelAssociation, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { ClientModelParsedInstance, ModelAssociation, ServerModelParsedInstance } from "@tutao/typeRefs"
 import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { GENERATED_MIN_ID } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typeRefs"
+import { GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { removeOriginals } from "../../../TestUtils"
 import { InvalidModelError } from "../../../../../src/common/api/common/error/InvalidModelError"
 

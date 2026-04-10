@@ -2,7 +2,7 @@ import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 import type { ShareCapability } from "../../../common/TutanotaConstants.js"
-import type { GroupInvitationPostData, GroupInvitationPostReturn, InternalRecipientKeyData } from "../../../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	createGroupInvitationDeleteData,
 	createGroupInvitationPostData,
@@ -13,13 +13,13 @@ import {
 import { isSameTypeRef, neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
+import { aes256RandomKey, cryptoUtils, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
-import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "@tutao/instancePipeline"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
@@ -37,13 +37,13 @@ export class ShareFacade {
 		sharedGroupInfo: GroupInfo,
 		recipientMailAddresses: Array<string>,
 		shareCapability: ShareCapability,
-	): Promise<GroupInvitationPostReturn> {
+	): Promise<tutanotaTypeRefs.GroupInvitationPostReturn> {
 		const sharedGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(sharedGroupInfo.group)
 		const invitationData = await this.prepareGroupInvitation(sharedGroupKey, sharedGroupInfo, recipientMailAddresses, shareCapability)
 		return this.sendGroupInvitationRequest(invitationData)
 	}
 
-	async sendGroupInvitationRequest(invitationData: GroupInvitationPostData): Promise<GroupInvitationPostReturn> {
+	async sendGroupInvitationRequest(invitationData: tutanotaTypeRefs.GroupInvitationPostData): Promise<tutanotaTypeRefs.GroupInvitationPostReturn> {
 		return this.serviceExecutor.post(GroupInvitationService, invitationData)
 	}
 
@@ -52,7 +52,7 @@ export class ShareFacade {
 		sharedGroupInfo: GroupInfo,
 		recipientMailAddresses: Array<string>,
 		shareCapability: ShareCapability,
-	): Promise<GroupInvitationPostData> {
+	): Promise<tutanotaTypeRefs.GroupInvitationPostData> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(sharedGroupInfo)
@@ -87,7 +87,7 @@ export class ShareFacade {
 				keyVerificationMismatchRecipients,
 			)
 			if (keyData && isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
-				invitationData.internalKeyData.push(keyData as InternalRecipientKeyData)
+				invitationData.internalKeyData.push(keyData as tutanotaTypeRefs.InternalRecipientKeyData)
 			}
 		}
 
@@ -105,7 +105,10 @@ export class ShareFacade {
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
-		const sharedGroupKey = { object: uint8ArrayToKey(invitation.sharedGroupKey), version: parseKeyVersion(invitation.sharedGroupKeyVersion) }
+		const sharedGroupKey = {
+			object: uint8ArrayToKey(invitation.sharedGroupKey),
+			version: cryptoUtils.parseKeyVersion(invitation.sharedGroupKeyVersion),
+		}
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
 		const sharedGroupEncInviteeGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))

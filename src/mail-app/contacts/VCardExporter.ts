@@ -1,6 +1,5 @@
 import { convertToDataFile } from "../../common/api/common/DataFile"
-import type { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { createFile } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { ContactAddressType, ContactPhoneNumberType } from "../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../common/api/common/Env"
@@ -9,10 +8,10 @@ import { getSocialUrl, getWebsiteUrl } from "../../common/contactsFunctionality/
 
 assertMainOrNode()
 
-export function exportContacts(contacts: Contact[]): Promise<void> {
+export function exportContacts(contacts: tutanotaTypeRefs.Contact[]): Promise<void> {
 	let vCardFile = contactsToVCard(contacts)
 	let data = stringToUtf8Uint8Array(vCardFile)
-	let tmpFile = createFile({
+	let tmpFile = tutanotaTypeRefs.createFile({
 		name: "vCard3.0.vcf",
 		mimeType: "vCard/rfc2426",
 		size: String(data.byteLength),
@@ -30,7 +29,7 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
  * @param contacts
  * @returns vCard 3.0 compatible string which is the vCard of each all contacts concatanted.
  */
-export function contactsToVCard(contacts: Contact[]): string {
+export function contactsToVCard(contacts: tutanotaTypeRefs.Contact[]): string {
 	let vCardFile = ""
 	for (const contact of contacts) {
 		vCardFile += _contactToVCard(contact)
@@ -41,7 +40,7 @@ export function contactsToVCard(contacts: Contact[]): string {
 /**
  * Export for testing
  */
-export function _contactToVCard(contact: Contact): string {
+export function _contactToVCard(contact: tutanotaTypeRefs.Contact): string {
 	let contactToVCardString = "BEGIN:VCARD\nVERSION:3.0\n" //must be invcluded in vCard3.0
 
 	//FN tag must be included in vCard3.0
@@ -99,7 +98,7 @@ export function _contactToVCard(contact: Contact): string {
  * Works for mail addresses the same as for addresses
  * Returns all mail-addresses/addresses and their types in an object array
  */
-export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): {
+export function _addressesToVCardAddresses(addresses: tutanotaTypeRefs.ContactMailAddress[] | tutanotaTypeRefs.ContactAddress[]): {
 	KIND: string
 	CONTENT: string
 }[] {
@@ -129,7 +128,7 @@ export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | Con
  * export for testing
  * Returns all phone numbers and their types in an object array
  */
-export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]): {
+export function _phoneNumbersToVCardPhoneNumbers(numbers: tutanotaTypeRefs.ContactPhoneNumber[]): {
 	KIND: string
 	CONTENT: string
 }[] {
@@ -168,7 +167,7 @@ export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]):
  *  Returns all socialIds as a vCard Url in an object array
  *  Type is not defined here. URL tag has no fitting type implementation
  */
-export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {
+export function _socialIdsToVCardSocialUrls(socialIds: tutanotaTypeRefs.ContactSocialId[]): {
 	KIND: string
 	CONTENT: string
 }[] {

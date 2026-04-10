@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId } from "@tutao/typeRefs"
 import { DriveFolderBrowserEntry, DriveFolderBrowserEntryAttrs } from "./DriveFolderBrowserEntry"
 import { FolderItem, folderItemEntity } from "./DriveUtils"
 import { isEmpty, lastIndex } from "@tutao/utils"

@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 
 export class ProgrammingError extends TutanotaError {
 	constructor(m?: string) {

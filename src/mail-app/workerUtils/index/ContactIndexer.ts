@@ -1,4 +1,4 @@
-import { ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lazyMemoized } from "@tutao/utils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
@@ -31,15 +31,15 @@ export class ContactIndexer {
 
 	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
 		for (const event of events) {
-			if (!isUpdateForTypeRef(ContactTypeRef, event)) {
+			if (!isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, event)) {
 				continue
 			}
 			const contactId = collapseId(event.instanceListId, event.instanceId) as IdTuple
 			if (event.operation === OperationType.CREATE) {
-				const contact = await this.entityClient.load(ContactTypeRef, contactId)
+				const contact = await this.entityClient.load(tutanotaTypeRefs.ContactTypeRef, contactId)
 				await this.backend.onContactCreated(contact)
 			} else if (event.operation === OperationType.UPDATE) {
-				const contact = await this.entityClient.load(ContactTypeRef, contactId)
+				const contact = await this.entityClient.load(tutanotaTypeRefs.ContactTypeRef, contactId)
 				await this.backend.onContactUpdated(contact)
 			} else if (event.operation === OperationType.DELETE) {
 				await this.backend.onContactDeleted(contactId)
@@ -51,6 +51,6 @@ export class ContactIndexer {
 		const user = this.userFacade.getLoggedInUser()
 
 		// this should not fail, since we are not an external user and are fully logged in
-		return this.entityClient.loadRoot(ContactListTypeRef, user.userGroup.group)
+		return this.entityClient.loadRoot(tutanotaTypeRefs.ContactListTypeRef, user.userGroup.group)
 	})
 }

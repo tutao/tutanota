@@ -14,7 +14,7 @@ import {
 import { GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/utils"
 import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
-import { elementIdPart, getElementId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, StrippedEntity } from "@tutao/typeRefs"
 import {
 	extractStructuredAddresses,
 	extractStructuredCustomDates,

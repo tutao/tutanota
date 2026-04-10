@@ -14,7 +14,7 @@ import { mockAttribute } from "@tutao/otest"
 import "@tensorflow/tfjs-backend-cpu"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
-import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef, MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Sequential } from "@tensorflow/tfjs-layers"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import {
@@ -24,7 +24,7 @@ import {
 	SpamMailProcessor,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SpamDecision } from "../../../../../../src/common/api/common/TutanotaConstants"
-import { GENERATED_MIN_ID } from "../../../../../../src/common/api/common/utils/EntityUtils"
+import { GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { SpamClassifierStorageFacade } from "../../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 
 const { anything } = matchers

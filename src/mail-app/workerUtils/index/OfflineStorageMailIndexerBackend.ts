@@ -1,6 +1,6 @@
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly persistence: OfflineStoragePersistence) {}
@@ -46,7 +46,7 @@ export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
 		await this.persistence.storeMailData([mailData])
 	}
 
-	async onPartialMailUpdated(mail: Mail): Promise<void> {
+	async onPartialMailUpdated(mail: tutanotaTypeRefs.Mail): Promise<void> {
 		await this.persistence.updateMailLocation(mail)
 	}
 

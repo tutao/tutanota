@@ -5,7 +5,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { FULL_INDEXED_TIMESTAMP, GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
-import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("OfflineStorageMailIndexerBackend", function () {
 	let persistence: OfflineStoragePersistence

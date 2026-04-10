@@ -23,23 +23,23 @@ import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, 
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
-import { GENERATED_MIN_ID, timestampToGeneratedId } from "../common/utils/EntityUtils"
+import { timestampToGeneratedId, GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
-import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
-import { TypeModelResolver } from "../common/EntityFunctions.js"
-import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { tutanotaModelInfo } from "@tutao/typeRefs"
+import { TypeModelResolver } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { UserFacade } from "./facades/UserFacade"
-import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "../common/EntityTypes"
-import { InstancePipeline } from "./crypto/InstancePipeline"
+import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/typeRefs"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import { EntityAdapter } from "./crypto/EntityAdapter"
-import { AttributeModel } from "../common/AttributeModel"
-import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
-import { hasError, isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
+import { EntityAdapter } from "@tutao/instancePipeline"
+import { AttributeModel, hasError } from "@tutao/typeRefs"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "./LastProcessedEventBatchStorageFacade"
@@ -103,7 +103,7 @@ export interface EventBusListener {
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
 	 */
-	onPhishingMarkersReceived(markers: ReportedMailFieldMarker[]): unknown
+	onPhishingMarkersReceived(markers: tutanotaTypeRefs.ReportedMailFieldMarker[]): unknown
 
 	onError(tutanotaError: Error): void
 
@@ -341,7 +341,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.PhishingMarkers: {
-				const data = await this.decodeEntityEventValue(PhishingMarkerWebsocketDataTypeRef, JSON.parse(value))
+				const data = await this.decodeEntityEventValue(tutanotaTypeRefs.PhishingMarkerWebsocketDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(data.applicationTypesHash)
 
 				this.lastAntiphishingMarkersId = data.lastId
@@ -419,9 +419,9 @@ export class EventBusClient {
 
 				// we do not want to process the instance if there are _errors (when decrypting)
 				if (!hasError(parsedInstance)) {
-					if (isSameTypeRef(MailTypeRef, typeRef) && event.blobInstance != null) {
+					if (isSameTypeRef(tutanotaTypeRefs.MailTypeRef, typeRef) && event.blobInstance != null) {
 						// handle MailDetails blobs
-						const mailDetailsBlobServerTypeModel = await this.typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
+						const mailDetailsBlobServerTypeModel = await this.typeModelResolver.resolveServerTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
 						const mailDetailsBlobUntypedInstance = JSON.parse(event.blobInstance) as ServerModelUntypedInstance
 						const mailDetailsBlobUntypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(mailDetailsBlobUntypedInstance)
 						const mailDetailsBlobEncryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(

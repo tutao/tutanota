@@ -5,7 +5,7 @@ import { isMailAddress } from "./FormatValidator.js"
 import { ofClass } from "@tutao/utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { ContactListEntryTypeRef, ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { EntityClient } from "../api/common/EntityClient.js"
@@ -96,7 +96,7 @@ export class RecipientsSearchModel {
 	}
 
 	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
-		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.entries)
+		const entries = await this.entityClient.loadAll(tutanotaTypeRefs.ContactListEntryTypeRef, contactList.groupRoot.entries)
 		return entries.map((entry) => {
 			// just create a resolvable recipient
 			// all the places resolve the recipients when they need to
@@ -119,7 +119,7 @@ export class RecipientsSearchModel {
 				ofClass(DbError, async () => {
 					const listId = await this.contactModel.getContactListId()
 					if (listId) {
-						return locator.entityClient.loadAll(ContactTypeRef, listId)
+						return locator.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, listId)
 					} else {
 						return []
 					}

@@ -68,7 +68,7 @@ import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanS
 import { px } from "../gui/size"
 import { Icons } from "../gui/base/icons/Icons"
 import { TemplateGroupService } from "../api/entities/tutanota/Services"
-import { createUserAreaGroupDeleteData } from "../api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
 
 /**
@@ -354,7 +354,7 @@ async function runTemplateCleanupFlow(customer: Customer) {
 				if (deletedTemplateGroups.has(group)) {
 					continue
 				}
-				await locator.serviceExecutor.delete(TemplateGroupService, createUserAreaGroupDeleteData({ group }))
+				await locator.serviceExecutor.delete(TemplateGroupService, tutanotaTypeRefs.createUserAreaGroupDeleteData({ group }))
 				deletedTemplateGroups.add(group)
 			}
 		}

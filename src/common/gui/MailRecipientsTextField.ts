@@ -6,7 +6,7 @@ import { Icon, IconSize, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
-import { Contact } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
 import { getFirstOrThrow, lazy } from "@tutao/utils"
 import { Dialog } from "./base/Dialog.js"
@@ -22,7 +22,7 @@ export interface MailRecipientsTextFieldAttrs {
 	text: string
 	onTextChanged: (text: string) => void
 	recipients: ReadonlyArray<ResolvableRecipient>
-	onRecipientAdded: (address: string, name: string | null, contact: Contact | null) => void
+	onRecipientAdded: (address: string, name: string | null, contact: tutanotaTypeRefs.Contact | null) => void
 	onRecipientRemoved: (address: string) => void
 	onRecipientClicked?: (address: string) => void
 	getRecipientClickedDropdownAttrs?: (address: string) => Promise<DropdownChildAttrs[]>

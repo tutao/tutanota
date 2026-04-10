@@ -20,7 +20,7 @@ import {
 } from "./PreprocessPatterns"
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
 import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/utils"
-import { ClientSpamTrainingDatum, Mail, MailAddress, MailDetails } from "../../../entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getMailBodyText } from "../../CommonMailUtils"
 import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus } from "../../TutanotaConstants"
 
@@ -184,7 +184,7 @@ export class SpamMailProcessor {
 	 * The model input is a concatenation of the vectorized mail and the server classification data
 	 */
 	public async processClientSpamTrainingDatum(
-		datum: ClientSpamTrainingDatum,
+		datum: tutanotaTypeRefs.ClientSpamTrainingDatum,
 		clientVectorSize: number = DEFAULT_VECTOR_MAX_LENGTH,
 		serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 	): Promise<number[]> {
@@ -262,7 +262,7 @@ export class SpamMailProcessor {
 	}
 }
 
-export function createSpamMailDatum(mail: Mail, mailDetails: MailDetails) {
+export function createSpamMailDatum(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails) {
 	const spamMailDatum: SpamMailDatum = {
 		subject: mail.subject,
 		body: getMailBodyText(mailDetails.body),
@@ -273,7 +273,7 @@ export function createSpamMailDatum(mail: Mail, mailDetails: MailDetails) {
 	return spamMailDatum
 }
 
-export function extractSpamHeaderFeatures(mail: Mail, mailDetails: MailDetails) {
+export function extractSpamHeaderFeatures(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails) {
 	const sender = joinNamesAndMailAddresses([mail?.sender])
 	const { toRecipients, ccRecipients, bccRecipients } = extractRecipients(mailDetails)
 	const authStatus = convertAuthStatusToSpamCategorizationToken(mail.authStatus)
@@ -285,7 +285,7 @@ export function extractServerClassifiers(serverClassificationData: string): numb
 	return serverClassificationData.split(":").map((tuple) => parseInt(tuple.split(",")[1]))
 }
 
-function extractRecipients({ recipients }: MailDetails) {
+function extractRecipients({ recipients }: tutanotaTypeRefs.MailDetails) {
 	const toRecipients = joinNamesAndMailAddresses(recipients?.toRecipients)
 	const ccRecipients = joinNamesAndMailAddresses(recipients?.ccRecipients)
 	const bccRecipients = joinNamesAndMailAddresses(recipients?.bccRecipients)
@@ -293,7 +293,7 @@ function extractRecipients({ recipients }: MailDetails) {
 	return { toRecipients, ccRecipients, bccRecipients }
 }
 
-function joinNamesAndMailAddresses(recipients: MailAddress[] | null) {
+function joinNamesAndMailAddresses(recipients: tutanotaTypeRefs.MailAddress[] | null) {
 	return recipients?.map((recipient) => `${recipient?.name} ${recipient?.address}`).join(" ") || ""
 }
 
@@ -315,7 +315,7 @@ function convertAuthStatusToSpamCategorizationToken(authStatus: string | null): 
 
 export const DEFAULT_IS_SPAM_CONFIDENCE = "1"
 
-export function getSpamConfidence(mail: Mail): string {
+export function getSpamConfidence(mail: tutanotaTypeRefs.Mail): string {
 	return mail.clientSpamClassifierResult?.confidence ?? DEFAULT_IS_SPAM_CONFIDENCE
 }
 

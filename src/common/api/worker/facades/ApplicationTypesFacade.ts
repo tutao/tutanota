@@ -1,8 +1,7 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env.js"
-import { defer, DeferredObject } from "@tutao/utils"
-import { ApplicationTypesHash, HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
+import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
+import { ApplicationTypesHash, HttpMethod, MediaType, ServerModelInfo } from "@tutao/typeRefs"
 import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
-import { stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
 import { RestClient } from "@tutao/restClient"
 import { decompressString } from "../crypto/ModelMapper"
 import { sha256Hash } from "@tutao/crypto"
@@ -11,19 +10,9 @@ import { ApplicationTypesService } from "../../entities/base/Services"
 import { ServiceDefinition } from "../../common/ServiceRequest"
 import { ServerModelsUnavailableError } from "../../common/error/ServerModelsUnavailableError"
 import ModelInfo from "../../entities/base/ModelInfo"
+import { baseTypes } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
-
-/**
- * Do **NOT** change the names of these attributes, they need to match the record found on the
- * server at ApplicationTypesService#ApplicationTypesGetOut. This is to make sure we can update the
- * format of the service output in the future. With general schema definitions this would not be
- * possible as schemas returned by this service are required to read the schemas themselves.
- */
-export type ApplicationTypesGetOut = {
-	applicationTypesHash: ApplicationTypesHash
-	applicationTypesJson: string
-}
 
 /**
  * Facade to call the ApplicationTypesService, ensuring that multiple
@@ -39,7 +28,7 @@ export class ApplicationTypesFacade {
 	public applicationTypesGetInTimeout = 1000
 
 	private lastInvoked = 0
-	private deferredRequests: Array<DeferredObject<ApplicationTypesGetOut>>
+	private deferredRequests: Array<DeferredObject<baseTypes.ApplicationTypesGetOut>>
 
 	private readonly APPLICATION_TYPES_PATH: string = "server_type_models.json"
 	private readonly APPLICATION_TYPES_PATH_SDK: string = "server_type_models_sdk.json"
@@ -52,7 +41,7 @@ export class ApplicationTypesFacade {
 		this.deferredRequests = []
 	}
 
-	private async requestApplicationTypes(): Promise<ApplicationTypesGetOut> {
+	private async requestApplicationTypes(): Promise<baseTypes.ApplicationTypesGetOut> {
 		const applicationTypesGetOutCompressed = await this.restClient.request(
 			getServiceRestPath(ApplicationTypesService as ServiceDefinition),
 			HttpMethod.GET,
@@ -71,8 +60,8 @@ export class ApplicationTypesFacade {
 	 * hash of that type  model. `expectedHash === null` means that we did not receive one from the server yet, which
 	 * means the one from the FS is fine to use.
 	 */
-	public async getServerApplicationTypesJson(expectedHash: string | null): Promise<ApplicationTypesGetOut> {
-		let deferredObject: DeferredObject<ApplicationTypesGetOut> = defer()
+	public async getServerApplicationTypesJson(expectedHash: string | null): Promise<baseTypes.ApplicationTypesGetOut> {
+		let deferredObject: DeferredObject<baseTypes.ApplicationTypesGetOut> = defer()
 		this.deferredRequests.push(deferredObject)
 		const fileSystemModels = await this.loadStoredTypeModels()
 
@@ -113,7 +102,7 @@ export class ApplicationTypesFacade {
 
 	// In case we fail to read the application types from the stored json file,
 	// we will request it from the server eagerly.
-	private async loadStoredTypeModels(): Promise<ApplicationTypesGetOut | null> {
+	private async loadStoredTypeModels(): Promise<baseTypes.ApplicationTypesGetOut | null> {
 		// in the web app, we do not have a persistent server model,
 		// therefore we will load it from the server
 		// when the web app is started and store it in memory
@@ -142,7 +131,7 @@ export class ApplicationTypesFacade {
 		return this.serverModelInfo.getApplicationTypesHash()
 	}
 
-	private resolvePendingRequests(typesReturn: ApplicationTypesGetOut) {
+	private resolvePendingRequests(typesReturn: baseTypes.ApplicationTypesGetOut) {
 		const deferredRequests = this.deferredRequests.slice(0, this.deferredRequests.length)
 		this.deferredRequests = []
 

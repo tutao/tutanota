@@ -39,7 +39,7 @@ import { lang, TranslationKey } from "../../../src/common/misc/LanguageViewModel
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { UserError } from "../../../src/common/api/main/UserError.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
-import { isSameId } from "../../../src/common/api/common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { RecipientsModel } from "../../../src/common/api/main/RecipientsModel"

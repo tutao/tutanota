@@ -1,4 +1,4 @@
-import { Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
@@ -8,7 +8,7 @@ import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { isFolderReadOnly, MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
-import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, isSameId, listIdPart } from "@tutao/typeRefs"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { groupByAndMap } from "@tutao/utils"
@@ -17,6 +17,7 @@ import type { FolderSystem, IndentedFolder } from "../../../common/api/common/ma
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 
+type MailSet = tutanotaTypeRefs.MailSet
 /**
  * Dialog for Edit and Add folder are the same.
  * @param editedFolder if this is null, a folder is being added, otherwise a folder is being edited
@@ -59,7 +60,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 	]
 
 	async function getMailIdsGroupedByListId(folder: MailSet): Promise<Map<Id, Id[]>> {
-		const mailSetEntries = await locator.entityClient.loadAll(MailSetEntryTypeRef, folder.entries)
+		const mailSetEntries = await locator.entityClient.loadAll(tutanotaTypeRefs.MailSetEntryTypeRef, folder.entries)
 		return groupByAndMap(
 			mailSetEntries,
 			(mse) => listIdPart(mse.mail),
@@ -67,10 +68,10 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 		)
 	}
 
-	async function loadAllMailsOfFolder(folder: MailSet, reportableMails: Array<Mail>) {
+	async function loadAllMailsOfFolder(folder: MailSet, reportableMails: Array<tutanotaTypeRefs.Mail>) {
 		const mailIdsPerBag = await getMailIdsGroupedByListId(folder)
 		for (const [mailListId, mailIds] of mailIdsPerBag) {
-			reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, mailListId, mailIds)))
+			reportableMails.push(...(await locator.entityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, mailListId, mailIds)))
 		}
 	}
 
@@ -110,7 +111,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 
 					// get mails to report before moving to mail model
 					const descendants = folders.getDescendantFoldersOfParent(editedFolder._id).sort((l: IndentedFolder, r: IndentedFolder) => r.level - l.level)
-					let reportableMails: Array<Mail> = []
+					let reportableMails: Array<tutanotaTypeRefs.Mail> = []
 					await loadAllMailsOfFolder(editedFolder, reportableMails)
 					for (const descendant of descendants) {
 						await loadAllMailsOfFolder(descendant.folder, reportableMails)

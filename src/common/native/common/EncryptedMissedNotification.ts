@@ -1,4 +1,4 @@
-import { ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
+import { ServerModelUntypedInstance, TypeModel } from "@tutao/typeRefs"
 import {
 	AlarmNotificationTypeRef,
 	createNotificationSessionKey,
@@ -6,9 +6,9 @@ import {
 	NotificationSessionKey,
 	NotificationSessionKeyTypeRef,
 } from "../../api/entities/sys/TypeRefs"
-import { AttributeModel } from "../../api/common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 import { Base64, base64ToUint8Array, Nullable } from "@tutao/utils"
-import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 
 export class EncryptedMissedNotification {
 	private constructor(

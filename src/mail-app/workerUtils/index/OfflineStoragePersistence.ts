@@ -4,11 +4,11 @@ import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/wor
 import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/utils"
-import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, listIdPart } from "@tutao/typeRefs"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
-import { ListElementEntity } from "../../../common/api/common/EntityTypes"
+import { ListElementEntity } from "@tutao/typeRefs"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
@@ -131,7 +131,7 @@ export class OfflineStoragePersistence {
 			mailDetails: { recipients, body },
 			attachments,
 		} of mailData) {
-			const rowid = await this.getRowid(MailTypeRef, mail._id)
+			const rowid = await this.getRowid(tutanotaTypeRefs.MailTypeRef, mail._id)
 			if (rowid == null) {
 				return
 			}
@@ -165,8 +165,8 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async updateMailLocation(mail: Mail) {
-		const rowid = await this.getRowid(MailTypeRef, mail._id)
+	async updateMailLocation(mail: tutanotaTypeRefs.Mail) {
+		const rowid = await this.getRowid(tutanotaTypeRefs.MailTypeRef, mail._id)
 		if (rowid == null) {
 			return
 		}
@@ -176,12 +176,12 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	private formatSetsValue(mail: Mail): string {
+	private formatSetsValue(mail: tutanotaTypeRefs.Mail): string {
 		return mail.sets.map(elementIdPart).join(" ")
 	}
 
 	async deleteMailData(mailId: IdTuple): Promise<void> {
-		const rowid = await this.getRowid(MailTypeRef, mailId)
+		const rowid = await this.getRowid(tutanotaTypeRefs.MailTypeRef, mailId)
 		{
 			const { query, params } = sql`DELETE
                                         FROM mail_index
@@ -196,9 +196,9 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async storeContactData(contacts: Contact[]): Promise<void> {
+	async storeContactData(contacts: tutanotaTypeRefs.Contact[]): Promise<void> {
 		for (const contact of contacts) {
-			const rowid = await this.getRowid(ContactTypeRef, contact._id)
+			const rowid = await this.getRowid(tutanotaTypeRefs.ContactTypeRef, contact._id)
 			if (rowid == null) {
 				continue
 			}
@@ -223,7 +223,7 @@ export class OfflineStoragePersistence {
                                     WHERE rowId = (SELECT rowId
                                                    FROM list_entities
                                                    WHERE type =
-                                                         ${getTypeString(ContactTypeRef)}
+                                                         ${getTypeString(tutanotaTypeRefs.ContactTypeRef)}
                                                      AND listId
                                                        =
                                                          ${listIdPart(contactId)}
@@ -286,6 +286,6 @@ export class OfflineStoragePersistence {
 	}
 }
 
-function serializeMailAddresses(recipients: readonly MailAddress[]): string {
+function serializeMailAddresses(recipients: readonly tutanotaTypeRefs.MailAddress[]): string {
 	return recipients.map((r) => `${r.name} ${r.address}`).join(", ")
 }

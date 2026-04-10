@@ -1,7 +1,7 @@
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
 import m from "mithril"
-import type { MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { MailViewModel } from "./MailViewModel"
@@ -11,7 +11,7 @@ import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 
-export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel: MailViewModel, label: MailSet | null) {
+export async function showEditLabelDialog(mailbox: tutanotaTypeRefs.MailBox | null, mailViewModel: MailViewModel, label: tutanotaTypeRefs.MailSet | null) {
 	let name = label ? label.name : ""
 	let color = label && label.color ? label.color : ""
 

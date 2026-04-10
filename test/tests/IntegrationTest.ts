@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { GroupType } from "../../src/common/api/common/TutanotaConstants.js"
-import type { MailSet } from "../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,

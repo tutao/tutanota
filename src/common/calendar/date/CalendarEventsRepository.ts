@@ -27,7 +27,7 @@ import {
 	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
-import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "@tutao/typeRefs"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"

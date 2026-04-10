@@ -27,12 +27,12 @@ import {
 	getListId,
 	isSameId,
 	listIdPart,
-} from "../../../../src/common/api/common/utils/EntityUtils"
+} from "@tutao/typeRefs"
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
-import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
 import { assertNotNull, clamp, lastThrow, pad } from "@tutao/utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"

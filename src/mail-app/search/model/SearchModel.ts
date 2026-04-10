@@ -1,12 +1,12 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/utils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { listIdPart } from "@tutao/typeRefs"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -108,7 +108,7 @@ export class SearchModel {
 			}
 			this.result(result)
 			this.lastSearchPromise = Promise.resolve(result)
-		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
+		} else if (isSameTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, restriction.type)) {
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
@@ -171,7 +171,7 @@ export class SearchModel {
 				return this.lastSearchPromise
 			}
 
-			const followCommonRestrictions = (key: string, event: CalendarEvent) => {
+			const followCommonRestrictions = (key: string, event: tutanotaTypeRefs.CalendarEvent) => {
 				if (alreadyAdded.has(key)) {
 					// we only need the first event in the series, the view will load & then generate
 					// the series for the searched time range.
@@ -281,7 +281,7 @@ export class SearchModel {
 
 			this.result(calendarResult)
 			this.lastSearchPromise = Promise.resolve(calendarResult)
-		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
+		} else if (isSameTypeRef(tutanotaTypeRefs.MailTypeRef, restriction.type)) {
 			// we set search end when null to be able to tell when the same search is extended
 			const indexState = this.indexState()
 
@@ -386,7 +386,7 @@ export class SearchModel {
 	}
 
 	private isSearchResultExtendableForType(type: SearchRestriction["type"]): boolean {
-		return isSameTypeRef(MailTypeRef, type)
+		return isSameTypeRef(tutanotaTypeRefs.MailTypeRef, type)
 	}
 
 	isSameSearchWithExtendedRange(query: string, restriction: SearchRestriction): boolean {

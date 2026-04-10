@@ -26,6 +26,13 @@
 		},
 		{
 			"path": "tsconfig.restClient.json"
+		},
+		{
+			"path": "tsconfig.typerefs.json"
+		},
+
+		{
+			"path": "tsconfig.instancePipeline.json"
 		}
 	]
 }

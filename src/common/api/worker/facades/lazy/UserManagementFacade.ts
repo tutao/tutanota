@@ -1,8 +1,7 @@
 import { Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
 import { createResetPasswordPostIn, createUserDataDelete, User } from "../../../entities/sys/TypeRefs.js"
 import { getFirstOrThrow, neverNull } from "@tutao/utils"
-import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
-import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
@@ -17,7 +16,7 @@ import { PQFacade } from "../PQFacade.js"
 import { freshVersioned } from "@tutao/utils"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade, RecoverData } from "./RecoverCodeFacade.js"
-import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "@tutao/instancePipeline"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "./IdentityKeyCreator"
 
@@ -108,7 +107,7 @@ export class UserManagementFacade {
 		)
 		await this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100)
 
-		let data = createUserAccountCreateData({
+		let data = tutanotaTypeRefs.createUserAccountCreateData({
 			date: Const.CURRENT_DATE,
 			userGroupData: userGroupData,
 			userData: await this.generateUserAccountData(
@@ -143,7 +142,7 @@ export class UserManagementFacade {
 		passphrase: string,
 		userName: string,
 		recoverData: RecoverData,
-	): Promise<UserAccountUserData> {
+	): Promise<tutanotaTypeRefs.UserAccountUserData> {
 		const kdfType = DEFAULT_KDF_TYPE
 		const salt = generateRandomSalt()
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
@@ -173,7 +172,7 @@ export class UserManagementFacade {
 		const fileEncFileSystemSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
 		const mailEncMailBoxSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
-		return createUserAccountUserData({
+		return tutanotaTypeRefs.createUserAccountUserData({
 			mailAddress: mailAddress,
 			encryptedName: _encryptString(userGroupInfoSessionKey, userName),
 			salt: salt,

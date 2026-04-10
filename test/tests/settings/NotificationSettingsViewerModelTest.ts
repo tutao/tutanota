@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { NotificationSettingsViewerModel } from "../../../src/mail-app/settings/NotificationSettingsViewerModel"
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
-import { createPushIdentifierList, PushIdentifier, PushIdentifierTypeRef, User, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils"

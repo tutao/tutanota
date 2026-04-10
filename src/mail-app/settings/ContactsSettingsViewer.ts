@@ -6,7 +6,7 @@ import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { FeatureType, OperationType } from "../../common/api/common/TutanotaConstants.js"
-import { TutanotaProperties, TutanotaPropertiesTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Button, ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
@@ -130,15 +130,15 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	updateTutaPropertiesSettings(props: TutanotaProperties) {
+	updateTutaPropertiesSettings(props: tutanotaTypeRefs.TutanotaProperties) {
 		this.noAutomaticContacts = props.noAutomaticContacts
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
-			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, locator.logins.getUserController().props._id)
+			if (isUpdateForTypeRef(tutanotaTypeRefs.TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				const props = await locator.entityClient.load(tutanotaTypeRefs.TutanotaPropertiesTypeRef, locator.logins.getUserController().props._id)
 				this.updateTutaPropertiesSettings(props)
 			}
 		}

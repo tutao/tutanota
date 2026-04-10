@@ -1,1 +1,0 @@
-export { TutanotaError } from "./TutanotaError"

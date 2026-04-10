@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { neverNull } from "@tutao/utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 // @ts-ignore[untyped-import]

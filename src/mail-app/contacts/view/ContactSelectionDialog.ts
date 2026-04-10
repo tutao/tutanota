@@ -1,6 +1,6 @@
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import m from "mithril"
 import { List, ListAttrs, ListState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { component_size, px } from "../../../common/gui/size.js"
@@ -12,11 +12,12 @@ import { theme } from "../../../common/gui/theme"
 import { Card } from "../../../common/gui/base/Card"
 import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
 import { ListModel, selectionAttrsForList } from "../../../common/misc/ListModel"
-import { elementIdPart, isSameId, sortCompareById } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId, sortCompareById } from "@tutao/typeRefs"
 import { noOp } from "@tutao/utils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import Stream from "mithril/stream"
 
+type Contact = tutanotaTypeRefs.Contact
 export enum ContactSelectionDialogSize {
 	Medium,
 	Large,

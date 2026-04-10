@@ -1,12 +1,9 @@
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../common/api/common/TutanotaConstants"
 import { neverNull } from "@tutao/utils"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import type { Contact } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactMailAddress } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { Birthday } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactAddress } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactPhoneNumber } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { ContactSocialId } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+
+type Contact = tutanotaTypeRefs.Contact
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -195,8 +192,8 @@ export function _getMergedNameField(name1: string, name2: string): string {
  * Export for testing
  */
 export function _compareMailAddresses(
-	contact1MailAddresses: ContactMailAddress[],
-	contact2MailAddresses: ContactMailAddress[],
+	contact1MailAddresses: tutanotaTypeRefs.ContactMailAddress[],
+	contact2MailAddresses: tutanotaTypeRefs.ContactMailAddress[],
 ): ContactComparisonResult | IndifferentContactComparisonResult {
 	return _compareValues(
 		contact1MailAddresses.map((m) => m.address),
@@ -207,7 +204,10 @@ export function _compareMailAddresses(
 /**
  * Export for testing
  */
-export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], mailAddresses2: ContactMailAddress[]): ContactMailAddress[] {
+export function _getMergedEmailAddresses(
+	mailAddresses1: tutanotaTypeRefs.ContactMailAddress[],
+	mailAddresses2: tutanotaTypeRefs.ContactMailAddress[],
+): tutanotaTypeRefs.ContactMailAddress[] {
 	let filteredMailAddresses2 = mailAddresses2.filter((ma2) => {
 		return !mailAddresses1.some((ma1) => ma1.address.toLowerCase() === ma2.address.toLowerCase())
 	})
@@ -218,8 +218,8 @@ export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], m
  * Export for testing
  */
 export function _comparePhoneNumbers(
-	contact1PhoneNumbers: ContactPhoneNumber[],
-	contact2PhoneNumbers: ContactPhoneNumber[],
+	contact1PhoneNumbers: tutanotaTypeRefs.ContactPhoneNumber[],
+	contact2PhoneNumbers: tutanotaTypeRefs.ContactPhoneNumber[],
 ): ContactComparisonResult | IndifferentContactComparisonResult {
 	return _compareValues(
 		contact1PhoneNumbers.map((m) => m.number),
@@ -230,7 +230,10 @@ export function _comparePhoneNumbers(
 /**
  * Export for testing
  */
-export function _getMergedPhoneNumbers(phoneNumbers1: ContactPhoneNumber[], phoneNumbers2: ContactPhoneNumber[]): ContactPhoneNumber[] {
+export function _getMergedPhoneNumbers(
+	phoneNumbers1: tutanotaTypeRefs.ContactPhoneNumber[],
+	phoneNumbers2: tutanotaTypeRefs.ContactPhoneNumber[],
+): tutanotaTypeRefs.ContactPhoneNumber[] {
 	let filteredNumbers2 = phoneNumbers2.filter((ma2) => {
 		const isIncludedInPhoneNumbers1 = phoneNumbers1.find((ma1) => ma1.number.replace(/\s/g, "") === ma2.number.replace(/\s/g, ""))
 		return !isIncludedInPhoneNumbers1
@@ -256,7 +259,7 @@ export function _areResidualContactFieldsEqual(contact1: Contact, contact2: Cont
 	)
 }
 
-function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2SocialIds: ContactSocialId[]): boolean {
+function _areSocialIdsEqual(contact1SocialIds: tutanotaTypeRefs.ContactSocialId[], contact2SocialIds: tutanotaTypeRefs.ContactSocialId[]): boolean {
 	let result = _compareValues(
 		contact1SocialIds.map((m) => m.socialId),
 		contact2SocialIds.map((m) => m.socialId),
@@ -268,14 +271,17 @@ function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2Social
 /**
  * Export for testing
  */
-export function _getMergedSocialIds(socialIds1: ContactSocialId[], socialIds2: ContactSocialId[]): ContactSocialId[] {
+export function _getMergedSocialIds(
+	socialIds1: tutanotaTypeRefs.ContactSocialId[],
+	socialIds2: tutanotaTypeRefs.ContactSocialId[],
+): tutanotaTypeRefs.ContactSocialId[] {
 	let filteredSocialIds2 = socialIds2.filter((ma2) => {
 		return !socialIds1.some((ma1) => ma1.socialId === ma2.socialId)
 	})
 	return socialIds1.concat(filteredSocialIds2)
 }
 
-function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Addresses: ContactAddress[]): boolean {
+function _areAddressesEqual(contact1Addresses: tutanotaTypeRefs.ContactAddress[], contact2Addresses: tutanotaTypeRefs.ContactAddress[]): boolean {
 	let result = _compareValues(
 		contact1Addresses.map((m) => m.address),
 		contact2Addresses.map((m) => m.address),
@@ -287,7 +293,10 @@ function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Address
 /**
  * Export for testing
  */
-export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: ContactAddress[]): ContactAddress[] {
+export function _getMergedAddresses(
+	addresses1: tutanotaTypeRefs.ContactAddress[],
+	addresses2: tutanotaTypeRefs.ContactAddress[],
+): tutanotaTypeRefs.ContactAddress[] {
 	let filteredAddresses2 = addresses2.filter((ma2) => {
 		return !addresses1.some((ma1) => ma1.address === ma2.address)
 	})
@@ -322,7 +331,7 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 	}
 }
 
-function _convertIsoBirthday(isoBirthday: string | null): Birthday | null {
+function _convertIsoBirthday(isoBirthday: string | null): tutanotaTypeRefs.Birthday | null {
 	if (isoBirthday) {
 		try {
 			return isoDateToBirthday(isoBirthday)

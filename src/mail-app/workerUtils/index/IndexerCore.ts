@@ -54,7 +54,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { elementIdPart, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, generatedIdToTimestamp, listIdPart } from "@tutao/typeRefs"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
@@ -95,7 +95,7 @@ import {
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
-import { ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import {
 	decryptIndexKey,
@@ -947,7 +947,7 @@ export class IndexerCore {
 		}
 	}
 
-	async areContactsIndexed(contactList: ContactList): Promise<boolean> {
+	async areContactsIndexed(contactList: tutanotaTypeRefs.ContactList): Promise<boolean> {
 		const t = await this.db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 		const groupId = neverNull(contactList._ownerGroup)
 		const groupData = await t.get<GroupData>(GroupDataOS, groupId)

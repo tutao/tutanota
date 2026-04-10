@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { KnowledgeBaseModel } from "../model/KnowledgeBaseModel.js"
-import type { EmailTemplate, KnowledgeBaseEntry } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, KnowledgeBaseListEntry } from "./KnowledgeBaseListEntry.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import stream from "mithril/stream"
@@ -13,7 +13,7 @@ import { makeListSelectionChangedScrollHandler } from "../../../common/gui/base/
 import { ofClass } from "@tutao/utils"
 
 export type KnowledgebaseDialogContentAttrs = {
-	readonly onTemplateSelect: (arg0: EmailTemplate) => void
+	readonly onTemplateSelect: (arg0: tutanotaTypeRefs.EmailTemplate) => void
 	readonly model: KnowledgeBaseModel
 }
 
@@ -111,7 +111,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		)
 	}
 
-	_renderListEntry(model: KnowledgeBaseModel, entry: KnowledgeBaseEntry): Children {
+	_renderListEntry(model: KnowledgeBaseModel, entry: tutanotaTypeRefs.KnowledgeBaseEntry): Children {
 		return m(".flex.flex-column.click.hoverable-list-item", [
 			m(
 				".flex",

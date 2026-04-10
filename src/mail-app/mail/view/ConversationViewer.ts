@@ -4,7 +4,7 @@ import { MailViewer } from "./MailViewer.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, isSameId } from "@tutao/typeRefs"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { component_size, px, size } from "../../../common/gui/size.js"
@@ -12,7 +12,7 @@ import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
-import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, isSameTypeRef, ofClass } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UserError } from "../../../common/api/main/UserError"
@@ -164,7 +164,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	): Children {
 		return entries.map((entry, position) => {
 			switch (entry.type_ref.typeId) {
-				case MailTypeRef.typeId: {
+				case tutanotaTypeRefs.MailTypeRef.typeId: {
 					const mailViewerViewModel = entry.viewModel
 					const isPrimary = mailViewerViewModel === viewModel.primaryViewModel()
 					// only pass in position if we do have an actual conversation position
@@ -256,7 +256,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			Promise.resolve().then(() => {
 				// There's a chance that item are not in sync with dom but it's very unlikely, this is the same frame after the last render we used the items
 				// and viewModel is finished.
-				const itemIndex = items.findIndex((e) => isSameTypeRef(e.type_ref, MailTypeRef) && isSameId(e.entryId, conversationId))
+				const itemIndex = items.findIndex((e) => isSameTypeRef(e.type_ref, tutanotaTypeRefs.MailTypeRef) && isSameId(e.entryId, conversationId))
 				// Don't scroll if it's already the first (or if we didn't find it but that would be weird)
 				if (itemIndex > 0) {
 					const childDom = containerDom.childNodes[itemIndex] as HTMLElement

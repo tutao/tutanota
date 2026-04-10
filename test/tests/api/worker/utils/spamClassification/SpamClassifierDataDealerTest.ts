@@ -25,7 +25,7 @@ import { EntityClient } from "../../../../../../src/common/api/common/EntityClie
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"
-import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/common/api/common/utils/EntityUtils"
+import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "@tutao/typeRefs"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { last } from "@tutao/utils"
 

@@ -3,7 +3,7 @@ import { component_size, px, size } from "../../../common/gui/size"
 import { Keys } from "../../../common/api/common/TutanotaConstants"
 import { TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
-import type { EmailTemplate } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
 import { memoized } from "@tutao/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
@@ -14,7 +14,7 @@ import { theme } from "../../../common/gui/theme.js"
  * The Popup handles whether the Expander should be rendered or not, depending on available width-space.
  */
 export type TemplateExpanderAttrs = {
-	template: EmailTemplate
+	template: tutanotaTypeRefs.EmailTemplate
 	model: TemplatePopupModel
 }
 

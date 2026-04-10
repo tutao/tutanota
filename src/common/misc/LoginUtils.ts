@@ -1,6 +1,6 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
-import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
+import { generatedIdToTimestamp } from "@tutao/typeRefs"
 import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
 import {
 	AccessBlockedError,

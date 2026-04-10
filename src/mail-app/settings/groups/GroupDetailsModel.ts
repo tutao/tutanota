@@ -10,14 +10,14 @@ import {
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { GENERATED_MIN_ID, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { GENERATED_MIN_ID, isSameId } from "@tutao/typeRefs"
 import { BookingItemFeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { stringValidator } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils.js"
-import { MailboxPropertiesTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
@@ -261,7 +261,11 @@ export class GroupDetailsModel {
 			) {
 				// the members have changed
 				return this.updateMembers()
-			} else if (this.isMailGroup() && isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+			} else if (
+				this.isMailGroup() &&
+				isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update) &&
+				update.operation === OperationType.UPDATE
+			) {
 				// the sender name belonging to this group may have changed.
 				// noinspection ES6MissingAwait
 				this.updateSenderName()

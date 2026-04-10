@@ -7,14 +7,14 @@ import {
 	UserTypeRef,
 	WebsocketCounterData,
 } from "../entities/sys/TypeRefs.js"
-import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isAdminClient, isTest } from "../common/Env.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { OperationType, RolloutType } from "../common/TutanotaConstants.js"
 import { assertNotNull, lazyAsync, Nullable } from "@tutao/utils"
-import { isSameId } from "../common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
@@ -66,7 +66,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	/**
 	 * @param markers only phishing (not spam) marker will be sent as websocket updates
 	 */
-	async onPhishingMarkersReceived(markers: ReportedMailFieldMarker[]) {
+	async onPhishingMarkersReceived(markers: tutanotaTypeRefs.ReportedMailFieldMarker[]) {
 		;(await this.mailFacade()).phishingMarkersUpdateReceived(markers)
 	}
 

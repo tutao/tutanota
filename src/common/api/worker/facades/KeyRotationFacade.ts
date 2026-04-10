@@ -64,8 +64,9 @@ import {
 	promiseMap,
 	Versioned,
 } from "@tutao/utils"
-import { elementIdPart, getElementId, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
-import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
+import { elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/typeRefs"
+import { cryptoUtils } from "@tutao/crypto"
+import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import {
 	Aes256Key,
 	AesKey,
@@ -87,17 +88,17 @@ import { AdminGroupKeyRotationService, GroupKeyRotationService, MembershipServic
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
 import { assertWorkerOrNode, isAdminClient } from "../../common/Env.js"
-import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
+import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
 import { RecoverCodeFacade } from "./lazy/RecoverCodeFacade.js"
 import { UserFacade } from "./UserFacade.js"
-import { GroupInvitationPostData, type InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError, NotAuthenticatedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
@@ -128,7 +129,7 @@ export type PendingKeyRotation = {
 
 type PreparedUserAreaGroupKeyRotation = {
 	groupKeyRotationData: GroupKeyRotationData
-	preparedReInvitations: GroupInvitationPostData[]
+	preparedReInvitations: tutanotaTypeRefs.GroupInvitationPostData[]
 }
 
 type EncryptedPqKeyPairsMaybeWithSignature = EncryptedPqKeyPairs & { signature: PublicKeySignature | null }
@@ -269,7 +270,7 @@ export class KeyRotationFacade {
 			pendingKeyRotations.teamOrCustomerGroupKeyRotations = []
 		}
 
-		let invitationData: GroupInvitationPostData[] = []
+		let invitationData: tutanotaTypeRefs.GroupInvitationPostData[] = []
 		if (!isEmpty(pendingKeyRotations.userAreaGroupsKeyRotations)) {
 			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user, pendingKeyRotations)
 			invitationData = preparedReInvites
@@ -317,7 +318,7 @@ export class KeyRotationFacade {
 		pendingKeyRotations: PendingKeyRotation,
 	): Promise<{
 		groupKeyRotationData: GroupKeyRotationData[]
-		preparedReInvites: GroupInvitationPostData[]
+		preparedReInvites: tutanotaTypeRefs.GroupInvitationPostData[]
 	}> {
 		// * the encrypting keys are 128-bit keys. (user group key)
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
@@ -328,7 +329,7 @@ export class KeyRotationFacade {
 		}
 
 		const groupKeyUpdates = new Array<GroupKeyRotationData>()
-		let preparedReInvites: GroupInvitationPostData[] = []
+		let preparedReInvites: tutanotaTypeRefs.GroupInvitationPostData[] = []
 		for (const keyRotation of pendingKeyRotations.userAreaGroupsKeyRotations) {
 			const { groupKeyRotationData, preparedReInvitations } = await this.prepareKeyRotationForAreaGroup(keyRotation, currentUserGroupKey, user)
 			groupKeyUpdates.push(groupKeyRotationData)
@@ -592,8 +593,11 @@ export class KeyRotationFacade {
 			return await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroup._id)
 		} catch (e) {
 			//if we cannot get/decrypt the group key via membership we try via adminEncGroupKey
-			const currentKey = await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(targetGroup._id, parseKeyVersion(targetGroup.groupKeyVersion))
-			return { object: currentKey, version: parseKeyVersion(targetGroup.groupKeyVersion) }
+			const currentKey = await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(
+				targetGroup._id,
+				cryptoUtils.parseKeyVersion(targetGroup.groupKeyVersion),
+			)
+			return { object: currentKey, version: cryptoUtils.parseKeyVersion(targetGroup.groupKeyVersion) }
 		}
 	}
 
@@ -661,7 +665,7 @@ export class KeyRotationFacade {
 	}
 
 	private async handlePendingInvitations(targetGroup: Group, newTargetGroupKey: VersionedKey) {
-		const preparedReInvitations: Array<GroupInvitationPostData> = []
+		const preparedReInvitations: Array<tutanotaTypeRefs.GroupInvitationPostData> = []
 		const targetGroupInfo = await this.entityClient.load(GroupInfoTypeRef, targetGroup.groupInfo)
 		const pendingInvitations = await this.entityClient.loadAll(SentGroupInvitationTypeRef, targetGroup.invitations)
 		const sentInvitationsByCapability = groupBy(pendingInvitations, (invitation) => invitation.capability)
@@ -732,8 +736,8 @@ export class KeyRotationFacade {
 					notFoundRecipients,
 					keyVerificationMismatchRecipients,
 				)
-				if (recipientKeyData != null && isSameTypeRef(recipientKeyData._type, InternalRecipientKeyDataTypeRef)) {
-					const keyData = recipientKeyData as InternalRecipientKeyData
+				if (recipientKeyData != null && isSameTypeRef(recipientKeyData._type, tutanotaTypeRefs.InternalRecipientKeyDataTypeRef)) {
+					const keyData = recipientKeyData as tutanotaTypeRefs.InternalRecipientKeyData
 					const pubEncKeyData = createPubEncKeyData({
 						recipientIdentifier: keyData.mailAddress,
 						recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
@@ -803,9 +807,12 @@ export class KeyRotationFacade {
      */
 	private async encryptGroupKeyForOtherUsers(userId: Id, newGroupKey: VersionedKey): Promise<VersionedEncryptedKey> {
 		const user = await this.entityClient.load(UserTypeRef, userId)
-		const userGroupKey = await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(user.userGroup.group, parseKeyVersion(user.userGroup.groupKeyVersion))
+		const userGroupKey = await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(
+			user.userGroup.group,
+			cryptoUtils.parseKeyVersion(user.userGroup.groupKeyVersion),
+		)
 		const encrypteNewGroupKey = this.cryptoWrapper.encryptKey(userGroupKey, newGroupKey.object)
-		return { key: encrypteNewGroupKey, encryptingKeyVersion: parseKeyVersion(user.userGroup.groupKeyVersion) }
+		return { key: encrypteNewGroupKey, encryptingKeyVersion: cryptoUtils.parseKeyVersion(user.userGroup.groupKeyVersion) }
 	}
 
 	private async generateGroupKeys(group: Group): Promise<GeneratedGroupKeys> {
@@ -813,7 +820,7 @@ export class KeyRotationFacade {
 		const maybeKeyPair = await this.createNewKeyPairValue(group, symGroupKeyBytes)
 		const identityKeyPair = group.identityKeyPair
 
-		const newGroupKeyVersion = checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1)
+		const newGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints(cryptoUtils.parseKeyVersion(group.groupKeyVersion) + 1)
 		if (identityKeyPair != null && maybeKeyPair != null) {
 			const { encryptedKeyPair, plaintextKeyPair } = maybeKeyPair
 			encryptedKeyPair.signature = await this.publicKeySignatureFacade.signPublicKey(
@@ -987,7 +994,7 @@ export class KeyRotationFacade {
 		}
 
 		const { taggedKeyVersion, tag, taggingKeyVersion } = brandKeyMac(userGroupKeyRotation.adminPubKeyMac)
-		if (parseKeyVersion(taggingKeyVersion) !== currentUserGroupKey.version) {
+		if (cryptoUtils.parseKeyVersion(taggingKeyVersion) !== currentUserGroupKey.version) {
 			throw new Error(
 				`the encrypting key version in the userEncAdminPubKeyHash does not match hash: ${taggingKeyVersion} current user group key:${currentUserGroupKey.version}`,
 			)
@@ -998,7 +1005,7 @@ export class KeyRotationFacade {
 			identifier: adminGroupId,
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
 		})
-		const adminGroupKeyVersion = parseKeyVersion(taggedKeyVersion)
+		const adminGroupKeyVersion = cryptoUtils.parseKeyVersion(taggedKeyVersion)
 		if (currentAdminPubKeys.publicEncryptionKey.version !== adminGroupKeyVersion) {
 			throw new Error("the public key service did not return the tagged key version to verify the admin public key")
 		}
@@ -1069,7 +1076,7 @@ export class KeyRotationFacade {
 		)
 		const versionedNewAdminGroupKey = {
 			object: decapsulatedNewAdminGroupKey.decryptedAesKey,
-			version: parseKeyVersion(pubAdminEncGKeyAuthHash.taggedKeyVersion),
+			version: cryptoUtils.parseKeyVersion(pubAdminEncGKeyAuthHash.taggedKeyVersion),
 		}
 
 		this.keyAuthenticationFacade.verifyTag(

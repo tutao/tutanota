@@ -9,7 +9,7 @@ import { formatContactDate } from "../../../common/contactsFunctionality/Contact
 import { defer, DeferredObject, delay, downcast, Thunk } from "@tutao/utils"
 import { HtmlEditor, HtmlEditorMode } from "../../../common/gui/editor/HtmlEditor"
 import { ButtonType } from "../../../common/gui/base/Button.js"
-import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { TextDisplayArea } from "../../../common/gui/base/TextDisplayArea"
@@ -19,13 +19,13 @@ import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 
 export class ContactMergeView {
 	dialog: Dialog
-	contact1: Contact
-	contact2: Contact
+	contact1: tutanotaTypeRefs.Contact
+	contact2: tutanotaTypeRefs.Contact
 	resolveFunction: DeferredObject<ContactMergeAction>["resolve"] | null = null // must be called after the user action
 
 	windowCloseUnsubscribe: Thunk | null = null
 
-	constructor(contact1: Contact, contact2: Contact) {
+	constructor(contact1: tutanotaTypeRefs.Contact, contact2: tutanotaTypeRefs.Contact) {
 		this.contact1 = contact1
 		this.contact2 = contact2
 
@@ -212,7 +212,7 @@ export class ContactMergeView {
 		)
 	}
 
-	_createContactFields(contact: Contact): {
+	_createContactFields(contact: tutanotaTypeRefs.Contact): {
 		mailAddresses: ChildArray
 		phones: ChildArray
 		addresses: ChildArray

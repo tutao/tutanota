@@ -1,4 +1,4 @@
-import { createDefaultAlarmInfo, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import m, { Children } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { TextField } from "../../gui/base/TextField.js"
@@ -7,7 +7,7 @@ import Stream from "mithril/stream"
 import { downcast, noOp, ofClass } from "@tutao/utils"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId } from "../../api/common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils.js"
 import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
@@ -53,12 +53,14 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						existingGroupSettings.color = newColor
 						existingGroupSettings.name = newName
 					} else {
-						const groupSettings = createGroupSettings({
+						const groupSettings = tutanotaTypeRefs.createGroupSettings({
 							group: invitation.sharedGroup,
 							color: newColor,
 							// If the receiving user does not set a custom name, the name from groupInfo will be used
 							name: newName !== groupName ? newName : null,
-							defaultAlarmsList: alarmsStream().map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) })),
+							defaultAlarmsList: alarmsStream().map((alarm) =>
+								tutanotaTypeRefs.createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }),
+							),
 							sourceUrl: null,
 						})
 						userSettingsGroupRoot.groupSettings.push(groupSettings)

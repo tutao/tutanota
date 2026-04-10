@@ -11,7 +11,7 @@ import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../crypto/Cr
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { AesKey } from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 
 assertWorkerOrNode()
 

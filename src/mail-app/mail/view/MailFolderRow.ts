@@ -9,7 +9,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getFolderIcon } from "./MailGuiUtils"
 
 export type MailFolderRowAttrs = {
@@ -19,7 +19,7 @@ export type MailFolderRowAttrs = {
 	expanded: boolean | null
 	indentationLevel: number
 	onExpanderClick: (event: Event) => unknown
-	folder: MailSet
+	folder: tutanotaTypeRefs.MailSet
 	hasChildren: boolean
 	onSelectedPath: boolean
 	numberOfPreviousRows: number

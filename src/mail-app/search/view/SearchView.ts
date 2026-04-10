@@ -5,7 +5,7 @@ import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageVie
 import { FeatureType, Keys, MailReportType, MailSetKind, SimpleMoveMailTarget, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { layout_size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
@@ -82,7 +82,7 @@ import { SearchViewModel } from "./SearchViewModel.js"
 import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
-import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId, getIds, isSameId } from "@tutao/typeRefs"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import {
 	EventDetailsView,
@@ -139,14 +139,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly startOfTheWeekOffset: number
 	private readonly undoModel: UndoModel
 
-	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
-		new LazyLoaded(async () => {
-			const calendars = await this.searchViewModel.getAvailableCalendars(false)
-			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
-			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendarInfosMap, this.searchViewModel.getHighlightedStrings())
-			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
-			return eventPreviewModel
-		}).load(),
+	private getSanitizedPreviewData: (event: tutanotaTypeRefs.CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized(
+		(event: tutanotaTypeRefs.CalendarEvent) =>
+			new LazyLoaded(async () => {
+				const calendars = await this.searchViewModel.getAvailableCalendars(false)
+				const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
+				const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendarInfosMap, this.searchViewModel.getHighlightedStrings())
+				eventPreviewModel.sanitizeDescription().then(() => m.redraw())
+				return eventPreviewModel
+			}).load(),
 	)
 
 	private getContactPreviewData = memoized((id: string) =>
@@ -242,7 +243,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					currentType: this.searchViewModel.searchedType,
 					onSingleSelection: (item) => {
 						this.viewSlider.focus(this.resultDetailsColumn)
-						if (isSameTypeRef(item.entry._type, MailTypeRef)) {
+						if (isSameTypeRef(item.entry._type, tutanotaTypeRefs.MailTypeRef)) {
 							// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
 							// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
 							// sync so this should be enough.
@@ -512,7 +513,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private renderMobileListActionsHeader(header: AppHeaderAttrs): Children {
 		const rightActions: Children[] = []
 
-		if (!isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
+		if (!isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)) {
 			rightActions.push(
 				m(EnterMultiselectIconButton, {
 					clickAction: () => {
@@ -530,11 +531,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							title: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => {
-								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
+								if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.MailTypeRef)) {
 									m.route.set(MAIL_PREFIX)
-								} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
+								} else if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.ContactTypeRef)) {
 									m.route.set(CONTACTS_PREFIX)
-								} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
+								} else if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)) {
 									m.route.set(CALENDAR_PREFIX)
 								}
 							},
@@ -580,7 +581,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 			const actions = m(ContactViewerActions, {
 				contacts: selectedContacts,
-				onEdit: (c: Contact) => new ContactEditor(locator.entityClient, c).show(),
+				onEdit: (c: tutanotaTypeRefs.Contact) => new ContactEditor(locator.entityClient, c).show(),
 				onDelete: deleteContacts,
 				onMerge: confirmMerge,
 				onExport: exportContacts,
@@ -664,7 +665,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								: this.searchViewModel.listModel.isLoadedCompletely() || this.searchViewModel.isIndexingMails()
 									? "none"
 									: "can_load",
-						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
+						getSelectionMessage: (selected: ReadonlyArray<tutanotaTypeRefs.Mail>) => getMailSelectionMessage(selected),
 					}),
 				})
 			} else {
@@ -927,7 +928,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.getContactPreviewData(contactId).reload().then(m.redraw)
 	}
 
-	private renderEventPreview(event: CalendarEvent): Children {
+	private renderEventPreview(event: tutanotaTypeRefs.CalendarEvent): Children {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
@@ -944,7 +945,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return null
 	}
 
-	private renderContactPreview(contact: Contact): Children {
+	private renderContactPreview(contact: tutanotaTypeRefs.Contact): Children {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
@@ -958,7 +959,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		)
 	}
 
-	private renderEventDetails(selectedEvent: CalendarEvent): Children {
+	private renderEventDetails(selectedEvent: tutanotaTypeRefs.CalendarEvent): Children {
 		return m(
 			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
@@ -1091,7 +1092,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					m(ContactViewerActions, {
 						contacts: this.searchViewModel.getSelectedContacts(),
 						onEdit: () => new ContactEditor(locator.entityClient, getFirstOrThrow(this.searchViewModel.getSelectedContacts())).show(),
-						onDelete: (contacts: Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
+						onDelete: (contacts: tutanotaTypeRefs.Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
 						onMerge: confirmMerge,
 						onExport: exportContacts,
 					}),
@@ -1175,11 +1176,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				exec: () => {
 					const type = this.searchViewModel.searchedType
 
-					if (isSameTypeRef(type, MailTypeRef)) {
+					if (isSameTypeRef(type, tutanotaTypeRefs.MailTypeRef)) {
 						newMailEditor()
 							.then((editor) => editor?.show())
 							.catch(ofClass(PermissionError, noOp))
-					} else if (isSameTypeRef(type, ContactTypeRef)) {
+					} else if (isSameTypeRef(type, tutanotaTypeRefs.ContactTypeRef)) {
 						locator.contactModel.getContactListId().then((contactListId) => {
 							new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
 						})
@@ -1258,7 +1259,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
-			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
+			isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.MailTypeRef) &&
 			styles.isSingleColumnLayout() &&
 			!args.id &&
 			this.viewSlider.focusedColumn === this.resultDetailsColumn
@@ -1277,7 +1278,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	} | null {
 		if (styles.isUsingBottomNavigation()) {
 			return null
-		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
+		} else if (isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef) && isNewMailActionAvailable()) {
 			return {
 				click: () => {
 					newMailEditor()
@@ -1286,7 +1287,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 				label: "newMail_action",
 			}
-		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
+		} else if (isSameTypeRef(typeRef, tutanotaTypeRefs.ContactTypeRef)) {
 			return {
 				click: () => {
 					locator.contactModel.getContactListId().then((contactListId) => {
@@ -1295,7 +1296,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 				label: "newContact_action",
 			}
-		} else if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(typeRef, tutanotaTypeRefs.CalendarEventTypeRef)) {
 			return {
 				click: () => {
 					this.createNewEventDialog()
@@ -1370,7 +1371,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
-		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
+		if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.MailTypeRef)) {
 			const selected = this.searchViewModel.getSelectedMails()
 			const deletable = this.searchViewModel.isPermanentDeleteAllowed()
 
@@ -1391,7 +1392,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						: null,
 				}
 			}
-		} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
+		} else if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.ContactTypeRef)) {
 			const selectedContacts = this.searchViewModel.getSelectedContacts()
 			if (isNotEmpty(selectedContacts)) {
 				return { deleteAction: () => this.deleteContacts(selectedContacts), trashAction: null }
@@ -1404,7 +1405,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private deleteContacts(selected: Contact[]): void {
+	private deleteContacts(selected: tutanotaTypeRefs.Contact[]): void {
 		Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 			if (confirmed) {
 				if (selected.length > 1) {

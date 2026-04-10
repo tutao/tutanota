@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { createTestEntity } from "../TestUtils.js"
 import { incrementDate } from "@tutao/utils"
 import { earliestEventToShowTimeIndicator } from "../../../src/calendar-app/calendar/view/CalendarAgendaView.js"

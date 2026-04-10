@@ -21,7 +21,7 @@ import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
 import { getFirstOrThrow, getStartOfDay } from "@tutao/utils"
-import { GroupMembership, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 
 o.spec("CalendarEventRepositoryTest", function () {

@@ -1,5 +1,5 @@
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -172,7 +172,7 @@ export class MailAddressTableModel {
 	private entityEventsReceived: EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
 			for (const update of updates) {
-				if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+				if (isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 					await this.loadNames()
 				} else if (isUpdateFor(this.userInfo.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
 					this.userInfo.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userInfo.userGroupInfo._id)

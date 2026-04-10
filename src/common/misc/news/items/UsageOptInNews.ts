@@ -1,6 +1,6 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { InfoLink, lang } from "../../LanguageViewModel.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
@@ -25,7 +25,7 @@ export class UsageOptInNews implements NewsListItem {
 		return Promise.resolve(locator.usageTestModel.showOptInIndicator())
 	}
 
-	render(newsId: NewsId): Children {
+	render(newsId: tutanotaTypeRefs.NewsId): Children {
 		const closeAction = (optedIn?: boolean) => {
 			this.newsModel
 				.acknowledgeNews(newsId.newsItemId)

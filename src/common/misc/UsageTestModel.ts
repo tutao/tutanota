@@ -26,9 +26,9 @@ import { LoginController } from "../api/main/LoginController.js"
 import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
-import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
-import { ClientTypeModelResolver } from "../api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -185,7 +185,7 @@ export class UsageTestModel implements PingAdapter {
 			if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				await this.loginController.waitForFullLogin()
 				await this.updateCustomerProperties()
-			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
 				await this.loginController.waitForFullLogin()
 				const updatedOptInDecision = this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn
 
@@ -257,7 +257,7 @@ export class UsageTestModel implements PingAdapter {
 	 * Immediately refetches the user's active usage tests if they opted in.
 	 */
 	public async setOptInDecision(decision: boolean) {
-		const userSettingsGroupRoot = createUserSettingsGroupRoot(this.loginController.getUserController().userSettingsGroupRoot)
+		const userSettingsGroupRoot = tutanotaTypeRefs.createUserSettingsGroupRoot(this.loginController.getUserController().userSettingsGroupRoot)
 		userSettingsGroupRoot.usageDataOptedIn = decision
 
 		await this.entityClient.update(userSettingsGroupRoot)

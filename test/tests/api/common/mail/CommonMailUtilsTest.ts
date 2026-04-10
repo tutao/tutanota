@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EncryptionAuthStatus, MailState } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"

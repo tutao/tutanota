@@ -1,4 +1,4 @@
-import { Mail, MailDetailsBlobTypeRef } from "../../../entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, lazy, lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
 import { CustomCacheHandler } from "./CustomCacheHandler"
@@ -7,7 +7,7 @@ import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/i
 /**
  * Handles telling the indexer to index or un-index mail data on updates.
  */
-export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
+export class CustomMailEventCacheHandler implements CustomCacheHandler<tutanotaTypeRefs.Mail> {
 	constructor(private readonly indexer: lazyAsync<MailIndexer>) {}
 
 	shouldLoadOnCreateEvent(): boolean {

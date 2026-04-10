@@ -5,7 +5,7 @@ import type { ClickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
+import { GENERATED_MAX_ID } from "@tutao/typeRefs"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType, UpgradePromptType } from "../api/common/TutanotaConstants.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 

@@ -9,8 +9,8 @@ import {
 } from "../../../common/api/common/TutanotaConstants"
 import type { MaybeTranslation, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sortCompareByReverseId } from "@tutao/typeRefs"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {
 	[ContactAddressType.PRIVATE]: "private_label",
@@ -140,7 +140,7 @@ export function getContactCustomWebsiteTypeToLabel(type: ContactWebsiteType, cus
 	}
 }
 
-export type ContactComparator = (arg0: Contact, arg1: Contact) => number
+export type ContactComparator = (arg0: tutanotaTypeRefs.Contact, arg1: tutanotaTypeRefs.Contact) => number
 
 /**
  * Sorts by the following preferences:
@@ -150,7 +150,7 @@ export type ContactComparator = (arg0: Contact, arg1: Contact) => number
  * 4. id
  * Missing fields are sorted below existing fields
  */
-export function compareContacts(contact1: Contact, contact2: Contact, sortByFirstName: boolean = true): number {
+export function compareContacts(contact1: tutanotaTypeRefs.Contact, contact2: tutanotaTypeRefs.Contact, sortByFirstName: boolean = true): number {
 	let c1First = contact1.firstName.trim()
 	let c2First = contact2.firstName.trim()
 	let c1Last = contact1.lastName.trim()
