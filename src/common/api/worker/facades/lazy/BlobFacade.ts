@@ -1,4 +1,4 @@
-import { addParamsToUrl, RestClient, SuspensionBehavior } from "../../rest/RestClient.js"
+import { addParamsToUrl, HttpMethod, MediaType, RestClient, restSuspension } from "@tutao/restClient"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -17,10 +17,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { ArchiveDataType, CANCEL_UPLOAD_EVENT, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
-
-import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
-import { isSuspensionResponse, SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
 import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
@@ -39,7 +36,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { UploadProgressInfo, TransferId } from "../../../common/drive/DriveTypes"
+import { TransferId, UploadProgressInfo } from "../../../common/drive/DriveTypes"
 import { CancelledError } from "../../../common/error/CancelledError"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 
@@ -49,7 +46,7 @@ export const TAG = "BlobFacade"
 
 export interface BlobLoadOptions {
 	extraHeaders?: Dict
-	suspensionBehavior?: SuspensionBehavior
+	suspensionBehavior?: restSuspension.SuspensionBehavior
 	/** override origin for the request */
 	baseUrl?: string
 }
@@ -87,7 +84,7 @@ export class BlobFacade {
 
 	constructor(
 		private readonly restClient: RestClient,
-		private readonly suspensionHandler: SuspensionHandler,
+		private readonly suspensionHandler: restSuspension.SuspensionHandler,
 		private readonly fileApp: NativeFileApp,
 		private readonly aesApp: AesApp,
 		private readonly instancePipeline: InstancePipeline,
@@ -158,7 +155,15 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		transferId: TransferId,
 		abortSignal: AbortSignal,
-	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number; referenceTokenWrapper: BlobReferenceTokenWrapper }, void, void> {
+	): AsyncGenerator<
+		{
+			uploadedBytes: number
+			totalBytes: number
+			referenceTokenWrapper: BlobReferenceTokenWrapper
+		},
+		void,
+		void
+	> {
 		const fileSize = file.size
 
 		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
@@ -168,7 +173,11 @@ export class BlobFacade {
 		const doBlobRequest = async (chunk: Uint8Array) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
 			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, (bytes) => {
-				this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: bytesUploadedSoFar + bytes, totalBytes: file.size })
+				this.progressDispatcher.onChunkUploaded({
+					transferId,
+					uploadedBytes: bytesUploadedSoFar + bytes,
+					totalBytes: file.size,
+				})
 			})
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
@@ -510,7 +519,7 @@ export class BlobFacade {
 			return this.parseBlobPostOutResponse(uint8ArrayToString("utf-8", responseBody))
 		} else if (responseBody == null) {
 			throw new Error("no response body")
-		} else if (isSuspensionResponse(statusCode, suspensionTime)) {
+		} else if (restSuspension.isSuspensionResponse(statusCode, suspensionTime)) {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash))
 		} else {
@@ -681,7 +690,7 @@ export class BlobFacade {
 				console.log("Failed to delete encrypted file", encryptedFileUri)
 			}
 			return decryptedFileUrl
-		} else if (isSuspensionResponse(statusCode, suspensionTime)) {
+		} else if (restSuspension.isSuspensionResponse(statusCode, suspensionTime)) {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() =>
 				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, fileId),

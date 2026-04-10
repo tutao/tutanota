@@ -1,18 +1,15 @@
 import o from "@tutao/otest"
-import { APPLICATION_TYPES_HASH_HEADER, RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { HttpMethod, MediaType, ServerModelInfo } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { ResourceError } from "../../../../../src/common/api/common/error/RestError.js"
+import { HttpMethod, MediaType, RestClient, restError, restSuspension } from "@tutao/restClient"
 import { defer, noOp } from "@tutao/utils"
 import http from "node:http"
-import { isSuspensionResponse, SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
 import express from "express"
 import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
-import { domainConfigStub } from "../../../TestUtils.js"
-import { matchers, object, reset, verify } from "testdouble"
-import { ClientPlatform } from "../../../../../src/common/misc/ClientDetector"
-import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
-import { ApplicationTypesService } from "../../../../../src/common/api/entities/base/Services"
+import { matchers } from "testdouble"
+import { domainConfigStub } from "../TestUtils"
+import { ClientPlatform } from "../../../src/common/misc/ClientDetector"
+
+type SuspensionHandler = restSuspension.SuspensionHandler
 
 // only runs in node, it spins up a local server and connects to it
 
@@ -20,14 +17,13 @@ const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
 const SERVER_TIMESTAMP = 1626095919000
 const { anything } = matchers
 
-o.spec("RestClient", function () {
+o.spec("RestClientTest", function () {
 	const suspensionHandlerMock: Partial<SuspensionHandler> = {
 		activateSuspensionIfInactive: noOp,
 		isSuspended: () => false,
 		deferRequest: (request) => request(),
 	}
-	const serverModelInfoMock: ServerModelInfo = object()
-	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, serverModelInfoMock, String(ClientPlatform.UNKNOWN))
+	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, String(ClientPlatform.UNKNOWN))
 	o.spec("integration tests", function () {
 		let app = express()
 		let server: http.Server
@@ -60,7 +56,6 @@ o.spec("RestClient", function () {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 				res.send(responseText)
 			})
 			const res = await restClient.request("/get/json", HttpMethod.GET, {
@@ -93,7 +88,6 @@ o.spec("RestClient", function () {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/octet-stream")
-				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 				res.send(response)
 			})
 			const res = await restClient.request("/get/binary", HttpMethod.GET, {
@@ -122,7 +116,6 @@ o.spec("RestClient", function () {
 					o(req.body).deepEquals(JSON.parse(requestText))
 					//console.log("!", req.body, req.method, req.originalUrl, req.path, req.query, req.headers)
 					o(req.query["_"]).equals(undefined) // timestamp should be defined only for GET requests
-					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 
 					res.send(responseText)
 				})
@@ -152,7 +145,6 @@ o.spec("RestClient", function () {
 					o(req.headers["accept"]).equals("application/octet-stream")
 					o(Array.from(req.body)).deepEquals(Array.from(request))
 					o(req.query["_"]).equals(undefined) // timestamp should be defined only for GET requests
-					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 
 					res.send(response)
 				})
@@ -179,7 +171,6 @@ o.spec("RestClient", function () {
 					o(req.headers["content-type"]).equals(undefined)
 					o(req.headers["accept"]).equals(undefined)
 					res.set("Date", SERVER_TIME_IN_HEADER)
-					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 					res.send()
 				})
 				const res = await restClient.request(url, method, {
@@ -199,10 +190,9 @@ o.spec("RestClient", function () {
 				let url = "/" + method + "/error"
 				app[method.toLowerCase()](url, (req, res) => {
 					res.set("Date", SERVER_TIME_IN_HEADER)
-					res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 					res.status(205).send() // every status code !== 200 is currently handled as error
 				})
-				await o(() => restClient.request(url, method, { baseUrl })).asyncThrows(ResourceError)
+				await o(() => restClient.request(url, method, { baseUrl })).asyncThrows(restError.ResourceError)
 			}
 		}
 
@@ -220,87 +210,13 @@ o.spec("RestClient", function () {
 			// Adjust for possible variance in date times
 			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
 		})
-
-		o("verify setCurrentHash is called when the applicationTypesHash is set in the response header", async () => {
-			reset()
-			o.timeout(400)
-
-			let responseText = '{"msg":"Hello Client"}'
-
-			app.get("/get/json1", (req, res) => {
-				o(req.method).equals("GET")
-				o(req.headers["content-type"]).equals(undefined)
-				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
-				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
-				res.send(responseText)
-			})
-			const res = await restClient.request("/get/json1", HttpMethod.GET, {
-				responseType: MediaType.Json,
-				baseUrl,
-			})
-			verify(serverModelInfoMock.setCurrentHash("newApplicationTypesHash"), { times: 1 })
-			o(res).equals(responseText)
-		})
-
-		o("verify setCurrentHash is NOT called when the applicationTypesHash is not set in the response, throws instead", async () => {
-			reset()
-			o.timeout(400)
-
-			let responseText = '{"msg":"Hello Client"}'
-
-			app.get("/get/json3", (req, res) => {
-				o(req.method).equals("GET")
-				o(req.headers["content-type"]).equals(undefined)
-				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
-				res.send(responseText)
-			})
-
-			try {
-				const response = await restClient.request("/get/json3", HttpMethod.GET, {
-					responseType: MediaType.Json,
-					baseUrl,
-				})
-			} catch (e) {
-				const expectedErrorMessage = `Empty value for ${APPLICATION_TYPES_HASH_HEADER} header in response`
-				//Error should contain the message
-				o(e.indexOf(expectedErrorMessage)).notEquals(-1)
-			}
-
-			verify(serverModelInfoMock.setCurrentHash(anything()), { times: 0 })
-		})
-
-		o("verify setCurrentHash is NOT  for ApplicationTypesService and does not throw", async () => {
-			reset()
-			o.timeout(400)
-
-			let responseText = '{"msg":"Hello Client"}'
-
-			const applicationTypesServiceRestPath = getServiceRestPath(ApplicationTypesService)
-
-			app.get(applicationTypesServiceRestPath, (req, res) => {
-				o(req.method).equals("GET")
-				o(req.headers["content-type"]).equals(undefined)
-				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
-				res.send(responseText)
-			})
-
-			const res = await restClient.request(applicationTypesServiceRestPath, HttpMethod.GET, {
-				responseType: MediaType.Json,
-				baseUrl,
-			})
-			verify(serverModelInfoMock.setCurrentHash(anything()), { times: 0 })
-			o(res).equals(responseText)
-		})
 	})
 	o("isSuspensionResponse", () => {
-		o(isSuspensionResponse(503, "1")).equals(true)
-		o(isSuspensionResponse(429, "100")).equals(true)
-		o(isSuspensionResponse(0, "2")).equals(false)
-		o(isSuspensionResponse(503, "0")).equals(false)
-		o(isSuspensionResponse(503, null)).equals(false)
-		o(isSuspensionResponse(503, null)).equals(false)
+		o(restSuspension.isSuspensionResponse(503, "1")).equals(true)
+		o(restSuspension.isSuspensionResponse(429, "100")).equals(true)
+		o(restSuspension.isSuspensionResponse(0, "2")).equals(false)
+		o(restSuspension.isSuspensionResponse(503, "0")).equals(false)
+		o(restSuspension.isSuspensionResponse(503, null)).equals(false)
+		o(restSuspension.isSuspensionResponse(503, null)).equals(false)
 	})
 })

@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "tsconfig.usagetests.json"
+		},
+		{
+			"path": "tsconfig.restClient.json"
 		}
 	]
 }

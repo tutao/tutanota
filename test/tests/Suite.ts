@@ -15,7 +15,7 @@ import "./api/main/SyncTrackerTest.js"
 import "./api/worker/CompressionTest.js"
 import "./api/worker/EventBusClientTest.js"
 import "./api/worker/EventBusEventCoordinatorTest.js"
-import "./api/worker/SuspensionHandlerTest.js"
+import "./restClient/SuspensionHandlerTest"
 import "./api/worker/UrlifierTest.js"
 import "./api/worker/crypto/AsymmetricCryptoFacadeTest.js"
 import "./api/worker/crypto/CompatibilityTest.js"
@@ -181,6 +181,7 @@ import "./api/worker/search/IndexedDbContactSearchFacadeTest.js"
 import "./api/worker/search/OfflineStorageContactIndexerBackendTest.js"
 import "./api/worker/search/OfflineStorageContactSearchFacadeTest.js"
 import "./api/worker/rest/CustomUserCacheHandlerTest.js"
+import "./api/worker/rest/RestClientNewTest"
 import "./api/common/utils/QueryTokenUtilsTest.js"
 import "./api/worker/offline/PatchMergerTest.js"
 import "./contacts/ContactModelTest.js"
@@ -256,7 +257,6 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
-		await import("./api/worker/rest/RestClientTest.js")
 		await import("./desktop/ApplicationWindowTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")
 		await import("./desktop/DesktopCryptoFacadeTest.js")

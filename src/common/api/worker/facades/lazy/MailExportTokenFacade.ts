@@ -1,7 +1,7 @@
 import { AccessExpiredError } from "../../../common/error/RestError.js"
 import { MailExportTokenService } from "../../../entities/tutanota/Services.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { SuspensionBehavior } from "../../rest/RestClient"
+import { restSuspension } from "@tutao/restClient"
 
 const TAG = "[MailExportTokenFacade]"
 
@@ -66,18 +66,20 @@ export class MailExportTokenFacade {
 		}
 
 		this.currentExportToken = null
-		this.currentExportTokenRequest = this.serviceExecutor.post(MailExportTokenService, null, { suspensionBehavior: SuspensionBehavior.Throw }).then(
-			(result) => {
-				this.currentExportToken = result.mailExportToken as MailExportToken
-				this.currentExportTokenRequest = null
-				return this.currentExportToken
-			},
-			(error) => {
-				// Re-initialize in case MailExportTokenService won't fail on a future request
-				this.currentExportTokenRequest = null
-				throw error
-			},
-		)
+		this.currentExportTokenRequest = this.serviceExecutor
+			.post(MailExportTokenService, null, { suspensionBehavior: restSuspension.SuspensionBehavior.Throw })
+			.then(
+				(result) => {
+					this.currentExportToken = result.mailExportToken as MailExportToken
+					this.currentExportTokenRequest = null
+					return this.currentExportToken
+				},
+				(error) => {
+					// Re-initialize in case MailExportTokenService won't fail on a future request
+					this.currentExportTokenRequest = null
+					throw error
+				},
+			)
 		return this.currentExportTokenRequest
 	}
 

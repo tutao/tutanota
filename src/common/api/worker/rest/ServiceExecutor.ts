@@ -13,7 +13,7 @@ import {
 } from "../../common/ServiceRequest.js"
 import { Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
-import { RestClient } from "./RestClient"
+import { RestClient } from "@tutao/restClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { assertWorkerOrNode } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"

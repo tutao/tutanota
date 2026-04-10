@@ -78,7 +78,7 @@ import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
 import { ClientModelInfo } from "../api/common/EntityFunctions"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
-import { SuspensionHandler } from "../api/worker/SuspensionHandler"
+import { restSuspension } from "@tutao/restClient"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
 import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade"
 
@@ -265,7 +265,7 @@ async function createComponents(): Promise<Components> {
 
 	tray.setWindowManager(wm)
 
-	const suspensionAwareFetch = makeSuspensionAwareFetch(new SuspensionHandler(globalThis, noOp))
+	const suspensionAwareFetch = makeSuspensionAwareFetch(new restSuspension.SuspensionHandler(globalThis, noOp))
 
 	const notificationHandler = new TutaNotificationHandler(
 		wm,

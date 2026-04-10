@@ -1,8 +1,8 @@
 import { TypeRef } from "@tutao/utils"
 import { assertMainOrNode } from "./Env.js"
 import type { Entity } from "./EntityTypes.js"
-import { Aes128Key, AesKey } from "@tutao/crypto"
-import { SuspensionBehavior } from "../worker/rest/RestClient"
+import { AesKey } from "@tutao/crypto"
+import { restSuspension } from "@tutao/restClient"
 
 assertMainOrNode()
 
@@ -58,7 +58,7 @@ export interface ExtraServiceParams {
 	queryParams?: Dict
 	sessionKey?: AesKey
 	extraHeaders?: Dict
-	suspensionBehavior?: SuspensionBehavior
+	suspensionBehavior?: restSuspension.SuspensionBehavior
 	/** override origin for the request */
 	baseUrl?: string
 }

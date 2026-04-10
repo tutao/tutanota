@@ -10,7 +10,7 @@ import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "../../../../../src
 import { ArchiveDataType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { createReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade"
-import { SuspensionBehavior } from "../../../../../src/common/api/worker/rest/RestClient"
+import { restSuspension } from "@tutao/restClient"
 
 o.spec("MailExportFacade", () => {
 	const token = "my token"
@@ -43,7 +43,7 @@ o.spec("MailExportFacade", () => {
 			bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", {
 				baseUrl: "baseUrl",
 				extraHeaders: tokenHeaders,
-				suspensionBehavior: SuspensionBehavior.Throw,
+				suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 			}),
 		).thenResolve([mail1, mail2])
 
@@ -61,7 +61,7 @@ o.spec("MailExportFacade", () => {
 			bulkMailLoader.loadMailDetails([mail1, mail2], {
 				baseUrl: "baseUrl",
 				extraHeaders: tokenHeaders,
-				suspensionBehavior: SuspensionBehavior.Throw,
+				suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 			}),
 		).thenResolve(expected)
 
@@ -76,7 +76,7 @@ o.spec("MailExportFacade", () => {
 			bulkMailLoader.loadAttachments([mail1, mail2], {
 				baseUrl: "baseUrl",
 				extraHeaders: tokenHeaders,
-				suspensionBehavior: SuspensionBehavior.Throw,
+				suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 			}),
 		).thenResolve(expected)
 
@@ -105,7 +105,7 @@ o.spec("MailExportFacade", () => {
 				[createReferencingInstance(mailAttachments[0]), createReferencingInstance(mailAttachments[1])],
 				{
 					extraHeaders: tokenHeaders,
-					suspensionBehavior: SuspensionBehavior.Throw,
+					suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 				},
 			),
 		).thenResolve(

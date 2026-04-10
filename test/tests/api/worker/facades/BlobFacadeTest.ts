@@ -1,14 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { RestClient, RestClientOptions } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
+import { HttpMethod, RestClient, RestClientOptions, restSuspension } from "@tutao/restClient"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
 import { Mode } from "../../../../../src/common/api/common/Env.js"
@@ -37,7 +35,7 @@ o.spec("BlobFacade", function () {
 	let blobFacade: BlobFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let restClientMock: RestClient
-	let suspensionHandlerMock: SuspensionHandler
+	let suspensionHandlerMock: restSuspension.SuspensionHandler
 	let fileAppMock: NativeFileApp
 	let aesAppMock: AesApp
 	let instancePipelineMock: InstancePipeline
@@ -57,7 +55,7 @@ o.spec("BlobFacade", function () {
 
 	o.beforeEach(function () {
 		restClientMock = instance(RestClient)
-		suspensionHandlerMock = instance(SuspensionHandler)
+		suspensionHandlerMock = instance(restSuspension.SuspensionHandler)
 		fileAppMock = instance(NativeFileApp)
 		aesAppMock = instance(AesApp)
 		instancePipelineMock = instance(InstancePipeline)
@@ -626,12 +624,24 @@ o.spec("BlobFacade", function () {
 			const anothersessionKey = aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId: "archiveId1" }))
+			file.blobs.push(
+				createTestEntity(BlobTypeRef, {
+					blobId: blobId1,
+					size: String(65),
+					archiveId: "archiveId1",
+				}),
+			)
 			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: "archiveId1" }))
+			file.blobs.push(
+				createTestEntity(BlobTypeRef, {
+					blobId: blobId2,
+					size: String(65),
+					archiveId: "archiveId1",
+				}),
+			)
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])

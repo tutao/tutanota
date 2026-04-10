@@ -1,17 +1,9 @@
-import type { RestClient, SuspensionBehavior } from "./RestClient"
+import { HttpMethod, MediaType, type RestClient, restError, type restSuspension } from "@tutao/restClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { _verifyType, HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
+import { _verifyType, TypeModelResolver } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import {
-	ConnectionError,
-	InternalServerError,
-	NotAuthenticatedError,
-	NotAuthorizedError,
-	NotFoundError,
-	PayloadTooLargeError,
-} from "../../common/error/RestError"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import type {
 	ClientModelUntypedInstance,
 	ClientTypeModel,
@@ -26,7 +18,7 @@ import type {
 	UntypedInstance,
 } from "../../common/EntityTypes"
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
-import { AssociationType, Type } from "../../common/EntityConstants.js"
+import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -114,7 +106,7 @@ export interface EntityRestClientLoadOptions {
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode?: CacheMode
 	baseUrl?: string
-	suspensionBehavior?: SuspensionBehavior
+	suspensionBehavior?: restSuspension.SuspensionBehavior
 }
 
 export interface OwnerEncSessionKeyProvider {
@@ -561,7 +553,7 @@ export class EntityRestClient implements EntityRestInterface {
 				const untypedPersistencePostReturn = JSON.parse(persistencePostReturn)
 				return await this.parseSetupMultiple(untypedPersistencePostReturn)
 			} catch (e) {
-				if (e instanceof PayloadTooLargeError) {
+				if (e instanceof restError.PayloadTooLargeError) {
 					// If we try to post too many large instances then we get PayloadTooLarge
 					// So we fall back to posting single instances
 					const returnedIds = await promiseMap(instanceChunk, (instance) => {
@@ -581,7 +573,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		if (errors.length) {
 			if (errors.some(isOfflineError)) {
-				throw new ConnectionError("Setup multiple entities failed")
+				throw new restError.ConnectionError("Setup multiple entities failed")
 			}
 			throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
 		} else {
@@ -701,7 +693,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const headers = Object.assign({}, this.authDataProvider.createAuthHeaders(), extraHeaders)
 
 		if (Object.keys(headers).length === 0) {
-			throw new NotAuthenticatedError("user must be authenticated for entity requests")
+			throw new restError.NotAuthenticatedError("user must be authenticated for entity requests")
 		}
 
 		headers.v = String(clientTypeModel.version)
@@ -755,7 +747,7 @@ export async function tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<str
 			return await mapper(server.url, index)
 		} catch (e) {
 			// InternalServerError is returned when accessing a corrupted archive, so we retry
-			if (e instanceof ConnectionError || e instanceof InternalServerError || e instanceof NotFoundError) {
+			if (e instanceof restError.ConnectionError || e instanceof restError.InternalServerError || e instanceof restError.NotFoundError) {
 				console.log(`${errorMsg} ${server.url}`, e)
 				error = e
 			} else {
@@ -778,7 +770,7 @@ export async function doBlobRequestWithRetry<T>(doBlobRequest: () => Promise<T>,
 	return doBlobRequest().catch(
 		// in case one of the chunks could not be uploaded because of an invalid/expired token we upload all chunks again in order to guarantee that they are uploaded to the same archive.
 		// we don't have to take care of already uploaded chunks, as they are unreferenced and will be cleaned up by the server automatically.
-		ofClass(NotAuthorizedError, (_) => {
+		ofClass(restError.NotAuthorizedError, (_) => {
 			doEvictTokenBeforeRetry()
 			return doBlobRequest()
 		}),

@@ -6,7 +6,7 @@ import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 import { rolldown } from "rolldown"
-import { resolveLibs } from "../buildSrc/RollupConfig.js"
+import { resolveLibs, tsImportAliases } from "../buildSrc/RollupConfig.js"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
 import { $ } from "zx"
@@ -60,6 +60,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	})
 
 	await runStep("Rolldown", async () => {
+		Object.keys(tsImportAliases).forEach((key) => delete tsImportAliases[key]) // See: devbuild.js
 		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],

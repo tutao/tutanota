@@ -1,7 +1,7 @@
 //
 // NOTE: some of the mocking is this file is pretty old, and we should replace spy() with something more modern
 //
-import o from "@tutao/otest"
+import o, { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/otest"
 import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
@@ -41,9 +41,8 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/otest"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { RestClient } from "@tutao/restClient"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
@@ -273,8 +272,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const id4 = "id4"
 
 			o("writes batch meta on entity update", async function () {
-				const contact1 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1], _ownerGroup: "owner-group" })
-				const contact2 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id2], _ownerGroup: "owner-group" })
+				const contact1 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id1],
+					_ownerGroup: "owner-group",
+				})
+				const contact2 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id2],
+					_ownerGroup: "owner-group",
+				})
 
 				const batch = [
 					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1),

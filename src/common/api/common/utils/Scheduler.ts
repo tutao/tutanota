@@ -1,5 +1,6 @@
 import type { Thunk } from "@tutao/utils"
 import { DateProvider } from "../DateProvider.js"
+import { SystemTimeout } from "../../../../../types"
 
 export type ScheduledTimeoutId = TimeoutID
 export type ScheduledPeriodicId = TimeoutID
@@ -21,14 +22,6 @@ export interface Scheduler {
  * worry about it, mainly exported for tests.
  * */
 export const SET_TIMEOUT_LIMIT = 0x7fffffff
-
-/** Default impl of timeout functions, useful for testing */
-export type SystemTimeout = {
-	// Copying it because ts has some weird properties attach to it in node tslib.
-	// no-arg version because lambadas exist.
-	setTimeout(callback: () => void, ms: number): number
-	clearTimeout: typeof clearTimeout
-}
 
 /** Default impl of interval functions, useful for testing */
 export type SystemInterval = {

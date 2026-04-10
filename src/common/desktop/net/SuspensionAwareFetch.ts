@@ -1,18 +1,18 @@
 import { RequestInit } from "undici"
 import { assertNotNull, filterInt } from "@tutao/utils"
 import { customFetch, FetchImpl, UndiciResponse } from "./NetAgent"
-import { isSuspensionResponse, SuspensionHandler } from "../../api/worker/SuspensionHandler"
+import { restSuspension } from "@tutao/restClient"
 
 const TAG = "[suspending-fetch]"
 
-export function makeSuspensionAwareFetch(suspensionHandler: SuspensionHandler): FetchImpl {
+export function makeSuspensionAwareFetch(suspensionHandler: restSuspension.SuspensionHandler): FetchImpl {
 	const fetch = async (input: string | URL, init?: RequestInit): Promise<UndiciResponse> => {
 		if (suspensionHandler._isSuspended && input.toString().includes("rest/sys/missednotification")) {
 			return await suspensionHandler.deferRequest(() => fetch(input, init))
 		}
 		const res = await customFetch(input, init)
 		const suspensionTime = res.headers.get("retry-after") || res.headers.get("suspension-time")
-		if (isSuspensionResponse(res.status, suspensionTime)) {
+		if (restSuspension.isSuspensionResponse(res.status, suspensionTime)) {
 			// isSuspensionResponse checks that the header is correct
 			suspensionHandler.activateSuspensionIfInactive(filterInt(assertNotNull(suspensionTime)), new URL(input))
 			return await suspensionHandler.deferRequest(() => fetch(input, init))

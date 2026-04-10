@@ -30,6 +30,12 @@
 		},
 		{
 			"path": "./src/tsconfig.combined-apps.json"
+		},
+		{
+			"path": "./src/tsconfig.appEnv.json"
+		},
+		{
+			"path": "./src/tsconfig.restClient.json"
 		}
 	]
 }
