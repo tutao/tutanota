@@ -4,6 +4,7 @@ import { IpcClientRect } from "./IpcClientRect.js"
 import { UploadTaskResponse } from "./UploadTaskResponse.js"
 import { DownloadTaskResponse } from "./DownloadTaskResponse.js"
 import { DataFile } from "./DataFile.js"
+
 /**
  * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
  */
@@ -70,6 +71,7 @@ export interface FileFacade {
 
 	/**
 	 * given a list of chunk file locations, will re-join them in order to reconstruct a single file and returns the location of that file on disk.
+	 * while joining, each processed chunk will be immediately deleted
 	 */
 	joinFiles(filename: string, files: ReadonlyArray<string>): Promise<string>
 
