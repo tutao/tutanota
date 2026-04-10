@@ -212,7 +212,7 @@ import("./translations/en.js")
 			return {
 				async onFullLoginSuccess() {},
 				async onPartialLoginSuccess() {
-					if (mailLocator.logins.isInternalUserLoggedIn() && mailLocator.logins.isEnabled(FeatureType.QuickActions)) {
+					if (mailLocator.logins.isInternalUserLoggedIn()) {
 						mailLocator.quickActionsModel().then((model) => {
 							model.register(async () => {
 								const { quickMailActions } = await import("./mail/model/MailQuickActions.js")
@@ -233,10 +233,12 @@ import("./translations/en.js")
 								const { quickContactsActions } = await import("./contacts/ContactsQuickActions.js")
 								return quickContactsActions(mailLocator.contactModel, mailLocator.throttledRouter(), mailLocator.entityClient)
 							})
-							model.register(async () => {
-								const { quickDriveActions } = await import("../drive-app/drive/model/DriveQuickActions.js")
-								return quickDriveActions(mailLocator.throttledRouter(), await mailLocator.driveViewModel())
-							})
+							if (mailLocator.logins.isEnabled(FeatureType.DriveInternalBeta)) {
+								model.register(async () => {
+									const { quickDriveActions } = await import("../drive-app/drive/model/DriveQuickActions.js")
+									return quickDriveActions(mailLocator.throttledRouter(), await mailLocator.driveViewModel())
+								})
+							}
 							model.register(async () => {
 								const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")
 								return quickSettingsActions(mailLocator.throttledRouter(), mailLocator.logins)
