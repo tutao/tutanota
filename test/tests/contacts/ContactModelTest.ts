@@ -7,12 +7,12 @@ import { LoginController } from "../../../src/common/api/main/LoginController"
 import { object, when } from "testdouble"
 import { EventController } from "../../../src/common/api/main/EventController"
 import { ContactSearchFacade } from "../../../src/mail-app/workerUtils/index/ContactSearchFacade"
-import { GroupMembershipTypeRef, RootInstanceTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
-import { TypeModelResolver } from "../../../src/common/api/common/EntityFunctions"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { TypeModelResolver } from "@tutao/typeRefs"
 import { UserController } from "../../../src/common/api/main/UserController"
-import { ContactListTypeRef, ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DbError } from "../../../src/common/api/common/error/DbError"
-import { timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils"
+import { timestampToGeneratedId } from "@tutao/typeRefs"
 
 o.spec("ContactModel", () => {
 	let entityMock: EntityRestClientMock

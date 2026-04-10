@@ -1,8 +1,8 @@
 import type { Dialog } from "../../../common/gui/base/Dialog"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { lastThrow, remove } from "@tutao/utils"
-import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { isSameId } from "@tutao/typeRefs"
 import Stream from "mithril/stream"
 
 export const enum SaveStatusEnum {

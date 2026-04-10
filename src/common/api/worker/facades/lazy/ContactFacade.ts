@@ -1,4 +1,4 @@
-import type { Contact } from "../../../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
@@ -9,7 +9,7 @@ assertWorkerOrNode()
 export class ContactFacade {
 	constructor(private readonly entityClient: EntityClient) {}
 
-	async importContactList(contacts: ReadonlyArray<Contact>, contactListId: Id): Promise<void> {
+	async importContactList(contacts: ReadonlyArray<tutanotaTypeRefs.Contact>, contactListId: Id): Promise<void> {
 		try {
 			await this.entityClient.setupMultipleEntities(contactListId, contacts)
 		} catch (e) {

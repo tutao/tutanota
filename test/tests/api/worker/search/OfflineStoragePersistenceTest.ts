@@ -6,7 +6,7 @@ import { assertNotNull, getTypeString, typedValues } from "@tutao/utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { ensureBase64Ext, getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { ensureBase64Ext, getElementId, getListId } from "@tutao/typeRefs"
 import { createTestEntity } from "../../../TestUtils"
 import {
 	BodyTypeRef,
@@ -18,8 +18,8 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
-import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
+import { ListElementEntity } from "@tutao/typeRefs"
+import { ClientModelInfo } from "@tutao/typeRefs"
 import { object } from "testdouble"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 

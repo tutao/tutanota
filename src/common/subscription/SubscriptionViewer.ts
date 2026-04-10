@@ -66,7 +66,7 @@ import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorFie
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
 import { SettingsExpander } from "../settings/SettingsExpander.js"
-import { elementIdPart, GENERATED_MAX_ID, getEtId } from "../api/common/utils/EntityUtils"
+import { elementIdPart, GENERATED_MAX_ID, getEtId } from "@tutao/typeRefs"
 import {
 	CURRENT_GIFT_CARD_TERMS_VERSION,
 	CURRENT_PRIVACY_VERSION,

@@ -16,10 +16,10 @@ import { matchers, object, verify, when } from "testdouble"
 import { IndexedDbContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbContactIndexerBackend"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade"
-import { getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { getElementId } from "@tutao/typeRefs"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { ClientModelInfo } from "@tutao/typeRefs"
+import { AttributeModel } from "@tutao/typeRefs"
 
 o.spec("IndexedDbContactIndexerBackend", () => {
 	let entityClient: EntityClient

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import type { EmailTemplate } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	createEmailTemplate,
 	createEmailTemplateContent,

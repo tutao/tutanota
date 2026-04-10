@@ -6,8 +6,7 @@ import { Icons } from "../../common/gui/base/icons/Icons"
 import { downcast, isEmpty, isSameTypeRef, TypeRef } from "@tutao/utils"
 import { FULL_INDEXED_TIMESTAMP } from "../../common/api/common/TutanotaConstants"
 import { formatDate, formatTimeOrDateOrYesterday } from "../../common/misc/Formatter"
-import type { CalendarEvent, Contact, Mail } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import Badge from "../../common/gui/base/Badge"
 import { Icon } from "../../common/gui/base/Icon"
 import { client } from "../../common/misc/ClientDetector"
@@ -79,11 +78,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		if (!type) {
 			return this.renderShowMoreAction(downcast(result))
-		} else if (isSameTypeRef(MailTypeRef, type)) {
+		} else if (isSameTypeRef(tutanotaTypeRefs.MailTypeRef, type)) {
 			return this.renderMailResult(downcast(result), state)
-		} else if (isSameTypeRef(ContactTypeRef, type)) {
+		} else if (isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, type)) {
 			return this.renderContactResult(downcast(result))
-		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
+		} else if (isSameTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, type)) {
 			return this.renderCalendarEventResult(downcast(result))
 		} else {
 			return []
@@ -119,7 +118,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
-	private renderContactResult(contact: Contact): Children {
+	private renderContactResult(contact: tutanotaTypeRefs.Contact): Children {
 		return [
 			m(".top.flex-space-between", m(".name", getContactListName(contact))),
 			m(
@@ -129,14 +128,14 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		]
 	}
 
-	private renderCalendarEventResult(event: CalendarEvent): Children {
+	private renderCalendarEventResult(event: tutanotaTypeRefs.CalendarEvent): Children {
 		return [
 			m(".top.flex-space-between", m(".name.text-ellipsis", { title: event.summary }, event.summary)),
 			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),
 		]
 	}
 
-	private renderMailResult(mail: Mail, state: SearchBarState): Children {
+	private renderMailResult(mail: tutanotaTypeRefs.Mail, state: SearchBarState): Children {
 		return [
 			m(".top.flex-space-between.badge-line-height", [
 				isTutaTeamMail(mail)

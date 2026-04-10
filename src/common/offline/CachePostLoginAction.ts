@@ -1,7 +1,7 @@
 import { LoggedInEvent, LoginController, PostLoginAction } from "../api/main/LoginController.js"
 import { CalendarModel } from "../../calendar-app/calendar/model/CalendarModel.js"
-import { CalendarEventTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { CUSTOM_MIN_ID } from "../api/common/utils/EntityUtils.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { CUSTOM_MIN_ID } from "@tutao/typeRefs"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { ProgressTracker } from "../api/main/ProgressTracker.js"
 import { promiseMap } from "@tutao/utils"
@@ -36,8 +36,8 @@ export class CachePostLoginAction implements PostLoginAction {
 
 		await promiseMap(calendarInfos.values(), async ({ groupRoot }) => {
 			await Promise.all([
-				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
-				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
+				this.entityClient.loadAll(tutanotaTypeRefs.CalendarEventTypeRef, groupRoot.longEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
+				this.entityClient.loadAll(tutanotaTypeRefs.CalendarEventTypeRef, groupRoot.shortEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
 			])
 		})
 		progressMonitor.completed()

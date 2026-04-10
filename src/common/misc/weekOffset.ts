@@ -1,5 +1,5 @@
 import { getWeekStart, WeekStart } from "../api/common/TutanotaConstants"
-import { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 /** Start of the week offset relative to Sunday (forward). */
 export function getStartOfTheWeekOffset(weekStart: WeekStart): number {
@@ -17,6 +17,6 @@ export function getStartOfTheWeekOffset(weekStart: WeekStart): number {
 }
 
 /** {@see getStartOfTheWeekOffset} */
-export function getStartOfTheWeekOffsetForUser(userSettingsGroupRoot: UserSettingsGroupRoot): number {
+export function getStartOfTheWeekOffsetForUser(userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot): number {
 	return getStartOfTheWeekOffset(getWeekStart(userSettingsGroupRoot))
 }

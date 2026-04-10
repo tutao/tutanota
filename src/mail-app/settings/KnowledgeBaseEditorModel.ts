@@ -1,35 +1,29 @@
-import type { EmailTemplate } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { EmailTemplateTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import type { TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
-import type { KnowledgeBaseEntry } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { createKnowledgeBaseEntry } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { clone, deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { NotFoundError } from "../../common/api/common/error/RestError"
 import { UserError } from "../../common/api/main/UserError"
-import type { KnowledgeBaseEntryKeyword } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { createKnowledgeBaseEntryKeyword } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 export class KnowledgeBaseEditorModel {
 	title: Stream<string>
 	keywords: Stream<string>
 	private readonly _entityClient: EntityClient
-	private readonly _templateGroupRoot: TemplateGroupRoot
-	readonly entry: KnowledgeBaseEntry
-	readonly availableTemplates: LazyLoaded<Array<EmailTemplate>>
+	private readonly _templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot
+	readonly entry: tutanotaTypeRefs.KnowledgeBaseEntry
+	readonly availableTemplates: LazyLoaded<Array<tutanotaTypeRefs.EmailTemplate>>
 	private _descriptionProvider: (() => string) | null
 
-	constructor(entry: KnowledgeBaseEntry | null, templateGroupInstances: TemplateGroupRoot, entityClient: EntityClient) {
+	constructor(entry: tutanotaTypeRefs.KnowledgeBaseEntry | null, templateGroupInstances: tutanotaTypeRefs.TemplateGroupRoot, entityClient: EntityClient) {
 		this.title = stream(entry ? entry.title : "")
 		this.keywords = stream(entry ? keywordsToString(entry.keywords) : "")
 		this._entityClient = entityClient
 		this._templateGroupRoot = templateGroupInstances
-		this.entry = entry ? clone(entry) : createKnowledgeBaseEntry({ description: "", title: "", keywords: [] })
+		this.entry = entry ? clone(entry) : tutanotaTypeRefs.createKnowledgeBaseEntry({ description: "", title: "", keywords: [] })
 		this._descriptionProvider = null
 		this.availableTemplates = new LazyLoaded(() => {
-			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates)
+			return this._entityClient.loadAll(tutanotaTypeRefs.EmailTemplateTypeRef, this._templateGroupRoot.templates)
 		}, [])
 	}
 
@@ -66,15 +60,15 @@ export class KnowledgeBaseEditorModel {
  * get keywords as a space separated string
  * @param keywords
  */
-function keywordsToString(keywords: Array<KnowledgeBaseEntryKeyword>): string {
+function keywordsToString(keywords: Array<tutanotaTypeRefs.KnowledgeBaseEntryKeyword>): string {
 	return keywords.map((keyword) => keyword.keyword).join(" ")
 }
 
-function stringToKeywords(keywords: string): Array<KnowledgeBaseEntryKeyword> {
+function stringToKeywords(keywords: string): Array<tutanotaTypeRefs.KnowledgeBaseEntryKeyword> {
 	return deduplicate(keywords.split(" ").filter(Boolean))
 		.sort(localeCompare)
 		.map((keyword) =>
-			createKnowledgeBaseEntryKeyword({
+			tutanotaTypeRefs.createKnowledgeBaseEntryKeyword({
 				keyword,
 			}),
 		)

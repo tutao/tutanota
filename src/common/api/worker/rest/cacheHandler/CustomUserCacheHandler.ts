@@ -1,7 +1,7 @@
 import { CustomCacheHandler } from "./CustomCacheHandler"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs"
 import { CacheStorage } from "../DefaultEntityRestCache"
-import { isSameId } from "../../../common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 import { difference } from "@tutao/utils"
 import { SpamClassifierStorageFacade } from "../../facades/lazy/SpamClassifierStorageFacade"
 import { GroupType } from "../../../common/TutanotaConstants"

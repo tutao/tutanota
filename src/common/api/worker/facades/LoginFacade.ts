@@ -51,8 +51,8 @@ import {
 	User,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { HttpMethod, MediaType, TypeModelResolver } from "@tutao/typeRefs"
 import { assertWorkerOrNode } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { CacheMode, EntityRestClient, typeModelToRestPath } from "../rest/EntityRestClient"
@@ -60,7 +60,7 @@ import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "@tutao/restClient"
 import { EntityClient } from "../../common/EntityClient"
-import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUtils"
+import { GENERATED_ID_BYTES_LENGTH, isSameId } from "@tutao/typeRefs"
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
 	Aes128Key,
@@ -99,8 +99,8 @@ import { KeyRotationFacade, KeyRotationRolloutAction } from "./KeyRotationFacade
 import { _encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../crypto/InstancePipeline"
-import { AttributeModel } from "../../common/AttributeModel"
-import { ServerModelUntypedInstance } from "../../common/EntityTypes"
+import { AttributeModel } from "@tutao/typeRefs"
+import { ServerModelUntypedInstance } from "@tutao/typeRefs"
 import { RolloutFacade } from "./RolloutFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 import { ApplicationTypesFacade } from "./ApplicationTypesFacade"
@@ -988,7 +988,7 @@ export class LoginFacade {
 	 * Loads entropy from the last logout.
 	 */
 	private async loadEntropy(): Promise<void> {
-		const tutanotaProperties = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
+		const tutanotaProperties = await this.entityClient.loadRoot(tutanotaTypeRefs.TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId())
 		return this.entropyFacade.loadEntropy(tutanotaProperties)
 	}
 

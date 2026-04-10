@@ -26,7 +26,7 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo } from "@tutao/typeRefs"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"

@@ -1,7 +1,7 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { downcast, getFirstOrThrow } from "@tutao/utils"
 import {
 	CalendarEventBubble,
@@ -189,7 +189,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	 *
 	 * @VisibleForTesting
 	 */
-	static getColumnBounds(event: CalendarEvent, dates: Date[], zone: string) {
+	static getColumnBounds(event: tutanotaTypeRefs.CalendarEvent, dates: Date[], zone: string) {
 		// need to convert start and end time of all day events into local start and end time in order to assign the events to the correct columns.
 		const eventStartTimeStartOfDay = getStartOfDayWithZone(getEventStart(event, zone), zone).getTime()
 		const eventEndTimeStartOfDay = getStartOfDayWithZone(getEventEnd(event, zone), zone).getTime()

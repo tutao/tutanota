@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
-import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { matchers, object, verify, when } from "testdouble"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"

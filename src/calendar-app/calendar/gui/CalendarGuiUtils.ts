@@ -69,7 +69,7 @@ import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { AdvancedRepeatRule, CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { layout_size } from "../../../common/gui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
@@ -578,7 +578,7 @@ export const createRepetitionValuesForWeekday = (
  * this is necessary for opening the RepeatEditor for a given event that has AdvancedRules configured.
  * @param advancedRepeatRules AdvancedRepeatRules that have been written on the Event already.
  */
-export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): ByDayRule | null => {
+export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: tutanotaTypeRefs.AdvancedRepeatRule[]): ByDayRule | null => {
 	if (advancedRepeatRules.length === 0) return null
 
 	let interval: number = 0
@@ -679,7 +679,7 @@ export function formatEventTime({ endTime, startTime }: CalendarEventTimes, show
 	}
 }
 
-export function formatEventTimes(day: Date, event: CalendarEvent, zone: string): string {
+export function formatEventTimes(day: Date, event: tutanotaTypeRefs.CalendarEvent, zone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	} else {
@@ -812,7 +812,7 @@ export function layOutEvents(
 
 /** get an event that can be rendered to the screen. in day view, the event is returned as-is, otherwise it's stretched to cover each day
  * it occurs on completely. */
-function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): CalendarEvent {
+function getCalculationEvent(event: tutanotaTypeRefs.CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): tutanotaTypeRefs.CalendarEvent {
 	if (eventLayoutMode === EventLayoutMode.DayBasedColumn) {
 		const calcEvent = clone(event)
 
@@ -851,7 +851,7 @@ function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode
  * There could be a case where they are flipped vertically, but we don't have them because earlier events will be always first. so the "left" top edge will
  * always be "above" the "right" top edge.
  */
-export function collidesWith(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): boolean {
+export function collidesWith(a: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent, b: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }
 
@@ -870,7 +870,7 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < layout_size.calendar_line_height
 }
 
-export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
+export function getEventColor(event: tutanotaTypeRefs.CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
 	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? DEFAULT_CALENDAR_COLOR
 	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
 	return `${color}${alpha}`
@@ -932,7 +932,7 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
  * @param userController
  */
 export function getEventType(
-	existingEvent: Partial<CalendarEvent>,
+	existingEvent: Partial<tutanotaTypeRefs.CalendarEvent>,
 	calendars: ReadonlyMap<Id, CalendarInfo>,
 	ownMailAddresses: ReadonlyArray<string>,
 	userController: UserController,
@@ -994,7 +994,7 @@ export function getEventType(
 	}
 }
 
-export function shouldDisplayEvent(e: CalendarEvent, hiddenCalendars: ReadonlySet<Id>): boolean {
+export function shouldDisplayEvent(e: tutanotaTypeRefs.CalendarEvent, hiddenCalendars: ReadonlySet<Id>): boolean {
 	return !hiddenCalendars.has(assertNotNull(e._ownerGroup, "event without ownerGroup in getEventsOnDays"))
 }
 

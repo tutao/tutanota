@@ -11,7 +11,7 @@ import { createTestEntity } from "../../TestUtils"
 import { CalendarAttendeeStatus } from "../../../../src/common/api/common/TutanotaConstants"
 import { eventHasSameFields } from "../../../../src/common/calendar/gui/ImportExportUtils"
 import { clone } from "@tutao/utils"
-import { CalendarAdvancedRepeatRuleTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("calendar events have same fields", function () {

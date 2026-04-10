@@ -14,7 +14,7 @@ import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubb
 import { clone, incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
-import { CalendarRepeatRuleTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants"
 
 o.spec("CalendarTimeGrid", function () {

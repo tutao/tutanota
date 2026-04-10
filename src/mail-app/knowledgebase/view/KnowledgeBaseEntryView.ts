@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { KnowledgeBaseEntry } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { TemplateGroupRootTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
@@ -10,7 +9,7 @@ import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 
 type KnowledgeBaseEntryViewAttrs = {
-	entry: KnowledgeBaseEntry
+	entry: tutanotaTypeRefs.KnowledgeBaseEntry
 	onTemplateSelected: (arg0: IdTuple) => unknown
 	readonly: boolean
 }
@@ -21,7 +20,7 @@ type KnowledgeBaseEntryViewAttrs = {
 export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewAttrs> {
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
 
-	_sanitizedEntry: (arg0: KnowledgeBaseEntry) => {
+	_sanitizedEntry: (arg0: tutanotaTypeRefs.KnowledgeBaseEntry) => {
 		content: string
 	}
 
@@ -66,7 +65,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 		)
 	}
 
-	private renderRemoveButton(entry: KnowledgeBaseEntry) {
+	private renderRemoveButton(entry: tutanotaTypeRefs.KnowledgeBaseEntry) {
 		return m(IconButton, {
 			title: "remove_action",
 			icon: Icons.TrashFilled,
@@ -76,13 +75,13 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 		})
 	}
 
-	private renderEditButton(entry: KnowledgeBaseEntry) {
+	private renderEditButton(entry: tutanotaTypeRefs.KnowledgeBaseEntry) {
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.PenFilled,
 			click: () => {
 				import("../../settings/KnowledgeBaseEditor.js").then(({ showKnowledgeBaseEditor }) => {
-					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {
+					locator.entityClient.load(tutanotaTypeRefs.TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {
 						showKnowledgeBaseEditor(entry, groupRoot)
 					})
 				})

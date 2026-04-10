@@ -14,7 +14,7 @@ import {
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import { Mail, MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
@@ -39,7 +39,7 @@ import {
 	ShowMoveMailsDropdownOpts,
 	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
-import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId, isSameId } from "@tutao/typeRefs"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import Stream from "mithril/stream"
@@ -97,6 +97,8 @@ import { UndoModel } from "../../UndoModel"
 
 assertMainOrNode()
 
+type Mail = tutanotaTypeRefs.Mail
+type MailSet = tutanotaTypeRefs.MailSet
 /** State persisted between re-creations. */
 export interface MailViewCache {
 	/** The preference for if conversation view was used, so we can reset if it was changed */
@@ -1440,7 +1442,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
 	}
 
-	private async showLabelAddDialog(mailbox: MailBox) {
+	private async showLabelAddDialog(mailbox: tutanotaTypeRefs.MailBox) {
 		await showEditLabelDialog(mailbox, this.mailViewModel, null)
 	}
 

@@ -1,11 +1,11 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { getReferralLink, ReferralLinkViewer } from "./ReferralLinkViewer.js"
 import { DateProvider } from "../../../api/common/DateProvider.js"
-import { generatedIdToTimestamp } from "../../../api/common/utils/EntityUtils.js"
+import { generatedIdToTimestamp } from "@tutao/typeRefs"
 import { getDayShifted, neverNull } from "@tutao/utils"
 import { UserController } from "../../../api/main/UserController.js"
 
@@ -42,7 +42,7 @@ export class ReferralLinkNews implements NewsListItem {
 		)
 	}
 
-	render(newsId: NewsId): Children {
+	render(newsId: tutanotaTypeRefs.NewsId): Children {
 		const buttonAttrs: Array<ButtonAttrs> = [
 			{
 				label: "close_alt",

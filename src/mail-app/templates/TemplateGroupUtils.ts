@@ -1,5 +1,4 @@
-import type { TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { TemplateGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { FeatureType, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
@@ -10,7 +9,7 @@ import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils
 /**
  * @return True if the group has been created.
  */
-export async function createInitialTemplateListIfAllowed(): Promise<TemplateGroupRoot | null> {
+export async function createInitialTemplateListIfAllowed(): Promise<tutanotaTypeRefs.TemplateGroupRoot | null> {
 	const userController = locator.logins.getUserController()
 	const customer = await userController.reloadCustomer()
 	const { getAvailablePlansWithTemplates } = await import("../../common/subscription/utils/SubscriptionUtils.js")
@@ -25,7 +24,7 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 
 	if (allowed) {
 		const groupId = await locator.groupManagementFacade.createTemplateGroup("")
-		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
+		return locator.entityClient.load<tutanotaTypeRefs.TemplateGroupRoot>(tutanotaTypeRefs.TemplateGroupRootTypeRef, groupId)
 	} else {
 		return null
 	}

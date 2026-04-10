@@ -18,7 +18,7 @@ import { generateEventElementId } from "../../api/common/utils/CommonCalendarUti
 import { createDateWrapper, DateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
-import { Stripped, StrippedEntity } from "../../api/common/utils/EntityUtils"
+import { Stripped, StrippedEntity } from "@tutao/typeRefs"
 
 export enum EventImportRejectionReason {
 	Pre1970,

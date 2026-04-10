@@ -4,7 +4,7 @@ import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
-import { MailSet } from "../../api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { IndentedFolder } from "../../api/common/mail/FolderSystem"
 import { repeat } from "@tutao/utils"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -14,7 +14,7 @@ import { Icons } from "../../gui/base/icons/Icons"
  * @param indentedFolders List of user's mailSets
  * @param okAction
  */
-export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: MailSet) => unknown) {
+export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: tutanotaTypeRefs.MailSet) => unknown) {
 	let selectedIndentedFolder = indentedFolders[0]
 
 	const dialog = new Dialog(DialogType.EditSmall, {
@@ -54,7 +54,7 @@ export function folderSelectionDialog(indentedFolders: IndentedFolder[], okActio
 					selectedValue: selectedIndentedFolder.folder,
 					selectionChangedHandler: (v) => (selectedIndentedFolder.folder = v),
 					icon: Icons.ArrowDown,
-				} satisfies DropDownSelectorAttrs<MailSet>),
+				} satisfies DropDownSelectorAttrs<tutanotaTypeRefs.MailSet>),
 			]),
 		],
 	}).show()

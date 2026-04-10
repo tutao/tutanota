@@ -20,7 +20,7 @@ import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { getMailAddressDisplayText, hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { ConversationEntry, ConversationEntryTypeRef, Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
@@ -33,7 +33,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
-import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "@tutao/typeRefs"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
 import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
 import { Card } from "../../../common/gui/base/Card"
@@ -94,7 +94,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 		.show()
 }
 
-export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
+export async function loadMailDetails(mailFacade: MailFacade, mail: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.MailDetails> {
 	if (isDraft(mail)) {
 		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
 		return mailFacade.loadMailDetailsDraft(mail)
@@ -123,9 +123,9 @@ export async function createEditDraftDialog(viewModel: MailViewerViewModel, loca
 					return null
 				}
 
-				let conversationEntry: ConversationEntry
+				let conversationEntry: tutanotaTypeRefs.ConversationEntry
 				try {
-					conversationEntry = await locator.entityClient.load(ConversationEntryTypeRef, viewModel.mail.conversationEntry)
+					conversationEntry = await locator.entityClient.load(tutanotaTypeRefs.ConversationEntryTypeRef, viewModel.mail.conversationEntry)
 				} catch (e) {
 					if (e instanceof NotFoundError) {
 						// draft was likely deleted
@@ -219,14 +219,16 @@ async function doExport(
 	numberOfMailsStream(mailIdsToLoad.length)
 	const mailIdsPerList = groupByAndMap(mailIdsToLoad, listIdPart, elementIdPart)
 	const mails = (
-		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
+		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, listId, elementIds), {
+			concurrency: 2,
+		})
 	).flat()
 	return exportMails(mails, locator.mailFacade, locator.entityClient, locator.fileController, locator.cryptoFacade, operation.id, ac.signal)
 		.then((result) => handleExportEmailsResult(result.failed))
 		.finally(operation.done)
 }
 
-function handleExportEmailsResult(mailList: Mail[]) {
+function handleExportEmailsResult(mailList: tutanotaTypeRefs.Mail[]) {
 	if (mailList && mailList.length > 0) {
 		const lines = mailList.map((mail) => ({
 			cells: [mail.sender.address, mail.subject],
@@ -621,7 +623,7 @@ export function isNoReplyTeamAddress(address: string): boolean {
 /**
  * Is this a system notification?
  */
-export function isSystemNotification(mail: Mail): boolean {
+export function isSystemNotification(mail: tutanotaTypeRefs.Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		state === MailState.RECEIVED &&
@@ -634,7 +636,7 @@ export function isSystemNotification(mail: Mail): boolean {
 	)
 }
 
-export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
+export function getRecipientHeading(mail: tutanotaTypeRefs.Mail, preferNameOnly: boolean) {
 	let recipientCount = parseInt(mail.recipientCount)
 	if (recipientCount > 0) {
 		let recipient = neverNull(mail.firstRecipient)
@@ -677,7 +679,7 @@ function getUnsubscribeDialogAttrForUnsubscribeType(unsubscribeType: Unsubscribe
 	}
 }
 
-export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
+export function getSenderOrRecipientHeading(mail: tutanotaTypeRefs.Mail, preferNameOnly: boolean): string {
 	if (isSystemNotification(mail)) {
 		return ""
 	} else if (mail.state === MailState.RECEIVED) {
@@ -694,7 +696,7 @@ export enum MailFilterType {
 	WithAttachments,
 }
 
-export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
+export function getMailFilterForType(filter: MailFilterType): ListFilter<tutanotaTypeRefs.Mail> {
 	switch (filter) {
 		case MailFilterType.Read:
 			return (mail) => !mail.unread

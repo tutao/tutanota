@@ -1,12 +1,13 @@
 import { aesDecrypt, EntropySource, random, Randomizer } from "@tutao/crypto"
 import { UserFacade } from "./UserFacade.js"
-import { createEntropyData, TutanotaProperties } from "../../entities/tutanota/TypeRefs.js"
+import { cryptoUtils } from "@tutao/crypto"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntropyService } from "../../entities/tutanota/Services.js"
 import { lazy, noOp, ofClass } from "@tutao/utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
-import { _encryptBytes } from "../crypto/CryptoWrapper.js"
+import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
+import { _encryptBytes } from "@tutao/instancePipeline"
 
 export interface EntropyDataChunk {
 	source: EntropySource
@@ -48,7 +49,7 @@ export class EntropyFacade {
 		// We only store entropy to the server if we are the leader
 		if (!this.userFacade.isFullyLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
-		const entropyData = createEntropyData({
+		const entropyData = tutanotaTypeRefs.createEntropyData({
 			userEncEntropy: _encryptBytes(userGroupKey.object, this.random.generateRandomData(32)),
 			userKeyVersion: userGroupKey.version.toString(),
 		})
@@ -70,11 +71,11 @@ export class EntropyFacade {
 	/**
 	 * Loads entropy from the last logout.
 	 */
-	public async loadEntropy(tutanotaProperties: TutanotaProperties): Promise<void> {
+	public async loadEntropy(tutanotaProperties: tutanotaTypeRefs.TutanotaProperties): Promise<void> {
 		if (tutanotaProperties.userEncEntropy) {
 			try {
 				const keyLoaderFacade = this.lazyKeyLoaderFacade()
-				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(tutanotaProperties.userKeyVersion ?? "0"))
+				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(tutanotaProperties.userKeyVersion ?? "0"))
 				const entropy = aesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
 				random.addStaticEntropy(entropy)
 			} catch (error) {

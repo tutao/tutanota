@@ -6,7 +6,7 @@ import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/Bl
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
-import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ArchiveDataType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { createReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade"

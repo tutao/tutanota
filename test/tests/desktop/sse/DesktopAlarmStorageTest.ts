@@ -8,7 +8,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
-import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
+import { TypeModelResolver } from "@tutao/typeRefs"
 import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
 import {
 	AlarmInfoTypeRef,

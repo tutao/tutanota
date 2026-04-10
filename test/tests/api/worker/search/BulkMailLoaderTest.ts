@@ -2,8 +2,8 @@ import o from "@tutao/otest"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailSetListData, TimeRange } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
-import { MailSetEntry, MailSetEntryTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "@tutao/typeRefs"
 import { createTestEntity, equalToArray } from "../../../TestUtils"
 import { lastThrow } from "@tutao/utils"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade"
@@ -23,11 +23,11 @@ o.spec("BulkMailLoader", () => {
 	})
 	o.spec("loadMailSetEntriesForTimeRange", () => {
 		function setUpTestData(startRange: number = 100, rangeEnd: number = 0) {
-			const mailSetEntries: MailSetEntry[] = []
+			const mailSetEntries: tutanotaTypeRefs.MailSetEntry[] = []
 			if (startRange > rangeEnd) {
 				for (let i = startRange; i > rangeEnd; i--) {
 					mailSetEntries.push(
-						createTestEntity(MailSetEntryTypeRef, {
+						createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef, {
 							_id: ["my list", constructMailSetEntryId(new Date(i * 1024), "1234")],
 						}),
 					)
@@ -49,7 +49,7 @@ o.spec("BulkMailLoader", () => {
 			timeRange = [200, 100]
 
 			const startId = constructMailSetEntryId(new Date(timeRange[0]), GENERATED_MAX_ID)
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve([])
+			when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve([])
 
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 			o(result).deepEquals([])
@@ -67,7 +67,9 @@ o.spec("BulkMailLoader", () => {
 			}
 			const returnedItems = setUpTestData(100, 0)
 			const startId = constructMailSetEntryId(new Date(timeRange[0]), GENERATED_MAX_ID)
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(returnedItems)
+			when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(
+				returnedItems,
+			)
 
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 
@@ -108,7 +110,9 @@ o.spec("BulkMailLoader", () => {
 			timeRange = [startRange * 1024, rangeEnd * 1024]
 			const startId = "testLoadedId"
 			const returnedItems = setUpTestData(startRange, 0)
-			when(await mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenReturn(returnedItems)
+			when(await mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenReturn(
+				returnedItems,
+			)
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 			o(result).deepEquals(returnedItems.slice(0, 20))
 		})
@@ -127,14 +131,14 @@ o.spec("BulkMailLoader", () => {
 				loadedCompletely: false,
 			}
 			const startId = constructMailSetEntryId(new Date(startRange * 1024), GENERATED_MAX_ID)
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(
+			when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(
 				loadedData.slice(0, 100),
 			)
 			const resumeFirstLoadingId = getElementId(loadedData[99])
 
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, resumeFirstLoadingId, MAIL_INDEXER_CHUNK, true)).thenResolve(
-				loadedData.slice(100, 200),
-			)
+			when(
+				mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, resumeFirstLoadingId, MAIL_INDEXER_CHUNK, true),
+			).thenResolve(loadedData.slice(100, 200))
 
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 
@@ -166,7 +170,9 @@ o.spec("BulkMailLoader", () => {
 				loadedCompletely: false,
 			}
 			const startId = constructMailSetEntryId(new Date(startRange * 1024), GENERATED_MAX_ID)
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(loadedData)
+			when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(
+				loadedData,
+			)
 
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 
@@ -199,7 +205,9 @@ o.spec("BulkMailLoader", () => {
 					loadedCompletely: false,
 				}
 				const startId = constructMailSetEntryId(new Date(startRange * 1024), GENERATED_MAX_ID)
-				when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(loadedData)
+				when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)).thenResolve(
+					loadedData,
+				)
 
 				const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 
@@ -234,7 +242,9 @@ o.spec("BulkMailLoader", () => {
 				loadedCompletely: false,
 			}
 			const newLoadedChunk = setUpTestData(100, 0)
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, lastLoadedId, MAIL_INDEXER_CHUNK, true)).thenResolve(newLoadedChunk)
+			when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, lastLoadedId, MAIL_INDEXER_CHUNK, true)).thenResolve(
+				newLoadedChunk,
+			)
 
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 
@@ -266,7 +276,9 @@ o.spec("BulkMailLoader", () => {
 				loadedCompletely: false,
 			}
 			const newLoadedChunk = setUpTestData(99, 0)
-			when(mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, lastLoadedId, MAIL_INDEXER_CHUNK, true)).thenResolve(newLoadedChunk)
+			when(mailEntityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetListData.listId, lastLoadedId, MAIL_INDEXER_CHUNK, true)).thenResolve(
+				newLoadedChunk,
+			)
 
 			const result = await bulkMailLoader.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
 

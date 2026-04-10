@@ -4,8 +4,7 @@ import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { InboxRuleType, MailSetKind, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../common/misc/FormatValidator"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
-import type { InboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { createInboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
@@ -13,7 +12,7 @@ import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
 import { neverNull } from "@tutao/utils"
 import { LockedError } from "../../common/api/common/error/RestError"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
-import { elementIdPart, isSameId } from "../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId } from "@tutao/typeRefs"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
@@ -30,10 +29,10 @@ import { Checkbox } from "../../common/gui/base/Checkbox"
 
 assertMainOrNode()
 
-export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
-	_id?: InboxRule["_id"]
-	targetFolder?: InboxRule["targetFolder"]
-	excludeFromSpamFilter?: InboxRule["excludeFromSpamFilter"]
+export type InboxRuleTemplate = Pick<tutanotaTypeRefs.InboxRule, "type" | "value"> & {
+	_id?: tutanotaTypeRefs.InboxRule["_id"]
+	targetFolder?: tutanotaTypeRefs.InboxRule["targetFolder"]
+	excludeFromSpamFilter?: tutanotaTypeRefs.InboxRule["excludeFromSpamFilter"]
 }
 
 export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
@@ -93,7 +92,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		}
 
 		const addInboxRuleOkAction = (dialog: Dialog) => {
-			let rule = createInboxRule({
+			let rule = tutanotaTypeRefs.createInboxRule({
 				type: inboxRuleType(),
 				value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
 				targetFolder: inboxRuleTarget()._id,

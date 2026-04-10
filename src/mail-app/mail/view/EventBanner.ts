@@ -3,7 +3,7 @@ import { LazyLoaded } from "@tutao/utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { CalendarAttendeeStatus } from "../../../common/api/common/TutanotaConstants.js"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -15,7 +15,7 @@ import { type IcsCalendarEvent } from "../../../common/calendar/gui/ImportExport
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent
-	mail: Mail
+	mail: tutanotaTypeRefs.Mail
 	recipient: string
 	eventsRepository: CalendarEventsRepository
 	groupColors: Map<Id, string>
@@ -59,7 +59,7 @@ export function sendResponse(
 	event: IcsCalendarEvent,
 	recipient: string,
 	status: CalendarAttendeeStatus,
-	previousMail: Mail,
+	previousMail: tutanotaTypeRefs.Mail,
 	comment?: string,
 ): Promise<boolean> {
 	return showProgressDialog(

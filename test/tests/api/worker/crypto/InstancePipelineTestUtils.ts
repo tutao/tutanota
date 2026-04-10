@@ -1,5 +1,5 @@
-import { Entity, ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
-import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants"
+import { Entity, ModelValue, TypeModel } from "@tutao/typeRefs"
+import { AssociationType, Cardinality, Type, ValueType } from "@tutao/typeRefs"
 import { TypeRef } from "@tutao/utils"
 
 export const testTypeModel: TypeModel = {

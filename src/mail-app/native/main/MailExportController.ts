@@ -1,8 +1,8 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { MailBag } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { GENERATED_MAX_ID, getElementId, isSameId } from "@tutao/typeRefs"
 import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "@tutao/utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "../../../common/native/common/generatedipc/ExportFacade.js"
@@ -14,7 +14,7 @@ import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailEx
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
-import { BlobServerUrl } from "../../../common/api/entities/storage/TypeRefs"
+import { storageTypeRefs } from "@tutao/typeRefs"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailModel } from "../../mail/model/MailModel"
 import { MailboxExportState } from "../../../common/desktop/export/MailboxExportPersistence"
@@ -47,7 +47,7 @@ const TAG = "MailboxExport"
 export class MailExportController {
 	private _state: Stream<MailExportState> = stream({ type: "idle" })
 	public expanded = stream<boolean>(false)
-	private servers?: BlobServerUrl[]
+	private servers?: storageTypeRefs.BlobServerUrl[]
 	private serverIndex: number = 0
 
 	constructor(
@@ -154,7 +154,7 @@ export class MailExportController {
 		await this.runExport(mailboxDetail, mailBags, mailId)
 	}
 
-	private async runExport(mailboxDetail: MailboxDetail, mailBags: MailBag[], mailId: Id) {
+	private async runExport(mailboxDetail: MailboxDetail, mailBags: tutanotaTypeRefs.MailBag[], mailId: Id) {
 		this.servers = await this.mailExportFacade.getExportServers(mailboxDetail.mailGroup)
 		for (const mailBag of mailBags) {
 			await this.exportMailBag(mailBag, mailId)
@@ -194,7 +194,7 @@ export class MailExportController {
 		}))
 	}
 
-	private async exportMailBag(mailBag: MailBag, startId: Id): Promise<void> {
+	private async exportMailBag(mailBag: tutanotaTypeRefs.MailBag, startId: Id): Promise<void> {
 		let currentStartId = startId
 		let currentMailId: IdTuple | null = null
 		const { makeMailBundle } = await import("../../mail/export/Bundler.js")

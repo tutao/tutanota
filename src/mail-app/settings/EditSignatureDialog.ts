@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "../../common/gui/base/Dialog"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { EmailSignatureType, FeatureType } from "../../common/api/common/TutanotaConstants"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
-import type { TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { downcast, neverNull, ofClass } from "@tutao/utils"
@@ -16,7 +16,7 @@ assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
 const RECOMMENDED_SIGNATURE_SIZE_LIMIT = 15 * 1024
 
-export function show(props: TutanotaProperties) {
+export function show(props: tutanotaTypeRefs.TutanotaProperties) {
 	import("../mail/signature/Signature").then(({ getDefaultSignature }) => {
 		const defaultSignature = getDefaultSignature()
 		let currentCustomSignature = locator.logins.getUserController().props.customEmailSignature
@@ -125,7 +125,7 @@ export function show(props: TutanotaProperties) {
 	})
 }
 
-export function getSignatureTypes(props: TutanotaProperties): {
+export function getSignatureTypes(props: tutanotaTypeRefs.TutanotaProperties): {
 	name: string
 	value: string
 }[] {
@@ -160,7 +160,7 @@ function getSignature(type: string, defaultSignature: string, currentCustomSigna
 	}
 }
 
-export function getSignatureType(props: TutanotaProperties): {
+export function getSignatureType(props: tutanotaTypeRefs.TutanotaProperties): {
 	name: string
 	value: string
 } {

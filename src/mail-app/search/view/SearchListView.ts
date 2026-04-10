@@ -7,7 +7,7 @@ import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from
 import { component_size, px, size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
@@ -40,10 +40,10 @@ export class SearchResultListEntry {
 export interface SearchListViewAttrs {
 	listModel: ListElementListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
-	currentType: TypeRef<Mail | Contact | CalendarEvent>
+	currentType: TypeRef<tutanotaTypeRefs.Mail | tutanotaTypeRefs.Contact | tutanotaTypeRefs.CalendarEvent>
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
-	getLabelsForMail: (mail: Mail) => MailSet[]
+	getLabelsForMail: (mail: tutanotaTypeRefs.Mail) => tutanotaTypeRefs.MailSet[]
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	indexStateStream: Stream<SearchIndexStateInfo>
@@ -116,7 +116,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private endOfListRender(attrs: SearchListViewAttrs): Children {
-		if (!isSameTypeRef(attrs.currentType, MailTypeRef)) {
+		if (!isSameTypeRef(attrs.currentType, tutanotaTypeRefs.MailTypeRef)) {
 			// We only want to show these messages in mail search for now, though this may change in the future
 			return null
 		}
@@ -194,16 +194,16 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		)
 	}
 
-	private getRenderItems(type: TypeRef<Mail | Contact | CalendarEvent>): {
+	private getRenderItems(type: TypeRef<tutanotaTypeRefs.Mail | tutanotaTypeRefs.Contact | tutanotaTypeRefs.CalendarEvent>): {
 		icon: Icons
 		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
 	} {
-		if (isSameTypeRef(type, ContactTypeRef)) {
+		if (isSameTypeRef(type, tutanotaTypeRefs.ContactTypeRef)) {
 			return {
 				icon: Icons.PeopleFilled,
 				renderConfig: this.contactRenderConfig,
 			}
-		} else if (isSameTypeRef(type, CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(type, tutanotaTypeRefs.CalendarEventTypeRef)) {
 			return {
 				icon: Icons.CalendarFilled,
 				renderConfig: this.calendarRenderConfig,

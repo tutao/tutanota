@@ -54,7 +54,7 @@ import { NativeFileApp } from "../../native/common/FileApp.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-import { CalendarEvent, Contact, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
@@ -130,6 +130,7 @@ export interface CommonLocator {
 	mailboxModel: MailboxModel
 
 	calendarModel(): Promise<CalendarModel>
+
 	calendarEventUpdateCoordinator(): Promise<CalendarEventUpdateCoordinator>
 
 	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>
@@ -157,7 +158,7 @@ export interface CommonLocator {
 
 	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel>
 
-	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel>
+	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: tutanotaTypeRefs.MailboxProperties): Promise<SendMailModel>
 
 	recipientsModel(): Promise<RecipientsModel>
 
@@ -171,19 +172,23 @@ export interface CommonLocator {
 	// calendar-related
 	calendarEventModel(
 		editMode: CalendarOperation,
-		event: Partial<CalendarEvent>,
+		event: Partial<tutanotaTypeRefs.CalendarEvent>,
 		mailboxDetail: MailboxDetail,
-		mailboxProperties: MailboxProperties,
-		responseTo: Mail | null,
+		mailboxProperties: tutanotaTypeRefs.MailboxProperties,
+		responseTo: tutanotaTypeRefs.Mail | null,
 	): Promise<CalendarEventModel | null>
 
 	calendarEventPreviewModel(
-		selectedEvent: CalendarEvent,
+		selectedEvent: tutanotaTypeRefs.CalendarEvent,
 		calendars: ReadonlyMap<string, CalendarInfo>,
 		highlightedTokens: readonly SearchToken[],
 	): Promise<CalendarEventPreviewViewModel>
 
-	calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel>
+	calendarContactPreviewModel(
+		event: tutanotaTypeRefs.CalendarEvent,
+		contact: tutanotaTypeRefs.Contact,
+		canEdit: boolean,
+	): Promise<CalendarContactPreviewViewModel>
 
 	// native
 	native: NativeInterfaceMain

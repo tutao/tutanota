@@ -4,12 +4,12 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SidebarSection } from "../../../common/gui/SidebarSection.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { elementIdPart, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId } from "@tutao/typeRefs"
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
 import { last, Thunk } from "@tutao/utils"
-import { MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
@@ -25,6 +25,7 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../../../common/gui/HtmlUtils"
 import { theme } from "../../../common/gui/theme.js"
 
+type MailSet = tutanotaTypeRefs.MailSet
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
 	mailboxDetail: MailboxDetail

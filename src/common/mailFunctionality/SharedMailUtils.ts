@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
-import { Contact, createContact, createContactMailAddress, Mail } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import {
@@ -35,11 +35,11 @@ export const LINE_BREAK = "<br>"
  * @param name The name of the contact. If an empty string is provided, the name is parsed from the mail address.
  * @return The contact.
  */
-export function createNewContact(user: User, mailAddress: string, name: string): Contact {
+export function createNewContact(user: User, mailAddress: string, name: string): tutanotaTypeRefs.Contact {
 	// prepare some contact information. it is only saved if the mail is sent securely
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
-	let contact = createContact({
+	let contact = tutanotaTypeRefs.createContact({
 		_ownerGroup: assertNotNull(
 			user.memberships.find((m) => m.groupType === GroupType.Contact),
 			"called createNewContact as user without contact group mship",
@@ -47,7 +47,7 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 		firstName: firstAndLastName.firstName,
 		lastName: firstAndLastName.lastName,
 		mailAddresses: [
-			createContactMailAddress({
+			tutanotaTypeRefs.createContactMailAddress({
 				address: mailAddress,
 				type: ContactAddressType.OTHER,
 				customTypeName: "",
@@ -236,7 +236,7 @@ export function isTutaMailAddress(mailAddress: string): boolean {
 	return TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
 
-export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
+export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: tutanotaTypeRefs.Mail): boolean {
 	switch (encryptionAuthStatus) {
 		// emails before tuta-crypt had no encryptionAuthStatus
 		case null:
@@ -264,7 +264,7 @@ export function isTutanotaTeamAddress(address: string): boolean {
 /**
  * Is this a tutao team member email or a system notification
  */
-export function isTutaTeamMail(mail: Mail): boolean {
+export function isTutaTeamMail(mail: tutanotaTypeRefs.Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		confidential &&
@@ -277,7 +277,7 @@ export function isTutaTeamMail(mail: Mail): boolean {
 /**
  * Is this a system notification?
  */
-export function isSystemNotification(mail: Mail): boolean {
+export function isSystemNotification(mail: tutanotaTypeRefs.Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		state === MailState.RECEIVED &&

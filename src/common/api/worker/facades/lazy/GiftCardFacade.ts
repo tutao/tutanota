@@ -16,7 +16,7 @@ import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "..
 import { aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GiftCardRedeemService, GiftCardService } from "../../../entities/sys/Services.js"
-import { elementIdPart, GENERATED_MAX_ID } from "../../../common/utils/EntityUtils.js"
+import { elementIdPart, GENERATED_MAX_ID } from "@tutao/typeRefs"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"

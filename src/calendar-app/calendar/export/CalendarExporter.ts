@@ -11,20 +11,19 @@ import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, n
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, ByRule, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { convertToDataFile, DataFile } from "../../../common/api/common/DataFile"
 import type { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { DateTime } from "luxon"
-import { getLetId } from "../../../common/api/common/utils/EntityUtils"
+import { getLetId } from "@tutao/typeRefs"
 import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController.js"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
-export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
+export function makeInvitationCalendarFile(event: tutanotaTypeRefs.CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
 	const stringValue = makeInvitationCalendar(env.versionNumber, event, method, now, zone)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const date = new Date()
-	const tmpFile = createFile({
+	const tmpFile = tutanotaTypeRefs.createFile({
 		name: `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`,
 		mimeType: CALENDAR_MIME_TYPE,
 		size: String(data.byteLength),
@@ -40,7 +39,7 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: Calenda
 export function serializeCalendar(
 	versionNumber: string,
 	events: Array<{
-		event: CalendarEvent
+		event: tutanotaTypeRefs.CalendarEvent
 		alarms: Array<UserAlarmInfo>
 	}>,
 	now: Date,
@@ -54,7 +53,7 @@ export function serializeCalendar(
 //
 
 /** importer internals exported for testing, should always be used through serializeCalendar */
-export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
+export function serializeEvent(event: tutanotaTypeRefs.CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	const localZone = getTimeZone()
@@ -205,7 +204,7 @@ function formatDate(date: Date, timeZone: string): string {
 	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
 }
 
-function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
+function makeInvitationCalendar(versionNumber: string, event: tutanotaTypeRefs.CalendarEvent, method: string, now: Date, zone: string): string {
 	const eventSerialized = serializeEvent(event, [], now, zone)
 	return wrapIntoCalendar(versionNumber, method, eventSerialized)
 }
@@ -222,7 +221,7 @@ export function serializeTrigger(dbAlarmInterval: string): string {
 	return "-P" + timeMarker + alarmInterval.value.toString() + alarmInterval.unit
 }
 
-function serializeParticipants(event: CalendarEvent): Array<string> {
+function serializeParticipants(event: tutanotaTypeRefs.CalendarEvent): Array<string> {
 	const { organizer, attendees } = event
 
 	if (attendees.length === 0 && organizer == null) {
@@ -277,7 +276,7 @@ function wrapIntoCalendar(versionNumber: string, method: string, contents: Array
 	return value.join("\r\n")
 }
 
-function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
+function serializeAlarm(event: tutanotaTypeRefs.CalendarEvent, alarm: UserAlarmInfo): Array<string> {
 	// prettier-ignore
 	return [
 		"BEGIN:VALARM",

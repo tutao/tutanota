@@ -33,7 +33,7 @@ import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../api/common/error/ServerModelsUnavailableError"
-import { InvalidModelError } from "../api/common/error/InvalidModelError"
+import { InvalidModelError } from "@tutao/appEnv"
 
 assertMainOrNode()
 

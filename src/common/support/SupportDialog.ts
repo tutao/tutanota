@@ -1,7 +1,7 @@
 import { assertMainOrNode, isWebClient } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
-import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { locator } from "../api/main/CommonLocator.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { client } from "../misc/ClientDetector"
@@ -25,6 +25,8 @@ import { Thunk } from "@tutao/utils"
 
 assertMainOrNode()
 
+type SupportCategory = tutanotaTypeRefs.SupportCategory
+type SupportTopic = tutanotaTypeRefs.SupportTopic
 type SupportDialogPageName =
 	| "home"
 	| "categoryDetail"
@@ -231,7 +233,7 @@ export async function showSupportDialog(logins: LoginController) {
 		})
 		.show()
 
-	const supportData = await locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly })
+	const supportData = await locator.entityClient.load(tutanotaTypeRefs.SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly })
 	data.categories = filterCategories(supportData)
 	// redraw is needed to tell the SupportLandingPage to change the progress icon to the actual data
 	m.redraw()
@@ -291,7 +293,7 @@ export function getCategoryIntroduction(category: SupportCategory, languageTag: 
 	return languageTag.includes("de") ? category.introductionDE : category.introductionEN
 }
 
-function filterCategories(supportData: SupportData) {
+function filterCategories(supportData: tutanotaTypeRefs.SupportData) {
 	const categories = supportData.categories
 
 	for (const key in supportData.categories) {

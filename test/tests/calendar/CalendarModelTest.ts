@@ -55,7 +55,7 @@ import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { elementIdPart, getListId, listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
+import { elementIdPart, getListId, listIdPart } from "@tutao/typeRefs"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"

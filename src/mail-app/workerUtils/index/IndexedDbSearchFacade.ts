@@ -1,4 +1,4 @@
-import { Contact, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	arrayHashSigned,
@@ -44,18 +44,18 @@ import {
 	TypeInfo,
 	typeRefToTypeInfo,
 } from "../../../common/api/common/utils/IndexUtils.js"
-import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
+import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "@tutao/typeRefs"
 import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import { AssociationType, Cardinality, ValueType } from "../../../common/api/common/EntityConstants.js"
+import { AssociationType, Cardinality, ValueType } from "@tutao/typeRefs"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
-import type { TypeModel } from "../../../common/api/common/EntityTypes.js"
+import type { TypeModel } from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
-import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { SearchFacade } from "./SearchFacade"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
@@ -73,7 +73,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		private readonly userFacade: UserFacade,
 		private readonly db: EncryptedDbWrapper,
 		private readonly mailIndexer: MailIndexer,
-		private readonly contactSuggestionFacade: SuggestionFacade<Contact>,
+		private readonly contactSuggestionFacade: SuggestionFacade<tutanotaTypeRefs.Contact>,
 		browserData: BrowserData,
 		private readonly entityClient: EntityClient,
 		private readonly typeModelResolver: ClientTypeModelResolver,
@@ -109,7 +109,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 
 			let searchPromise
 
-			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(ContactTypeRef, restriction.type)) {
+			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, restriction.type)) {
 				let addSuggestionBefore = getPerformanceTimestamp()
 				searchPromise = this.addSuggestions(searchTokens[0], this.contactSuggestionFacade, minSuggestionCount, result).then(() => {
 					if (result.results.length < minSuggestionCount) {
@@ -124,7 +124,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 						})
 					}
 				})
-			} else if (minSuggestionCount > 0 && !isFirstWordSearch && isSameTypeRef(ContactTypeRef, restriction.type)) {
+			} else if (minSuggestionCount > 0 && !isFirstWordSearch && isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, restriction.type)) {
 				let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
 				searchPromise = this.startOrContinueSearch(result).then(() => {
 					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
@@ -661,7 +661,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 					// in order to check in which mailSet (folder) a mail is included in.
 					const mails = await Promise.all(
 						intermediateResults.map((intermediateResultId) =>
-							this.entityClient.load(MailTypeRef, intermediateResultId).catch(
+							this.entityClient.load(tutanotaTypeRefs.MailTypeRef, intermediateResultId).catch(
 								ofClass(NotFoundError, () => {
 									console.log(`Could not find updated mail ${JSON.stringify(intermediateResultId)}`)
 									return null

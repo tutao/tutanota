@@ -1,6 +1,6 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { InfoLink, lang } from "../../LanguageViewModel.js"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
@@ -26,7 +26,7 @@ export class NewPlansOfferEndingNews implements NewsListItem {
 		return !(await this.userController.isNewPaidPlan())
 	}
 
-	render(newsId: NewsId): Children {
+	render(newsId: tutanotaTypeRefs.NewsId): Children {
 		const acknowledgeAction = () => {
 			this.newsModel.acknowledgeNews(newsId.newsItemId).then(m.redraw)
 		}

@@ -1,5 +1,5 @@
 import { ListFilter, ListModel, ListModelConfig } from "./ListModel"
-import { getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils"
+import { getElementId, isSameId, ListElement } from "@tutao/typeRefs"
 import { OperationType } from "../api/common/TutanotaConstants"
 import Stream from "mithril/stream"
 import { ListLoadingState, ListState } from "../gui/base/List"

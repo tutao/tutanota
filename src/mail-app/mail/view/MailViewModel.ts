@@ -1,15 +1,7 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import {
-	ImportMailState,
-	ImportMailStateTypeRef,
-	Mail,
-	MailBox,
-	MailSet,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { elementIdPart, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, getElementId, isSameId } from "@tutao/typeRefs"
 import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -48,6 +40,9 @@ import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
 
+type Mail = tutanotaTypeRefs.Mail
+type MailSet = tutanotaTypeRefs.MailSet
+
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
 }
@@ -70,7 +65,7 @@ const SYNC_RELOAD_DEBOUNCE_MS = 500
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	/** Beware: this can be a label. */
-	private _folder: MailSet | null = null
+	private _folder: tutanotaTypeRefs.MailSet | null = null
 	private _listModel: MailSetListModel | null = null
 	/** id of the mail requested to be displayed, independent of the list state. */
 	private stickyMailId: IdTuple | null = null
@@ -267,7 +262,7 @@ export class MailViewModel {
 		}
 
 		// Load the cached mail, if available, to display it sooner
-		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
+		const cached = await this.cacheStorage.get(tutanotaTypeRefs.MailTypeRef, listId, mailId)
 		if (this.didStickyMailChange(expectedStickyMailId, "after loading mail from cache")) {
 			return
 		} else if (cached) {
@@ -278,7 +273,7 @@ export class MailViewModel {
 
 		let mail: Mail | null
 		try {
-			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { cacheMode: CacheMode.WriteOnly })
+			mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, [listId, mailId], { cacheMode: CacheMode.WriteOnly })
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
@@ -711,17 +706,17 @@ export class MailViewModel {
 		}
 
 		for (const update of updates) {
-			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
 				await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 			} else if (update.operation === OperationType.UPDATE) {
-				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
+				if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
-					const mail = await this.entityClient.load(MailTypeRef, mailId)
+					const mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, mailId)
 					const folderForMail = this.mailModel.getMailFolderForMail(mail)
 					if (folderForMail && !this.didStickyMailChange(mailId, "after loading mail from cache on entity update")) {
 						this.setListId(folderForMail)
 					}
-				} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				} else if (isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
 					await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 				}
 			}
@@ -744,16 +739,16 @@ export class MailViewModel {
 		await this.debouncedListModelReloadPromise
 	})
 
-	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData<ImportMailState>) {
+	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData<tutanotaTypeRefs.ImportMailState>) {
 		// We delete the range of MailSetEntries for the targetFolder entries list of the import.
 		// This makes sure, that we keep already downloaded MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
 		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to this import in background
 		// and ensures that all imported mails are searchable immediately.
-		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+		const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 		const targetFolder = await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
 		if (targetFolder) {
 			const targetFolderEntriesListId = targetFolder.entries
-			await this.cacheStorage.deleteRange(MailSetEntryTypeRef, targetFolderEntriesListId)
+			await this.cacheStorage.deleteRange(tutanotaTypeRefs.MailSetEntryTypeRef, targetFolderEntriesListId)
 
 			const selectedMailSet = this.getFolder()
 			if (selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
@@ -893,7 +888,7 @@ export class MailViewModel {
 		this.listModel?.onSingleExclusiveSelection(mail)
 	}
 
-	async createLabel(mailbox: MailBox, labelData: { name: string; color: string }) {
+	async createLabel(mailbox: tutanotaTypeRefs.MailBox, labelData: { name: string; color: string }) {
 		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
 	}
 

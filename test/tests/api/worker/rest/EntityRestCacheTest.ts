@@ -12,7 +12,7 @@ import {
 	getListId,
 	listIdPart,
 	stringToCustomId,
-} from "../../../../../src/common/api/common/utils/EntityUtils.js"
+} from "@tutao/typeRefs"
 import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/utils"
 import {
 	createEntityUpdate,
@@ -55,10 +55,10 @@ import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worke
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
+import { Entity, ServerModelParsedInstance, SomeEntity } from "@tutao/typeRefs"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 import { collapseId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { LastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 

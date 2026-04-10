@@ -6,7 +6,7 @@ import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { isSameDay } from "@tutao/utils"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
-import { ClientModelUntypedInstance } from "../../api/common/EntityTypes"
+import { ClientModelUntypedInstance } from "@tutao/typeRefs"
 
 export class DesktopAlarmScheduler {
 	constructor(

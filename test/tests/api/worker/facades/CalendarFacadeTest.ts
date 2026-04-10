@@ -23,7 +23,7 @@ import {
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { getElementId, getLetId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { getElementId, getLetId, getListId } from "@tutao/typeRefs"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -47,7 +47,7 @@ import { EntityRestClient } from "../../../../../src/common/api/worker/rest/Enti
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { base64ToKey } from "@tutao/crypto"
 import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
-import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { TypeModelResolver } from "@tutao/typeRefs"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id

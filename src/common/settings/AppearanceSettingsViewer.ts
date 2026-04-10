@@ -1,12 +1,11 @@
 import m, { Children } from "mithril"
-import { getLanguage, lang, LanguageCode, languageCodeToTag, languageNative } from "../misc/LanguageViewModel.js"
-import { styles } from "../gui/styles.js"
+import { lang } from "../misc/LanguageViewModel.js"
 import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { TimeFormat, WeekStart } from "../api/common/TutanotaConstants.js"
 import { downcast, incrementDate, noOp, ofClass, promiseMap } from "@tutao/utils"
-import { UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getHourCycle } from "../../common/misc/Formatter"
 import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
@@ -143,8 +142,8 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				return locator.entityClient.load(UserSettingsGroupRootTypeRef, update.instanceId).then((settings) => {
+			if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
+				return locator.entityClient.load(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update.instanceId).then((settings) => {
 					lang.updateFormats({
 						hourCycle: getHourCycle(settings),
 					})

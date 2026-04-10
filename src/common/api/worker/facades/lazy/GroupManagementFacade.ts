@@ -1,13 +1,5 @@
 import { CounterType, GroupType } from "../../../common/TutanotaConstants.js"
-import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
-import {
-	createCreateMailGroupData,
-	createDeleteGroupData,
-	createInternalGroupData,
-	createUserAreaGroupData,
-	createUserAreaGroupDeleteData,
-	createUserAreaGroupPostData,
-} from "../../../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import {
 	createMembershipAddData,
@@ -28,7 +20,7 @@ import { UserFacade } from "../UserFacade.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
-import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
 import { AesKey, PQKeyPairs } from "@tutao/crypto"
 import { IdentityKeyCreator } from "./IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
@@ -75,7 +67,7 @@ export class GroupManagementFacade {
 
 		const mailEncMailboxSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
-		const data = createCreateMailGroupData({
+		const data = tutanotaTypeRefs.createCreateMailGroupData({
 			mailAddress,
 			encryptedName: this.cryptoWrapper.encryptString(mailGroupInfoSessionKey, name),
 			mailEncMailboxSessionKey: mailEncMailboxSessionKey.key,
@@ -99,7 +91,7 @@ export class GroupManagementFacade {
 	 *
 	 * @param name Name of the group
 	 */
-	async generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
+	async generateUserAreaGroupData(name: string): Promise<tutanotaTypeRefs.UserAreaGroupData> {
 		// adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
 		// adminGroupKey Is not set when generating calendar as normal user
 		const userGroup = await this.entityClient.load(GroupTypeRef, this.userFacade.getUserGroupId())
@@ -125,7 +117,7 @@ export class GroupManagementFacade {
 		const customerEncGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
 		const groupEncGroupRootSessionKey = _encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
 
-		return createUserAreaGroupData({
+		return tutanotaTypeRefs.createUserAreaGroupData({
 			groupEncGroupRootSessionKey: groupEncGroupRootSessionKey.key,
 			customerEncGroupInfoSessionKey: customerEncGroupInfoSessionKey.key,
 			userEncGroupKey: userEncGroupKey.key,
@@ -140,7 +132,7 @@ export class GroupManagementFacade {
 
 	async createCalendar(name: string): Promise<{ user: User; group: Group }> {
 		const groupData = await this.generateUserAreaGroupData(name)
-		const postData = createUserAreaGroupPostData({
+		const postData = tutanotaTypeRefs.createUserAreaGroupPostData({
 			groupData,
 		})
 		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, { sessionKey: this.cryptoWrapper.aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
@@ -152,7 +144,7 @@ export class GroupManagementFacade {
 
 	async createTemplateGroup(name: string): Promise<Id> {
 		const groupData = await this.generateUserAreaGroupData(name)
-		const serviceData = createUserAreaGroupPostData({
+		const serviceData = tutanotaTypeRefs.createUserAreaGroupPostData({
 			groupData,
 		})
 
@@ -165,7 +157,7 @@ export class GroupManagementFacade {
 
 	async createContactListGroup(name: string): Promise<Group> {
 		const groupData = await this.generateUserAreaGroupData(name)
-		const serviceData = createUserAreaGroupPostData({
+		const serviceData = tutanotaTypeRefs.createUserAreaGroupPostData({
 			groupData,
 		})
 		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData, { sessionKey: this.cryptoWrapper.aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
@@ -175,8 +167,8 @@ export class GroupManagementFacade {
 		return group
 	}
 
-	async deleteContactListGroup(groupRoot: ContactListGroupRoot) {
-		const serviceData = createUserAreaGroupDeleteData({
+	async deleteContactListGroup(groupRoot: tutanotaTypeRefs.ContactListGroupRoot) {
+		const serviceData = tutanotaTypeRefs.createUserAreaGroupDeleteData({
 			group: groupRoot._id,
 		})
 		await this.serviceExecutor.delete(ContactListGroupService, serviceData)
@@ -193,11 +185,11 @@ export class GroupManagementFacade {
 		adminGroupId: Id | null,
 		adminGroupKey: VersionedKey,
 		ownerGroupKey: VersionedKey,
-	): InternalGroupData {
+	): tutanotaTypeRefs.InternalGroupData {
 		const adminEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, groupKey)
 		const ownerEncGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
 
-		return createInternalGroupData({
+		return tutanotaTypeRefs.createInternalGroupData({
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.x25519KeyPair.publicKey,
@@ -247,7 +239,7 @@ export class GroupManagementFacade {
 	}
 
 	async deactivateGroup(group: Group, restore: boolean): Promise<void> {
-		const data = createDeleteGroupData({
+		const data = tutanotaTypeRefs.createDeleteGroupData({
 			group: group._id,
 			restore,
 		})

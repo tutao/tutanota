@@ -1,4 +1,4 @@
-import { createNewsIn, NewsId, NewsOut } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { NewsService } from "../../api/entities/tutanota/Services.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
@@ -18,7 +18,7 @@ export interface NewsItemStorage {
  * Makes calls to the NewsService in order to load the user's unacknowledged NewsItems and stores them.
  */
 export class NewsModel {
-	liveNewsIds: NewsId[] = []
+	liveNewsIds: tutanotaTypeRefs.NewsId[] = []
 	liveNewsListItems: Record<string, NewsListItem> = {}
 
 	constructor(
@@ -30,8 +30,8 @@ export class NewsModel {
 	/**
 	 * Loads the user's unacknowledged NewsItems.
 	 */
-	async loadNewsIds(): Promise<NewsId[]> {
-		const response: NewsOut = await this.serviceExecutor.get(NewsService, null)
+	async loadNewsIds(): Promise<tutanotaTypeRefs.NewsId[]> {
+		const response: tutanotaTypeRefs.NewsOut = await this.serviceExecutor.get(NewsService, null)
 
 		this.liveNewsIds = []
 		this.liveNewsListItems = {}
@@ -57,7 +57,7 @@ export class NewsModel {
 	 * Acknowledges the NewsItem with the given ID.
 	 */
 	async acknowledgeNews(newsItemId: Id): Promise<boolean> {
-		const data = createNewsIn({ newsItemId })
+		const data = tutanotaTypeRefs.createNewsIn({ newsItemId })
 
 		try {
 			await this.serviceExecutor.post(NewsService, data)

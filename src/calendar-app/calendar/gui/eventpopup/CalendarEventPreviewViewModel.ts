@@ -1,4 +1,4 @@
-import { CalendarEvent, CalendarEventAttendee } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	addDaysForRecurringEvent,
 	calendarEventHasMoreThanOneOccurrencesLeft,
@@ -44,7 +44,7 @@ export class CalendarEventPreviewViewModel {
 	private sanitizedDescription: string | null = null
 
 	private processing: boolean = false
-	private readonly _ownAttendee: CalendarEventAttendee | null
+	private readonly _ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null
 
 	/**
 	 * Comment to be sent together with the event reply
@@ -72,13 +72,13 @@ export class CalendarEventPreviewViewModel {
 	 * @param uiUpdateCallback
 	 */
 	constructor(
-		readonly calendarEvent: Readonly<CalendarEvent>,
+		readonly calendarEvent: Readonly<tutanotaTypeRefs.CalendarEvent>,
 		private readonly calendarModel: CalendarModel,
 		readonly eventType: EventType,
 		private readonly hasBusinessFeature: boolean,
-		ownAttendee: CalendarEventAttendee | null,
+		ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null,
 		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
-		private readonly eventModelFactory: (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>,
+		private readonly eventModelFactory: (mode: CalendarOperation, event: tutanotaTypeRefs.CalendarEvent) => Promise<CalendarEventModel | null>,
 		private readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>,
 		private readonly highlightedStrings?: readonly SearchToken[],
 		private readonly uiUpdateCallback: () => void = m.redraw,
@@ -117,7 +117,7 @@ export class CalendarEventPreviewViewModel {
 		return calendarEventHasMoreThanOneOccurrencesLeft(index)
 	}
 
-	get ownAttendee(): CalendarEventAttendee | null {
+	get ownAttendee(): tutanotaTypeRefs.CalendarEventAttendee | null {
 		return this._ownAttendee
 	}
 
@@ -125,7 +125,7 @@ export class CalendarEventPreviewViewModel {
 	 * note that the Promise<unknown> type on setParticipation prevents us from leaking errors when consumers call it and try to catch errors without
 	 * awaiting it (they get an async call without await warning) */
 	getParticipationSetterAndThen(action: Thunk): null | {
-		ownAttendee: CalendarEventAttendee
+		ownAttendee: tutanotaTypeRefs.CalendarEventAttendee
 		setParticipation: (status: CalendarAttendeeStatus) => Promise<unknown>
 	} {
 		if (this.ownAttendee == null || this.isOrganizer) return null

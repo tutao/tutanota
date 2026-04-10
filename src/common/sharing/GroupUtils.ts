@@ -11,13 +11,13 @@ import {
 	UserGroupRootTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
 import { GroupType, GroupTypeNameByCode, ShareCapability } from "../api/common/TutanotaConstants"
-import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
+import { getEtId, isSameId } from "@tutao/typeRefs"
 import { lang } from "../misc/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../api/common/EntityClient"
 import { NotFoundError } from "../api/common/error/RestError"
 import { UserController } from "../api/main/UserController"
-import { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -142,7 +142,11 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
  * Get the name of a (possibly) shared group.
  * Will return custom name, if any, group name, if any or default name for the group type.
  */
-export function getSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string {
+export function getSharedGroupName(
+	groupInfo: GroupInfo,
+	userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot,
+	allowGroupNameOverride: boolean,
+): string {
 	return getNullableSharedGroupName(groupInfo, userSettingsGroupRoot, allowGroupNameOverride) ?? getDefaultGroupName(downcast(groupInfo.groupType))
 }
 
@@ -150,11 +154,15 @@ export function getSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: 
  * Get shared group name or default to null.
  * Needed in order to make translations of default template group names work in SettingsView
  */
-export function getNullableSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string | null {
+export function getNullableSharedGroupName(
+	groupInfo: GroupInfo,
+	userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot,
+	allowGroupNameOverride: boolean,
+): string | null {
 	return (allowGroupNameOverride && getCustomSharedGroupName(groupInfo, userSettingsGroupRoot)) || groupInfo.name || null
 }
 
 /** Get custom group name, if any is configured via GroupSettings */
-export function getCustomSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot): string | null {
+export function getCustomSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot): string | null {
 	return userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)?.name ?? null
 }

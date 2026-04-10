@@ -14,7 +14,7 @@ import { NativeFileApp } from "../common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isDesktop } from "../../api/common/Env"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
 import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
@@ -52,7 +52,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const decodedContactId = decodeBase64("utf-8", contactId)
 		const idParts = decodedContactId.split("/")
 		try {
-			const contact = await locator.entityClient.load(ContactTypeRef, [idParts[0], idParts[1]])
+			const contact = await locator.entityClient.load(tutanotaTypeRefs.ContactTypeRef, [idParts[0], idParts[1]])
 			const editor = new ContactEditor(locator.entityClient, contact)
 
 			return editor.show()

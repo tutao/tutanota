@@ -2,11 +2,11 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
 import { assertNotNull, lazyMemoized } from "@tutao/utils"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId } from "@tutao/typeRefs"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -28,15 +28,15 @@ export class ContactViewModel {
 		private readonly updateUi: () => unknown,
 	) {}
 
-	readonly listModel: ListElementListModel<Contact> = new ListElementListModel<Contact>({
+	readonly listModel: ListElementListModel<tutanotaTypeRefs.Contact> = new ListElementListModel<tutanotaTypeRefs.Contact>({
 		fetch: async () => {
-			const items = await this.entityClient.loadAll(ContactTypeRef, this.contactListId)
+			const items = await this.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, this.contactListId)
 			return { items, complete: true }
 		},
 		loadSingle: async (_listId: Id, elementId: Id) => {
 			const listId = await this.contactModel.getContactListId()
 			if (listId == null) return null
-			return this.entityClient.load(ContactTypeRef, [listId, elementId])
+			return this.entityClient.load(tutanotaTypeRefs.ContactTypeRef, [listId, elementId])
 		},
 		sortCompare: (c1, c2) => compareContacts(c1, c2, this.sortByFirstName),
 		autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
@@ -83,7 +83,7 @@ export class ContactViewModel {
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
 				const { instanceListId, instanceId, operation } = update
-				if (isUpdateForTypeRef(ContactTypeRef, update) && instanceListId === this.contactListId) {
+				if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && instanceListId === this.contactListId) {
 					await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 				}
 			}
@@ -107,7 +107,7 @@ export class ContactViewModel {
 		this.listModel.sort()
 	}
 
-	listState(): ListState<Contact> {
+	listState(): ListState<tutanotaTypeRefs.Contact> {
 		return this.listModel.state
 	}
 

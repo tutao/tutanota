@@ -1,7 +1,7 @@
 import { ContactSearchFacade } from "./ContactSearchFacade"
 import { IndexedDbSearchFacade } from "./IndexedDbSearchFacade"
-import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { lazy, lazyMemoized, typedValues } from "@tutao/utils"
 import type { SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
@@ -21,7 +21,7 @@ export class IndexedDbContactSearchFacade implements ContactSearchFacade {
 			mailAddresses: SearchRestriction
 		}>
 	> = lazyMemoized(async () => {
-		const typeModel = await this.typeModelResolver.resolveClientTypeReference(ContactTypeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
 		const values = typedValues(typeModel.values)
 		const associations = typedValues(typeModel.associations)
 
@@ -37,7 +37,7 @@ export class IndexedDbContactSearchFacade implements ContactSearchFacade {
 
 		return {
 			default: Object.freeze({
-				type: ContactTypeRef,
+				type: tutanotaTypeRefs.ContactTypeRef,
 				start: null,
 				end: null,
 				field: null,
@@ -46,7 +46,7 @@ export class IndexedDbContactSearchFacade implements ContactSearchFacade {
 				eventSeries: null,
 			}),
 			mailAddresses: Object.freeze({
-				type: ContactTypeRef,
+				type: tutanotaTypeRefs.ContactTypeRef,
 				start: null,
 				end: null,
 				field: "mailAddresses",

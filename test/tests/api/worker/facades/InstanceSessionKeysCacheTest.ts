@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
-import { Mail, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("InstanceSessionKeysCacheTest", function () {
 	let instanceSessionKeysCache: InstanceSessionKeysCache

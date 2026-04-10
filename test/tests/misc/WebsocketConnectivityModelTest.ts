@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { ExposedEventBus } from "../../../src/common/api/worker/workerInterfaces"
 import { func, object, verify } from "testdouble"
-import { WebsocketLeaderStatus } from "../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("WebsocketConnectivityModelTest", function () {
 	let websocketConnectivityModel: WebsocketConnectivityModel

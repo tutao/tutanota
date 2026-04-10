@@ -154,3 +154,4 @@ export {
 export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { AeadFacade } from "./encryption/symmetric/AeadFacade.js"
+export * as cryptoUtils from "./CryptoUtils.js"

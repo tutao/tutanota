@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/crypto"
-import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
+import { Cardinality, ValueType } from "@tutao/typeRefs"
 import {
 	ClientModelParsedInstance,
 	ClientTypeModel,
@@ -12,7 +12,7 @@ import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/com
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typeRefs"
 
 o.spec("CryptoMapper", () => {
 	let cryptoMapper: CryptoMapper

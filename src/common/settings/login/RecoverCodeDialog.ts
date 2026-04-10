@@ -9,7 +9,7 @@ import { AccessBlockedError, NotAuthenticatedError } from "../../api/common/erro
 import { locator } from "../../api/main/CommonLocator.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { User } from "../../api/entities/sys/TypeRefs.js"
-import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { getEtId, isSameId } from "@tutao/typeRefs"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { IconButton } from "../../gui/base/IconButton.js"

@@ -1,11 +1,10 @@
 import m, { Children } from "mithril"
-import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { KnowledgeBaseEntryTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../../common/misc/LanguageViewModel"
 
 import { component_size } from "../../common/gui/size"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { isSameId, listIdPart } from "../../common/api/common/utils/EntityUtils"
+import { isSameId, listIdPart } from "@tutao/typeRefs"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { ShareCapability } from "../../common/api/common/TutanotaConstants"
 import type { LoginController } from "../../common/api/main/LoginController"
@@ -33,6 +32,7 @@ import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../c
 
 assertMainOrNode()
 
+type KnowledgeBaseEntry = tutanotaTypeRefs.KnowledgeBaseEntry
 /**
  *  List that is rendered within the knowledgeBase Settings
  */
@@ -57,7 +57,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
-		private readonly templateGroupRoot: TemplateGroupRoot,
+		private readonly templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot,
 		private readonly templateGroup: Group,
 		private readonly updateDetailsViewer: (viewer: KnowledgeBaseSettingsDetailsViewer | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
@@ -89,11 +89,11 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			},
 			fetch: async (_lastFetchedEntity, _count) => {
 				// load all entries at once to apply custom sort order
-				const allEntries = await this.entityClient.loadAll(KnowledgeBaseEntryTypeRef, this.getListId())
+				const allEntries = await this.entityClient.loadAll(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, this.getListId())
 				return { items: allEntries, complete: true }
 			},
 			loadSingle: (_listId: Id, elementId: Id) => {
-				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
+				return this.entityClient.load<KnowledgeBaseEntry>(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
@@ -165,7 +165,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
+			if (isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}

@@ -6,17 +6,16 @@ import {
 	OperationType,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import type { GroupMembership, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
 import { contains, daysToMillis, defer, downcast, isNotNull, isSameTypeRef, millisToDays, neverNull, promiseMap } from "@tutao/utils"
-import { isSameId, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
+import { isSameId, timestampToGeneratedId } from "@tutao/typeRefs"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
@@ -42,18 +41,18 @@ import {
 } from "../../../common/api/worker/search/IndexTables.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instancePipeline"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DateProvider } from "../../../common/api/common/DateProvider"
-import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError"
 
 export type InitParams = {
-	user: User
+	user: sysTypeRefs.User
 }
 
 const DB_VERSION: number = 3
@@ -208,7 +207,7 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	private getDbId(user: User) {
+	private getDbId(user: sysTypeRefs.User) {
 		return b64UserIdHash(user._id)
 	}
 
@@ -324,7 +323,7 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	private async createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
+	private async createIndexTables(user: sysTypeRefs.User, userGroupKey: VersionedKey): Promise<void> {
 		const key = aes256RandomKey()
 		const iv = random.generateRandomData(IV_BYTE_LENGTH)
 		this.db.init({ key, iv })
@@ -340,7 +339,7 @@ export class IndexedDbIndexer implements Indexer {
 		await this.updateIndexedGroups()
 	}
 
-	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
+	private async loadIndexTables(user: sysTypeRefs.User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
 		const key = decryptKey(userGroupKey, metaData.userEncDbKey)
 		const iv = aesDecryptUnauthenticated(key, neverNull(metaData.encDbIv))
 		this.db.init({ key, iv })
@@ -365,7 +364,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	/** @private visibleForTesting */
-	_loadGroupDiff(user: User): Promise<GroupDiff> {
+	_loadGroupDiff(user: sysTypeRefs.User): Promise<GroupDiff> {
 		let currentGroups: Array<GroupDiffGroup> = filterIndexMemberships(user)
 			.concat(user.userGroup)
 			.map((m) => {
@@ -411,7 +410,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
 	 * @private visibleForTesting
 	 */
-	async _updateGroups(user: User, groupDiff: GroupDiff): Promise<void> {
+	async _updateGroups(user: sysTypeRefs.User, groupDiff: GroupDiff): Promise<void> {
 		if (groupDiff.deletedGroups.some((g) => g.type === GroupType.Mail || g.type === GroupType.Contact)) {
 			throw new MembershipRemovedError("user has been removed from contact or mail group") // user has been removed from a shared group
 		}
@@ -430,7 +429,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * Provides a GroupData object including the last 100 event batch ids for all indexed membership groups of the given user.
 	 * @private visibleForTesting
 	 */
-	_loadGroupData(user: User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
+	_loadGroupData(user: sysTypeRefs.User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
 		let memberships = filterIndexMemberships(user).concat(user.userGroup)
 
 		const restrictTo = restrictToTheseGroups // type check
@@ -439,7 +438,7 @@ export class IndexedDbIndexer implements Indexer {
 			memberships = memberships.filter((membership) => contains(restrictTo, membership.group))
 		}
 
-		return promiseMap(memberships, async (membership: GroupMembership) => {
+		return promiseMap(memberships, async (membership: sysTypeRefs.GroupMembership) => {
 			const FIVE_SECONDS_IN_MILLISECONDS = 5000
 			const lastProcessedBatchId =
 				(await this.core.getLastProcessedEventBatchIdForGroup(membership.group)) ??
@@ -504,7 +503,7 @@ export class IndexedDbIndexer implements Indexer {
 	 */
 	private async processMailEntityEvents(events: Iterable<EntityUpdateData>) {
 		for (const event of events) {
-			if (isUpdateForTypeRef(MailTypeRef, event)) {
+			if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, event)) {
 				const mailId: IdTuple = [event.instanceListId, event.instanceId]
 				try {
 					switch (event.operation) {
@@ -535,11 +534,15 @@ export class IndexedDbIndexer implements Indexer {
 	async _processUserEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
 		for (const event of events) {
 			if (
-				!(event.operation === OperationType.UPDATE && isSameTypeRef(UserTypeRef, event.typeRef) && isSameId(this.initParams.user._id, event.instanceId))
+				!(
+					event.operation === OperationType.UPDATE &&
+					isSameTypeRef(sysTypeRefs.UserTypeRef, event.typeRef) &&
+					isSameId(this.initParams.user._id, event.instanceId)
+				)
 			) {
 				continue
 			}
-			this.initParams.user = await this.entity.load(UserTypeRef, event.instanceId)
+			this.initParams.user = await this.entity.load(sysTypeRefs.UserTypeRef, event.instanceId)
 			await updateEncryptionMetadata(this.db.dbFacade, this.keyLoaderFacade, MetaDataOS)
 		}
 	}

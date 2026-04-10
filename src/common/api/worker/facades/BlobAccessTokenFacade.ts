@@ -9,7 +9,7 @@ import { deduplicate, first, isEmpty, lazyMemoized, TypeRef } from "@tutao/utils
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { BlobLoadOptions } from "./lazy/BlobFacade.js"
 import { BlobReferencingInstance } from "../../common/utils/BlobUtils.js"
-import { TypeModelResolver } from "../../common/EntityFunctions"
+import { TypeModelResolver } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 

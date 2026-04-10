@@ -2,11 +2,11 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { CalendarEventUpdate, CalendarEventUpdateTypeRef, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { elementIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart } from "@tutao/typeRefs"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 
@@ -21,7 +21,7 @@ const TAG = "[CalendarEventUpdateCoordinator]"
  *
  */
 export class CalendarEventUpdateCoordinator {
-	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
+	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, tutanotaTypeRefs.CalendarEventUpdate> = new Map()
 
 	// create reference to the listener so it can be deleted from the event controller when the client stops being leader.
 	private readonly entityEventListener: EntityEventsListener = {
@@ -66,9 +66,9 @@ export class CalendarEventUpdateCoordinator {
 
 	public async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) {
 		for (const entityEventData of updates) {
-			if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
+			if (isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
 				try {
-					const calendarEventUpdate = await this.entityClient.load(CalendarEventUpdateTypeRef, [
+					const calendarEventUpdate = await this.entityClient.load(tutanotaTypeRefs.CalendarEventUpdateTypeRef, [
 						entityEventData.instanceListId,
 						entityEventData.instanceId,
 					])
@@ -80,7 +80,7 @@ export class CalendarEventUpdateCoordinator {
 						throw e
 					}
 				}
-			} else if (isUpdateForTypeRef(FileTypeRef, entityEventData)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.FileTypeRef, entityEventData)) {
 				// with a file update, the owner enc session key should be present now so we can try to process any skipped calendar event updates
 				// (see NoOwnerEncSessionKeyForCalendarEventError's comment)
 				const skippedCalendarEventUpdate = this.fileIdToSkippedCalendarEventUpdates.get(entityEventData.instanceId)
@@ -98,7 +98,7 @@ export class CalendarEventUpdateCoordinator {
 	/**
 	 * Tries to handle calendar event updates. Handle errors in cases the ownerEncSessionKey is not available.
 	 */
-	private async handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate: CalendarEventUpdate) {
+	private async handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate: tutanotaTypeRefs.CalendarEventUpdate) {
 		try {
 			await this.calendarModel.handleCalendarEventUpdate(calendarEventUpdate)
 		} catch (e) {
@@ -115,14 +115,14 @@ export class CalendarEventUpdateCoordinator {
 		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
 		const { calendarEventUpdates } = mailboxGroupRoot
 		if (calendarEventUpdates == null) return
-		const invites = await this.entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
+		const invites = await this.entityClient.loadAll(tutanotaTypeRefs.CalendarEventUpdateTypeRef, calendarEventUpdates.list)
 		for (const invite of invites) {
 			await this.handleCalendarEventUpdateAndHandleErrors(invite)
 		}
 	}
 
 	// VisibleForTesting
-	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
+	getFileIdToSkippedCalendarEventUpdates(): Map<Id, tutanotaTypeRefs.CalendarEventUpdate> {
 		return this.fileIdToSkippedCalendarEventUpdates
 	}
 }

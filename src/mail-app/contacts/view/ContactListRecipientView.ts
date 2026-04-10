@@ -5,7 +5,7 @@ import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBo
 import { theme } from "../../../common/gui/theme.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { List, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { ContactListEntry } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { noOp } from "@tutao/utils"
 import { ContactListViewModel } from "./ContactListViewModel.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
@@ -24,6 +24,7 @@ import { styles } from "../../../common/gui/styles.js"
 
 assertMainOrNode()
 
+type ContactListEntry = tutanotaTypeRefs.ContactListEntry
 export interface ContactListViewAttrs {
 	viewModel: ContactListViewModel
 	focusDetailsViewer: () => unknown

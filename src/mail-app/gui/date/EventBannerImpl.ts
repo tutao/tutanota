@@ -1,4 +1,4 @@
-import { CalendarEvent, createCalendarEventAttendee, Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DateTime } from "luxon"
 import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
@@ -39,11 +39,17 @@ import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils"
+import { GENERATED_MIN_ID } from "@tutao/typeRefs"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
-	sendResponse: (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
+	sendResponse: (
+		event: IcsCalendarEvent,
+		recipient: string,
+		status: CalendarAttendeeStatus,
+		previousMail: tutanotaTypeRefs.Mail,
+		comment?: string,
+	) => Promise<boolean>
 	usesAmPmTimeFormat: boolean
 }
 
@@ -74,7 +80,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			return m(EventBannerSkeleton)
 		}
 
-		const replyCallback = async (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
+		const replyCallback = async (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: tutanotaTypeRefs.Mail) => {
 			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
 				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, true)
@@ -310,7 +316,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		this.displayConflictingAgenda = !this.displayConflictingAgenda
 	}
 
-	private conflictingAgenda(agenda: InviteAgenda, event: CalendarEvent): m.Children {
+	private conflictingAgenda(agenda: InviteAgenda, event: tutanotaTypeRefs.CalendarEvent): m.Children {
 		return m(".selectable", [
 			agenda.regularEvents && agenda.regularEvents.length > 0
 				? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents, agenda.conflictCount > 1)
@@ -401,7 +407,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private buildReplySection(
 		agenda: Map<string, InviteAgenda>,
 		icsCalendarEvent: IcsCalendarEvent,
-		mail: Mail,
+		mail: tutanotaTypeRefs.Mail,
 		recipient: string,
 		method: CalendarMethod,
 		sendResponse: EventBannerImplAttrs["sendResponse"],
@@ -415,7 +421,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				console.warn("Trying to build a reply section for an event we were not invited")
 				return null
 			}
-			ownAttendee = createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
+			ownAttendee = tutanotaTypeRefs.createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
 		}
 
 		const children: Children = [] as ChildArray
@@ -485,7 +491,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		} satisfies ExpandableTextAreaAttrs)
 	}
 
-	private handleViewOnCalendarAction(event: CalendarEvent | undefined) {
+	private handleViewOnCalendarAction(event: tutanotaTypeRefs.CalendarEvent | undefined) {
 		if (!event) {
 			throw new ProgrammingError("Tried to render 'View on Calendar' button, but we are missing the corresponding event")
 		}
@@ -494,7 +500,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
 
-	private findShortestDuration(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): number {
+	private findShortestDuration(a: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent, b: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent): number {
 		const durationA = getDurationInMinutes(a)
 		const durationB = getDurationInMinutes(b)
 		return durationA < durationB ? durationA : durationB
@@ -685,11 +691,11 @@ export async function loadEventsAroundInvite(
 	return eventToAgenda
 }
 
-function getDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
+function getDurationInMinutes(ev: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent) {
 	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
 }
 
-function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
+function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: tutanotaTypeRefs.CalendarEvent) {
 	if (!existingEvent) {
 		return
 	}

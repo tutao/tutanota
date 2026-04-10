@@ -3,7 +3,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { UserFacade } from "../UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { isSameId } from "../../../common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 

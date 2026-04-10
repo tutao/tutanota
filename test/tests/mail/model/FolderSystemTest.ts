@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { MailSetTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { getElementId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { getElementId } from "@tutao/typeRefs"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"

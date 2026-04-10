@@ -2,7 +2,7 @@
  * Created by bdeterding on 13.12.17.
  */
 import o from "@tutao/otest"
-import { Contact, ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "@tutao/utils"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
@@ -11,8 +11,8 @@ import { spy } from "@tutao/otest"
 import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
-import { ClientModelInfo, ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typeRefs"
+import { TypeModel } from "@tutao/typeRefs"
 
 o.spec("SuggestionFacade test", () => {
 	let db: EncryptedDbWrapper

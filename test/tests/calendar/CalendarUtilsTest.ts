@@ -64,7 +64,7 @@ import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-mo
 import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
-import { StrippedEntity } from "../../../src/common/api/common/utils/EntityUtils.js"
+import { StrippedEntity } from "@tutao/typeRefs"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 
 const zone = "Europe/Berlin"

@@ -1,0 +1,1 @@
+export type __DO_NOT_USE__ = {}

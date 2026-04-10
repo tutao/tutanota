@@ -4,7 +4,7 @@ import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
@@ -69,6 +69,7 @@ import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 
 assertMainOrNode()
 
+type Contact = tutanotaTypeRefs.Contact
 export interface ContactViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
@@ -687,7 +688,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return showProgressDialog(
 			"pleaseWait_msg",
 			locator.contactModel.getContactListId().then((contactListId) => {
-				return contactListId ? locator.entityClient.loadAll(ContactTypeRef, contactListId) : []
+				return contactListId ? locator.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactListId) : []
 			}),
 		).then((allContacts) => {
 			if (allContacts.length === 0) {

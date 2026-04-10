@@ -1,13 +1,6 @@
-import {
-	CalendarEvent,
-	CalendarEventAttendee,
-	createCalendarEventAttendee,
-	createEncryptedMailAddress,
-	EncryptedMailAddress,
-	Mail,
-} from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
-import { haveSameId, Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
+import { haveSameId, Stripped } from "@tutao/typeRefs"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertNotNull, clone, contains, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/utils"
 import {
@@ -34,8 +27,8 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
-	attendees: CalendarEvent["attendees"]
-	organizer: CalendarEvent["organizer"]
+	attendees: tutanotaTypeRefs.CalendarEvent["attendees"]
+	organizer: tutanotaTypeRefs.CalendarEvent["organizer"]
 	isConfidential: boolean
 	/** which calendar should the result be assigned to */
 	calendar: CalendarInfo
@@ -61,16 +54,16 @@ export class CalendarEventWhoModel {
 	/** to know who to update, we need to know who was already on the guest list.
 	 * we keep the attendees in maps for deduplication, keyed by their address.
 	 * */
-	private initialAttendees: Map<string, CalendarEventAttendee> = new Map()
+	private initialAttendees: Map<string, tutanotaTypeRefs.CalendarEventAttendee> = new Map()
 	private initialOwnAttendeeStatus: CalendarAttendeeStatus | null = null
 	/** we only show the send update checkbox if there are attendees that require updates from us. */
 	readonly initiallyHadOtherAttendees: boolean
 	/** the current list of attendees. */
-	private _attendees: Map<string, CalendarEventAttendee> = new Map()
+	private _attendees: Map<string, tutanotaTypeRefs.CalendarEventAttendee> = new Map()
 	/** organizer MUST be set if _ownAttendee is - we're either both, we're invited and someone else is organizer or there are no guests at all. */
-	private _organizer: CalendarEventAttendee | null = null
+	private _organizer: tutanotaTypeRefs.CalendarEventAttendee | null = null
 	/** the attendee that has one of our mail addresses. MUST NOT be in _attendees */
-	private _ownAttendee: CalendarEventAttendee | null = null
+	private _ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null = null
 
 	public isConfidential: boolean
 	/**
@@ -99,7 +92,7 @@ export class CalendarEventWhoModel {
 	 * @param uiUpdateCallback
 	 */
 	constructor(
-		initialValues: Partial<Stripped<CalendarEvent>>,
+		initialValues: Partial<Stripped<tutanotaTypeRefs.CalendarEvent>>,
 		private readonly eventType: EventType,
 		private readonly operation: CalendarOperation,
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
@@ -110,9 +103,9 @@ export class CalendarEventWhoModel {
 		private _selectedCalendar: CalendarInfo,
 		private readonly userController: UserController,
 		private readonly isNew: boolean,
-		private readonly ownMailAddresses: ReadonlyArray<EncryptedMailAddress>,
+		private readonly ownMailAddresses: ReadonlyArray<tutanotaTypeRefs.EncryptedMailAddress>,
 		private readonly recipientsModel: RecipientsModel,
-		private readonly responseTo: Mail | null,
+		private readonly responseTo: tutanotaTypeRefs.Mail | null,
 		private readonly passwordStrengthModel: (password: string, recipientInfo: PartialRecipient) => number,
 		private readonly sendMailModelFactory: lazy<SendMailModel>,
 		private readonly uiUpdateCallback: () => void = noOp,
@@ -236,14 +229,14 @@ export class CalendarEventWhoModel {
 	/**
 	 * internally, we want to keep ourselves and the organizer separate from the other attendees
 	 */
-	private setupAttendees(initialValues: Partial<Stripped<CalendarEvent>>) {
+	private setupAttendees(initialValues: Partial<Stripped<tutanotaTypeRefs.CalendarEvent>>) {
 		const ownAddresses = this.ownMailAddresses.map((a) => cleanMailAddress(a.address))
 
 		// convert the list of attendees into a map for easier use.
 		for (const a of initialValues.attendees ?? []) {
-			const attendee = createCalendarEventAttendee({
+			const attendee = tutanotaTypeRefs.createCalendarEventAttendee({
 				status: a.status,
-				address: createEncryptedMailAddress({
+				address: tutanotaTypeRefs.createEncryptedMailAddress({
 					name: a.address.name,
 					address: cleanMailAddress(a.address.address),
 				}),
@@ -256,7 +249,7 @@ export class CalendarEventWhoModel {
 		const initialOrganizerAddress =
 			initialValues.organizer == null
 				? null
-				: createEncryptedMailAddress({
+				: tutanotaTypeRefs.createEncryptedMailAddress({
 						address: cleanMailAddress(initialValues.organizer.address),
 						name: initialValues.organizer.name,
 					})
@@ -266,7 +259,7 @@ export class CalendarEventWhoModel {
 			const organizerAttendee = this.initialAttendees.get(initialOrganizerAddress.address)
 			this._organizer =
 				organizerAttendee ??
-				createCalendarEventAttendee({
+				tutanotaTypeRefs.createCalendarEventAttendee({
 					address: initialOrganizerAddress,
 					// the organizer added themselves, but did not specify if they're participating
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
@@ -308,8 +301,8 @@ export class CalendarEventWhoModel {
 			this._attendees.set(this._organizer.address.address, this._organizer)
 			this._organizer =
 				this._ownAttendee ??
-				createCalendarEventAttendee({
-					address: createEncryptedMailAddress({
+				tutanotaTypeRefs.createCalendarEventAttendee({
+					address: tutanotaTypeRefs.createEncryptedMailAddress({
 						address: ownAddresses[0],
 						name: "",
 					}),
@@ -345,7 +338,7 @@ export class CalendarEventWhoModel {
 	/*
 	 * return a list of mail addresses that we can set as an organizer.
 	 */
-	get possibleOrganizers(): ReadonlyArray<EncryptedMailAddress> {
+	get possibleOrganizers(): ReadonlyArray<tutanotaTypeRefs.EncryptedMailAddress> {
 		if (this.eventType !== EventType.OWN) {
 			return this._organizer ? [this._organizer.address] : []
 		} else if (!this.hasNotifyableOtherAttendees()) {
@@ -386,7 +379,7 @@ export class CalendarEventWhoModel {
 		return Array.from(this._attendees.values()).map((a) => this.getGuestForAttendee(a))
 	}
 
-	private getGuestForAttendee(a: CalendarEventAttendee): Guest {
+	private getGuestForAttendee(a: tutanotaTypeRefs.CalendarEventAttendee): Guest {
 		if (this.resolvedRecipients.has(a.address.address)) {
 			const recipient: Recipient = this.resolvedRecipients.get(a.address.address)!
 			return {
@@ -412,12 +405,12 @@ export class CalendarEventWhoModel {
 	 * @param address MUST be one of ours and MUST NOT be in the attendees array or set on _organizer
 	 * @private
 	 */
-	private addOwnAttendee(address: EncryptedMailAddress): void {
+	private addOwnAttendee(address: tutanotaTypeRefs.EncryptedMailAddress): void {
 		if (this.hasNotifyableOtherAttendees()) {
 			console.log("can't change organizer if there are other invitees already")
 			return
 		}
-		const attendeeToAdd = createCalendarEventAttendee({ address, status: CalendarAttendeeStatus.ACCEPTED })
+		const attendeeToAdd = tutanotaTypeRefs.createCalendarEventAttendee({ address, status: CalendarAttendeeStatus.ACCEPTED })
 		this._ownAttendee = attendeeToAdd
 
 		// make sure that the organizer on the event is the same address as we added as an own attendee.
@@ -434,7 +427,7 @@ export class CalendarEventWhoModel {
 	 * @param address the EncryptedMailAddress to send the invite to
 	 * @param guestStatus
 	 */
-	public addAttendee(address: EncryptedMailAddress, guestStatus: CalendarAttendeeStatus = CalendarAttendeeStatus.ADDED) {
+	public addAttendee(address: tutanotaTypeRefs.EncryptedMailAddress, guestStatus: CalendarAttendeeStatus = CalendarAttendeeStatus.ADDED) {
 		if (!this.canModifyGuests) {
 			throw new UserError(lang.makeTranslation("cannotAddAttendees_msg", "Cannot add attendees"))
 		}
@@ -462,7 +455,7 @@ export class CalendarEventWhoModel {
 		} else {
 			this._attendees.set(
 				address.address,
-				createCalendarEventAttendee({
+				tutanotaTypeRefs.createCalendarEventAttendee({
 					address,
 					status: guestStatus,
 				}),
@@ -548,7 +541,7 @@ export class CalendarEventWhoModel {
 		return false
 	}
 
-	private prepareSendModel(attendees: ReadonlyArray<CalendarEventAttendee>): SendMailModel | null {
+	private prepareSendModel(attendees: ReadonlyArray<tutanotaTypeRefs.CalendarEventAttendee>): SendMailModel | null {
 		if (!this._ownAttendee) return null
 		const recipients = attendees.map(({ address }) => address)
 		const model = this.sendMailModelFactory()
@@ -643,11 +636,11 @@ export class CalendarEventWhoModel {
 }
 
 function getRecipientLists(
-	initialAttendees: ReadonlyMap<unknown, CalendarEventAttendee>,
-	currentAttendees: ReadonlyMap<unknown, CalendarEventAttendee>,
+	initialAttendees: ReadonlyMap<unknown, tutanotaTypeRefs.CalendarEventAttendee>,
+	currentAttendees: ReadonlyMap<unknown, tutanotaTypeRefs.CalendarEventAttendee>,
 	isOrganizer: boolean,
 	isNew: boolean,
-): ReturnType<typeof trisectingDiff<CalendarEventAttendee>> {
+): ReturnType<typeof trisectingDiff<tutanotaTypeRefs.CalendarEventAttendee>> {
 	if (!isOrganizer) {
 		// if we're not the organizer, we can't have changed the guest list.
 		return { added: [], deleted: [], kept: Array.from(initialAttendees.values()) }
@@ -666,13 +659,13 @@ function getRecipientLists(
  * if there's only an organizer but no other attendees, no attendees or organizers are returned.
  * */
 function assembleAttendees(
-	attendeesToInvite: ReadonlyArray<CalendarEventAttendee>,
-	attendeesToUpdate: ReadonlyArray<CalendarEventAttendee>,
-	organizer: CalendarEventAttendee | null,
-	ownAttendee: CalendarEventAttendee | null,
+	attendeesToInvite: ReadonlyArray<tutanotaTypeRefs.CalendarEventAttendee>,
+	attendeesToUpdate: ReadonlyArray<tutanotaTypeRefs.CalendarEventAttendee>,
+	organizer: tutanotaTypeRefs.CalendarEventAttendee | null,
+	ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null,
 ): {
-	allAttendees: Array<CalendarEventAttendee>
-	organizerToPublish: EncryptedMailAddress | null
+	allAttendees: Array<tutanotaTypeRefs.CalendarEventAttendee>
+	organizerToPublish: tutanotaTypeRefs.EncryptedMailAddress | null
 } {
 	if (
 		organizer == null ||
@@ -681,7 +674,7 @@ function assembleAttendees(
 		// there's no attendees besides the organizer (which may be us) or there's no organizer at all.
 		return { allAttendees: [], organizerToPublish: null }
 	}
-	const allAttendees: Array<CalendarEventAttendee> = []
+	const allAttendees: Array<tutanotaTypeRefs.CalendarEventAttendee> = []
 	if (organizer.address.address !== ownAttendee?.address.address) {
 		allAttendees.push(organizer)
 	}

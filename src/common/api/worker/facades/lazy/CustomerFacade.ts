@@ -62,16 +62,16 @@ import { PQFacade } from "../PQFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
-import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
-import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
-import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
 import { SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import { hexToRsaPublicKey, keyToUint8Array, PQKeyPairs } from "@tutao/crypto"
+import { hexToRsaPublicKey, keyToUint8Array, PQKeyPairs, cryptoUtils } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -297,7 +297,7 @@ export class CustomerFacade {
 			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, keyToUint8Array(accountingInfoSessionKey))
 			systemAdminPubEncAccountingInfoSessionKey = {
 				key: systemAdminPubEncAccountingInfoSessionKeyBytes,
-				encryptingKeyVersion: parseKeyVersion(keyData.systemAdminPubKeyVersion),
+				encryptingKeyVersion: cryptoUtils.parseKeyVersion(keyData.systemAdminPubKeyVersion),
 			}
 			systemAdminPublicProtocolVersion = CryptoProtocolVersion.RSA
 		} else {
@@ -338,7 +338,7 @@ export class CustomerFacade {
 		const adminEncAccountingInfoSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
 		const adminEncCustomerServerPropertiesSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
 
-		const data = createCustomerAccountCreateData({
+		const data = tutanotaTypeRefs.createCustomerAccountCreateData({
 			authToken,
 			date: Const.CURRENT_DATE,
 			lang: currentLanguage,

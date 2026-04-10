@@ -3,7 +3,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
 import { FeatureType, InboxRuleType, Keys, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../common/api/common/TutanotaConstants"
-import { File as TutanotaFile, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "@tutao/utils"
@@ -251,7 +251,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			viewModel: this.viewModel,
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
 			isPrimary: attrs.isPrimary,
-			importFile: (file: TutanotaFile) => this.handleAttachmentImport(file),
+			importFile: (file: tutanotaTypeRefs.File) => this.handleAttachmentImport(file),
 			moreActions: attrs.moreActions,
 			actions: attrs.actions,
 		})
@@ -764,7 +764,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return false
 	}
 
-	private async handleAttachmentImport(file: TutanotaFile) {
+	private async handleAttachmentImport(file: tutanotaTypeRefs.File) {
 		try {
 			await this.viewModel.importAttachment(file)
 		} catch (e) {
@@ -779,7 +779,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 }
 
 export type CreateMailViewerOptions = {
-	mail: Mail
+	mail: tutanotaTypeRefs.Mail
 	showFolder: boolean
 	/** latestMail is needed when conversation actions are preformed on it */
 	loadLatestMail: boolean
@@ -791,6 +791,6 @@ export type CreateMailViewerOptions = {
  * support and invoice mails can contain links to the settings page.
  * we don't want normal mails to be able to link places in the app, though.
  * */
-function isSettingsLink(href: string, mail: Mail): boolean {
+function isSettingsLink(href: string, mail: tutanotaTypeRefs.Mail): boolean {
 	return (href.startsWith("/settings/") ?? false) && isTutaTeamMail(mail)
 }

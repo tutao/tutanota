@@ -1,4 +1,4 @@
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 
 export class MoveDestinationIsSourceError extends TutanotaError {
 	constructor(message: string) {

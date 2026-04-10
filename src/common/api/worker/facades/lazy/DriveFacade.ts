@@ -5,7 +5,7 @@ import { ArchiveDataType, GroupType } from "../../../common/TutanotaConstants"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../UserFacade"
 import { aes256RandomKey } from "@tutao/crypto"
-import { CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper"
+import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
 import { assertNotNull, first, groupBy, isEmpty, isSameTypeRef, partition, promiseMap, Require } from "@tutao/utils"
 import {
 	createDriveCopyServicePostIn,
@@ -30,7 +30,7 @@ import {
 } from "../../../entities/drive/TypeRefs"
 import { DriveCopyService, DriveFolderService, DriveItemService, DriveService } from "../../../entities/drive/Services"
 import { CryptoFacade } from "../../crypto/CryptoFacade"
-import { getElementId, getListId, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
+import { getElementId, getListId, isSameId, listIdPart } from "@tutao/typeRefs"
 import { BlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { TransferId } from "../../../common/drive/DriveTypes"

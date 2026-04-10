@@ -9,8 +9,8 @@ import { AvailablePlanType, HighestTierPlans, ImportStatus, MailSetKind, Upgrade
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
-import { MailSet } from "../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "@tutao/typeRefs"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../common/misc/SubscriptionDialogs.js"
@@ -129,7 +129,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			.getIndentedList()
 			.filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX && folderInfo.folder.folderType !== MailSetKind.SCHEDULED)
 
-		let targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
+		let targetFolders: SelectorItemList<tutanotaTypeRefs.MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
 				value: folderInfo.folder,
@@ -141,7 +141,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			disabled: this.mailImporter().shouldRenderImportStatus(),
 			selectedValue: selectedTargetFolder,
 			selectedValueDisplay: selectedTargetFolder ? getFolderName(selectedTargetFolder) : loadingMsg,
-			selectionChangedHandler: (newFolder: MailSet | null) => (this.mailImporter().selectedTargetFolder = newFolder),
+			selectionChangedHandler: (newFolder: tutanotaTypeRefs.MailSet | null) => (this.mailImporter().selectedTargetFolder = newFolder),
 			helpLabel: () => helpLabel,
 		})
 	}

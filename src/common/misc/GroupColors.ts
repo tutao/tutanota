@@ -1,9 +1,9 @@
 import { memoized } from "@tutao/utils"
-import { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isValidSolidColorCode } from "../gui/base/Color"
 import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../api/common/TutanotaConstants"
 
-export const getGroupColors = memoized((userId: Id, userSettingsGroupRoot: UserSettingsGroupRoot) => {
+export const getGroupColors = memoized((userId: Id, userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot) => {
 	const calendarColors: Map<string, string> = userSettingsGroupRoot.groupSettings.reduce((acc, { group, color }) => {
 		if (!isValidSolidColorCode("#" + color)) {
 			color = DEFAULT_CALENDAR_COLOR

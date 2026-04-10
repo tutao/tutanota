@@ -7,8 +7,7 @@ import { getLanguageCode } from "./TemplateEditorModel"
 import { showTemplateEditor } from "./TemplateEditor"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { lang, languageByCode, TranslationKey } from "../../common/misc/LanguageViewModel"
-import type { EmailTemplate } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { TemplateGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
@@ -23,7 +22,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	private readonly sanitizedContents: Array<{ text: string; languageCodeTextId: TranslationKey }>
 
 	constructor(
-		private readonly template: EmailTemplate,
+		private readonly template: tutanotaTypeRefs.EmailTemplate,
 		private readonly entityClient: EntityClient,
 		readonly isReadOnly: lazy<boolean>,
 	) {
@@ -83,7 +82,10 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 
 	private async editTemplate() {
 		const { template } = this
-		const groupRoot = await locator.entityClient.load(TemplateGroupRootTypeRef, assertNotNull(template._ownerGroup, "template without ownerGroup!"))
+		const groupRoot = await locator.entityClient.load(
+			tutanotaTypeRefs.TemplateGroupRootTypeRef,
+			assertNotNull(template._ownerGroup, "template without ownerGroup!"),
+		)
 		showTemplateEditor(template, groupRoot)
 	}
 

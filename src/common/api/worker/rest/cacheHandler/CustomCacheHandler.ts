@@ -1,5 +1,5 @@
-import { SomeEntity } from "../../../common/EntityTypes.js"
-import { CalendarEvent, Mail } from "../../../entities/tutanota/TypeRefs.js"
+import { SomeEntity } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { freezeMap, getTypeString, TypeRef } from "@tutao/utils"
 import { ExposedCacheStorage } from "../DefaultEntityRestCache.js"
 import { User } from "../../../entities/sys/TypeRefs"
@@ -10,7 +10,7 @@ import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"
  * add new types to the union when implementing new
  * custom cache handlers.
  */
-export type CustomCacheHandledType = never | CalendarEvent | Mail | User
+export type CustomCacheHandledType = never | tutanotaTypeRefs.CalendarEvent | tutanotaTypeRefs.Mail | User
 
 /**
  * makes sure that any {ref<A>, handler<A>} pair passed to

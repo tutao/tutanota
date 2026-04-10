@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../common/misc/LanguageViewModel"
 
 import { Keys, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
-import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { component_size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
 import { Icon } from "../../../common/gui/base/Icon"
@@ -12,7 +12,7 @@ import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId, getLetId, haveSameId } from "@tutao/typeRefs"
 import { promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -36,6 +36,7 @@ import { generateExportFileName } from "../export/emlUtils.js"
 
 assertMainOrNode()
 
+type Mail = tutanotaTypeRefs.Mail
 export interface MailListViewAttrs {
 	// We would like to not get and hold to the whole MailView eventually
 	// but for that we need to rewrite the List

@@ -1,6 +1,6 @@
 import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
-import { createMailAddressProperties, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { findAndRemove } from "@tutao/utils"
 
@@ -21,7 +21,7 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		let aliasConfig = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === address)
 		if (aliasConfig == null) {
-			aliasConfig = createMailAddressProperties({ mailAddress: address, senderName: name })
+			aliasConfig = tutanotaTypeRefs.createMailAddressProperties({ mailAddress: address, senderName: name })
 			mailboxProperties.mailAddressProperties.push(aliasConfig)
 		} else {
 			aliasConfig.senderName = name
@@ -38,7 +38,7 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 		return this.collectMap(mailboxProperties)
 	}
 
-	private collectMap(mailboxProperties: MailboxProperties): AddressToName {
+	private collectMap(mailboxProperties: tutanotaTypeRefs.MailboxProperties): AddressToName {
 		const result = new Map()
 		for (const properties of mailboxProperties.mailAddressProperties) {
 			result.set(properties.mailAddress, properties.senderName)
@@ -46,7 +46,7 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 		return result
 	}
 
-	private async getMailboxProperties(): Promise<MailboxProperties> {
+	private async getMailboxProperties(): Promise<tutanotaTypeRefs.MailboxProperties> {
 		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 		return await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	}

@@ -1,4 +1,4 @@
-import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Checkbox } from "../../../common/gui/base/Checkbox.js"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import m from "mithril"
@@ -68,7 +68,7 @@ export async function reportMailsAutomatically(
 	mailReportType: MailReportType,
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
-	mails: () => Promise<ReadonlyArray<Mail>>,
+	mails: () => Promise<ReadonlyArray<tutanotaTypeRefs.Mail>>,
 ): Promise<void> {
 	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel)
 	if (shouldReportMails) {

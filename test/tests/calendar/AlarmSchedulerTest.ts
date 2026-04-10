@@ -6,7 +6,7 @@ import { EndType, RepeatPeriod } from "../../../src/common/api/common/TutanotaCo
 import { DateProvider } from "../../../src/common/api/common/DateProvider.js"
 import { createTestEntity, SchedulerMock } from "../TestUtils.js"
 import { spy } from "@tutao/otest"
-import { AdvancedRepeatRuleTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ByRule } from "../../../src/common/calendar/date/CalendarUtils"
 
 o.spec("AlarmScheduler", function () {

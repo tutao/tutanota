@@ -21,22 +21,23 @@ import {
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
-import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule, createAdvancedRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { Stripped } from "@tutao/typeRefs"
 import { EndType, RepeatPeriod, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../../common/api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import m from "mithril"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {
-	repeatRule: CalendarRepeatRule | null
+	repeatRule: tutanotaTypeRefs.CalendarRepeatRule | null
 }
 
+type AdvancedRepeatRule = tutanotaTypeRefs.AdvancedRepeatRule
 /*
  * start, end, repeat, exclusions, reschedulings
  */
 export class CalendarEventWhenModel {
-	private repeatRule: CalendarRepeatRule | null = null
+	private repeatRule: tutanotaTypeRefs.CalendarRepeatRule | null = null
 	private _isAllDay: boolean
 
 	/** represents the start of day of the start date in local time. */
@@ -49,7 +50,7 @@ export class CalendarEventWhenModel {
 	private _endTime: Time | null
 
 	constructor(
-		private readonly initialValues: Partial<Stripped<CalendarEvent>>,
+		private readonly initialValues: Partial<Stripped<tutanotaTypeRefs.CalendarEvent>>,
 		readonly zone: string,
 		private readonly uiUpdateCallback: () => void = noOp,
 	) {
@@ -495,7 +496,7 @@ export class CalendarEventWhenModel {
 	createAdvancedRulesFromWeekdays(weekdays: Weekday[], interval?: number): AdvancedRepeatRule[] {
 		if (weekdays.length === 0 || interval === 0) return []
 		return weekdays.map((wd) => {
-			return createAdvancedRepeatRule({
+			return tutanotaTypeRefs.createAdvancedRepeatRule({
 				interval: interval ? interval.toString() + wd : wd,
 				ruleType: ByRule.BYDAY,
 			})
@@ -662,7 +663,11 @@ export function getDefaultEndCountValue(): string {
 	return "10"
 }
 
-export function repeatRuleWithExcludedAlteredInstances(progenitor: CalendarEvent, recurrenceIds: ReadonlyArray<Date>, timeZone: string): CalendarRepeatRule {
+export function repeatRuleWithExcludedAlteredInstances(
+	progenitor: tutanotaTypeRefs.CalendarEvent,
+	recurrenceIds: ReadonlyArray<Date>,
+	timeZone: string,
+): tutanotaTypeRefs.CalendarRepeatRule {
 	const whenModel = new CalendarEventWhenModel(progenitor, timeZone)
 	for (const recurrenceId of recurrenceIds) {
 		whenModel.excludeDate(recurrenceId)

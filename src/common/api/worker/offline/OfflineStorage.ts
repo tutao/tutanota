@@ -1,4 +1,4 @@
-import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
+import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "@tutao/typeRefs"
 import {
 	CUSTOM_MIN_ID,
 	customIdToBase64Url,
@@ -38,12 +38,12 @@ import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.j
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue.js"
-import { Type as TypeId } from "../../common/EntityConstants.js"
+import { Type as TypeId } from "@tutao/typeRefs"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "../crypto/ModelMapper"
-import { AttributeModel } from "../../common/AttributeModel"
-import { TypeModelResolver } from "../../common/EntityFunctions"
+import { AttributeModel } from "@tutao/typeRefs"
+import { TypeModelResolver } from "@tutao/typeRefs"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 

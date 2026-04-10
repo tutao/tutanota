@@ -1,4 +1,4 @@
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import m from "mithril"
 import { getAllDayDateUTC, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -68,7 +68,7 @@ export class EventDragHandler {
 		return this.dragging
 	}
 
-	get originalCalendarEvent(): CalendarEvent | null {
+	get originalCalendarEvent(): tutanotaTypeRefs.CalendarEvent | null {
 		return this.data?.originalEventWrapper.event ?? null
 	}
 

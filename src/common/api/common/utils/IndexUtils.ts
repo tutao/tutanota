@@ -1,11 +1,11 @@
 import { isSameTypeRef, TypeRef } from "@tutao/utils"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
 import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP } from "../TutanotaConstants"
-import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeModels"
+import { tutanotaTypeModels } from "@tutao/typeRefs"
 import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import type { TypeModel } from "../EntityTypes"
-import { isTest } from "../Env"
-import { ContactTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs"
+import type { TypeModel } from "@tutao/typeRefs"
+import { isTest } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 export type TypeInfo = {
 	appId: number
@@ -13,14 +13,14 @@ export type TypeInfo = {
 	attributeIds: number[]
 }
 
-const MailTypeId = MailTypeRef.typeId
-const ContactTypeId = ContactTypeRef.typeId
+const MailTypeId = tutanotaTypeRefs.MailTypeRef.typeId
+const ContactTypeId = tutanotaTypeRefs.ContactTypeRef.typeId
 const typeInfos: Map<string, Map<number, any>> = new Map([
 	[
 		"tutanota",
 		new Map([
 			[
-				MailTypeRef.typeId,
+				tutanotaTypeRefs.MailTypeRef.typeId,
 				{
 					appId: 1,
 					typeId: MailTypeId,
@@ -28,7 +28,7 @@ const typeInfos: Map<string, Map<number, any>> = new Map([
 				},
 			],
 			[
-				ContactTypeRef.typeId,
+				tutanotaTypeRefs.ContactTypeRef.typeId,
 				{
 					appId: 1,
 					typeId: ContactTypeId,
@@ -291,7 +291,7 @@ export function shouldMeasure(): boolean {
 export function getSearchEndTimestamp(currentMailIndexTimestamp: number, restriction: SearchRestriction): number {
 	if (restriction.end) {
 		return restriction.end
-	} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
+	} else if (isSameTypeRef(tutanotaTypeRefs.MailTypeRef, restriction.type)) {
 		return currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? Date.now() : currentMailIndexTimestamp
 	} else {
 		return FULL_INDEXED_TIMESTAMP

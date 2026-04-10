@@ -3,4 +3,16 @@
  * Needed in case we only want to handle the errors but don't want to include the rest of the code.
  */
 
-export { CryptoError } from "./misc/CryptoError"
+import { TutanotaError } from "@tutao/appEnv"
+
+export class CryptoError extends TutanotaError {
+	constructor(message: string, error?: Error) {
+		super("CryptoError", error ? message + "> " + (error.stack ? error.stack : error.message) : message)
+	}
+}
+
+export class SessionKeyNotFoundError extends TutanotaError {
+	constructor(message: string) {
+		super("SessionKeyNotFoundError", message)
+	}
+}

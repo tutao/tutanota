@@ -27,7 +27,7 @@ import {
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
-import { HttpMethod, PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
+import { HttpMethod, PatchOperationType, TypeModelResolver } from "@tutao/typeRefs"
 import {
 	BucketPermission,
 	BucketPermissionTypeRef,
@@ -82,7 +82,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService, UpdateSessionKeysService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart, getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId, isSameId } from "@tutao/typeRefs"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
@@ -93,7 +93,7 @@ import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
 import { typeModelToRestPath } from "../rest/EntityRestClient"
-import { AttributeModel } from "../../common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../facades/InstanceSessionKeysCache"
 import { isOfflineError } from "../../common/utils/ErrorUtils"

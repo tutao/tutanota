@@ -2,18 +2,6 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { FileReference } from "../api/common/utils/FileUtils.js"
 import {
-	ContactTypeRef,
-	ConversationEntry,
-	ConversationEntryTypeRef,
-	FileTypeRef,
-	Mail,
-	MailboxProperties,
-	MailboxPropertiesTypeRef,
-	MailDetails,
-	MailDetailsDraftTypeRef,
-	MailTypeRef,
-} from "../api/entities/tutanota/TypeRefs.js"
-import {
 	ApprovalStatus,
 	CalendarAttendeeStatus,
 	ConversationType,
@@ -41,11 +29,12 @@ import {
 	ofClass,
 	promiseMap,
 	remove,
+	stringToCustomId,
 	typedValues,
 } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import type { File as TutanotaFile } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { elementIdPart, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isAliasEnabledWithUser, isUserEmail, RecipientField } from "./SharedMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { RecipientsModel, ResolvableRecipient } from "../api/main/RecipientsModel.js"
@@ -75,7 +64,6 @@ import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResol
 import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { elementIdPart, getElementId, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
 import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
 import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
 import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
@@ -108,14 +96,14 @@ export const enum SendAtStatus {
 	TooFarInTheFuture,
 }
 
-export type Attachment = TutanotaFile | DataFile | FileReference
+export type Attachment = tutanotaTypeRefs.File | DataFile | FileReference
 
 export type InitAsResponseArgs = {
-	previousMail: Mail
+	previousMail: tutanotaTypeRefs.Mail
 	conversationType: ConversationType
 	senderMailAddress: string
 	recipients: Recipients
-	attachments: TutanotaFile[]
+	attachments: tutanotaTypeRefs.File[]
 	subject: string
 	bodyText: string
 	replyTos: RecipientList
@@ -127,11 +115,11 @@ type InitArgs = {
 	bodyText: string
 	recipients: Recipients
 	confidential: boolean | null
-	draft?: Mail | null
+	draft?: tutanotaTypeRefs.Mail | null
 	senderMailAddress?: string
 	attachments?: ReadonlyArray<Attachment>
 	replyTos?: RecipientList
-	previousMail?: Mail | null
+	previousMail?: tutanotaTypeRefs.Mail | null
 	previousMessageId?: string | null
 	initialChangedState: boolean | null
 }
@@ -147,7 +135,7 @@ export class SendMailModel {
 	loadedInlineImages: InlineImages = new Map()
 
 	// Isn't private because used by MinimizedEditorOverlay, refactor?
-	draft: Mail | null = null
+	draft: tutanotaTypeRefs.Mail | null = null
 	private conversationType: ConversationType = ConversationType.NEW
 	private subject: string = ""
 	private body: string = ""
@@ -164,7 +152,7 @@ export class SendMailModel {
 	// only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
 	private previousMessageId: Id | null = null
 
-	private previousMail: Mail | null = null
+	private previousMail: tutanotaTypeRefs.Mail | null = null
 	private selectedNotificationLanguage: string
 	private availableNotificationTemplateLanguages: Array<Language> = []
 	private mailChangedAt: number = 0
@@ -200,9 +188,9 @@ export class SendMailModel {
 		public readonly mailboxDetails: MailboxDetail,
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
-		private mailboxProperties: MailboxProperties,
+		private mailboxProperties: tutanotaTypeRefs.MailboxProperties,
 		private readonly autosaveFacade: AutosaveFacade,
-		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
+		private readonly needNewDraft: (mail: tutanotaTypeRefs.Mail) => Promise<boolean>,
 		private readonly syncTracker: SyncTracker,
 		readonly undoModel: UndoModel | null,
 	) {
@@ -248,7 +236,7 @@ export class SendMailModel {
 		return !this.mailboxDetails.mailGroup.user
 	}
 
-	getPreviousMail(): Mail | null {
+	getPreviousMail(): tutanotaTypeRefs.Mail | null {
 		return this.previousMail
 	}
 
@@ -465,7 +453,7 @@ export class SendMailModel {
 		const { previousMail, conversationType, senderMailAddress, recipients, attachments, subject, bodyText, replyTos } = args
 		let previousMessageId: string | null = null
 		await this.entity
-			.load(ConversationEntryTypeRef, previousMail.conversationEntry)
+			.load(tutanotaTypeRefs.ConversationEntryTypeRef, previousMail.conversationEntry)
 			.then((ce) => {
 				previousMessageId = ce.messageId
 			})
@@ -494,25 +482,25 @@ export class SendMailModel {
 	}
 
 	async initWithDraft(
-		draft: Mail,
-		draftDetails: MailDetails,
-		conversationEntry: ConversationEntry,
+		draft: tutanotaTypeRefs.Mail,
+		draftDetails: tutanotaTypeRefs.MailDetails,
+		conversationEntry: tutanotaTypeRefs.ConversationEntry,
 		attachments: Attachment[],
 		inlineImages: InlineImages,
 	): Promise<SendMailModel> {
 		this.startInit()
 
 		let previousMessageId: string | null = null
-		let previousMail: Mail | null = null
+		let previousMail: tutanotaTypeRefs.Mail | null = null
 
 		const conversationType = downcast<ConversationType>(conversationEntry.conversationType)
 
 		if (conversationEntry.previous) {
 			try {
-				const previousEntry = await this.entity.load(ConversationEntryTypeRef, conversationEntry.previous)
+				const previousEntry = await this.entity.load(tutanotaTypeRefs.ConversationEntryTypeRef, conversationEntry.previous)
 				previousMessageId = previousEntry.messageId
 				if (previousEntry.mail) {
-					previousMail = await this.entity.load(MailTypeRef, previousEntry.mail)
+					previousMail = await this.entity.load(tutanotaTypeRefs.MailTypeRef, previousEntry.mail)
 				}
 			} catch (e) {
 				if (e instanceof NotFoundError) {
@@ -816,11 +804,11 @@ export class SendMailModel {
 		return getSenderName(this.mailboxProperties, this.senderAddress) ?? ""
 	}
 
-	getDraft(): Readonly<Mail> | null {
+	getDraft(): Readonly<tutanotaTypeRefs.Mail> | null {
 		return this.draft
 	}
 
-	private async updateDraft(body: string, attachments: ReadonlyArray<Attachment> | null, draft: Mail): Promise<Mail> {
+	private async updateDraft(body: string, attachments: ReadonlyArray<Attachment> | null, draft: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.Mail> {
 		return this.mailFacade
 			.updateDraft({
 				subject: this.getSubject(),
@@ -848,7 +836,7 @@ export class SendMailModel {
 			)
 	}
 
-	private async createDraft(body: string, attachments: ReadonlyArray<Attachment> | null, mailMethod: MailMethod): Promise<Mail> {
+	private async createDraft(body: string, attachments: ReadonlyArray<Attachment> | null, mailMethod: MailMethod): Promise<tutanotaTypeRefs.Mail> {
 		return this.mailFacade.createDraft({
 			subject: this.getSubject(),
 			bodyText: body,
@@ -1033,7 +1021,11 @@ export class SendMailModel {
 
 			// The draft might have been moved, sent, or scheduled from another client
 			// So load up-to-date mail when checking if a new draft is needed
-			if (this.hasMailChanged() || this.draft == null || (await this.needNewDraft(await this.entity.load(MailTypeRef, this.draft._id)))) {
+			if (
+				this.hasMailChanged() ||
+				this.draft == null ||
+				(await this.needNewDraft(await this.entity.load(tutanotaTypeRefs.MailTypeRef, this.draft._id)))
+			) {
 				// Don't save unnecessarily.
 				await this.saveDraft(true, mailMethod)
 			}
@@ -1202,14 +1194,14 @@ export class SendMailModel {
 
 			// the draft might have been moved, sent, or scheduled from another client.
 			// Load up-to-date mail when checking if a new draft is needed
-			const upToDateDraft = this.draft && (await this.entity.load(MailTypeRef, this.draft._id))
+			const upToDateDraft = this.draft && (await this.entity.load(tutanotaTypeRefs.MailTypeRef, this.draft._id))
 			this.draft =
 				upToDateDraft == null || (await this.needNewDraft(upToDateDraft))
 					? await this.createDraft(body, attachments, mailMethod)
 					: await this.updateDraft(body, attachments, upToDateDraft)
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
-			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<TutanotaFile>(FileTypeRef, fileId), {
+			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<tutanotaTypeRefs.File>(tutanotaTypeRefs.FileTypeRef, fileId), {
 				concurrency: 5,
 			})
 
@@ -1353,11 +1345,11 @@ export class SendMailModel {
 		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
 		let changed = false
 
-		if (isUpdateForTypeRef(ContactTypeRef, update)) {
+		if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update)) {
 			await this.recipientsResolved.getAsync()
 
 			if (operation === OperationType.UPDATE) {
-				const contact = await this.entity.load(ContactTypeRef, contactId)
+				const contact = await this.entity.load(tutanotaTypeRefs.ContactTypeRef, contactId)
 
 				for (const fieldType of typedValues(RecipientField)) {
 					const matching = this.getRecipientList(fieldType).filter((recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id))
@@ -1386,9 +1378,9 @@ export class SendMailModel {
 			}
 		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 			await this.updateAvailableNotificationTemplateLanguages()
-		} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
-		} else if (isUpdateForTypeRef(MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {
+		} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+			this.mailboxProperties = await this.entity.load(tutanotaTypeRefs.MailboxPropertiesTypeRef, update.instanceId)
+		} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {
 			const mailDetailsDraftId = assertNotNull(this.draft.mailDetailsDraft)
 			if (isSameId(update.instanceId, elementIdPart(mailDetailsDraftId))) {
 				if (this._draftSavedRecently) {

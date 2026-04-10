@@ -12,21 +12,15 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
-import {
-	getElementId,
-	LEGACY_BCC_RECIPIENTS_ID,
-	LEGACY_BODY_ID,
-	LEGACY_CC_RECIPIENTS_ID,
-	LEGACY_TO_RECIPIENTS_ID,
-} from "../../../../../src/common/api/common/utils/EntityUtils"
+import { getElementId, LEGACY_BCC_RECIPIENTS_ID, LEGACY_BODY_ID, LEGACY_CC_RECIPIENTS_ID, LEGACY_TO_RECIPIENTS_ID } from "@tutao/typeRefs"
 import { IndexedDbMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbMailIndexerBackend"
 import { matchers, object, verify, when } from "testdouble"
 import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils"
-import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo } from "@tutao/typeRefs"
 import { assertNotNull } from "@tutao/utils"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 
 o.spec("IndexedDbMailIndexerBackend", () => {
 	let core: IndexerCore

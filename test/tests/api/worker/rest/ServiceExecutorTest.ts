@@ -13,11 +13,11 @@ import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/U
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { CustomerAccountReturnTypeRef } from "../../../../../src/common/api/entities/accounting/TypeRefs"
+import { accountingTypeRefs } from "@tutao/typeRefs"
 import { aes256RandomKey } from "@tutao/crypto"
 import { CustomerAccountService } from "../../../../../src/common/api/entities/accounting/Services"
-import { ServerModelUntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { ServerModelUntypedInstance } from "@tutao/typeRefs"
+import { AttributeModel } from "@tutao/typeRefs"
 
 const { anything } = matchers
 

@@ -38,7 +38,7 @@ import {
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
 	timestampToGeneratedId,
-} from "../../../../../src/common/api/common/utils/EntityUtils.js"
+} from "@tutao/typeRefs"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -48,7 +48,7 @@ import { typeModels } from "../../../../../src/common/api/entities/tutanota/Type
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
-import { ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { ConnectionError, NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError"

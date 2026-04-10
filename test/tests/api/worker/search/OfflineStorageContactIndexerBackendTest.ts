@@ -4,7 +4,7 @@ import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUti
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { ContactListTypeRef, ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("OfflineStorageContactIndexerBackend", () => {
 	let persistence: OfflineStoragePersistence

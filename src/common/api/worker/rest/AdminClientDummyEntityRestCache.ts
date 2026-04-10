@@ -1,4 +1,4 @@
-import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
+import { ListElementEntity, SomeEntity } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { TypeRef } from "@tutao/utils"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"

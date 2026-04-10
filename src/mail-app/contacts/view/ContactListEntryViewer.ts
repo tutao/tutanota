@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Contact, ContactListEntry, createContact, createContactMailAddress } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { theme } from "../../../common/gui/theme.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
@@ -8,8 +8,9 @@ import { ContactAddressType } from "../../../common/api/common/TutanotaConstants
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel.js"
 
+type Contact = tutanotaTypeRefs.Contact
 export interface ContactListEntryViewerAttrs {
-	entry: ContactListEntry
+	entry: tutanotaTypeRefs.ContactListEntry
 	contacts: Contact[]
 	contactEdit: (contact: Contact) => unknown
 	contactDelete: (contacts: Contact[]) => unknown
@@ -55,9 +56,9 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 							m(Button, {
 								label: "createContact_action",
 								click: () => {
-									let newContact = createContact({
+									let newContact = tutanotaTypeRefs.createContact({
 										mailAddresses: [
-											createContactMailAddress({
+											tutanotaTypeRefs.createContactMailAddress({
 												type: ContactAddressType.WORK,
 												customTypeName: "",
 												address: attrs.entry.emailAddress,
@@ -100,7 +101,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 	}
 }
 
-export function getContactListEntriesSelectionMessage(selectedEntities: ContactListEntry[] | undefined): Translation {
+export function getContactListEntriesSelectionMessage(selectedEntities: tutanotaTypeRefs.ContactListEntry[] | undefined): Translation {
 	if (selectedEntities && selectedEntities.length > 0) {
 		return lang.getTranslation("nbrOfEntriesSelected_msg", { "{nbr}": selectedEntities.length })
 	} else {

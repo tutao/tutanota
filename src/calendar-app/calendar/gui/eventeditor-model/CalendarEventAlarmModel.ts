@@ -5,8 +5,8 @@ import { DateProvider } from "../../../../common/api/common/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Duration } from "luxon"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { isSameId } from "../../../../common/api/common/utils/EntityUtils"
-import { GroupSettings } from "../../../../common/api/entities/tutanota/TypeRefs"
+import { isSameId } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 export type CalendarEventAlarmModelResult = {
 	alarms: Array<AlarmInfoTemplate>
@@ -108,7 +108,7 @@ export class CalendarEventAlarmModel {
 	 * @example
 	 * await myEventAlarmModel.removeCalendarDefaultAlarms('calendar123', allGroupSettings)
 	 */
-	async removeCalendarDefaultAlarms(calendarId: Id | null, groupSettings: GroupSettings[]) {
+	async removeCalendarDefaultAlarms(calendarId: Id | null, groupSettings: tutanotaTypeRefs.GroupSettings[]) {
 		if (!calendarId || isEmpty(this._alarms)) {
 			return
 		}

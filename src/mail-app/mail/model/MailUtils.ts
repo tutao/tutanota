@@ -1,11 +1,12 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first } from "@tutao/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { isFolderReadOnly, MailSetKind, MOVE_SYSTEM_FOLDERS, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
-import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
+import { isSameId, sortCompareByReverseId } from "@tutao/typeRefs"
 
+type MailSet = tutanotaTypeRefs.MailSet
 export type FolderInfo = { level: number; folder: MailSet }
 
 export const enum MoveService {
@@ -71,7 +72,7 @@ export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
 	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
 }
 
-export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly Mail[]): Promise<MoveTargets> {
+export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly tutanotaTypeRefs.Mail[]): Promise<MoveTargets> {
 	const regularMoveTargets = (folders: readonly FolderInfo[]): RegularMoveTargets => ({
 		moveService: MoveService.RegularMove,
 		folders,
@@ -155,25 +156,25 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailSe
 	return folderPath.map(getFolderName).join(" · ")
 }
 
-export function getMailHeaders(headers: Header): string {
+export function getMailHeaders(headers: tutanotaTypeRefs.Header): string {
 	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
-export function loadMailHeaders(mailDetails: MailDetails): string | null {
+export function loadMailHeaders(mailDetails: tutanotaTypeRefs.MailDetails): string | null {
 	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 
-export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): InboxRule | null {
+export function getExistingRuleForType(props: tutanotaTypeRefs.TutanotaProperties, cleanValue: string, type: string): tutanotaTypeRefs.InboxRule | null {
 	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
 }
 
-export function allInSameMailbox(mails: readonly Mail[]): boolean {
+export function allInSameMailbox(mails: readonly tutanotaTypeRefs.Mail[]): boolean {
 	const mailGroups = mails.map((m) => m._ownerGroup)
 	return mailGroups.every((mg) => mg === mailGroups[0])
 	// returns true if mails is empty
 }
 
-export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
+export function mailInFolder(mail: tutanotaTypeRefs.Mail, folderId: IdTuple): boolean {
 	return mail.sets.some((s) => isSameId(s, folderId))
 }
 
@@ -183,7 +184,7 @@ export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
  * @param mail2
  * @return 0 if same received date and ID, >0 if mail2 is newer, <0 if mail2 is older
  */
-export function compareMails(mail1: Mail, mail2: Mail): number {
+export function compareMails(mail1: tutanotaTypeRefs.Mail, mail2: tutanotaTypeRefs.Mail): number {
 	const dateDifference = mail2.receivedDate.getTime() - mail1.receivedDate.getTime()
 	if (dateDifference === 0) {
 		return sortCompareByReverseId(mail1, mail2)
@@ -196,6 +197,6 @@ export function compareMails(mail1: Mail, mail2: Mail): number {
  * @returns {boolean} true if the given mail was already replied to. Otherwise false.
  * Note that it also returns true if the mail was replied to AND forwarded.
  */
-export function isRepliedTo(mail: Mail): boolean {
+export function isRepliedTo(mail: tutanotaTypeRefs.Mail): boolean {
 	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
 }

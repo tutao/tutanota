@@ -10,16 +10,16 @@ import {
 	testTypeModel,
 	TestTypeRef,
 } from "../crypto/InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, PatchOperationType, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientTypeReferenceResolver, PatchOperationType, ServerTypeReferenceResolver } from "@tutao/typeRefs"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "../../../../../src/common/api/common/utils/EntityUtils"
-import { createPatch } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { createTestEntityWithDummyResolver } from "../../../TestUtils"
-import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "../../../../../src/common/api/common/EntityTypes"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
-import { ValueType } from "../../../../../src/common/api/common/EntityConstants"
+import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "@tutao/typeRefs"
+import { AttributeModel } from "@tutao/typeRefs"
+import { ValueType } from "@tutao/typeRefs"
 import { areValuesDifferent, computePatches } from "../../../../../src/common/api/common/utils/PatchGenerator"
 
 o.spec("computePatches", function () {

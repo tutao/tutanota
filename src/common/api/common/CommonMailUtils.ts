@@ -1,15 +1,15 @@
-import { Body, Mail } from "../entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 export interface MailAddressAndName {
 	name: string
 	address: string
 }
 
-export function getDisplayedSender(mail: Mail): MailAddressAndName {
+export function getDisplayedSender(mail: tutanotaTypeRefs.Mail): MailAddressAndName {
 	const realSender = mail.sender
 	return { address: realSender.address, name: realSender.name }
 }
 
-export function getMailBodyText(body: Body): string {
+export function getMailBodyText(body: tutanotaTypeRefs.Body): string {
 	return body.compressedText ?? body.text ?? ""
 }

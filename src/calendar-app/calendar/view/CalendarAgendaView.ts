@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, incrementDate, isToday, stringToBase64 } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
-import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventWrapper } from "./CalendarViewModel"
 import { styles } from "../../../common/gui/styles.js"
@@ -14,7 +14,7 @@ import { layout_size, px, size } from "../../../common/gui/size.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
-import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId, getListId } from "@tutao/typeRefs"
 import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -56,7 +56,7 @@ export type CalendarAgendaViewAttrs = {
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
 	onNewEvent: (date: Date | null) => unknown
-	onEditContact: (contact: Contact) => unknown
+	onEditContact: (contact: tutanotaTypeRefs.Contact) => unknown
 	onWriteMail: (recipient: PartialRecipient) => unknown
 }
 

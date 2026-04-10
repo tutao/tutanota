@@ -120,6 +120,9 @@ export {
 	_replaceLoneSurrogates,
 	_stringToUtf8Uint8ArrayLegacy,
 	_utf8Uint8ArrayToStringLegacy,
+	stringToCustomId,
+	customIdToString,
+	uint8arrayToCustomId,
 } from "./Encoding.js"
 export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding.js"
 export { LazyLoaded } from "./LazyLoaded.js"

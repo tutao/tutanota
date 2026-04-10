@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { splitListElementsIntoChunksByList } from "../../../../../src/common/api/worker/facades/lazy/DriveFacade"
-import { listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { listIdPart } from "@tutao/typeRefs"
 
 function generateIdTuples(count: number, listId: string = "list id") {
 	const ids: IdTuple[] = []

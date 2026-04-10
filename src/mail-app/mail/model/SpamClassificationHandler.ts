@@ -1,4 +1,4 @@
-import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailAuthenticationStatus, MailPhishingStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "@tutao/utils"
@@ -34,11 +34,11 @@ export class SpamClassificationHandler {
 	) {}
 
 	public async predictSpamForNewMail(
-		mail: Mail,
-		mailDetails: MailDetails,
-		sourceFolder: MailSet,
+		mail: tutanotaTypeRefs.Mail,
+		mailDetails: tutanotaTypeRefs.MailDetails,
+		sourceFolder: tutanotaTypeRefs.MailSet,
 		folderSystem: FolderSystem,
-	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
+	): Promise<{ targetFolder: tutanotaTypeRefs.MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
 		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
 		const isMailMarkedAsPhishing = mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
@@ -79,7 +79,7 @@ export class SpamClassificationHandler {
 		return { targetFolder, processInboxDatum: processInboxDatum }
 	}
 
-	private async isMailFromTrustedSender(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+	private async isMailFromTrustedSender(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails): Promise<boolean> {
 		// check if phishingStatus is not suspicious and if the sender is a trusted sender
 		const isMailFromContact = await this.isMailFromContacts(mail, mailDetails)
 		const isMailFromSelf = await this.isMailFromSelf(mail, mailDetails)
@@ -88,7 +88,7 @@ export class SpamClassificationHandler {
 		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && (isMailFromSelf || isMailFromTutaTeam || isMailFromContact)
 	}
 
-	private async isMailFromContacts(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+	private async isMailFromContacts(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails): Promise<boolean> {
 		return (
 			((await this.contactModel.searchForContact(mail.sender.address)) != null && mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) ??
 			false
@@ -102,7 +102,7 @@ export class SpamClassificationHandler {
 	 * yet updated at the point this check is performed.
 	 *
 	 */
-	private async isMailFromSelf(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+	private async isMailFromSelf(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails): Promise<boolean> {
 		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
 		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
 		return mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED && isMailFromSelf

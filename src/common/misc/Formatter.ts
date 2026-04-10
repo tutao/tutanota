@@ -1,6 +1,6 @@
 import { lang } from "./LanguageViewModel"
 import { isSameDayOfDate, pad } from "@tutao/utils"
-import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { TimeFormat } from "../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../api/common/Env"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
@@ -154,7 +154,7 @@ export function convertTextToHtml(text: string) {
 	return text.replace(/(\r)?\n/g, "<br>")
 }
 
-export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
+export function getHourCycle(userSettings: tutanotaTypeRefs.UserSettingsGroupRoot): "h12" | "h23" {
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
 

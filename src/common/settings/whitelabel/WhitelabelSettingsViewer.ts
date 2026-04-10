@@ -27,7 +27,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 import * as EditNotificationEmailDialog from "../../settings/EditNotificationEmailDialog"
 import { isWhitelabelActive } from "../../subscription/utils/SubscriptionUtils.js"
-import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
+import { GENERATED_MAX_ID } from "@tutao/typeRefs"
 import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings"
 import { WhitelabelThemeSettings } from "./WhitelabelThemeSettings"
 import { WhitelabelImprintAndPrivacySettings } from "./WhitelabelImprintAndPrivacySettings"

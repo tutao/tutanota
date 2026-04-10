@@ -9,13 +9,13 @@ import {
 	isSameId,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../../../../src/common/api/common/utils/EntityUtils.js"
+} from "@tutao/typeRefs"
 import { _verifyType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
-import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
+import { Type } from "@tutao/typeRefs"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { getIds } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 

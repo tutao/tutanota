@@ -8,11 +8,11 @@ import {
 	removeTechnicalFields,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
-} from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+} from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
 
-import { ElementEntity } from "../../../../../src/common/api/common/EntityTypes.js"
+import { ElementEntity } from "@tutao/typeRefs"
 import { clone, TypeRef } from "@tutao/utils"
 import { hasError } from "../../../../../src/common/api/common/utils/ErrorUtils.js"
 

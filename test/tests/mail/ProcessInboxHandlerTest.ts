@@ -17,13 +17,13 @@ import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFaca
 import { createTestEntity } from "../TestUtils"
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 import { InboxRuleHandler, InboxRulesApplicationType } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
-import { BucketKeyTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 import { LockedError } from "../../../src/common/api/common/error/RestError"
 
 const { captor, anything } = matchers

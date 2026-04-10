@@ -54,8 +54,8 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
-import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
+import { type Entity, TypeModel } from "@tutao/typeRefs"
+import { baseTypeRefs } from "@tutao/typeRefs"
 import { aes256RandomKey, AesKey, decryptKey } from "@tutao/crypto"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
@@ -65,7 +65,7 @@ import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/Ke
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { AttributeModel } from "@tutao/typeRefs"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 
 const { anything, argThat, captor } = matchers

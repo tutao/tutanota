@@ -6,12 +6,12 @@ import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlC
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, isSameTypeRef, last, splitArrayAt } from "@tutao/utils"
-import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { isSameId } from "@tutao/typeRefs"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -26,9 +26,9 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
 		const tokens = await this.tokenize(query)
 
-		if (isSameTypeRef(restriction.type, MailTypeRef)) {
+		if (isSameTypeRef(restriction.type, tutanotaTypeRefs.MailTypeRef)) {
 			return this.searchMails(query, tokens, restriction, maxResults)
-		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+		} else if (isSameTypeRef(restriction.type, tutanotaTypeRefs.ContactTypeRef)) {
 			return this.searchContacts(query, tokens, restriction)
 		} else {
 			throw new ProgrammingError(`cannot search ${restriction.type.typeId}`)

@@ -1,13 +1,17 @@
-import { Mail, MailSet, MailSetEntry } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
-import { elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, listIdPart } from "@tutao/typeRefs"
 import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { groupByAndMap, isEmpty, promiseFilter } from "@tutao/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
+
+type Mail = tutanotaTypeRefs.Mail
+type MailSetEntry = tutanotaTypeRefs.MailSetEntry
+type MailSet = tutanotaTypeRefs.MailSet
 
 /**
  * Interface for retrieving and listing mails

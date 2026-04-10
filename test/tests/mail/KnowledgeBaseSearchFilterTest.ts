@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { knowledgeBaseSearch } from "../../../src/mail-app/knowledgebase/model/KnowledgeBaseSearchFilter.js"
-import type { KnowledgeBaseEntry } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { KnowledgeBaseEntryKeywordTypeRef, KnowledgeBaseEntryTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("KnowledgeBaseSearchFilter", function () {

@@ -39,20 +39,7 @@ import {
 	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
-import {
-	CalendarEvent,
-	CalendarEventAttendee,
-	CalendarEventTypeRef,
-	CalendarEventUpdate,
-	CalendarGroupRoot,
-	CalendarGroupRootTypeRef,
-	createDefaultAlarmInfo,
-	createGroupSettings,
-	FileTypeRef,
-	GroupSettings,
-	UserSettingsGroupRoot,
-	UserSettingsGroupRootTypeRef,
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
@@ -62,15 +49,7 @@ import type { IProgressMonitor } from "../../../common/api/common/utils/Progress
 import { NoopProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import {
-	DELETE_MULTIPLE_LIMIT,
-	elementIdPart,
-	getElementId,
-	isSameId,
-	listIdPart,
-	POST_MULTIPLE_LIMIT,
-	removeTechnicalFields,
-} from "../../../common/api/common/utils/EntityUtils"
+import { DELETE_MULTIPLE_LIMIT, elementIdPart, getElementId, isSameId, listIdPart, POST_MULTIPLE_LIMIT, removeTechnicalFields } from "@tutao/typeRefs"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
 import m from "mithril"
@@ -87,7 +66,7 @@ import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
 import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -128,10 +107,12 @@ import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
-import { TutanotaError } from "@tutao/error"
+import { TutanotaError } from "@tutao/appEnv"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 
+type CalendarEvent = tutanotaTypeRefs.CalendarEvent
+type CalendarGroupRoot = tutanotaTypeRefs.CalendarGroupRoot
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
 const EXTERNAL_CALENDAR_RETRY_DELAY_MS = 1000
@@ -196,7 +177,7 @@ export class CalendarModel {
 		}
 	> = new Map()
 	private readonly userAlarmToAlarmInfo: Map<string, string> = new Map()
-	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
+	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, tutanotaTypeRefs.CalendarEventUpdate> = new Map()
 
 	private readProgressMonitor: Generator<IProgressMonitor>
 
@@ -348,7 +329,7 @@ export class CalendarModel {
 
 			this.requestWidgetRefresh()
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
-			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
+			return await this.entityClient.load<CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest version
@@ -367,7 +348,7 @@ export class CalendarModel {
 		for (const membership of userController.getCalendarMemberships()) {
 			try {
 				const result = await Promise.all([
-					this.entityClient.load(CalendarGroupRootTypeRef, membership.group),
+					this.entityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, membership.group),
 					this.entityClient.load(GroupInfoTypeRef, membership.groupInfo),
 					this.entityClient.load(GroupTypeRef, membership.group),
 				])
@@ -415,7 +396,7 @@ export class CalendarModel {
 	private async makeCalendarInfo(
 		userId: Id,
 		group: Group,
-		userSettingsGroupRoot: UserSettingsGroupRoot,
+		userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot,
 		groupRoot: CalendarGroupRoot,
 		groupInfo: GroupInfo,
 	): Promise<CalendarInfo> {
@@ -462,12 +443,15 @@ export class CalendarModel {
 		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
 	}
 
-	private async collectExternalCalendarsToSync(groupSettings: GroupSettings[] | null = null) {
+	private async collectExternalCalendarsToSync(groupSettings: tutanotaTypeRefs.GroupSettings[] | null = null) {
 		const userController = this.logins.getUserController()
 		let existingGroupSettings = groupSettings
 
 		if (!existingGroupSettings) {
-			const { groupSettings: gSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
+			const { groupSettings: gSettings } = await locator.entityClient.load(
+				tutanotaTypeRefs.UserSettingsGroupRootTypeRef,
+				userController.user.userGroup.group,
+			)
 			existingGroupSettings = gSettings
 		}
 
@@ -482,7 +466,7 @@ export class CalendarModel {
 	}
 
 	public async syncExternalCalendars(
-		groupSettings: GroupSettings[] | null = null,
+		groupSettings: tutanotaTypeRefs.GroupSettings[] | null = null,
 		syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL,
 		longErrorMessage: boolean = false,
 		forceSync: boolean = false,
@@ -510,7 +494,7 @@ export class CalendarModel {
 			const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
 			let calendarGroupRootsList: CalendarGroupRoot[] = []
 			for (const membership of userController.getCalendarMemberships()) {
-				groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
+				groupRootsPromises.push(this.entityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, membership.group))
 			}
 			calendarGroupRootsList = await Promise.all(groupRootsPromises)
 
@@ -730,10 +714,10 @@ export class CalendarModel {
 		const { user, group } = await this.calendarFacade.addCalendar(name)
 		this.logins.getUserController().user = user
 
-		const serializedAlarms = alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+		const serializedAlarms = alarms.map((alarm) => tutanotaTypeRefs.createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
 		if (color != null) {
 			const { userSettingsGroupRoot } = this.logins.getUserController()
-			const newGroupSettings = createGroupSettings({
+			const newGroupSettings = tutanotaTypeRefs.createGroupSettings({
 				group: group._id,
 				color: color,
 				name: null,
@@ -810,7 +794,7 @@ export class CalendarModel {
 
 	isPendingInvitation(event: CalendarEvent) {
 		const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
-		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(event.attendees, ownMailAddresses)
+		const ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null = findAttendeeInAddresses(event.attendees, ownMailAddresses)
 
 		return ownAttendee?.status === CalendarAttendeeStatus.NEEDS_ACTION || ownAttendee?.status === CalendarAttendeeStatus.ADDED
 	}
@@ -872,7 +856,7 @@ export class CalendarModel {
 		try {
 			// We are not supposed to load files without the key provider, but we hope that the key
 			// was already resolved and the entity updated.
-			const file = await this.entityClient.load(FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
+			const file = await this.entityClient.load(tutanotaTypeRefs.FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
@@ -897,7 +881,7 @@ export class CalendarModel {
 	 * @param update The calendar event data received via email.
 	 * @throws NoOwnerEncSessionKeyForCalendarEventError when the session key for the ics file cannot be resolved.
 	 */
-	public async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
+	public async handleCalendarEventUpdate(update: tutanotaTypeRefs.CalendarEventUpdate): Promise<void> {
 		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
 		try {
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
@@ -942,7 +926,7 @@ export class CalendarModel {
 	 * @param update the update to erase
 	 * @private
 	 */
-	private async eraseUpdate(update: CalendarEventUpdate): Promise<void> {
+	private async eraseUpdate(update: tutanotaTypeRefs.CalendarEventUpdate): Promise<void> {
 		try {
 			await this.entityClient.erase(update)
 		} catch (e) {
@@ -1200,7 +1184,7 @@ export class CalendarModel {
 
 		let calendarGroupRoot
 		try {
-			calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, ownerGroup!)
+			calendarGroupRoot = await this.entityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, ownerGroup!)
 		} catch (e) {
 			if (!(e instanceof NotFoundError) && !(e instanceof NotAuthorizedError)) throw e
 			console.log(TAG, "tried to create new progenitor or got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
@@ -1281,7 +1265,7 @@ export class CalendarModel {
 	async doUpdateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<CalendarEvent> {
 		const [alarms, groupRoot] = await Promise.all([
 			this.loadAlarms(dbEvent.alarmInfos, this.logins.getUserController().user),
-			this.entityClient.load<CalendarGroupRoot>(CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup)),
+			this.entityClient.load<CalendarGroupRoot>(tutanotaTypeRefs.CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup)),
 		])
 		const alarmInfos = alarms.map((a) => a.alarmInfo)
 		const event = await this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
@@ -1380,7 +1364,7 @@ export class CalendarModel {
 				} else if (entityEventData.operation === OperationType.DELETE && !isApp()) {
 					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
-			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE) {
 					const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
 					deferredEvent.deferred.resolve(undefined)
@@ -1402,7 +1386,7 @@ export class CalendarModel {
 						break
 					}
 				}
-			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, entityEventData)) {
+			} else if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, entityEventData)) {
 				// Usually this type of update comes alone after all other calendar updates,
 				// and user might have subscribed to a new calendar, so we must reload
 				// calendar infos to make sure that the calendar has been put in the correct section
@@ -1431,7 +1415,7 @@ export class CalendarModel {
 				if (deferredEvent.pendingAlarmCounter === 0) {
 					this.pendingAlarmRequests.delete(elementId)
 				}
-				const calendarEvent = await this.entityClient.load(CalendarEventTypeRef, [listId, elementId])
+				const calendarEvent = await this.entityClient.load(tutanotaTypeRefs.CalendarEventTypeRef, [listId, elementId])
 				const scheduler = await this.alarmScheduler()
 				try {
 					this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo, scheduler)
@@ -1496,7 +1480,7 @@ export class CalendarModel {
 		return this.lang.get("birthdayEventAge_title", { "{age}": age })
 	}
 
-	getGroupSettings(): GroupSettings[] {
+	getGroupSettings(): tutanotaTypeRefs.GroupSettings[] {
 		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
 	}
 }
@@ -1553,7 +1537,7 @@ export function formatNotificationForDisplay(eventTime: Date, summary: string): 
 
 async function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
 	return Promise.all([
-		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
-		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents),
+		locator.entityClient.loadAll(tutanotaTypeRefs.CalendarEventTypeRef, groupRoot.longEvents),
+		locator.entityClient.loadAll(tutanotaTypeRefs.CalendarEventTypeRef, groupRoot.shortEvents),
 	]).then((results) => results.flat())
 }

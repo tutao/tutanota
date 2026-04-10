@@ -3,13 +3,13 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "../../../common/misc/KeyManager.js"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton.js"
 import { PosRect, showDropdown } from "../../../common/gui/base/Dropdown.js"
-import { MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { component_size, size } from "../../../common/gui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId } from "@tutao/typeRefs"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
 import { AriaRole } from "../../../common/gui/AriaUtils.js"
@@ -28,7 +28,7 @@ export class LabelsPopup implements ModalComponent {
 		private readonly origin: PosRect,
 		private readonly width: number,
 		private readonly viewModel: LabelsPopupViewModel,
-		private readonly onLabelsApplied: (addedLabels: MailSet[], removedLabels: MailSet[]) => unknown,
+		private readonly onLabelsApplied: (addedLabels: tutanotaTypeRefs.MailSet[], removedLabels: tutanotaTypeRefs.MailSet[]) => unknown,
 	) {
 		this.view = this.view.bind(this)
 		this.oncreate = this.oncreate.bind(this)

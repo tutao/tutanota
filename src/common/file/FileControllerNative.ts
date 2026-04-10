@@ -2,7 +2,7 @@ import { Dialog } from "../gui/base/Dialog.js"
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode, isAndroidApp, isApp, isDesktop, isElectronClient, isIOSApp, isTest } from "../api/common/Env"
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
-import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertOnlyFileReferences, FileReference } from "../api/common/utils/FileUtils"
 import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp.js"
@@ -65,7 +65,7 @@ export class FileControllerNative extends FileController {
 	}
 
 	/** Public for testing */
-	async downloadAndDecrypt(tutanotaFile: TutanotaFile, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
+	async downloadAndDecrypt(tutanotaFile: tutanotaTypeRefs.File, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(
 			archiveType,
 			createReferencingInstance(tutanotaFile),

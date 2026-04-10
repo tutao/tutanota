@@ -1,4 +1,4 @@
-import type { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -17,8 +17,8 @@ import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 
 export type ContactPreviewViewAttrs = {
-	event: CalendarEvent
-	contact: Contact
+	event: tutanotaTypeRefs.CalendarEvent
+	contact: tutanotaTypeRefs.Contact
 }
 
 export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
@@ -70,7 +70,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		})
 	}
 
-	private renderActions(contact: Contact): Children {
+	private renderActions(contact: tutanotaTypeRefs.Contact): Children {
 		return m(".flex.pb-8", m(ActionButtons, contact))
 	}
 }
@@ -82,7 +82,7 @@ export function simulateMailToClick(mailAddress: string) {
 	anchorElement.click()
 }
 
-const ActionButtons = pureComponent((contact: Contact) => {
+const ActionButtons = pureComponent((contact: tutanotaTypeRefs.Contact) => {
 	interface ButtonColors {
 		borderColor: string
 		color: string

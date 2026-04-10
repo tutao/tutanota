@@ -1,17 +1,12 @@
-import {
-	ClientModelEncryptedParsedInstance,
-	ClientTypeModel,
-	ServerModelUntypedInstance,
-	ServerTypeModel,
-} from "../../../../../src/common/api/common/EntityTypes"
+import { ClientModelEncryptedParsedInstance, ClientTypeModel, ServerModelUntypedInstance, ServerTypeModel } from "@tutao/typeRefs"
 import { assertNotNull, TypeRef } from "@tutao/utils"
 import o from "@tutao/otest"
 import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
 import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typeRefs"
+import { AttributeModel } from "@tutao/typeRefs"
 
 const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
 	"1:testValue": "test string",

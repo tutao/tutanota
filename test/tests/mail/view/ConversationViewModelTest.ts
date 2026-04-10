@@ -17,11 +17,11 @@ import { EventController } from "../../../../src/common/api/main/EventController
 import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/utils"
 import { matchers, object, when } from "testdouble"
 import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
-import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { isSameId } from "@tutao/typeRefs"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
-import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo } from "@tutao/typeRefs"
 import { EntityEventsListener } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"

@@ -8,7 +8,7 @@ import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailI
 import { object, replace } from "testdouble"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
 import { assertNotNull, getTypeString, typedValues } from "@tutao/utils"
-import { getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { getElementId, getListId } from "@tutao/typeRefs"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import {
 	BodyTypeRef,

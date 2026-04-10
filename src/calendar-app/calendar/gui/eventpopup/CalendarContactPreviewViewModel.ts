@@ -1,4 +1,4 @@
-import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isNotNull } from "@tutao/utils"
 
 /**
@@ -12,8 +12,8 @@ export class CalendarContactPreviewViewModel {
 	 * @param _canEdit allow editing the contact if available
 	 */
 	constructor(
-		readonly calendarEvent: Readonly<CalendarEvent>,
-		readonly contact: Readonly<Contact>,
+		readonly calendarEvent: Readonly<tutanotaTypeRefs.CalendarEvent>,
+		readonly contact: Readonly<tutanotaTypeRefs.Contact>,
 		private readonly _canEdit: boolean = false,
 	) {}
 

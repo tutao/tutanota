@@ -1,11 +1,6 @@
 import { DAY_IN_MILLIS, filterInt, neverNull } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
-import {
-	CalendarEventAttendee,
-	createCalendarEventAttendee,
-	createEncryptedMailAddress,
-	EncryptedMailAddress,
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	CalendarAdvancedRepeatRule,
 	createCalendarAdvancedRepeatRule,
@@ -586,12 +581,12 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		const attendees = getAttendees(eventObj)
 
 		const organizerProp = getProp(eventObj, "ORGANIZER", true)
-		let organizer: EncryptedMailAddress | null = null
+		let organizer: tutanotaTypeRefs.EncryptedMailAddress | null = null
 		if (organizerProp) {
 			const organizerAddress = parseMailtoValue(organizerProp.value)
 
 			if (organizerAddress && isMailAddress(organizerAddress, false)) {
-				organizer = createEncryptedMailAddress({
+				organizer = tutanotaTypeRefs.createEncryptedMailAddress({
 					address: organizerAddress,
 					name: organizerProp.params["name"] || "",
 				})
@@ -630,7 +625,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 }
 
 function getAttendees(eventObj: ICalObject) {
-	let attendees: CalendarEventAttendee[] = []
+	let attendees: tutanotaTypeRefs.CalendarEventAttendee[] = []
 	for (const property of eventObj.properties) {
 		if (property.name === "ATTENDEE") {
 			const attendeeAddress = parseMailtoValue(property.value)
@@ -649,8 +644,8 @@ function getAttendees(eventObj: ICalObject) {
 			}
 
 			attendees.push(
-				createCalendarEventAttendee({
-					address: createEncryptedMailAddress({
+				tutanotaTypeRefs.createCalendarEventAttendee({
+					address: tutanotaTypeRefs.createEncryptedMailAddress({
 						address: attendeeAddress,
 						name: property.params["CN"] || "",
 					}),

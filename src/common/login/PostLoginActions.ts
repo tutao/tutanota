@@ -9,7 +9,7 @@ import { locator } from "../api/main/CommonLocator"
 import { ReceiveInfoService } from "../api/entities/tutanota/Services"
 import { lang } from "../misc/LanguageViewModel.js"
 import { getHourCycle } from "../misc/Formatter.js"
-import { createReceiveInfoServiceData, OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils.js"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
@@ -35,7 +35,7 @@ import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
-import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
+import { GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
 
@@ -160,7 +160,7 @@ export class PostLoginActions implements PostLoginAction {
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
-			const receiveInfoData = createReceiveInfoServiceData({
+			const receiveInfoData = tutanotaTypeRefs.createReceiveInfoServiceData({
 				language: lang.code,
 			})
 			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
@@ -191,7 +191,7 @@ export class PostLoginActions implements PostLoginAction {
 		}
 	}
 
-	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
+	private deactivateOutOfOfficeNotification(notification: tutanotaTypeRefs.OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
 		return this.entityClient.update(notification)
 	}

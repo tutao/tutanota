@@ -1,12 +1,12 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { ImportMailState, ImportMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first, isEmpty } from "@tutao/utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
-import { elementIdPart, GENERATED_MIN_ID, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, GENERATED_MIN_ID, isSameId } from "@tutao/typeRefs"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
@@ -37,19 +37,19 @@ type ActiveImport = {
 }
 
 export class MailImporter {
-	private mailboxToFinalisedImportStates: Map<Id, Map<Id, ImportMailState>> = new Map()
+	private mailboxToFinalisedImportStates: Map<Id, Map<Id, tutanotaTypeRefs.ImportMailState>> = new Map()
 	public mailboxToFolders: Map<Id, FolderSystem> = new Map()
 
 	private activeImport: ActiveImport | null = null
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
-	private _selectedTargetFolder: MailSet | null = null
+	private _selectedTargetFolder: tutanotaTypeRefs.MailSet | null = null
 
-	public get selectedTargetFolder(): MailSet | null {
+	public get selectedTargetFolder(): tutanotaTypeRefs.MailSet | null {
 		return this._selectedTargetFolder
 	}
 
-	public set selectedTargetFolder(newTargetFolder: MailSet | null) {
+	public set selectedTargetFolder(newTargetFolder: tutanotaTypeRefs.MailSet | null) {
 		this._selectedTargetFolder = newTargetFolder
 		if (newTargetFolder?._ownerGroup !== this.selectedMailBoxDetail?.mailbox._ownerGroup) {
 			this.selectedMailBoxDetail = this.mailboxDetails.find((mailboxDetail) => mailboxDetail.mailbox._ownerGroup === newTargetFolder?._ownerGroup) ?? null
@@ -83,7 +83,7 @@ export class MailImporter {
 				await this.checkForResumableImport(mailbox)
 			}
 
-			const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailbox.mailImportStates)
+			const importMailStatesCollection = await this.entityClient.loadAll(tutanotaTypeRefs.ImportMailStateTypeRef, mailbox.mailImportStates)
 			for (const importMailState of importMailStatesCollection) {
 				if (this.isFinalisedImport(importMailState)) {
 					this.updateFinalisedImport(mailbox._id, elementIdPart(importMailState._id), importMailState)
@@ -102,7 +102,7 @@ export class MailImporter {
 		m.redraw()
 	}
 
-	private async checkForResumableImport(mailbox: MailBox): Promise<void> {
+	private async checkForResumableImport(mailbox: tutanotaTypeRefs.MailBox): Promise<void> {
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 
 		let activeImportId: IdTuple | null = null
@@ -125,7 +125,7 @@ export class MailImporter {
 		if (activeImportId) {
 			// we can't use the result of loadAll (see below) as that might only read from offline cache and
 			// not include a new ImportMailState that was created without sending an entity event
-			const importMailState = await this.entityClient.load(ImportMailStateTypeRef, activeImportId)
+			const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, activeImportId)
 			const remoteStatus = parseInt(importMailState.status) as ImportStatus
 
 			switch (remoteStatus) {
@@ -151,7 +151,7 @@ export class MailImporter {
 						uiStatus: UiImportStatus.Paused,
 						progressMonitor,
 					}
-					this.selectedTargetFolder = await this.entityClient.load(MailSetTypeRef, importMailState.targetFolder)
+					this.selectedTargetFolder = await this.entityClient.load(tutanotaTypeRefs.MailSetTypeRef, importMailState.targetFolder)
 				}
 			}
 		}
@@ -159,14 +159,14 @@ export class MailImporter {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+			if (isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
+				const updatedState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 				await this.newImportStateFromServer(updatedState)
 			}
 		}
 	}
 
-	async newImportStateFromServer(serverState: ImportMailState) {
+	async newImportStateFromServer(serverState: tutanotaTypeRefs.ImportMailState) {
 		const remoteStatus = parseInt(serverState.status) as ImportStatus
 
 		const wasUpdatedForThisImport = this.activeImport !== null && isSameId(this.activeImport.remoteStateId, serverState._id)
@@ -203,7 +203,7 @@ export class MailImporter {
 		})
 	}
 
-	private isFinalisedImport(importMailState: ImportMailState) {
+	private isFinalisedImport(importMailState: tutanotaTypeRefs.ImportMailState) {
 		return parseInt(importMailState.status) === ImportStatus.Finished || parseInt(importMailState.status) === ImportStatus.Canceled
 	}
 
@@ -442,7 +442,7 @@ export class MailImporter {
 		return Math.ceil(progressMonitor.percentage())
 	}
 
-	getFinalisedImports(mailboxId: Id): Array<ImportMailState> {
+	getFinalisedImports(mailboxId: Id): Array<tutanotaTypeRefs.ImportMailState> {
 		const finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
 		if (finalisedImportStates) {
 			return Array.from(finalisedImportStates.values())
@@ -450,7 +450,7 @@ export class MailImporter {
 		return []
 	}
 
-	updateFinalisedImport(mailboxId: Id, importMailStateElementId: Id, importMailState: ImportMailState) {
+	updateFinalisedImport(mailboxId: Id, importMailStateElementId: Id, importMailState: tutanotaTypeRefs.ImportMailState) {
 		let finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
 		if (!finalisedImportStates) {
 			this.mailboxToFinalisedImportStates.set(mailboxId, new Map())

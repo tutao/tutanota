@@ -1,0 +1,41 @@
+import { create, StrippedEntity } from "@tutao/typeRefs"
+import { TypeRef } from "@tutao/utils"
+import { typeModels } from "./TypeModels.js"
+
+
+export const CustomerAccountPostingTypeRef: TypeRef<CustomerAccountPosting> = new TypeRef("accounting", 79)
+
+export function createCustomerAccountPosting(values: StrippedEntity<CustomerAccountPosting>): CustomerAccountPosting {
+	return Object.assign(create(typeModels[CustomerAccountPostingTypeRef.typeId], CustomerAccountPostingTypeRef), values)
+}
+
+export type CustomerAccountPosting = {
+	_type: TypeRef<CustomerAccountPosting>;
+	_original?: CustomerAccountPosting
+
+	_id: Id;
+	type: NumberString;
+	valueDate: Date;
+	invoiceNumber: null | string;
+	amount: NumberString;
+}
+export const CustomerAccountReturnTypeRef: TypeRef<CustomerAccountReturn> = new TypeRef("accounting", 86)
+
+export function createCustomerAccountReturn(values: StrippedEntity<CustomerAccountReturn>): CustomerAccountReturn {
+	return Object.assign(create(typeModels[CustomerAccountReturnTypeRef.typeId], CustomerAccountReturnTypeRef), values)
+}
+
+export type CustomerAccountReturn = {
+	_type: TypeRef<CustomerAccountReturn>;
+	_errors: Object;
+	_original?: CustomerAccountReturn
+
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerPublicEncSessionKey: null | Uint8Array;
+	outstandingBookingsPrice: NumberString;
+	balance: NumberString;
+	_publicCryptoProtocolVersion: null | NumberString;
+
+	postings: CustomerAccountPosting[];
+}

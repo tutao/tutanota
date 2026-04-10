@@ -3,7 +3,7 @@ import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
-import { File as TutanotaFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
@@ -54,7 +54,7 @@ export interface MailViewerHeaderAttrs {
 	viewModel: MailViewerViewModel
 	createMailAddressContextButtons: MailAddressDropdownCreator
 	isPrimary: boolean
-	importFile: (file: TutanotaFile) => void
+	importFile: (file: tutanotaTypeRefs.File) => void
 	actions: MailHeaderActions
 	moreActions: MailViewerMoreActions
 }
@@ -580,7 +580,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		])
 	}
 
-	private renderAttachments(viewModel: MailViewerViewModel, importFile: (file: TutanotaFile) => void): Children {
+	private renderAttachments(viewModel: MailViewerViewModel, importFile: (file: tutanotaTypeRefs.File) => void): Children {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
@@ -657,7 +657,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 	}
 
-	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[], importFile: (file: TutanotaFile) => void): Children {
+	private renderAttachmentContainer(
+		viewModel: MailViewerViewModel,
+		attachments: tutanotaTypeRefs.File[],
+		importFile: (file: tutanotaTypeRefs.File) => void,
+	): Children {
 		return attachments.map((attachment) => {
 			const attachmentType = getAttachmentType(attachment.mimeType ?? "")
 			return m(AttachmentBubble, {

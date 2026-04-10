@@ -1,5 +1,5 @@
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import type { TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EmailSignatureType as TutanotaConstants } from "../../../common/api/common/TutanotaConstants"
 import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
@@ -20,7 +20,7 @@ export function getDefaultSignature(): string {
 	)
 }
 
-export function getEmailSignature(tutanotaProperties: TutanotaProperties): string {
+export function getEmailSignature(tutanotaProperties: tutanotaTypeRefs.TutanotaProperties): string {
 	// provide the user signature, even for shared mail groups
 	const type = tutanotaProperties.emailSignatureType
 
@@ -33,7 +33,7 @@ export function getEmailSignature(tutanotaProperties: TutanotaProperties): strin
 	}
 }
 
-export function appendEmailSignature(body: string, properties: TutanotaProperties): string {
+export function appendEmailSignature(body: string, properties: tutanotaTypeRefs.TutanotaProperties): string {
 	const signature = getEmailSignature(properties)
 
 	if (signature) {
