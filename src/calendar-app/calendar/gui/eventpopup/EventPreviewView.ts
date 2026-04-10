@@ -112,7 +112,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				? this.renderCalendar(calendarInfo.name, calendarInfo.color, CALENDAR_TYPE_TRANSLATION_MAP.get(calendarInfo.type) ?? "yourCalendars_label")
 				: null,
 			this.renderRow(
-				Icons.ClockOutlines,
+				Icons.ClockFilled,
 				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
 				true,
 			),
@@ -201,8 +201,8 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	): Children {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
 		return m("", [
-			m(".flex.pb-8", [
-				this.renderSectionIndicator(Icons.PeopleFilled),
+			m(".flex.gap-12.pb-8", [
+				this.renderSectionIndicator(Icons.PeopleFilled, { marginTop: "2px", visibility: "hidden" }),
 				m(".flex.flex-column", [
 					m(".small", lang.get("invitedToEvent_msg")),
 					m(".fit-content", { style: { "min-height": px(font_size.line_height_input * 7) } }, [
