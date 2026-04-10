@@ -421,8 +421,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			},
 			ColumnType.Background,
 			{
-				minWidth: layout_size.second_col_min_width,
-				maxWidth: layout_size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width + layout_size.third_col_min_width,
+				maxWidth: layout_size.second_col_max_width + layout_size.third_col_max_width,
 			},
 		)
 	}
