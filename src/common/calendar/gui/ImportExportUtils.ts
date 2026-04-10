@@ -300,11 +300,11 @@ export function createStrippedRepeatRule(repeatRule: tutanotaTypeRefs.CalendarRe
 		return null
 	}
 	return {
-		frequency: repeatRule.frequency ?? "",
-		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
-		interval: repeatRule.interval ?? "",
-		timeZone: repeatRule.timeZone ?? "",
+		frequency: repeatRule.frequency,
+		endType: repeatRule.endType,
+		endValue: repeatRule.endValue,
+		interval: repeatRule.interval,
+		timeZone: repeatRule.timeZone,
 		excludedDates: repeatRule.excludedDates
 			? repeatRule.excludedDates.map((ex) => ({
 					date: ex.date,
@@ -341,11 +341,11 @@ export function createStrippedMailAddress(mailAddress: tutanotaTypeRefs.Encrypte
 
 export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<tutanotaTypeRefs.CalendarRepeatRule> {
 	return {
-		frequency: repeatRule.frequency ?? "",
-		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
-		interval: repeatRule.interval ?? "",
-		timeZone: repeatRule.timeZone ?? "",
+		frequency: repeatRule.frequency,
+		endType: repeatRule.endType,
+		endValue: repeatRule.endValue,
+		interval: repeatRule.interval,
+		timeZone: repeatRule.timeZone,
 		excludedDates: repeatRule.excludedDates.map(function (values: StrippedEntity<sysTypeRefs.DateWrapper>): sysTypeRefs.DateWrapper {
 			return sysTypeRefs.createDateWrapper(values)
 		}),
