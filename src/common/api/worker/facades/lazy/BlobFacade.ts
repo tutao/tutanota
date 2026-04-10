@@ -321,6 +321,7 @@ export class BlobFacade {
 			assertNonNull(data, `Server did not return blob for id : ${blob.blobId}`)
 			resultBuffer.set(data, offset)
 			offset += data.length
+			blobChunks.delete(blob.blobId)
 		}
 		return resultBuffer
 	}
@@ -454,6 +455,14 @@ export class BlobFacade {
 							fileDownloadState.bytesDownloadedPerBlob.set(blob.blobId, filterInt(blob.size))
 						}
 					}
+				} catch (e) {
+					if (e.name === "CancelledError") {
+						for (const fileUri of blobIdToDecryptedFileUri.values()) {
+							this.fileApp.deleteFile(fileUri)
+						}
+					}
+
+					throw e
 				} finally {
 					for (const blob of referencingInstance.blobs) {
 						this.nativeDownloadProgressState.delete(blob.blobId)
@@ -466,20 +475,14 @@ export class BlobFacade {
 
 			// order decryptedChunkFileUris so that we can tell native to join them
 			const decryptedChunkFileUris = referencingInstance.blobs.map((blob) => assertNotNull(blobIdToDecryptedFileUri.get(blob.blobId)))
-			try {
-				const decryptedFileUri = await this.fileApp.joinFiles(fileName, decryptedChunkFileUris)
-				const size = await this.fileApp.getSize(decryptedFileUri)
-				return {
-					_type: "FileReference",
-					name: fileName,
-					mimeType,
-					size,
-					location: decryptedFileUri,
-				}
-			} finally {
-				for (const tmpBlobFile of decryptedChunkFileUris) {
-					await this.fileApp.deleteFile(tmpBlobFile)
-				}
+			const decryptedFileUri = await this.fileApp.joinFiles(fileName, decryptedChunkFileUris)
+			const size = await this.fileApp.getSize(decryptedFileUri)
+			return {
+				_type: "FileReference",
+				name: fileName,
+				mimeType,
+				size,
+				location: decryptedFileUri,
 			}
 		} finally {
 			this.abortControllers.delete(transferId)
