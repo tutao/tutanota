@@ -311,11 +311,11 @@ export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null):
 		return null
 	}
 	return {
-		frequency: repeatRule.frequency ?? "",
-		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
-		interval: repeatRule.interval ?? "",
-		timeZone: repeatRule.timeZone ?? "",
+		frequency: repeatRule.frequency,
+		endType: repeatRule.endType,
+		endValue: repeatRule.endValue,
+		interval: repeatRule.interval,
+		timeZone: repeatRule.timeZone,
 		excludedDates: repeatRule.excludedDates
 			? repeatRule.excludedDates.map((ex) => ({
 					date: ex.date,
@@ -352,11 +352,11 @@ export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | nu
 
 export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<CalendarRepeatRule> {
 	return {
-		frequency: repeatRule.frequency ?? "",
-		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
-		interval: repeatRule.interval ?? "",
-		timeZone: repeatRule.timeZone ?? "",
+		frequency: repeatRule.frequency,
+		endType: repeatRule.endType,
+		endValue: repeatRule.endValue,
+		interval: repeatRule.interval,
+		timeZone: repeatRule.timeZone,
 		excludedDates: repeatRule.excludedDates.map(createDateWrapper),
 		advancedRules: repeatRule.advancedRules.map(createAdvancedRepeatRule),
 	}
