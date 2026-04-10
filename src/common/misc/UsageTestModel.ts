@@ -12,7 +12,7 @@ import { assertNotNull, neverNull } from "@tutao/utils"
 import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
 import { UsageTestMetricType } from "../api/common/TutanotaConstants"
 import { SuspensionError } from "../api/common/error/SuspensionError"
-import { SuspensionBehavior } from "../api/worker/rest/RestClient"
+import { restSuspension } from "@tutao/restClient"
 import { DateProvider } from "../api/common/DateProvider.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { UsageTestAssignmentService, UsageTestParticipationService } from "../api/entities/usage/Services.js"
@@ -322,10 +322,10 @@ export class UsageTestModel implements PingAdapter {
 		try {
 			const response: UsageTestAssignmentOut = testDeviceId
 				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
-						suspensionBehavior: SuspensionBehavior.Throw,
+						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 					})
 				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
-						suspensionBehavior: SuspensionBehavior.Throw,
+						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 					})
 			await this.storage().storeTestDeviceId(response.testDeviceId)
 			await this.storage().storeAssignments({
@@ -422,7 +422,7 @@ export class UsageTestModel implements PingAdapter {
 
 		try {
 			const { pingListId, pingId } = await this.serviceExecutor.post(UsageTestParticipationService, data, {
-				suspensionBehavior: SuspensionBehavior.Throw,
+				suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 			})
 			return { pingListId, pingId }
 		} catch (e) {

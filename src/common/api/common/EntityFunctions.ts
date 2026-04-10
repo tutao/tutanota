@@ -23,24 +23,12 @@ import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants
 import { ApplicationTypesGetOut } from "../worker/facades/ApplicationTypesFacade"
 import { isTest } from "./Env"
 
-export const enum HttpMethod {
-	GET = "GET",
-	POST = "POST",
-	PUT = "PUT",
-	PATCH = "PATCH",
-	DELETE = "DELETE",
-}
+export { HttpMethod, MediaType } from "@tutao/restClient"
 
 export const enum PatchOperationType {
 	ADD_ITEM = "0",
 	REMOVE_ITEM = "1",
 	REPLACE = "2",
-}
-
-export const enum MediaType {
-	Json = "application/json",
-	Binary = "application/octet-stream",
-	Text = "text/plain",
 }
 
 export type ApplicationTypesHash = string

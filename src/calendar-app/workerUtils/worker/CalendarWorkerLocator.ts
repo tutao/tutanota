@@ -14,8 +14,7 @@ import { Const } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
-import { RestClient } from "../../../common/api/worker/rest/RestClient.js"
-import { SuspensionHandler } from "../../../common/api/worker/SuspensionHandler.js"
+import { RestClient } from "@tutao/restClient"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -98,6 +97,7 @@ import {
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { SuspensionHandler } from "../../../restClient/SuspensionHandler.js"
 
 assertWorkerOrNode()
 
@@ -209,7 +209,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.rsa = await createRsaImplementation(worker)
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, serverModelInfo, String(browserData.clientPlatform))
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform))
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto, typeModelResolver)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider, typeModelResolver)

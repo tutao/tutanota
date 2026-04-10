@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { aes256RandomKey, AesKey, InstanceDecryptor, SymmetricCipherFacade, ValueDecryptor } from "@tutao/crypto"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { instance, matchers, object, when } from "testdouble"
@@ -12,7 +12,7 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Entity, ModelValue, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertNotNull, base64ToUint8Array, downcast, noOp, Nullable, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
-import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
+import { RestClient } from "@tutao/restClient"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
@@ -47,7 +47,6 @@ import { createSystemMail } from "../../common/mail/CommonMailUtilsTest"
 import { convertJsToDbType } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { PatchOperationError } from "../../../../../src/common/api/common/error/PatchOperationError"
-import { assertThrows } from "@tutao/otest"
 import { EncryptionAuthStatus } from "../../../../../src/common/api/common/TutanotaConstants"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"

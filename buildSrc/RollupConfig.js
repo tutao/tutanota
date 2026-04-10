@@ -24,7 +24,7 @@ export const dependencyMap = {
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 }
 
-export const tsImportAliases = {
+export let tsImportAliases = {
 	"@tutao/utils": path.normalize("src/utils/dist/index.js"),
 	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
 	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
@@ -33,6 +33,8 @@ export const tsImportAliases = {
 	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
 	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
 	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
+	"@tutao/restClient": path.normalize("src/restClient/dist/index.js"),
+	"@tutao/appEnv": path.normalize("src/appEnv/dist/index.js"),
 }
 
 /**

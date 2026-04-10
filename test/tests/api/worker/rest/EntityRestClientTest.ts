@@ -17,7 +17,7 @@ import {
 	PatchListTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeModelToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
-import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { RestClient } from "@tutao/restClient"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import tutanotaModelInfo from "../../../../../src/common/api/entities/tutanota/ModelInfo.js"

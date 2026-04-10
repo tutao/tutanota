@@ -24,8 +24,7 @@ import { Const } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
-import { RestClient } from "../../../common/api/worker/rest/RestClient.js"
-import { SuspensionHandler } from "../../../common/api/worker/SuspensionHandler.js"
+import { RestClient, restSuspension as susHandler } from "@tutao/restClient"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -226,7 +225,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const mainInterface = worker.getMainInterface()
 
-	const suspensionHandler = new SuspensionHandler(self, () =>
+	const suspensionHandler = new susHandler.SuspensionHandler(self, () =>
 		mainInterface.infoMessageHandler.onInfoMessage({
 			translationKey: "clientSuspensionWait_label",
 			args: {},
@@ -242,7 +241,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash: string | null) =>
 		locator.applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
 	)
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, serverModelInfo, String(browserData.clientPlatform))
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform))
 	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),

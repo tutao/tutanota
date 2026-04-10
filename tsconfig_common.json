@@ -35,7 +35,9 @@
 			"@tutao/wasm-loader": ["./src/wasm-loader"],
 			"@tutao/usagetests": ["./src/usagetests"],
 			"@tutao/mimimi": ["./src/mimimi"],
-			"@tutao/otest": ["./test/otest"]
+			"@tutao/otest": ["./test/otest"],
+			"@tutao/restClient": ["./src/restClient"],
+			"@tutao/appEnv": ["./src/appEnv"]
 		}
 	}
 }

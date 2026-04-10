@@ -1,13 +1,11 @@
-import o from "@tutao/otest"
-import { SuspensionHandler } from "../../../../src/common/api/worker/SuspensionHandler.js"
-import { deferWithHandler, downcast } from "@tutao/utils"
-import type { SystemTimeout } from "../../../../src/common/api/common/utils/Scheduler.js"
-import { InfoMessageHandler } from "../../../../src/common/gui/InfoMessageHandler.js"
-import { func, matchers, object } from "testdouble"
-import { spy, verify } from "@tutao/otest"
+import o, { spy, verify } from "@tutao/otest"
+import { restSuspension } from "@tutao/restClient"
+import { deferWithHandler } from "@tutao/utils"
+import { func } from "testdouble"
+import { SystemTimeout } from "../../../types"
 
 o.spec("SuspensionHandler test", () => {
-	let suspensionHandler: SuspensionHandler
+	let suspensionHandler: restSuspension.SuspensionHandler
 	let systemTimeout: SystemTimeout & { finish: () => unknown }
 	let suspensionCallback: () => unknown
 
@@ -24,7 +22,7 @@ o.spec("SuspensionHandler test", () => {
 			clearTimeout: spy(),
 			finish: () => timeoutFn(),
 		}
-		suspensionHandler = new SuspensionHandler(systemTimeout, suspensionCallback)
+		suspensionHandler = new restSuspension.SuspensionHandler(systemTimeout, suspensionCallback)
 	})
 	o.spec("activating suspension", function () {
 		o(

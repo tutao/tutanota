@@ -62,7 +62,7 @@ import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundEr
 import type { ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
-import { RestClient } from "../rest/RestClient"
+import { RestClient } from "@tutao/restClient"
 import {
 	Aes256Key,
 	aes256RandomKey,

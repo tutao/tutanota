@@ -22,7 +22,7 @@ import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/
 import { random } from "@tutao/crypto"
 import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
 import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
-import { RestClient } from "../../../common/api/worker/rest/RestClient.js"
+import { RestClient } from "@tutao/restClient"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"

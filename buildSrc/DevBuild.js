@@ -9,7 +9,7 @@ import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
 import { domainConfigs } from "./DomainConfigs.js"
 import { rolldown } from "rolldown"
-import { resolveLibs } from "./RollupConfig.js"
+import { resolveLibs, tsImportAliases } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import { execSync } from "node:child_process"
@@ -125,6 +125,10 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
 	await runStep("Web: Rolldown", async () => {
+		// In devBuild this aliases are resolved by rolldown itself,
+		// and we should not replate it with js path as it will not work for ts types
+		// which does not exists in final .js output
+		Object.keys(tsImportAliases).forEach((key) => delete tsImportAliases[key])
 		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },

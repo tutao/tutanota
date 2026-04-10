@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
-import { RestClient, RestClientOptions } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { RestClient, RestClientOptions } from "@tutao/restClient"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, PostService, PutService } from "../../../../../src/common/api/common/ServiceRequest.js"

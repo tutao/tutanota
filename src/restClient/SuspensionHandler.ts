@@ -1,7 +1,11 @@
-import type { DeferredObject } from "@tutao/utils"
-import { defer, noOp } from "@tutao/utils"
-import type { SystemTimeout } from "../common/utils/Scheduler.js"
-import { ServiceUnavailableError, TooManyRequestsError } from "../common/error/RestError"
+import { ServiceUnavailableError, TooManyRequestsError } from "./error"
+import { defer, DeferredObject, noOp } from "@tutao/utils"
+import { SystemTimeout } from "../../types"
+
+export const enum SuspensionBehavior {
+	Suspend,
+	Throw,
+}
 
 export class SuspensionHandler {
 	_isSuspended: boolean
@@ -50,7 +54,7 @@ export class SuspensionHandler {
 	/**
 	 * Adds a request to the deferred queue.
 	 * @param request
-	 * @returns {Promise<T>}
+	 * @returns {Promise<any>}
 	 */
 	deferRequest(request: () => Promise<any>): Promise<any> {
 		if (this._isSuspended) {

@@ -24,9 +24,10 @@
 			"@tutao/usagetests": ["../src/usagetests"],
 			"@tutao/mimimi": ["../src/mimimi"],
 			"@tutao/otest": ["./otest"],
+			"@tutao/appEnv": ["../src/appEnv"],
+			"@tutao/restClient": ["../src/restClient"],
 			"@tutao/licc": ["../src/licc"],
 			"@tutao/licc-parser": ["../src/licc/Parser"],
-
 			"@tutao/crypto/rsa": ["../src/crypto/encryption/Rsa"],
 			"@tutao/crypto/random": ["../src/crypto/random/SecureRandom"],
 			"@tutao/crypto/symmetric-cipher-utils": ["../src/crypto/encryption/symmetric/SymmetricCipherUtils"],
@@ -46,24 +47,6 @@
 	"references": [
 		{
 			"path": "tsconfig.otest.json"
-		},
-		{
-			"path": "../src/tsconfig.error.json"
-		},
-		{
-			"path": "../src/tsconfig.crypto.json"
-		},
-		{
-			"path": "../src/tsconfig.utils.json"
-		},
-		{
-			"path": "../src/tsconfig.mimimi.json"
-		},
-		{
-			"path": "../src/tsconfig.wasm.json"
-		},
-		{
-			"path": "../src/tsconfig.usagetests.json"
 		}
 	]
 }

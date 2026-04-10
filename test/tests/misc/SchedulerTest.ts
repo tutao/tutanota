@@ -1,11 +1,11 @@
-import o from "@tutao/otest"
-import type { ScheduledTimeoutId, Scheduler, SystemInterval, SystemTimeout } from "../../../src/common/api/common/utils/Scheduler.js"
+import o, { spy } from "@tutao/otest"
+import type { SystemTimeout } from "../../../types"
+import type { ScheduledTimeoutId, Scheduler, SystemInterval } from "../../../src/common/api/common/utils/Scheduler.js"
 import { SchedulerImpl, SET_TIMEOUT_LIMIT } from "../../../src/common/api/common/utils/Scheduler.js"
 import type { Thunk } from "@tutao/utils"
 import { assertNotNull, downcast } from "@tutao/utils"
 import { DateTime, Duration } from "luxon"
 import { DateProvider } from "../../../src/common/api/common/DateProvider.js"
-import { spy } from "@tutao/otest"
 
 o.spec("Scheduler", function () {
 	let dateProvider: DateProvider

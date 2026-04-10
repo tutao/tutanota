@@ -1,20 +1,19 @@
-import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
-import { ConnectionError, handleRestError, PayloadTooLargeError } from "../../common/error/RestError"
-import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
-import { assertNotNull, isNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
-import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
-import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
-import { SuspensionError } from "../../common/error/SuspensionError.js"
-import { ApplicationTypesService } from "../../entities/base/Services"
-import { getServiceRestPath } from "./ServiceExecutor"
-import { CancelledError } from "../../common/error/CancelledError"
+import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/appEnv"
+import { restError, restSuspension } from "@tutao/restClient"
+import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 
 assertWorkerOrNode()
 
 const TAG = "[RestClient]"
 
-// visibleForTesting
-export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
+// visible for testing
+export const MAX_BLOB_SIZE_BYTES = 1024 * 1024 * 10
+export const REQUEST_SIZE_LIMIT_DEFAULT = 1024 * 1024
+export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
+	["/rest/storage/blobservice", MAX_BLOB_SIZE_BYTES + 100], // overhead for encryption
+	["/rest/tutanota/filedataservice", 1024 * 1024 * 25],
+	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
+])
 const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 
 interface ProgressListener {
@@ -33,9 +32,17 @@ interface ProgressListener {
 	download(percent: number, bytes: number): void
 }
 
-export const enum SuspensionBehavior {
-	Suspend,
-	Throw,
+export const enum MediaType {
+	Json = "application/json",
+	Binary = "application/octet-stream",
+	Text = "text/plain",
+}
+export const enum HttpMethod {
+	GET = "GET",
+	POST = "POST",
+	PUT = "PUT",
+	PATCH = "PATCH",
+	DELETE = "DELETE",
 }
 
 export interface RestClientOptions {
@@ -47,7 +54,7 @@ export interface RestClientOptions {
 	queryParams?: Dict
 	noCORS?: boolean
 	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior?: SuspensionBehavior
+	suspensionBehavior?: restSuspension.SuspensionBehavior
 	abortSignal?: AbortSignal
 }
 
@@ -65,9 +72,8 @@ export class RestClient {
 	private serverTimeOffsetMs: number | null = null
 
 	constructor(
-		private readonly suspensionHandler: SuspensionHandler,
+		private readonly suspensionHandler: restSuspension.SuspensionHandler,
 		private readonly domainConfig: DomainConfig,
-		private readonly serverModelInfo: ServerModelInfo,
 		private readonly clientPlatform: string,
 	) {
 		this.id = 0
@@ -153,14 +159,6 @@ export class RestClient {
 
 						this.saveServerTimeOffsetFromRequest(xhr)
 
-						// handle new server model and update the applicationTypesJson file if applicable
-						const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
-						if (isNotNull(applicationTypesHashResponseHeader)) {
-							this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
-						} else if (!(path === getServiceRestPath(ApplicationTypesService) && method === HttpMethod.GET)) {
-							console.log(`Empty value for app types hash header in response with path ${path} and method ${method}`)
-						}
-
 						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
 								resolve(xhr.response)
@@ -171,11 +169,11 @@ export class RestClient {
 							}
 						} else {
 							const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
-							const isSuspensionResp = isSuspensionResponse(xhr.status, suspensionTime)
+							const isSuspensionResp = restSuspension.isSuspensionResponse(xhr.status, suspensionTime)
 
-							if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
+							if (isSuspensionResp && options.suspensionBehavior === restSuspension.SuspensionBehavior.Throw) {
 								reject(
-									new SuspensionError(
+									new restError.SuspensionError(
 										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
 										suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
 									),
@@ -187,7 +185,7 @@ export class RestClient {
 							} else {
 								logFailedRequest(method, url, xhr, options)
 								reject(
-									handleRestError(
+									restError.handleRestError(
 										xhr.status,
 										`| ${method} ${path}`,
 										xhr.getResponseHeader("Error-Id"),
@@ -207,7 +205,14 @@ export class RestClient {
 					try {
 						clearTimeout(timeout)
 						logFailedRequest(method, url, xhr, options)
-						reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
+						reject(
+							restError.handleRestError(
+								xhr.status,
+								` | ${method} ${path}`,
+								xhr.getResponseHeader("Error-Id"),
+								xhr.getResponseHeader("Precondition"),
+							),
+						)
 					} catch (e) {
 						const msg = "unexpected error in RestClient::onerror handler: "
 						console.error(msg, e)
@@ -284,7 +289,7 @@ export class RestClient {
 					if (options.abortSignal?.aborted) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
-						reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+						reject(new restError.ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 					}
 				}
 
@@ -346,7 +351,7 @@ export class RestClient {
 		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) ?? REQUEST_SIZE_LIMIT_DEFAULT
 
 		if (body && body.length > limit) {
-			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
+			throw new restError.PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
 		}
 	}
 
