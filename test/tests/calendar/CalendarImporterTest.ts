@@ -273,6 +273,7 @@ o.spec("CalendarImporter", function () {
 								interval: "3",
 								frequency: RepeatPeriod.WEEKLY,
 								timeZone: zone,
+								endValue: null,
 							}),
 						}),
 						[],
