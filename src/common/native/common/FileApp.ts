@@ -209,6 +209,7 @@ export class NativeFileApp {
 
 	/**
 	 * Joins the given files into one single file with a given name. The file is place in the app's temporary decrypted directory.
+	 * The input set of files will be deleted in the process.
 	 * @param filename the resulting filename
 	 * @param files The files to join.
 	 *

@@ -158,6 +158,7 @@ export class DesktopFileFacade implements FileFacade {
 				readStream.on("error", reject)
 				readStream.pipe(outStream, { end: false })
 			})
+			await this.deleteFile(infile)
 		}
 		await closeFileStream(outStream)
 		return fileUri

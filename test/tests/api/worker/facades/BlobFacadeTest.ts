@@ -408,7 +408,6 @@ o.spec("BlobFacade", function () {
 				),
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
-			verify(fileAppMock.deleteFile(decryptedChunkUri))
 		})
 
 		o("downloadAndDecryptNative multiple from different archives", async function () {
@@ -497,7 +496,6 @@ o.spec("BlobFacade", function () {
 				),
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
-			verify(fileAppMock.deleteFile(decryptedChunkUri))
 		})
 
 		o("downloadAndDecryptNative_delete_on_error", async function () {
