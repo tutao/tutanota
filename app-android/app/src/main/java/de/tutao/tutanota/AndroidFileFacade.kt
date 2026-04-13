@@ -60,11 +60,9 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.io.SequenceInputStream
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -102,13 +100,20 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun joinFiles(filename: String, files: List<String>): String {
-		val inStreams: MutableList<InputStream> = ArrayList(files.size)
-		for (infile in files) {
-			inStreams.add(FileInputStream(Uri.parse(infile).path))
-		}
 		val newFileName = getNonClobberingFileName(tempDir.decrypt, filename)
 		val outputFile = File(tempDir.decrypt, newFileName)
-		writeFileStream(outputFile, SequenceInputStream(Collections.enumeration(inStreams)))
+		outputFile.parentFile!!.mkdirs()
+		val outputStream = FileOutputStream(outputFile)
+
+		for (infile in files) {
+			try {
+				val inputStream = FileInputStream(Uri.parse(infile).path)
+				IOUtils.copyLarge(inputStream, outputStream, ByteArray(COPY_BUFFER_SIZE))
+			} finally {
+				this.deleteFile(infile)
+			}
+		}
+
 		return outputFile.toUri().toString()
 	}
 
