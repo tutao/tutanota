@@ -396,7 +396,7 @@ export class HtmlSanitizer {
 				}
 
 				const attributeValue = htmlNode.getAttribute(attrName)
-				if (attributeValue) {
+				if (attributeValue != null) {
 					if (rule.handler(htmlNode, attrName, attributeValue, config) === RuleResult.Handled) {
 						break rulesLoop
 					}
@@ -553,6 +553,7 @@ export class HtmlSanitizer {
 		handler: (element, attributeName, attributeValue, config) => {
 			if (!config.allowRelativeLinks && !isAllowedLink(attributeValue)) {
 				element.setAttribute(attributeName, "javascript:void(0)")
+				element.removeAttribute("target")
 			} else {
 				element.setAttribute("rel", "noopener noreferrer")
 				element.setAttribute("target", "_blank")
