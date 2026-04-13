@@ -10,6 +10,7 @@ import { TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-e
 import { SupportDialogState } from "../SupportDialog.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { isIOSApp } from "@tutao/app-env"
+import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
 
 type SupportRequestSentPageAttrs = {
 	data: SupportDialogState
@@ -43,13 +44,12 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 					m(
 						".mt-32.mb-8",
 						{},
-						m("img.pb-16.block.full-width.height-100p", {
-							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.png`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-						}),
+						m(
+							".pb-16.block.full-width.height-100p",
+							m(DynamicColorSvg, {
+								path: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.svg`,
+							}),
+						),
 					),
 				),
 			),

@@ -10,7 +10,7 @@ import { CancelledError } from "../../../../api/common/error/CancelledError.js"
 
 export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {
-		return m(SetupPageLayout, { image: "lock", buttonLabel: "finish_action" }, [
+		return m(SetupPageLayout, { image: "images/dynamic-color-svg/unlock-method.svg", buttonLabel: "finish_action" }, [
 			m(SelectAppLockMethodView, {
 				class: "mt-16",
 				error: attrs.error,
