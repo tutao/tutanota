@@ -40,7 +40,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		}
 
 		return m(ImageWithOptionsDialog, {
-			image: `${window.tutao.appState.prefixWithoutFile}/images/rating/support-tuta-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
+			image: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/off-surveillance.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingSupportTuta_title",
 			messageText: "ratingSupportTuta_msg",

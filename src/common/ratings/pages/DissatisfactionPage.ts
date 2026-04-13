@@ -8,6 +8,7 @@ import { Card } from "../../gui/base/Card.js"
 import { client } from "../../misc/ClientDetector.js"
 import { px } from "../../gui/size.js"
 import { theme } from "../../gui/theme.js"
+import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
 
 interface DissatisfactionPageAttrs {
 	dialog: Dialog
@@ -29,17 +30,18 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					padding: "1em 0",
 				},
 			},
-			m("img.pb-16.block.center-h", {
-				src: `${window.tutao.appState.prefixWithoutFile}/images/rating/ears-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
-				alt: "",
-				rel: "noreferrer",
-				loading: "lazy",
-				decoding: "async",
-				style: {
-					width: "80%",
-					maxWidth: px(320),
+			m(
+				".pb-16.block.center-h",
+				{
+					style: {
+						width: "80%",
+						maxWidth: px(320),
+					},
 				},
-			}),
+				m(DynamicColorSvg, {
+					path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/feedback.svg`,
+				}),
+			),
 			m(
 				".text-center",
 				{

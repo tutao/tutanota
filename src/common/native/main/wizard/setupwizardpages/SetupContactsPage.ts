@@ -11,7 +11,7 @@ import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection }
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
-		return m(SetupPageLayout, { image: "contacts" }, this.renderImportAndSyncButtons(attrs))
+		return m(SetupPageLayout, { image: "images/dynamic-color-svg/contacts-import.svg" }, this.renderImportAndSyncButtons(attrs))
 	}
 
 	private renderImportAndSyncButtons(attrs: SetupContactsPageAttrs): Children {

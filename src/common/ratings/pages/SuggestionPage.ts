@@ -12,6 +12,7 @@ import { noOp } from "@tutao/utils"
 import { client } from "../../misc/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -29,17 +30,18 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 		return m(
 			".flex.flex-column.pt-16.height-100p.gap-16",
 			m(Card, [
-				m("img.block.center-h", {
-					src: `${window.tutao.appState.prefixWithoutFile}/images/rating/suggestion-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
-					alt: "",
-					rel: "noreferrer",
-					loading: "lazy",
-					decoding: "async",
-					style: {
-						width: "30%",
-						maxWidth: px(160),
+				m(
+					".block.center-h",
+					{
+						style: {
+							width: "30%",
+							maxWidth: px(160),
+						},
 					},
-				}),
+					m(DynamicColorSvg, {
+						path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/on-your-mind.svg`,
+					}),
+				),
 				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),
 			]),
 			m(

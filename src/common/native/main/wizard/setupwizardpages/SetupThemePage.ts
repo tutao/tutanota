@@ -26,7 +26,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 		return m(
 			SetupPageLayout,
 			{
-				image: "theme",
+				image: "images/dynamic-color-svg/appearance.svg",
 			},
 			m("p.full-width", lang.get("theme_title")),
 			// We need to await the promise from `themeController.getCustomThemes()`, so we delay rendering the `RadioSelector` until it does.
