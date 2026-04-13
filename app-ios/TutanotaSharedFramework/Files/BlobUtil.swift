@@ -32,6 +32,7 @@ public class BlobUtil {
 
 			let fileContent = try Data(contentsOf: fileUri)
 			outputFileHandle.write(fileContent)
+			try FileUtils.delete(file: fileUri)
 		}
 		return outputFilePath
 	}

@@ -53,7 +53,7 @@ public actor IosSqlCipherFacade: SqlCipherFacade {
 	public func deleteDb(_ userId: String) async throws {
 		self.db = nil
 
-		do { try FileUtils.deleteFile(path: makeDbPath(userId)) } catch {
+		do { try FileUtils.delete(file: makeDbPath(userId)) } catch {
 			let err = error as NSError
 			if err.domain == NSPOSIXErrorDomain && err.code == ENOENT {
 				// we don't care
