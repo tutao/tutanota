@@ -39,8 +39,9 @@ export async function renderHtml(scripts, env) {
 	<title>${env.mode === "App" || env.mode === "Desktop" ? "Tuta Mail" : "Tuta Mail: Login &amp; Sign up for free"}</title>
 	<meta name="description" content="Sign-up for Tuta Mail: Get a free email account with quantum-safe encryption and best privacy for all your emails, calendars and contacts.">
 	<meta name="application-name" content="Tuta Mail">
-	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-	<link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
+	<link rel="icon" type="image/svg+xml" href="/images/logo-favicon.svg">
+	<link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/images/logo-favicon-192.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@TutaPrivacy">
     <meta name="twitter:domain" content="tuta.com">
