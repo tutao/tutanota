@@ -3,6 +3,7 @@ import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { BaseButton } from "../base/buttons/BaseButton"
 import { component_size, px, size } from "../size"
 import { theme } from "../theme"
+import { DynamicColorSvg } from "../base/DynamicColorSvg.js"
 
 // The subActionText is optional, if null is passed it will not display the second Option
 interface ImageWithOptionsDialogAttrs {
@@ -24,17 +25,18 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 				"section",
 				m(
 					".flex-center.mt-12",
-					m("img.pb-16.pt-16.block.height-100p", {
-						src: attrs.image,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-						style: {
-							width: "80%",
-							...attrs.imageStyle,
+					m(
+						".pb-16.pt-16.block",
+						{
+							style: {
+								width: "80%",
+								...attrs.imageStyle,
+							},
 						},
-					}),
+						m(DynamicColorSvg, {
+							path: attrs.image,
+						}),
+					),
 				),
 				m("h1.text-center", lang.getTranslationText(attrs.titleText)),
 				m("p.text-center", lang.getTranslationText(attrs.messageText)),
