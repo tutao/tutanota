@@ -12,7 +12,7 @@ import {
 } from "../api/common/error/RestError"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
-import { assertMainOrNode, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -29,11 +29,11 @@ import { CancelledError } from "../api/common/error/CancelledError"
 
 import { SessionType } from "../api/common/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
-import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../api/common/error/ServerModelsUnavailableError"
-import { InvalidModelError } from "@tutao/appEnv"
+import { InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -84,7 +84,8 @@ export async function handleUncaughtErrorImpl(e: Error) {
 	} else if (e instanceof SessionExpiredError) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError || e instanceof InvalidModelError) {
-		const isOffline = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
+		const isOffline =
+			!isBrowser() && !(env.mode === Mode.Admin) && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
 
 		if (e instanceof InvalidModelError) {
 			await Dialog.message("dataOutOfSync_label", lang.get(isOffline ? "dataOutOfSyncOfflineDb_msg" : "dataOutOfSync_msg"))
@@ -201,7 +202,7 @@ export async function reloginForExpiredSession() {
 	// Fetch old credentials to preserve database key if it's there
 	const oldCredentials = await credentialsProvider.getDecryptedCredentialsByUserId(userId)
 	// we're deleting the outdated user here because before resetSession() the cache is still open and can be modified.
-	await cacheStorage?.deleteIfExists(UserTypeRef, null, userId)
+	await cacheStorage?.deleteIfExists(sysTypeRefs.UserTypeRef, null, userId)
 	const sessionReset = loginFacade.resetSession()
 	loginDialogActive = true
 

@@ -1,6 +1,6 @@
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { LabelState } from "../model/MailModel"
-import { MAX_LABELS_PER_MAIL } from "../../../common/api/common/TutanotaConstants"
+import { MAX_LABELS_PER_MAIL } from "@tutao/appEnv"
 import { getElementId } from "@tutao/typeRefs"
 
 type MailSet = tutanotaTypeRefs.MailSet

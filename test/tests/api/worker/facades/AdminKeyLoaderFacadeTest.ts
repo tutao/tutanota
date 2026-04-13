@@ -1,30 +1,20 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/crypto"
+import { AesKey, cryptoUtils, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import {
-	Group,
-	GroupKey,
-	GroupKeysRefTypeRef,
-	GroupKeyTypeRef,
-	GroupTypeRef,
-	KeyMac,
-	KeyMacTypeRef,
-	PubEncKeyDataTypeRef,
-} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { CryptoProtocolVersion, PublicKeyIdentifierType } from "@tutao/appEnv"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { TutanotaError } from "@tutao/appEnv"
+import { GroupType, TutanotaError } from "@tutao/appEnv"
 import { CryptoError } from "@tutao/crypto/error"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
 
 const { anything, argThat, captor } = matchers
 
@@ -41,7 +31,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 
 	const adminGroupId = "adminGroupId"
 	const groupId = "myGroupId"
-	let group: Group
+	let group: sysTypeRefs.Group
 
 	o.beforeEach(function () {
 		userFacade = object()
@@ -75,14 +65,14 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 		const groupKeyBytes = object<AesKey>()
 		const adminGroupEncGKey = object<Uint8Array>()
 		const pubAdminGroupEncSymKey = object<Uint8Array>()
-		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
+		const pubAdminGroupEncGKey = createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
 			pubEncSymKey: pubAdminGroupEncSymKey,
 			protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 			recipientIdentifier: adminGroupId,
 			recipientIdentifierType: PublicKeyIdentifierType.GROUP_ID,
 			recipientKeyVersion: adminGroupKeyVersion.toString(),
 			senderKeyVersion: groupKeyVersion.toString(),
-			symKeyMac: createTestEntity(KeyMacTypeRef, {
+			symKeyMac: createTestEntity(sysTypeRefs.KeyMacTypeRef, {
 				taggedKeyVersion: "2",
 				tag: object<Uint8Array>(),
 				taggingKeyVersion: "1",
@@ -90,7 +80,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 		})
 
 		o.beforeEach(function () {
-			group = createTestEntity(GroupTypeRef, {
+			group = createTestEntity(sysTypeRefs.GroupTypeRef, {
 				_id: groupId,
 				groupKeyVersion: groupKeyVersion.toString(),
 				adminGroupKeyVersion: adminGroupKeyVersion.toString(),
@@ -148,16 +138,16 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 				group.pubAdminGroupEncGKey = pubAdminGroupEncGKey
 
 				const taggingKeyVersion = "1"
-				group.formerGroupKeys = createTestEntity(GroupKeysRefTypeRef, { list: formerGroupKeyListId })
+				group.formerGroupKeys = createTestEntity(sysTypeRefs.GroupKeysRefTypeRef, { list: formerGroupKeyListId })
 
-				const formerGroupKeysV1 = createTestEntity(GroupKeyTypeRef, {
+				const formerGroupKeysV1 = createTestEntity(sysTypeRefs.GroupKeyTypeRef, {
 					adminGroupEncGKey: object<Uint8Array>(),
 					adminGroupKeyVersion: "1",
 				})
 				const formerGroupSymKeyV1 = object<AesKey>()
 				when(cryptoWrapper.decryptKey(anything(), formerGroupKeysV1.adminGroupEncGKey!)).thenReturn(formerGroupSymKeyV1)
 
-				when(keyLoaderFacade.loadFormerGroupKeyInstance(group, parseKeyVersion(taggingKeyVersion))).thenResolve(formerGroupKeysV1)
+				when(keyLoaderFacade.loadFormerGroupKeyInstance(group, cryptoUtils.parseKeyVersion(taggingKeyVersion))).thenResolve(formerGroupKeysV1)
 
 				const groupKey = await adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 
@@ -166,7 +156,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 
 				const formerUserGroupKey: VersionedKey = {
 					object: formerGroupSymKeyV1,
-					version: checkKeyVersionConstraints(groupKeyVersion - 1),
+					version: cryptoUtils.checkKeyVersionConstraints(groupKeyVersion - 1),
 				}
 				// noinspection JSVoidFunctionReturnValueUsed
 				verify(
@@ -199,15 +189,15 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
                     The userGroupKeyV0 is symmetrically encrypted for/by the admin with adminGroupSymKeyV0, therefore it is already trusted.
                  */
 				let userGroupSymKeyV0: AesKey
-				let groupKeysV0: GroupKey
-				let groupKeysV1: GroupKey
+				let groupKeysV0: sysTypeRefs.GroupKey
+				let groupKeysV1: sysTypeRefs.GroupKey
 				let userGroupSymKeyV1: AesKey
 
 				o.beforeEach(async function () {
-					group.formerGroupKeys = createTestEntity(GroupKeysRefTypeRef, { list: formerGroupKeyListId })
+					group.formerGroupKeys = createTestEntity(sysTypeRefs.GroupKeysRefTypeRef, { list: formerGroupKeyListId })
 
 					// Prepare V2
-					pubAdminGroupEncGKey.symKeyMac = createTestEntity(KeyMacTypeRef, {
+					pubAdminGroupEncGKey.symKeyMac = createTestEntity(sysTypeRefs.KeyMacTypeRef, {
 						tag: object<Uint8Array>(),
 						taggingKeyVersion: "1",
 						taggedKeyVersion: "2",
@@ -215,9 +205,9 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 					group.pubAdminGroupEncGKey = pubAdminGroupEncGKey
 
 					// Prepare V1
-					groupKeysV1 = createTestEntity(GroupKeyTypeRef, {
-						pubAdminGroupEncGKey: createTestEntity(PubEncKeyDataTypeRef, {
-							symKeyMac: createTestEntity(KeyMacTypeRef, {
+					groupKeysV1 = createTestEntity(sysTypeRefs.GroupKeyTypeRef, {
+						pubAdminGroupEncGKey: createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
+							symKeyMac: createTestEntity(sysTypeRefs.KeyMacTypeRef, {
 								tag: new Uint8Array([1, 1, 1]),
 								taggedKeyVersion: "1",
 								taggingKeyVersion: "0",
@@ -243,7 +233,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 					when(keyLoaderFacade.loadFormerGroupKeyInstance(group, 1)).thenResolve(groupKeysV1)
 
 					// Prepare V0
-					groupKeysV0 = createTestEntity(GroupKeyTypeRef, {
+					groupKeysV0 = createTestEntity(sysTypeRefs.GroupKeyTypeRef, {
 						adminGroupEncGKey: object<Uint8Array>(),
 						adminGroupKeyVersion: "0",
 					})
@@ -304,7 +294,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 						},
 					})
 					tagParam = paramsTagCaptor.values![1]
-					o(tagParam).equals(brandKeyMac(pubAdminGroupEncGKey.symKeyMac as KeyMac).tag)
+					o(tagParam).equals(brandKeyMac(pubAdminGroupEncGKey.symKeyMac as sysTypeRefs.KeyMac).tag)
 				})
 
 				o("user group key mac is invalid", async function () {
@@ -320,10 +310,10 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 
 				o("user group key - no symmetrically encrypted former group key", async function () {
 					// Prepare V0
-					groupKeysV0 = createTestEntity(GroupKeyTypeRef, {
+					groupKeysV0 = createTestEntity(sysTypeRefs.GroupKeyTypeRef, {
 						adminGroupEncGKey: null,
-						pubAdminGroupEncGKey: createTestEntity(PubEncKeyDataTypeRef, {
-							symKeyMac: createTestEntity(KeyMacTypeRef, {
+						pubAdminGroupEncGKey: createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
+							symKeyMac: createTestEntity(sysTypeRefs.KeyMacTypeRef, {
 								taggedKeyVersion: "0",
 							}),
 						}),
@@ -339,15 +329,15 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 			o("user group key mac is invalid - former group key is symmetrically encrypted for the admin", async function () {
 				group.pubAdminGroupEncGKey = pubAdminGroupEncGKey
 
-				pubAdminGroupEncGKey.symKeyMac = createTestEntity(KeyMacTypeRef, {
+				pubAdminGroupEncGKey.symKeyMac = createTestEntity(sysTypeRefs.KeyMacTypeRef, {
 					tag: object(),
 					taggingKeyVersion: "1",
 					taggedKeyVersion: "1",
 					taggingGroup: adminGroupId,
 				})
-				group.formerGroupKeys = createTestEntity(GroupKeysRefTypeRef, { list: formerGroupKeyListId })
+				group.formerGroupKeys = createTestEntity(sysTypeRefs.GroupKeysRefTypeRef, { list: formerGroupKeyListId })
 
-				const formerGroupKeysV1 = createTestEntity(GroupKeyTypeRef, {
+				const formerGroupKeysV1 = createTestEntity(sysTypeRefs.GroupKeyTypeRef, {
 					adminGroupEncGKey: object(),
 					adminGroupKeyVersion: "1",
 				})

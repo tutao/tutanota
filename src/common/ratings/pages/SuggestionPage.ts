@@ -2,16 +2,16 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Card } from "../../gui/base/Card.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { createSurveyData, createSurveyDataPostIn } from "../../api/entities/sys/TypeRefs.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { SurveyService } from "../../api/entities/sys/Services.js"
+import { sysServices } from "@tutao/typeRefs"
 import { px } from "../../gui/size.js"
 import { showSnackBar } from "../../gui/base/SnackBar.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { noOp } from "@tutao/utils"
 import { client } from "../../misc/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -78,9 +78,9 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 	private async onSendButtonClick() {
 		const send = async () => {
 			await locator.serviceExecutor.post(
-				SurveyService,
-				createSurveyDataPostIn({
-					surveyData: createSurveyData({
+				sysServices.SurveyService,
+				sysTypeRefs.createSurveyDataPostIn({
+					surveyData: sysTypeRefs.createSurveyData({
 						version: SURVEY_VERSION_NUMBER,
 						category: "4", // 4 == "Other"
 						details: this.textFieldInput,

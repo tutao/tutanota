@@ -5,15 +5,15 @@ import { lang } from "../misc/LanguageViewModel"
 import { InvoiceDataInput } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { BadRequestError } from "../api/common/error/RestError"
-import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
-import type { InvoiceData } from "../api/common/TutanotaConstants"
+import type { InvoiceData } from "@tutao/appEnv"
 import { ofClass } from "@tutao/utils"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export function show(
 	businessUse: boolean,
 	invoiceData: InvoiceData,
-	accountingInfo: AccountingInfo,
+	accountingInfo: sysTypeRefs.AccountingInfo,
 	headingId?: TranslationKey,
 	infoMessageId?: TranslationKey,
 ): Dialog {

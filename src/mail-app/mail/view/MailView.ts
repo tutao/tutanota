@@ -3,21 +3,12 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import {
-	FeatureType,
-	getMailFolderType,
-	isFolder,
-	isFolderReadOnly,
-	Keys,
-	MailReportType,
-	MailSetKind,
-	SystemFolderType,
-} from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailReportType } from "@tutao/appEnv"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getElementId, getMailFolderType, isFolder, isFolderReadOnly, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
 import { MailListView } from "./MailListView"
-import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
+import { assertMainOrNode, isApp, MailSetKind, SystemFolderType } from "@tutao/appEnv"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
@@ -39,7 +30,6 @@ import {
 	ShowMoveMailsDropdownOpts,
 	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
-import { getElementId, isSameId } from "@tutao/typeRefs"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import Stream from "mithril/stream"

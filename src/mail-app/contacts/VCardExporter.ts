@@ -1,8 +1,7 @@
 import { convertToDataFile } from "../../common/api/common/DataFile"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { ContactAddressType, ContactPhoneNumberType } from "../../common/api/common/TutanotaConstants"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode, ContactAddressType, ContactPhoneNumberType } from "@tutao/appEnv"
 import { locator } from "../../common/api/main/CommonLocator"
 import { getSocialUrl, getWebsiteUrl } from "../../common/contactsFunctionality/ContactUtils.js"
 

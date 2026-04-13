@@ -1,5 +1,5 @@
 import { createTestEntity } from "../../../TestUtils.js"
-import { InvoiceDataItemTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /**
  * Produces a bulk list of mocked InvoiceItems
@@ -9,7 +9,7 @@ export function invoiceItemListMock(amountOfEntries: number) {
 	const data: any = []
 	for (let i = 0; i < amountOfEntries; i++) {
 		data.push(
-			createTestEntity(InvoiceDataItemTypeRef, {
+			createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 				amount: `${i}`,
 				startDate: new Date("09.09.1984"),
 				endDate: new Date("09.09.1984"),

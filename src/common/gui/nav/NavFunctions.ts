@@ -1,4 +1,4 @@
-import { FeatureType, UpgradePromptType } from "../../api/common/TutanotaConstants"
+import { FeatureType, UpgradePromptType } from "@tutao/appEnv"
 import { locator } from "../../api/main/CommonLocator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 

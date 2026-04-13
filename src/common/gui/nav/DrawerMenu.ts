@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { ButtonColor } from "../base/Button.js"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
-import { isIOSApp, isWebClient } from "../../api/common/Env"
 import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { getSafeAreaInsetLeft } from "../HtmlUtils"
 import { Icons } from "../base/icons/Icons"
@@ -18,7 +17,8 @@ import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSys
 import { styles } from "../styles.js"
 import { IconButton } from "../base/IconButton.js"
 import { locator } from "../../api/main/CommonLocator"
-import { FeatureType, UpgradePromptType } from "../../api/common/TutanotaConstants"
+import { FeatureType, UpgradePromptType } from "@tutao/appEnv"
+import { isIOSApp, Mode } from "@tutao/appEnv"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -150,7 +150,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 export function isPartnerEnabled(loginController: LoginController): boolean {
 	return (
 		loginController.isInternalUserLoggedIn() &&
-		isWebClient() &&
+		env.mode === Mode.Browser &&
 		loginController.isEnabled(FeatureType.SolutionPartner) &&
 		loginController.getUserController().isGlobalAdmin()
 	)

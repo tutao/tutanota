@@ -1,17 +1,17 @@
-import { createIdentityKeyGetIn, GroupTypeRef } from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { IdentityKeyService } from "../../entities/sys/Services.js"
-import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
+import { bytesToEd25519PublicKey, cryptoUtils } from "@tutao/crypto"
 import { Versioned } from "@tutao/utils"
-import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants.js"
+import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/appEnv"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { bytesToEd25519PublicKey } from "@tutao/crypto"
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../common/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
 import type { PublicKeyIdentifier } from "./PublicEncryptionKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "./IdentityKeyTrustDatabase"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
@@ -47,7 +47,7 @@ export class PublicIdentityKeyProvider {
 	 * @return the requested identity key, or null if it is not available.
 	 */
 	async loadPublicIdentityKeyFromGroup(groupId: Id): Promise<Versioned<SigningPublicKey> | null> {
-		const group = await this.entityClient.load(GroupTypeRef, groupId)
+		const group = await this.entityClient.load(sysTypeRefs.GroupTypeRef, groupId)
 		const groupIdentityKeyPair = group.identityKeyPair
 
 		if (!groupIdentityKeyPair) {
@@ -55,7 +55,7 @@ export class PublicIdentityKeyProvider {
 		}
 
 		const publicIdentityKeyMac = brandKeyMac(groupIdentityKeyPair.publicKeyMac)
-		const taggingGroupKeyVersion = parseKeyVersion(publicIdentityKeyMac.taggingKeyVersion)
+		const taggingGroupKeyVersion = cryptoUtils.parseKeyVersion(publicIdentityKeyMac.taggingKeyVersion)
 
 		const identityKey = this.convertFromIdentityKeyRawData({
 			publicIdentityKey: groupIdentityKeyPair.publicEd25519Key,
@@ -104,14 +104,14 @@ export class PublicIdentityKeyProvider {
 			}
 		}
 
-		const requestData = createIdentityKeyGetIn({
+		const requestData = sysTypeRefs.createIdentityKeyGetIn({
 			version: null,
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
 
 		try {
-			const identityKeyGetOut = await this.serviceExecutor.get(IdentityKeyService, requestData)
+			const identityKeyGetOut = await this.serviceExecutor.get(sysServices.IdentityKeyService, requestData)
 			const identityKeyFromServer = this.convertFromIdentityKeyRawData({
 				publicIdentityKey: identityKeyGetOut.publicIdentityKey,
 				identityKeyVersion: identityKeyGetOut.publicIdentityKeyVersion,
@@ -135,7 +135,7 @@ export class PublicIdentityKeyProvider {
 
 	private convertFromIdentityKeyRawData(identityKeyRawData: IdentityKeyRawData): Versioned<SigningPublicKey> {
 		const publicIdentityKey = bytesToEd25519PublicKey(identityKeyRawData.publicIdentityKey)
-		const identityKeyVersion = parseKeyVersion(identityKeyRawData.identityKeyVersion)
+		const identityKeyVersion = cryptoUtils.parseKeyVersion(identityKeyRawData.identityKeyVersion)
 		return {
 			version: identityKeyVersion,
 			object: {

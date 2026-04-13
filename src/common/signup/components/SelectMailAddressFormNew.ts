@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { LoginTextField } from "../../gui/base/LoginTextField"
 import { Autocapitalize, Autocomplete } from "../../gui/base/TextField"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { EmailDomainData } from "../../settings/mailaddress/MailAddressesUtils"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"

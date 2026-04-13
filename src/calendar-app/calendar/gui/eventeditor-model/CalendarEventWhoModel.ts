@@ -1,15 +1,8 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getAttendeeStatus, haveSameId, Stripped, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
-import { haveSameId, Stripped } from "@tutao/typeRefs"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertNotNull, clone, contains, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/utils"
-import {
-	CalendarAttendeeStatus,
-	ConversationType,
-	getAttendeeStatus,
-	PresentableKeyVerificationState,
-	ShareCapability,
-} from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, PresentableKeyVerificationState, ShareCapability } from "@tutao/appEnv"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
@@ -24,6 +17,7 @@ import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { ConversationType } from "@tutao/appEnv"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {

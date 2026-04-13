@@ -1,8 +1,8 @@
 import { lang } from "./LanguageViewModel"
 import { isSameDayOfDate, pad } from "@tutao/utils"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { TimeFormat } from "../api/common/TutanotaConstants"
-import { assertMainOrNode } from "../api/common/Env"
+import { TimeFormat } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()

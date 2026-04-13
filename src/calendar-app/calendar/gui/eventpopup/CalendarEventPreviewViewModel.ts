@@ -9,7 +9,7 @@ import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getN
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
-import { CalendarAttendeeStatus, EndType } from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, EndType } from "@tutao/appEnv"
 import m from "mithril"
 import { clone, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"

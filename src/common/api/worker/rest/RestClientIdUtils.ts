@@ -1,4 +1,4 @@
-import type { TypeModel } from "../../common/EntityTypes"
+import type { TypeModel } from "@tutao/typeRefs"
 import { Type } from "@tutao/typeRefs"
 
 export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {

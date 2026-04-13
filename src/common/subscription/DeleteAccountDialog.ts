@@ -6,14 +6,13 @@ import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js
 import { neverNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
-import { getEtId } from "@tutao/typeRefs"
-import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
-import { SurveyData } from "../api/entities/sys/TypeRefs.js"
+import { getEtId, sysTypeRefs } from "@tutao/typeRefs"
+import { CloseEventBusOption } from "@tutao/appEnv"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector"
+import { isIOSApp } from "@tutao/appEnv"
 
-export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
+export function showDeleteAccountDialog(surveyData: sysTypeRefs.SurveyData | null = null) {
 	let takeover = ""
 	let password = ""
 	const userId = getEtId(locator.logins.getUserController().user)
@@ -55,7 +54,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	})
 }
 
-async function deleteAccount(takeover: string, password: string, surveyData: SurveyData | null = null): Promise<boolean> {
+async function deleteAccount(takeover: string, password: string, surveyData: sysTypeRefs.SurveyData | null = null): Promise<boolean> {
 	const cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {

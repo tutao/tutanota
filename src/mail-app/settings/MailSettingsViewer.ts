@@ -1,17 +1,15 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isApp, isBrowser } from "../../common/api/common/Env"
+import { assertMainOrNode, InboxRuleType, isApp, isBrowser, OperationType } from "@tutao/appEnv"
 import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
-import { elementIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	Const,
 	FeatureType,
 	FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
-	InboxRuleType,
-	OperationType,
 	ReportMovedMailsType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
-} from "../../common/api/common/TutanotaConstants"
+} from "@tutao/appEnv"
 import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
@@ -43,8 +41,6 @@ import { getReportMovedMailsType } from "../../common/misc/MailboxPropertiesUtil
 import { MailAddressTableModel } from "../../common/settings/mailaddress/MailAddressTableModel.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../common/api/common/utils/GroupUtils.js"
 import { formatDate, formatStorageSize } from "../../common/misc/Formatter.js"
-import { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
@@ -74,7 +70,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_outOfOfficeNotification: LazyLoaded<tutanotaTypeRefs.OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 	private _storageFieldValue: Stream<string>
-	private customerInfo: CustomerInfo | null
+	private customerInfo: sysTypeRefs.CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
 	private offlineStorageSettings = new OfflineStorageSettingsModel(mailLocator.logins.getUserController(), deviceConfig)
@@ -129,7 +125,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		return mailboxGroupRoot
 	}
 
-	private async updateStorageField(customerInfo: CustomerInfo): Promise<void> {
+	private async updateStorageField(customerInfo: sysTypeRefs.CustomerInfo): Promise<void> {
 		const user = mailLocator.logins.getUserController().user
 		let sizeInBytes = Number(await mailLocator.userManagementFacade.readUsedUserStorage(user))
 		// Done to avoid displaying negative storage capacity to the user, storage counter will be modified in the future to fix the negative values bug
@@ -569,18 +565,18 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
-			if (isUpdateForTypeRef(tutanotaTypeRefs.TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 				const props = await mailLocator.entityClient.load(tutanotaTypeRefs.TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
 				this._updateInboxRules(props)
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
 				this._updateInboxRules(mailLocator.logins.getUserController().props)
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.OutOfOfficeNotificationTypeRef, update)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update)) {
 				this._mailboxProperties.reload().then(() => this._updateMailboxPropertiesSettings())
 			}
 		}

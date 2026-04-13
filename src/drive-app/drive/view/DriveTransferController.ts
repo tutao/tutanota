@@ -1,12 +1,12 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { filterInt, SECOND_IN_MILLIS } from "@tutao/utils"
+import { filterInt } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { driveTypeRefs } from "@tutao/typeRefs"
-import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
+import { ArchiveDataType, SECOND_IN_MILLIS } from "@tutao/appEnv"
 import { FileController } from "../../../common/file/FileController"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 
@@ -25,7 +25,7 @@ type QueuedTransfer =
 	| {
 			id: TransferId
 			state: "waiting" | "active" | "finished" | "failed"
-			file: DriveFile
+			file: driveTypeRefs.DriveFile
 			type: "download"
 			transferredSize: number // bytes
 			filename: string
@@ -186,7 +186,7 @@ export class DriveTransferController {
 		}
 	}
 
-	async download(file: DriveFile) {
+	async download(file: driveTypeRefs.DriveFile) {
 		const transferId = await this.blobFacade.generateTransferId()
 		this.queue.push({
 			id: transferId,

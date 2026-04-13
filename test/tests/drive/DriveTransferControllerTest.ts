@@ -8,7 +8,7 @@ import { matchers, object, when } from "testdouble"
 import { createTestEntity, SchedulerMock } from "../TestUtils"
 import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
 import { driveTypeRefs } from "@tutao/typeRefs"
-import { ArchiveDataType } from "../../../src/common/api/common/TutanotaConstants"
+import { ArchiveDataType } from "@tutao/appEnv"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
 import { ConnectionError } from "../../../src/common/api/common/error/RestError"
 
@@ -65,8 +65,8 @@ o.spec("DriveTransferController", function () {
 				name: "file2.jpg",
 				size: 1024,
 			} as File
-			const uploadDeferred1 = defer<DriveFile>()
-			const uploadDeferred2 = defer<DriveFile>()
+			const uploadDeferred1 = defer<driveTypeRefs.DriveFile>()
+			const uploadDeferred2 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, "uploadFile1", ["listId", "elementId"])).thenReturn(uploadDeferred1.promise)
 			when(driveFacade.uploadFile(file2, fileId2, "uploadFile2", ["listId", "elementId"])).thenReturn(uploadDeferred2.promise)
 			await transferController.upload(file1, "uploadFile1", ["listId", "elementId"])
@@ -101,7 +101,7 @@ o.spec("DriveTransferController", function () {
 					transferredSize: 0,
 				},
 			])
-			uploadDeferred2.resolve(createTestEntity(DriveFileTypeRef))
+			uploadDeferred2.resolve(createTestEntity(driveTypeRefs.DriveFileTypeRef))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
@@ -127,8 +127,8 @@ o.spec("DriveTransferController", function () {
 				name: "file2.jpg",
 				size: 1024,
 			} as File
-			const uploadDeferred1 = defer<DriveFile>()
-			const uploadDeferred2 = defer<DriveFile>()
+			const uploadDeferred1 = defer<driveTypeRefs.DriveFile>()
+			const uploadDeferred2 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, "uploadFile1", ["listId", "elementId"])).thenReturn(uploadDeferred1.promise)
 			when(driveFacade.uploadFile(file2, fileId2, "uploadFile2", ["listId", "elementId"])).thenReturn(uploadDeferred2.promise)
 			await transferController.upload(file1, "uploadFile1", ["listId", "elementId"])
@@ -183,7 +183,7 @@ o.spec("DriveTransferController", function () {
 				},
 			])
 
-			uploadDeferred2.resolve(createTestEntity(DriveFileTypeRef))
+			uploadDeferred2.resolve(createTestEntity(driveTypeRefs.DriveFileTypeRef))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
@@ -209,9 +209,9 @@ o.spec("DriveTransferController", function () {
 				name: "file2.txt",
 				size: 1024,
 			} as File
-			const deferredUpload1 = defer<DriveFile>()
+			const deferredUpload1 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
-			const deferredUpload2 = defer<DriveFile>()
+			const deferredUpload2 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file2, fileId2, matchers.anything(), matchers.anything())).thenReturn(deferredUpload2.promise)
 
 			await transferController.upload(file1, "file1.txt", ["listId1", "elementId1"])
@@ -236,7 +236,7 @@ o.spec("DriveTransferController", function () {
 				},
 			])
 
-			deferredUpload1.resolve(createTestEntity(DriveFileTypeRef))
+			deferredUpload1.resolve(createTestEntity(driveTypeRefs.DriveFileTypeRef))
 			await waitForUiUpdate()
 
 			o.check(transferController.state).deepEquals([
@@ -271,7 +271,7 @@ o.spec("DriveTransferController", function () {
 				},
 			])
 
-			deferredUpload2.resolve(createTestEntity(DriveFileTypeRef))
+			deferredUpload2.resolve(createTestEntity(driveTypeRefs.DriveFileTypeRef))
 
 			await waitForUiUpdate()
 
@@ -297,7 +297,7 @@ o.spec("DriveTransferController", function () {
 				name: "file1.txt",
 				size: 1024,
 			} as File
-			const deferredUpload1 = defer<DriveFile>()
+			const deferredUpload1 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
 
 			await transferController.upload(file1, "filename", ["listId", "elementId"])
@@ -317,9 +317,9 @@ o.spec("DriveTransferController", function () {
 				name: "file2.txt",
 				size: 1024,
 			} as File
-			const deferredUpload1 = defer<DriveFile>()
+			const deferredUpload1 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
-			const deferredUpload2 = defer<DriveFile>()
+			const deferredUpload2 = defer<driveTypeRefs.DriveFile>()
 			when(driveFacade.uploadFile(file2, fileId2, matchers.anything(), matchers.anything())).thenReturn(deferredUpload2.promise)
 
 			await transferController.upload(file1, "file1.txt", ["listId1", "elementId1"])
@@ -343,7 +343,7 @@ o.spec("DriveTransferController", function () {
 			const transferId = "abcde" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(transferId)
 
-			const file = createTestEntity(DriveFileTypeRef, { _id: ["fileId", "elementId"], name: "downloadFile", size: "1024" })
+			const file = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["fileId", "elementId"], name: "downloadFile", size: "1024" })
 
 			const deferredDownload = defer<void>()
 			when(fileController.open(file, ArchiveDataType.DriveFile, transferId)).thenResolve({
@@ -370,8 +370,8 @@ o.spec("DriveTransferController", function () {
 			const transferId2 = "transfer id 2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
 
-			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
-			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
+			const file1 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
+			const file2 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
 			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
 				promise: deferredDownload1.promise,
@@ -414,8 +414,8 @@ o.spec("DriveTransferController", function () {
 			const transferId2 = "transfer id 2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
 
-			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
-			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
+			const file1 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
+			const file2 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
 			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
 				promise: deferredDownload1.promise,
@@ -478,8 +478,8 @@ o.spec("DriveTransferController", function () {
 			const transferId1 = "transfer id 1" as TransferId
 			const transferId2 = "transfer id 2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
-			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
-			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
+			const file1 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
+			const file2 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
 			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
 				promise: deferredDownload1.promise,
@@ -562,8 +562,8 @@ o.spec("DriveTransferController", function () {
 			const transferId2 = "transfer id 2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
 
-			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
-			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
+			const file1 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
+			const file2 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
 			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
 				promise: deferredDownload1.promise,
@@ -586,8 +586,8 @@ o.spec("DriveTransferController", function () {
 			const transferId2 = "transfer id 2" as TransferId
 			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
 
-			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
-			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
+			const file1 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
+			const file2 = createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
 			const deferredDownload1 = defer<void>()
 			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
 				promise: deferredDownload1.promise,

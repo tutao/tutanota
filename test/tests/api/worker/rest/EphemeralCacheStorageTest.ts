@@ -1,23 +1,11 @@
-import o from "@tutao/otest"
+import o, { verify } from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
-import {
-	BodyTypeRef,
-	Mail,
-	MailDetailsBlob,
-	MailDetailsBlobTypeRef,
-	MailDetailsTypeRef,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-	RecipientsTypeRef,
-} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ServerModelParsedInstance, TypeModelResolver } from "@tutao/typeRefs"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { ServerModelParsedInstance } from "@tutao/typeRefs"
-import { TypeModelResolver } from "@tutao/typeRefs"
+import { ModelMapper } from "@tutao/instancePipeline"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { sysTypeRefs } from "@tutao/typeRefs"
 import { object, when } from "testdouble"
-import { verify } from "@tutao/otest"
+import { tutanotaTypeRefs, sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"
@@ -38,92 +26,92 @@ o.spec("EphemeralCacheStorage", function () {
 	o.spec("BlobElementType", function () {
 		o("cache roundtrip: put, get, delete", async function () {
 			storage.init({ userId })
-			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+			const storableMailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_permissions: "permissionId",
-				details: createTestEntity(MailDetailsTypeRef, {
+				details: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
 					_id: "detailsId1",
-					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId1" }),
-					body: createTestEntity(BodyTypeRef, { _id: "bodyId1" }),
+					recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, { _id: "recipeintsId1" }),
+					body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, { _id: "bodyId1" }),
 				}),
 			})
 
-			let mailDetailsBlobFromDb = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			let mailDetailsBlobFromDb = await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, blobElementId)
 			o(mailDetailsBlobFromDb).equals(null)
 
 			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
-				MailDetailsBlobTypeRef,
+				tutanotaTypeRefs.MailDetailsBlobTypeRef,
 				storableMailDetailsBlob,
 			)) as unknown as ServerModelParsedInstance
 
-			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance as ServerModelParsedInstance)
+			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance as ServerModelParsedInstance)
 
-			mailDetailsBlobFromDb = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			mailDetailsBlobFromDb = await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, blobElementId)
 			removeOriginals(mailDetailsBlobFromDb)
 			o(mailDetailsBlobFromDb).deepEquals(storableMailDetailsBlob)
 
-			await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			await storage.deleteIfExists(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, blobElementId)
 
-			mailDetailsBlobFromDb = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			mailDetailsBlobFromDb = await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, blobElementId)
 			o(mailDetailsBlobFromDb).equals(null)
 		})
 
 		o("cache roundtrip: putMultiple, provideMultiple, delete", async function () {
 			storage.init({ userId })
-			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+			const storableMailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_permissions: "permissionId",
-				details: createTestEntity(MailDetailsTypeRef, {
+				details: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
 					_id: "detailsId1",
-					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId1" }),
-					body: createTestEntity(BodyTypeRef, { _id: "bodyId1" }),
+					recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, { _id: "recipeintsId1" }),
+					body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, { _id: "bodyId1" }),
 				}),
 			})
 
-			let mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
+			let mailDetailsBlobFromDb = await storage.provideMultiple(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, [blobElementId])
 			o(mailDetailsBlobFromDb).deepEquals([])
 
 			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
-				MailDetailsBlobTypeRef,
+				tutanotaTypeRefs.MailDetailsBlobTypeRef,
 				storableMailDetailsBlob,
 			)) as unknown as ServerModelParsedInstance
 
-			await storage.putMultiple(MailDetailsBlobTypeRef, [mailDetailsBlobParsedInstance as ServerModelParsedInstance])
+			await storage.putMultiple(tutanotaTypeRefs.MailDetailsBlobTypeRef, [mailDetailsBlobParsedInstance as ServerModelParsedInstance])
 
-			mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
+			mailDetailsBlobFromDb = await storage.provideMultiple(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, [blobElementId])
 			removeOriginals(mailDetailsBlobFromDb[0])
 			o(mailDetailsBlobFromDb[0]).deepEquals(storableMailDetailsBlob)
 
-			await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			await storage.deleteIfExists(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, blobElementId)
 
-			mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
+			mailDetailsBlobFromDb = await storage.provideMultiple(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, [blobElementId])
 			o(mailDetailsBlobFromDb).deepEquals([])
 		})
 
 		o("cache roundtrip: put, get, deleteAllOwnedBy", async function () {
 			const _ownerGroup = "owenerGroup"
 			storage.init({ userId })
-			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+			const storableMailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_permissions: "permissionId",
 				_ownerGroup,
-				details: createTestEntity(MailDetailsTypeRef, {
+				details: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
 					_id: "detailsId1",
-					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId1" }),
-					body: createTestEntity(BodyTypeRef, { _id: "bodyId1" }),
+					recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, { _id: "recipeintsId1" }),
+					body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, { _id: "bodyId1" }),
 				}),
 			})
 
 			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
-				MailDetailsBlobTypeRef,
+				tutanotaTypeRefs.MailDetailsBlobTypeRef,
 				storableMailDetailsBlob,
 			)) as unknown as ServerModelParsedInstance
 
-			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance)
+			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance)
 
 			await storage.deleteAllOwnedBy(_ownerGroup)
 
-			const mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			const mailDetailsBlob = await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, blobElementId)
 			o(mailDetailsBlob).equals(null)
 		})
 	})
@@ -137,40 +125,40 @@ o.spec("EphemeralCacheStorage", function () {
 
 		o.test("put calls the cache handler", async function () {
 			const user = createTestEntity(
-				UserTypeRef,
+				sysTypeRefs.UserTypeRef,
 				{
 					_id: userId,
 					_ownerGroup: "ownerGroup",
 				},
 				{ populateAggregates: true },
 			)
-			const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
+			const storableUser = (await modelMapper.mapToClientModelParsedInstance(sysTypeRefs.UserTypeRef, user)) as unknown as ServerModelParsedInstance
 			user.userGroup._original = structuredClone(user.userGroup)
 			user._original = structuredClone(user)
-			const userCacheHandler: CustomCacheHandler<User> = object()
-			when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+			const userCacheHandler: CustomCacheHandler<sysTypeRefs.User> = object()
+			when(customCacheHandlerMap.get(sysTypeRefs.UserTypeRef)).thenReturn(userCacheHandler)
 
-			await storage.put(UserTypeRef, storableUser)
+			await storage.put(sysTypeRefs.UserTypeRef, storableUser)
 			verify(userCacheHandler.onBeforeCacheUpdate?.(user))
 		})
 
 		o.test("deleteIfExists calls the cache handler", async function () {
 			const user = createTestEntity(
-				UserTypeRef,
+				sysTypeRefs.UserTypeRef,
 				{
 					_id: userId,
 					_ownerGroup: "ownerGroup",
 				},
 				{ populateAggregates: true },
 			)
-			const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
+			const storableUser = (await modelMapper.mapToClientModelParsedInstance(sysTypeRefs.UserTypeRef, user)) as unknown as ServerModelParsedInstance
 
-			const userCacheHandler: CustomCacheHandler<User> = object()
-			when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+			const userCacheHandler: CustomCacheHandler<sysTypeRefs.User> = object()
+			when(customCacheHandlerMap.get(sysTypeRefs.UserTypeRef)).thenReturn(userCacheHandler)
 
-			await storage.put(UserTypeRef, storableUser)
+			await storage.put(sysTypeRefs.UserTypeRef, storableUser)
 
-			await storage.deleteIfExists(UserTypeRef, null, userId)
+			await storage.deleteIfExists(sysTypeRefs.UserTypeRef, null, userId)
 			verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 		})
 
@@ -183,7 +171,7 @@ o.spec("EphemeralCacheStorage", function () {
 			storage.init({ userId })
 
 			const mailSetEntryListOne = createTestEntity(
-				MailSetEntryTypeRef,
+				tutanotaTypeRefs.MailSetEntryTypeRef,
 				{
 					_id: [mailSetEntryListId, mailSetEntryListElementIdOne],
 					_ownerGroup: "ownerGroup",
@@ -191,7 +179,7 @@ o.spec("EphemeralCacheStorage", function () {
 				{ populateAggregates: true },
 			)
 			const mailSetEntryListTwo = createTestEntity(
-				MailSetEntryTypeRef,
+				tutanotaTypeRefs.MailSetEntryTypeRef,
 				{
 					_id: [mailSetEntryListId, mailSetEntryListElementIdTwo],
 					_ownerGroup: "ownerGroup",
@@ -199,51 +187,51 @@ o.spec("EphemeralCacheStorage", function () {
 				{ populateAggregates: true },
 			)
 			const mailSetEntryOther = createTestEntity(
-				MailSetEntryTypeRef,
+				tutanotaTypeRefs.MailSetEntryTypeRef,
 				{
 					_id: [mailSetEntryOtherListId, mailSetEntryOtherElementId],
 					_ownerGroup: "ownerGroup",
 				},
 				{ populateAggregates: true },
 			)
-			let mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
+			let mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
 			o(mailSetEntryFromDb).equals(null)
 
 			const storableMailSetEntry = (await modelMapper.mapToClientModelParsedInstance(
-				MailSetEntryTypeRef,
+				tutanotaTypeRefs.MailSetEntryTypeRef,
 				mailSetEntryListOne,
 			)) as unknown as ServerModelParsedInstance
-			await storage.put(MailSetEntryTypeRef, storableMailSetEntry)
+			await storage.put(tutanotaTypeRefs.MailSetEntryTypeRef, storableMailSetEntry)
 
 			const storableMailSetEntryTwo = (await modelMapper.mapToClientModelParsedInstance(
-				MailSetEntryTypeRef,
+				tutanotaTypeRefs.MailSetEntryTypeRef,
 				mailSetEntryListTwo,
 			)) as unknown as ServerModelParsedInstance
-			await storage.put(MailSetEntryTypeRef, storableMailSetEntryTwo)
+			await storage.put(tutanotaTypeRefs.MailSetEntryTypeRef, storableMailSetEntryTwo)
 
 			const storableMailSetEntryOther = (await modelMapper.mapToClientModelParsedInstance(
-				MailSetEntryTypeRef,
+				tutanotaTypeRefs.MailSetEntryTypeRef,
 				mailSetEntryOther,
 			)) as unknown as ServerModelParsedInstance
-			await storage.put(MailSetEntryTypeRef, storableMailSetEntryOther)
+			await storage.put(tutanotaTypeRefs.MailSetEntryTypeRef, storableMailSetEntryOther)
 
-			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
+			mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
 			removeOriginals(mailSetEntryFromDb)
 			o(mailSetEntryFromDb).deepEquals(mailSetEntryListOne)
-			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdTwo)
+			mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdTwo)
 			removeOriginals(mailSetEntryFromDb)
 			o(mailSetEntryFromDb).deepEquals(mailSetEntryListTwo)
-			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryOtherListId, mailSetEntryOtherElementId)
+			mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryOtherListId, mailSetEntryOtherElementId)
 			removeOriginals(mailSetEntryFromDb)
 			o(mailSetEntryFromDb).deepEquals(mailSetEntryOther)
 
-			await storage.deleteRange(MailSetEntryTypeRef, mailSetEntryListId)
+			await storage.deleteRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryListId)
 
-			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
+			mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
 			o(mailSetEntryFromDb).deepEquals(null)
-			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdTwo)
+			mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdTwo)
 			o(mailSetEntryFromDb).deepEquals(null)
-			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryOtherListId, mailSetEntryOtherElementId)
+			mailSetEntryFromDb = await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryOtherListId, mailSetEntryOtherElementId)
 			removeOriginals(mailSetEntryFromDb)
 			o(mailSetEntryFromDb).deepEquals(mailSetEntryOther)
 		})
@@ -254,19 +242,19 @@ o.spec("EphemeralCacheStorage", function () {
 
 			o.test("calls the cache handler for element types", async function () {
 				const user = createTestEntity(
-					UserTypeRef,
+					sysTypeRefs.UserTypeRef,
 					{
 						_id: userId,
 						_ownerGroup: groupId,
 					},
 					{ populateAggregates: true },
 				)
-				const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
+				const storableUser = (await modelMapper.mapToClientModelParsedInstance(sysTypeRefs.UserTypeRef, user)) as unknown as ServerModelParsedInstance
 
-				const userCacheHandler: CustomCacheHandler<User> = object()
-				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+				const userCacheHandler: CustomCacheHandler<sysTypeRefs.User> = object()
+				when(customCacheHandlerMap.get(sysTypeRefs.UserTypeRef)).thenReturn(userCacheHandler)
 
-				await storage.put(UserTypeRef, storableUser)
+				await storage.put(sysTypeRefs.UserTypeRef, storableUser)
 
 				await storage.deleteAllOwnedBy(groupId)
 				verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
@@ -275,19 +263,22 @@ o.spec("EphemeralCacheStorage", function () {
 			o.test("calls the cache handler for list element types", async function () {
 				const id: IdTuple = ["listId", "id1"]
 				const entityToStore = createTestEntity(
-					MailTypeRef,
+					tutanotaTypeRefs.MailTypeRef,
 					{
 						_id: id,
 						_ownerGroup: groupId,
 					},
 					{ populateAggregates: true },
 				)
-				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(MailTypeRef, entityToStore)) as unknown as ServerModelParsedInstance
+				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
+					tutanotaTypeRefs.MailTypeRef,
+					entityToStore,
+				)) as unknown as ServerModelParsedInstance
 
-				const customCacheHandler: CustomCacheHandler<Mail> = object()
-				when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+				const customCacheHandler: CustomCacheHandler<tutanotaTypeRefs.Mail> = object()
+				when(customCacheHandlerMap.get(tutanotaTypeRefs.MailTypeRef)).thenReturn(customCacheHandler)
 
-				await storage.put(MailTypeRef, storableEntity)
+				await storage.put(tutanotaTypeRefs.MailTypeRef, storableEntity)
 
 				await storage.deleteAllOwnedBy(groupId)
 				verify(customCacheHandler.onBeforeCacheDeletion?.(id))
@@ -296,7 +287,7 @@ o.spec("EphemeralCacheStorage", function () {
 			o.test("calls the cache handler for blob element types", async function () {
 				const id: IdTuple = ["listId", "id1"]
 				const entityToStore = createTestEntity(
-					MailDetailsBlobTypeRef,
+					tutanotaTypeRefs.MailDetailsBlobTypeRef,
 					{
 						_id: id,
 						_ownerGroup: groupId,
@@ -304,14 +295,14 @@ o.spec("EphemeralCacheStorage", function () {
 					{ populateAggregates: true },
 				)
 				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
-					MailDetailsBlobTypeRef,
+					tutanotaTypeRefs.MailDetailsBlobTypeRef,
 					entityToStore,
 				)) as unknown as ServerModelParsedInstance
 
-				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
-				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+				const customCacheHandler: CustomCacheHandler<tutanotaTypeRefs.MailDetailsBlob> = object()
+				when(customCacheHandlerMap.get(tutanotaTypeRefs.MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
 
-				await storage.put(MailDetailsBlobTypeRef, storableEntity)
+				await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, storableEntity)
 
 				await storage.deleteAllOwnedBy(groupId)
 				verify(customCacheHandler.onBeforeCacheDeletion?.(id))

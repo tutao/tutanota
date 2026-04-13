@@ -1,16 +1,14 @@
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import m, { Children } from "mithril"
-import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils"
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { AvailablePlanType, HighestTierPlans, ImportStatus, MailSetKind, UpgradePromptType, isHighestTierPlan } from "../../common/api/common/TutanotaConstants"
+import { ImportStatus, UpgradePromptType } from "@tutao/appEnv"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, generatedIdToTimestamp, isSameId, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../common/misc/SubscriptionDialogs.js"
@@ -23,6 +21,7 @@ import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { client } from "../../common/misc/ClientDetector"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
+import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans, MailSetKind } from "@tutao/appEnv"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.
@@ -65,7 +64,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const userController = mailLocator.logins.getUserController()
 		const currentPlanType = await userController.getPlanType()
 		if (!isHighestTierPlan(currentPlanType)) {
-			await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.IMPORT, userController, HighestTierPlans as readonly AvailablePlanType[])
+			await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.IMPORT, userController, LegacyPrivatePlans as readonly AvailablePlanType[])
 			return
 		}
 
@@ -311,7 +310,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {}
 }
 
 export function getReadableUiImportStatus(uiStatus: UiImportStatus): string {

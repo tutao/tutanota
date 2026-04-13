@@ -1,9 +1,8 @@
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { EmailSignatureType as TutanotaConstants } from "../../../common/api/common/TutanotaConstants"
 import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, EmailSignatureType } from "@tutao/appEnv"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
@@ -24,9 +23,9 @@ export function getEmailSignature(tutanotaProperties: tutanotaTypeRefs.TutanotaP
 	// provide the user signature, even for shared mail groups
 	const type = tutanotaProperties.emailSignatureType
 
-	if (type === TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+	if (type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
 		return getDefaultSignature()
-	} else if (TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM === type) {
+	} else if (EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM === type) {
 		return tutanotaProperties.customEmailSignature
 	} else {
 		return ""

@@ -1,17 +1,15 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { isSameId, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { FeatureType, MailSetKind } from "@tutao/appEnv"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
-import { assertMainOrNode } from "../../../common/api/common/Env"
-import { isSameId, StrippedEntity } from "@tutao/typeRefs"
+import { assertMainOrNode, MailSetKind } from "@tutao/appEnv"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
 import { LockedError } from "../../../common/api/common/error/RestError"
-import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -76,7 +74,7 @@ export class ProcessInboxHandler {
 			return sourceFolder
 		}
 
-		let instanceSessionKeys: InstanceSessionKey[] = []
+		let instanceSessionKeys: sysTypeRefs.InstanceSessionKey[] = []
 		// resolve sessionKeys for mail and their corresponding files if bucket key exists, and we are the
 		// leader client, i.e. isLeaderClient == true
 		// we resolveWithBucketKey before predicting spam to have an encryptionAuthStatus on the mail instance

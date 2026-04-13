@@ -1,7 +1,7 @@
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
-import { FeatureType, UpgradePromptType } from "../../common/api/common/TutanotaConstants"
+import { FeatureType, UpgradePromptType } from "@tutao/appEnv"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"

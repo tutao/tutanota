@@ -1,28 +1,14 @@
-import type { GroupInfo, MailAddressAliasServiceReturn } from "../../../entities/sys/TypeRefs.js"
-import {
-	createDomainMailAddressAvailabilityData,
-	createMailAddressAliasGetIn,
-	createMailAddressAliasServiceData,
-	createMailAddressAliasServiceDataDelete,
-	createMultipleMailAddressAvailabilityData,
-	createStringWrapper,
-	GroupInfoTypeRef,
-	GroupTypeRef,
-	UserTypeRef,
-} from "../../../entities/sys/TypeRefs.js"
-import { DomainMailAddressAvailabilityService, MailAddressAliasService, MultipleMailAddressAvailabilityService } from "../../../entities/sys/Services.js"
-import { assertWorkerOrNode } from "../../../common/Env.js"
+import { sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, delay, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 import { VersionedKey } from "@tutao/instancePipeline"
-import { ChangePrimaryAddressService } from "../../../entities/tutanota/Services"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
 import { DateProvider } from "../../../common/DateProvider"
 
@@ -135,9 +121,9 @@ export class MailAddressFacade {
 	/**
 	 * For legacy accounts the given userGroupId is ignored since the alias counters are for the customer
 	 */
-	getAliasCounters(userGroupId: Id): Promise<MailAddressAliasServiceReturn> {
-		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
-		return this.serviceExecutor.get(MailAddressAliasService, data)
+	getAliasCounters(userGroupId: Id): Promise<sysTypeRefs.MailAddressAliasServiceReturn> {
+		const data = sysTypeRefs.createMailAddressAliasGetIn({ targetGroup: userGroupId })
+		return this.serviceExecutor.get(sysServices.MailAddressAliasService, data)
 	}
 
 	/**
@@ -146,22 +132,22 @@ export class MailAddressFacade {
 	 */
 	async isMailAddressAvailable(mailAddress: string, signupToken?: string): Promise<boolean> {
 		if (this.userFacade.isFullyLoggedIn()) {
-			const data = createDomainMailAddressAvailabilityData({ mailAddress })
+			const data = sysTypeRefs.createDomainMailAddressAvailabilityData({ mailAddress })
 			if (!(await this.availabilityBucket.nextToken())) {
 				// another check came in while we were waiting
 				return false
 			}
-			const availability = await this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
+			const availability = await this.serviceExecutor.get(sysServices.DomainMailAddressAvailabilityService, data)
 			return availability.available
 		} else if (signupToken != null) {
-			const data = createMultipleMailAddressAvailabilityData({
+			const data = sysTypeRefs.createMultipleMailAddressAvailabilityData({
 				signupToken,
-				mailAddresses: [createStringWrapper({ value: mailAddress })],
+				mailAddresses: [sysTypeRefs.createStringWrapper({ value: mailAddress })],
 			})
 			if (!(await this.availabilityBucket.nextToken())) {
 				return false
 			}
-			const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
+			const result = await this.serviceExecutor.get(sysServices.MultipleMailAddressAvailabilityService, data)
 			return getFirstOrThrow(result.availabilities).available
 		} else {
 			throw new ProgrammingError("tried to get mail address availability while not fully logged in without a signup token")
@@ -175,11 +161,11 @@ export class MailAddressFacade {
 	 * Can only be done by an admin.
 	 */
 	async addMailAlias(targetGroupId: Id, alias: string): Promise<void> {
-		const data = createMailAddressAliasServiceData({
+		const data = sysTypeRefs.createMailAddressAliasServiceData({
 			group: targetGroupId,
 			mailAddress: alias,
 		})
-		await this.serviceExecutor.post(MailAddressAliasService, data)
+		await this.serviceExecutor.post(sysServices.MailAddressAliasService, data)
 	}
 
 	/**
@@ -191,12 +177,12 @@ export class MailAddressFacade {
 	 * Can only be done by an admin.
 	 */
 	async setMailAliasStatus(targetGroupId: Id, alias: string, restore: boolean): Promise<void> {
-		const deleteData = createMailAddressAliasServiceDataDelete({
+		const deleteData = sysTypeRefs.createMailAddressAliasServiceDataDelete({
 			mailAddress: alias,
 			restore,
 			group: targetGroupId,
 		})
-		await this.serviceExecutor.delete(MailAddressAliasService, deleteData)
+		await this.serviceExecutor.delete(sysServices.MailAddressAliasService, deleteData)
 	}
 
 	async setPrimaryMailAddress(userId: Id, address: string): Promise<void> {
@@ -204,7 +190,7 @@ export class MailAddressFacade {
 			address,
 			user: userId,
 		})
-		await this.serviceExecutor.put(ChangePrimaryAddressService, data)
+		await this.serviceExecutor.put(tutanotaServices.ChangePrimaryAddressService, data)
 	}
 
 	/**
@@ -290,14 +276,14 @@ export class MailAddressFacade {
 		return this.updateMailboxProperties(mailboxProperties, viaUser)
 	}
 
-	private async loadUserGroupInfo(userId: Id): Promise<GroupInfo> {
-		const user = await this.nonCachingEntityClient.load(UserTypeRef, userId)
-		return await this.nonCachingEntityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+	private async loadUserGroupInfo(userId: Id): Promise<sysTypeRefs.GroupInfo> {
+		const user = await this.nonCachingEntityClient.load(sysTypeRefs.UserTypeRef, userId)
+		return await this.nonCachingEntityClient.load(sysTypeRefs.GroupInfoTypeRef, user.userGroup.groupInfo)
 	}
 
-	private async loadMailGroupInfo(groupId: Id): Promise<GroupInfo> {
-		const group = await this.nonCachingEntityClient.load(GroupTypeRef, groupId)
-		return await this.nonCachingEntityClient.load(GroupInfoTypeRef, group.groupInfo)
+	private async loadMailGroupInfo(groupId: Id): Promise<sysTypeRefs.GroupInfo> {
+		const group = await this.nonCachingEntityClient.load(sysTypeRefs.GroupTypeRef, groupId)
+		return await this.nonCachingEntityClient.load(sysTypeRefs.GroupInfoTypeRef, group.groupInfo)
 	}
 
 	private async createMailboxProperties(mailboxGroupRoot: tutanotaTypeRefs.MailboxGroupRoot, groupKey: VersionedKey): Promise<Id> {

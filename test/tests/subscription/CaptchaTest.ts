@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
 import { solvePowChallengeInWorker } from "../../../src/common/subscription/captcha/Captcha.js"
-import { createTimelockCaptchaGetOut, TimelockCaptchaGetOut } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("SolvePowChallenge", () => {
 	o(
 		"solve valid challenge",
 		browser(async () => {
-			const captchaGetOut: TimelockCaptchaGetOut = createTimelockCaptchaGetOut({
+			const captchaGetOut: sysTypeRefs.TimelockCaptchaGetOut = sysTypeRefs.createTimelockCaptchaGetOut({
 				base: "2",
 				difficulty: "2",
 				modulus: "2",

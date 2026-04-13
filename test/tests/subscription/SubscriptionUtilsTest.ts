@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { NewPaidPlans, PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { clone } from "@tutao/utils"
 
 import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"
+import { NewPaidPlans, PlanType } from "@tutao/appEnv"
 
 o.spec("SubscriptionUtilsTest", function () {
 	let serviceExecutor: IServiceExecutor

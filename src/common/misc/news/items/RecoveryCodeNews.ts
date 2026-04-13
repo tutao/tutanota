@@ -6,14 +6,13 @@ import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
 import { AccessBlockedError, NotAuthenticatedError } from "../../../api/common/error/RestError.js"
-import { daysToMillis, LazyLoaded, noOp, ofClass } from "@tutao/utils"
+import { LazyLoaded, noOp, ofClass } from "@tutao/utils"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../gui/base/Icon.js"
-import { UserManagementFacade } from "../../../api/worker/facades/lazy/UserManagementFacade.js"
-import { isApp } from "../../../api/common/Env.js"
 import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
 import { RecoverCodeFacade } from "../../../api/worker/facades/lazy/RecoverCodeFacade.js"
+import { daysToMillis, isApp } from "@tutao/appEnv"
 
 /**
  * News item that informs admin users about their recovery code.

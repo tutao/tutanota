@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Weekday } from "../../../../common/api/common/TutanotaConstants.js"
+import { Weekday } from "@tutao/appEnv"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import { IntervalOption } from "../CalendarGuiUtils.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"

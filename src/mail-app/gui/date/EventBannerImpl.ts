@@ -3,7 +3,7 @@ import { DateTime } from "luxon"
 import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
-import { CalendarAttendeeStatus, CalendarMethod, Keys, SECOND_MS, TabIndex } from "../../../common/api/common/TutanotaConstants"
+import { CalendarAttendeeStatus, CalendarMethod, Keys, SECOND_MS, TabIndex } from "@tutao/appEnv"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, clone, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
 import {

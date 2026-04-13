@@ -2,11 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Autocomplete } from "../gui/base/TextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { CreditCard } from "../api/entities/sys/TypeRefs.js"
 import { LoginTextField, LoginTextFieldAttrs } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
 import { styles } from "../gui/styles"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
@@ -15,9 +15,9 @@ export type SimplifiedCreditCardAttrs = {
 export interface CCViewModel {
 	validateCreditCardPaymentData(): TranslationKey | null
 
-	setCreditCardData(data: CreditCard | null): void
+	setCreditCardData(data: sysTypeRefs.CreditCard | null): void
 
-	getCreditCardData(): CreditCard
+	getCreditCardData(): sysTypeRefs.CreditCard
 }
 
 // changing the content (ie grouping) sets selection to the end, this restores it after the next redraw.

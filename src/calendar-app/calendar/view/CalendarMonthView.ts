@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { layout_size, px, size } from "../../../common/gui/size"
-import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { EventTextTimeOption, Keys, WeekStart } from "@tutao/appEnv"
 import {
 	CalendarDay,
 	CalendarMonth,
@@ -39,13 +39,13 @@ import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { isAppleDevice, isIOSApp } from "../../../common/api/common/Env"
 import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../common/gui/theme"
+import { isAppleDevice, isIOSApp } from "@tutao/appEnv"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date

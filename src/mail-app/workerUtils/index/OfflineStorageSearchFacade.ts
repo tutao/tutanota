@@ -9,7 +9,7 @@ import { assertNotNull, first, isEmpty, isSameTypeRef, last, splitArrayAt } from
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 import { isSameId } from "@tutao/typeRefs"
 

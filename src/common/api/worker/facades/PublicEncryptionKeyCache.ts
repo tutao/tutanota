@@ -1,6 +1,7 @@
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "./PublicEncryptionKeyProvider"
 import { KeyVersion } from "@tutao/utils"
-import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants"
+import { PublicKeyIdentifierType } from "@tutao/appEnv"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 
 /**
  * This caches public encryption keys that did not fail key verification / TOFU.

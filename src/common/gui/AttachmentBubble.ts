@@ -7,7 +7,7 @@ import { defer, DeferredObject, noOp, Thunk } from "@tutao/utils"
 import { modal, ModalComponent } from "./base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "../misc/KeyManager.js"
 import { PosRect } from "./base/Dropdown.js"
-import { Keys } from "../api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import { px } from "./size.js"
 import { AllIcons, Icon } from "./base/Icon.js"
 import { theme } from "./theme.js"
@@ -15,7 +15,7 @@ import { animations, height, opacity, transform, TransformEnum, width } from "./
 import { ease } from "./animation/Easing.js"
 import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common/utils/FileUtils.js"
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
-import { hasError } from "../api/common/utils/ErrorUtils.js"
+import { hasError } from "@tutao/typeRefs"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../file/FileController.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -221,7 +221,13 @@ export class AttachmentDetailsPopup implements ModalComponent {
 					m(".flex.row.justify-between.items-center", [
 						m("span.smaller", `${formatStorageSize(Number(attachment.size))}`),
 						m(".flex.no-wrap", [
-							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => this.thenClose(remove) }) : null,
+							remove
+								? m(Button, {
+										type: ButtonType.Secondary,
+										label: "remove_action",
+										click: () => this.thenClose(remove),
+									})
+								: null,
 							fileImport
 								? m(Button, {
 										type: ButtonType.Secondary,
@@ -229,8 +235,20 @@ export class AttachmentDetailsPopup implements ModalComponent {
 										click: () => this.thenClose(fileImport),
 									})
 								: null,
-							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,
-							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => this.thenClose(download) }) : null,
+							open
+								? m(Button, {
+										type: ButtonType.Secondary,
+										label: "open_action",
+										click: () => this.thenClose(open),
+									})
+								: null,
+							download
+								? m(Button, {
+										type: ButtonType.Secondary,
+										label: "download_action",
+										click: () => this.thenClose(download),
+									})
+								: null,
 						]),
 					]),
 				),

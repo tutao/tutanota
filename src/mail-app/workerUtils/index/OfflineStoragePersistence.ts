@@ -1,15 +1,14 @@
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
-import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { elementIdPart, listIdPart } from "@tutao/typeRefs"
+import { elementIdPart, ListElementEntity, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
-import { ListElementEntity } from "@tutao/typeRefs"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
+import { GroupType } from "@tutao/appEnv"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {

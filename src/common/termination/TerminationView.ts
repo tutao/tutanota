@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { assertMainOrNode } from "../api/common/Env.js"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -7,13 +7,13 @@ import { TerminationViewModel } from "./TerminationViewModel.js"
 import { TerminationForm } from "./TerminationForm.js"
 import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { createSurveyData, CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { client } from "../misc/ClientDetector"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -72,7 +72,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		)
 	}
 
-	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
+	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: sysTypeRefs.CustomerAccountTerminationRequest): Children {
 		return m("", [
 			m(".h3.mt-16", "Termination successful"),
 			m(
@@ -88,7 +88,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 
 	private async cancelWithProgressDialog(surveyResult: LeavingUserSurveyData | null) {
 		if (surveyResult && surveyResult.submitted && surveyResult.category && surveyResult.reason) {
-			const data = createSurveyData({
+			const data = sysTypeRefs.createSurveyData({
 				category: surveyResult.category,
 				reason: surveyResult.reason,
 				details: surveyResult.details,

@@ -7,8 +7,7 @@ import { sysTypeRefs } from "@tutao/typeRefs"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import o from "@tutao/otest"
 import { UserController } from "../../../src/common/api/main/UserController"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { isSameId } from "@tutao/typeRefs"
+import { tutanotaTypeRefs, isSameId } from "@tutao/typeRefs"
 
 o.spec("GroupSettingsModel", function () {
 	let groupSettingsModel: GroupSettingsModel
@@ -16,9 +15,9 @@ o.spec("GroupSettingsModel", function () {
 	let entityClient: EntityClient
 	let loginController: LoginController
 	let userController: Writeable<UserController>
-	let userSettingsGroupRoot: UserSettingsGroupRoot
-	let group: Group
-	let groupInfo: GroupInfo
+	let userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot
+	let group: sysTypeRefs.Group
+	let groupInfo: sysTypeRefs.GroupInfo
 
 	const groupId = "groupId"
 	const ownerUserID: string = "userID"
@@ -33,14 +32,14 @@ o.spec("GroupSettingsModel", function () {
 		entityClient = new EntityClient(entityRestClient, clientInitializedTypeModelResolver())
 		loginController = object()
 		userController = object()
-		userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef)
-		group = createTestEntity(GroupTypeRef, { members: groupMembersListId, _id: groupId, user: ownerUserID })
-		groupInfo = createTestEntity(GroupInfoTypeRef, { name: groupName, group: groupId })
-		const ownerGroupMember = createTestEntity(GroupMemberTypeRef, {
+		userSettingsGroupRoot = createTestEntity(tutanotaTypeRefs.UserSettingsGroupRootTypeRef)
+		group = createTestEntity(sysTypeRefs.GroupTypeRef, { members: groupMembersListId, _id: groupId, user: ownerUserID })
+		groupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, { name: groupName, group: groupId })
+		const ownerGroupMember = createTestEntity(sysTypeRefs.GroupMemberTypeRef, {
 			_id: [groupMembersListId, "groupMemberId1"],
 			userGroupInfo: ownerGroupInfoID,
 		})
-		const ownerGroupInfo = createTestEntity(GroupInfoTypeRef, { _id: ownerGroupInfoID })
+		const ownerGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, { _id: ownerGroupInfoID })
 
 		entityRestClient.addElementInstances(group)
 		entityRestClient.addListInstances(groupInfo, ownerGroupMember, ownerGroupInfo)
@@ -54,16 +53,16 @@ o.spec("GroupSettingsModel", function () {
 
 	o.spec("getNameData", function () {
 		o.test("only returns one name when group is not shared", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
 			const nameDataOutput = await groupSettingsModel.getGroupNameData(groupInfo)
 			o.check(nameDataOutput).deepEquals({ kind: "single", name: groupName })
 		})
 
 		o.test("only returns group name when the group is not shared and the custom name is empty", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 			userSettingsGroupRoot.groupSettings.push(
-				createGroupSettings({
+				tutanotaTypeRefs.createGroupSettings({
 					group: groupId,
 					color: "",
 					name: "",
@@ -79,9 +78,9 @@ o.spec("GroupSettingsModel", function () {
 		o.test("returns both names when the group is not shared but there is custom name", async function () {
 			const customName = "Custom Name"
 
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 			userSettingsGroupRoot.groupSettings.push(
-				createGroupSettings({
+				tutanotaTypeRefs.createGroupSettings({
 					group: groupId,
 					color: "",
 					name: customName,
@@ -100,13 +99,13 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("returns null custom name if there are no group settings", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
-			const participantGroupMember = createTestEntity(GroupMemberTypeRef, {
+			const participantGroupMember = createTestEntity(sysTypeRefs.GroupMemberTypeRef, {
 				_id: [groupMembersListId, "groupMemberId"],
 				userGroupInfo: participantGroupInfoID,
 			})
-			const participantGroupInfo = createTestEntity(GroupInfoTypeRef, { _id: participantGroupInfoID })
+			const participantGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, { _id: participantGroupInfoID })
 
 			entityRestClient.addListInstances(participantGroupMember, participantGroupInfo)
 
@@ -121,16 +120,16 @@ o.spec("GroupSettingsModel", function () {
 
 		o.test("returns custom name with shared group and editable if owner", async function () {
 			const groupSettingsName = "My Name"
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
-			const participantGroupMember = createTestEntity(GroupMemberTypeRef, {
+			const participantGroupMember = createTestEntity(sysTypeRefs.GroupMemberTypeRef, {
 				_id: [groupMembersListId, "groupMemberId"],
 				userGroupInfo: participantGroupInfoID,
 			})
-			const participantGroupInfo = createTestEntity(GroupInfoTypeRef, { _id: participantGroupInfoID })
+			const participantGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, { _id: participantGroupInfoID })
 
 			userSettingsGroupRoot.groupSettings.push(
-				createGroupSettings({
+				tutanotaTypeRefs.createGroupSettings({
 					group: groupInfo.group,
 					color: "",
 					name: groupSettingsName,
@@ -151,16 +150,16 @@ o.spec("GroupSettingsModel", function () {
 
 		o.test("returns custom name with shared group and not editable if not owner", async function () {
 			const groupSettingsName = "My Name"
-			userController.user = createTestEntity(UserTypeRef, { _id: participantUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: participantUserID })
 
-			const participantGroupMember = createTestEntity(GroupMemberTypeRef, {
+			const participantGroupMember = createTestEntity(sysTypeRefs.GroupMemberTypeRef, {
 				_id: [groupMembersListId, "groupMemberId"],
 				userGroupInfo: participantGroupInfoID,
 			})
-			const participantGroupInfo = createTestEntity(GroupInfoTypeRef, { _id: participantGroupInfoID })
+			const participantGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, { _id: participantGroupInfoID })
 
 			userSettingsGroupRoot.groupSettings.push(
-				createGroupSettings({
+				tutanotaTypeRefs.createGroupSettings({
 					group: groupInfo.group,
 					color: "",
 					name: groupSettingsName,
@@ -183,7 +182,7 @@ o.spec("GroupSettingsModel", function () {
 
 	o.spec("updateGroupNameData", function () {
 		o.test("When nameData is single, groupInfo is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
 			const newName = "newName"
 			const updateData: GroupNameData = { kind: "single", name: newName }
@@ -197,7 +196,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and owner changes name groupInfo is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
 			const newName = "newName"
 			const updateData: GroupNameData = { kind: "shared", name: newName, editableName: true, customName: null }
@@ -211,7 +210,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and owner can change groupInfo and groupSetting name at the same time", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
 			const newName = "newName"
 			const newCustomName = "newCustomName"
@@ -232,7 +231,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and owner changes name custom name groupSettings is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: ownerUserID })
 
 			const newName = "Custom name"
 			const updateData: GroupNameData = {
@@ -253,7 +252,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and participant changes name custom name groupSettings is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: participantUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: participantUserID })
 
 			const newName = "Custom name"
 			const updateData: GroupNameData = {
@@ -274,10 +273,10 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and participant changes name custom name existing groupSettings is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: participantUserID })
+			userController.user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: participantUserID })
 
 			userSettingsGroupRoot.groupSettings.push(
-				createGroupSettings({
+				tutanotaTypeRefs.createGroupSettings({
 					group: groupInfo.group,
 					color: "",
 					name: "First name",

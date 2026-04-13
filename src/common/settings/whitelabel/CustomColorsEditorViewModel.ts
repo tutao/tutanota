@@ -1,7 +1,6 @@
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
 import { clone, downcast } from "@tutao/utils"
-import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -10,6 +9,7 @@ import { ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -21,8 +21,8 @@ export type CustomColor = {
 
 export class CustomColorsEditorViewModel {
 	private _customizations: ThemeCustomizations
-	private readonly _whitelabelConfig: WhitelabelConfig
-	private readonly _whitelabelDomainInfo: DomainInfo
+	private readonly _whitelabelConfig: sysTypeRefs.WhitelabelConfig
+	private readonly _whitelabelDomainInfo: sysTypeRefs.DomainInfo
 	private _sourceColor!: string
 	private _baseTheme!: BaseThemeId
 	private readonly _themeController: ThemeController
@@ -35,8 +35,8 @@ export class CustomColorsEditorViewModel {
 	constructor(
 		currentTheme: Theme,
 		themeCustomizations: ThemeCustomizations,
-		whitelabelConfig: WhitelabelConfig,
-		whitelabelDomainInfo: DomainInfo,
+		whitelabelConfig: sysTypeRefs.WhitelabelConfig,
+		whitelabelDomainInfo: sysTypeRefs.DomainInfo,
 		themeController: ThemeController,
 		entityClient: EntityClient,
 		loginController: LoginController,

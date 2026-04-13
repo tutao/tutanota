@@ -1,23 +1,15 @@
 import type { LanguageCode } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
+import { entityUpdateUtils, getElementId, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { getElementId, getEtId, isSameId } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
 import { LazyLoaded, promiseMap, SortedArray } from "@tutao/utils"
 import type { TemplateGroupInstance } from "./TemplateGroupModel.js"
 import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { OperationType } from "@tutao/appEnv"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -40,7 +32,7 @@ export class TemplatePopupModel {
 	readonly selectedTemplate: Stream<tutanotaTypeRefs.EmailTemplate | null>
 	initialized: LazyLoaded<TemplatePopupModel>
 	readonly _eventController: EventController
-	readonly _entityEventReceived: EntityEventsListener
+	readonly _entityEventReceived: entityUpdateUtils.EntityEventsListener
 	readonly _logins: LoginController
 	readonly _entityClient: EntityClient
 	_groupInstances: Array<TemplateGroupInstance>
@@ -62,7 +54,7 @@ export class TemplatePopupModel {
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
 				return this._entityUpdate(updates, eventOwnerGroupId)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		this.initialized = new LazyLoaded(() => {
@@ -170,9 +162,9 @@ export class TemplatePopupModel {
 		return this._allTemplates.array.find((template) => template.tag === tag) ?? null
 	}
 
-	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
+	_entityUpdate(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
 		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.EmailTemplateTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.EmailTemplateTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
 					return this._entityClient.load(tutanotaTypeRefs.EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
 						this._allTemplates.insert(template)

@@ -1,9 +1,7 @@
 import m from "mithril"
-import type { RejectedSender } from "../../common/api/entities/sys/TypeRefs.js"
 import { TextField } from "../../common/gui/base/TextField.js"
-import stream from "mithril/stream"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /*
 label: TranslationKey | lazy<string>,
@@ -20,7 +18,7 @@ label: TranslationKey | lazy<string>,
 	maxWidth?: number,
 	class?: string,
 */
-export function showRejectedSendersInfoDialog(rejectedSender: RejectedSender) {
+export function showRejectedSendersInfoDialog(rejectedSender: sysTypeRefs.RejectedSender) {
 	const actionDialogProperties = {
 		title: "details_label",
 		child: {

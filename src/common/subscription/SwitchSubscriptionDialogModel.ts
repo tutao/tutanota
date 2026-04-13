@@ -1,7 +1,8 @@
-import { BookingItemFeatureType, FeatureType, LegacyPlans, PlanType } from "../api/common/TutanotaConstants"
-import type { AccountingInfo, Booking, Customer } from "../api/entities/sys/TypeRefs.js"
+import { FeatureType } from "@tutao/appEnv"
 import { asPaymentInterval, PaymentInterval } from "./utils/PriceUtils"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { BookingItemFeatureType, LegacyPlans, PlanType } from "@tutao/appEnv"
 
 export type CurrentPlanInfo = {
 	businessUse: boolean
@@ -13,10 +14,10 @@ export class SwitchSubscriptionDialogModel {
 	currentPlanInfo: CurrentPlanInfo
 
 	constructor(
-		private readonly customer: Customer,
-		private readonly accountingInfo: AccountingInfo,
+		private readonly customer: sysTypeRefs.Customer,
+		private readonly accountingInfo: sysTypeRefs.AccountingInfo,
 		private readonly planType: PlanType,
-		private readonly lastBooking: Booking,
+		private readonly lastBooking: sysTypeRefs.Booking,
 	) {
 		this.currentPlanInfo = this._initCurrentPlanInfo()
 	}

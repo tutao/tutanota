@@ -1,7 +1,5 @@
-import { TutanotaError } from "@tutao/appEnv"
+import { assertMainOrNode, AvailablePlanType, TutanotaError } from "@tutao/appEnv"
 import type { TranslationKeyType } from "../../misc/TranslationKey"
-import { assertMainOrNode } from "../common/Env"
-import { AvailablePlanType } from "../common/TutanotaConstants.js"
 
 assertMainOrNode()
 

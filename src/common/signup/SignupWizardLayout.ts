@@ -15,11 +15,12 @@ import { getTutaLogo, getTutaLogoSignetSvg } from "../gui/base/Logo"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { theme } from "../gui/theme"
 import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
-import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { PlanTypeToName } from "@tutao/typeRefs"
+import { AvailablePlanType, PlanType } from "@tutao/appEnv"
 
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24

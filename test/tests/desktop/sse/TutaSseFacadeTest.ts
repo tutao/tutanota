@@ -1,29 +1,13 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { MISSED_NOTIFICATION_TTL, TutaSseFacade } from "../../../../src/common/desktop/sse/TutaSseFacade.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
 import { TutaNotificationHandler } from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
 import { SseClient, SseConnectOptions } from "../../../../src/common/desktop/sse/SseClient.js"
 import { fetch as undiciFetch } from "undici"
-import { typeModels } from "../../../../src/common/api/entities/sys/TypeModels.js"
+import { AttributeModel, ServerModelUntypedInstance, sysTypeModels, sysTypeRefs, TypeModelResolver, UntypedInstance } from "@tutao/typeRefs"
 import { assertNotNull, deepEqual, downcast, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
-import {
-	AlarmInfoTypeRef,
-	AlarmNotificationTypeRef,
-	CalendarEventRefTypeRef,
-	createAlarmInfo,
-	createAlarmNotification,
-	createCalendarEventRef,
-	createIdTupleWrapper,
-	createMissedNotification,
-	createNotificationInfo,
-	createNotificationSessionKey,
-	MissedNotificationTypeRef,
-	NotificationInfo,
-	NotificationSessionKeyTypeRef,
-	SseConnectDataTypeRef,
-} from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
@@ -33,18 +17,13 @@ import {
 	removeOriginals,
 } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
-import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
-import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { aes256RandomKey } from "@tutao/crypto"
-import { StrippedEntity } from "@tutao/typeRefs"
-import { ServerModelUntypedInstance, UntypedInstance } from "@tutao/typeRefs"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/common/native/common/EncryptedMissedNotification"
-import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
-import { AttributeModel } from "@tutao/typeRefs"
-import { TypeModelResolver } from "@tutao/typeRefs"
+import { OperationType } from "@tutao/appEnv"
 
 const APP_V = env.versionNumber
 
@@ -109,14 +88,14 @@ o.spec("TutaSseFacade", () => {
 					matchers.argThat(async (opts: SseConnectOptions) => {
 						const actualUrl = opts.url
 						const actualBody: ServerModelUntypedInstance = JSON.parse(assertNotNull(actualUrl.searchParams.get("_body")))
-						const connectData = await nativeInstancePipeline.decryptAndMap(SseConnectDataTypeRef, actualBody, null)
+						const connectData = await nativeInstancePipeline.decryptAndMap(sysTypeRefs.SseConnectDataTypeRef, actualBody, null)
 						return (
 							actualUrl.origin === expectedUrl.origin &&
 							connectData.identifier === "id" &&
 							connectData.userIds.length === 1 &&
 							connectData.userIds[0].value === "userId" &&
 							deepEqual(opts.headers, {
-								v: typeModels[MissedNotificationTypeRef.typeId].version,
+								v: sysTypeModels[sysTypeRefs.MissedNotificationTypeRef.typeId].version,
 								cv: env.versionNumber,
 							})
 						)
@@ -151,43 +130,43 @@ o.spec("TutaSseFacade", () => {
 		o.test("downloads and handles notification", async () => {
 			const headers: Record<string, string> = {
 				userIds: "userId",
-				v: typeModels[MissedNotificationTypeRef.typeId].version,
+				v: sysTypeModels[sysTypeRefs.MissedNotificationTypeRef.typeId].version,
 				cv: env.versionNumber,
 			}
 			const sseInfo = setupSseInfo()
 			await sseFacade.connect()
-			const alarmNotification = createAlarmNotification({
+			const alarmNotification = sysTypeRefs.createAlarmNotification({
 				operation: OperationType.CREATE,
 				summary: "",
 				eventStart: new Date(),
 				eventEnd: new Date(),
-				alarmInfo: createAlarmInfo({
+				alarmInfo: sysTypeRefs.createAlarmInfo({
 					trigger: "",
 					alarmIdentifier: "",
-					calendarRef: createCalendarEventRef({
+					calendarRef: sysTypeRefs.createCalendarEventRef({
 						elementId: "",
 						listId: "",
 					}),
 				}),
 				repeatRule: null,
 				notificationSessionKeys: [
-					createNotificationSessionKey({
+					sysTypeRefs.createNotificationSessionKey({
 						pushIdentifier: ["pListId", "pElementId"],
 						pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("sk"),
 					}),
 				],
 				user: "userId",
 			})
-			const notificationInfo = createNotificationInfo({
+			const notificationInfo = sysTypeRefs.createNotificationInfo({
 				_id: "notificationInfoId",
 				userId: "userId",
-				mailId: createIdTupleWrapper({
+				mailId: sysTypeRefs.createIdTupleWrapper({
 					listId: "mailListId",
 					listElementId: "mailElementId",
 				}),
 				mailAddress: "test@mail.address",
 			})
-			const missedNotification = createMissedNotification({
+			const missedNotification = sysTypeRefs.createMissedNotification({
 				_ownerEncSessionKey: null,
 				_ownerKeyVersion: null,
 				_ownerGroup: "ownerGroupId",
@@ -198,7 +177,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(sysTypeRefs.MissedNotificationTypeRef, missedNotification, sk)
 			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
 
 			when(alarmStorage.getNotificationSessionKey(alarmNotification.notificationSessionKeys)).thenResolve({
@@ -235,22 +214,22 @@ o.spec("TutaSseFacade", () => {
 		})
 
 		o("handles alarm delete notification", async function () {
-			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
+			const missedNotification = createTestEntity(sysTypeRefs.MissedNotificationTypeRef, {
 				_id: "id",
 				_permissions: "permissionsId",
 				alarmNotifications: [
-					createTestEntity(AlarmNotificationTypeRef, {
+					createTestEntity(sysTypeRefs.AlarmNotificationTypeRef, {
 						_id: "id",
 						operation: OperationType.DELETE,
-						alarmInfo: createTestEntity(AlarmInfoTypeRef, {
+						alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
 							alarmIdentifier: "alarmId",
-							calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+							calendarRef: createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, {
 								listId: "listId",
 								elementId: "id",
 							}),
 						}),
 						notificationSessionKeys: [
-							createTestEntity(NotificationSessionKeyTypeRef, {
+							createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 								pushIdentifier: ["listId", "pid"],
 								pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
 							}),
@@ -263,14 +242,14 @@ o.spec("TutaSseFacade", () => {
 			const sk = aes256RandomKey()
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve({
 				sessionKey: sk,
-				notificationSessionKey: createTestEntity(NotificationSessionKeyTypeRef, {
+				notificationSessionKey: createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 					pushIdentifier: ["pushIdentifierList", "pid"],
 					pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
 				}),
 			})
 			// casting here is fine, since we just want to mimic server response data
 			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
-				MissedNotificationTypeRef,
+				sysTypeRefs.MissedNotificationTypeRef,
 				missedNotification,
 				sk,
 			)) as unknown as ServerModelUntypedInstance
@@ -280,20 +259,20 @@ o.spec("TutaSseFacade", () => {
 		})
 
 		o("alarmnotification with unavailable pushIdentifierSessionKey", async function () {
-			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
+			const missedNotification = createTestEntity(sysTypeRefs.MissedNotificationTypeRef, {
 				_id: "id",
 				_permissions: "permissionsId",
 				alarmNotifications: [
-					createTestEntity(AlarmNotificationTypeRef, {
+					createTestEntity(sysTypeRefs.AlarmNotificationTypeRef, {
 						_id: "id",
-						alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-							calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+						alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
+							calendarRef: createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, {
 								listId: "listId",
 								elementId: "id",
 							}),
 						}),
 						notificationSessionKeys: [
-							createTestEntity(NotificationSessionKeyTypeRef, {
+							createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 								pushIdentifier: ["listId", "pid"],
 								pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
 							}),
@@ -307,7 +286,7 @@ o.spec("TutaSseFacade", () => {
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve(null)
 			// casting here is fine, since we just want to mimic server response data
 			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
-				MissedNotificationTypeRef,
+				sysTypeRefs.MissedNotificationTypeRef,
 				missedNotification,
 				sk,
 			)) as unknown as ServerModelUntypedInstance
@@ -318,20 +297,20 @@ o.spec("TutaSseFacade", () => {
 		})
 
 		o("alarmnotification with corrupt fields", async function () {
-			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
+			const missedNotification = createTestEntity(sysTypeRefs.MissedNotificationTypeRef, {
 				_id: "id",
 				_permissions: "permissionsId",
 				alarmNotifications: [
-					createTestEntity(AlarmNotificationTypeRef, {
+					createTestEntity(sysTypeRefs.AlarmNotificationTypeRef, {
 						_id: "id",
-						alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-							calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+						alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
+							calendarRef: createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, {
 								listId: "listId",
 								elementId: "id",
 							}),
 						}),
 						notificationSessionKeys: [
-							createTestEntity(NotificationSessionKeyTypeRef, {
+							createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 								pushIdentifier: ["listId", "pid"],
 								pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
 							}),
@@ -344,7 +323,7 @@ o.spec("TutaSseFacade", () => {
 			const sk = aes256RandomKey()
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve({
 				sessionKey: sk,
-				notificationSessionKey: createTestEntity(NotificationSessionKeyTypeRef, {
+				notificationSessionKey: createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 					pushIdentifier: ["pushIdentifierList", "pid"],
 					pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
 				}),
@@ -355,12 +334,12 @@ o.spec("TutaSseFacade", () => {
 
 			// casting here is fine, since we just want to mimic server response data
 			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
-				MissedNotificationTypeRef,
+				sysTypeRefs.MissedNotificationTypeRef,
 				missedNotification,
 				sk,
 			)) as unknown as ServerModelUntypedInstance
-			const missedNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(MissedNotificationTypeRef)
-			const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
+			const missedNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(sysTypeRefs.MissedNotificationTypeRef)
+			const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(sysTypeRefs.AlarmNotificationTypeRef)
 			const anAttrId = assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "alarmNotifications"))
 			const eventStartAttrId = assertNotNull(AttributeModel.getAttributeId(alarmNotificationTypeModel, "eventStart"))
 			downcast<Array<UntypedInstance>>(untypedInstance[anAttrId])[0][eventStartAttrId] = stringToBase64("newDate")
@@ -375,14 +354,14 @@ o.spec("TutaSseFacade", () => {
 			const newLastProcessedNotificationId = "newLastProcessedNotificationId"
 			const headers: Record<string, string> = {
 				userIds: "userId",
-				v: typeModels[MissedNotificationTypeRef.typeId].version,
+				v: sysTypeModels[sysTypeRefs.MissedNotificationTypeRef.typeId].version,
 				cv: env.versionNumber,
 				lastProcessedNotificationId: previousLastProcessedNotificationId,
 			}
 			setupSseInfo()
 			when(sseStorage.getLastProcessedNotificationId()).thenResolve(previousLastProcessedNotificationId)
 
-			const missedNotification = createMissedNotification({
+			const missedNotification = sysTypeRefs.createMissedNotification({
 				_ownerEncSessionKey: null,
 				_ownerKeyVersion: null,
 				_ownerGroup: "ownerGroupId",
@@ -393,7 +372,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(sysTypeRefs.MissedNotificationTypeRef, missedNotification, sk)
 
 			await sseFacade.connect()
 
@@ -472,7 +451,7 @@ o.spec("TutaSseFacade", () => {
 			const url = captor.values![1].url
 			const body = url.searchParams.get("_body")!
 
-			const instance = await nativeInstancePipeline.decryptAndMap(SseConnectDataTypeRef, JSON.parse(body), null)
+			const instance = await nativeInstancePipeline.decryptAndMap(sysTypeRefs.SseConnectDataTypeRef, JSON.parse(body), null)
 			o(instance.userIds.length).equals(1)
 			o(instance.userIds[0].value).equals("user1")
 		})

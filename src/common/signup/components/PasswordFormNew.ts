@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { PasswordFieldAttrs, PasswordFieldNew } from "./PasswordFieldNew"
 import { font_size, px } from "../../gui/size"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"

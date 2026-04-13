@@ -7,10 +7,10 @@ import { noOp } from "@tutao/utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
-import { isApp, isDesktop } from "../../api/common/Env.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { ProcessingState } from "../../api/common/TutanotaConstants"
+import { ProcessingState } from "@tutao/appEnv"
+import { isApp, isDesktop } from "@tutao/appEnv"
 
 export const BUTTON_WIDTH = 270
 

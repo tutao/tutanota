@@ -1,8 +1,8 @@
 import { getFromMap, neverNull } from "@tutao/utils"
-import { User } from "../../entities/sys/TypeRefs.js"
-import { VersionedKey } from "../crypto/CryptoWrapper.js"
+import { VersionedKey } from "@tutao/instancePipeline"
 import { Aes256Key } from "@tutao/crypto"
-import { checkKeyVersionConstraints, parseKeyVersion } from "./KeyLoaderFacade.js"
+import { cryptoUtils } from "@tutao/crypto"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /**
  * A cache for decrypted current keys of each group. Encrypted keys are stored on membership.symEncGKey.
@@ -23,7 +23,7 @@ export class KeyCache {
 			return
 		}
 		// we need to make sure that the versions returned from the server are non-negative integers, because we rely on that in key verification
-		checkKeyVersionConstraints(newUserGroupKey.version)
+		cryptoUtils.checkKeyVersionConstraints(newUserGroupKey.version)
 		this.currentUserGroupKey = newUserGroupKey
 	}
 
@@ -56,7 +56,7 @@ export class KeyCache {
 		return getFromMap(this.currentGroupKeys, groupId, async () => {
 			const loadedKey = await keyLoader()
 			// we need to make sure that the versions returned from the server are non-negative integers, because we rely on that in key verification
-			checkKeyVersionConstraints(loadedKey.version)
+			cryptoUtils.checkKeyVersionConstraints(loadedKey.version)
 			return loadedKey
 		})
 	}
@@ -72,9 +72,9 @@ export class KeyCache {
 	 * An outdated user membership is ignored and should be processed by the UserGroupKeyDistribution update.
 	 * @param user updated user with up-to-date memberships
 	 */
-	async removeOutdatedGroupKeys(user: User) {
+	async removeOutdatedGroupKeys(user: sysTypeRefs.User) {
 		const currentUserGroupKeyVersion = neverNull(this.getCurrentUserGroupKey()).version
-		const receivedUserGroupKeyVersion = parseKeyVersion(user.userGroup.groupKeyVersion)
+		const receivedUserGroupKeyVersion = cryptoUtils.parseKeyVersion(user.userGroup.groupKeyVersion)
 		if (receivedUserGroupKeyVersion > currentUserGroupKeyVersion) {
 			//we just ignore this as the same batch MUST have a UserGroupKeyDistribution entity event update
 			console.log(`Received user update with new user group key version: ${currentUserGroupKeyVersion} -> ${receivedUserGroupKeyVersion}`)
@@ -83,7 +83,7 @@ export class KeyCache {
 		const newCurrentGroupKeyCache = new Map<Id, Promise<VersionedKey>>()
 		for (const membership of user.memberships) {
 			const cachedGroupKey = this.currentGroupKeys.get(membership.group)
-			if (cachedGroupKey != null && parseKeyVersion(membership.groupKeyVersion) === (await cachedGroupKey).version) {
+			if (cachedGroupKey != null && cryptoUtils.parseKeyVersion(membership.groupKeyVersion) === (await cachedGroupKey).version) {
 				await getFromMap(newCurrentGroupKeyCache, membership.group, () => cachedGroupKey)
 			}
 		}

@@ -1,9 +1,5 @@
 import { HttpMethod, MediaType, type RestClient, restError, type restSuspension } from "@tutao/restClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { _verifyType, TypeModelResolver } from "@tutao/typeRefs"
-import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
-import { assertWorkerOrNode } from "@tutao/appEnv"
 import type {
 	ClientModelUntypedInstance,
 	ClientTypeModel,
@@ -13,30 +9,36 @@ import type {
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
-	SomeEntity,
 	TypeModel,
 	UntypedInstance,
-} from "../../common/EntityTypes"
-import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "@tutao/typeRefs"
-import { Type } from "@tutao/typeRefs"
+} from "@tutao/typeRefs"
+import {
+	_verifyType,
+	AttributeModel,
+	baseTypeRefs,
+	computePatchPayload,
+	elementIdPart,
+	entityUpdateUtils,
+	LOAD_MULTIPLE_LIMIT,
+	POST_MULTIPLE_LIMIT,
+	SomeEntity,
+	storageTypeRefs as storageTypeRefs,
+	sysTypeRefs,
+	Type,
+	TypeModelResolver,
+} from "@tutao/typeRefs"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
-import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
-import { AesKey } from "@tutao/crypto"
+import { AesKey, cryptoUtils } from "@tutao/crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
-import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { InstancePipeline } from "../crypto/InstancePipeline"
-import { EntityAdapter } from "../crypto/EntityAdapter"
-import { AttributeModel } from "@tutao/typeRefs"
-import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
-import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
-import { PatchListTypeRef } from "../../entities/sys/TypeRefs"
-import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
+import { EntityAdapter, InstancePipeline, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
 import { expandId } from "./RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
-import { computePatchPayload } from "../../common/utils/PatchGenerator"
 
 assertWorkerOrNode()
 
@@ -189,7 +191,11 @@ export interface EntityRestInterface {
 	 * Must be called when entity events are received.
 	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
 	 */
-	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]>
+	entityEventsReceived(
+		events: readonly entityUpdateUtils.EntityUpdateData[],
+		batchId: Id,
+		groupId: Id,
+	): Promise<readonly entityUpdateUtils.EntityUpdateData[]>
 }
 
 /**
@@ -277,7 +283,7 @@ export class EntityRestClient implements EntityRestInterface {
 	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+				const ownerKey = await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
 				return this._crypto.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
 			} else {
 				return await this._crypto.resolveSessionKey(migratedEntity)
@@ -510,7 +516,7 @@ export class EntityRestClient implements EntityRestInterface {
 			body: JSON.stringify(untypedInstance),
 			responseType: MediaType.Json,
 		})
-		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
+		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(baseTypeRefs.PersistenceResourcePostReturnTypeRef)
 		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(JSON.parse(persistencePostReturn))
 		return AttributeModel.getAttributeorNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
 	}
@@ -609,7 +615,7 @@ export class EntityRestClient implements EntityRestInterface {
 			env.networkDebugging,
 		)
 		// PatchList has no encrypted fields (sk == null)
-		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+		const patchPayload = await this.instancePipeline.mapAndEncrypt(sysTypeRefs.PatchListTypeRef, patchList, null)
 		await this.restClient.request(path, HttpMethod.PATCH, {
 			baseUrl: options?.baseUrl,
 			queryParams,
@@ -712,7 +718,11 @@ export class EntityRestClient implements EntityRestInterface {
 	/**
 	 * for the admin area (no cache available)
 	 */
-	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
+	entityEventsReceived(
+		events: readonly entityUpdateUtils.EntityUpdateData[],
+		batchId: Id,
+		groupId: Id,
+	): Promise<readonly entityUpdateUtils.EntityUpdateData[]> {
 		return Promise.resolve(events)
 	}
 
@@ -724,7 +734,11 @@ export class EntityRestClient implements EntityRestInterface {
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
 				const sanitisedUntypedPostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedPostReturn)
-				const parsedInstance = await this.instancePipeline.decryptAndMap(PersistenceResourcePostReturnTypeRef, sanitisedUntypedPostReturn, null)
+				const parsedInstance = await this.instancePipeline.decryptAndMap(
+					baseTypeRefs.PersistenceResourcePostReturnTypeRef,
+					sanitisedUntypedPostReturn,
+					null,
+				)
 				return parsedInstance.generatedId as Id // is null for customIds
 			})
 		} catch (e) {
@@ -739,7 +753,7 @@ export class EntityRestClient implements EntityRestInterface {
  * that might occur only for a single blob server, the next server is tried.
  * Throws in all other cases.
  */
-export async function tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string): Promise<T> {
+export async function tryServers<T>(servers: storageTypeRefs.BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string): Promise<T> {
 	let index = 0
 	let error: Error | null = null
 	for (const server of servers) {

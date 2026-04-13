@@ -14,7 +14,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { ButtonColor, getColors } from "../../../common/gui/base/Button.js"
 import stream from "mithril/stream"
-import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { TabIndex } from "@tutao/appEnv"
 
 export type RemindersEditorAttrs = {
 	addAlarm: (alarm: AlarmInterval) => unknown

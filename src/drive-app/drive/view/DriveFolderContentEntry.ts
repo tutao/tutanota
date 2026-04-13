@@ -8,7 +8,7 @@ import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs
 import { theme } from "../../../common/gui/theme"
 import { modal } from "../../../common/gui/base/Modal"
 import { FileFolderItem, FolderFolderItem, FolderItem } from "./DriveUtils"
-import { TabIndex } from "../../../common/api/common/TutanotaConstants"
+import { TabIndex } from "@tutao/appEnv"
 import { getContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 

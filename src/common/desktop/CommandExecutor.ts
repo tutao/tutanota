@@ -1,6 +1,6 @@
 import { ChildProcessExports } from "./ElectronExportTypes"
 import { Readable } from "node:stream"
-import { SECOND_MS } from "../api/common/TutanotaConstants"
+import { SECOND_MS } from "@tutao/appEnv"
 
 /**
  * Default number of seconds before timing out

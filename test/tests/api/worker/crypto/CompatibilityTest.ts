@@ -60,14 +60,14 @@ import {
 	Versioned,
 } from "@tutao/utils"
 import testData from "./CompatibilityTestData.json"
-import { uncompress } from "../../../../../src/common/api/worker/Compression.js"
+import { uncompress } from "@tutao/instancePipeline"
 import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
-import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { cryptoUtils } from "@tutao/crypto"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
@@ -388,7 +388,7 @@ o.spec("CompatibilityTest", function () {
 			const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 
 			let encryptionKeyPair: AsymmetricKeyPair
-			const keyPairVersion = checkKeyVersionConstraints(td.keyPairVersion)
+			const keyPairVersion = cryptoUtils.checkKeyVersionConstraints(td.keyPairVersion)
 			let encryptionPublicKey: PublicKey
 
 			if (td.pubKyberKey) {

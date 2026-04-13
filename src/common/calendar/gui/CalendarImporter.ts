@@ -15,7 +15,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDown
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { UserController } from "../../api/main/UserController.js"
-import { ShareCapability } from "../../api/common/TutanotaConstants.js"
+import { ShareCapability } from "@tutao/appEnv"
 import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
 import { handleCalendarImport } from "./CalendarImporterDialog.js"

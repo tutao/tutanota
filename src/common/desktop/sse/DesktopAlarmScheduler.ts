@@ -1,4 +1,4 @@
-import { AlarmNotification } from "../../api/entities/sys/TypeRefs.js"
+import { ClientModelUntypedInstance } from "@tutao/typeRefs"
 import type { DesktopNotifier } from "../notifications/DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
@@ -6,7 +6,7 @@ import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { isSameDay } from "@tutao/utils"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
-import { ClientModelUntypedInstance } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class DesktopAlarmScheduler {
 	constructor(
@@ -51,7 +51,7 @@ export class DesktopAlarmScheduler {
 		await this.alarmStorage.deleteAlarm(alarmIdentifier)
 	}
 
-	async handleCreateAlarm(an: AlarmNotification) {
+	async handleCreateAlarm(an: sysTypeRefs.AlarmNotification) {
 		log.debug("creating alarm notification!")
 		this.scheduleAlarms(an)
 		await this.alarmStorage.storeAlarm(an)
@@ -61,7 +61,7 @@ export class DesktopAlarmScheduler {
 		this.alarmScheduler.cancelAlarm(alarmIdentifier)
 	}
 
-	private scheduleAlarms(decAn: AlarmNotification): void {
+	private scheduleAlarms(decAn: sysTypeRefs.AlarmNotification): void {
 		const eventInfo = {
 			startTime: decAn.eventStart,
 			endTime: decAn.eventEnd,

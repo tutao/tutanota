@@ -1,11 +1,10 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lazyMemoized } from "@tutao/utils"
-import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { collapseId } from "../../../common/api/worker/rest/RestClientIdUtils"
+import { OperationType } from "@tutao/appEnv"
 
 export class ContactIndexer {
 	constructor(
@@ -29,9 +28,9 @@ export class ContactIndexer {
 		await this.backend.indexContactList(await this.userContactList())
 	}
 
-	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
+	async processEntityEvents(events: readonly entityUpdateUtils.EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
 		for (const event of events) {
-			if (!isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, event)) {
+			if (!entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, event)) {
 				continue
 			}
 			const contactId = collapseId(event.instanceListId, event.instanceId) as IdTuple

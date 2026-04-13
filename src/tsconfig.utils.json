@@ -8,5 +8,9 @@
 		"tsBuildInfoFile": "utils/dist/tsbuildinfo",
 		"composite": true
 	},
-	"references": []
+	"references": [
+		{
+			"path": "tsconfig.appEnv.json"
+		}
+	]
 }

@@ -1,11 +1,12 @@
 import { Cat, log, timer } from "../misc/Log"
-import { layout_size, size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
+import { layout_size } from "./size"
+import { assertMainOrNodeBoot } from "@tutao/appEnv"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { client } from "../misc/ClientDetector"
 import { ThemeController } from "./ThemeController.js"
+import { Mode } from "@tutao/appEnv"
 
 assertMainOrNodeBoot()
 
@@ -32,7 +33,7 @@ class Styles {
 		this.bodyWidth = neverNull(document.body).offsetWidth
 		this.bodyHeight = neverNull(document.body).offsetHeight
 
-		if (isTest()) {
+		if (env.mode === Mode.Test) {
 			this.themeColorMeta = null
 		} else {
 			this.themeColorMeta = document.createElement("meta")
@@ -93,7 +94,7 @@ class Styles {
 	}
 
 	isUsingBottomNavigation(): boolean {
-		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
+		return !(env.mode === Mode.Admin) && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => Record<string, Partial<CSSStyleDeclaration> | object>) {
@@ -123,7 +124,7 @@ class Styles {
 
 	private updateDomStyles() {
 		// This is hacking but we currently import gui stuff from a lot of tested things
-		if (isTest()) {
+		if (env.mode === Mode.Test) {
 			return
 		}
 

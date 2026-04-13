@@ -7,44 +7,34 @@ import {
 	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
-import { OperationType } from "../../common/TutanotaConstants"
 import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, lazyAsync, Nullable, TypeRef } from "@tutao/utils"
 import {
-	AuditLogEntryTypeRef,
-	BucketPermissionTypeRef,
-	EntityEventBatchTypeRef,
-	GroupKeyTypeRef,
-	GroupTypeRef,
-	KeyRotationTypeRef,
-	PermissionTypeRef,
-	RecoverCodeTypeRef,
-	RejectedSenderTypeRef,
-	SecondFactorTypeRef,
-	SessionTypeRef,
-	UserGroupKeyDistributionTypeRef,
-	UserGroupRootTypeRef,
-} from "../../entities/sys/TypeRefs.js"
-import { ValueType } from "@tutao/typeRefs"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import {
+	AttributeModel,
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
 	elementIdPart,
+	Entity,
+	entityUpdateUtils,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	get_IdValue,
+	hasError,
 	isCustomIdType,
+	ListElementEntity,
 	listIdPart,
+	ServerModelParsedInstance,
+	SomeEntity,
+	sysTypeRefs,
+	tutanotaTypeRefs,
+	TypeModel,
+	TypeModelResolver,
+	ValueType,
 } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { assertWorkerOrNode, isTest } from "../../common/Env"
-import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "@tutao/typeRefs"
+import { assertWorkerOrNode, Mode, OperationType } from "@tutao/appEnv"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { EntityUpdateData, isUpdateForTypeRef, getLogStringForEntityEvent } from "../../common/utils/EntityUpdateUtils.js"
-import { TypeModelResolver } from "@tutao/typeRefs"
-import { AttributeModel, hasError } from "@tutao/typeRefs"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "@tutao/instancePipeline"
 import { isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
@@ -60,21 +50,21 @@ assertWorkerOrNode()
  */
 export const EXTEND_RANGE_MIN_CHUNK_SIZE = 40
 const IGNORED_TYPES = [
-	EntityEventBatchTypeRef,
-	PermissionTypeRef,
-	BucketPermissionTypeRef,
-	SessionTypeRef,
-	SecondFactorTypeRef,
-	RecoverCodeTypeRef,
-	RejectedSenderTypeRef,
+	sysTypeRefs.EntityEventBatchTypeRef,
+	sysTypeRefs.PermissionTypeRef,
+	sysTypeRefs.BucketPermissionTypeRef,
+	sysTypeRefs.SessionTypeRef,
+	sysTypeRefs.SecondFactorTypeRef,
+	sysTypeRefs.RecoverCodeTypeRef,
+	sysTypeRefs.RejectedSenderTypeRef,
 	// when doing automatic calendar updates, we will miss uid index entity updates if we're using the cache.
 	// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
 	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
 	tutanotaTypeRefs.CalendarEventUidIndexTypeRef,
-	KeyRotationTypeRef,
-	UserGroupRootTypeRef,
-	UserGroupKeyDistributionTypeRef,
-	AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
+	sysTypeRefs.KeyRotationTypeRef,
+	sysTypeRefs.UserGroupRootTypeRef,
+	sysTypeRefs.UserGroupKeyDistributionTypeRef,
+	sysTypeRefs.AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
 	tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef,
 	tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef,
 ] as const
@@ -87,7 +77,7 @@ const IGNORED_TYPES = [
  * OfflineStorage.ensureBase64Ext). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
  * are other ways to cache customId types (see implementation of CustomCacheHandler)
  */
-const CACHEABLE_CUSTOMID_TYPES = [tutanotaTypeRefs.MailSetEntryTypeRef, GroupKeyTypeRef] as const
+const CACHEABLE_CUSTOMID_TYPES = [tutanotaTypeRefs.MailSetEntryTypeRef, sysTypeRefs.GroupKeyTypeRef] as const
 
 export interface EntityRestCache extends EntityRestInterface {
 	/**
@@ -763,12 +753,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
+	async entityEventsReceived(
+		events: readonly entityUpdateUtils.EntityUpdateData[],
+		batchId: Id,
+		groupId: Id,
+	): Promise<readonly entityUpdateUtils.EntityUpdateData[]> {
 		await this.recordSyncTime()
 
 		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor")
 		// we need an array of UpdateEntityData
-		const filteredUpdateEvents: EntityUpdateData[] = []
+		const filteredUpdateEvents: entityUpdateUtils.EntityUpdateData[] = []
 		for (let update of regularUpdates) {
 			if (!this.shouldUseCache(update.typeRef)) {
 				filteredUpdateEvents.push(update)
@@ -784,7 +778,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
+					if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
 						// delete mailDetails if they are available (as we don't send an event for this type)
 						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
@@ -855,7 +849,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return filteredUpdateEvents
 	}
 
-	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
+	private async processCreateEvent(typeRef: TypeRef<any>, update: entityUpdateUtils.EntityUpdateData): Promise<entityUpdateUtils.EntityUpdateData | null> {
 		// if there is a custom handler we follow its decision
 		let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
 		// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
@@ -881,8 +875,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/** Returns {null} when the update should be skipped. */
-	private async processUpdateEvent(update: EntityUpdateData): Promise<EntityUpdateData | null> {
-		if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
+	private async processUpdateEvent(update: entityUpdateUtils.EntityUpdateData): Promise<entityUpdateUtils.EntityUpdateData | null> {
+		if (isSameTypeRef(update.typeRef, sysTypeRefs.GroupTypeRef)) {
 			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 		}
 
@@ -919,7 +913,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * Loads and stores an instance from an entityUpdate. If no instance is available on the entityUpdate
 	 * or the instance has _errors, the instance is re-loaded from the server.
 	 */
-	private async loadAndStoreInstanceFromUpdate(update: EntityUpdateData) {
+	private async loadAndStoreInstanceFromUpdate(update: entityUpdateUtils.EntityUpdateData) {
 		const instanceOnUpdate = update.instance
 		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
 			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
@@ -953,7 +947,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
 		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
 		// but still want to be able to use the client and do a login, etc.
-		if (!isTest() && !this.storage.isInitialized()) {
+		if (!(env.mode === Mode.Test) && !this.storage.isInitialized()) {
 			return false
 		}
 

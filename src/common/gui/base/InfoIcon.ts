@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "@tutao/appEnv"
 
 export interface InfoIconAttrs {
 	text: Children

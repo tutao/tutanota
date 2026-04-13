@@ -1,26 +1,22 @@
 import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
 import {
-	BodyTypeRef,
-	File as TutanotaFile,
-	FileTypeRef,
-	Mail,
-	MailAddressTypeRef,
-	MailDetails,
-	MailDetailsTypeRef,
-	MailTypeRef,
-	RecipientsTypeRef,
-} from "../../../../../src/common/api/entities/tutanota/TypeRefs"
+	AttributeModel,
+	ClientModelInfo,
+	getElementId,
+	LEGACY_BCC_RECIPIENTS_ID,
+	LEGACY_BODY_ID,
+	LEGACY_CC_RECIPIENTS_ID,
+	LEGACY_TO_RECIPIENTS_ID,
+} from "@tutao/typeRefs"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
-import { getElementId, LEGACY_BCC_RECIPIENTS_ID, LEGACY_BODY_ID, LEGACY_CC_RECIPIENTS_ID, LEGACY_TO_RECIPIENTS_ID } from "@tutao/typeRefs"
 import { IndexedDbMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbMailIndexerBackend"
 import { matchers, object, verify, when } from "testdouble"
 import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils"
-import { ClientModelInfo } from "@tutao/typeRefs"
 import { assertNotNull } from "@tutao/utils"
-import { AttributeModel } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("IndexedDbMailIndexerBackend", () => {
 	let core: IndexerCore
@@ -50,12 +46,12 @@ o.spec("IndexedDbMailIndexerBackend", () => {
 
 	o.spec("createMailIndexEntries", () => {
 		o.test("without entries", async () => {
-			let mail = createTestEntity(MailTypeRef)
-			let mailDetails = createTestEntity(MailDetailsTypeRef, {
-				body: createTestEntity(BodyTypeRef),
-				recipients: createTestEntity(RecipientsTypeRef),
+			let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
+			let mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef),
+				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef),
 			})
-			let files = [createTestEntity(FileTypeRef)]
+			let files = [createTestEntity(tutanotaTypeRefs.FileTypeRef)]
 			when(core.createIndexEntriesForAttributes(mail, matchers.anything())).thenReturn(new Map())
 
 			const keyToIndexEntries = await backend.createMailIndexEntries(mail, mailDetails, files)
@@ -63,12 +59,12 @@ o.spec("IndexedDbMailIndexerBackend", () => {
 		})
 
 		o.test("with one entry", async () => {
-			let mail = createTestEntity(MailTypeRef)
-			let mailDetails = createTestEntity(MailDetailsTypeRef, {
-				body: createTestEntity(BodyTypeRef),
-				recipients: createTestEntity(RecipientsTypeRef),
+			let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
+			let mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef),
+				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef),
 			})
-			let files = [createTestEntity(FileTypeRef)]
+			let files = [createTestEntity(tutanotaTypeRefs.FileTypeRef)]
 			const returnedEntries: Map<string, SearchIndexEntry[]> = new Map([
 				[
 					"token",
@@ -88,63 +84,63 @@ o.spec("IndexedDbMailIndexerBackend", () => {
 
 		o.test("contents", async () => {
 			const toRecipients = [
-				createTestEntity(MailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 					address: "tr0A",
 					name: "tr0N",
 				}),
-				createTestEntity(MailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 					address: "tr1A",
 					name: "tr1N",
 				}),
 			]
 			const ccRecipients = [
-				createTestEntity(MailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 					address: "ccr0A",
 					name: "ccr0N",
 				}),
-				createTestEntity(MailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 					address: "ccr1A",
 					name: "ccr1N",
 				}),
 			]
 			const bccRecipients = [
-				createTestEntity(MailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 					address: "bccr0A",
 					name: "bccr0N",
 				}),
-				createTestEntity(MailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 					address: "bccr1A",
 					name: "bccr1N",
 				}),
 			]
-			const replyTo = createTestEntity(MailAddressTypeRef, {
+			const replyTo = createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 				address: "rToA",
 				name: "rToN",
 			})
-			const sender = createTestEntity(MailAddressTypeRef, {
+			const sender = createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 				address: "SA",
 				name: "SN",
 			})
 
-			const mail = createTestEntity(MailTypeRef, {
+			const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 				differentEnvelopeSender: "ES", // not indexed
 				subject: "Su",
 				sender,
 				mailDetails: ["details-list-id", "details-id"],
 			})
-			const recipients = createTestEntity(RecipientsTypeRef, {
+			const recipients = createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
 				bccRecipients,
 				ccRecipients,
 				toRecipients,
 			})
-			const mailDetails = createTestEntity(MailDetailsTypeRef, {
+			const mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
 				_id: "details-id",
-				body: createTestEntity(BodyTypeRef, { text: "BT" }),
+				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, { text: "BT" }),
 				recipients,
 				replyTos: [replyTo],
 			})
 			const files = [
-				createTestEntity(FileTypeRef, {
+				createTestEntity(tutanotaTypeRefs.FileTypeRef, {
 					mimeType: "binary", // not indexed
 					name: "FN",
 				}),
@@ -155,7 +151,7 @@ o.spec("IndexedDbMailIndexerBackend", () => {
 			verify(core.createIndexEntriesForAttributes(mail, captor.capture()))
 			const attrHandlers: AttributeHandler[] = captor.value
 			const resolvedAttrs = attrHandlers.map(({ id, value }) => ({ id, value: value() }))
-			const MailModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(MailTypeRef)
+			const MailModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
 			o.check(resolvedAttrs).deepEquals([
 				{
 					id: assertNotNull(AttributeModel.getAttributeId(MailModel, "subject")),
@@ -191,18 +187,18 @@ o.spec("IndexedDbMailIndexerBackend", () => {
 
 	o.spec("entityUpdates", () => {
 		const ownerGroup = "mailGroup"
-		let mail: Mail
-		let mailDetails: MailDetails
-		let attachments: [TutanotaFile]
+		let mail: tutanotaTypeRefs.Mail
+		let mailDetails: tutanotaTypeRefs.MailDetails
+		let attachments: [tutanotaTypeRefs.File]
 		let indexEntries: Map<string, SearchIndexEntry[]>
 
 		o.beforeEach(() => {
-			mail = createTestEntity(MailTypeRef, {
+			mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 				_id: ["mailLidId", "mailElementId"],
 				_ownerGroup: ownerGroup,
 			})
-			mailDetails = createTestEntity(MailDetailsTypeRef)
-			attachments = [createTestEntity(FileTypeRef)]
+			mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef)
+			attachments = [createTestEntity(tutanotaTypeRefs.FileTypeRef)]
 			indexEntries = new Map([
 				[
 					"token",
@@ -222,28 +218,28 @@ o.spec("IndexedDbMailIndexerBackend", () => {
 
 			await backend.onMailCreated({ mail, mailDetails, attachments })
 
-			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef))
 			verify(core.encryptSearchIndexEntries(mail._id, ownerGroup, indexEntries, indexUpdate))
 			verify(core.writeIndexUpdate(indexUpdate))
 		})
 
 		o.test("onMailUpdated", async () => {
-			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef))
 			when(core.createIndexEntriesForAttributes(mail, matchers.anything())).thenReturn(indexEntries)
 
 			await backend.onMailUpdated({ mail, mailDetails, attachments })
 
-			verify(core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate))
+			verify(core._processDeleted(tutanotaTypeRefs.MailTypeRef, getElementId(mail), indexUpdate))
 			verify(core.encryptSearchIndexEntries(mail._id, ownerGroup, indexEntries, indexUpdate))
 			verify(core.writeIndexUpdate(indexUpdate))
 		})
 
 		o.test("onMailDeleted", async () => {
-			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef))
 
 			await backend.onMailDeleted(mail._id)
 
-			verify(core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate))
+			verify(core._processDeleted(tutanotaTypeRefs.MailTypeRef, getElementId(mail), indexUpdate))
 			verify(core.writeIndexUpdate(indexUpdate))
 		})
 	})

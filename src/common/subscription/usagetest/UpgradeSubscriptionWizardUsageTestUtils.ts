@@ -1,6 +1,7 @@
 import { locator } from "../../api/main/CommonLocator.js"
-import { AvailablePlanType, NewBusinessPlans, PaymentMethodType, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
 import { PaymentInterval, PaymentIntervalToName } from "../utils/PriceUtils.js"
+import { AvailablePlanType, NewBusinessPlans, PaymentMethodType, PlanType } from "@tutao/appEnv"
+import { PlanTypeToName } from "@tutao/typeRefs"
 
 export enum SignupFlowStage {
 	TRIGGER,

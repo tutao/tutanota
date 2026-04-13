@@ -1,25 +1,24 @@
 import { CustomCacheHandler } from "./CustomCacheHandler"
-import { User, UserTypeRef } from "../../../entities/sys/TypeRefs"
+import { isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { CacheStorage } from "../DefaultEntityRestCache"
-import { isSameId } from "@tutao/typeRefs"
 import { difference } from "@tutao/utils"
 import { SpamClassifierStorageFacade } from "../../facades/lazy/SpamClassifierStorageFacade"
-import { GroupType } from "../../../common/TutanotaConstants"
+import { GroupType } from "@tutao/appEnv"
 
 /**
  * Handles tracking dropped memberships for users by clearing entities the user no longer has access to.
  */
-export class CustomUserCacheHandler implements CustomCacheHandler<User> {
+export class CustomUserCacheHandler implements CustomCacheHandler<sysTypeRefs.User> {
 	constructor(
 		private readonly storage: CacheStorage,
 		private readonly spamClassifierStorageFacade?: SpamClassifierStorageFacade,
 	) {}
 
-	async onBeforeCacheUpdate(newUser: User) {
+	async onBeforeCacheUpdate(newUser: sysTypeRefs.User) {
 		const id = newUser._id
 		const currentId = this.storage.getUserId()
 		if (isSameId(currentId, id)) {
-			const oldUser = await this.storage.get(UserTypeRef, null, id)
+			const oldUser = await this.storage.get(sysTypeRefs.UserTypeRef, null, id)
 			if (oldUser == null) {
 				return
 			}

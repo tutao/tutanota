@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
 import { lang, Translation, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
 import { theme } from "../../../common/gui/theme"

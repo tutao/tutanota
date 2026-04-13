@@ -1,14 +1,13 @@
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
+
+import { elementIdPart, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { elementIdPart } from "@tutao/typeRefs"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
+import { OperationType } from "@tutao/appEnv"
 
 const TAG = "[CalendarEventUpdateCoordinator]"
 
@@ -24,11 +23,11 @@ export class CalendarEventUpdateCoordinator {
 	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, tutanotaTypeRefs.CalendarEventUpdate> = new Map()
 
 	// create reference to the listener so it can be deleted from the event controller when the client stops being leader.
-	private readonly entityEventListener: EntityEventsListener = {
+	private readonly entityEventListener: entityUpdateUtils.EntityEventsListener = {
 		onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
 			return this.entityEventsReceived(updates, eventOwnerGroupId)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 	constructor(
 		private readonly wsConnectivityModel: WebsocketConnectivityModel,
@@ -64,9 +63,12 @@ export class CalendarEventUpdateCoordinator {
 		}
 	}
 
-	public async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) {
+	public async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id) {
 		for (const entityEventData of updates) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
+			if (
+				entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventUpdateTypeRef, entityEventData) &&
+				entityEventData.operation === OperationType.CREATE
+			) {
 				try {
 					const calendarEventUpdate = await this.entityClient.load(tutanotaTypeRefs.CalendarEventUpdateTypeRef, [
 						entityEventData.instanceListId,
@@ -80,7 +82,7 @@ export class CalendarEventUpdateCoordinator {
 						throw e
 					}
 				}
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.FileTypeRef, entityEventData)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.FileTypeRef, entityEventData)) {
 				// with a file update, the owner enc session key should be present now so we can try to process any skipped calendar event updates
 				// (see NoOwnerEncSessionKeyForCalendarEventError's comment)
 				const skippedCalendarEventUpdate = this.fileIdToSkippedCalendarEventUpdates.get(entityEventData.instanceId)

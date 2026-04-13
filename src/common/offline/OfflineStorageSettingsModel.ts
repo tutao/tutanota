@@ -1,9 +1,9 @@
-import { assert, DAY_IN_MILLIS, getDayShifted, getStartOfDay } from "@tutao/utils"
-import { getOfflineStorageDefaultTimeRangeDays } from "../api/common/TutanotaConstants"
+import { assert, getDayShifted, getStartOfDay } from "@tutao/utils"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
-import { isOfflineStorageAvailable } from "../api/common/Env"
 import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
+import { DAY_IN_MILLIS, isBrowser, Mode } from "@tutao/appEnv"
+import { getOfflineStorageDefaultTimeRangeDays } from "@tutao/typeRefs"
 
 /**
  * A model for handling offline storage configuration
@@ -29,7 +29,7 @@ export class OfflineStorageSettingsModel {
 	}
 
 	async init(): Promise<void> {
-		this.isEnabled = isOfflineStorageAvailable()
+		this.isEnabled = !isBrowser() && !(env.mode === Mode.Admin)
 
 		if (this.isEnabled) {
 			const stored = this.deviceConfig.getOfflineTimeRangeDate(this.userController.userId)
@@ -42,7 +42,7 @@ export class OfflineStorageSettingsModel {
 	}
 
 	available(): boolean {
-		return this.isInitialized && isOfflineStorageAvailable() && !!this.isEnabled
+		return this.isInitialized && !isBrowser() && !(env.mode === Mode.Admin) && !!this.isEnabled
 	}
 
 	private assertAvailable() {

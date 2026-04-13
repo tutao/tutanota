@@ -4,7 +4,7 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { DatePicker } from "./DatePicker.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
-import { assertMainOrNode } from "../../../../common/api/common/Env.js"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { debounceStart, noOp } from "@tutao/utils"
 import { newPromise } from "@tutao/utils"
 

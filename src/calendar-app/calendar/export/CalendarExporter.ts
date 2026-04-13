@@ -1,22 +1,13 @@
-import {
-	assertEnumValue,
-	CalendarAttendeeStatus,
-	CalendarMethod,
-	EndType,
-	RepeatPeriod,
-	reverse,
-	SECOND_MS,
-} from "../../../common/api/common/TutanotaConstants"
+import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, SECOND_MS } from "@tutao/appEnv"
 import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, ByRule, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertEnumValue, getLetId, reverse, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { convertToDataFile, DataFile } from "../../../common/api/common/DataFile"
-import type { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { DateTime } from "luxon"
-import { getLetId } from "@tutao/typeRefs"
 import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
 export function makeInvitationCalendarFile(event: tutanotaTypeRefs.CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
@@ -40,7 +31,7 @@ export function serializeCalendar(
 	versionNumber: string,
 	events: Array<{
 		event: tutanotaTypeRefs.CalendarEvent
-		alarms: Array<UserAlarmInfo>
+		alarms: Array<sysTypeRefs.UserAlarmInfo>
 	}>,
 	now: Date,
 	zone: string,
@@ -53,7 +44,7 @@ export function serializeCalendar(
 //
 
 /** importer internals exported for testing, should always be used through serializeCalendar */
-export function serializeEvent(event: tutanotaTypeRefs.CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
+export function serializeEvent(event: tutanotaTypeRefs.CalendarEvent, alarms: Array<sysTypeRefs.UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	const localZone = getTimeZone()
@@ -99,7 +90,7 @@ export function serializeEvent(event: tutanotaTypeRefs.CalendarEvent, alarms: Ar
 		.concat("END:VEVENT")
 }
 
-function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[]): string {
+function serializeAdvancedRepeatRules(advancedRules: sysTypeRefs.CalendarAdvancedRepeatRule[]): string {
 	let advancedRepeatRules = ""
 
 	if (isNotEmpty(advancedRules)) {
@@ -118,7 +109,7 @@ function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[
 }
 
 /** importer internals exported for testing */
-export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
+export function serializeRepeatRule(repeatRule: sysTypeRefs.RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
 	if (repeatRule) {
 		let endType = ""
 
@@ -168,7 +159,7 @@ export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent
 }
 
 /** importer internals exported for testing */
-export function serializeExcludedDates(excludedDates: DateWrapper[], timeZone: string): string[] {
+export function serializeExcludedDates(excludedDates: sysTypeRefs.DateWrapper[], timeZone: string): string[] {
 	if (excludedDates.length > 0) {
 		let dates = ""
 		for (let i = 0; i < excludedDates.length; i++) {
@@ -276,7 +267,7 @@ function wrapIntoCalendar(versionNumber: string, method: string, contents: Array
 	return value.join("\r\n")
 }
 
-function serializeAlarm(event: tutanotaTypeRefs.CalendarEvent, alarm: UserAlarmInfo): Array<string> {
+function serializeAlarm(event: tutanotaTypeRefs.CalendarEvent, alarm: sysTypeRefs.UserAlarmInfo): Array<string> {
 	// prettier-ignore
 	return [
 		"BEGIN:VALARM",

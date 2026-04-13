@@ -7,7 +7,7 @@ import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/Crypto
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ArchiveDataType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { ArchiveDataType } from "@tutao/appEnv"
 import { createReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade"
 import { restSuspension } from "@tutao/restClient"
@@ -15,10 +15,10 @@ import { restSuspension } from "@tutao/restClient"
 o.spec("MailExportFacade", () => {
 	const token = "my token"
 	const tokenHeaders = { [MAIL_EXPORT_TOKEN_HEADER]: token }
-	const mail1 = createTestEntity(MailTypeRef)
-	const mail2 = createTestEntity(MailTypeRef)
-	const details1 = createTestEntity(MailDetailsTypeRef)
-	const details2 = createTestEntity(MailDetailsTypeRef)
+	const mail1 = createTestEntity(tutanotaTypeRefs.MailTypeRef)
+	const mail2 = createTestEntity(tutanotaTypeRefs.MailTypeRef)
+	const details1 = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef)
+	const details2 = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef)
 
 	let facade!: MailExportFacade
 	let tokenFacade!: MailExportTokenFacade
@@ -71,7 +71,7 @@ o.spec("MailExportFacade", () => {
 	})
 
 	o.test("loadAttachments", async () => {
-		const expected = [createTestEntity(FileTypeRef), createTestEntity(FileTypeRef)]
+		const expected = [createTestEntity(tutanotaTypeRefs.FileTypeRef), createTestEntity(tutanotaTypeRefs.FileTypeRef)]
 		when(
 			bulkMailLoader.loadAttachments([mail1, mail2], {
 				baseUrl: "baseUrl",
@@ -89,13 +89,13 @@ o.spec("MailExportFacade", () => {
 		const dataByteMail1 = new Uint8Array([1, 2, 3])
 		const dataByteMail2 = new Uint8Array([4, 5, 6])
 		const mailAttachments = [
-			createTestEntity(FileTypeRef, {
+			createTestEntity(tutanotaTypeRefs.FileTypeRef, {
 				name: "mail1",
 				mimeType: "img/png",
 				cid: "12345",
 				_id: ["attachment", "id1"],
 			}),
-			createTestEntity(FileTypeRef, { name: "mail2", mimeType: "pdf", cid: "12345", _id: ["attachment", "id2"] }),
+			createTestEntity(tutanotaTypeRefs.FileTypeRef, { name: "mail2", mimeType: "pdf", cid: "12345", _id: ["attachment", "id2"] }),
 		]
 
 		when(cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail1, mailAttachments)).thenResolve(mailAttachments)

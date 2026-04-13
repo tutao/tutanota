@@ -1,11 +1,11 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
-import { Challenge } from "../entities/sys/TypeRefs.js"
 import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
 import { SessionType } from "../common/SessionType.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { Credentials } from "../../misc/credentials/Credentials.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export const enum LoginFailReason {
 	SessionExpired,
@@ -105,7 +105,7 @@ export class PageContextLoginListener implements LoginListener {
 	/**
 	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
 	 */
-	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
+	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null): Promise<void> {
 		return this.secondFactorHandler.showSecondFactorAuthenticationDialog(sessionId, challenges, mailAddress)
 	}
 

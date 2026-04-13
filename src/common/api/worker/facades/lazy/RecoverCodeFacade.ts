@@ -1,13 +1,13 @@
-import { asKdfType } from "../../../common/TutanotaConstants.js"
-import { createRecoverCode, RecoverCodeTypeRef, User } from "../../../entities/sys/TypeRefs.js"
 import { assertNotNull, type Hex, KeyVersion, uint8ArrayToHex } from "@tutao/utils"
 import { LoginFacade } from "../LoginFacade.js"
-import { assertWorkerOrNode } from "../../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { Aes256Key, aes256RandomKey, AesKey, createAuthVerifier, createAuthVerifierAsBase64Url, decryptKey, encryptKey, keyToUint8Array } from "@tutao/crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
-import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
-import { VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { cryptoUtils } from "@tutao/crypto"
+import { VersionedKey } from "@tutao/instancePipeline"
+import { asKdfType, sysTypeRefs } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 
@@ -66,12 +66,12 @@ export class RecoverCodeFacade {
 			authVerifier: createAuthVerifierAsBase64Url(passphraseKey),
 		}
 
-		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
-		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(recoveryCodeEntity.userKeyVersion))
+		const recoveryCodeEntity = await this.entityClient.load(sysTypeRefs.RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
+		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(recoveryCodeEntity.userKeyVersion))
 		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}
 
-	private async getPassphraseKey(user: User, passphrase: string) {
+	private async getPassphraseKey(user: sysTypeRefs.User, passphrase: string) {
 		const passphraseKeyData = {
 			kdfType: asKdfType(user.kdfVersion),
 			passphrase,
@@ -90,7 +90,7 @@ export class RecoverCodeFacade {
 		const { userEncRecoverCode, userKeyVersion, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(
 			this.userFacade.getCurrentUserGroupKey(),
 		)
-		const recoverPasswordEntity = createRecoverCode({
+		const recoverPasswordEntity = sysTypeRefs.createRecoverCode({
 			userEncRecoverCode: userEncRecoverCode,
 			userKeyVersion: String(userKeyVersion),
 			recoverCodeEncUserGroupKey: recoverCodeEncUserGroupKey,

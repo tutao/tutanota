@@ -86,17 +86,6 @@ export {
 	TIMESTAMP_ZERO_YEAR,
 } from "./DateUtils.js"
 export {
-	SECOND_IN_MILLIS,
-	MINUTE_IN_MILLIS,
-	HOUR_IN_MILLIS,
-	DAY_IN_MILLIS,
-	DAY_IN_MINUTES,
-	daysToMillis,
-	secondsToMillis,
-	minutesToMillis,
-	hoursToMillis,
-} from "./TimeUtils.js"
-export {
 	uint8ArrayToArrayBuffer,
 	hexToBase64,
 	base64ToHex,

@@ -1,4 +1,4 @@
-import { assertMainOrNode, isWebClient } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
@@ -18,10 +18,11 @@ import { ContactSupportPage } from "./pages/ContactSupportPage.js"
 import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
 import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
 import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
-import { Keys } from "../api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
+import { Mode } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -305,7 +306,7 @@ function filterCategories(supportData: tutanotaTypeRefs.SupportData) {
 			const meetsPlatform =
 				(isEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
 				(isEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
+				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || env.mode === Mode.Browser))
 
 			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
 			const meetsCustomerStatus =

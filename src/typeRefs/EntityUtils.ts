@@ -16,7 +16,8 @@ import {
 	uint8ArrayToBase64,
 	uint8arrayToCustomId,
 } from "@tutao/utils"
-import { Cardinality, ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel, ValueType } from "@tutao/typeRefs"
+import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
+import { Cardinality, ValueType } from "./EntityConstants.js"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1

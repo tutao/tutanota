@@ -4,35 +4,21 @@ import {
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import {
-	ClientSpamTrainingDatum,
-	ClientSpamTrainingDatumIndexEntryTypeRef,
-	ClientSpamTrainingDatumTypeRef,
-	MailBagTypeRef,
-	MailBox,
-	MailboxGroupRoot,
-	MailboxGroupRootTypeRef,
-	MailBoxTypeRef,
-	MailDetails,
-	MailDetailsTypeRef,
-	MailSetRefTypeRef,
-	MailSetTypeRef,
-	MailTypeRef,
-} from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/common/api/common/TutanotaConstants"
+import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { SpamDecision } from "@tutao/appEnv"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../../src/common/api/common/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"
-import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "@tutao/typeRefs"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { last } from "@tutao/utils"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "@tutao/appEnv"
 
 const { anything } = matchers
 
 function createMailByFolderAndReceivedDate(mailId: IdTuple, mailSet: IdTuple, receivedDate: Date, mailDetailsId: Id) {
-	return createTestEntity(MailTypeRef, {
+	return createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 		_id: mailId,
 		sets: [mailSet],
 		receivedDate: receivedDate,
@@ -44,8 +30,8 @@ function createSpamTrainingDatumByConfidenceAndDecision(
 	confidence: string,
 	spamDecision: SpamDecision,
 	id: IdTuple = ["listId", "elementId"],
-): ClientSpamTrainingDatum {
-	return createTestEntity(ClientSpamTrainingDatumTypeRef, {
+): tutanotaTypeRefs.ClientSpamTrainingDatum {
+	return createTestEntity(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, {
 		_id: id,
 		_ownerGroup: "group",
 		confidence,
@@ -56,7 +42,7 @@ function createSpamTrainingDatumByConfidenceAndDecision(
 }
 
 function createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(clientSpamTrainingDatumElementId: Id) {
-	return createTestEntity(ClientSpamTrainingDatumIndexEntryTypeRef, { clientSpamTrainingDatumElementId })
+	return createTestEntity(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, { clientSpamTrainingDatumElementId })
 }
 
 function getSortableTestMailId(isSpam: boolean, index: number) {
@@ -72,42 +58,42 @@ o.spec("SpamClassifierDataDealer", () => {
 	const entityClientMock = object<EntityClient>()
 	const bulkMailLoaderMock = object<BulkMailLoader>()
 	const mailFacadeMock = object<MailFacade>()
-	let mailDetails: MailDetails
+	let mailDetails: tutanotaTypeRefs.MailDetails
 	let spamClassificationDataDealer: SpamClassifierDataDealer
-	let mailboxGroupRoot: MailboxGroupRoot
-	let mailBox: MailBox
+	let mailboxGroupRoot: tutanotaTypeRefs.MailboxGroupRoot
+	let mailBox: tutanotaTypeRefs.MailBox
 
-	const inboxFolder = createTestEntity(MailSetTypeRef, {
+	const inboxFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: ["folderListId", "inbox"],
 		_ownerGroup: "owner",
 		folderType: MailSetKind.INBOX,
 	})
-	const trashFolder = createTestEntity(MailSetTypeRef, {
+	const trashFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: ["folderListId", "trash"],
 		_ownerGroup: "owner",
 		folderType: MailSetKind.TRASH,
 	})
-	const spamFolder = createTestEntity(MailSetTypeRef, {
+	const spamFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: ["folderListId", "spam"],
 		_ownerGroup: "owner",
 		folderType: MailSetKind.SPAM,
 	})
 
 	o.beforeEach(function () {
-		mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+		mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 			_ownerGroup: "owner",
 			mailbox: "mailbox",
 		})
-		mailBox = createTestEntity(MailBoxTypeRef, {
+		mailBox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 			_id: "mailbox",
 			_ownerGroup: "owner",
-			mailSets: createTestEntity(MailSetRefTypeRef, { mailSets: "folderListId" }),
-			currentMailBag: createTestEntity(MailBagTypeRef, { mails: "mailListId" }),
-			archivedMailBags: [createTestEntity(MailBagTypeRef, { mails: "oldMailListId" })],
+			mailSets: createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, { mailSets: "folderListId" }),
+			currentMailBag: createTestEntity(tutanotaTypeRefs.MailBagTypeRef, { mails: "mailListId" }),
+			archivedMailBags: [createTestEntity(tutanotaTypeRefs.MailBagTypeRef, { mails: "oldMailListId" })],
 			clientSpamTrainingData: "clientSpamTrainingData",
 			modifiedClientSpamTrainingDataIndex: "modifiedClientSpamTrainingDataIndex",
 		})
-		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail" })
+		mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, { _id: "mailDetail" })
 		when(mailFacadeMock.createModelInputAndUploadableVectors(anything(), anything(), anything())).thenResolve({
 			modelInput: new Array(1),
 			uploadableVectorLegacy: new Uint8Array(1),
@@ -220,8 +206,8 @@ o.spec("SpamClassifierDataDealer", () => {
 
 	o.spec("fetchAllTrainingData", () => {
 		o("uploads training data when clientSpamTrainingData is empty", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 			const mails = Array.from({ length: 10 }, (_, index) =>
 				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
 			).concat(
@@ -245,11 +231,11 @@ o.spec("SpamClassifierDataDealer", () => {
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve([], spamTrainingData)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(mails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
-			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve([], spamTrainingData)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(mails)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
 			)
 
@@ -262,8 +248,10 @@ o.spec("SpamClassifierDataDealer", () => {
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
 			// first load: empty, second load: fetch uploaded data
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), {
+				times: 1,
+			})
 			const unencryptedPayload = mails.map((mail) => {
 				const isSpam = isSameId(mail.sets[0], spamFolder._id)
 				return {
@@ -285,8 +273,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("uploads training data when clientSpamTrainingData does not include all relevant mails", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 
 			const relevantMails = Array.from({ length: 40 }, (_, index) =>
 				createMailByFolderAndReceivedDate(
@@ -338,14 +326,14 @@ o.spec("SpamClassifierDataDealer", () => {
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
 
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(
 				existingSpamTrainingData,
 				updatedSpamTrainingData,
 			)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
-			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
 			)
 
@@ -362,8 +350,10 @@ o.spec("SpamClassifierDataDealer", () => {
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
 			// first load: empty, second load: fetch uploaded data
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), {
+				times: 1,
+			})
 
 			const unencryptedPayload = expectUploadMailsTotal.map((mail) => {
 				const isSpam = isSameId(mail.sets[0], spamFolder._id)
@@ -386,8 +376,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("uploads training data in multiple chunks", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 
 			const relevantMails = Array.from({ length: 80 }, (_, index) => {
 				return createMailByFolderAndReceivedDate(
@@ -439,14 +429,14 @@ o.spec("SpamClassifierDataDealer", () => {
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
 
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(
 				existingSpamTrainingData,
 				updatedSpamTrainingData,
 			)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
-			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
 			)
 
@@ -470,8 +460,10 @@ o.spec("SpamClassifierDataDealer", () => {
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
 			// first load: empty, second load: fetch uploaded data
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 2 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), {
+				times: 1,
+			})
 
 			const firstUnencryptedPayload = expectedFirstChunk.map((mail) => {
 				const isSpam = isSameId(mail.sets[0], spamFolder._id)
@@ -505,9 +497,9 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("successfully returns training data with mixed ham/spam data", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
-			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, anything(), anything())).thenResolve([])
 
 			const spamTrainingData = Array.from({ length: 10 }, () =>
 				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST),
@@ -515,17 +507,19 @@ o.spec("SpamClassifierDataDealer", () => {
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(spamTrainingData)
-			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(spamTrainingData)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
 			)
 
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
 			// only one load as the list is already populated
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 1 })
-			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), { times: 1 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData), { times: 1 })
+			verify(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex), {
+				times: 1,
+			})
 
 			o(trainingDataset).deepEquals({
 				trainingData: spamTrainingData,
@@ -540,21 +534,21 @@ o.spec("SpamClassifierDataDealer", () => {
 			const zeroConfData = createSpamTrainingDatumByConfidenceAndDecision("0", SpamDecision.WHITELIST)
 			const validHamData = createSpamTrainingDatumByConfidenceAndDecision("1", SpamDecision.WHITELIST)
 			const validSpamData = createSpamTrainingDatumByConfidenceAndDecision("4", SpamDecision.BLACKLIST)
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
-			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, anything(), anything())).thenResolve([])
 
 			const spamTrainingData = [noneDecisionData, zeroConfData, validSpamData, validHamData]
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(spamTrainingData)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve(spamTrainingData)
 
-			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
+			when(entityClientMock.loadAll(tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
 			)
 
-			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
 
 			const result = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
@@ -567,11 +561,11 @@ o.spec("SpamClassifierDataDealer", () => {
 
 	o.spec("fetchPartialTrainingDataFromIndexStartId", () => {
 		o("returns empty training data when modifiedClientSpamTrainingDataIndicesSinceStart are null", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 			when(
 				entityClientMock.loadRange(
-					ClientSpamTrainingDatumIndexEntryTypeRef,
+					tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef,
 					mailBox.modifiedClientSpamTrainingDataIndex,
 					"startId",
 					SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT,
@@ -588,8 +582,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("returns new training data when index or training data is there", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(tutanotaTypeRefs.MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
 
 			const oldSpamTrainingData = Array.from({ length: 50 }, () =>
 				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST),
@@ -613,12 +607,18 @@ o.spec("SpamClassifierDataDealer", () => {
 			)
 
 			when(
-				entityClientMock.loadRange(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex, "startId", anything(), false),
+				entityClientMock.loadRange(
+					tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef,
+					mailBox.modifiedClientSpamTrainingDataIndex,
+					"startId",
+					anything(),
+					false,
+				),
 			).thenResolve(modifiedIndicesSinceStart)
 
 			when(
 				entityClientMock.loadMultiple(
-					ClientSpamTrainingDatumTypeRef,
+					tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef,
 					mailBox.clientSpamTrainingData,
 					modifiedIndicesSinceStart.map((index) => index.clientSpamTrainingDatumElementId),
 				),
@@ -644,7 +644,7 @@ o.spec("SpamClassifierDataDealer", () => {
 				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId"], inboxFolder._id, dayBeforeStart, mailDetails._id),
 			)
 			const mails = recentMails.concat(oldMails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(mails)
+			when(entityClientMock.loadAll(tutanotaTypeRefs.MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(mails)
 			when(bulkMailLoaderMock.loadMailDetails(recentMails)).thenResolve(
 				recentMails.map((mail) => {
 					return { mail, mailDetails }

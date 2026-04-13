@@ -2,14 +2,13 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, AvailablePlanType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
+import { Const } from "@tutao/appEnv"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
 import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { SwitchAccountTypeService } from "../api/entities/sys/Services"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
@@ -29,8 +28,8 @@ import { styles } from "../gui/styles"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { AllIcons } from "../gui/base/Icon"
 import { layout_size, px } from "../gui/size"
-import { isIOSApp } from "../api/common/Env"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { AccountType, AvailablePlanType, isIOSApp, PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
@@ -240,7 +239,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			}
 		}
 
-		const serviceData = createSwitchAccountTypePostIn({
+		const serviceData = sysTypeRefs.createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
 			plan: ctx.viewModel.targetPlanType,
@@ -250,7 +249,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, serviceData))
 			// Order confirmation (click on Buy), send selected payment method as an enum
 			.then(() => ctx.goNext())
 			.catch(

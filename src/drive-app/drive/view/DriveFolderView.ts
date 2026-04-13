@@ -23,12 +23,12 @@ import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFa
 export interface DriveFolderViewAttrs {
 	selection: SelectionState
 	selectedItemsActions: DriveSelectedItemsActions
-	currentFolder: DriveFolder | null
-	parents: readonly DriveFolder[]
+	currentFolder: driveTypeRefs.DriveFolder | null
+	parents: readonly driveTypeRefs.DriveFolder[]
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
 	onDropFiles: (files: File[]) => unknown
-	loadParents: () => Promise<DriveFolder[]>
+	loadParents: () => Promise<driveTypeRefs.DriveFolder[]>
 	onNewFile: () => unknown
 	onNewFolder: () => unknown
 	fileActions: FileActions
@@ -38,7 +38,7 @@ export interface DriveFolderViewAttrs {
 	clipboard: DriveClipboard | null
 }
 
-function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
+function canDropFilesToFolder(currentFolder: driveTypeRefs.DriveFolder | null): boolean {
 	return currentFolder != null && currentFolder.type !== DriveFolderType.Trash
 }
 
@@ -146,7 +146,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
-	private renderEmptyView(folder: DriveFolder | null): Children {
+	private renderEmptyView(folder: driveTypeRefs.DriveFolder | null): Children {
 		return m(
 			"",
 			{

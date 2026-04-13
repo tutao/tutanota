@@ -4,17 +4,19 @@ import {
 	compareNewestFirst,
 	GENERATED_MIN_ID,
 	getElementId,
+	getMailSetKind,
 	hasError,
+	isFolder,
 	isSameId,
 	StrippedEntity,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
-import { getMailSetKind, isFolder, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { SpamDecision } from "@tutao/appEnv"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { isAppleDevice, isDesktop } from "../../../common/api/common/Env"
+import { isAppleDevice, isDesktop, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "@tutao/appEnv"
 
 // visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000

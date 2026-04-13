@@ -2,10 +2,9 @@ import o from "@tutao/otest"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { RolloutAction, RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"
 import { func, matchers, object, verify, when } from "testdouble"
-import { RolloutService } from "../../../../../src/common/api/entities/sys/Services"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { createTestEntity } from "../../../TestUtils"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { RolloutType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { RolloutType } from "@tutao/appEnv"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 o.spec("RolloutFacadeTest", function () {
@@ -19,16 +18,18 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("getScheduledRolloutTypes() gets the rollouts from the server only once", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(createTestEntity(RolloutGetOutTypeRef, { rollouts: [] }))
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, { rollouts: [] }))
 		await rolloutFacade.getScheduledRolloutTypes()
 		await rolloutFacade.getScheduledRolloutTypes()
 
-		verify(serviceExecutor.get(RolloutService, null), { times: 1 })
+		verify(serviceExecutor.get(sysServices.RolloutService, null), { times: 1 })
 	})
 
 	o("processRollout() executes a scheduled rollout", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(
-			createTestEntity(RolloutGetOutTypeRef, { rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })] }),
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(
+			createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, {
+				rollouts: [createTestEntity(sysTypeRefs.RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
+			}),
 		)
 		await rolloutFacade.getScheduledRolloutTypes()
 
@@ -39,8 +40,10 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("processRollout() does not execute a rollout that was not scheduled", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(
-			createTestEntity(RolloutGetOutTypeRef, { rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })] }),
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(
+			createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, {
+				rollouts: [createTestEntity(sysTypeRefs.RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
+			}),
 		)
 		await rolloutFacade.getScheduledRolloutTypes()
 
@@ -50,8 +53,10 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("rollouts are removed after processed", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(
-			createTestEntity(RolloutGetOutTypeRef, { rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })] }),
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(
+			createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, {
+				rollouts: [createTestEntity(sysTypeRefs.RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
+			}),
 		)
 		await rolloutFacade.getScheduledRolloutTypes()
 
@@ -66,7 +71,7 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("cannot configure rollouts that are not scheduled", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(createTestEntity(RolloutGetOutTypeRef, { rollouts: [] }))
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, { rollouts: [] }))
 		await rolloutFacade.getScheduledRolloutTypes()
 		const action: RolloutAction = object()
 
@@ -83,8 +88,10 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("errors are sent", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(
-			createTestEntity(RolloutGetOutTypeRef, { rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })] }),
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(
+			createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, {
+				rollouts: [createTestEntity(sysTypeRefs.RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
+			}),
 		)
 		await rolloutFacade.getScheduledRolloutTypes()
 
@@ -102,8 +109,10 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("scheduled rollouts must be configured before processed", async function () {
-		when(serviceExecutor.get(RolloutService, null)).thenResolve(
-			createTestEntity(RolloutGetOutTypeRef, { rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })] }),
+		when(serviceExecutor.get(sysServices.RolloutService, null)).thenResolve(
+			createTestEntity(sysTypeRefs.RolloutGetOutTypeRef, {
+				rollouts: [createTestEntity(sysTypeRefs.RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
+			}),
 		)
 		await rolloutFacade.getScheduledRolloutTypes()
 

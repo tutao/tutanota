@@ -7,7 +7,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { exportContacts } from "../VCardExporter.js"
 import { mailLocator } from "../../mailLocator.js"
-import { isApp } from "../../../common/api/common/Env.js"
+import { isApp } from "@tutao/appEnv"
 
 export async function importAsVCard() {
 	const allowedExtensions = ["vcf"]

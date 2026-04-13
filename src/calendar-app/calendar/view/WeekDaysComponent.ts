@@ -1,5 +1,5 @@
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { TabIndex, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { TabIndex, WeekStart } from "@tutao/appEnv"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { styles } from "../../../common/gui/styles"
 import { getDayCircleClass } from "../gui/CalendarGuiUtils"

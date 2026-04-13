@@ -1,16 +1,15 @@
 import o from "@tutao/otest"
-import { InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("InstanceSessionKeysCacheTest", function () {
 	let instanceSessionKeysCache: InstanceSessionKeysCache
-	let testMail: Mail
+	let testMail: tutanotaTypeRefs.Mail
 
 	o.beforeEach(function () {
 		instanceSessionKeysCache = new InstanceSessionKeysCache()
-		testMail = createTestEntity(MailTypeRef, { _id: ["mailBagMailListId", "mailElementId"] })
+		testMail = createTestEntity(tutanotaTypeRefs.MailTypeRef, { _id: ["mailBagMailListId", "mailElementId"] })
 	})
 
 	o.spec("put and get", function () {
@@ -20,16 +19,16 @@ o.spec("InstanceSessionKeysCacheTest", function () {
 
 		o("put and get success", async function () {
 			const mailInstanceSessionKeys = [
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -39,16 +38,16 @@ o.spec("InstanceSessionKeysCacheTest", function () {
 
 		o("delete works", async function () {
 			const mailInstanceSessionKeys = [
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -60,16 +59,16 @@ o.spec("InstanceSessionKeysCacheTest", function () {
 
 		o("put does update existing key", async function () {
 			const mailInstanceSessionKeys = [
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -77,16 +76,16 @@ o.spec("InstanceSessionKeysCacheTest", function () {
 			o(instanceSessionKeysCache.get(testMail)).deepEquals(mailInstanceSessionKeys)
 
 			const updatedMailInstanceSessionKeys = [
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3, 4, 5]),
 				}),
-				createTestEntity(InstanceSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTestEntity(TypeInfoTypeRef),
+					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([6, 7, 8, 9, 10]),
 				}),
 			]

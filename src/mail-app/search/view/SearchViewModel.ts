@@ -2,26 +2,23 @@ import { ListElementListModel } from "../../../common/misc/ListElementListModel.
 import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ListElementEntity } from "@tutao/typeRefs"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	isPermanentDeleteAllowedForFolder,
-	MailSetKind,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-} from "../../../common/api/common/TutanotaConstants.js"
 import {
 	assertIsEntity,
 	assertIsEntity2,
 	elementIdPart,
+	entityUpdateUtils,
 	GENERATED_MAX_ID,
 	getElementId,
+	isPermanentDeleteAllowedForFolder,
+	isPermanentDeleteAllowedMailSetKind,
 	isSameId,
 	ListElement,
+	ListElementEntity,
 	listIdPart,
 	sortCompareByReverseId,
+	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
@@ -67,12 +64,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -87,9 +79,9 @@ import { client } from "../../../common/misc/ClientDetector"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
-import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { isMailDeletable } from "../../mail/model/MailChecks"
+import { isBrowser, MailSetKind, Mode, OperationType } from "@tutao/appEnv"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -208,7 +200,7 @@ export class SearchViewModel {
 	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
 		if (searchResult == null) {
 			this.searchResultIdToIndex = null
-		} else if (isOfflineStorageAvailable()) {
+		} else if (!isBrowser() && !(env.mode === Mode.Admin)) {
 			this.searchResultIdToIndex = new Map()
 			for (let i = 0; i < searchResult.results.length; i++) {
 				this.searchResultIdToIndex.set(elementIdPart(searchResult.results[i]), i)
@@ -281,13 +273,13 @@ export class SearchViewModel {
 		return isSameTypeRef(tutanotaTypeRefs.MailTypeRef, this.searchedType) && this.search.indexState().failedIndexingUpTo != null
 	}
 
-	private readonly entityEventsListener: EntityEventsListener = {
+	private readonly entityEventsListener: entityUpdateUtils.EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
 				await this.entityEventReceived(update)
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -721,8 +713,11 @@ export class SearchViewModel {
 		}
 	}
 
-	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): update is EntityUpdateData<tutanotaTypeRefs.Contact> {
-		if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && isSameTypeRef(this.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)) {
+	private isPossibleABirthdayContactUpdate(update: entityUpdateUtils.EntityUpdateData): update is entityUpdateUtils.EntityUpdateData {
+		if (
+			entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) &&
+			isSameTypeRef(this.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)
+		) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
@@ -732,8 +727,11 @@ export class SearchViewModel {
 		}
 	}
 
-	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {
-		if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && isSameTypeRef(this.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)) {
+	private isSelectedEventAnUpdatedBirthday(update: entityUpdateUtils.EntityUpdateData): boolean {
+		if (
+			entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) &&
+			isSameTypeRef(this.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)
+		) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
@@ -748,11 +746,11 @@ export class SearchViewModel {
 		return false
 	}
 
-	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
+	private async entityEventReceived(update: entityUpdateUtils.EntityUpdateData): Promise<void> {
 		const lastType: TypeRef<Mail | tutanotaTypeRefs.CalendarEvent | tutanotaTypeRefs.Contact> = this.searchedType
 		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
 
-		if (!isUpdateForTypeRef(lastType, update) && !isPossibleABirthdayContactUpdate) {
+		if (!entityUpdateUtils.isUpdateForTypeRef(lastType, update) && !isPossibleABirthdayContactUpdate) {
 			return
 		}
 
@@ -765,7 +763,8 @@ export class SearchViewModel {
 		}
 
 		if (
-			(isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, update) && isSameTypeRef(lastType, tutanotaTypeRefs.CalendarEventTypeRef)) ||
+			(entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, update) &&
+				isSameTypeRef(lastType, tutanotaTypeRefs.CalendarEventTypeRef)) ||
 			isPossibleABirthdayContactUpdate
 		) {
 			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
@@ -777,7 +776,7 @@ export class SearchViewModel {
 			this.applyMailFilterIfNeeded()
 
 			if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
-				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
+				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId!, update.instanceId])
 			}
 
 			await listModel.loadInitial()
@@ -796,7 +795,7 @@ export class SearchViewModel {
 			return
 		}
 
-		await this._listModel.entityEventReceived(instanceListId, instanceId, operation)
+		await this._listModel.entityEventReceived(instanceListId!, instanceId, operation)
 		// run the mail or contact update after the update on the list is finished to avoid parallel loading
 		if (operation === OperationType.UPDATE && this._listModel?.isItemSelected(elementIdPart(id))) {
 			try {
@@ -931,7 +930,7 @@ export class SearchViewModel {
 				} else if (isSameTypeRef(o1.entry._type, tutanotaTypeRefs.CalendarEventTypeRef)) {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
 				} else if (isSameTypeRef(o1.entry._type, tutanotaTypeRefs.MailTypeRef)) {
-					if (isOfflineStorageAvailable()) {
+					if (!isBrowser() && !(env.mode === Mode.Admin)) {
 						if (this.searchResultIdToIndex == null) {
 							return 0
 						}
@@ -1030,7 +1029,7 @@ export class SearchViewModel {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
-				if (isOfflineStorageAvailable()) {
+				if (!isBrowser() && !(env.mode === Mode.Admin)) {
 					// offline storage is always sorted correctly
 					startIndex = searchResult.results.findIndex((id) => id[1] === startId)
 				} else {
@@ -1053,7 +1052,7 @@ export class SearchViewModel {
 			items = (await this.loadAndFilterInstances(searchResult.restriction.type, toLoad, searchResult, startIndex)) as Mail[]
 
 			// Restore the original sorting order
-			if (isOfflineStorageAvailable()) {
+			if (!isBrowser() && !(env.mode === Mode.Admin)) {
 				const itemsMapped = collectToMap(items, getElementId)
 				items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)))
 			}

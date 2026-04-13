@@ -1,4 +1,4 @@
-import { TutanotaError } from "./TutanotaError"
+import { TutanotaError } from "./TutanotaError.js"
 
 export class ProgrammingError extends TutanotaError {
 	constructor(m?: string) {

@@ -1,30 +1,25 @@
 import { AppName, AppNameEnum, assertNotNull, lazyAsync, TypeRef } from "@tutao/utils"
 import type { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel } from "./EntityTypes"
 
-import {
-	accountingModelInfo,
-	accountingTypeModels,
-	AssociationType,
-	baseModelInfo,
-	baseTypeModels,
-	Cardinality,
-	driveModelInfo,
-	driveTypeModels,
-	gossipModelInfo,
-	gossipTypeModels,
-	monitorModelInfo,
-	monitorTypeModels,
-	storageModelInfo,
-	storageTypeModels,
-	sysModelInfo,
-	sysTypeModels,
-	tutanotaModelInfo,
-	tutanotaTypeModels,
-	Type,
-	usageModelInfo,
-	usageTypeModels,
-	ValueType,
-} from "@tutao/typeRefs"
+import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
+import { default as accountingModelInfo } from "./entities/accounting/ModelInfo.js"
+import { default as accountingTypeModels } from "./entities/accounting/TypeModels.js"
+import { default as storageModelInfo } from "./entities/storage/ModelInfo.js"
+import { default as storageTypeModels } from "./entities/storage/TypeModels.js"
+import { default as tutanotaModelInfo } from "./entities/tutanota/ModelInfo.js"
+import { default as tutanotaTypeModels } from "./entities/tutanota/TypeModels.js"
+import { default as usageModelInfo } from "./entities/usage/ModelInfo.js"
+import { default as usageTypeModels } from "./entities/usage/TypeModels.js"
+import { default as driveModelInfo } from "./entities/drive/ModelInfo.js"
+import { default as driveTypeModels } from "./entities/drive/TypeModels.js"
+import { default as baseModelInfo } from "./entities/base/ModelInfo.js"
+import { default as baseTypeModels } from "./entities/base/TypeModels.js"
+import { default as gossipModelInfo } from "./entities/gossip/ModelInfo.js"
+import { default as gossipTypeModels } from "./entities/gossip/TypeModels.js"
+import { default as monitorModelInfo } from "./entities/monitor/ModelInfo.js"
+import { default as monitorTypeModels } from "./entities/monitor/TypeModels.js"
+import { default as sysModelInfo } from "./entities/sys/ModelInfo.js"
+import { default as sysTypeModels } from "./entities/sys/TypeModels.js"
 
 import { isTest, ProgrammingError } from "@tutao/appEnv"
 import { ApplicationTypesGetOut } from "./baseTypes"

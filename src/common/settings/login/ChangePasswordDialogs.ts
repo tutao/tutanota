@@ -1,4 +1,3 @@
-import { User } from "../../api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -6,12 +5,13 @@ import m from "mithril"
 import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { assertNonNull, assertNotNull, Base64, newPromise, ofClass } from "@tutao/utils"
-import { asKdfType, DEFAULT_KDF_TYPE } from "../../api/common/TutanotaConstants.js"
+import { asKdfType, sysTypeRefs } from "@tutao/typeRefs"
+import { DEFAULT_KDF_TYPE } from "@tutao/appEnv"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
  */
-export async function showChangeUserPasswordAsAdminDialog(user: User) {
+export async function showChangeUserPasswordAsAdminDialog(user: sysTypeRefs.User) {
 	const model = new PasswordModel(locator.usageTestController, locator.logins, {
 		checkOldPassword: false,
 		enforceStrength: false,
@@ -40,7 +40,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 }
 
 async function storeNewPassword(
-	currentUser: User,
+	currentUser: sysTypeRefs.User,
 	newPasswordData: {
 		newEncryptedPassphrase: Base64
 		newEncryptedPassphraseKey: Uint8Array

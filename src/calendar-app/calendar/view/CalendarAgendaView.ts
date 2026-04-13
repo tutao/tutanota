@@ -23,7 +23,7 @@ import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/Cale
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { getIfLargeScroll } from "../../../common/gui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
-import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import { MainCreateButton } from "../../../common/gui/MainCreateButton.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"

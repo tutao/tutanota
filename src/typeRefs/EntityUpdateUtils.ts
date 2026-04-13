@@ -1,6 +1,8 @@
-import { OperationType } from "../TutanotaConstants.js"
-import { BlobElementEntity, isSameId, ListElementEntity, ServerModelParsedInstance, SomeEntity, sysTypeRefs } from "@tutao/typeRefs"
+import { OperationType } from "@tutao/appEnv"
+import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "./EntityTypes.js"
+import * as sysTypeRefs from "./entities/sys/TypeRefs.js"
 import { AppName, getTypeString, isSameTypeRef, Nullable, TypeRef } from "@tutao/utils"
+import { isSameId } from "./EntityUtils"
 
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.

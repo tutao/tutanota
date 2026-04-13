@@ -1,36 +1,22 @@
 import o from "@tutao/otest"
 import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/common/api/worker/EventBusClient.js"
-import { GroupType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
-import {
-	EntityUpdateTypeRef,
-	GroupMembershipTypeRef,
-	User,
-	UserTypeRef,
-	WebsocketCounterData,
-	WebsocketCounterDataTypeRef,
-	WebsocketCounterValueTypeRef,
-	WebsocketEntityData,
-	WebsocketEntityDataTypeRef,
-} from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { noOp } from "@tutao/utils"
+import { entityUpdateUtils, sysTypeRefs, timestampToGeneratedId, TypeModelResolver } from "@tutao/typeRefs"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
-import { timestampToGeneratedId } from "@tutao/typeRefs"
 import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
-import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
-import { TypeModelResolver } from "@tutao/typeRefs"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
+import { GroupType, OperationType } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
-export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
+export const noPatchesAndInstance: Pick<entityUpdateUtils.EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,
 	patches: null,
 	blobInstance: null,
@@ -40,7 +26,7 @@ o.spec("EventBusClientTest", function () {
 	let cacheMock: DefaultEntityRestCache
 	let userMock: UserFacade
 	let socket: WebSocket
-	let user: User
+	let user: sysTypeRefs.User
 	let sleepDetector: SleepDetector
 	let listenerMock: EventBusListener
 	let instancePipeline: InstancePipeline
@@ -94,7 +80,7 @@ o.spec("EventBusClientTest", function () {
 		listenerMock = object()
 		lastProcessedEventBatchStorageFacade = object()
 		cacheMock = object({
-			async entityEventsReceived(events): Promise<ReadonlyArray<EntityUpdateData>> {
+			async entityEventsReceived(events): Promise<ReadonlyArray<entityUpdateUtils.EntityUpdateData>> {
 				return events.slice()
 			},
 			async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
@@ -115,8 +101,8 @@ o.spec("EventBusClientTest", function () {
 			},
 		} as Partial<DefaultEntityRestCache> as DefaultEntityRestCache)
 
-		user = createTestEntity(UserTypeRef, {
-			userGroup: createTestEntity(GroupMembershipTypeRef, {
+		user = createTestEntity(sysTypeRefs.UserTypeRef, {
+			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 				group: "userGroupId",
 			}),
 		})
@@ -142,7 +128,7 @@ o.spec("EventBusClientTest", function () {
 
 		o.beforeEach(function () {
 			user.memberships = [
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					groupType: GroupType.Mail,
 					group: mailGroupId,
 				}),
@@ -202,7 +188,7 @@ o.spec("EventBusClientTest", function () {
 		const messageData1 = await createEntityMessage(1)
 		const messageData2 = await createEntityMessage(2)
 
-		const filteredEvents: EntityUpdateData[] = []
+		const filteredEvents: entityUpdateUtils.EntityUpdateData[] = []
 		when(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(filteredEvents)
 		when(
 			listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
@@ -286,14 +272,14 @@ o.spec("EventBusClientTest", function () {
 	})
 
 	async function createEntityMessage(eventBatchId: number, applicationTypesHash: string = "hash"): Promise<string> {
-		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
+		const event: sysTypeRefs.WebsocketEntityData = createTestEntity(sysTypeRefs.WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
 			entityUpdates: [
-				createTestEntity(EntityUpdateTypeRef, {
+				createTestEntity(sysTypeRefs.EntityUpdateTypeRef, {
 					_id: "eventbatchid",
 					application: "tutanota",
-					typeId: MailTypeRef.typeId.toString(),
+					typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
 					instanceListId: "listId1",
 					instanceId: "id1",
 					operation: OperationType.UPDATE,
@@ -307,12 +293,12 @@ o.spec("EventBusClientTest", function () {
 
 	type CounterMessageParams = { mailGroupId: Id; counterValue: number; counterId: Id }
 
-	function createCounterData({ mailGroupId, counterValue, counterId }: CounterMessageParams): WebsocketCounterData {
-		return createTestEntity(WebsocketCounterDataTypeRef, {
+	function createCounterData({ mailGroupId, counterValue, counterId }: CounterMessageParams): sysTypeRefs.WebsocketCounterData {
+		return createTestEntity(sysTypeRefs.WebsocketCounterDataTypeRef, {
 			_format: "0",
 			mailGroup: mailGroupId,
 			counterValues: [
-				createTestEntity(WebsocketCounterValueTypeRef, {
+				createTestEntity(sysTypeRefs.WebsocketCounterValueTypeRef, {
 					_id: "counterupdateid",
 					count: String(counterValue),
 					counterId,
@@ -321,7 +307,7 @@ o.spec("EventBusClientTest", function () {
 		})
 	}
 
-	async function createCounterMessage(event: WebsocketCounterData): Promise<string> {
+	async function createCounterMessage(event: sysTypeRefs.WebsocketCounterData): Promise<string> {
 		const instanceAsData = await instancePipeline.mapAndEncrypt(event._type, event, null)
 		return "unreadCounterUpdate;" + JSON.stringify(instanceAsData)
 	}

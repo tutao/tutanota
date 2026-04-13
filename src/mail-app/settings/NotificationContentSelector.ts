@@ -2,10 +2,10 @@ import m, { Component, Vnode } from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { ExtendedNotificationMode } from "../../common/native/common/generatedipc/ExtendedNotificationMode.js"
-import { isApp, isDesktop } from "../../common/api/common/Env.js"
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { renderNotificationPermissionsDialog } from "../../common/settings/NotificationPermissionsDialog.js"
+import { isApp, isDesktop } from "@tutao/appEnv"
 
 export interface NotificationContentSelectorAttrs {
 	extendedNotificationMode: ExtendedNotificationMode

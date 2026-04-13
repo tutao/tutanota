@@ -15,7 +15,7 @@ import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
-import { PresentableKeyVerificationState } from "../api/common/TutanotaConstants"
+import { PresentableKeyVerificationState } from "@tutao/appEnv"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey

@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { random } from "@tutao/crypto"
 import {
 	assertAndSupplyCorrectAssociationClientCardinality,
@@ -8,17 +8,23 @@ import {
 	isDefaultValue,
 	ModelMapper,
 	valueToDefault,
-} from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
-import { AssociationType, Cardinality, ValueType } from "@tutao/typeRefs"
+} from "@tutao/instancePipeline"
+import {
+	AssociationType,
+	Cardinality,
+	ClientModelParsedInstance,
+	ClientTypeReferenceResolver,
+	GENERATED_MIN_ID,
+	ModelAssociation,
+	ServerModelParsedInstance,
+	ServerTypeReferenceResolver,
+	ValueType,
+} from "@tutao/typeRefs"
 import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
-import { ClientModelParsedInstance, ModelAssociation, ServerModelParsedInstance } from "@tutao/typeRefs"
-import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typeRefs"
-import { GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { removeOriginals } from "../../../TestUtils"
-import { InvalidModelError } from "../../../../../src/common/api/common/error/InvalidModelError"
+import { InvalidModelError } from "@tutao/appEnv"
 
 o.spec("ModelMapper", function () {
 	const modelMapper: ModelMapper = new ModelMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)

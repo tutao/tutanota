@@ -20,21 +20,10 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod } from "../../api/common/TutanotaConstants"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod } from "@tutao/appEnv"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
-import {
-	AdvancedRepeatRule,
-	CalendarEvent,
-	CalendarEventTypeRef,
-	CalendarGroupRoot,
-	CalendarRepeatRule,
-	createCalendarEvent,
-	createCalendarRepeatRule,
-	GroupSettings,
-} from "../../api/entities/tutanota/TypeRefs.js"
+import { isSameId, StrippedEntity, sysTypeRefs } from "@tutao/typeRefs"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId, StrippedEntity } from "@tutao/typeRefs"
 import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { DateProvider } from "../../api/common/DateProvider"
@@ -48,33 +37,34 @@ import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 export type CalendarTimeRange = {
 	start: number
 	end: number
 }
 
-export function eventStartsBefore(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventStartsBefore(currentDate: Date, zone: string, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	return getEventStart(event, zone).getTime() < currentDate.getTime()
 }
 
-export function eventStartsBeforeDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventStartsBeforeDay(currentDate: Date, zone: string, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	return getEventStart(event, zone).getTime() < getStartOfDayWithZone(currentDate, zone).getTime()
 }
 
-export function eventEndsBefore(date: Date, zone: string, event: CalendarEvent): boolean {
+export function eventEndsBefore(date: Date, zone: string, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	return getEventEnd(event, zone).getTime() < date.getTime()
 }
 
-export function eventStartsAfter(date: Date, zone: string, event: CalendarEvent): boolean {
+export function eventStartsAfter(date: Date, zone: string, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	return getEventStart(event, zone).getTime() > date.getTime()
 }
 
-export function eventEndsAfterDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventEndsAfterDay(currentDate: Date, zone: string, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	return getEventEnd(event, zone).getTime() > getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 
-export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	return getEventEnd(event, zone).getTime() >= getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 
@@ -439,7 +429,7 @@ function expandByDayRuleForAnnuallyEvents(
 
 function applyByDayRules(
 	dates: DateTime[],
-	parsedRules: CalendarAdvancedRepeatRule[],
+	parsedRules: sysTypeRefs.CalendarAdvancedRepeatRule[],
 	frequency: RepeatPeriod,
 	validMonths: number[],
 	wkst: WeekdayNumbers,
@@ -528,7 +518,7 @@ function applyByDayRules(
 	return newDates
 }
 
-function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], repeatPeriod: RepeatPeriod) {
+function applyByMonth(dates: DateTime[], parsedRules: sysTypeRefs.CalendarAdvancedRepeatRule[], repeatPeriod: RepeatPeriod) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -571,7 +561,7 @@ function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 	return newDates
 }
 
-function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], isDailyEvent: boolean = false) {
+function applyByMonthDay(dates: DateTime[], parsedRules: sysTypeRefs.CalendarAdvancedRepeatRule[], isDailyEvent: boolean = false) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -624,7 +614,7 @@ function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatR
 	return newDates
 }
 
-function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], wkst: WeekdayNumbers): DateTime[] {
+function applyWeekNo(dates: DateTime[], parsedRules: sysTypeRefs.CalendarAdvancedRepeatRule[], wkst: WeekdayNumbers): DateTime[] {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -667,7 +657,7 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 	return newDates
 }
 
-function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], evaluateSameWeek: boolean, evaluateSameMonth: boolean) {
+function applyYearDay(dates: DateTime[], parsedRules: sysTypeRefs.CalendarAdvancedRepeatRule[], evaluateSameWeek: boolean, evaluateSameMonth: boolean) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -790,8 +780,8 @@ export class DefaultDateProvider implements DateProvider {
 	}
 }
 
-export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: number, timeZone: string = getTimeZone()): CalendarRepeatRule {
-	return createCalendarRepeatRule({
+export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: number, timeZone: string = getTimeZone()): tutanotaTypeRefs.CalendarRepeatRule {
+	return tutanotaTypeRefs.createCalendarRepeatRule({
 		timeZone: timeZone,
 		frequency: frequency,
 		interval: String(interval),
@@ -884,7 +874,7 @@ export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
 		.toJSDate()
 }
 
-export function isLongEvent(event: CalendarEvent, zone: string): boolean {
+export function isLongEvent(event: tutanotaTypeRefs.CalendarEvent, zone: string): boolean {
 	// long events are longer than the event ID randomization range. we need to distinguish them
 	// to be able to still load and display the ones overlapping the query range even though their
 	// id might not be contained in the query timerange +- randomization range.
@@ -893,7 +883,7 @@ export function isLongEvent(event: CalendarEvent, zone: string): boolean {
 }
 
 /** create an event id depending on the calendar it is in and on its length */
-export function assignEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
+export function assignEventId(event: tutanotaTypeRefs.CalendarEvent, zone: string, groupRoot: tutanotaTypeRefs.CalendarGroupRoot): void {
 	const listId = isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
@@ -905,7 +895,7 @@ export function isSameEventInstance(left: EventWrapper, right: EventWrapper): bo
 	return isSameId(left.event._id, right.event._id) && left.event.startTime.getTime() === right.event.startTime.getTime()
 }
 
-export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
+export function hasAlarmsForTheUser(user: sysTypeRefs.User, event: tutanotaTypeRefs.CalendarEvent): boolean {
 	const useAlarmList = neverNull(user.alarmInfoList).alarms
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
@@ -938,7 +928,7 @@ export const enum CalendarEventValidity {
  * @param event
  * @returns Enum describing the reason to reject the event, if any.
  */
-export function checkEventValidity(event: CalendarEvent): CalendarEventValidity {
+export function checkEventValidity(event: tutanotaTypeRefs.CalendarEvent): CalendarEventValidity {
 	if (!isValidDate(event.startTime) || !isValidDate(event.endTime)) {
 		return CalendarEventValidity.InvalidContainsInvalidDate
 	} else if (event.endTime.getTime() <= event.startTime.getTime()) {
@@ -1068,7 +1058,7 @@ export function addDaysForRecurringEvent(
 	}
 	const allDay = isAllDayEvent(baseEvent.event)
 	const exclusions = allDay
-		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
+		? repeatRule.excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
 	const generatedEvents = eventOccurencesGenerator(baseEvent.event, timeZone, new Date(range.end))
 
@@ -1099,23 +1089,25 @@ export function addDaysForRecurringEvent(
  *
  */
 export function generateCalendarInstancesInRange(
-	progenitors: ReadonlyArray<CalendarEvent>,
+	progenitors: ReadonlyArray<tutanotaTypeRefs.CalendarEvent>,
 	range: CalendarTimeRange,
 	max: number = Infinity,
 	timeZone: string = getTimeZone(),
-): Array<CalendarEvent> {
-	const ret: Array<CalendarEvent> = []
+): Array<tutanotaTypeRefs.CalendarEvent> {
+	const ret: Array<tutanotaTypeRefs.CalendarEvent> = []
 
 	const getNextCandidate = (
-		previousCandidate: CalendarEvent,
+		previousCandidate: tutanotaTypeRefs.CalendarEvent,
 		generator: Generator<{
 			startTime: Date
 			endTime: Date
 		}>,
-		excludedDates: Array<DateWrapper>,
+		excludedDates: Array<sysTypeRefs.DateWrapper>,
 	) => {
 		const allDay = isAllDayEvent(previousCandidate)
-		const exclusions = allDay ? excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) })) : excludedDates
+		const exclusions = allDay
+			? excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
+			: excludedDates
 		let current
 
 		// not using for-of because that automatically closes the generator
@@ -1152,8 +1144,8 @@ export function generateCalendarInstancesInRange(
 	// if we added one, we advance the generator that generated it to the next candidate and repeat.
 	const generators: Array<{
 		generator: Generator<{ startTime: Date; endTime: Date }>
-		excludedDates: Array<DateWrapper>
-		nextCandidate: CalendarEvent
+		excludedDates: Array<sysTypeRefs.DateWrapper>
+		nextCandidate: tutanotaTypeRefs.CalendarEvent
 	}> = progenitors
 		.map((p) => {
 			const generator = eventOccurencesGenerator(p, timeZone, new Date(range.end))
@@ -1203,7 +1195,7 @@ export function generateCalendarInstancesInRange(
  *   - actual timestamp on the entity is Midnight local timezone 2023-05-19 (start of day)
  * @returns {Date}
  */
-export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boolean, timeZone: string): Date {
+export function getRepeatEndTimeForDisplay(repeatRule: sysTypeRefs.RepeatRule, isAllDay: boolean, timeZone: string): Date {
 	if (repeatRule.endType !== EndType.UntilDate) {
 		throw new Error("Event has no repeat rule end type is not UntilDate: " + JSON.stringify(repeatRule))
 	}
@@ -1222,7 +1214,7 @@ export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boo
  * @param maxDate
  */
 function* eventOccurencesGenerator(
-	event: CalendarEvent,
+	event: tutanotaTypeRefs.CalendarEvent,
 	timeZone: string,
 	maxDate: Date,
 ): Generator<{
@@ -1424,7 +1416,7 @@ export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, altered
  * @param currentDate the date to check
  * @param excludedDates a sorted list of excluded dates, earliest to latest
  */
-function isExcludedDate(currentDate: Date, excludedDates: ReadonlyArray<DateWrapper> = []): boolean {
+function isExcludedDate(currentDate: Date, excludedDates: ReadonlyArray<sysTypeRefs.DateWrapper> = []): boolean {
 	return excludedDates.some((dw) => dw.date.getTime() === currentDate.getTime())
 }
 
@@ -1441,7 +1433,7 @@ export function findNextAlarmOccurrence(
 	eventEnd: Date,
 	alarmTrigger: AlarmInterval,
 	localTimeZone: string,
-	repeatRule: RepeatRule,
+	repeatRule: sysTypeRefs.RepeatRule,
 ): AlarmOccurrence | null {
 	let occurrenceNumber = 0
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
@@ -1469,11 +1461,11 @@ export function findNextAlarmOccurrence(
 		}
 
 		const eventGenerator = eventOccurencesGenerator(
-			createCalendarEvent({
+			tutanotaTypeRefs.createCalendarEvent({
 				startTime: eventStart,
 				endTime: eventEnd,
 				repeatRule,
-			} as StrippedEntity<CalendarEvent>),
+			} as StrippedEntity<tutanotaTypeRefs.CalendarEvent>),
 			localTimeZone,
 			maxDate,
 		)
@@ -1563,7 +1555,7 @@ export function getDateIndicator(day: Date, selectedDate: Date | null): string {
  *
  * @returns {EventTextTimeOption}
  */
-export function getTimeTextFormatForLongEvent(ev: CalendarEvent, startDay: Date, endDay: Date, zone: string): EventTextTimeOption | null {
+export function getTimeTextFormatForLongEvent(ev: tutanotaTypeRefs.CalendarEvent, startDay: Date, endDay: Date, zone: string): EventTextTimeOption | null {
 	const startsBefore = eventStartsBefore(startDay, zone, ev)
 	const endsAfter = eventEndsAfterOrOn(endDay, zone, ev)
 
@@ -1594,7 +1586,7 @@ export function combineDateWithTime(date: Date, time: Time): Date {
  * Check if an event occurs during some time period of days, either partially or entirely
  * Expects that firstDayOfWeek is before lastDayOfWeek, and that event starts before it ends, otherwise result is invalid
  */
-export function isEventBetweenDays(event: CalendarEvent, firstDay: Date, lastDay: Date, zone: string): boolean {
+export function isEventBetweenDays(event: tutanotaTypeRefs.CalendarEvent, firstDay: Date, lastDay: Date, zone: string): boolean {
 	const endOfDay = DateTime.fromJSDate(lastDay, { zone }).endOf("day").toJSDate()
 	return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(endOfDay, zone, event))
 }
@@ -1610,8 +1602,11 @@ export function getFirstDayOfMonth(d: Date): Date {
  * @param calendarEvent
  * @param entityClient
  */
-export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEvent, entityClient: EntityClient): Promise<CalendarEvent> {
-	return calendarEvent.repeatRule ? await entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent
+export async function resolveCalendarEventProgenitor(
+	calendarEvent: tutanotaTypeRefs.CalendarEvent,
+	entityClient: EntityClient,
+): Promise<tutanotaTypeRefs.CalendarEvent> {
+	return calendarEvent.repeatRule ? await entityClient.load(tutanotaTypeRefs.CalendarEventTypeRef, calendarEvent._id) : calendarEvent
 }
 
 /** clip the range start-end to the range given by min-max. if the result would have length 0, null is returned. */
@@ -1670,12 +1665,12 @@ export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInter
 /**
  * compare two lists of dates that are sorted from earliest to latest. return true if they are equivalent.
  */
-export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
+export function areExcludedDatesEqual(e1: ReadonlyArray<sysTypeRefs.DateWrapper>, e2: ReadonlyArray<sysTypeRefs.DateWrapper>): boolean {
 	if (e1.length !== e2.length) return false
 	return e1.every(({ date }, i) => e2[i].date.getTime() === date.getTime())
 }
 
-export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
+export function areRepeatRulesEqual(r1: tutanotaTypeRefs.CalendarRepeatRule | null, r2: tutanotaTypeRefs.CalendarRepeatRule | null): boolean {
 	return (
 		r1 === r2 ||
 		(r1?.endType === r2?.endType &&
@@ -1691,7 +1686,7 @@ export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarR
 /*
  * Checks if all Advanced Rules whithin a set are valid. Return true if we support all rules present in the array
  */
-export function areAllAdvancedRepeatRulesValid(advancedRules: AdvancedRepeatRule[], repeatPeriod: RepeatPeriod | null) {
+export function areAllAdvancedRepeatRulesValid(advancedRules: tutanotaTypeRefs.AdvancedRepeatRule[], repeatPeriod: RepeatPeriod | null) {
 	const isDailyOrYearly = repeatPeriod === RepeatPeriod.ANNUALLY || repeatPeriod === RepeatPeriod.DAILY
 
 	if (repeatPeriod == null && isNotEmpty(advancedRules)) return false
@@ -1776,7 +1771,7 @@ export function isBirthdayCalendar(calendarId: Id) {
 	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
 }
 
-export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
+export function hasSourceUrl(groupSettings: tutanotaTypeRefs.GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
@@ -1808,7 +1803,7 @@ export async function retrieveBirthdayEventsForUser(
 
 	const birthdayEventsFromSearchResult = searchResultEventIds.filter(([calendarId, _]) => isBirthdayCalendar(calendarId))
 	const birthdayEventIdsString = birthdayEventsFromSearchResult.flatMap((eventId) => eventId.join("/"))
-	const retrievedEvents: CalendarEvent[] = []
+	const retrievedEvents: tutanotaTypeRefs.CalendarEvent[] = []
 
 	const allBirthdayEvents = Array.from(birthdayEventsByMonth.values()).flat()
 	for (const event of allBirthdayEvents) {

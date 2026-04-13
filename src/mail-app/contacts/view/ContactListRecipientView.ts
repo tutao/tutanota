@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "../../../common/api/common/Env.js"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../common/gui/theme.js"

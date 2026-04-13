@@ -1,5 +1,5 @@
 import { Dialog } from "../../gui/base/Dialog"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { RecipientKeyVerificationRecoveryInfoPage } from "./dialogpages/RecipientKeyVerificationRecoveryInfoPage"

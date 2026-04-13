@@ -15,10 +15,9 @@ import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { isDesktop } from "../../api/common/Env"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
 import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
-import { isHighestTierPlan } from "../../api/common/TutanotaConstants"
+import { isDesktop, isHighestTierPlan } from "@tutao/appEnv"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(

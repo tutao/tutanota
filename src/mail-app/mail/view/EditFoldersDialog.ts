@@ -1,7 +1,7 @@
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/utils"
 import { focusNext, focusPrevious, keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
-import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import m, { Children } from "mithril"
 import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity } from "../../../common/gui/animation/Animations.js"
 import { getElevatedBackground, theme } from "../../../common/gui/theme.js"

@@ -1,17 +1,15 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
 import { component_size } from "../gui/size.js"
-import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { elementIdPart, entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 import { contains, LazyLoaded, noOp } from "@tutao/utils"
 import { UserViewer } from "./UserViewer.js"
-import { FeatureType, GroupType } from "../api/common/TutanotaConstants.js"
+import { FeatureType } from "@tutao/appEnv"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { compareGroupInfos } from "../api/common/utils/GroupUtils.js"
-import { elementIdPart } from "@tutao/typeRefs"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
-import { assertMainOrNode } from "../api/common/Env.js"
+import { assertMainOrNode, GroupType } from "@tutao/appEnv"
 import { locator } from "../api/main/CommonLocator.js"
 import Stream from "mithril/stream"
 import * as AddUserDialog from "./AddUserDialog.js"
@@ -25,7 +23,6 @@ import { IconButton } from "../gui/base/IconButton.js"
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
@@ -39,8 +36,8 @@ assertMainOrNode()
  */
 export class UserListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private listModel: ListElementListModel<GroupInfo>
-	private readonly renderConfig: RenderConfig<GroupInfo, UserRow> = {
+	private listModel: ListElementListModel<sysTypeRefs.GroupInfo>
+	private readonly renderConfig: RenderConfig<sysTypeRefs.GroupInfo, UserRow> = {
 		createElement: (dom) => {
 			const row = new UserRow((groupInfo) => this.isAdmin(groupInfo))
 			m.render(dom, row.render())
@@ -127,13 +124,13 @@ export class UserListView implements UpdatableSettingsViewer {
 						onLoadMore: () => this.listModel.loadMore(),
 						onRetryLoading: () => this.listModel.retryLoading(),
 						onStopLoading: () => this.listModel.stopLoading(),
-						onSingleSelection: (item: GroupInfo) => {
+						onSingleSelection: (item: sysTypeRefs.GroupInfo) => {
 							this.listModel.onSingleSelection(item)
 							this.focusDetailsViewer()
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-					} satisfies ListAttrs<GroupInfo, UserRow>),
+					} satisfies ListAttrs<sysTypeRefs.GroupInfo, UserRow>),
 		)
 	}
 
@@ -179,11 +176,11 @@ export class UserListView implements UpdatableSettingsViewer {
 		if (adminGroupMembership == null) {
 			return
 		}
-		const members = await locator.entityClient.loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
+		const members = await locator.entityClient.loadAll(sysTypeRefs.GroupMemberTypeRef, adminGroupMembership.groupMember[0])
 		this.adminUserGroupInfoIds = members.map((adminGroupMember) => elementIdPart(adminGroupMember.userGroupInfo))
 	}
 
-	private isAdmin(userGroupInfo: GroupInfo): boolean {
+	private isAdmin(userGroupInfo: sysTypeRefs.GroupInfo): boolean {
 		return contains(this.adminUserGroupInfoIds, userGroupInfo._id[1])
 	}
 
@@ -191,11 +188,11 @@ export class UserListView implements UpdatableSettingsViewer {
 		AddUserDialog.show()
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
+			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
-			} else if (isUpdateFor(locator.logins.getUserController().user, update)) {
+			} else if (entityUpdateUtils.isUpdateFor(locator.logins.getUserController().user, update)) {
 				await this.loadAdmins()
 				this.listModel.reapplyFilter()
 			}
@@ -203,20 +200,20 @@ export class UserListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	private makeListModel(): ListElementListModel<GroupInfo> {
-		const listModel = new ListElementListModel<GroupInfo>({
+	private makeListModel(): ListElementListModel<sysTypeRefs.GroupInfo> {
+		const listModel = new ListElementListModel<sysTypeRefs.GroupInfo>({
 			sortCompare: compareGroupInfos,
 			fetch: async (_lastFetchedEntity) => {
 				await this.loadAdmins()
 				const listId = await this.listId.getAsync()
-				const allUserGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
+				const allUserGroupInfos = await locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, listId)
 
 				return { items: allUserGroupInfos, complete: true }
 			},
 			loadSingle: async (_listId: Id, elementId: Id) => {
 				const listId = await this.listId.getAsync()
 				try {
-					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
+					return await locator.entityClient.load<sysTypeRefs.GroupInfo>(sysTypeRefs.GroupInfoTypeRef, [listId, elementId])
 				} catch (e) {
 					if (e instanceof NotFoundError) {
 						// we return null if the GroupInfo does not exist
@@ -251,7 +248,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		return listModel
 	}
 
-	private queryFilter(gi: GroupInfo) {
+	private queryFilter(gi: sysTypeRefs.GroupInfo) {
 		const lowercaseSearch = this.searchQuery.toLowerCase()
 		return (
 			gi.name.toLowerCase().includes(lowercaseSearch) ||
@@ -270,19 +267,19 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 }
 
-export class UserRow implements VirtualRow<GroupInfo> {
+export class UserRow implements VirtualRow<sysTypeRefs.GroupInfo> {
 	top: number = 0
 	domElement: HTMLElement | null = null // set from List
-	entity: GroupInfo | null = null
+	entity: sysTypeRefs.GroupInfo | null = null
 	private nameDom!: HTMLElement
 	private addressDom!: HTMLElement
 	private adminIconDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
 	private selectionUpdater!: SelectableRowSelectedSetter
 
-	constructor(private readonly isAdmin: (groupInfo: GroupInfo) => boolean) {}
+	constructor(private readonly isAdmin: (groupInfo: sysTypeRefs.GroupInfo) => boolean) {}
 
-	update(groupInfo: GroupInfo, selected: boolean): void {
+	update(groupInfo: sysTypeRefs.GroupInfo, selected: boolean): void {
 		this.entity = groupInfo
 
 		this.selectionUpdater(selected, false)

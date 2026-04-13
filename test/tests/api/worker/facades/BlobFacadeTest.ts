@@ -1,33 +1,22 @@
 import o, { assertThrows } from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { HttpMethod, RestClient, RestClientOptions, restSuspension } from "@tutao/restClient"
+import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/restClient"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
-import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ArchiveDataType } from "@tutao/appEnv"
+import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
-import { Mode } from "../../../../../src/common/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import {
-	BlobGetIn,
-	BlobGetInTypeRef,
-	BlobPostOutTypeRef,
-	BlobServerAccessInfoTypeRef,
-	BlobServerUrlTypeRef,
-	createBlobPostOut,
-} from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
-import { elementIdPart, getElementId, listIdPart } from "@tutao/typeRefs"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
-import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { typeModels as storageTypeModels } from "../../../../../src/common/api/entities/storage/TypeModels"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { TransferId } from "../../../../../src/common/api/common/drive/DriveTypes"
+import { Mode } from "@tutao/appEnv"
 
 const { anything, captor } = matchers
 
@@ -43,14 +32,14 @@ o.spec("BlobFacade", function () {
 	const archive2Id = "archiveId2"
 	const blobId1 = "blobId1"
 	const blobs = [
-		createTestEntity(BlobTypeRef, { archiveId, blobId: blobId1 }),
-		createTestEntity(BlobTypeRef, { archiveId, blobId: "blobId2" }),
-		createTestEntity(BlobTypeRef, { archiveId }),
+		createTestEntity(sysTypeRefs.BlobTypeRef, { archiveId, blobId: blobId1 }),
+		createTestEntity(sysTypeRefs.BlobTypeRef, { archiveId, blobId: "blobId2" }),
+		createTestEntity(sysTypeRefs.BlobTypeRef, { archiveId }),
 	]
 	let archiveDataType = ArchiveDataType.Attachments
 	let cryptoFacadeMock: CryptoFacade
-	let file: TutanotaFile
-	let anotherFile: TutanotaFile
+	let file: tutanotaTypeRefs.File
+	let anotherFile: tutanotaTypeRefs.File
 	let previousNetworkDebugging
 
 	o.beforeEach(function () {
@@ -64,8 +53,8 @@ o.spec("BlobFacade", function () {
 
 		const mimeType = "text/plain"
 		const name = "fileName"
-		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
-		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
+		file = createTestEntity(tutanotaTypeRefs.FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
+		anotherFile = createTestEntity(tutanotaTypeRefs.FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
 
 		blobFacade = new BlobFacade(
 			restClientMock,
@@ -101,12 +90,12 @@ o.spec("BlobFacade", function () {
 				object(),
 			)
 
-			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
-			const blobServiceResponse = createBlobPostOut({
+			const expectedReferenceToken = sysTypeRefs.createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
+			const blobServiceResponse = storageTypeRefs.createBlobPostOut({
 				blobReferenceToken: expectedReferenceToken.blobReferenceToken,
 				blobReferenceTokens: [],
 			})
-			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
+			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(storageTypeRefs.BlobPostOutTypeRef, blobServiceResponse, null)
 
 			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(JSON.stringify(blobServiceResponseWithDebug))
 			o(referenceTokens).deepEquals(expectedReferenceToken)
@@ -118,14 +107,16 @@ o.spec("BlobFacade", function () {
 			const blobData = new Uint8Array([1, 2, 3])
 			const transferId = "abcde" as TransferId
 
-			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
+			const expectedReferenceTokens = [sysTypeRefs.createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "w1" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "w1" })],
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
-			const blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
+			const blobServiceResponse = createTestEntity(storageTypeRefs.BlobPostOutTypeRef, {
+				blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
+			})
 			when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
 
@@ -145,16 +136,18 @@ o.spec("BlobFacade", function () {
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
 
-			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
+			const expectedReferenceTokens = [sysTypeRefs.createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 			const uploadedFileUri = "rawFileUri"
 			const chunkUris = ["uri1"]
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
-			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
+			let blobServiceResponse = createTestEntity(storageTypeRefs.BlobPostOutTypeRef, {
+				blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
+			})
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
 			when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenResolve(blobServiceResponse)
@@ -178,7 +171,7 @@ o.spec("BlobFacade", function () {
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(
 				fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, HttpMethod.POST, {
-					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+					v: String(storageTypeModels[storageTypeRefs.BlobGetInTypeRef.typeId].version),
 					cv: env.versionNumber,
 				}),
 			)
@@ -192,12 +185,12 @@ o.spec("BlobFacade", function () {
 
 			const blobData = new Uint8Array([1, 2, 3])
 			const blobId = "--------0s--"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId, size: String(65), archiveId: archiveId }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId, size: String(65), archiveId: archiveId }))
 			const encryptedBlobData = aesEncrypt(sessionKey, blobData)
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			const blobAccessInfos = new Map([[archiveId, blobAccessInfo]])
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfos)
@@ -239,17 +232,17 @@ o.spec("BlobFacade", function () {
 			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
 			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId2, size: String(65), archiveId }))
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
-			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			const blobAccessInfos = new Map([[archiveId, blobAccessInfo]])
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfos)
@@ -294,22 +287,22 @@ o.spec("BlobFacade", function () {
 			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
 			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: archive2Id }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: archive2Id }))
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
-			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 
-			const blobAccessInfo2 = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo2 = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			const blobAccessInfos = new Map([
 				[archiveId, blobAccessInfo],
@@ -359,9 +352,9 @@ o.spec("BlobFacade", function () {
 
 			file.blobs.push(blobs[0])
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 			const blobAccessInfos = new Map([[archiveId, blobAccessInfo]])
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfos)
@@ -400,7 +393,7 @@ o.spec("BlobFacade", function () {
 					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
 					blobs[0].blobId + ".blob",
 					{
-						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						v: String(storageTypeModels[storageTypeRefs.BlobGetInTypeRef.typeId].version),
 						cv: env.versionNumber,
 					},
 					anything(),
@@ -418,17 +411,17 @@ o.spec("BlobFacade", function () {
 			const blobId1 = "--------0s-1"
 			const blobId2 = "--------0s-2"
 
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: archive2Id }))
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: archive2Id }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 
-			let blobAccessInfo2 = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo2 = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "1234",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 			const blobAccessInfos = new Map([
 				[archiveId, blobAccessInfo],
@@ -478,7 +471,7 @@ o.spec("BlobFacade", function () {
 					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
 					blobId1 + ".blob",
 					{
-						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						v: String(storageTypeModels[storageTypeRefs.BlobGetInTypeRef.typeId].version),
 						cv: env.versionNumber,
 					},
 					anything(),
@@ -489,7 +482,7 @@ o.spec("BlobFacade", function () {
 					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
 					blobId2 + ".blob",
 					{
-						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+						v: String(storageTypeModels[storageTypeRefs.BlobGetInTypeRef.typeId].version),
 						cv: env.versionNumber,
 					},
 					anything(),
@@ -506,9 +499,9 @@ o.spec("BlobFacade", function () {
 			file.blobs.push(blobs[0])
 			file.blobs.push(blobs[1])
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			let blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 			const blobAccessInfos = new Map([[archiveId, blobAccessInfo]])
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfos)
@@ -545,22 +538,22 @@ o.spec("BlobFacade", function () {
 			const anothersessionKey = aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId1, size: String(65) }))
 			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId2, size: String(65) }))
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
-			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+			anotherFile.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId3, size: String(65) }))
 			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
 
-			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			when(
 				blobAccessTokenFacade.requestReadTokenMultipleInstances(
@@ -625,7 +618,7 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(
-				createTestEntity(BlobTypeRef, {
+				createTestEntity(sysTypeRefs.BlobTypeRef, {
 					blobId: blobId1,
 					size: String(65),
 					archiveId: "archiveId1",
@@ -636,7 +629,7 @@ o.spec("BlobFacade", function () {
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(
-				createTestEntity(BlobTypeRef, {
+				createTestEntity(sysTypeRefs.BlobTypeRef, {
 					blobId: blobId2,
 					size: String(65),
 					archiveId: "archiveId1",
@@ -647,7 +640,7 @@ o.spec("BlobFacade", function () {
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(
-				createTestEntity(BlobTypeRef, {
+				createTestEntity(sysTypeRefs.BlobTypeRef, {
 					blobId: blobId3,
 					size: String(65),
 					archiveId: "archiveId2",
@@ -655,9 +648,9 @@ o.spec("BlobFacade", function () {
 			)
 			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
 
-			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			when(blobAccessTokenFacade.requestReadTokenMultipleInstances(archiveDataType, [wrapTutanotaFile(file)], matchers.anything())).thenResolve(
 				blobAccessInfo,
@@ -675,7 +668,7 @@ o.spec("BlobFacade", function () {
 			when(
 				instancePipelineMock.mapAndEncrypt(
 					anything(),
-					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length === 2),
+					matchers.argThat((inData: storageTypeRefs.BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length === 2),
 					anything(),
 				),
 			).thenResolve(requestBody1)
@@ -683,7 +676,7 @@ o.spec("BlobFacade", function () {
 			when(
 				instancePipelineMock.mapAndEncrypt(
 					anything(),
-					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length === 1),
+					matchers.argThat((inData: storageTypeRefs.BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length === 1),
 					anything(),
 				),
 			).thenResolve(requestBody2)
@@ -752,20 +745,20 @@ o.spec("BlobFacade", function () {
 			const anothersessionKey = aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId1, size: String(65) }))
 			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId2, size: String(65) }))
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobId3 = "--------0s-3"
-			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+			anotherFile.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId3, size: String(65) }))
 
-			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			when(
 				blobAccessTokenFacade.requestReadTokenMultipleInstances(
@@ -821,23 +814,23 @@ o.spec("BlobFacade", function () {
 			const anothersessionKey = aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId1, size: String(65) }))
 			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
-			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			file.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId2, size: String(65) }))
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 			encryptedBlobData2[16] = ~encryptedBlobData2[16]
 
 			const blobId3 = "--------0s-3"
-			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+			anotherFile.blobs.push(createTestEntity(sysTypeRefs.BlobTypeRef, { blobId: blobId3, size: String(65) }))
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
 
-			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+			const blobAccessInfo = createTestEntity(storageTypeRefs.BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+				servers: [createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
 			when(
 				blobAccessTokenFacade.requestReadTokenMultipleInstances(
@@ -982,7 +975,7 @@ o.spec("BlobFacade", function () {
 	})
 })
 
-function wrapTutanotaFile(tutanotaFile: TutanotaFile): BlobReferencingInstance {
+function wrapTutanotaFile(tutanotaFile: tutanotaTypeRefs.File): BlobReferencingInstance {
 	return {
 		blobs: tutanotaFile.blobs,
 		elementId: elementIdPart(tutanotaFile._id),

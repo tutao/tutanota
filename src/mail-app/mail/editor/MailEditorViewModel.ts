@@ -2,7 +2,6 @@ import m from "mithril"
 import type { Attachment } from "../../../common/mailFunctionality/SendMailModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { debounce, findAllAndRemove, isNotNull, ofClass, remove } from "@tutao/utils"
-import { Mode } from "../../../common/api/common/Env"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { FileNotFoundError } from "../../../common/api/common/error/FileNotFoundError"
@@ -17,6 +16,7 @@ import { showFileChooser } from "../../../common/file/FileController.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import { showDownloadProgressDialog } from "../view/MailGuiUtils"
+import { Mode } from "@tutao/appEnv"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,

@@ -6,10 +6,10 @@ import { theme } from "../../../gui/theme"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
-import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/utils"
 import { Icon, IconSize } from "../../../gui/base/Icon"
+import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
 
 type VerificationErrorInfoPageAttrs = {
 	model: KeyVerificationModel

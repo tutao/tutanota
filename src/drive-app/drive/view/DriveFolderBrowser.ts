@@ -5,7 +5,7 @@ import { FolderItem, folderItemEntity } from "./DriveUtils"
 import { isEmpty, lastIndex } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
-import { Keys } from "../../../common/api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 
 export interface DriveFolderBrowserAttrs {
 	items: readonly FolderItem[]

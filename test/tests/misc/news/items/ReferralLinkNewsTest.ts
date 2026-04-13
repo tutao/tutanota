@@ -7,9 +7,9 @@ import { getDayShifted } from "@tutao/utils"
 import { ReferralLinkNews } from "../../../../../src/common/misc/news/items/ReferralLinkNews.js"
 import { timestampToGeneratedId } from "@tutao/typeRefs"
 import { UserController } from "../../../../../src/common/api/main/UserController.js"
-import { Customer, User } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { initCommonLocator } from "../../../../../src/common/api/main/CommonLocator.js"
 import { IMailLocator } from "../../../../../src/mail-app/mailLocator.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider
@@ -40,8 +40,8 @@ o.spec("ReferralLinkNews", function () {
 		newsModel = object()
 		referralViewModel = object()
 		userController = object()
-		const user: User = object()
-		const customer: Customer = object()
+		const user: sysTypeRefs.User = object()
+		const customer: sysTypeRefs.Customer = object()
 
 		replace(userController, "user", user)
 		replace(user, "customer", timestampToGeneratedId(0))

@@ -2,9 +2,9 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../misc/LanguageViewModel"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import type { QRCode } from "jsqr"
-import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { TitleSection } from "../../../gui/TitleSection"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../../gui/QrCodeScanner"
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "@tutao/appEnv"
 
 export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "camera_not_found" | "video_source_error" | "unknown"
 

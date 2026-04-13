@@ -1,15 +1,15 @@
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
-import { EntityUpdateData, getLogStringForEntityEvent } from "../common/utils/EntityUpdateUtils"
 import { purgeSyncMetrics, syncMetrics } from "./utils/SyncMetrics"
+import { entityUpdateUtils } from "@tutao/typeRefs"
 
 export type QueuedBatch = {
-	events: readonly EntityUpdateData[]
+	events: readonly entityUpdateUtils.EntityUpdateData[]
 	groupId: Id
 	batchId: Id
 }
 
-type WritableQueuedBatch = QueuedBatch & { events: EntityUpdateData[] }
+type WritableQueuedBatch = QueuedBatch & { events: entityUpdateUtils.EntityUpdateData[] }
 
 type QueueAction = (nextElement: QueuedBatch) => Promise<void>
 
@@ -50,7 +50,7 @@ export class EventQueue {
 	/**
 	 * @return whether the batch was added (not optimized away)
 	 */
-	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): boolean {
+	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): boolean {
 		const newBatch: WritableQueuedBatch = {
 			events: [],
 			groupId,
@@ -100,12 +100,26 @@ export class EventQueue {
 					this.processNext()
 				})
 				.catch((e) => {
-					console.log("EventQueue", this.tag, "error", next.events.map(getLogStringForEntityEvent), e)
+					console.log(
+						"EventQueue",
+						this.tag,
+						"error",
+						next.events.map(function (event: entityUpdateUtils.EntityUpdateData): string {
+							return entityUpdateUtils.getLogStringForEntityEvent(event)
+						}),
+						e,
+					)
 					// processing continues if the event bus receives a new event
 					this.processingBatch = null
 
 					if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
-						console.error("Uncaught EventQueue error!", e, next.events.map(getLogStringForEntityEvent))
+						console.error(
+							"Uncaught EventQueue error!",
+							e,
+							next.events.map(function (event: entityUpdateUtils.EntityUpdateData): string {
+								return entityUpdateUtils.getLogStringForEntityEvent(event)
+							}),
+						)
 					}
 				})
 		} else {

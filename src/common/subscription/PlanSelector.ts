@@ -3,7 +3,6 @@ import { lang } from "../misc/LanguageViewModel"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/utils"
-import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
 import { component_size, px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, TertiaryButton, TertiaryButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
@@ -18,7 +17,7 @@ import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
 import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
 import { styles } from "../gui/styles"
-import { isIOSApp } from "../api/common/Env"
+import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/appEnv"
 
 export type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions

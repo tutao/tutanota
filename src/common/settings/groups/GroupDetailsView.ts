@@ -3,7 +3,6 @@ import { Dialog } from "../../gui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../misc/Formatter.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { getFirstOrThrow, neverNull } from "@tutao/utils"
-import { GroupType } from "../../api/common/TutanotaConstants.js"
 import type { TableAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table, TableLineAttrs } from "../../gui/base/Table.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -11,13 +10,13 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { TextField } from "../../gui/base/TextField.js"
 import type { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { assertMainOrNode } from "../../api/common/Env.js"
+import { assertMainOrNode, GroupType } from "@tutao/appEnv"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetailsModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
-import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
+import { entityUpdateUtils } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -182,7 +181,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		return this.model.entityEventsReceived(updates)
 	}
 

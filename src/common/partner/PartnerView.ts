@@ -1,5 +1,5 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
@@ -19,11 +19,12 @@ import { LoginController } from "../api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
-import { EntityEventsListener, EntityUpdateData, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils.js"
+
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 import { Icons } from "../gui/base/icons/Icons"
+import { entityUpdateUtils } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -173,11 +174,11 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		locator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener: EntityEventsListener = {
-		onEntityUpdatesReceived: (updates: EntityUpdateData[]) => {
+	private entityListener: entityUpdateUtils.EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: entityUpdateUtils.EntityUpdateData[]) => {
 			return this.entityEventsReceived(updates)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -233,7 +234,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		await this._currentViewer?.entityEventsReceived(updates)
 
 		await this.detailsViewer?.entityEventsReceived(updates)

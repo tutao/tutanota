@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, isApp, isDesktop, isIOSApp } from "../../common/api/common/Env"
+import { assertMainOrNode, GroupType, isApp, isDesktop, isIOSApp } from "@tutao/appEnv"
 import { ColumnType, ViewColumn } from "../../common/gui/base/ViewColumn"
 import { ViewSlider } from "../../common/gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
@@ -11,12 +11,12 @@ import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
 import { UserListView } from "../../common/settings/UserListView.js"
-import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, ReceivedGroupInvitation, User } from "../../common/api/entities/sys/TypeRefs.js"
+import { entityUpdateUtils, getEtId, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
-import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants"
+import { FeatureType } from "@tutao/appEnv"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
@@ -28,7 +28,6 @@ import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
 import { layout_size } from "../../common/gui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
-import { getEtId } from "@tutao/typeRefs"
 import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../../common/sharing/view/GroupSharingDialog"
@@ -39,9 +38,7 @@ import { getNullableSharedGroupName, getSharedGroupName, isSharedGroupOwner } fr
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "../../common/settings/SettingsFolderRow.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitationFolderRow"
-import { TemplateGroupService } from "../../common/api/entities/tutanota/Services"
 import { exportUserCsv, loadUserExportData } from "../../common/settings/UserDataExporter.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { BottomNav } from "../gui/BottomNav.js"
@@ -54,7 +51,7 @@ import { BackgroundColumnLayout } from "../../common/gui/BackgroundColumnLayout.
 import { styles } from "../../common/gui/styles.js"
 import { MobileHeader } from "../../common/gui/MobileHeader.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { AboutDialog } from "../../common/settings/AboutDialog.js"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
@@ -544,11 +541,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		locator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener: EntityEventsListener = {
-		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
+	private entityListener: entityUpdateUtils.EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: entityUpdateUtils.EntityUpdateData[], eventOwnerGroupId: Id) => {
 			return this.entityEventsReceived(updates, eventOwnerGroupId)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -626,7 +623,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			showProgressDialog(
 				"pleaseWait_msg",
 				locator.serviceExecutor.delete(
-					TemplateGroupService,
+					tutanotaServices.TemplateGroupService,
 					tutanotaTypeRefs.createUserAreaGroupDeleteData({
 						group: templateInfo.groupInfo.group,
 					}),
@@ -635,7 +632,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		)
 	}
 
-	_renderTemplateInvitationFolderRow(invitation: ReceivedGroupInvitation): Children {
+	_renderTemplateInvitationFolderRow(invitation: sysTypeRefs.ReceivedGroupInvitation): Children {
 		return m(GroupInvitationFolderRow, {
 			invitation: invitation,
 			icon: Icons.MailFilled,
@@ -750,7 +747,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		m.route.set(url + location.hash)
 	}
 
-	_isGlobalAdmin(user: User): boolean {
+	_isGlobalAdmin(user: sysTypeRefs.User): boolean {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
@@ -762,9 +759,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this.showBusinessSettings((await this.logins.getUserController().reloadCustomer()).businessUse === true)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
 				await this.updateShowBusinessSettings()
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				const user = this.logins.getUserController().user
@@ -795,7 +792,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					}
 				}
 				m.redraw()
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
 				this._customDomains.reset()
 				this._adminFolders.length = 0
 				// When switching a plan we hide/show certain admin settings.
@@ -803,7 +800,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				await this._customDomains.getAsync()
 				m.redraw()
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update) || isUpdateForTypeRef(GroupInfoTypeRef, update)) {
+			} else if (
+				entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update) ||
+				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update)
+			) {
 				await this.reloadTemplateData()
 				m.redraw()
 			}

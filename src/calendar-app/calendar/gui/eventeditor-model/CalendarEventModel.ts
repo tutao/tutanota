@@ -54,9 +54,7 @@
  *     * etc.
  */
 
-import { AccountType } from "../../../../common/api/common/TutanotaConstants.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { User } from "../../../../common/api/entities/sys/TypeRefs.js"
+import { getStrippedClone, Stripped, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
 	AlarmInterval,
@@ -84,7 +82,6 @@ import { CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
 import { CalendarEventWhoModel } from "./CalendarEventWhoModel.js"
 import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
 import { SanitizedTextViewModel } from "../../../../common/misc/SanitizedTextViewModel.js"
-import { getStrippedClone, Stripped, StrippedEntity } from "@tutao/typeRefs"
 import { UserController } from "../../../../common/api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
@@ -94,6 +91,7 @@ import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/Ca
 import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
+import { AccountType } from "@tutao/appEnv"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -566,7 +564,7 @@ export function assignEventIdentity(values: CalendarEventValues, identity: Requi
 async function resolveAlarmsForEvent(
 	alarms: tutanotaTypeRefs.CalendarEvent["alarmInfos"],
 	calendarModel: CalendarModel,
-	user: User,
+	user: sysTypeRefs.User,
 ): Promise<Array<AlarmInterval>> {
 	const alarmInfos = await calendarModel.loadAlarms(alarms, user)
 	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))

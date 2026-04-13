@@ -2,10 +2,10 @@ import m, { Component, Vnode } from "mithril"
 import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "./base/DropDownSelector"
 import { getLanguage, lang, LanguageCode, languageCodeToTag, languageNative } from "../misc/LanguageViewModel"
 import { deviceConfig } from "../misc/DeviceConfig"
-import { isDesktop } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator"
 import { styles } from "./styles"
 import { DropDownSelectorLink } from "./base/DropDownSelectorLink"
+import { isDesktop } from "@tutao/appEnv"
 
 interface LanguageDropdownAttrs {
 	variant: "Link" | "TextField"

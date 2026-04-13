@@ -4,25 +4,20 @@ import { InfoLink, lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
-import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
+import { TerminationPeriodOptions } from "@tutao/appEnv"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
-import { CustomerAccountTerminationService } from "../api/entities/sys/Services.js"
-import {
-	createCustomerAccountTerminationPostIn,
-	CustomerAccountTerminationRequest,
-	CustomerAccountTerminationRequestTypeRef,
-	SurveyData,
-} from "../api/entities/sys/TypeRefs.js"
+import { sysServices } from "@tutao/typeRefs"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
 import { incrementDate } from "@tutao/utils"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class TerminationViewModel {
 	mailAddress: string
 	password: string
 	date: Date
 	terminationPeriodOption: TerminationPeriodOptions
-	acceptedTerminationRequest: CustomerAccountTerminationRequest | null
+	acceptedTerminationRequest: sysTypeRefs.CustomerAccountTerminationRequest | null
 	helpText: MaybeTranslation
 	loginState: LoginState
 
@@ -41,7 +36,7 @@ export class TerminationViewModel {
 		this.loginState = LoginState.NotAuthenticated
 	}
 
-	async createAccountTerminationRequest(surveyData: SurveyData | null = null): Promise<void> {
+	async createAccountTerminationRequest(surveyData: sysTypeRefs.SurveyData | null = null): Promise<void> {
 		await this.authenticate()
 		if (this.loginState === LoginState.LoggedIn) {
 			await this.createTerminationRequest(surveyData)
@@ -51,14 +46,17 @@ export class TerminationViewModel {
 	/**
 	 * Creates the termination request based on the date option selected by the user and assument that the authentication was successfull.
 	 */
-	private async createTerminationRequest(surveyData: SurveyData | null) {
+	private async createTerminationRequest(surveyData: sysTypeRefs.SurveyData | null) {
 		try {
-			const inputData = createCustomerAccountTerminationPostIn({
+			const inputData = sysTypeRefs.createCustomerAccountTerminationPostIn({
 				terminationDate: this.getTerminationDate(),
 				surveyData: surveyData,
 			})
-			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
-			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)
+			let serviceResponse = await this.serviceExecutor.post(sysServices.CustomerAccountTerminationService, inputData)
+			this.acceptedTerminationRequest = await this.entityClient.load(
+				sysTypeRefs.CustomerAccountTerminationRequestTypeRef,
+				serviceResponse.terminationRequest,
+			)
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {
 				switch (e.data) {

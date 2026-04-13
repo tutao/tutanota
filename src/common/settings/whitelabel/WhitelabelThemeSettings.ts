@@ -2,23 +2,23 @@ import { lang } from "../../misc/LanguageViewModel"
 import { Dialog } from "../../gui/base/Dialog"
 import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "../../../common/api/common/TutanotaConstants"
+import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "@tutao/appEnv"
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField, TextFieldAttrs } from "../../gui/base/TextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
-import type { DomainInfo, WhitelabelConfig } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
-	whitelabelConfig: WhitelabelConfig
-	whitelabelDomainInfo: DomainInfo
+	whitelabelConfig: sysTypeRefs.WhitelabelConfig
+	whitelabelDomainInfo: sysTypeRefs.DomainInfo
 }
 export type WhitelabelThemeSettingsAttrs = {
 	whitelabelData: null | WhitelabelData
@@ -177,7 +177,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		}
 	}
 
-	private saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: WhitelabelConfig, whitelabelDomainInfo: DomainInfo) {
+	private saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: sysTypeRefs.WhitelabelConfig, whitelabelDomainInfo: sysTypeRefs.DomainInfo) {
 		whitelabelConfig.jsonTheme = JSON.stringify(customTheme)
 		locator.entityClient.update(whitelabelConfig)
 		customTheme.themeId = whitelabelDomainInfo.domain

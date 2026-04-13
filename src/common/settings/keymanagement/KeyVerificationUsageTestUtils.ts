@@ -1,6 +1,6 @@
 import { Stage, UsageTest } from "@tutao/usagetests"
-import { IdentityKeyVerificationMethod } from "../../api/common/TutanotaConstants"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { IdentityKeyVerificationMethod } from "@tutao/appEnv"
 
 export type TestTracks = {
 	[IdentityKeyVerificationMethod.text]: UsageTest

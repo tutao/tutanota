@@ -1,10 +1,8 @@
 import { InfoLink, lang } from "../../LanguageViewModel.js"
-import { isApp } from "../../../api/common/Env.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
-import { showInfoSnackbar, showSnackBar } from "../../../gui/base/SnackBar.js"
-import { createReferralCodePostIn } from "../../../api/entities/sys/TypeRefs.js"
-import { ReferralCodeService } from "../../../api/entities/sys/Services.js"
+import { showInfoSnackbar } from "../../../gui/base/SnackBar.js"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { TextField, TextFieldAttrs } from "../../../gui/base/TextField.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../gui/base/IconButton.js"
@@ -13,6 +11,7 @@ import { Icons } from "../../../gui/base/icons/Icons.js"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { MoreInfoLink } from "../MoreInfoLink.js"
+import { isApp } from "@tutao/appEnv"
 
 export type ReferralLinkAttrs = {
 	referralLink: string
@@ -98,6 +97,6 @@ export async function getReferralLink(userController: UserController, isCalledBy
 }
 
 async function requestNewReferralCode(): Promise<string> {
-	const { referralCode } = await locator.serviceExecutor.post(ReferralCodeService, createReferralCodePostIn({}))
+	const { referralCode } = await locator.serviceExecutor.post(sysServices.ReferralCodeService, sysTypeRefs.createReferralCodePostIn({}))
 	return referralCode
 }

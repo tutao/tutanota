@@ -5,14 +5,13 @@ import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants"
 import { PaymentInterval } from "./utils/PriceUtils"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { isDarkTheme, theme } from "../gui/theme.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { goEuropeanBlue } from "../gui/builtinThemes.js"
+import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/appEnv"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children

@@ -16,7 +16,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 
 	o.test("findContacts with restriction", async () => {
 		const expectedRestriction: SearchRestriction = {
-			type: ContactTypeRef,
+			type: tutanotaTypeRefs.ContactTypeRef,
 			field: "mailAddresses",
 			attributeIds: null,
 			start: null,
@@ -36,7 +36,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 
 	o.test("findContacts without restriction", async () => {
 		const expectedRestriction: SearchRestriction = {
-			type: ContactTypeRef,
+			type: tutanotaTypeRefs.ContactTypeRef,
 			field: null,
 			attributeIds: null,
 			start: null,

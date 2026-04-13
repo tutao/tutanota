@@ -1,6 +1,4 @@
-import { elementIdPart, listIdPart } from "./EntityUtils.js"
-import { Blob } from "../../entities/sys/TypeRefs.js"
-import { ListElementEntity, SomeEntity } from "../EntityTypes.js"
+import { elementIdPart, ListElementEntity, listIdPart, SomeEntity, sysTypeRefs } from "@tutao/typeRefs"
 
 /**
  * Common interface for instances that are referencing blobs. Main purpose is to have a proper way to access the attribute for the Blob aggregated type
@@ -12,7 +10,7 @@ export type BlobReferencingInstance = {
 
 	listId: Id | null
 
-	blobs: readonly Blob[]
+	blobs: readonly sysTypeRefs.Blob[]
 
 	entity: SomeEntity
 }
@@ -28,7 +26,7 @@ export interface DownloadableFileEntity extends ListElementEntity {
 	mimeType: null | string
 	cid?: string | null
 
-	blobs: readonly Blob[]
+	blobs: readonly sysTypeRefs.Blob[]
 }
 
 export function createReferencingInstance(tutanotaFile: DownloadableFileEntity): BlobReferencingInstance {

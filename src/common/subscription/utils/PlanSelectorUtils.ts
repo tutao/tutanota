@@ -1,5 +1,4 @@
 import { PlanConfig } from "../components/BusinessPlanContainer"
-import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "../../api/common/TutanotaConstants"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { SelectedSubscriptionOptions } from "../FeatureListProvider"
@@ -8,6 +7,7 @@ import { styles } from "../../gui/styles"
 import { lang, Translation } from "../../misc/LanguageViewModel"
 import { Theme, theme } from "../../gui/theme"
 import { getRawApplePrice, hasAppleIntroOffer } from "./SubscriptionUtils"
+import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "@tutao/appEnv"
 
 export type DiscountDetail = {
 	ribbonTranslation: Translation

@@ -1,18 +1,19 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/crypto"
-import { Cardinality, ValueType } from "@tutao/typeRefs"
 import {
+	Cardinality,
 	ClientModelParsedInstance,
 	ClientTypeModel,
+	ClientTypeReferenceResolver,
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
-} from "../../../../../src/common/api/common/EntityTypes.js"
+	ServerTypeReferenceResolver,
+	ValueType,
+} from "@tutao/typeRefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
+import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instancePipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
-import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typeRefs"
 
 o.spec("CryptoMapper", () => {
 	let cryptoMapper: CryptoMapper

@@ -2,7 +2,6 @@
  * Created by bdeterding on 13.12.17.
  */
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "@tutao/utils"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
@@ -12,11 +11,11 @@ import { DbEncryptionData } from "../../../../../src/common/api/worker/search/Se
 import { object } from "testdouble"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typeRefs"
-import { TypeModel } from "@tutao/typeRefs"
+import { TypeModel, tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("SuggestionFacade test", () => {
 	let db: EncryptedDbWrapper
-	let facade: SuggestionFacade<Contact>
+	let facade: SuggestionFacade<tutanotaTypeRefs.Contact>
 	let encryptionData: DbEncryptionData
 	let contactTypeModel: TypeModel
 	let clientModelResolver: ClientTypeModelResolver
@@ -26,9 +25,9 @@ o.spec("SuggestionFacade test", () => {
 		encryptionData = { key: aes256RandomKey(), iv: FIXED_IV }
 		db.init(encryptionData)
 		clientModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
-		contactTypeModel = await clientModelResolver.resolveClientTypeReference(ContactTypeRef)
+		contactTypeModel = await clientModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
 
-		facade = new SuggestionFacade(ContactTypeRef, db, clientModelResolver)
+		facade = new SuggestionFacade(tutanotaTypeRefs.ContactTypeRef, db, clientModelResolver)
 	})
 	o("add and get suggestion", () => {
 		o(facade.getSuggestions("a").join("")).equals("")

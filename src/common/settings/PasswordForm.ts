@@ -4,7 +4,7 @@ import { getPasswordStrength, isSecurePassword } from "../misc/passwords/Passwor
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { assertMainOrNode } from "../api/common/Env.js"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../gui/theme.js"

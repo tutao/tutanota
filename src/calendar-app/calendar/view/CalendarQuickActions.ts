@@ -13,7 +13,7 @@ import { CalendarType } from "../../../common/calendar/date/CalendarUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
-import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
+import { UpgradePromptType } from "@tutao/appEnv"
 
 export async function quickCalendarActions(
 	router: Router,

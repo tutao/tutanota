@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { assert } from "@tutao/utils"
 import { WorkerRandomizer } from "../../api/worker/workerInterfaces.js"
 

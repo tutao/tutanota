@@ -8,7 +8,7 @@ import { assertNotNull } from "@tutao/utils"
 import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { lang } from "../../LanguageViewModel.js"
 import { NotificationContentSelector } from "../../../../mail-app/settings/NotificationContentSelector.js"
-import { isApp } from "../../../api/common/Env.js"
+import { isApp } from "@tutao/appEnv"
 
 export class RichNotificationsNews implements NewsListItem {
 	private notificationMode: ExtendedNotificationMode | null = null

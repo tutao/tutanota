@@ -7,16 +7,10 @@ import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/Deskt
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
-import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { TypeModelResolver } from "@tutao/typeRefs"
 import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
-import {
-	AlarmInfoTypeRef,
-	AlarmNotificationTypeRef,
-	CalendarEventRefTypeRef,
-	NotificationSessionKeyTypeRef,
-} from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { hasError } from "../../../../src/common/api/common/utils/ErrorUtils.js"
+import { sysTypeRefs, hasError } from "@tutao/typeRefs"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade
@@ -91,16 +85,16 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const pushIdentifierSessionKey = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
 		o(assertNotNull(pushIdentifierSessionKey)).deepEquals(pushSessionKey)
 
-		const alarmNotification = createTestEntity(AlarmNotificationTypeRef, {
+		const alarmNotification = createTestEntity(sysTypeRefs.AlarmNotificationTypeRef, {
 			_id: "alarmNotificationA",
-			alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-				calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+			alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
+				calendarRef: createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, {
 					elementId: "elementIdA",
 					listId: "listIdA",
 				}),
 			}),
 			notificationSessionKeys: [
-				createTestEntity(NotificationSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 					pushIdentifier,
 					pushIdentifierSessionEncSessionKey: pushIdentifierSessionEncSessionKey,
 				}),
@@ -112,7 +106,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const expectedAlarmsCaptor = matchers.captor()
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
 		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
-			AlarmNotificationTypeRef,
+			sysTypeRefs.AlarmNotificationTypeRef,
 			assertNotNull(expectedAlarmsCaptor.values)[0][0],
 			notificationSessionKey,
 		)
@@ -128,16 +122,16 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const newPushIdentifierSessionKey = await desktopStorage.getPushIdentifierSessionKey(newPushIdentifier)
 		o(Array.from(assertNotNull(newPushIdentifierSessionKey))).deepEquals(newPushSessionKey)
 
-		const newAlarmNotification = createTestEntity(AlarmNotificationTypeRef, {
+		const newAlarmNotification = createTestEntity(sysTypeRefs.AlarmNotificationTypeRef, {
 			_id: "alarmNotificationB",
-			alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-				calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+			alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
+				calendarRef: createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, {
 					elementId: "elementIdB",
 					listId: "listIdB",
 				}),
 			}),
 			notificationSessionKeys: [
-				createTestEntity(NotificationSessionKeyTypeRef, {
+				createTestEntity(sysTypeRefs.NotificationSessionKeyTypeRef, {
 					pushIdentifier: newPushIdentifier,
 					pushIdentifierSessionEncSessionKey: newPushIdentifierSessionEncSessionKey,
 				}),
@@ -151,12 +145,12 @@ o.spec("DesktopAlarmStorageTest", function () {
 
 		// assert that we can decrypt correctly and data alarm notifications match the previously stored ones
 		let oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
-			AlarmNotificationTypeRef,
+			sysTypeRefs.AlarmNotificationTypeRef,
 			assertNotNull(newExpectedAlarmsCaptor.values)[0][0],
 			notificationSessionKey,
 		)
 		let newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
-			AlarmNotificationTypeRef,
+			sysTypeRefs.AlarmNotificationTypeRef,
 			assertNotNull(newExpectedAlarmsCaptor.values)[1][0],
 			newNotificationSessionKey,
 		)

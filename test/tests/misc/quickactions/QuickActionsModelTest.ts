@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { QuickAction, QuickActionsModel } from "../../../../src/common/misc/quickactions/QuickActionsModel"
 import { func } from "testdouble"
-import { assertWorkerOrNode } from "../../../../src/common/api/common/Env"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { addAll } from "@tutao/utils"
 import { verify } from "@tutao/otest"
 

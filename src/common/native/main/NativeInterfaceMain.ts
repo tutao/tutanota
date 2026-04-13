@@ -1,4 +1,4 @@
-import { assertMainOrNode, isAndroidApp, isElectronClient, isIOSApp } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import type { Transport } from "../../api/common/threading/Transport.js"
 import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
@@ -9,6 +9,7 @@ import { IosNativeTransport } from "./IosNativeTransport.js"
 import { AndroidNativeTransport } from "./AndroidNativeTransport.js"
 import { DesktopNativeTransport } from "./DesktopNativeTransport.js"
 import { WebGlobalDispatcher } from "../common/generatedipc/WebGlobalDispatcher.js"
+import { isAndroidApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -28,7 +29,7 @@ export class NativeInterfaceMain implements NativeInterface {
 			transport = androidTransport
 		} else if (isIOSApp()) {
 			transport = new IosNativeTransport(window)
-		} else if (isElectronClient()) {
+		} else if (isDesktop() || env.mode === Mode.Admin) {
 			transport = new DesktopNativeTransport(window.nativeApp)
 		} else {
 			throw new ProgrammingError("Tried to create a native interface in the browser")

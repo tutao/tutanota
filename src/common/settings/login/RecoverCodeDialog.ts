@@ -3,14 +3,12 @@ import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { assertNotNull, Hex, newPromise, noOp, ofClass } from "@tutao/utils"
 import m, { Child, Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, isApp } from "../../api/common/Env.js"
+import { assertMainOrNode, GroupType, isApp } from "@tutao/appEnv"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"
 import { AccessBlockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { User } from "../../api/entities/sys/TypeRefs.js"
-import { getEtId, isSameId } from "@tutao/typeRefs"
-import { GroupType } from "../../api/common/TutanotaConstants.js"
+import { getEtId, isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../gui/QrCodeScanner.js"
@@ -25,7 +23,7 @@ import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtil
 type Action = "get" | "create"
 assertMainOrNode()
 
-export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
+export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: sysTypeRefs.User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
 	if (!isSameId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.some((gm) => gm.groupType === GroupType.Admin)) {
 		return

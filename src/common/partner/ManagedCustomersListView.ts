@@ -1,13 +1,13 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
 import { component_size } from "../gui/size.js"
-import { CustomerInfo, CustomerInfoTypeRef, PartnerManagedCustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { elementIdPart, entityUpdateUtils, listIdPart, sysTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, noOp } from "@tutao/utils"
-import { FeatureType } from "../api/common/TutanotaConstants.js"
+import { FeatureType } from "@tutao/appEnv"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
-import { assertMainOrNode } from "../api/common/Env.js"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { locator } from "../api/main/CommonLocator.js"
 import Stream from "mithril/stream"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../gui/SelectableRowContainer.js"
@@ -19,16 +19,14 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { keyManager } from "../misc/KeyManager.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
 import { ManagedCustomerViewer } from "./ManagedCustomerViewer"
-import { elementIdPart, listIdPart } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
-function getCustomerInfoDisplayName(groupInfo: CustomerInfo): string {
+function getCustomerInfoDisplayName(groupInfo: sysTypeRefs.CustomerInfo): string {
 	if (groupInfo.company) {
 		return groupInfo.company
 	} else if (groupInfo.registrationMailAddress) {
@@ -38,7 +36,7 @@ function getCustomerInfoDisplayName(groupInfo: CustomerInfo): string {
 	}
 }
 
-function compareCustomerInfos(a: CustomerInfo, b: CustomerInfo): number {
+function compareCustomerInfos(a: sysTypeRefs.CustomerInfo, b: sysTypeRefs.CustomerInfo): number {
 	return getCustomerInfoDisplayName(a).localeCompare(getCustomerInfoDisplayName(b))
 }
 
@@ -48,8 +46,8 @@ function compareCustomerInfos(a: CustomerInfo, b: CustomerInfo): number {
  */
 export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private listModel: ListElementListModel<CustomerInfo>
-	private readonly renderConfig: RenderConfig<CustomerInfo, ManagedCustomerRow> = {
+	private listModel: ListElementListModel<sysTypeRefs.CustomerInfo>
+	private readonly renderConfig: RenderConfig<sysTypeRefs.CustomerInfo, ManagedCustomerRow> = {
 		createElement: (dom) => {
 			const row = new ManagedCustomerRow()
 			m.render(dom, row.render())
@@ -125,13 +123,13 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 						onLoadMore: () => this.listModel.loadMore(),
 						onRetryLoading: () => this.listModel.retryLoading(),
 						onStopLoading: () => this.listModel.stopLoading(),
-						onSingleSelection: (item: CustomerInfo) => {
+						onSingleSelection: (item: sysTypeRefs.CustomerInfo) => {
 							this.listModel.onSingleSelection(item)
 							this.focusDetailsViewer()
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-					} satisfies ListAttrs<CustomerInfo, ManagedCustomerRow>),
+					} satisfies ListAttrs<sysTypeRefs.CustomerInfo, ManagedCustomerRow>),
 		)
 	}
 
@@ -150,10 +148,13 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 		window.open(campaignUrl)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(PartnerManagedCustomerTypeRef, update)) {
-				const partnerManagedCustomer = await locator.entityClient.load(PartnerManagedCustomerTypeRef, [update.instanceListId, update.instanceId])
+			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.PartnerManagedCustomerTypeRef, update)) {
+				const partnerManagedCustomer = await locator.entityClient.load(sysTypeRefs.PartnerManagedCustomerTypeRef, [
+					update.instanceListId,
+					update.instanceId,
+				])
 				const customerInfoId = partnerManagedCustomer.customerInfo
 				await this.listModel.entityEventReceived(listIdPart(customerInfoId), elementIdPart(customerInfoId), update.operation)
 			}
@@ -162,19 +163,22 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	private makeListModel(): ListElementListModel<CustomerInfo> {
-		const listModel = new ListElementListModel<CustomerInfo>({
+	private makeListModel(): ListElementListModel<sysTypeRefs.CustomerInfo> {
+		const listModel = new ListElementListModel<sysTypeRefs.CustomerInfo>({
 			sortCompare: compareCustomerInfos,
 			fetch: async (_lastFetchedEntity) => {
 				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-				const managedCustomers = await locator.entityClient.loadAll(PartnerManagedCustomerTypeRef, assertNotNull(customerInfo.partnerManagedCustomers))
+				const managedCustomers = await locator.entityClient.loadAll(
+					sysTypeRefs.PartnerManagedCustomerTypeRef,
+					assertNotNull(customerInfo.partnerManagedCustomers),
+				)
 				const customerInfoIds = managedCustomers.map((customer) => elementIdPart(customer.customerInfo))
 				if (managedCustomers.length < 1) {
 					return { items: [], complete: true }
 				}
 
 				const customerInfos = await locator.entityClient.loadMultiple(
-					CustomerInfoTypeRef,
+					sysTypeRefs.CustomerInfoTypeRef,
 					listIdPart(managedCustomers[0].customerInfo),
 					customerInfoIds,
 				)
@@ -182,7 +186,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: async (_listId: Id, elementId: Id) => {
 				try {
-					return await locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, [_listId, elementId])
+					return await locator.entityClient.load<sysTypeRefs.CustomerInfo>(sysTypeRefs.CustomerInfoTypeRef, [_listId, elementId])
 				} catch (e) {
 					if (e instanceof NotFoundError) {
 						// we return null if the CustomerInfo does not exist
@@ -217,7 +221,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 		return listModel
 	}
 
-	private queryFilter(gi: CustomerInfo) {
+	private queryFilter(gi: sysTypeRefs.CustomerInfo) {
 		const lowercaseSearch = this.searchQuery.toLowerCase()
 		return (
 			gi.company?.toLowerCase().includes(lowercaseSearch) ||
@@ -236,10 +240,10 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	}
 }
 
-export class ManagedCustomerRow implements VirtualRow<CustomerInfo> {
+export class ManagedCustomerRow implements VirtualRow<sysTypeRefs.CustomerInfo> {
 	top: number = 0
 	domElement: HTMLElement | null = null // set from List
-	entity: CustomerInfo | null = null
+	entity: sysTypeRefs.CustomerInfo | null = null
 	private nameDom!: HTMLElement
 	private addressDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
@@ -247,7 +251,7 @@ export class ManagedCustomerRow implements VirtualRow<CustomerInfo> {
 
 	constructor() {}
 
-	update(customerInfo: CustomerInfo, selected: boolean): void {
+	update(customerInfo: sysTypeRefs.CustomerInfo, selected: boolean): void {
 		this.entity = customerInfo
 
 		this.selectionUpdater(selected, false)

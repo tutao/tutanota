@@ -1,38 +1,20 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import {
 	AccountType,
 	AccountTypeNames,
 	ApprovalStatus,
+	assertMainOrNode,
 	AvailablePlans,
 	BookingItemFeatureType,
-	Const,
-	getPaymentMethodType,
+	isIOSApp,
 	LegacyPlans,
 	NewPaidPlans,
 	OperationType,
 	PaymentMethodType,
 	PlanType,
-	UpgradePromptType,
-} from "../api/common/TutanotaConstants"
-import {
-	AccountingInfo,
-	AccountingInfoTypeRef,
-	Booking,
-	BookingTypeRef,
-	createAppStoreSubscriptionGetIn,
-	Customer,
-	CustomerInfo,
-	CustomerInfoTypeRef,
-	CustomerTypeRef,
-	GiftCard,
-	GiftCardTypeRef,
-	GroupInfoTypeRef,
-	OrderProcessingAgreement,
-	OrderProcessingAgreementTypeRef,
-	PlanConfiguration,
-	UserTypeRef,
-} from "../api/entities/sys/TypeRefs.js"
+} from "@tutao/appEnv"
+import { Const, UpgradePromptType } from "@tutao/appEnv"
+import { elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getEtId, getPaymentMethodType, sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
@@ -66,7 +48,6 @@ import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorFie
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
 import { SettingsExpander } from "../settings/SettingsExpander.js"
-import { elementIdPart, GENERATED_MAX_ID, getEtId } from "@tutao/typeRefs"
 import {
 	CURRENT_GIFT_CARD_TERMS_VERSION,
 	CURRENT_PRIVACY_VERSION,
@@ -78,7 +59,6 @@ import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
@@ -86,7 +66,6 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { client } from "../misc/ClientDetector.js"
-import { AppStoreSubscriptionService } from "../api/entities/sys/Services.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 
@@ -111,14 +90,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private readonly _giftCardsExpanded: Stream<boolean>
 	private _periodEndDate: Date | null = null
 	private _nextPeriodPriceVisible: boolean | null = null
-	private _customer: Customer | null = null
-	private _customerInfo: CustomerInfo | null = null
-	private _accountingInfo: AccountingInfo | null = null
-	private _lastBooking: Booking | null = null
-	private _orderAgreement: OrderProcessingAgreement | null = null
+	private _customer: sysTypeRefs.Customer | null = null
+	private _customerInfo: sysTypeRefs.CustomerInfo | null = null
+	private _accountingInfo: sysTypeRefs.AccountingInfo | null = null
+	private _lastBooking: sysTypeRefs.Booking | null = null
+	private _orderAgreement: sysTypeRefs.OrderProcessingAgreement | null = null
 	private currentPlanType: PlanType
 	private _isCancelled: boolean | null = null
-	private _giftCards: Map<Id, GiftCard>
+	private _giftCards: Map<Id, sysTypeRefs.GiftCard>
 	private _shownSatisfactionDialog = false
 
 	constructor(
@@ -237,14 +216,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+			.load(sysTypeRefs.CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 			.then((customer) => {
 				void this.updateCustomerData(customer)
 				return locator.logins.getUserController().loadCustomerInfo()
 			})
 			.then((customerInfo) => {
 				this._customerInfo = customerInfo
-				return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+				return locator.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
 			})
 			.then((accountingInfo) => {
 				this.updateAccountInfoData(accountingInfo)
@@ -412,14 +391,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async canManageAppStoreSubscriptionInApp(accountingInfo: AccountingInfo, ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
+	private async canManageAppStoreSubscriptionInApp(
+		accountingInfo: sysTypeRefs.AccountingInfo,
+		ownership: MobilePaymentSubscriptionOwnership,
+	): Promise<boolean> {
 		if (ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
 			return true
 		}
 
 		const appStoreSubscriptionData = await locator.serviceExecutor.get(
-			AppStoreSubscriptionService,
-			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
+			sysServices.AppStoreSubscriptionService,
+			sysTypeRefs.createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
 		)
 
 		if (!appStoreSubscriptionData || appStoreSubscriptionData.app == null) {
@@ -463,11 +445,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	private async updateCustomerData(customer: Customer): Promise<void> {
+	private async updateCustomerData(customer: sysTypeRefs.Customer): Promise<void> {
 		this._customer = customer
 
 		if (customer.orderProcessingAgreement) {
-			this._orderAgreement = await locator.entityClient.load(OrderProcessingAgreementTypeRef, customer.orderProcessingAgreement)
+			this._orderAgreement = await locator.entityClient.load(sysTypeRefs.OrderProcessingAgreementTypeRef, customer.orderProcessingAgreement)
 		} else {
 			this._orderAgreement = null
 		}
@@ -515,7 +497,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private updateAccountInfoData(accountingInfo: AccountingInfo) {
+	private updateAccountInfoData(accountingInfo: sysTypeRefs.AccountingInfo) {
 		this._accountingInfo = accountingInfo
 
 		this._selectedSubscriptionInterval(asPaymentInterval(accountingInfo.paymentInterval))
@@ -535,7 +517,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const userController = locator.logins.getUserController()
 
 		const customer = await userController.reloadCustomer()
-		let customerInfo: CustomerInfo
+		let customerInfo: sysTypeRefs.CustomerInfo
 		try {
 			customerInfo = await userController.loadCustomerInfo()
 		} catch (e) {
@@ -548,7 +530,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 
 		this._customerInfo = customerInfo
-		const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+		const bookings = await locator.entityClient.loadRange(sysTypeRefs.BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 		this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 		this._customer = customer
 
@@ -579,7 +561,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._usersFieldValue("" + Math.max(1, getCurrentCount(BookingItemFeatureType.LegacyUsers, this._lastBooking)))
 	}
 
-	private async updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
+	private async updateStorageField(customer: sysTypeRefs.Customer, customerInfo: sysTypeRefs.CustomerInfo): Promise<void> {
 		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(getEtId(customer))
 		const usedStorageFormatted = formatStorageSize(Number(usedStorage))
 		const totalStorageFormatted = formatStorageSize(getTotalStorageCapacityPerCustomer(customer, customerInfo, this._lastBooking) * Const.MEMORY_GB_FACTOR)
@@ -611,7 +593,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._groupsFieldValue(sharedMailText)
 	}
 
-	private async updateWhitelabelField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateWhitelabelField(planConfig: sysTypeRefs.PlanConfiguration): Promise<void> {
 		if (isWhitelabelActive(this._lastBooking, planConfig)) {
 			this._whitelabelFieldValue(lang.get("active_label"))
 		} else {
@@ -619,7 +601,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async updateSharingField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateSharingField(planConfig: sysTypeRefs.PlanConfiguration): Promise<void> {
 		if (isSharingActive(this._lastBooking, planConfig)) {
 			this._sharingFieldValue(lang.get("active_label"))
 		} else {
@@ -627,7 +609,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async updateEventInvitesField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateEventInvitesField(planConfig: sysTypeRefs.PlanConfiguration): Promise<void> {
 		if (!this._customer) {
 			this._eventInvitesFieldValue("")
 		} else if (isEventInvitesActive(this._lastBooking, planConfig)) {
@@ -637,7 +619,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async updateAutoResponderField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateAutoResponderField(planConfig: sysTypeRefs.PlanConfiguration): Promise<void> {
 		if (!this._customer) {
 			this._autoResponderFieldValue("")
 		} else if (isAutoResponderActive(this._lastBooking, planConfig)) {
@@ -647,31 +629,31 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		await promiseMap(updates, (update) => this.processUpdate(update))
 	}
 
-	async processUpdate(update: EntityUpdateData): Promise<void> {
-		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, update.instanceId)
+	async processUpdate(update: entityUpdateUtils.EntityUpdateData): Promise<void> {
+		if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.AccountingInfoTypeRef, update)) {
+			const accountingInfo = await locator.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, update.instanceId)
 			this.updateAccountInfoData(accountingInfo)
 			return await this.updatePriceInfo()
-		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
+		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserTypeRef, update)) {
 			await this.updateBookings()
 			return await this.updatePriceInfo()
-		} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
+		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.BookingTypeRef, update)) {
 			await this.updateBookings()
 			return await this.updatePriceInfo()
-		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			const customer = await locator.entityClient.load(CustomerTypeRef, update.instanceId)
+		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
+			const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, update.instanceId)
 			return await this.updateCustomerData(customer)
-		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
 			// needed to update the displayed plan
 			await this.updateBookings()
 			if (!this._shownSatisfactionDialog) await this.showSatisfactionDialog()
 			return await this.updatePriceInfo()
-		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
-			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [update.instanceListId, update.instanceId])
+		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GiftCardTypeRef, update)) {
+			const giftCard = await locator.entityClient.load(sysTypeRefs.GiftCardTypeRef, [update.instanceListId, update.instanceId])
 			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
 			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}
@@ -756,7 +738,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			title: "show_action",
 			click: () =>
 				locator.entityClient
-					.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+					.load(sysTypeRefs.GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
 					.then((signerUserGroupInfo) => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
 			icon: Icons.DownloadFilled,
 			size: ButtonSize.Compact,
@@ -790,7 +772,7 @@ function _getAccountTypeName(type: AccountType, subscription: PlanType): string 
 	}
 }
 
-function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, paymentInterval: PaymentInterval, periodEndDate: Date | null): void {
+function showChangeSubscriptionIntervalDialog(accountingInfo: sysTypeRefs.AccountingInfo, paymentInterval: PaymentInterval, periodEndDate: Date | null): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && asPaymentInterval(accountingInfo.paymentInterval) !== paymentInterval) {
 		const confirmationMessage = periodEndDate
 			? lang.getTranslation("subscriptionChangePeriod_msg", {
@@ -806,7 +788,7 @@ function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, pa
 	}
 }
 
-function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
+function renderGiftCardTable(giftCards: sysTypeRefs.GiftCard[], isPremiumPredicate: () => boolean): Children {
 	const addButtonAttrs: IconButtonAttrs = {
 		title: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(

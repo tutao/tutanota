@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { matchers, object, verify, when } from "testdouble"
 import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/appEnv"
 import { bytesToEd25519PublicKey, Ed25519PublicKey, sha256Hash } from "@tutao/crypto"
 import testData from "../crypto/CompatibilityTestData.json"
 import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
@@ -41,7 +41,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 		}
 		maybeSignedPublicKey = {
-			signature: createTestEntity(PublicKeySignatureTypeRef, { signature: object() }),
+			signature: createTestEntity(sysTypeRefs.PublicKeySignatureTypeRef, { signature: object() }),
 			publicKey: object(),
 		}
 		trustDBEntry = {

@@ -84,9 +84,11 @@ o.spec("CalendarEventAlarmModel", function () {
 		const defaultAlarms = [StandardAlarmInterval.FIVE_MINUTES]
 		const calendarId = "calendarTest"
 		const groupSettings = [
-			createTestEntity(GroupSettingsTypeRef, {
+			createTestEntity(tutanotaTypeRefs.GroupSettingsTypeRef, {
 				group: calendarId,
-				defaultAlarmsList: defaultAlarms.map((alarm) => createTestEntity(DefaultAlarmInfoTypeRef, { trigger: serializeAlarmInterval(alarm) })),
+				defaultAlarmsList: defaultAlarms.map((alarm) =>
+					createTestEntity(tutanotaTypeRefs.DefaultAlarmInfoTypeRef, { trigger: serializeAlarmInterval(alarm) }),
+				),
 			}),
 		]
 

@@ -1,16 +1,16 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
 import { object, when } from "testdouble"
 import { MailListDisplayMode } from "../../../../src/common/misc/DeviceConfig"
 import { listByConversationInFolder } from "../../../../src/mail-app/mail/view/MailViewModel"
+import { MailSetKind } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("MailViewModelTest", () => {
 	o.spec("listByConversation", () => {
 		o.spec("in inbox folder", () => {
-			const testInbox = createTestEntity(MailSetTypeRef, {
+			const testInbox = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 				folderType: MailSetKind.INBOX,
 			})
 
@@ -36,10 +36,10 @@ o.spec("MailViewModelTest", () => {
 			})
 		})
 		o.spec("in sent and draft mailSets", () => {
-			const testDraftFolder = createTestEntity(MailSetTypeRef, {
+			const testDraftFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 				folderType: MailSetKind.DRAFT,
 			})
-			const testSentFolder = createTestEntity(MailSetTypeRef, {
+			const testSentFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 				folderType: MailSetKind.SENT,
 			})
 

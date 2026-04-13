@@ -1,20 +1,18 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { SqlType, TaggedSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { matchers, object, verify, when } from "testdouble"
 import { TrustedIdentity } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { IdentityKeySourceOfTrust } from "../../../../../src/common/api/common/TutanotaConstants"
 import { SigningKeyPairType } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
-import { Mode } from "../../../../../src/common/api/common/Env"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { hexToUint8Array } from "@tutao/utils"
 import testData from "../crypto/CompatibilityTestData.json"
 import { bytesToEd25519PublicKey } from "@tutao/crypto"
 import { withOverriddenEnv } from "../../../TestUtils"
-import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
+import { IdentityKeySourceOfTrust, Mode } from "@tutao/appEnv"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {

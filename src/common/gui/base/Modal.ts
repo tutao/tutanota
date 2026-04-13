@@ -6,7 +6,7 @@ import { keyManager } from "../../misc/KeyManager"
 import { windowFacade } from "../../misc/WindowFacade"
 import { insideRect, lastIndex, remove } from "@tutao/utils"
 import { LayerType } from "../../../RootView"
-import { assertMainOrNodeBoot } from "../../api/common/Env"
+import { assertMainOrNodeBoot } from "@tutao/appEnv"
 
 assertMainOrNodeBoot()
 

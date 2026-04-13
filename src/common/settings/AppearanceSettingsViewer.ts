@@ -3,14 +3,13 @@ import { lang } from "../misc/LanguageViewModel.js"
 import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
-import { TimeFormat, WeekStart } from "../api/common/TutanotaConstants.js"
+import { TimeFormat, WeekStart } from "@tutao/appEnv"
 import { downcast, incrementDate, noOp, ofClass, promiseMap } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getHourCycle } from "../../common/misc/Formatter"
 import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { locator } from "../../common/api/main/CommonLocator"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "../../../libs/luxon.js"
 import { LockedError } from "../api/common/error/RestError"
@@ -140,9 +139,9 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		return m("#weekscrolltime", m(DropDownSelector, themeDropDownAttrs))
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
 				return locator.entityClient.load(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update.instanceId).then((settings) => {
 					lang.updateFormats({
 						hourCycle: getHourCycle(settings),

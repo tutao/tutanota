@@ -3,19 +3,23 @@ import { Dialog } from "../gui/base/Dialog"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { BadRequestError } from "../api/common/error/RestError"
-import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import type { InvoiceData } from "../api/common/TutanotaConstants"
+import type { InvoiceData } from "@tutao/appEnv"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { defer, ofClass } from "@tutao/utils"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
  * because only when the account is set to business use some payment data like vat id number may be saved.
  * @return true, if the business invoiceData was written successfully
  */
-export function showSwitchToBusinessInvoiceDataDialog(customer: Customer, invoiceData: InvoiceData, accountingInfo: AccountingInfo): Promise<boolean> {
+export function showSwitchToBusinessInvoiceDataDialog(
+	customer: sysTypeRefs.Customer,
+	invoiceData: InvoiceData,
+	accountingInfo: sysTypeRefs.AccountingInfo,
+): Promise<boolean> {
 	if (customer.businessUse) {
 		throw new ProgrammingError("cannot show invoice data dialog if the customer is already a business customer")
 	}

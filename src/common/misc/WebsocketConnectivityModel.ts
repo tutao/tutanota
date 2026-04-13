@@ -1,13 +1,13 @@
 import { WsConnectionState } from "../api/main/WorkerClient.js"
 import stream from "mithril/stream"
 import { identity } from "@tutao/utils"
-import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
-import { WebsocketLeaderStatus } from "../api/entities/sys/TypeRefs.js"
+import { CloseEventBusOption } from "@tutao/appEnv"
 import { ExposedEventBus } from "../api/worker/workerInterfaces.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export interface WebsocketConnectivityListener {
 	updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void>
-	onLeaderStatusMessageReceived(leaderStatus: WebsocketLeaderStatus): Promise<void>
+	onLeaderStatusMessageReceived(leaderStatus: sysTypeRefs.WebsocketLeaderStatus): Promise<void>
 }
 
 const TAG = "[WebsocketConnectivityModel]"
@@ -34,7 +34,7 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	 * Gets invoked by the worker thread whenever there is a new leader status message received by the EventBus.
 	 * @param wsLeaderStatus
 	 */
-	async onLeaderStatusMessageReceived(wsLeaderStatus: WebsocketLeaderStatus): Promise<void> {
+	async onLeaderStatusMessageReceived(wsLeaderStatus: sysTypeRefs.WebsocketLeaderStatus): Promise<void> {
 		if (wsLeaderStatus.leaderStatus !== this.leaderStatus) {
 			this.leaderStatus = wsLeaderStatus.leaderStatus
 			await this.notifyListeners()

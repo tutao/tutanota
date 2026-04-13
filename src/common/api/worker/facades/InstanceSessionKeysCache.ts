@@ -1,19 +1,19 @@
 import { assertNotNull, Nullable } from "@tutao/utils"
-import { InstanceSessionKey } from "../../entities/sys/TypeRefs"
 import { Entity } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /**
  * This caches instanceSessionKeys (payload to UpdateInstanceSessionKeyService) for instances with bucketKeys
  */
 export class InstanceSessionKeysCache {
 	// string representation of the Id | IdTuple of the instance with the bucket key -> InstanceSessionKeys for the main and the child instances
-	private readonly cache: Map<string, Array<InstanceSessionKey>> = new Map<string, Array<InstanceSessionKey>>()
+	private readonly cache: Map<string, Array<sysTypeRefs.InstanceSessionKey>> = new Map<string, Array<sysTypeRefs.InstanceSessionKey>>()
 	constructor() {}
 
 	/**
 	 * Puts the InstanceSessionKeys into the cache and overrides existing entries
 	 */
-	put(mainInstance: Entity, instanceSessionKeys: Array<InstanceSessionKey>) {
+	put(mainInstance: Entity, instanceSessionKeys: Array<sysTypeRefs.InstanceSessionKey>) {
 		const lookupKey = this.makeLookupKey(mainInstance)
 		this.cache.set(lookupKey, instanceSessionKeys)
 	}
@@ -21,7 +21,7 @@ export class InstanceSessionKeysCache {
 	/**
 	 * Return a cached InstanceSessionKeys or null if it is not cached.
 	 */
-	get(mainInstance: Entity): Nullable<Array<InstanceSessionKey>> {
+	get(mainInstance: Entity): Nullable<Array<sysTypeRefs.InstanceSessionKey>> {
 		const lookupKey = this.makeLookupKey(mainInstance)
 		return this.cache.get(lookupKey) ?? null
 	}

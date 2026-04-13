@@ -1,7 +1,8 @@
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import {
 	AesKey,
 	AsymmetricKeyPair,
+	cryptoUtils,
 	isPqKeyPairs,
 	isRsaOrRsaX25519KeyPair,
 	isRsaX25519KeyPair,
@@ -19,25 +20,17 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
-import {
-	asCryptoProtoocolVersion,
-	CryptoProtocolVersion,
-	EncryptionAuthStatus,
-	EncryptionKeyVerificationState,
-	PresentableKeyVerificationState,
-} from "../../common/TutanotaConstants.js"
+import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState } from "@tutao/appEnv"
 import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/utils"
-import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"
-import { CryptoWrapper } from "./CryptoWrapper.js"
-import { PublicKeyService } from "../../entities/sys/Services.js"
+import { asCryptoProtoocolVersion, sysServices, sysTypeRefs, TypeId } from "@tutao/typeRefs"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../facades/PublicEncryptionKeyProvider.js"
-import { TypeId } from "@tutao/typeRefs"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { AdminKeyLoaderFacade } from "../facades/AdminKeyLoaderFacade"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 
 assertWorkerOrNode()
 
@@ -143,7 +136,7 @@ export class AsymmetricCryptoFacade {
 	 */
 	async decryptSymKeyWithKeyPairAndAuthenticate(
 		recipientKeyPair: AsymmetricKeyPair,
-		pubEncKeyData: PubEncKeyData,
+		pubEncKeyData: sysTypeRefs.PubEncKeyData,
 		senderIdentifier: PublicKeyIdentifier,
 	): Promise<DecapsulatedAesKey> {
 		const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
@@ -152,7 +145,7 @@ export class AsymmetricCryptoFacade {
 			const { authStatus } = await this.authenticateSender(
 				senderIdentifier,
 				assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
-				parseKeyVersion(assertNotNull(pubEncKeyData.senderKeyVersion)),
+				cryptoUtils.parseKeyVersion(assertNotNull(pubEncKeyData.senderKeyVersion)),
 			)
 			if (authStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
 				throw new CryptoError("the provided public key could not be authenticated")
@@ -307,12 +300,12 @@ export class AsymmetricCryptoFacade {
 		const symGroupKey = await this.adminKeyLoaderFacade().getCurrentGroupKeyViaAdminEncGKey(keyGroupId)
 		const newX25519KeyPair = this.cryptoWrapper.generateEccKeyPair()
 		const symEncPrivEccKey = this.cryptoWrapper.encryptX25519Key(symGroupKey.object, newX25519KeyPair.privateKey)
-		const data = createPublicKeyPutIn({
+		const data = sysTypeRefs.createPublicKeyPutIn({
 			pubEccKey: newX25519KeyPair.publicKey,
 			symEncPrivEccKey,
 			keyGroup: keyGroupId,
 		})
-		await this.serviceExecutor.put(PublicKeyService, data)
+		await this.serviceExecutor.put(sysServices.PublicKeyService, data)
 		return newX25519KeyPair
 	}
 }

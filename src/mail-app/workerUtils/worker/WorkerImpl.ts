@@ -4,7 +4,7 @@ import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFa
 import { NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
-import { assertWorkerOrNode, isMainOrNode } from "../../../common/api/common/Env.js"
+import { assertWorkerOrNode, isMainOrNode } from "@tutao/appEnv"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"

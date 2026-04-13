@@ -1,10 +1,4 @@
-import {
-	assertEnumValue,
-	CustomDomainType,
-	CustomDomainTypeCount,
-	CustomDomainValidationResult,
-	UpgradePromptType,
-} from "../../../common/api/common/TutanotaConstants"
+import { CustomDomainValidationResult, UpgradePromptType } from "@tutao/appEnv"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { AddDomainData } from "./AddDomainWizard"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -16,11 +10,12 @@ import { PreconditionFailedError } from "../../../common/api/common/error/RestEr
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { isEmpty, ofClass } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, CustomDomainType, CustomDomainTypeCount } from "@tutao/appEnv"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { getCustomMailDomains } from "../../../common/api/common/utils/CustomerUtils.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { assertEnumValue } from "@tutao/typeRefs"
 
 assertMainOrNode()
 

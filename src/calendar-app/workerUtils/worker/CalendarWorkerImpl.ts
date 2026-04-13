@@ -3,7 +3,7 @@ import { errorToObj, MessageDispatcher, Request } from "../../../common/api/comm
 import { NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"
-import { assertWorkerOrNode, isMainOrNode } from "../../../common/api/common/Env.js"
+import { assertWorkerOrNode, isMainOrNode } from "@tutao/appEnv"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/crypto"

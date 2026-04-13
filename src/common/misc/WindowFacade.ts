@@ -1,10 +1,11 @@
 import m, { Params } from "mithril"
-import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
+import { assertMainOrNodeBoot } from "@tutao/appEnv"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
 import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
+import { isApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -243,7 +244,7 @@ export class WindowFacade {
 				stringifiedArgs[k] = String(v)
 			}
 		}
-		if (isApp() || isElectronClient()) {
+		if (isApp() || isDesktop() || env.mode === Mode.Admin) {
 			const { locator } = await import("../api/main/CommonLocator")
 			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {

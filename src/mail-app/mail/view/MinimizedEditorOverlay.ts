@@ -8,19 +8,12 @@ import { px } from "../../../common/gui/size"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
 import { trashMails } from "./MailGuiUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
-import { isSameId } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { promiseMap } from "@tutao/utils"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
+import { OperationType } from "@tutao/appEnv"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -30,7 +23,7 @@ export type MinimizedEditorOverlayAttrs = {
 }
 
 export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayAttrs> {
-	_listener: EntityEventsListener
+	_listener: entityUpdateUtils.EntityEventsListener
 	_eventController: EventController
 
 	constructor(vnode: Vnode<MinimizedEditorOverlayAttrs>) {
@@ -38,9 +31,9 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		this._eventController = eventController
 
 		this._listener = {
-			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
+			onEntityUpdatesReceived: (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
 				return promiseMap(updates, (update) => {
-					if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) && update.operation === OperationType.DELETE) {
+					if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) && update.operation === OperationType.DELETE) {
 						let draft = minimizedEditor.sendMailModel.getDraft()
 
 						if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {
@@ -49,7 +42,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					}
 				})
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		eventController.addEntityListener(this._listener)

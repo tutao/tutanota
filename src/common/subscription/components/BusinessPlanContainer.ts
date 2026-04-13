@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "../../gui/styles"
 import { px, size } from "../../gui/size"
-import { PlanType } from "../../api/common/TutanotaConstants"
 import { ReplacementKey } from "../FeatureListProvider"
 import { getPriceStr } from "../utils/SubscriptionUtils"
 import { AvailablePlans } from "../PlanSelector"
@@ -10,6 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { TranslationKey } from "../../misc/LanguageViewModel"
 import { filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
+import { PlanType } from "@tutao/appEnv"
 
 export type PlanFeature = {
 	label: TranslationKey

@@ -1,5 +1,5 @@
-import type { Country } from "../../api/common/CountryList"
-import { Countries } from "../../api/common/CountryList"
+import type { Country } from "../../../appEnv/CountryList"
+import { Countries } from "../../../appEnv/CountryList"
 import type { InfoLink, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"

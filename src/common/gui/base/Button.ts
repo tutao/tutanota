@@ -4,7 +4,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { getElevatedBackground, theme } from "../theme"
 import { noOp } from "@tutao/utils"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { BaseButton } from "./buttons/BaseButton.js"
 
 assertMainOrNode()

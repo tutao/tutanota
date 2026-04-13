@@ -1,7 +1,6 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { elementIdPart, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart } from "@tutao/typeRefs"
 import {
 	assertNotNull,
 	findLast,
@@ -17,15 +16,15 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { ConversationType, MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/misc/DeviceConfig.js"
 
 import { MailModel } from "../model/MailModel.js"
 
 import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
+import { ConversationType, MailSetKind, OperationType } from "@tutao/appEnv"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -72,13 +71,16 @@ export class ConversationViewModel {
 		}
 	})
 
-	private readonly onEntityEvent: EntityEventsListener = {
+	private readonly onEntityEvent: entityUpdateUtils.EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates, eventOwnerGroupId) => {
 			// conversation entry can be created when new email arrives
 			// conversation entry can be updated when email is moved around or deleted
 			// conversation entry is deleted only when every email in the conversation is deleted (the whole conversation list will be deleted)
 			for (const update of updates) {
-				if (isUpdateForTypeRef(tutanotaTypeRefs.ConversationEntryTypeRef, update) && update.instanceListId === this.conversationListId()) {
+				if (
+					entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ConversationEntryTypeRef, update) &&
+					update.instanceListId === this.conversationListId()
+				) {
 					if (!this.showFullConversation()) {
 						// no need to handle CREATE because we only show a single item and we don't want to add new ones
 						// no need to handle UPDATE because the only update that can happen is when email gets deleted and then we should be closed from the
@@ -99,7 +101,7 @@ export class ConversationViewModel {
 				}
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	private async processCreateConversationEntry(ceId: IdTuple) {

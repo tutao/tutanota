@@ -12,7 +12,7 @@ import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/common/
 o.spec("OpenLocallySavedDraftAction", () => {
 	let action: OpenLocallySavedDraftAction
 
-	let mail: Mail
+	let mail: tutanotaTypeRefs.Mail
 	let db: AutosaveFacade
 	let mailboxModel: MailboxModel
 	let entityClient: EntityClient
@@ -97,7 +97,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		} satisfies LocalAutosavedDraftData
 
 		when(openDraftFunctions.createEditDraftDialog(mailViewerViewModel, draftData)).thenResolve(null)
-		when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(mail)
+		when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(mail)
 		when(db.getAutosavedDraftData()).thenResolve(draftData)
 		await action._loadAutosavedDraft()
 
@@ -130,7 +130,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 		const dialog: Dialog = object()
 		when(openDraftFunctions.createEditDraftDialog(mailViewerViewModel, draftData)).thenResolve(dialog)
-		when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(mail)
+		when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(mail)
 		when(db.getAutosavedDraftData()).thenResolve(draftData)
 		await action._loadAutosavedDraft()
 

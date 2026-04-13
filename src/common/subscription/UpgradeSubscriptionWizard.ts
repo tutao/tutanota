@@ -1,27 +1,14 @@
 import type { Hex } from "@tutao/utils"
 import { defer } from "@tutao/utils"
-import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
-import {
-	AvailablePlans,
-	AvailablePlanType,
-	getDefaultPaymentMethod,
-	getPaymentMethodType,
-	InvoiceData,
-	NewPaidPlans,
-	PaymentData,
-	PlanType,
-	SubscriptionType,
-	UpgradePromptType,
-	UpgradePromptTypeByName,
-} from "../api/common/TutanotaConstants"
-import { getByAbbreviation } from "../api/common/CountryList"
+import { InvoiceData, NewPaidPlans, UpgradePromptType } from "@tutao/appEnv"
+import { getByAbbreviation } from "../../appEnv/CountryList"
 import stream from "mithril/stream"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
-import { assertMainOrNode, isIOSApp } from "../api/common/Env"
+import { assertMainOrNode, AvailablePlans, AvailablePlanType, isIOSApp, PlanType, SubscriptionType } from "@tutao/appEnv"
 import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -40,6 +27,7 @@ import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
 import { windowFacade } from "../misc/WindowFacade"
 import type { UsageTest } from "@tutao/usagetests"
+import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, sysTypeRefs, UpgradePromptTypeByName } from "@tutao/typeRefs"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -62,9 +50,9 @@ export type UpgradeSubscriptionData = {
 	targetPlanType: PlanType
 	price: SubscriptionPrice | null
 	nextYearPrice: SubscriptionPrice | null
-	accountingInfo: AccountingInfo | null
+	accountingInfo: sysTypeRefs.AccountingInfo | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
-	customer: Customer | null
+	customer: sysTypeRefs.Customer | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
 	newAccountData: NewAccountData | null
 	registrationDataId: string | null

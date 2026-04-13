@@ -21,10 +21,10 @@ o.spec("IndexedDbContactSearchFacade", () => {
 
 	o.spec("findContacts", () => {
 		o.test("mailAddress", async () => {
-			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
+			const mailType = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
 
 			const expectedRestriction: SearchRestriction = {
-				type: ContactTypeRef,
+				type: tutanotaTypeRefs.ContactTypeRef,
 				start: null,
 				end: null,
 				field: "mailAddresses",
@@ -42,10 +42,10 @@ o.spec("IndexedDbContactSearchFacade", () => {
 			o.check(result).deepEquals([["it's me", "a contact"] as IdTuple])
 		})
 		o.test("recipient", async () => {
-			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
+			const mailType = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
 
 			const expectedRestriction: SearchRestriction = {
-				type: ContactTypeRef,
+				type: tutanotaTypeRefs.ContactTypeRef,
 				start: null,
 				end: null,
 				field: null,

@@ -1,4 +1,4 @@
-import { getByAbbreviation } from "../CountryList.js"
+import { getByAbbreviation } from "../../../../appEnv/CountryList.js"
 
 export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
 	let result = ""

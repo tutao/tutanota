@@ -4,7 +4,7 @@ import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calend
 import { mailLocator } from "../../mailLocator.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { CalendarAttendeeStatus } from "../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus } from "@tutao/appEnv"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { Dialog } from "../../../common/gui/base/Dialog"

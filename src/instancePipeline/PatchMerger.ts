@@ -9,6 +9,7 @@ import {
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	Entity,
+	entityUpdateUtils,
 	hasError,
 	isSameId,
 	ModelValue,
@@ -20,23 +21,35 @@ import {
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
+	sysTypeRefs,
 	TypeModelResolver,
 } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, lazy, Nullable, promiseMap, TypeRef } from "@tutao/utils"
-import { PatchOperationError } from "../../common/error/PatchOperationError"
-import { convertDbToJsType, decryptValue, InstancePipeline } from "@tutao/instancePipeline"
+import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, Nullable, promiseMap, TypeRef } from "@tutao/utils"
+import { convertDbToJsType, decryptValue, InstancePipeline, PatchOperationError } from "@tutao/instancePipeline"
 import { AesKey } from "@tutao/crypto"
-import { CryptoFacade } from "../crypto/CryptoFacade"
-import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { CryptoError } from "@tutao/crypto/error"
+
+export type SessionKeyResolver = (instance: Entity) => Promise<Nullable<AesKey>>
+
+/*
+ * Note:
+ * This is subset of interface `CacheStorage`.
+ *
+ * In next iteration:
+ * we should extract the cacheStorage and/or offlineStorage into seperate package and reuse `CacheStorage` interface
+ */
+export interface GetOrPutInstane {
+	getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null>
+
+	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void>
+}
 
 export class PatchMerger {
 	constructor(
-		private readonly cacheStorage: CacheStorage,
+		private readonly cacheStorage: GetOrPutInstane,
 		public readonly instancePipeline: InstancePipeline,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly cryptoFacade: lazy<CryptoFacade>,
+		private readonly sessionKeyResolver: SessionKeyResolver,
 	) {}
 
 	// visible for testing
@@ -51,7 +64,7 @@ export class PatchMerger {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 
 			const instance = await this.instancePipeline.modelMapper.mapToInstance(instanceType, parsedInstance)
-			const sk = await this.cryptoFacade().resolveSessionKey(instance)
+			const sk = await this.sessionKeyResolver(instance)
 			// We need to preserve the order of patches, so no promiseMap here
 			for (const patch of patches) {
 				const appliedSuccessfully = await this.applySinglePatch(parsedInstance, typeModel, patch, sk)
@@ -64,7 +77,7 @@ export class PatchMerger {
 		return null
 	}
 
-	public async patchAndStoreInstance(entityUpdate: EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
+	public async patchAndStoreInstance(entityUpdate: entityUpdateUtils.EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
 		const { typeRef, instanceListId, instanceId, patches } = entityUpdate
 
 		try {

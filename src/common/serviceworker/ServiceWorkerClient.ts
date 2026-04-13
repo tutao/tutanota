@@ -1,9 +1,9 @@
-import { isApp, isDesktop } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
 import { windowFacade } from "../misc/WindowFacade"
 import m, { Component } from "mithril"
 import { handleUncaughtError } from "../misc/ErrorHandler"
 import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/ErrorUtils.js"
+import { isApp, isDesktop } from "@tutao/appEnv"
 
 function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
 	const notificationMessage: Component = {

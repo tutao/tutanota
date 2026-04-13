@@ -8,21 +8,14 @@ import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { EntityEventsListener, EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
-import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR, OperationType } from "../../../src/common/api/common/TutanotaConstants"
-import {
-	CalendarEventTypeRef,
-	CalendarGroupRootTypeRef,
-	GroupSettings,
-	UserSettingsGroupRoot,
-	UserSettingsGroupRootTypeRef,
-} from "../../../src/common/api/entities/tutanota/TypeRefs"
+import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "@tutao/appEnv"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
 import { getFirstOrThrow, getStartOfDay } from "@tutao/utils"
-import { sysTypeRefs } from "@tutao/typeRefs"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
+import { entityUpdateUtils, tutanotaTypeRefs, sysTypeRefs } from "@tutao/typeRefs"
+import { OperationType } from "@tutao/appEnv"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {
@@ -35,7 +28,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 		/**
 		 * Holds the captured callback for handling entityUpdates
 		 */
-		let entityEventsListener: EntityEventsListener | null = null
+		let entityEventsListener: entityUpdateUtils.EntityEventsListener | null = null
 
 		let userControllerMock: UserController
 		let calendarFacade: CalendarFacade
@@ -45,7 +38,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 		let calendarInfosStreamMock: Stream<ReadonlyMap<Id, CalendarInfo>>
 		let calendarEventsRepository: CalendarEventsRepository
 		let initialCalendarInfos: Map<string, CalendarInfo>
-		let initialCalendarMembership: GroupMembership
+		let initialCalendarMembership: sysTypeRefs.GroupMembership
 
 		o.beforeEach(function () {
 			userControllerMock = object<UserController>()
@@ -70,7 +63,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 			when(calendarInfosStreamMock.map(matchers.anything())).thenDo(() => {})
 
 			const calendarInfo: CalendarInfo = object()
-			calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
+			calendarInfo.groupRoot = createTestEntity(tutanotaTypeRefs.CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
 			initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
 			when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
 
@@ -91,13 +84,13 @@ o.spec("CalendarEventRepositoryTest", function () {
 				o.check(entityEventsListener != null).equals(true)
 
 				const eventStartDate = new Date(2025, 7, 26)
-				const event = createTestEntity(CalendarEventTypeRef, {
+				const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					_ownerGroup: initialCalendarGroupId,
 					_id: [shotEventsListId, "event"],
 					startTime: eventStartDate,
 					endTime: new Date(2025, 7, 27),
 				})
-				when(entityClientMock.load(CalendarEventTypeRef, matchers.anything())).thenResolve(event)
+				when(entityClientMock.load(tutanotaTypeRefs.CalendarEventTypeRef, matchers.anything())).thenResolve(event)
 
 				const dateFarFromEvent = new Date(2025, 11, 13)
 				const startOfDay = getStartOfDay(dateFarFromEvent).getTime()
@@ -109,10 +102,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				await calendarEventsRepository.loadMonthsIfNeeded([dateFarFromEvent], stream(false), null)
 
 				// Act
-				const calendarEventUpdate: EntityUpdateData = object()
-				calendarEventUpdate.typeRef = CalendarEventTypeRef
+				const calendarEventUpdate: entityUpdateUtils.EntityUpdateData = object()
+				calendarEventUpdate.typeRef = tutanotaTypeRefs.CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
-				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
+				const updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData> = [calendarEventUpdate]
 				await entityEventsListener!.onEntityUpdatesReceived(updates, initialCalendarGroupId, true)
 
 				// Assert
@@ -129,13 +122,13 @@ o.spec("CalendarEventRepositoryTest", function () {
 				o.check(entityEventsListener != null).equals(true)
 
 				const eventStartDate = new Date(2025, 7, 26, 10, 0, 0)
-				const event = createTestEntity(CalendarEventTypeRef, {
+				const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					_ownerGroup: initialCalendarGroupId,
 					_id: [shotEventsListId, "event"],
 					startTime: eventStartDate,
 					endTime: new Date(2025, 7, 26, 23, 0, 0),
 				})
-				when(entityClientMock.load(CalendarEventTypeRef, matchers.anything())).thenResolve(event)
+				when(entityClientMock.load(tutanotaTypeRefs.CalendarEventTypeRef, matchers.anything())).thenResolve(event)
 
 				const startOfDay = getStartOfDay(eventStartDate).getTime()
 				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
@@ -146,10 +139,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], stream(false), null)
 
 				// Act
-				const calendarEventUpdate: EntityUpdateData = object()
-				calendarEventUpdate.typeRef = CalendarEventTypeRef
+				const calendarEventUpdate: entityUpdateUtils.EntityUpdateData = object()
+				calendarEventUpdate.typeRef = tutanotaTypeRefs.CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
-				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
+				const updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData> = [calendarEventUpdate]
 				await entityEventsListener!.onEntityUpdatesReceived(updates, initialCalendarGroupId, true)
 
 				// Assert
@@ -174,32 +167,32 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				const newCalendarGroupId = "newCalendarGroupId"
 				const newCalendarInfo: CalendarInfo = object()
-				newCalendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
+				newCalendarInfo.groupRoot = createTestEntity(tutanotaTypeRefs.CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
 				const calendarInfos = new Map(initialCalendarInfos).set(newCalendarGroupId, newCalendarInfo)
 				when(calendarModelMock.getCalendarInfos()).thenResolve(calendarInfos)
 
-				const event = createTestEntity(CalendarEventTypeRef, {
+				const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					_ownerGroup: newCalendarGroupId,
 					_id: [shotEventsListId, "event"],
 					startTime: eventStartDate,
 					endTime: new Date(2025, 7, 26, 23, 0, 0),
 				})
-				when(entityClientMock.load(CalendarEventTypeRef, matchers.anything())).thenResolve(event)
+				when(entityClientMock.load(tutanotaTypeRefs.CalendarEventTypeRef, matchers.anything())).thenResolve(event)
 
-				const userUpdateEventUpdate: EntityUpdateData = object()
-				userUpdateEventUpdate.typeRef = UserTypeRef
+				const userUpdateEventUpdate: entityUpdateUtils.EntityUpdateData = object()
+				userUpdateEventUpdate.typeRef = sysTypeRefs.UserTypeRef
 				userUpdateEventUpdate.operation = OperationType.UPDATE
 				when(userControllerMock.isUpdateForLoggedInUserInstance(userUpdateEventUpdate, userGroupId)).thenReturn(true)
 
-				const newCalendarMembership: GroupMembership = object()
+				const newCalendarMembership: sysTypeRefs.GroupMembership = object()
 				newCalendarMembership.group = newCalendarGroupId
 				when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership, newCalendarMembership])
 
 				await entityEventsListener!.onEntityUpdatesReceived([userUpdateEventUpdate], userGroupId, true)
 
 				// Act
-				const calendarEventUpdate: EntityUpdateData = object()
-				calendarEventUpdate.typeRef = CalendarEventTypeRef
+				const calendarEventUpdate: entityUpdateUtils.EntityUpdateData = object()
+				calendarEventUpdate.typeRef = tutanotaTypeRefs.CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
 				await entityEventsListener!.onEntityUpdatesReceived([calendarEventUpdate], newCalendarGroupId, true)
 
@@ -212,8 +205,8 @@ o.spec("CalendarEventRepositoryTest", function () {
 		})
 		o.spec("updateUserSettingsGroupRoot", function () {
 			// Test Case for completely empty calendar
-			let mockGroupSettings: GroupSettings
-			let mockUserSettingsGroupRoot: UserSettingsGroupRoot = object()
+			let mockGroupSettings: tutanotaTypeRefs.GroupSettings
+			let mockUserSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot = object()
 			let wrappedEvent: EventWrapper
 
 			o.beforeEach(function () {
@@ -222,7 +215,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				mockGroupSettings.group = initialCalendarGroupId
 
 				mockUserSettingsGroupRoot.groupSettings = [mockGroupSettings]
-				when(entityClientMock.load(UserSettingsGroupRootTypeRef, matchers.anything())).thenResolve(mockUserSettingsGroupRoot)
+				when(entityClientMock.load(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, matchers.anything())).thenResolve(mockUserSettingsGroupRoot)
 
 				wrappedEvent = object<EventWrapper>()
 				wrappedEvent.event = object()
@@ -237,10 +230,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				mockGroupSettings.color = "003CFF"
 
 				// act
-				const userSettingsGroupRootUpdate: EntityUpdateData = object()
-				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
+				const userSettingsGroupRootUpdate: entityUpdateUtils.EntityUpdateData = object()
+				userSettingsGroupRootUpdate.typeRef = tutanotaTypeRefs.UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
-				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
+				const updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData> = [userSettingsGroupRootUpdate]
 				await entityEventsListener!.onEntityUpdatesReceived(updates, initialCalendarGroupId, true)
 
 				// assert
@@ -257,10 +250,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				calendarEventsRepository.getDaysToEvents()(daysToEventsMap)
 
 				// act
-				const userSettingsGroupRootUpdate: EntityUpdateData = object()
-				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
+				const userSettingsGroupRootUpdate: entityUpdateUtils.EntityUpdateData = object()
+				userSettingsGroupRootUpdate.typeRef = tutanotaTypeRefs.UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
-				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
+				const updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData> = [userSettingsGroupRootUpdate]
 				await entityEventsListener!.onEntityUpdatesReceived(updates, initialCalendarGroupId, true)
 
 				// assert
@@ -280,10 +273,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				mockGroupSettings.color = SETTINGS_COLOR
 
 				// act
-				const userSettingsGroupRootUpdate: EntityUpdateData = object()
-				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
+				const userSettingsGroupRootUpdate: entityUpdateUtils.EntityUpdateData = object()
+				userSettingsGroupRootUpdate.typeRef = tutanotaTypeRefs.UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
-				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
+				const updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData> = [userSettingsGroupRootUpdate]
 				await entityEventsListener!.onEntityUpdatesReceived(updates, initialCalendarGroupId, true)
 
 				// assert
@@ -306,10 +299,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				calendarEventsRepository.getDaysToEvents()(daysToEventsMap)
 
 				// act
-				const userSettingsGroupRootUpdate: EntityUpdateData = object()
-				userSettingsGroupRootUpdate.typeRef = UserSettingsGroupRootTypeRef
+				const userSettingsGroupRootUpdate: entityUpdateUtils.EntityUpdateData = object()
+				userSettingsGroupRootUpdate.typeRef = tutanotaTypeRefs.UserSettingsGroupRootTypeRef
 				userSettingsGroupRootUpdate.operation = OperationType.UPDATE
-				const updates: ReadonlyArray<EntityUpdateData> = [userSettingsGroupRootUpdate]
+				const updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData> = [userSettingsGroupRootUpdate]
 				await entityEventsListener!.onEntityUpdatesReceived(updates, initialCalendarGroupId, true)
 
 				// assert

@@ -10,9 +10,9 @@ import { component_size, px, size } from "../../../common/gui/size"
 import { FolderItem } from "./DriveUtils"
 
 export interface DriveFolderNavAttrs {
-	currentFolder: DriveFolder | null
-	parents: readonly DriveFolder[]
-	loadParents: () => Promise<DriveFolder[]>
+	currentFolder: driveTypeRefs.DriveFolder | null
+	parents: readonly driveTypeRefs.DriveFolder[]
+	loadParents: () => Promise<driveTypeRefs.DriveFolder[]>
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 	selectedItemsActions: DriveSelectedItemsActions
 }

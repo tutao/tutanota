@@ -9,7 +9,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { lang } from "../misc/LanguageViewModel"
 import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { px } from "../gui/size"
 
 assertMainOrNode()

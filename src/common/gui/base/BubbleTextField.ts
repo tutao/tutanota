@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
 import { MaybeTranslation, Translation } from "../../misc/LanguageViewModel"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
 import { lazy } from "@tutao/utils"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"

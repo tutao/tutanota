@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
-import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType } from "../../api/common/TutanotaConstants"
+import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/appEnv"
 import { PriceAndConfigProvider } from "../utils/PriceUtils"
 import { theme } from "../../gui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
@@ -14,6 +14,7 @@ import { PlanBadge } from "./PlanBadge.js"
 import { Callback } from "@tutao/utils"
 import { boxShadowHigh } from "../../gui/main-styles"
 import { DiscountDetail, getBorderRadius, getBorderWidth } from "../utils/PlanSelectorUtils"
+import { PlanType } from "@tutao/appEnv"
 
 type FreePlanBoxAttrs = {
 	isSelected: boolean

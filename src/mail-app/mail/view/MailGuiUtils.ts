@@ -1,34 +1,11 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { BadRequestError, LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { isApp, isDesktop } from "../../../common/api/common/Env"
-import {
-	$Promisable,
-	assertNotNull,
-	clamp,
-	delay,
-	filterInt,
-	first,
-	isEmpty,
-	isNotEmpty,
-	lazyMemoized,
-	neverNull,
-	noOp,
-	promiseMap,
-	secondsToMillis,
-} from "@tutao/utils"
-import {
-	EncryptionAuthStatus,
-	getMailFolderType,
-	MailAuthenticationStatus,
-	MailReportType,
-	MailSetKind,
-	SimpleMoveMailTarget,
-	SystemFolderType,
-} from "../../../common/api/common/TutanotaConstants"
+import { $Promisable, assertNotNull, clamp, delay, filterInt, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/utils"
+import { EncryptionAuthStatus, MailAuthenticationStatus, MailReportType, secondsToMillis } from "@tutao/appEnv"
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -56,7 +33,6 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { elementIdPart, getElementId, getIds, isSameId } from "@tutao/typeRefs"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
@@ -72,6 +48,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { isApp, isDesktop, MailSetKind, SystemFolderType } from "@tutao/appEnv"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSet = tutanotaTypeRefs.MailSet

@@ -2,7 +2,7 @@
  * @file color/theme definitions for default themes.
  */
 import type { Theme, ThemeId } from "./theme"
-import { assertMainOrNodeBoot } from "../api/common/Env"
+import { assertMainOrNodeBoot } from "@tutao/appEnv"
 import { getAppLogo } from "./base/Logo.js"
 import { client } from "../misc/ClientDetector"
 

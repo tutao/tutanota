@@ -1,3 +1,6 @@
+import type { MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	ContactAddressType,
 	ContactCustomDateType,
@@ -6,11 +9,7 @@ import {
 	ContactRelationshipType,
 	ContactSocialType,
 	ContactWebsiteType,
-} from "../../../common/api/common/TutanotaConstants"
-import type { MaybeTranslation, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { sortCompareByReverseId } from "@tutao/typeRefs"
+} from "@tutao/appEnv"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {
 	[ContactAddressType.PRIVATE]: "private_label",

@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot } from "../api/common/Env"
+import { assertMainOrNodeBoot } from "@tutao/appEnv"
 import { ClientPlatform } from "./ClientDetector"
 
 assertMainOrNodeBoot()

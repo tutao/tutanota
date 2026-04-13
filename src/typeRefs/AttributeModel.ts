@@ -10,7 +10,7 @@ import {
 	ServerModelUntypedInstance,
 	TypeId,
 	TypeModel,
-} from "@tutao/typeRefs"
+} from "./EntityTypes"
 import { ProgrammingError } from "@tutao/appEnv"
 
 export class AttributeModel {

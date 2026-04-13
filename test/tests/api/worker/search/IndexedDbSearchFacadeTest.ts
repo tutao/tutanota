@@ -1,6 +1,14 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	ClientModelInfo,
+	compareOldestFirst,
+	elementIdPart,
+	firstBiggerThanSecond,
+	generatedIdToTimestamp,
+	listIdPart,
+	timestampToGeneratedId,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import type { TypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import {
@@ -10,9 +18,7 @@ import {
 	SearchRestriction,
 	SearchResult,
 } from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import { compareOldestFirst, elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "@tutao/typeRefs"
-import type { Base64 } from "@tutao/utils"
-import { groupBy, numberRange, splitInChunks } from "@tutao/utils"
+import { Base64, groupBy, numberRange, splitInChunks } from "@tutao/utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/common/misc/ClientConstants.js"
@@ -21,7 +27,6 @@ import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { ClientModelInfo } from "@tutao/typeRefs"
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
@@ -31,6 +36,7 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -40,13 +46,13 @@ type KeyToIndexEntriesWithType = {
 	indexEntries: SearchIndexEntryWithType[]
 }
 let dbKey
-const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
-const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
+const contactTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef)
+const mailTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef)
 const browserData: BrowserData = browserDataStub
 const entityClient: EntityClient = object()
 o.spec("IndexedDbSearchFacade", () => {
-	let mail = createTestEntity(MailTypeRef)
-	let user = createTestEntity(UserTypeRef)
+	let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
+	let user = createTestEntity(sysTypeRefs.UserTypeRef)
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"
@@ -137,7 +143,7 @@ o.spec("IndexedDbSearchFacade", () => {
 
 	let createMailRestriction = (attributeIds?: number[] | null, listId?: Id | null, start?: number | null, end?: number | null): SearchRestriction => {
 		return {
-			type: MailTypeRef,
+			type: tutanotaTypeRefs.MailTypeRef,
 			start: start ?? null,
 			end: end ?? null,
 			field: null,
@@ -244,16 +250,16 @@ o.spec("IndexedDbSearchFacade", () => {
 		)
 	})
 	o.test("find folderId new MailSets (static mail listIds)", () => {
-		const mail1 = createTestEntity(MailTypeRef, {
+		const mail1 = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_id: ["mailListId", id1],
 			sets: [["setListId", "folderId1"]],
 		})
-		when(entityClient.load(MailTypeRef, mail1._id)).thenReturn(Promise.resolve(mail1))
-		const mail2 = createTestEntity(MailTypeRef, {
+		when(entityClient.load(tutanotaTypeRefs.MailTypeRef, mail1._id)).thenReturn(Promise.resolve(mail1))
+		const mail2 = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_id: ["mailListId", id2],
 			sets: [["setListId", "folderId2"]],
 		})
-		when(entityClient.load(MailTypeRef, mail2._id)).thenReturn(Promise.resolve(mail2))
+		when(entityClient.load(tutanotaTypeRefs.MailTypeRef, mail2._id)).thenReturn(Promise.resolve(mail2))
 
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
@@ -401,7 +407,7 @@ o.spec("IndexedDbSearchFacade", () => {
 			query,
 			tokens,
 			restriction: {
-				type: MailTypeRef,
+				type: tutanotaTypeRefs.MailTypeRef,
 				start,
 				end,
 				field: null,

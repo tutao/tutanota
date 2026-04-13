@@ -1,8 +1,7 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "@tutao/typeRefs"
+import { assertIsEntity2, elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getElementId, isSameId, ListElement, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
 import {
 	deepEqual,
@@ -27,12 +26,7 @@ import stream from "mithril/stream"
 import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel.js"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
@@ -152,13 +146,13 @@ export class CalendarSearchViewModel {
 		this.eventController.addEntityListener(this.entityEventsListener)
 	})
 
-	private readonly entityEventsListener: EntityEventsListener = {
+	private readonly entityEventsListener: entityUpdateUtils.EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
 				await this.entityEventReceived(update)
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -419,8 +413,8 @@ export class CalendarSearchViewModel {
 		return encodeCalendarSearchKey(element)
 	}
 
-	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): update is EntityUpdateData<tutanotaTypeRefs.Contact> {
-		if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update)) {
+	private isPossibleABirthdayContactUpdate(update: entityUpdateUtils.EntityUpdateData): update is entityUpdateUtils.EntityUpdateData {
+		if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update)) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
@@ -430,8 +424,8 @@ export class CalendarSearchViewModel {
 		}
 	}
 
-	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {
-		if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update)) {
+	private isSelectedEventAnUpdatedBirthday(update: entityUpdateUtils.EntityUpdateData): boolean {
+		if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update)) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
@@ -446,10 +440,10 @@ export class CalendarSearchViewModel {
 		return false
 	}
 
-	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
+	private async entityEventReceived(update: entityUpdateUtils.EntityUpdateData): Promise<void> {
 		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
 
-		if (!isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, update) && !isPossibleABirthdayContactUpdate) {
+		if (!entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, update) && !isPossibleABirthdayContactUpdate) {
 			return
 		}
 
@@ -469,7 +463,7 @@ export class CalendarSearchViewModel {
 		const listModel = this.createList()
 
 		if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
-			await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
+			await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId!, update.instanceId])
 		}
 
 		await listModel.loadInitial()

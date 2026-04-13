@@ -1,5 +1,4 @@
 import { UpdatableSettingsViewer } from "../Interfaces.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import m, { ChildArray, Children } from "mithril"
 import { UserController } from "../../api/main/UserController.js"
 import { lang } from "../../misc/LanguageViewModel"
@@ -22,11 +21,10 @@ import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 import { lazy, Versioned } from "@tutao/utils"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
-import { showInfoSnackbar, showSnackBar } from "../../gui/base/SnackBar"
+import { showInfoSnackbar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
-import { GroupTypeRef } from "../../api/entities/sys/TypeRefs"
-import { isSameId } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 /**
@@ -91,11 +89,14 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		// we only need to listen for updates of new identity keys of the user group
 		// everything else is only stored locally
 		for (const update of updates) {
-			if (isUpdateForTypeRef(GroupTypeRef, update) && isSameId(this.userController.userGroupInfo.group, update.instanceId)) {
+			if (
+				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupTypeRef, update) &&
+				isSameId(this.userController.userGroupInfo.group, update.instanceId)
+			) {
 				await this.loadIdentityKey()
 				m.redraw()
 			}

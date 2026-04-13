@@ -35,8 +35,8 @@ import {
 	encryptMetaData,
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
 
-const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
-const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
+const mailTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef)
+const contactTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef)
 
 function makeEntries(key: Aes256Key, iv: Uint8Array, n: number, baseTimestamp: number = 0): Array<EncSearchIndexEntryWithTimestamp> {
 	const newEntries: EncSearchIndexEntryWithTimestamp[] = []
@@ -70,10 +70,10 @@ o.spec("IndexerCore", () => {
 	})
 
 	o.test("createIndexEntriesForAttributes", async function () {
-		const ContactModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(ContactTypeRef)
+		const ContactModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
 
 		let core = makeCore({ encryptionData })
-		let contact = createTestEntity(ContactTypeRef)
+		let contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
 		contact._id = ["", "L-dNNLe----0"]
 		contact.firstName = "Max Tim"
 		contact.lastName = "Meier" // not indexed
@@ -1024,7 +1024,7 @@ o.spec("IndexerCore", () => {
 				timestamp: 1,
 			},
 		])
-		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
+		await core._processDeleted(tutanotaTypeRefs.MailTypeRef, instanceId, indexUpdate)
 		o.check(indexUpdate.delete.encInstanceIds).deepEquals([encInstanceId])
 		o.check(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(2)
 		o.check(JSON.stringify(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(metaRowId))).equals(
@@ -1065,7 +1065,7 @@ o.spec("IndexerCore", () => {
 			transaction,
 		})
 		let encInstanceId = encryptIndexKeyBase64(key, instanceId, iv)
-		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
+		await core._processDeleted(tutanotaTypeRefs.MailTypeRef, instanceId, indexUpdate)
 		o.check(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 		o.check(indexUpdate.delete.encInstanceIds.length).equals(0)
 	})

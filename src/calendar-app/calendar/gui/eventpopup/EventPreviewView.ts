@@ -1,4 +1,4 @@
-import { hasError, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getAttendeeStatus, hasError, tutanotaTypeRefs } from "@tutao/typeRefs"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -10,10 +10,9 @@ import {
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod, UpgradePromptType } from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod, UpgradePromptType } from "@tutao/appEnv"
 import { downcast, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
-import type { RepeatRule } from "../../../../common/api/entities/sys/TypeRefs.js"
 import { cleanMailAddress, findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../../common/misc/Formatter.js"
 import { BannerButton, BannerButtonAttrs } from "../../../../common/gui/base/buttons/BannerButton.js"
@@ -27,6 +26,7 @@ import { font_size, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../common/gui/base/ExpandableTextArea.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
@@ -291,7 +291,7 @@ export function getLocationUrl(text: string): URL {
 	return url
 }
 
-export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null {
+export function formatRepetitionFrequency(repeatRule: sysTypeRefs.RepeatRule): string | null {
 	if (repeatRule.interval === "1") {
 		const frequency = repeatRuleOptions.find((frequency) => frequency.value === repeatRule.frequency)
 
@@ -391,7 +391,7 @@ function joinAndEndWithString(items: any[], separator: string, lastSeparator: st
 /**
  * @returns {string} The returned string includes a leading separator (", " or "").
  */
-export function formatRepetitionEnd(repeatRule: RepeatRule, isAllDay: boolean): string {
+export function formatRepetitionEnd(repeatRule: sysTypeRefs.RepeatRule, isAllDay: boolean): string {
 	switch (repeatRule.endType) {
 		case EndType.Count:
 			if (!repeatRule.endValue) {

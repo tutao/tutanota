@@ -15,8 +15,8 @@ import {
 	RsaX25519KeyPair,
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
-import { PublicKeySignatureType } from "../../../../../src/common/api/common/TutanotaConstants"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { PublicKeySignatureType } from "@tutao/appEnv"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 import { Ed25519Facade, EncodedEd25519Signature } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade"

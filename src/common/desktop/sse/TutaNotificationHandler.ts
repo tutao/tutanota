@@ -2,25 +2,29 @@ import type { WindowManager } from "../DesktopWindowManager"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../misc/LanguageViewModel"
-import { IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
+import {
+	AttributeModel,
+	ClientTypeModelResolver,
+	EncryptedParsedInstance,
+	ServerModelUntypedInstance,
+	StrippedEntity,
+	tutanotaModelInfo,
+	tutanotaTypeRefs,
+	TypeModel,
+} from "@tutao/typeRefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/utils"
 import { log } from "../DesktopLog"
-import { tutanotaModelInfo } from "@tutao/typeRefs"
 import { handleRestError } from "../../api/common/error/RestError"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { StrippedEntity } from "@tutao/typeRefs"
-import { EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "@tutao/typeRefs"
-import { AttributeModel } from "@tutao/typeRefs"
-import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
-import { ClientTypeModelResolver } from "@tutao/typeRefs"
+import { InstancePipeline } from "@tutao/instancePipeline"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 const TAG = "[notifications]"
 
@@ -28,7 +32,7 @@ export type MailMetadata = {
 	senderAddress: string
 	firstRecipientAddress: string | null
 	id: IdTuple
-	notificationInfo: StrippedEntity<NotificationInfo>
+	notificationInfo: StrippedEntity<sysTypeRefs.NotificationInfo>
 }
 
 export class TutaNotificationHandler {
@@ -46,7 +50,7 @@ export class TutaNotificationHandler {
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {}
 
-	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<StrippedEntity<NotificationInfo>>) {
+	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<StrippedEntity<sysTypeRefs.NotificationInfo>>) {
 		const infosByListId = groupBy(notificationInfos, (ni) => assertNotNull(ni.mailId).listId)
 		for (const [listId, infos] of infosByListId.entries()) {
 			const firstNotificationInfo = getFirstOrThrow(infos)
@@ -90,7 +94,7 @@ export class TutaNotificationHandler {
 		}
 	}
 
-	private onMailNotificationClick(notificationInfo: StrippedEntity<NotificationInfo>) {
+	private onMailNotificationClick(notificationInfo: StrippedEntity<sysTypeRefs.NotificationInfo>) {
 		let requestedPath: string | null
 		if (notificationInfo.mailId) {
 			const mailIdParam = encodeURIComponent(`${notificationInfo.mailId.listId},${notificationInfo.mailId.listElementId}`)
@@ -110,7 +114,7 @@ export class TutaNotificationHandler {
 	private async downloadMailMetadata(
 		sseInfo: SseInfo,
 		listId: Id,
-		notificationInfos: Array<StrippedEntity<NotificationInfo>>,
+		notificationInfos: Array<StrippedEntity<sysTypeRefs.NotificationInfo>>,
 		credentials: UnencryptedCredentials,
 	): Promise<Array<MailMetadata>> {
 		const result: Array<MailMetadata> = []
@@ -167,7 +171,7 @@ export class TutaNotificationHandler {
 		mailModel: TypeModel,
 		mailAddressModel: TypeModel,
 		mi: EncryptedParsedInstance,
-		notificationInfo: StrippedEntity<NotificationInfo>,
+		notificationInfo: StrippedEntity<sysTypeRefs.NotificationInfo>,
 	): MailMetadata {
 		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
 
@@ -183,7 +187,7 @@ export class TutaNotificationHandler {
 		}
 	}
 
-	private makeMailMetadataUrl(sseInfo: SseInfo, listId: Id, mailIds: Array<IdTupleWrapper>): URL {
+	private makeMailMetadataUrl(sseInfo: SseInfo, listId: Id, mailIds: Array<sysTypeRefs.IdTupleWrapper>): URL {
 		const url = new URL(sseInfo.sseOrigin)
 		const listElementIds = mailIds.map((mailId) => base64ToBase64Url(mailId.listElementId)).join(",")
 		url.pathname = `rest/tutanota/mail/${base64ToBase64Url(listId)}`

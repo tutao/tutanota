@@ -1,14 +1,6 @@
 import o from "@tutao/otest"
-import {
-	Contact,
-	ContactAddressTypeRef,
-	ContactListTypeRef,
-	ContactMailAddressTypeRef,
-	ContactPhoneNumberTypeRef,
-	ContactSocialIdTypeRef,
-	ContactTypeRef,
-} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { AttributeModel, ClientModelInfo, getElementId } from "@tutao/typeRefs"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
@@ -16,16 +8,14 @@ import { matchers, object, verify, when } from "testdouble"
 import { IndexedDbContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbContactIndexerBackend"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade"
-import { getElementId } from "@tutao/typeRefs"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { ClientModelInfo } from "@tutao/typeRefs"
-import { AttributeModel } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("IndexedDbContactIndexerBackend", () => {
 	let entityClient: EntityClient
 	let backend: IndexedDbContactIndexerBackend
 	let core: IndexerCore
-	let suggestionFacadeMock: SuggestionFacade<Contact>
+	let suggestionFacadeMock: SuggestionFacade<tutanotaTypeRefs.Contact>
 
 	o.beforeEach(() => {
 		entityClient = object()
@@ -35,25 +25,25 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 	})
 
 	o.test("createContactIndexEntries without entries", async () => {
-		let contact = createTestEntity(ContactTypeRef)
+		let contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
 		await backend._createContactIndexEntries(contact)
 		verify(suggestionFacadeMock.addSuggestions([]))
 		verify(core.createIndexEntriesForAttributes(contact, matchers.anything()))
 	})
 
 	o.test("createContactIndexEntries with one entry without suggestions", async () => {
-		let contact = createTestEntity(ContactTypeRef, { company: "test" })
+		let contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, { company: "test" })
 		await backend._createContactIndexEntries(contact)
 		verify(suggestionFacadeMock.addSuggestions([]))
 		verify(core.createIndexEntriesForAttributes(contact, matchers.anything()))
 	})
 
 	o.test("createContactIndexEntries with one entry with suggestions", async () => {
-		const contact = createTestEntity(ContactTypeRef, {
+		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
 			firstName: "first",
 			lastName: "last",
 			company: "company",
-			mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: "mail@tuta.com" })],
+			mailAddresses: [createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, { address: "mail@tuta.com" })],
 		})
 		await backend._createContactIndexEntries(contact)
 		verify(core.createIndexEntriesForAttributes(contact, matchers.anything()))
@@ -61,12 +51,24 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 	})
 
 	o.test("createContactIndexEntries many entries", async () => {
-		let addresses = [createTestEntity(ContactAddressTypeRef, { address: "A0" }), createTestEntity(ContactAddressTypeRef, { address: "A1" })]
-		let mailAddresses = [createTestEntity(ContactMailAddressTypeRef, { address: "MA0" }), createTestEntity(ContactMailAddressTypeRef, { address: "MA1" })]
-		let phoneNumbers = [createTestEntity(ContactPhoneNumberTypeRef, { number: "PN0" }), createTestEntity(ContactPhoneNumberTypeRef, { number: "PN1" })]
-		let socialIds = [createTestEntity(ContactSocialIdTypeRef, { socialId: "S0" }), createTestEntity(ContactSocialIdTypeRef, { socialId: "S1" })]
+		let addresses = [
+			createTestEntity(tutanotaTypeRefs.ContactAddressTypeRef, { address: "A0" }),
+			createTestEntity(tutanotaTypeRefs.ContactAddressTypeRef, { address: "A1" }),
+		]
+		let mailAddresses = [
+			createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, { address: "MA0" }),
+			createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, { address: "MA1" }),
+		]
+		let phoneNumbers = [
+			createTestEntity(tutanotaTypeRefs.ContactPhoneNumberTypeRef, { number: "PN0" }),
+			createTestEntity(tutanotaTypeRefs.ContactPhoneNumberTypeRef, { number: "PN1" }),
+		]
+		let socialIds = [
+			createTestEntity(tutanotaTypeRefs.ContactSocialIdTypeRef, { socialId: "S0" }),
+			createTestEntity(tutanotaTypeRefs.ContactSocialIdTypeRef, { socialId: "S1" }),
+		]
 
-		let contact = createTestEntity(ContactTypeRef, {
+		let contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
 			firstName: "FN",
 			lastName: "LN",
 			nickname: "NN",
@@ -79,7 +81,7 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 			phoneNumbers,
 			socialIds,
 		})
-		const ContactModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(ContactTypeRef)
+		const ContactModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
 
 		let wasCalled = false
 		core.createIndexEntriesForAttributes = (a, b) => {
@@ -120,22 +122,22 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 	})
 
 	o.test("indexFullContactList", async () => {
-		const contactList = createTestEntity(ContactListTypeRef, {
+		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef, {
 			_ownerGroup: "ownerGroupId",
 			contacts: "contactListId",
 		})
 		const contacts = [
-			createTestEntity(ContactTypeRef, {
+			createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
 				_id: [contactList.contacts, "c0"],
 				_ownerGroup: "c0owner",
 			}),
-			createTestEntity(ContactTypeRef, {
+			createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
 				_id: [contactList.contacts, "c1"],
 				_ownerGroup: "c1owner",
 			}),
 		]
 
-		when(entityClient.loadAll(ContactTypeRef, contactList.contacts)).thenResolve(contacts)
+		when(entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts)).thenResolve(contacts)
 
 		await backend.indexContactList(contactList)
 		verify(core.encryptSearchIndexEntries(contacts[0]._id, neverNull(contacts[0]._ownerGroup), matchers.anything(), matchers.anything()))
@@ -157,7 +159,7 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 	})
 
 	o.test("onContactCreated", async () => {
-		const contact = createTestEntity(ContactTypeRef)
+		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
 		await backend.onContactCreated(contact)
 
 		verify(suggestionFacadeMock.addSuggestions([]))
@@ -165,20 +167,20 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 	})
 
 	o.test("onContactUpdated", async () => {
-		const contact = createTestEntity(ContactTypeRef, { _id: ["contact-list", "L-dNNLe----0"] })
+		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, { _id: ["contact-list", "L-dNNLe----0"] })
 		when(core.createIndexEntriesForAttributes(contact, matchers.anything())).thenReturn(new Map())
-		const newIndexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
+		const newIndexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef))
 		await backend.onContactUpdated(contact)
-		verify(core._processDeleted(ContactTypeRef, getElementId(contact), newIndexUpdate))
+		verify(core._processDeleted(tutanotaTypeRefs.ContactTypeRef, getElementId(contact), newIndexUpdate))
 		verify(suggestionFacadeMock.store())
 		verify(suggestionFacadeMock.addSuggestions([]))
 		verify(core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), new Map(), newIndexUpdate))
 	})
 
 	o.test("onContactDeleted", async () => {
-		const contact = createTestEntity(ContactTypeRef, { _id: ["contact-list", "1"] })
+		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, { _id: ["contact-list", "1"] })
 		await backend.onContactDeleted(contact._id)
-		const newIndexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
-		verify(core._processDeleted(ContactTypeRef, getElementId(contact), newIndexUpdate))
+		const newIndexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef))
+		verify(core._processDeleted(tutanotaTypeRefs.ContactTypeRef, getElementId(contact), newIndexUpdate))
 	})
 })

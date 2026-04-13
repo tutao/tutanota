@@ -1,6 +1,6 @@
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/utils"
 import { assertNotNull, defer } from "@tutao/utils"
-import { assertMainOrNodeBoot, isAdminClient } from "../common/Env"
+import { assertMainOrNodeBoot, FeatureType, InvalidModelError, KdfType, Mode } from "@tutao/appEnv"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import { NotFoundError } from "../common/error/RestError"
@@ -8,14 +8,12 @@ import { client } from "../../misc/ClientDetector"
 import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
 import type { Credentials } from "../../misc/credentials/Credentials"
-import { FeatureType, KdfType } from "../common/TutanotaConstants"
 import { SessionType } from "../common/SessionType"
 import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
-import { InvalidModelError } from "../common/error/InvalidModelError"
 
 assertMainOrNodeBoot()
 
@@ -107,7 +105,7 @@ export class LoginController {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
-		if (!isAdminClient()) {
+		if (!(env.mode === Mode.Admin)) {
 			await this.loadCustomizations()
 		}
 		await this._determineIfWhitelabel()

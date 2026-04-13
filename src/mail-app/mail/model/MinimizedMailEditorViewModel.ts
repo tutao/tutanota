@@ -90,7 +90,7 @@ export class MinimizedMailEditorViewModel {
 		return this._minimizedEditors
 	}
 
-	getEditorForDraft(mail: Mail): MinimizedEditor | null {
+	getEditorForDraft(mail: tutanotaTypeRefs.Mail): MinimizedEditor | null {
 		return this.getEditorForDraftById(mail._id)
 	}
 

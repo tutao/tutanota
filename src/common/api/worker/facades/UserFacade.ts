@@ -1,14 +1,12 @@
-import { GroupType } from "../../common/TutanotaConstants"
-import { Aes256Key, AesKey, decryptKey } from "@tutao/crypto"
+import { Aes256Key, AesKey, cryptoUtils, decryptKey } from "@tutao/crypto"
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
+import { isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
-import { isSameId } from "@tutao/typeRefs"
 import { KeyCache } from "./KeyCache.js"
-import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
+import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
 import { CryptoError } from "@tutao/crypto/error"
-import { checkKeyVersionConstraints, parseKeyVersion } from "./KeyLoaderFacade.js"
+import { GroupType } from "@tutao/appEnv"
 
 export interface AuthDataProvider {
 	/**
@@ -21,9 +19,9 @@ export interface AuthDataProvider {
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade implements AuthDataProvider {
-	private user: User | null = null
+	private user: sysTypeRefs.User | null = null
 	private accessToken: string | null = null
-	private leaderStatus!: WebsocketLeaderStatus
+	private leaderStatus!: sysTypeRefs.WebsocketLeaderStatus
 
 	constructor(
 		private readonly keyCache: KeyCache,
@@ -47,7 +45,7 @@ export class UserFacade implements AuthDataProvider {
 		return this.accessToken
 	}
 
-	setUser(user: User) {
+	setUser(user: sysTypeRefs.User) {
 		if (this.accessToken == null) {
 			throw new ProgrammingError("invalid state: no access token")
 		}
@@ -60,7 +58,7 @@ export class UserFacade implements AuthDataProvider {
 		}
 		const userGroupMembership = this.user.userGroup
 		const currentUserGroupKey = {
-			version: parseKeyVersion(userGroupMembership.groupKeyVersion),
+			version: cryptoUtils.parseKeyVersion(userGroupMembership.groupKeyVersion),
 			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
 		}
 		this.keyCache.setCurrentUserGroupKey(currentUserGroupKey)
@@ -72,7 +70,7 @@ export class UserFacade implements AuthDataProvider {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		// Why this magic + 1? Because we don't have access to the new version number when calling this function so we compute it from the current one
-		const newUserGroupKeyVersion = checkKeyVersionConstraints(currentUserGroupKeyVersion + 1)
+		const newUserGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints(currentUserGroupKeyVersion + 1)
 		const userGroupMembership = this.user.userGroup
 		const legacyUserDistKey = this.deriveLegacyUserDistKey(userGroupMembership.group, userPassphraseKey)
 		const userDistKey = this.deriveUserDistKey(userGroupMembership.group, newUserGroupKeyVersion, userPassphraseKey)
@@ -117,7 +115,7 @@ export class UserFacade implements AuthDataProvider {
 		})
 	}
 
-	async updateUser(user: User) {
+	async updateUser(user: sysTypeRefs.User) {
 		if (this.user == null) {
 			throw new ProgrammingError("Update user is called without logging in. This function is not for you.")
 		}
@@ -125,7 +123,7 @@ export class UserFacade implements AuthDataProvider {
 		await this.keyCache.removeOutdatedGroupKeys(user)
 	}
 
-	getUser(): User | null {
+	getUser(): sysTypeRefs.User | null {
 		return this.user
 	}
 
@@ -164,8 +162,8 @@ export class UserFacade implements AuthDataProvider {
 		return currentUserGroupKey
 	}
 
-	getMembership(groupId: Id): GroupMembership {
-		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameId(g.group, groupId))
+	getMembership(groupId: Id): sysTypeRefs.GroupMembership {
+		let membership = this.getLoggedInUser().memberships.find((g: sysTypeRefs.GroupMembership) => isSameId(g.group, groupId))
 
 		if (!membership) {
 			throw new Error(`No membership with groupId ${groupId} found!`)
@@ -211,11 +209,11 @@ export class UserFacade implements AuthDataProvider {
 		return this.keyCache.getCurrentUserGroupKey() != null
 	}
 
-	getLoggedInUser(): User {
+	getLoggedInUser(): sysTypeRefs.User {
 		return assertNotNull(this.user)
 	}
 
-	setLeaderStatus(status: WebsocketLeaderStatus) {
+	setLeaderStatus(status: sysTypeRefs.WebsocketLeaderStatus) {
 		this.leaderStatus = status
 		console.log("New leader status set:", status.leaderStatus)
 	}
@@ -228,7 +226,7 @@ export class UserFacade implements AuthDataProvider {
 		this.user = null
 		this.accessToken = null
 		this.keyCache.reset()
-		this.leaderStatus = createWebsocketLeaderStatus({
+		this.leaderStatus = sysTypeRefs.createWebsocketLeaderStatus({
 			leaderStatus: false,
 			// a valid applicationVersionSum and applicationTypesHash can only be provided by the server
 			applicationVersionSum: null,
@@ -236,7 +234,7 @@ export class UserFacade implements AuthDataProvider {
 		})
 	}
 
-	updateUserGroupKey(userGroupKeyDistribution: UserGroupKeyDistribution) {
+	updateUserGroupKey(userGroupKeyDistribution: sysTypeRefs.UserGroupKeyDistribution) {
 		const userDistKey = this.keyCache.getUserDistKey()
 		if (userDistKey == null) {
 			console.log("could not update userGroupKey because distribution key is not available")
@@ -268,7 +266,7 @@ export class UserFacade implements AuthDataProvider {
 		}
 		const newUserGroupKey = {
 			object: newUserGroupKeyBytes,
-			version: parseKeyVersion(userGroupKeyDistribution.userGroupKeyVersion),
+			version: cryptoUtils.parseKeyVersion(userGroupKeyDistribution.userGroupKeyVersion),
 		}
 		this.setNewUserGroupKey(newUserGroupKey)
 	}

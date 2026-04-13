@@ -31,7 +31,7 @@ import { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import { assertMainOrNodeBoot, bootFinished } from "@tutao/appEnv"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -39,12 +39,13 @@ import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
-import { FeatureType } from "../common/api/common/TutanotaConstants"
+import { FeatureType } from "@tutao/appEnv"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
 import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
+import { isApp, isBrowser, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -178,15 +179,15 @@ import("./translations/en.js")
 						return
 					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
-					if (isOfflineStorageAvailable()) {
+					if (!isBrowser() && !(env.mode === Mode.Admin)) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
 						m.redraw()
 					}
 
 					if (mailLocator.mailModel.canManageLabels() && !mailLocator.logins.getUserController().props.defaultLabelCreated) {
-						const { TutanotaPropertiesTypeRef } = await import("../common/api/entities/tutanota/TypeRefs")
+						const { tutanotaTypeRefs } = await import("@tutao/typeRefs")
 						const reloadTutanotaProperties = await mailLocator.entityClient.loadRoot(
-							TutanotaPropertiesTypeRef,
+							tutanotaTypeRefs.TutanotaPropertiesTypeRef,
 							mailLocator.logins.getUserController().user.userGroup.group,
 							{ cacheMode: CacheMode.WriteOnly },
 						)
@@ -249,7 +250,7 @@ import("./translations/en.js")
 			}
 		})
 
-		if (isOfflineStorageAvailable()) {
+		if (!isBrowser() && !(env.mode === Mode.Admin)) {
 			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 			mailLocator.logins.addPostLoginAction(
 				async () =>

@@ -1,5 +1,5 @@
 import m, { Vnode } from "mithril"
-import { assertMainOrNode, isDesktop, isIOSApp } from "../api/common/Env"
+import { assertMainOrNode, AvailablePlanType, isDesktop, isIOSApp, PlanType, SubscriptionType } from "@tutao/appEnv"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
@@ -8,7 +8,7 @@ import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscri
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "../subscription/utils/PriceUtils"
-import { AvailablePlanType, getDefaultPaymentMethod, InvoiceData, PaymentData, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { InvoiceData } from "@tutao/appEnv"
 import { canSubscribeToPlan, queryAppStoreSubscriptionOwnership, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { locator } from "../api/main/CommonLocator"
 import {
@@ -21,7 +21,6 @@ import {
 } from "../misc/LoginUtils"
 import { FeatureListProvider, SelectedSubscriptionOptions, UpgradePriceType } from "../subscription/FeatureListProvider"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
-import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs"
 import { PowSolution } from "../api/common/pow-worker"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
@@ -29,7 +28,7 @@ import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
 import { theme } from "../gui/theme"
-import { Country } from "../api/common/CountryList"
+import { Country } from "../../appEnv/CountryList"
 import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
@@ -38,6 +37,7 @@ import { windowFacade } from "../misc/WindowFacade"
 import SignupWizardLayout from "./SignupWizardLayout"
 import { noOp } from "@tutao/utils"
 import { Icons } from "../gui/base/icons/Icons"
+import { getDefaultPaymentMethod, PaymentData, sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -56,8 +56,8 @@ export class SignupViewModel {
 	public targetPlanType: PlanType
 	public price: SubscriptionPrice | null
 	public nextYearPrice: SubscriptionPrice | null
-	public accountingInfo: AccountingInfo | null
-	public customer: Customer | null
+	public accountingInfo: sysTypeRefs.AccountingInfo | null
+	public customer: sysTypeRefs.Customer | null
 	public newAccountData: NewAccountData | null
 	public registrationDataId: string | null
 	public priceInfoTextId?: TranslationKey | null

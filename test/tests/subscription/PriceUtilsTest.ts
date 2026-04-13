@@ -6,8 +6,8 @@ import { lang } from "../../../src/common/misc/LanguageViewModel"
 import en from "../../../src/mail-app/translations/en"
 import { ProgrammingError } from "../../../src/common/api/common/error/ProgrammingError.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
-import { PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { UserError } from "../../../src/common/api/main/UserError.js"
+import { PlanType } from "@tutao/appEnv"
 
 o.spec("PriceUtilsTest", function () {
 	o.before(async function () {

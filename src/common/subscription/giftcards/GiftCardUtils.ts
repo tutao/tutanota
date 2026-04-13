@@ -1,7 +1,5 @@
 import m, { Children } from "mithril"
 import { Icons } from "../../gui/base/icons/Icons"
-import type { CustomerInfo, GiftCard } from "../../api/entities/sys/TypeRefs.js"
-import { CustomerInfoTypeRef, CustomerTypeRef, GiftCardTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { locator } from "../../api/main/CommonLocator"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { UserError } from "../../api/main/UserError"
@@ -9,15 +7,16 @@ import { Dialog } from "../../gui/base/Dialog"
 import { ButtonType } from "../../gui/base/Button.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
-import { isAndroidApp, isApp } from "../../api/common/Env"
 import { Checkbox } from "../../gui/base/Checkbox.js"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { formatPrice } from "../utils/PriceUtils.js"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { urlEncodeHtmlTags } from "../../misc/Formatter.js"
 import QRCode from "qrcode-svg"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { isAndroidApp, isApp } from "@tutao/appEnv"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",
@@ -41,21 +40,21 @@ export async function getTokenFromUrl(url: string): Promise<{ id: Id; key: strin
 	}
 }
 
-export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
+export function loadGiftCards(customerId: Id): Promise<sysTypeRefs.GiftCard[]> {
 	const entityClient = locator.entityClient
 	return entityClient
-		.load(CustomerTypeRef, customerId)
-		.then((customer) => entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-		.then((customerInfo: CustomerInfo) => {
+		.load(sysTypeRefs.CustomerTypeRef, customerId)
+		.then((customer) => entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo))
+		.then((customerInfo: sysTypeRefs.CustomerInfo) => {
 			if (customerInfo.giftCards) {
-				return entityClient.loadAll(GiftCardTypeRef, customerInfo.giftCards.items)
+				return entityClient.loadAll(sysTypeRefs.GiftCardTypeRef, customerInfo.giftCards.items)
 			} else {
 				return Promise.resolve([])
 			}
 		})
 }
 
-export async function generateGiftCardLink(giftCard: GiftCard): Promise<string> {
+export async function generateGiftCardLink(giftCard: sysTypeRefs.GiftCard): Promise<string> {
 	const token = await locator.giftCardFacade.encodeGiftCardToken(giftCard)
 	const giftCardBaseUrl = locator.domainConfigProvider().getCurrentDomainConfig().giftCardBaseUrl
 	const giftCardUrl = new URL(giftCardBaseUrl)
@@ -63,7 +62,7 @@ export async function generateGiftCardLink(giftCard: GiftCard): Promise<string> 
 	return giftCardUrl.href
 }
 
-export function showGiftCardToShare(giftCard: GiftCard) {
+export function showGiftCardToShare(giftCard: sysTypeRefs.GiftCard) {
 	generateGiftCardLink(giftCard).then((link) => {
 		let infoMessage: MaybeTranslation = "emptyString_msg"
 		const dialog: Dialog = Dialog.largeDialog(

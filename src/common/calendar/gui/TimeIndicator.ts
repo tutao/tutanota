@@ -1,8 +1,8 @@
 import { Time } from "../date/Time"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { layout_size, px, size } from "../../gui/size"
-import { DAY_IN_MINUTES } from "@tutao/utils"
 import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
+import { DAY_IN_MINUTES } from "@tutao/appEnv"
 
 export interface TimeIndicatorAttrs {
 	timeBadgeConfig?: {

@@ -1,22 +1,21 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
+import type { LanguageCode } from "../../misc/LanguageViewModel"
 import { lang, languageByCode } from "../../misc/LanguageViewModel"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
-import { ButtonType } from "../../gui/base/Button.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
-import type { NotificationMailTemplate } from "../../api/entities/sys/TypeRefs.js"
 import { downcast } from "@tutao/utils"
-import type { LanguageCode } from "../../misc/LanguageViewModel"
-import Stream from "mithril/stream"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export type WhitelabelNotificationEmailSettingsAttrs = {
-	notificationMailTemplates: Array<NotificationMailTemplate>
+	notificationMailTemplates: Array<sysTypeRefs.NotificationMailTemplate>
 	onAddTemplate: () => unknown
-	onEditTemplate: (arg0: NotificationMailTemplate) => unknown
-	onRemoveTemplate: (arg0: NotificationMailTemplate) => unknown
+	onEditTemplate: (arg0: sysTypeRefs.NotificationMailTemplate) => unknown
+	onRemoveTemplate: (arg0: sysTypeRefs.NotificationMailTemplate) => unknown
 }
 
 export class WhitelabelNotificationEmailSettings implements Component<WhitelabelNotificationEmailSettingsAttrs> {
@@ -32,10 +31,10 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 	}
 
 	_renderNotificationEmailSettings(
-		notificationMailTemplates: Array<NotificationMailTemplate>,
+		notificationMailTemplates: Array<sysTypeRefs.NotificationMailTemplate>,
 		onAddTemplate: () => unknown,
-		onEditTemplate: (arg0: NotificationMailTemplate) => unknown,
-		onRemoveTemplate: (arg0: NotificationMailTemplate) => unknown,
+		onEditTemplate: (arg0: sysTypeRefs.NotificationMailTemplate) => unknown,
+		onRemoveTemplate: (arg0: sysTypeRefs.NotificationMailTemplate) => unknown,
 	): Children {
 		return [
 			m(".flex-space-between.items-center.mt-32.mb-8", [

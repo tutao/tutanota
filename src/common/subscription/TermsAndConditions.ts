@@ -3,13 +3,13 @@
  */
 import m, { Children } from "mithril"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
-import { isApp } from "../api/common/Env"
 import { requestFromWebsite } from "../misc/Website"
 import { Dialog } from "../gui/base/Dialog"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { ButtonType } from "../gui/base/Button.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { isApp } from "@tutao/appEnv"
 
 /**
  * The most up-to-date versions of the terms and conditions, privacy statement, and gift card terms

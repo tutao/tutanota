@@ -1,8 +1,8 @@
 import { MARGIN_LEFT, MARGIN_TOP, PDF_FONTS, PDF_IMAGES, PdfDocument, TABLE_VERTICAL_SPACING, TableColumn } from "../pdf/PdfDocument.js"
 import InvoiceTexts from "./InvoiceTexts.js"
 import { PdfWriter } from "../pdf/PdfWriter.js"
-import { InvoiceDataGetOut } from "../../entities/sys/TypeRefs.js"
 import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 /**
  * Object generating a PDF invoice document.
@@ -14,9 +14,9 @@ export class PdfInvoiceGenerator {
 	private readonly languageCode: "de" | "en" = "en"
 	private readonly invoiceNumber: string
 	private readonly customerId: string
-	private invoice: InvoiceDataGetOut
+	private invoice: sysTypeRefs.InvoiceDataGetOut
 
-	constructor(pdfWriter: PdfWriter, invoice: InvoiceDataGetOut, invoiceNumber: string, customerId: string) {
+	constructor(pdfWriter: PdfWriter, invoice: sysTypeRefs.InvoiceDataGetOut, invoiceNumber: string, customerId: string) {
 		this.invoice = invoice
 		this.invoiceNumber = invoiceNumber
 		this.customerId = customerId

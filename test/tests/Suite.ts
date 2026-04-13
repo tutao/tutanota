@@ -222,7 +222,7 @@ import "./crypto/AeadFacadeTest.js"
 import "./usagetests/UsageTestAll.js"
 
 import * as td from "testdouble"
-import { Mode } from "../../src/common/api/common/Env"
+import { Mode } from "@tutao/appEnv"
 
 export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
 	await setupSuite({ integration })

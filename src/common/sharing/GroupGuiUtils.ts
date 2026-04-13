@@ -1,9 +1,9 @@
 import type { MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
-import { GroupType } from "../api/common/TutanotaConstants"
 import { getDefaultGroupName, ShareableGroupType } from "./GroupUtils"
-import type { ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
 import type { lazy } from "@tutao/utils"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { GroupType } from "@tutao/appEnv"
 
 export type GroupSharingTexts = {
 	readonly groupNameLabel: TranslationKey
@@ -18,7 +18,7 @@ export type GroupSharingTexts = {
 	readonly removeMemberMessage: (groupName: string, member: string) => string
 	readonly alreadyGroupMemberMessage: MaybeTranslation
 	readonly receivedGroupInvitationMessage: string
-	readonly sharedGroupDefaultCustomName: (invitation: ReceivedGroupInvitation) => string
+	readonly sharedGroupDefaultCustomName: (invitation: sysTypeRefs.ReceivedGroupInvitation) => string
 	readonly yourCustomNameLabel: (groupName: string) => string
 }
 

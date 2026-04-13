@@ -10,7 +10,7 @@ import type { CredentialsProvider } from "../misc/credentials/CredentialsProvide
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig.js"

@@ -3,7 +3,7 @@ import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { px } from "../../../common/gui/size.js"
 
 export type KnowledgebaseListEntryAttrs = {
-	entry: KnowledgeBaseEntry
+	entry: tutanotaTypeRefs.KnowledgeBaseEntry
 }
 export const KNOWLEDGEBASE_LIST_ENTRY_HEIGHT = 50
 

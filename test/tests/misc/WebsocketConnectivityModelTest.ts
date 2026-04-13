@@ -16,10 +16,10 @@ o.spec("WebsocketConnectivityModelTest", function () {
 		let leaderStatusListenerMock = func<(current: boolean) => Promise<void>>()
 		websocketConnectivityModel.addLeaderStatusListener(leaderStatusListenerMock)
 
-		const mockWebsocketLeaderStatus: WebsocketLeaderStatus = object()
+		const mockWebsocketLeaderStatus: sysTypeRefs.WebsocketLeaderStatus = object()
 		mockWebsocketLeaderStatus.leaderStatus = false
 		await websocketConnectivityModel.onLeaderStatusMessageReceived(mockWebsocketLeaderStatus)
-		verify(leaderStatusListenerMock(false), { times: 0 }) // listener not called because value didnt change
+		verify(leaderStatusListenerMock(false), { times: 0 }) // listener not called because value didn't change
 
 		mockWebsocketLeaderStatus.leaderStatus = true
 		await websocketConnectivityModel.onLeaderStatusMessageReceived(mockWebsocketLeaderStatus)
@@ -31,7 +31,7 @@ o.spec("WebsocketConnectivityModelTest", function () {
 	})
 
 	o("onLeaderStatusChanged broadcasts its value ONLY when it is changed", async function () {
-		const mockWebsocketLeaderStatus: WebsocketLeaderStatus = object()
+		const mockWebsocketLeaderStatus: sysTypeRefs.WebsocketLeaderStatus = object()
 		mockWebsocketLeaderStatus.leaderStatus = true
 
 		let leaderStatusListenerMock = func<(current: boolean) => Promise<void>>()

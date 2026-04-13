@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTA_MAIL_ADDRESS_DOMAINS, UpgradePromptType } from "../../api/common/TutanotaConstants.js"
+import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, NewPaidPlans, TUTA_MAIL_ADDRESS_DOMAINS, UpgradePromptType } from "@tutao/appEnv"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"

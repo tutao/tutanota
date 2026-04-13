@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
-import { ContactWebsiteType } from "./ContactWebsiteType.js"
+import { ContactWebsiteType } from "@tutao/appEnv"
+
 export interface StructuredWebsite {
 	readonly url: string
 	readonly type: ContactWebsiteType

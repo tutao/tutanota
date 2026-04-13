@@ -2,7 +2,7 @@ import m, { Component, Vnode } from "mithril"
 import { component_size, font_size, px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
 import { type Callback } from "@tutao/utils"
-import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
+import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/appEnv"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"
 import { isLightTheme, theme, Theme } from "../../gui/theme.js"
@@ -17,6 +17,8 @@ import { PlanConfig } from "./BusinessPlanContainer"
 import { boxShadowHigh } from "../../gui/main-styles"
 import { blackFridayTheme, DiscountDetail, getBorderColor, getBorderRadius, getBorderWidth, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
+import { PlanTypeToName } from "@tutao/typeRefs"
+import { PlanType } from "@tutao/appEnv"
 
 type PersonalPlanBoxAttrs = {
 	planConfig: PlanConfig

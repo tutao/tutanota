@@ -7,8 +7,8 @@ import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHan
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
+import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { sysTypeRefs } from "@tutao/typeRefs"
-import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/common/api/common/TutanotaConstants"
 
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade
@@ -29,9 +29,9 @@ o.spec("OfflineStorageIndexer", () => {
 	})
 
 	o.spec("fullLoginInit", () => {
-		let user: User
+		let user: sysTypeRefs.User
 		o.beforeEach(() => {
-			user = createTestEntity(UserTypeRef, {})
+			user = createTestEntity(sysTypeRefs.UserTypeRef, {})
 			when(userFacade.getUser()).thenReturn(user)
 		})
 
@@ -50,7 +50,7 @@ o.spec("OfflineStorageIndexer", () => {
 			}
 			when(persistence.getIndexedGroups()).thenResolve([removedGroup, groupThatStays])
 			user.memberships.push(
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					group: groupThatStaysId,
 					groupType: groupThatStays.type,
 				}),
@@ -78,12 +78,12 @@ o.spec("OfflineStorageIndexer", () => {
 			}
 			when(persistence.getIndexedGroups()).thenResolve([groupThatStays])
 			user.memberships.push(
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					group: groupThatStaysId,
 					groupType: groupThatStays.type,
 				}),
 			)
-			const addedGroupMembership = createTestEntity(GroupMembershipTypeRef, {
+			const addedGroupMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 				group: addedGroupId,
 				groupType: addedGroup.type,
 			})

@@ -10,11 +10,11 @@ import {
 	timestampToHexGeneratedId,
 } from "@tutao/typeRefs"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
+import { tutanotaTypeModels } from "@tutao/typeRefs"
 
 import { ElementEntity } from "@tutao/typeRefs"
 import { clone, TypeRef } from "@tutao/utils"
-import { hasError } from "../../../../../src/common/api/common/utils/ErrorUtils.js"
+import { hasError } from "@tutao/typeRefs"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {
@@ -54,7 +54,7 @@ o.spec("EntityUtils", function () {
 	})
 
 	o("create new entity without error object ", function () {
-		const mailEntity = create(typeModels[MailTypeRef.typeId], MailTypeRef)
+		const mailEntity = create(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId], tutanotaTypeRefs.MailTypeRef)
 		o(mailEntity._errors).equals(undefined)
 		o(hasError(mailEntity)).equals(false)
 

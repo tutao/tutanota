@@ -1,7 +1,7 @@
 import type { KeyVerificationFacade } from "../api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicIdentityKeyProvider } from "../api/worker/facades/PublicIdentityKeyProvider"
 import { MailAddressAndName } from "../api/common/CommonMailUtils"
-import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../api/common/TutanotaConstants"
+import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/appEnv"
 
 /**
  * Handles the high level logic of how to deal with key verification errors for senders.

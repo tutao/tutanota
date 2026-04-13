@@ -1,4 +1,3 @@
-import { createPushIdentifier, User } from "../../common/api/entities/sys/TypeRefs.js"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { lang, type TranslationKey } from "../../common/misc/LanguageViewModel.js"
@@ -6,11 +5,12 @@ import m from "mithril"
 import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { assertNotNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
-import { PushServiceType, UpgradePromptType } from "../../common/api/common/TutanotaConstants.js"
+import { PushServiceType, UpgradePromptType } from "@tutao/appEnv"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
 import { AppType } from "../../common/misc/ClientConstants.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class AddNotificationEmailDialog {
 	constructor(
@@ -47,8 +47,8 @@ export class AddNotificationEmailDialog {
 		}
 	}
 
-	private createNotificationEmail(mailAddress: string, user: User) {
-		const pushIdentifier = createPushIdentifier({
+	private createNotificationEmail(mailAddress: string, user: sysTypeRefs.User) {
+		const pushIdentifier = sysTypeRefs.createPushIdentifier({
 			_area: "0", // legacy
 			_owner: user.userGroup.group, // legacy
 			_ownerGroup: user.userGroup.group,

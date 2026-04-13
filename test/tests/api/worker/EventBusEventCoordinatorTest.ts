@@ -1,17 +1,9 @@
 import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { func, matchers, object, verify, when } from "testdouble"
-import {
-	Group,
-	GroupKeyUpdateTypeRef,
-	GroupMembershipTypeRef,
-	GroupTypeRef,
-	User,
-	UserGroupKeyDistributionTypeRef,
-	UserTypeRef,
-} from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 import { createTestEntity } from "../../TestUtils.js"
-import { OperationType, RolloutType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { RolloutType } from "@tutao/appEnv"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { lazyAsync, lazyMemoized } from "@tutao/utils"
@@ -19,20 +11,20 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { RolloutFacade } from "../../../../src/common/api/worker/facades/RolloutFacade"
 import { GroupManagementFacade } from "../../../../src/common/api/worker/facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker"
 import { IdentityKeyCreator } from "../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 
 import { noPatchesAndInstance } from "./EventBusClientTest"
+import { OperationType } from "@tutao/appEnv"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
 	let userId = "userId"
 	let userGroupId = "userGroupId"
 	let userGroupKeyVersion = "1"
-	let user: User
+	let user: sysTypeRefs.User
 	let userGroupKeyDistribution
 	let userFacade: UserFacade
 	let entityClient: EntityClient
@@ -47,21 +39,21 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let teamGroupIds: Id[]
 
 	o.beforeEach(function () {
-		user = createTestEntity(UserTypeRef, {
-			userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }),
+		user = createTestEntity(sysTypeRefs.UserTypeRef, {
+			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, { group: userGroupId }),
 			_id: userId,
 		})
 		userFacade = object()
 		when(userFacade.getUser()).thenReturn(user)
 		when(userFacade.getUserGroupId()).thenReturn(userGroupId)
 		entityClient = object()
-		const userGroup: Group = object()
+		const userGroup: sysTypeRefs.Group = object()
 		userGroup.currentKeys = object()
 		userGroup.groupKeyVersion = userGroupKeyVersion
-		when(entityClient.load(GroupTypeRef, userGroupId)).thenResolve(userGroup)
-		when(entityClient.load(UserTypeRef, userId)).thenResolve(user)
-		userGroupKeyDistribution = createTestEntity(UserGroupKeyDistributionTypeRef, { _id: userGroupId })
-		when(entityClient.load(UserGroupKeyDistributionTypeRef, userGroupId)).thenResolve(userGroupKeyDistribution)
+		when(entityClient.load(sysTypeRefs.GroupTypeRef, userGroupId)).thenResolve(userGroup)
+		when(entityClient.load(sysTypeRefs.UserTypeRef, userId)).thenResolve(user)
+		userGroupKeyDistribution = createTestEntity(sysTypeRefs.UserGroupKeyDistributionTypeRef, { _id: userGroupId })
+		when(entityClient.load(sysTypeRefs.UserGroupKeyDistributionTypeRef, userGroupId)).thenResolve(userGroupKeyDistribution)
 		mailFacade = object()
 		let lazyMailFacade: lazyAsync<MailFacade> = lazyMemoized(async () => mailFacade)
 		eventController = object()
@@ -191,16 +183,16 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	})
 
 	o("updateUser and UserGroupKeyDistribution", async function () {
-		const updates: Array<EntityUpdateData> = [
+		const updates: Array<entityUpdateUtils.EntityUpdateData> = [
 			{
-				typeRef: UserTypeRef,
+				typeRef: sysTypeRefs.UserTypeRef,
 				instanceId: userId,
 				instanceListId: null,
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
 			},
 			{
-				typeRef: UserGroupKeyDistributionTypeRef,
+				typeRef: sysTypeRefs.UserGroupKeyDistributionTypeRef,
 				instanceId: userGroupId,
 				instanceListId: null,
 				operation: OperationType.CREATE,
@@ -217,9 +209,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	})
 
 	o("updateUser only user update", async function () {
-		const updates: Array<EntityUpdateData> = [
+		const updates: Array<entityUpdateUtils.EntityUpdateData> = [
 			{
-				typeRef: UserTypeRef,
+				typeRef: sysTypeRefs.UserTypeRef,
 				instanceId: userId,
 				instanceListId: null,
 				operation: OperationType.UPDATE,
@@ -238,9 +230,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	o("groupKeyUpdate", async function () {
 		const instanceListId = "updateListId"
 		const instanceId = "updateElementId"
-		const updates: Array<EntityUpdateData> = [
+		const updates: Array<entityUpdateUtils.EntityUpdateData> = [
 			{
-				typeRef: GroupKeyUpdateTypeRef,
+				typeRef: sysTypeRefs.GroupKeyUpdateTypeRef,
 				instanceListId,
 				instanceId,
 				operation: OperationType.CREATE,

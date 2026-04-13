@@ -5,16 +5,7 @@ import {
 	MailViewerViewModel,
 	UnsubscribeType,
 } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
-import {
-	ConversationEntryTypeRef,
-	HeaderTypeRef,
-	Mail,
-	MailAddressTypeRef,
-	MailDetails,
-	MailDetailsTypeRef,
-	MailTypeRef,
-	RecipientsTypeRef,
-} from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { ConfigurationDatabase } from "../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -26,14 +17,7 @@ import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.j
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import {
-	EncryptionAuthStatus,
-	ExternalImageRule,
-	MailAuthenticationStatus,
-	MailPhishingStatus,
-	MailState,
-} from "../../../../src/common/api/common/TutanotaConstants.js"
-import { GroupInfoTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EncryptionAuthStatus, ExternalImageRule, MailAuthenticationStatus, MailPhishingStatus } from "@tutao/appEnv"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
@@ -43,14 +27,14 @@ import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast } from "@tutao/utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/mail-app/UndoModel"
-import { isBrowser } from "../../../../src/common/api/common/Env"
 import { CommonSystemFacade } from "../../../../src/common/native/common/generatedipc/CommonSystemFacade"
 import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 import { TransferProgressDispatcher } from "../../../../src/common/api/main/TransferProgressDispatcher"
+import { isBrowser, MailState } from "@tutao/appEnv"
 
 o.spec("MailViewerViewModel", function () {
-	let mail: Mail
-	let mailDetails: MailDetails
+	let mail: tutanotaTypeRefs.Mail
+	let mailDetails: tutanotaTypeRefs.MailDetails
 	let showFolder: boolean = false
 	let entityClient: EntityClient
 
@@ -119,26 +103,26 @@ o.spec("MailViewerViewModel", function () {
 
 	function prepareMailWithHeaders(mailFacade: MailFacade, headers: string) {
 		const toRecipients = [
-			createTestEntity(MailAddressTypeRef, {
+			createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 				name: "Ma",
 				address: "ma@tuta.com",
 			}),
 		]
-		mail = createTestEntity(MailTypeRef, {
+		mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_id: ["mailListId", "mailId"],
 			listUnsubscribe: true,
 			mailDetails: ["mailDetailsListId", "mailDetailsId"],
 			state: MailState.RECEIVED,
-			sender: createTestEntity(MailAddressTypeRef, {
+			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
 				name: "ListSender",
 				address: "sender@list.com",
 			}),
 		})
-		mailDetails = createTestEntity(MailDetailsTypeRef, {
-			headers: createTestEntity(HeaderTypeRef, {
+		mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+			headers: createTestEntity(tutanotaTypeRefs.HeaderTypeRef, {
 				headers,
 			}),
-			recipients: createTestEntity(RecipientsTypeRef, {
+			recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
 				toRecipients,
 			}),
 			body: object(),
@@ -149,14 +133,14 @@ o.spec("MailViewerViewModel", function () {
 		when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
 		when(configFacade.getExternalImageRule(mail.sender.address)).thenResolve(ExternalImageRule.None)
 		when(mailModel.checkMailForPhishing(matchers.anything(), matchers.anything())).thenResolve(false)
-		when(entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)).thenResolve(object())
+		when(entityClient.load(tutanotaTypeRefs.ConversationEntryTypeRef, mail.conversationEntry)).thenResolve(object())
 		when(workerFacade.urlify(matchers.anything())).thenResolve("")
 		when(commonSystemFacade.executePostRequest(matchers.anything(), matchers.anything())).thenResolve(true)
 	}
 
 	o.spec("renderFailureBanner", function () {
 		let viewModel: MailViewerViewModel
-		let mailDetails: MailDetails
+		let mailDetails: tutanotaTypeRefs.MailDetails
 		o.beforeEach(async function () {
 			viewModel = makeViewModelWithHeaders("")
 			viewModel.mail.phishingStatus = MailPhishingStatus.UNKNOWN
@@ -236,7 +220,7 @@ o.spec("MailViewerViewModel", function () {
 	o.spec("unsubscribe", function () {
 		function initUnsubscribeHeaders(headers: string) {
 			const viewModel = makeViewModelWithHeaders(headers)
-			const mailGroupInfo = createTestEntity(GroupInfoTypeRef, {
+			const mailGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
 				mailAddressAliases: [],
 				mailAddress: "ma@tuta.com",
 			})

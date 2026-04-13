@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 
 assertMainOrNode()
 export type Attrs = void

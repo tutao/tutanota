@@ -1,20 +1,18 @@
 import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
-import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
 import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
-import { ReceiveInfoService } from "../api/entities/tutanota/Services"
+import { GENERATED_MIN_ID, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../misc/LanguageViewModel.js"
 import { getHourCycle } from "../misc/Formatter.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils.js"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, FeatureType, SecondFactorType, UpgradePromptType } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption, Const, FeatureType, SecondFactorType, UpgradePromptType } from "@tutao/appEnv"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../gui/Notifications"
 import { LockedError, NotAuthorizedError } from "../api/common/error/RestError"
@@ -26,7 +24,6 @@ import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { DateProvider } from "../api/common/DateProvider.js"
-import { createCustomerProperties, SecondFactorTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
@@ -35,9 +32,9 @@ import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
-import { GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
+import { isApp, isDesktop, LOGIN_TITLE, Mode } from "@tutao/appEnv"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -132,7 +129,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-		if (!isAdminClient()) {
+		if (!(env.mode === Mode.Admin)) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
 			const calendarModel = await locator.calendarModel()
@@ -159,11 +156,11 @@ export class PostLoginActions implements PostLoginAction {
 			this.handleExternalSync()
 		}
 
-		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !(env.mode === Mode.Admin)) {
 			const receiveInfoData = tutanotaTypeRefs.createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+			const receiveInfoServicePostOut = await locator.serviceExecutor.post(tutanotaServices.ReceiveInfoService, receiveInfoData)
 			if (receiveInfoServicePostOut && receiveInfoServicePostOut.outdatedVersion) {
 				return Dialog.updateReminder(true, () => {
 					this.updateClient()
@@ -286,7 +283,7 @@ export class PostLoginActions implements PostLoginAction {
 				})
 			}
 
-			const newCustomerProperties = createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
+			const newCustomerProperties = sysTypeRefs.createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
 			newCustomerProperties.lastUpgradeReminder = new Date(this.dateProvider.now())
 			this.entityClient.update(newCustomerProperties).catch(ofClass(LockedError, noOp))
 		}
@@ -305,7 +302,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		if (location.hostname === Const.DEFAULT_APP_DOMAIN) {
 			const user = this.logins.getUserController().user
-			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
+			const secondFactors = await this.entityClient.loadAll(sysTypeRefs.SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
 			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || f.type === SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
 			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === Const.WEBAUTHN_RP_ID)) {
@@ -337,7 +334,13 @@ export class PostLoginActions implements PostLoginAction {
 
 		// Next, check if we have at least one.
 		const user = this.logins.getUserController().user
-		const secondFactors = await this.entityClient.loadRange(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors, GENERATED_MIN_ID, 1, false)
+		const secondFactors = await this.entityClient.loadRange(
+			sysTypeRefs.SecondFactorTypeRef,
+			assertNotNull(user.auth).secondFactors,
+			GENERATED_MIN_ID,
+			1,
+			false,
+		)
 		if (!isEmpty(secondFactors)) {
 			return
 		}

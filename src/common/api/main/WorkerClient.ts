@@ -1,7 +1,7 @@
 import type { Commands } from "../common/threading/MessageDispatcher.js"
 import { MessageDispatcher, Request } from "../common/threading/MessageDispatcher.js"
 import { Transport, WebWorkerTransport } from "../common/threading/Transport.js"
-import { assertMainOrNode } from "../common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"

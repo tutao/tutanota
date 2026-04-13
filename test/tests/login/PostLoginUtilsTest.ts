@@ -2,31 +2,24 @@ import o from "@tutao/otest"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/common/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
-import {
-	Customer,
-	CustomerInfo,
-	CustomerInfoTypeRef,
-	CustomerProperties,
-	CustomerPropertiesTypeRef,
-	CustomerTypeRef,
-} from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { Const } from "../../../src/common/api/common/TutanotaConstants.js"
+import { Const } from "@tutao/appEnv"
 import { createTestEntity } from "../TestUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("PostLoginUtils", () => {
 	o.spec("shouldShowUpgradeReminder", () => {
 		let userController: UserController
-		let customerInfo: CustomerInfo
-		let customerProperties: CustomerProperties
-		let customer: Customer
+		let customerInfo: sysTypeRefs.CustomerInfo
+		let customerProperties: sysTypeRefs.CustomerProperties
+		let customer: sysTypeRefs.Customer
 		const date = new Date("2023-09-05")
 
 		o.beforeEach(() => {
 			userController = object()
 
-			customerInfo = createTestEntity(CustomerInfoTypeRef, {})
-			customerProperties = createTestEntity(CustomerPropertiesTypeRef, {})
-			customer = createTestEntity(CustomerTypeRef)
+			customerInfo = createTestEntity(sysTypeRefs.CustomerInfoTypeRef, {})
+			customerProperties = createTestEntity(sysTypeRefs.CustomerPropertiesTypeRef, {})
+			customer = createTestEntity(sysTypeRefs.CustomerTypeRef)
 
 			when(userController.loadCustomerInfo()).thenResolve(customerInfo)
 			when(userController.loadCustomerProperties()).thenResolve(customerProperties)

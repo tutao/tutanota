@@ -1,20 +1,8 @@
-import { assertMainOrNode } from "../api/common/Env.js"
-import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertMainOrNode, ContactAddressType, ConversationType, GroupType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
-import {
-	ALLOWED_IMAGE_FORMATS,
-	ContactAddressType,
-	ConversationType,
-	EncryptionAuthStatus,
-	GroupType,
-	MailState,
-	MAX_ATTACHMENT_SIZE,
-	MAX_BASE64_IMAGE_SIZE,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-	TUTA_MAIL_ADDRESS_DOMAINS,
-} from "../api/common/TutanotaConstants.js"
+import { ALLOWED_IMAGE_FORMATS, EncryptionAuthStatus, MAX_ATTACHMENT_SIZE, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/appEnv"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../api/common/utils/GroupUtils.js"
 import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -35,7 +23,7 @@ export const LINE_BREAK = "<br>"
  * @param name The name of the contact. If an empty string is provided, the name is parsed from the mail address.
  * @return The contact.
  */
-export function createNewContact(user: User, mailAddress: string, name: string): tutanotaTypeRefs.Contact {
+export function createNewContact(user: sysTypeRefs.User, mailAddress: string, name: string): tutanotaTypeRefs.Contact {
 	// prepare some contact information. it is only saved if the mail is sent securely
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
@@ -91,7 +79,7 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 	}
 }
 
-export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
+export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: sysTypeRefs.GroupInfo): Array<string> {
 	if (isUserMailbox(mailboxDetail)) {
 		return getEnabledMailAddressesForGroupInfo(userGroupInfo)
 	} else {
@@ -99,7 +87,7 @@ export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, us
 	}
 }
 
-export function isAliasEnabledWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo, aliasAddress: string): boolean {
+export function isAliasEnabledWithUser(mailboxDetail: MailboxDetail, userGroupInfo: sysTypeRefs.GroupInfo, aliasAddress: string): boolean {
 	if (isUserMailbox(mailboxDetail)) {
 		return isAliasEnabledForGroupInfo(userGroupInfo, aliasAddress)
 	} else {
@@ -169,7 +157,7 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 	return loginController
 		.getUserController()
 		.reloadCustomer()
-		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		.then((customer) => entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties)))
 		.then((customerProperties) => {
 			return sortedLanguages.filter((sL) => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
 		})

@@ -1,7 +1,7 @@
-import { DnsRecordType } from "../../../common/api/common/TutanotaConstants.js"
-import { DnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
+import { DnsRecordType } from "@tutao/appEnv"
 import m, { Children } from "mithril"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 const enum ActualDnsRecordType {
 	MX = "MX",
@@ -18,7 +18,7 @@ export const DnsRecordTable: Record<DnsRecordType, ActualDnsRecordType> = Object
 	[DnsRecordType.DNS_RECORD_TYPE_TXT_VERIFY]: ActualDnsRecordType.TXT,
 })
 
-export function createDnsRecordTable(records: DnsRecord[]): Children {
+export function createDnsRecordTable(records: sysTypeRefs.DnsRecord[]): Children {
 	return m(Table, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label"],
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],

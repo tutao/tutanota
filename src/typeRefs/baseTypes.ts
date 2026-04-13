@@ -1,4 +1,4 @@
-import { ApplicationTypesHash } from "@tutao/typeRefs"
+import { ApplicationTypesHash } from "./EntityFunctions.js"
 
 /**
  * Do **NOT** change the names of these attributes, they need to match the record found on the

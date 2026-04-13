@@ -30,8 +30,8 @@ o.spec("AllDaySection", function () {
 		]
 	}
 
-	const createAllDayEventStub = (id: string, startDate: Date, endDate: Date): CalendarEvent => {
-		return createTestEntity(CalendarEventTypeRef, {
+	const createAllDayEventStub = (id: string, startDate: Date, endDate: Date): tutanotaTypeRefs.CalendarEvent => {
+		return createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 			_id: ["long-events-list", id],
 			startTime: getAllDayDateUTCFromZone(startDate, getTimeZone()),
 			endTime: getAllDayDateUTCFromZone(endDate, getTimeZone()),
@@ -39,8 +39,8 @@ o.spec("AllDaySection", function () {
 		})
 	}
 
-	const createMultidayEventStub = (id: string, startDate: Date, endDate: Date): CalendarEvent => {
-		return createTestEntity(CalendarEventTypeRef, {
+	const createMultidayEventStub = (id: string, startDate: Date, endDate: Date): tutanotaTypeRefs.CalendarEvent => {
+		return createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 			_id: ["short-events-list", id],
 			startTime: startDate,
 			endTime: endDate,
@@ -73,7 +73,7 @@ o.spec("AllDaySection", function () {
 			})
 
 			o.test("Single all day events timezone", function () {
-				const event = createTestEntity(CalendarEventTypeRef, {
+				const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					_id: ["short-events-list", "event-id"],
 					startTime: new Date(DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 6, hour: 0 }, { zone: "UTC" }).toMillis()),
 					endTime: new Date(DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 7, hour: 0 }, { zone: "UTC" }).toMillis()),
@@ -155,7 +155,7 @@ o.spec("AllDaySection", function () {
 
 			o.test("Event longer than 24 hours spanning two days - timezone", function () {
 				// const event = createMultidayEventStub("28hrs", makeDate(6, 11, 0), makeDate(7, 15, 0))
-				const event = createTestEntity(CalendarEventTypeRef, {
+				const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					_id: ["short-events-list", "event-id"],
 					startTime: DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 7, hour: 2 }, { zone: "Europe/Berlin" }).toJSDate(),
 					endTime: DateTime.fromObject({ year: BASE_YEAR, month: BASE_MONTH + 1, day: 8, hour: 15 }, { zone: "Europe/Berlin" }).toJSDate(),
