@@ -96,13 +96,27 @@ class AlarmNotificationsManager(
 				try {
 					schedule(alarmNotificationEntity.decrypt(crypto, sessionKey))
 				} catch (cryptoError: CryptoError) {
-					Log.e(TAG, "Failed to decrypt notification to schedule new alarm ", cryptoError)
+					Log.e(
+						TAG,
+						"Failed to decrypt notification to schedule new alarm due to Crypto Error: ",
+						cryptoError
+					)
 				} catch (exception: IllegalArgumentException) {
-					Log.e(TAG, "Failed to decrypt notification to schedule new alarm ", exception)
+					Log.e(
+						TAG,
+						"Failed to decrypt notification to schedule new alarm due to IllegalArgumentException: ",
+						exception
+					)
 				} catch (exception: NumberFormatException) {
-					Log.e(TAG, "Failed to decrypt notification to schedule alarm ", exception)
+					// NOTE: this is may be unreachable because a NumberFormatException is a subtype of an IllegalArgumentException
+					Log.e(
+						TAG,
+						"Failed to decrypt notification to schedule alarm due to NumberFormatException ",
+						exception
+					)
 					return
 				}
+				Log.d(TAG, "storing alarm in sseStorage: $alarmNotificationEntity")
 				sseStorage.insertAlarmNotification(alarmNotificationEntity)
 			} else {
 				cancelScheduledAlarm(alarmNotification, pushKeyResolver)

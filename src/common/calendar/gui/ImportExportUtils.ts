@@ -105,7 +105,6 @@ export type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent
 
 export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly<IcsCalendarEvent>): CalendarEvent {
 	const rrule = icsCalendarEvent.repeatRule
-	console.log("creating repeat rule: " + rrule)
 	const repeatRule = rrule ? createCalendarRepeatRule(fromStrippedRepeatRule(rrule)) : null
 
 	const attendees = icsCalendarEvent.attendees

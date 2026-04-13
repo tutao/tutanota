@@ -1,5 +1,6 @@
 package de.tutao.tutashared.alarms
 
+import android.util.Log
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import de.tutao.tutasdk.ByRule
@@ -82,7 +83,7 @@ fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: B
 		frequency = repeatPeriod,
 		interval = crypto.decryptNumber(interval, sessionKey).toInt(),
 		timeZone = TimeZone.getTimeZone(crypto.decryptString(timeZone, sessionKey)),
-		endValue = if (endValue != null) crypto.decryptNumber(endValue, sessionKey) else null,
+		endValue = if (endValue != null) decryptEndValue(endValue, crypto, sessionKey) else null,
 		endType = endType,
 		excludedDates = excludedDates.map { crypto.decryptDate(it.date, sessionKey) },
 		advancedRules = advancedRules.map {
@@ -103,6 +104,38 @@ private fun assertNumericSetPosInterval(interval: String) {
 		interval.toInt()
 	} catch (e: NumberFormatException) {
 		throw NumberFormatException("Invalid bySetPos rule with interval $interval")
+	}
+}
+
+/**
+ * Robustly handles endValue decryption by handling a common error case.  First attempts to decrypt as number, but gracefully
+ * handles NumberFormatExceptions by checking if the failure is due to an empty string value.
+ *
+ * Handles cases where imported calendars sometimes have the endValue for repeat rules saved as "" in tutadb, which
+ * prevented alarms from being scheduled on Android client when trying to decrypt the repeat rule.
+ *
+ * We are fixing the issue in the calendar event import process so new imports no longer have this issue.  However,
+ * preexisting events with invalid "" values still need to be handled gracefully until further notice.
+ *
+ * More info: https://github.com/tutao/tutanota/issues/10519
+ *
+ */
+private fun decryptEndValue(
+	encryptedEndValue: String,
+	crypto: AndroidNativeCryptoFacade,
+	sessionKey: ByteArray
+): Long? {
+	Log.d("[EncryptedRepeatRule]", "decrypting repeat rule with endValue: $encryptedEndValue")
+	return try {
+		crypto.decryptNumber(encryptedEndValue, sessionKey)
+	} catch (e: NumberFormatException) {
+		val decryptedStringEndValue = crypto.decryptString(encryptedEndValue, sessionKey)
+		if (decryptedStringEndValue == "") {
+			Log.d("[EncryptedRepeatRule]", "Converting empty string RepeatRule.endValue to null")
+			null
+		} else {
+			throw NumberFormatException("Cannot create repeat rule with invalid endValue $decryptedStringEndValue")
+		}
 	}
 }
 
