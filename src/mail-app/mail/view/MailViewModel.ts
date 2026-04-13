@@ -65,7 +65,7 @@ export interface UndoAction {
 	onClear: () => unknown
 }
 
-const SYNC_RELOAD_DEBOUNCE_MS = 1000
+const SYNC_RELOAD_DEBOUNCE_MS = 500
 
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
@@ -94,6 +94,8 @@ export class MailViewModel {
 	private currentShowTargetMarker: object = {}
 	/* We only attempt counter fixup once after switching mailSets and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
+
+	private debouncedListModelReloadPromise: Promise<void> = Promise.resolve()
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -725,7 +727,8 @@ export class MailViewModel {
 			}
 
 			if (isInitialSyncDone) {
-				await listModel.handleEntityUpdate(update)
+				// we need to await the reload promise here, to populate the map (conversationMap/mailMap) inside the list model
+				this.debouncedListModelReloadPromise.then(async () => await listModel.handleEntityUpdate(update))
 			} else {
 				this.debouncedListReload(listModel)
 			}
@@ -737,7 +740,8 @@ export class MailViewModel {
 	 */
 	private readonly debouncedListReload = debounce(SYNC_RELOAD_DEBOUNCE_MS, async (listModel: MailSetListModel) => {
 		console.log("reload listModel due to missedEntityUpdates")
-		await listModel.reload()
+		this.debouncedListModelReloadPromise = listModel.reload()
+		await this.debouncedListModelReloadPromise
 	})
 
 	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData<ImportMailState>) {

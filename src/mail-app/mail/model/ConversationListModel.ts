@@ -345,6 +345,7 @@ export class ConversationListModel implements MailSetListModel {
 
 	async reload() {
 		this.conversationMap.clear()
+		this.mailToConversationMap = new Map()
 		this.lastFetchedMailSetEntryId = null
 		await this.listModel.reload()
 	}
