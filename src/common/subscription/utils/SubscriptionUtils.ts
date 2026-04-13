@@ -15,8 +15,15 @@ import {
 	PlanType,
 	PlanTypeToName,
 } from "../../api/common/TutanotaConstants"
-import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../../api/entities/sys/TypeRefs.js"
-import { Booking, createPaymentDataServiceGetData } from "../../api/entities/sys/TypeRefs.js"
+import {
+	AccountingInfo,
+	Booking,
+	createPaymentDataServiceGetData,
+	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
+	PlanConfiguration,
+} from "../../api/entities/sys/TypeRefs.js"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/CommonLocator"
 import { PaymentDataService } from "../../api/entities/sys/Services"
@@ -27,6 +34,8 @@ import { client } from "../../misc/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
 import { isIOSApp } from "../../api/common/Env.js"
+import { CacheMode } from "../../api/worker/rest/EntityRestClient"
+import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "../../api/common/utils/EntityUpdateUtils"
 
 export const enum UpgradeType {
 	/**
@@ -301,6 +310,51 @@ export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): 
 /** Check if the latest transaction using the current Store Account belongs to the user */
 export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array | null): Promise<MobilePaymentSubscriptionOwnership> {
 	return await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(userIdBytes)
+}
+
+// we can't do the upgrade from the client because apple is supposed to contact us.
+// we can proceed with the flow once we see that the plan on customerInfo is what we
+// ordered.
+export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerInfoId: IdTuple): Promise<boolean> {
+	const timeout_ms = 60_000
+
+	const promise = new Promise<boolean>((resolve) => {
+		try {
+			const customerInfoUpdateListener = {
+				onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
+					for (const update of updates) {
+						if (isUpdateFor(customerInfo, update)) {
+							const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customerInfoId, { cacheMode: CacheMode.WriteOnly })
+							if (expectedPlan === customerInfo.plan) {
+								// plan is now correct!
+								console.log("app store upgrade listener succeeded for", customerInfoId)
+								resolve(true)
+								locator.eventController.removeEntityListener(customerInfoUpdateListener)
+							}
+						}
+					}
+				},
+				priority: OnEntityUpdateReceivedPriority.NORMAL,
+			}
+			locator.eventController.addEntityListener(customerInfoUpdateListener)
+			setTimeout(() => {
+				locator.eventController.removeEntityListener(customerInfoUpdateListener)
+				console.warn("app store upgrade listener timed out for", customerInfoId)
+				resolve(false)
+			}, timeout_ms)
+		} catch (e) {
+			console.error("failed to receive app store upgrade notification for", customerInfoId, e)
+			resolve(false)
+		}
+	})
+
+	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customerInfoId, { cacheMode: CacheMode.WriteOnly })
+	if (expectedPlan === customerInfo.plan) {
+		// plan is already correct!
+		return true
+	}
+
+	return promise
 }
 
 export type GetPriceStrProps = {

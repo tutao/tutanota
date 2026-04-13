@@ -2265,3 +2265,4 @@ export type TranslationKeyType =
 	| "indexingEmails_msg"
 	| "searchUntil_msg"
 	| "emptyString_msg"
+	| "waitingForAppStoreConfirmation_msg"

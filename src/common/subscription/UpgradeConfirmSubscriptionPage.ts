@@ -7,11 +7,17 @@ import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaCon
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
-import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
+import {
+	appStorePlanName,
+	getPreconditionFailedPaymentMsg,
+	SubscriptionApp,
+	UpgradeType,
+	waitUntilCustomerInfoPlanTypeIsCorrect,
+} from "./utils/SubscriptionUtils"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
-import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -42,6 +48,10 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore) {
 			const success = await this.handleAppStorePayment(data)
 			if (!success) {
+				return
+			}
+			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, assertNotNull(data.customer?.customerInfo))
+			if (receivedNotification) {
 				return
 			}
 		}

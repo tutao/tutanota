@@ -6,8 +6,14 @@ import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, AvailablePlanType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
-import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
-import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
+import {
+	appStorePlanName,
+	getPreconditionFailedPaymentMsg,
+	SubscriptionApp,
+	UpgradeType,
+	waitUntilCustomerInfoPlanTypeIsCorrect,
+} from "./utils/SubscriptionUtils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -238,6 +244,13 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			if (!success) {
 				return
 			}
+			const receivedNotification = await showProgressDialog(
+				"waitingForAppStoreConfirmation_msg",
+				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?.customerInfo)),
+			)
+			if (receivedNotification) {
+				return
+			}
 		}
 
 		const serviceData = createSwitchAccountTypePostIn({
@@ -280,10 +293,14 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 	/** @return whether subscribed successfully */
 	private async handleAppStorePayment(data: SignupViewModel): Promise<boolean> {
 		if (!locator.logins.isUserLoggedIn()) {
-			await locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+			await locator.logins.createSession(
+				assertNotNull(data.newAccountData).mailAddress,
+				assertNotNull(data.newAccountData).password,
+				SessionType.Temporary,
+			)
 		}
 
-		const customerId = locator.logins.getUserController().user.customer!
+		const customerId = assertNotNull(locator.logins.getUserController().user.customer)
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
 
 		try {
