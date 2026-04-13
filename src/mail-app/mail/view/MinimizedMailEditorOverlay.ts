@@ -10,7 +10,7 @@ import type { SendMailModel } from "../../../common/mailFunctionality/SendMailMo
 import type { MinimizedEditor, SaveStatus } from "../model/MinimizedMailEditorViewModel"
 import { MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
 import { MinimizedEditorOverlay } from "./MinimizedEditorOverlay"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import Stream from "mithril/stream"
 import { noOp } from "@tutao/utils"
 

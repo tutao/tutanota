@@ -1,5 +1,5 @@
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ReportMovedMailsType } from "../api/common/TutanotaConstants"
+import { ReportMovedMailsType } from "@tutao/appEnv"
 import { downcast } from "@tutao/utils"
 
 /**

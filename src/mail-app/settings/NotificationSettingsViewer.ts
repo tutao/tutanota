@@ -1,16 +1,13 @@
 import m, { Children } from "mithril"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { ExtendedNotificationMode } from "../../common/native/common/generatedipc/ExtendedNotificationMode.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { PushIdentifier, PushIdentifierTypeRef, User } from "../../common/api/entities/sys/TypeRefs.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { isApp, isBrowser, isDesktop } from "../../common/api/common/Env.js"
-import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
+import { PushServiceType } from "@tutao/appEnv"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
@@ -21,11 +18,13 @@ import { PermissionType } from "../../common/native/common/generatedipc/Permissi
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
 import { noOp, ofClass } from "@tutao/utils"
 import { NotFoundError } from "../../common/api/common/error/RestError"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { isApp, isBrowser, isDesktop } from "@tutao/appEnv"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
 	private readonly expanded: Stream<boolean>
-	private readonly user: User
+	private readonly user: sysTypeRefs.User
 	private hasNotificationPermission: boolean = true
 	private receiveCalendarNotifications: boolean = true
 	private readonly model: NotificationSettingsViewerModel
@@ -58,7 +57,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.reloadPushIdentifiers()
 	}
 
-	private togglePushIdentifier(identifier: PushIdentifier) {
+	private togglePushIdentifier(identifier: sysTypeRefs.PushIdentifier) {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
@@ -166,8 +165,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {
-		if (updates.some((update) => isUpdateForTypeRef(PushIdentifierTypeRef, update))) {
+	async entityEventsReceived(updates: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
+		if (updates.some((update) => entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.PushIdentifierTypeRef, update))) {
 			await this.reloadPushIdentifiers()
 		}
 	}

@@ -1,8 +1,6 @@
-import { aesDecrypt, EntropySource, random, Randomizer } from "@tutao/crypto"
+import { aesDecrypt, cryptoUtils, EntropySource, random, Randomizer } from "@tutao/crypto"
 import { UserFacade } from "./UserFacade.js"
-import { cryptoUtils } from "@tutao/crypto"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { EntropyService } from "../../entities/tutanota/Services.js"
+import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lazy, noOp, ofClass } from "@tutao/utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
@@ -54,7 +52,7 @@ export class EntropyFacade {
 			userKeyVersion: userGroupKey.version.toString(),
 		})
 		return this.serviceExecutor
-			.put(EntropyService, entropyData)
+			.put(tutanotaServices.EntropyService, entropyData)
 			.catch(ofClass(LockedError, noOp))
 			.catch(
 				ofClass(ConnectionError, (e) => {

@@ -21,7 +21,7 @@ import {
 	SpamMailProcessor,
 } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { SpamDecision } from "@tutao/appEnv"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 

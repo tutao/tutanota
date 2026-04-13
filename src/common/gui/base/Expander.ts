@@ -7,7 +7,7 @@ import { theme } from "../theme"
 import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { Keys } from "../../api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import { assertNotNull } from "@tutao/utils"
 
 export type ExpanderAttrs = {

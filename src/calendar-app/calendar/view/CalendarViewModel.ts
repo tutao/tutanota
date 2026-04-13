@@ -16,24 +16,11 @@ import {
 	millisToDays,
 	noOp,
 } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import {
-	DEFAULT_CALENDAR_COLOR,
-	EndType,
-	EXTERNAL_CALENDAR_SYNC_INTERVAL,
-	getWeekStart,
-	GroupType,
-	NewPaidPlans,
-	OperationType,
-	TimeFormat,
-	UpgradePromptType,
-	WeekStart,
-} from "../../../common/api/common/TutanotaConstants"
+import { entityUpdateUtils, getElementId, getListId, getWeekStart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { DEFAULT_CALENDAR_COLOR, EndType, EXTERNAL_CALENDAR_SYNC_INTERVAL, NewPaidPlans, TimeFormat, UpgradePromptType, WeekStart } from "@tutao/appEnv"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { getElementId, getListId, isSameId, listIdPart } from "@tutao/typeRefs"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
-import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
@@ -63,7 +50,7 @@ import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
@@ -80,6 +67,7 @@ import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
+import { GroupType, OperationType } from "@tutao/appEnv"
 
 export interface EventWrapperFlags {
 	/**
@@ -279,7 +267,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		})
 
 		calendarInvitationsModel.init()
@@ -355,17 +343,17 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarColorsMap(availableCalendars)
 	}
 
-	async getCalendarNameData(groupInfo: GroupInfo): Promise<GroupNameData> {
+	async getCalendarNameData(groupInfo: sysTypeRefs.GroupInfo): Promise<GroupNameData> {
 		const groupSettingModel = await this.groupSettingsModel()
 		return groupSettingModel.getGroupNameData(groupInfo)
 	}
 
-	async setCalendarGroupInfoName(groupInfo: GroupInfo, name: string): Promise<void> {
+	async setCalendarGroupInfoName(groupInfo: sysTypeRefs.GroupInfo, name: string): Promise<void> {
 		const groupSettingModel = await this.groupSettingsModel()
 		groupSettingModel.updateGroupInfoName(groupInfo, name)
 	}
 
-	async setCalendarGroupSettings(groupInfo: GroupInfo, groupSettings: Partial<tutanotaTypeRefs.GroupSettings>): Promise<void> {
+	async setCalendarGroupSettings(groupInfo: sysTypeRefs.GroupInfo, groupSettings: Partial<tutanotaTypeRefs.GroupSettings>): Promise<void> {
 		const groupSettingModel = await this.groupSettingsModel()
 		groupSettingModel.updateGroupSettings(groupInfo, groupSettings)
 	}
@@ -410,7 +398,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	})
 
-	get calendarInvitations(): Stream<Array<ReceivedGroupInvitation>> {
+	get calendarInvitations(): Stream<Array<sysTypeRefs.ReceivedGroupInvitation>> {
 		return this.calendarInvitationsModel.invitations
 	}
 
@@ -783,12 +771,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
-	private async entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	private async entityEventReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [update.instanceListId, update.instanceId]
 				const previewedEvent = this.previewedEvent()
-				if (previewedEvent != null && isUpdateFor(previewedEvent.event, update)) {
+				if (previewedEvent != null && entityUpdateUtils.isUpdateFor(previewedEvent.event, update)) {
 					if (update.operation === OperationType.DELETE) {
 						this.previewedEvent(null)
 						this.previewedEventId = null
@@ -814,10 +802,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this._removeTransientEvent(transientEvent)
 					this.doRedraw()
 				}
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && this.isNewPaidPlan) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && this.isNewPaidPlan) {
 				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
 				this.doRedraw()
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
 				this.logins
 					.getUserController()
 					.isNewPaidPlan()

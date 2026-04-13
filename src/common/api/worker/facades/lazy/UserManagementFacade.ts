@@ -1,19 +1,15 @@
-import { Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
-import { createResetPasswordPostIn, createUserDataDelete, User } from "../../../entities/sys/TypeRefs.js"
-import { getFirstOrThrow, neverNull } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { Const, CounterType } from "@tutao/appEnv"
+import { sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
-import { assertWorkerOrNode } from "../../../common/Env.js"
+import { assertWorkerOrNode, DEFAULT_KDF_TYPE, GroupType } from "@tutao/appEnv"
 import { aes256RandomKey, AesKey, createAuthVerifier, encryptKey, generateRandomSalt, random } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { ResetPasswordService, UserService } from "../../../entities/sys/Services.js"
-import { UserAccountService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { PQFacade } from "../PQFacade.js"
-import { freshVersioned } from "@tutao/utils"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade, RecoverData } from "./RecoverCodeFacade.js"
 import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "@tutao/instancePipeline"
@@ -37,14 +33,14 @@ export class UserManagementFacade {
 		private readonly identityKeyCreator: IdentityKeyCreator,
 	) {}
 
-	async changeUserPassword(user: User, newPassword: string): Promise<void> {
+	async changeUserPassword(user: sysTypeRefs.User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey.object)
 		const passwordVerifier = createAuthVerifier(passwordKey)
-		const data = createResetPasswordPostIn({
+		const data = sysTypeRefs.createResetPasswordPostIn({
 			user: user._id,
 			salt,
 			verifier: passwordVerifier,
@@ -52,10 +48,10 @@ export class UserManagementFacade {
 			kdfVersion: kdfType,
 			userGroupKeyVersion: String(userGroupKey.version),
 		})
-		await this.serviceExecutor.post(ResetPasswordService, data)
+		await this.serviceExecutor.post(sysServices.ResetPasswordService, data)
 	}
 
-	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
+	async changeAdminFlag(user: sysTypeRefs.User, admin: boolean): Promise<void> {
 		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 
 		if (admin) {
@@ -65,18 +61,18 @@ export class UserManagementFacade {
 		}
 	}
 
-	async readUsedUserStorage(user: User): Promise<number> {
+	async readUsedUserStorage(user: sysTypeRefs.User): Promise<number> {
 		const counterValue = await this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(user.customer), user.userGroup.group)
 		return Number(counterValue)
 	}
 
-	async deleteUser(user: User, restore: boolean): Promise<void> {
-		const data = createUserDataDelete({
+	async deleteUser(user: sysTypeRefs.User, restore: boolean): Promise<void> {
+		const data = sysTypeRefs.createUserDataDelete({
 			user: user._id,
 			restore,
 			date: Const.CURRENT_DATE,
 		})
-		await this.serviceExecutor.delete(UserService, data)
+		await this.serviceExecutor.delete(sysServices.UserService, data)
 	}
 
 	async createUser(
@@ -120,7 +116,7 @@ export class UserManagementFacade {
 				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
-		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
+		const { userGroup } = await this.serviceExecutor.post(tutanotaServices.UserAccountService, data)
 
 		await this.identityKeyCreator.createIdentityKeyPair(
 			userGroup,

@@ -1,18 +1,16 @@
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../../common/misc/LanguageViewModel"
 
 import { component_size } from "../../common/gui/size"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { isSameId, listIdPart } from "@tutao/typeRefs"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
-import { ShareCapability } from "../../common/api/common/TutanotaConstants"
+import { ShareCapability } from "@tutao/appEnv"
 import type { LoginController } from "../../common/api/main/LoginController"
-import type { Group } from "../../common/api/entities/sys/TypeRefs.js"
 import { ListColumnWrapper } from "../../common/gui/ListColumnWrapper"
 import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
 import { memoized, NBSP, noOp } from "@tutao/utils"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../common/gui/SelectableRowContainer.js"
 import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../common/gui/base/ListUtils.js"
@@ -26,7 +24,6 @@ import { theme } from "../../common/gui/theme.js"
 import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
 import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
 import { keyManager } from "../../common/misc/KeyManager.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
@@ -58,7 +55,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
 		private readonly templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot,
-		private readonly templateGroup: Group,
+		private readonly templateGroup: sysTypeRefs.Group,
 		private readonly updateDetailsViewer: (viewer: KnowledgeBaseSettingsDetailsViewer | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
 	) {
@@ -163,9 +160,9 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}
@@ -249,7 +246,7 @@ export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDeta
 		)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<any> {
 		return Promise.resolve()
 	}
 }

@@ -2,10 +2,10 @@ import { component_size, font_size, px } from "../../../common/gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
-import { FeatureType, InboxRuleType, Keys, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../common/api/common/TutanotaConstants"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { FeatureType, Keys, SpamRuleFieldType } from "@tutao/appEnv"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, InboxRuleType, MailSetKind, SpamRuleType } from "@tutao/appEnv"
 import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "@tutao/utils"
 import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -20,7 +20,6 @@ import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../../common/gui/base/GuiUtils"
 import { copyToClipboard } from "../../../common/misc/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
-import { createEmailSenderListElement } from "../../../common/api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
@@ -705,7 +704,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		import("../../settings/AddSpamRuleDialog").then(async ({ showAddSpamRuleDialog }) => {
 			const value = address.trim().toLowerCase()
 			showAddSpamRuleDialog(
-				createEmailSenderListElement({
+				sysTypeRefs.createEmailSenderListElement({
 					value,
 					type: spamRuleType,
 					field: spamRuleField,

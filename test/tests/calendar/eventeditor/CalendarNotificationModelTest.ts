@@ -1,15 +1,16 @@
 import o from "@tutao/otest"
-import { AccountType, FeatureType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { FeatureType } from "@tutao/appEnv"
 import { hasPlanWithInvites } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { object, replace, when } from "testdouble"
-import { Customer, PlanConfigurationTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { AccountType } from "@tutao/appEnv"
 
 o.spec("CalendarNotificationModel", function () {
 	let userController: UserController
-	let customer: Customer
+	let customer: sysTypeRefs.Customer
 	let logins: LoginController
 
 	o.beforeEach(function () {
@@ -23,7 +24,7 @@ o.spec("CalendarNotificationModel", function () {
 	o.spec("hasPlanWithInvites", function () {
 		o("available for users with new paid plan that contains invites", async function () {
 			when(userController.isNewPaidPlan()).thenResolve(true)
-			when(userController.getPlanConfig()).thenResolve(createTestEntity(PlanConfigurationTypeRef, { eventInvites: true }))
+			when(userController.getPlanConfig()).thenResolve(createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, { eventInvites: true }))
 			replace(userController, "user", { accountType: AccountType.PAID })
 			replace(customer, "customizations", [])
 			o(await hasPlanWithInvites(logins)).equals(true)
@@ -31,7 +32,7 @@ o.spec("CalendarNotificationModel", function () {
 
 		o("not available for users with new paid plan that does not contain invites", async function () {
 			when(userController.isNewPaidPlan()).thenResolve(true)
-			when(userController.getPlanConfig()).thenResolve(createTestEntity(PlanConfigurationTypeRef, { eventInvites: false }))
+			when(userController.getPlanConfig()).thenResolve(createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, { eventInvites: false }))
 			replace(userController, "user", { accountType: AccountType.PAID })
 			o(await hasPlanWithInvites(logins)).equals(false)
 		})

@@ -1,6 +1,7 @@
 import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/appEnv"
-import { restError, restSuspension } from "@tutao/restClient"
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import * as restSuspension from "./SuspensionHandler.js"
+import * as restError from "./error.js"
 
 assertWorkerOrNode()
 
@@ -37,6 +38,7 @@ export const enum MediaType {
 	Binary = "application/octet-stream",
 	Text = "text/plain",
 }
+
 export const enum HttpMethod {
 	GET = "GET",
 	POST = "POST",

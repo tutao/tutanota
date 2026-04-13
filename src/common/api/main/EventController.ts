@@ -1,12 +1,11 @@
-import { debounce, identity, Nullable } from "@tutao/utils"
+import { identity, Nullable } from "@tutao/utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNode } from "../common/Env"
-import { OperationStatusUpdate, WebsocketCounterData } from "../entities/sys/TypeRefs"
-import { EntityEventsListener, EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { ProgressTracker } from "./ProgressTracker"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -14,11 +13,11 @@ export type ExposedEventController = Pick<EventController, "onEntityUpdateReceiv
 
 const TAG = "[EventController]"
 
-export type OperationStatusUpdateListener = (update: OperationStatusUpdate) => Promise<unknown>
+export type OperationStatusUpdateListener = (update: sysTypeRefs.OperationStatusUpdate) => Promise<unknown>
 
 export class EventController {
-	private countersStream: Stream<WebsocketCounterData> = stream()
-	private entityListeners: Set<EntityEventsListener> = new Set()
+	private countersStream: Stream<sysTypeRefs.WebsocketCounterData> = stream()
+	private entityListeners: Set<entityUpdateUtils.EntityEventsListener> = new Set()
 	private readonly operationListeners: Set<OperationStatusUpdateListener> = new Set()
 
 	constructor(
@@ -26,7 +25,7 @@ export class EventController {
 		private readonly progressTracker: ProgressTracker,
 	) {}
 
-	addEntityListener(listener: EntityEventsListener) {
+	addEntityListener(listener: entityUpdateUtils.EntityEventsListener) {
 		if (this.entityListeners.has(listener)) {
 			console.warn(TAG, "Adding the same listener twice!")
 		} else {
@@ -34,7 +33,7 @@ export class EventController {
 		}
 	}
 
-	removeEntityListener(listener: EntityEventsListener) {
+	removeEntityListener(listener: entityUpdateUtils.EntityEventsListener) {
 		const wasRemoved = this.entityListeners.delete(listener)
 		if (!wasRemoved) {
 			console.warn(TAG, "Could not remove listener, possible leak?", listener)
@@ -49,13 +48,13 @@ export class EventController {
 		this.operationListeners.delete(listener)
 	}
 
-	getCountersStream(): Stream<WebsocketCounterData> {
+	getCountersStream(): Stream<sysTypeRefs.WebsocketCounterData> {
 		// Create copy so it's never ended
 		return this.countersStream.map(identity)
 	}
 
 	async onEntityUpdateReceived(
-		entityUpdates: readonly EntityUpdateData[],
+		entityUpdates: readonly entityUpdateUtils.EntityUpdateData[],
 		eventOwnerGroupId: Id,
 		progressMonitorId: Nullable<ProgressMonitorId>,
 		isInitialSyncDone: boolean,
@@ -78,11 +77,11 @@ export class EventController {
 		}
 	}
 
-	async onCountersUpdateReceived(update: WebsocketCounterData): Promise<void> {
+	async onCountersUpdateReceived(update: sysTypeRefs.WebsocketCounterData): Promise<void> {
 		this.countersStream(update)
 	}
 
-	async onOperationStatusUpdate(update: OperationStatusUpdate): Promise<void> {
+	async onOperationStatusUpdate(update: sysTypeRefs.OperationStatusUpdate): Promise<void> {
 		for (const listener of this.operationListeners) {
 			await listener(update)
 		}

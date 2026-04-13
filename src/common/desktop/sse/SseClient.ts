@@ -3,9 +3,9 @@ import type { DesktopNetworkClient } from "../net/DesktopNetworkClient"
 import { makeTaggedLogger } from "../DesktopLog"
 import { Scheduler } from "../../api/common/utils/Scheduler.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { reverse } from "../../api/common/TutanotaConstants.js"
 
 import { newPromise } from "@tutao/utils"
+import { reverse } from "@tutao/typeRefs"
 
 const log = makeTaggedLogger("[SSE]")
 

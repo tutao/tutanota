@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
+import { ModelMapper } from "@tutao/instancePipeline"
 import { AssociationType, Cardinality, Type, ValueType } from "@tutao/typeRefs"
 import { TypeRef } from "@tutao/utils"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
@@ -8,7 +8,7 @@ import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typeRefs"
 import { removeOriginals } from "../../../TestUtils"
-import { InvalidModelError } from "../../../../../src/common/api/common/error/InvalidModelError"
+import { InvalidModelError } from "@tutao/appEnv"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {

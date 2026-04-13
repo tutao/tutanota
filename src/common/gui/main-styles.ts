@@ -3,13 +3,14 @@ import { component_size, font_size, layout_size, px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
-import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
 import { goEuropeanBlue } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { hexToRGBAString } from "./base/Color"
+import { isApp, isDesktop, Mode } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -40,47 +41,50 @@ const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
 	const lightTheme = locator.themeController.getBaseTheme("light")
 	return {
-		"#link-tt": isElectronClient()
-			? {
-					"pointer-events": "none",
-					"font-size": px(font_size.small),
-					"padding-left": px(size.spacing_4),
-					"padding-right": px(size.spacing_4),
-					"padding-top": px(size.spacing_4),
-					position: "fixed",
-					bottom: px(size.spacing_4),
-					left: px(size.spacing_4),
-					"text-align": "center",
-					color: theme.surface,
-					"text-decoration": "none",
-					"background-color": theme.on_surface,
-					border: "1px solid " + theme.surface,
-					opacity: 0,
-					transition: "opacity .1s linear",
-					"font-family": "monospace",
-				}
-			: {},
-		"#link-tt.reveal": isElectronClient()
-			? {
-					opacity: 1,
-					transition: "opacity .1s linear",
-					"z-index": 9999,
-				}
-			: {},
-		"*:not(input):not(textarea)": isAdminClient()
-			? {}
-			: {
-					"user-select": "none",
+		"#link-tt":
+			isDesktop() || env.mode === Mode.Admin
+				? {
+						"pointer-events": "none",
+						"font-size": px(font_size.small),
+						"padding-left": px(size.spacing_4),
+						"padding-right": px(size.spacing_4),
+						"padding-top": px(size.spacing_4),
+						position: "fixed",
+						bottom: px(size.spacing_4),
+						left: px(size.spacing_4),
+						"text-align": "center",
+						color: theme.surface,
+						"text-decoration": "none",
+						"background-color": theme.on_surface,
+						border: "1px solid " + theme.surface,
+						opacity: 0,
+						transition: "opacity .1s linear",
+						"font-family": "monospace",
+					}
+				: {},
+		"#link-tt.reveal":
+			isDesktop() || env.mode === Mode.Admin
+				? {
+						opacity: 1,
+						transition: "opacity .1s linear",
+						"z-index": 9999,
+					}
+				: {},
+		"*:not(input):not(textarea)":
+			env.mode === Mode.Admin
+				? {}
+				: {
+						"user-select": "none",
 
-					/* disable selection/Copy for UI elements*/
-					"-ms-user-select": "none",
-					"-webkit-user-select": "none",
-					"-moz-user-select": "none",
-					"-webkit-touch-callout": "none",
+						/* disable selection/Copy for UI elements*/
+						"-ms-user-select": "none",
+						"-webkit-user-select": "none",
+						"-moz-user-select": "none",
+						"-webkit-touch-callout": "none",
 
-					/* disable the IOS popup when long-press on a link */
-					"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
-				},
+						/* disable the IOS popup when long-press on a link */
+						"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
+					},
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},

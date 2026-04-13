@@ -1,6 +1,5 @@
 import m, { Children } from "mithril"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
-import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -12,9 +11,10 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { locator } from "../api/main/CommonLocator"
 import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import { mailLocator } from "../../mail-app/mailLocator.js"
-import { showInfoSnackbar, showSnackBar } from "../gui/base/SnackBar.js"
+import { showInfoSnackbar } from "../gui/base/SnackBar.js"
 import { LazyLoaded } from "@tutao/utils"
 import { AffiliateViewModel } from "./AffiliateViewModel.js"
+import { entityUpdateUtils } from "@tutao/typeRefs"
 
 /**
  * Section in user settings to display the referral link and let users share it.
@@ -95,7 +95,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		// can be a noop because the referral code will never change once it was created
 		// we trigger creation in the constructor if there is no code yet
 	}

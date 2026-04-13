@@ -8,10 +8,10 @@ import {
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { Aes256Key, aes256RandomKey, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/crypto"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVersion } from "@tutao/utils"
-import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { cryptoUtils } from "@tutao/crypto"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible
@@ -21,7 +21,7 @@ function mergeParams(params, propertyName, value) {
 }
 
 function nextKeyVersion(v: KeyVersion): KeyVersion {
-	return checkKeyVersionConstraints(v + 1)
+	return cryptoUtils.checkKeyVersionConstraints(v + 1)
 }
 
 o.spec("KeyAuthenticationFacadeTest", function () {

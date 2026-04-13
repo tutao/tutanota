@@ -1,9 +1,9 @@
 import { MobileSystemFacade } from "../common/generatedipc/MobileSystemFacade.js"
 import { PermissionType } from "../common/generatedipc/PermissionType.js"
-import { isIOSApp } from "../../api/common/Env.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
+import { isIOSApp } from "@tutao/appEnv"
 
 export class SystemPermissionHandler {
 	constructor(private readonly systemFacade: MobileSystemFacade) {}

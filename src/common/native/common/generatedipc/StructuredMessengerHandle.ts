@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
-import { ContactMessengerHandleType } from "./ContactMessengerHandleType.js"
+import { ContactMessengerHandleType } from "@tutao/appEnv"
+
 export interface StructuredMessengerHandle {
 	readonly handle: string
 	readonly type: ContactMessengerHandleType

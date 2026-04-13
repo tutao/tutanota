@@ -1,9 +1,7 @@
-import { SecondFactorType } from "../../api/common/TutanotaConstants.js"
+import { SecondFactorType } from "@tutao/appEnv"
 import type { Thunk } from "@tutao/utils"
 import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
 import type { TranslationKey } from "../LanguageViewModel.js"
-import type { Challenge } from "../../api/entities/sys/TypeRefs.js"
-import { createSecondFactorAuthData } from "../../api/entities/sys/TypeRefs.js"
 import { AccessBlockedError, BadRequestError, LockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import m from "mithril"
@@ -15,10 +13,11 @@ import { WebauthnError } from "../../api/common/error/WebauthnError.js"
 import { appIdToLoginUrl } from "./SecondFactorUtils.js"
 
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 type AuthData = {
 	readonly sessionId: IdTuple
-	readonly challenges: ReadonlyArray<Challenge>
+	readonly challenges: ReadonlyArray<sysTypeRefs.Challenge>
 	readonly mailAddress: string | null
 }
 type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
@@ -147,7 +146,7 @@ export class SecondFactorAuthDialog {
 
 	async onConfirmOtp() {
 		this.otpState.inProgress = true
-		const authData = createSecondFactorAuthData({
+		const authData = sysTypeRefs.createSecondFactorAuthData({
 			type: SecondFactorType.totp,
 			session: this.authData.sessionId,
 			otpCode: this.otpState.code.replace(/ /g, ""),
@@ -180,7 +179,7 @@ export class SecondFactorAuthDialog {
 		this.close()
 	}
 
-	private async doWebauthn(u2fChallenge: Challenge) {
+	private async doWebauthn(u2fChallenge: sysTypeRefs.Challenge) {
 		this.webauthnState = {
 			state: "progress",
 		}
@@ -189,7 +188,7 @@ export class SecondFactorAuthDialog {
 
 		try {
 			const { responseData, apiBaseUrl } = await this.webauthnClient.authenticate(challenge)
-			const authData = createSecondFactorAuthData({
+			const authData = sysTypeRefs.createSecondFactorAuthData({
 				type: SecondFactorType.webauthn,
 				session: sessionId,
 				webauthn: responseData,

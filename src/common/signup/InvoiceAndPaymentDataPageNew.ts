@@ -2,9 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { lang } from "../misc/LanguageViewModel"
-import { PaymentMethodType } from "../api/common/TutanotaConstants"
-import { Countries, Country, CountryType } from "../api/common/CountryList"
-import { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs"
+import { Countries, Country, CountryType } from "../../appEnv/CountryList"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog } from "../gui/base/Dialog"
 import { assertNotNull, LazyLoaded, neverNull } from "@tutao/utils"
@@ -20,12 +18,13 @@ import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { px, size } from "../gui/size"
-import { LocationService } from "../api/entities/sys/Services"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
 import { TextFieldType } from "../gui/base/TextField"
 import { Icons } from "../gui/base/icons/Icons"
+import { PaymentMethodType } from "@tutao/appEnv"
 
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
@@ -41,7 +40,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	}
 
 	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
-		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
+		locator.serviceExecutor.get(sysServices.LocationService, null).then((location: sysTypeRefs.LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
 				const country = Countries.find((c) => c.a === location.country)
 

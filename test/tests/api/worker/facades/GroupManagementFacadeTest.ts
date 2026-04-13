@@ -8,13 +8,13 @@ import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 import { freshVersioned } from "@tutao/utils"
-import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { AesKey, KeyPairType, PQKeyPairs } from "@tutao/crypto"
+import { GroupType } from "@tutao/appEnv"
 
 const { anything } = matchers
 
@@ -92,9 +92,9 @@ o.spec("GroupManagementFacadeTest", function () {
 
 	o("loadTeamGroupIds - success", async function () {
 		when(userFacade.getUser()).thenReturn(object())
-		when(entityClient.load(CustomerTypeRef, anything())).thenResolve(object())
+		when(entityClient.load(sysTypeRefs.CustomerTypeRef, anything())).thenResolve(object())
 		const teamGroupIds = ["teamGroup1", "teamGroup2"]
-		when(entityClient.loadAll(GroupInfoTypeRef, anything())).thenResolve(teamGroupIds.map((group) => ({ group })) as GroupInfo[])
+		when(entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, anything())).thenResolve(teamGroupIds.map((group) => ({ group })) as sysTypeRefs.GroupInfo[])
 
 		const result = await groupManagementFacade.loadTeamGroupIds()
 

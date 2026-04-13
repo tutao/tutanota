@@ -1,10 +1,9 @@
 import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { LazyLoaded } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { User } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { createNewContact, isTutaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { PresentableKeyVerificationState } from "../../../src/common/api/common/TutanotaConstants"
+import { PresentableKeyVerificationState } from "@tutao/appEnv"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes
@@ -36,13 +35,13 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 	constructor(
 		public address: string,
 		name: string | null,
-		public contact: Contact | null,
+		public contact: tutanotaTypeRefs.Contact | null,
 		type: RecipientType | null,
 		/** non-tutanota addresses that should resolve to be INTERNAL */
 		private internalAddresses: string[],
 		/** contacts that should be resolved as though they were found by the contact model */
-		private existingContacts: Contact[],
-		private user: User,
+		private existingContacts: tutanotaTypeRefs.Contact[],
+		private user: sysTypeRefs.User,
 	) {
 		this.name = name ?? ""
 		this.type = type ?? (isTutaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.UNKNOWN)
@@ -61,7 +60,7 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 		return this.lazyResolve.getAsync()
 	}
 
-	setContact(contact: Contact): void {
+	setContact(contact: tutanotaTypeRefs.Contact): void {
 		this.contact = contact
 	}
 

@@ -4,12 +4,11 @@ import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { SignupForm } from "./SignupForm"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
-import { PlanType } from "../api/common/TutanotaConstants.js"
 import { lang, Translation } from "../misc/LanguageViewModel.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { createAccount } from "./utils/PaymentUtils"
 import { Dialog } from "../gui/base/Dialog"
-import { isIOSApp } from "../api/common/Env"
+import { isIOSApp, PlanType } from "@tutao/appEnv"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement

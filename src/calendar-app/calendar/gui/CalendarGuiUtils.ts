@@ -11,7 +11,6 @@ import {
 	assertNotNull,
 	clamp,
 	clone,
-	DAY_IN_MILLIS,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
@@ -54,8 +53,8 @@ import {
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import {
-	AccountType,
 	CalendarAttendeeStatus,
+	DAY_IN_MILLIS,
 	DEFAULT_CALENDAR_COLOR,
 	EndType,
 	EventTextTimeOption,
@@ -64,7 +63,7 @@ import {
 	ShareCapability,
 	Weekday,
 	WeekStart,
-} from "../../../common/api/common/TutanotaConstants.js"
+} from "@tutao/appEnv"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
@@ -90,8 +89,8 @@ import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../common/misc/KeyManager.js"
-import { isAppleDevice } from "../../../common/api/common/Env.js"
 import { IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
+import { AccountType, isAppleDevice } from "@tutao/appEnv"
 
 export interface IntervalOption {
 	value: number

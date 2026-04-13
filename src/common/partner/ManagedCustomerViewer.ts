@@ -1,23 +1,21 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../api/common/Env.js"
+import { assertMainOrNode, PlanType } from "@tutao/appEnv"
 import { formatDateWithMonth } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import { CustomerInfo } from "../api/entities/sys/TypeRefs.js"
 import { TextField } from "../gui/base/TextField.js"
-import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
-import { PlanType } from "../api/common/TutanotaConstants"
 import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
 import { Button, ButtonType } from "../gui/base/Button"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
 export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
-	constructor(public customerInfo: CustomerInfo) {
+	constructor(public customerInfo: sysTypeRefs.CustomerInfo) {
 		this.customerInfo = customerInfo
 	}
 
-	private getDisplayValueForPlan({ plan }: CustomerInfo) {
+	private getDisplayValueForPlan({ plan }: sysTypeRefs.CustomerInfo) {
 		return getDisplayNameOfPlanType(plan as PlanType)
 	}
 
@@ -54,5 +52,5 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 		])
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {}
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {}
 }

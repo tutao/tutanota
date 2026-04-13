@@ -3,7 +3,7 @@ import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
-import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 type Contact = tutanotaTypeRefs.Contact
 export interface ContactViewToolbarAttrs {
 	contacts: Contact[]

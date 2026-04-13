@@ -4,8 +4,7 @@ import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { object, verify, when } from "testdouble"
 import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
-import { isApp } from "../../../src/common/api/common/Env.js"
+import { isApp, PlanType } from "@tutao/appEnv"
 
 o.spec("UserSatisfactionDialog", () => {
 	let deviceConfigMock: DeviceConfig = object()

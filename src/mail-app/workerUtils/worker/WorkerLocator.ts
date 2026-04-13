@@ -10,17 +10,8 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import {
-	assertWorkerOrNode,
-	getWebsocketBaseUrl,
-	isAdminClient,
-	isAndroidApp,
-	isBrowser,
-	isIOSApp,
-	isOfflineStorageAvailable,
-	isTest,
-} from "../../../common/api/common/Env.js"
-import { Const } from "../../../common/api/common/TutanotaConstants.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
+import { Const } from "@tutao/appEnv"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
@@ -72,7 +63,7 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { CryptoWrapper } from "@tutao/instancePipeline"
+import { CryptoWrapper, InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instancePipeline"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
@@ -85,7 +76,6 @@ import { EphemeralCacheStorage } from "../../../common/api/worker/rest/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import type { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
-import { InstancePipeline } from "@tutao/instancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import type { Indexer } from "../index/Indexer"
@@ -100,7 +90,6 @@ import { DateProvider } from "../../../common/api/common/DateProvider"
 import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
 import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
-import { PatchMerger } from "@tutao/instancePipeline"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
@@ -120,6 +109,7 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
+import { getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode } from "@tutao/appEnv"
 
 assertWorkerOrNode()
 
@@ -394,7 +384,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
-	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
+	const cryptoFacadeSessionKeyResolver: SessionKeyResolver = (entity) => locator.crypto.resolveSessionKey(entity)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, cryptoFacadeSessionKeyResolver, SYMMETRIC_CIPHER_FACADE)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {

@@ -1,6 +1,5 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import { isApp } from "../../../api/common/Env.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"
@@ -9,6 +8,7 @@ import { WebAuthnRegistrationChallenge } from "../../../native/common/generatedi
 import { WebAuthnRegistrationResult } from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
 import { WebAuthnSignChallenge } from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { WebAuthnSignResult } from "../../../native/common/generatedipc/WebAuthnSignResult.js"
+import { isApp } from "@tutao/appEnv"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 

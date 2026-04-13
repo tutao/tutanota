@@ -1,10 +1,9 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { isFolderReadOnly, isSameId, MOVE_SYSTEM_FOLDERS, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first } from "@tutao/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { isFolderReadOnly, MailSetKind, MOVE_SYSTEM_FOLDERS, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
-import { isSameId, sortCompareByReverseId } from "@tutao/typeRefs"
+import { MailSetKind, ReplyType, SystemFolderType } from "@tutao/appEnv"
 
 type MailSet = tutanotaTypeRefs.MailSet
 export type FolderInfo = { level: number; folder: MailSet }

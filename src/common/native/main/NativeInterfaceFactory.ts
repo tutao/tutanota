@@ -1,7 +1,6 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { NativeFileApp } from "../common/FileApp.js"
-import { isBrowser, isElectronClient } from "../../api/common/Env.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { DesktopFacade } from "../common/generatedipc/DesktopFacade.js"
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
@@ -41,6 +40,7 @@ import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/Ext
 import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
 import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
 import { ExportFacade } from "../common/generatedipc/ExportFacade.js"
+import { isBrowser, isDesktop, Mode } from "@tutao/appEnv"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -111,7 +111,7 @@ export function createNativeInterfaces(
 }
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
-	if (!isElectronClient()) {
+	if (!(isDesktop() || env.mode === Mode.Admin)) {
 		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {

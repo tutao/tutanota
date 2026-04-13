@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, isFolderReadOnly, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
@@ -7,8 +7,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { isFolderReadOnly, MailReportType, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
-import { elementIdPart, isSameId, listIdPart } from "@tutao/typeRefs"
+import { MailReportType } from "@tutao/appEnv"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { groupByAndMap } from "@tutao/utils"
@@ -16,6 +15,7 @@ import { mailLocator } from "../../mailLocator.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { MailSetKind } from "@tutao/appEnv"
 
 type MailSet = tutanotaTypeRefs.MailSet
 /**

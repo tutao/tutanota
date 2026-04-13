@@ -1,9 +1,8 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
-import { NewsService } from "../../api/entities/tutanota/Services.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { NewsListItem } from "./NewsListItem.js"
-import { isIOSApp } from "../../api/common/Env.js"
+import { isIOSApp } from "@tutao/appEnv"
 
 /**
  * Interface for storing information about displayed news items on the device.
@@ -31,7 +30,7 @@ export class NewsModel {
 	 * Loads the user's unacknowledged NewsItems.
 	 */
 	async loadNewsIds(): Promise<tutanotaTypeRefs.NewsId[]> {
-		const response: tutanotaTypeRefs.NewsOut = await this.serviceExecutor.get(NewsService, null)
+		const response: tutanotaTypeRefs.NewsOut = await this.serviceExecutor.get(tutanotaServices.NewsService, null)
 
 		this.liveNewsIds = []
 		this.liveNewsListItems = {}
@@ -60,7 +59,7 @@ export class NewsModel {
 		const data = tutanotaTypeRefs.createNewsIn({ newsItemId })
 
 		try {
-			await this.serviceExecutor.post(NewsService, data)
+			await this.serviceExecutor.post(tutanotaServices.NewsService, data)
 			return true
 		} catch (e) {
 			if (e instanceof NotFoundError) {

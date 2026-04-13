@@ -1,21 +1,21 @@
-import {
-	ENTITY_EVENT_BATCH_TTL_DAYS,
-	getMembershipGroupType,
-	GroupType,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-} from "../../../common/api/common/TutanotaConstants.js"
+import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import {
+	ClientTypeModelResolver,
+	entityUpdateUtils,
+	getMembershipGroupType,
+	isSameId,
+	sysTypeRefs,
+	timestampToGeneratedId,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, daysToMillis, defer, downcast, isNotNull, isSameTypeRef, millisToDays, neverNull, promiseMap } from "@tutao/utils"
-import { isSameId, timestampToGeneratedId } from "@tutao/typeRefs"
+import { contains, defer, downcast, isNotNull, isSameTypeRef, millisToDays, neverNull, promiseMap } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
@@ -42,14 +42,13 @@ import {
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instancePipeline"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DateProvider } from "../../../common/api/common/DateProvider"
-import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError"
+import { GroupType, OperationType } from "@tutao/appEnv"
 
 export type InitParams = {
 	user: sysTypeRefs.User
@@ -288,7 +287,7 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.resume()
 	}
 
-	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
+	async processEntityEvents(updates: readonly entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
 		try {
 			await this.throwIfOutOfDate()
 			await this.writeServerTimestamp()
@@ -501,9 +500,9 @@ export class IndexedDbIndexer implements Indexer {
 	 *
 	 * ATTENTION: Must be called before the group batch ID is written.
 	 */
-	private async processMailEntityEvents(events: Iterable<EntityUpdateData>) {
+	private async processMailEntityEvents(events: Iterable<entityUpdateUtils.EntityUpdateData>) {
 		for (const event of events) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, event)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, event)) {
 				const mailId: IdTuple = [event.instanceListId, event.instanceId]
 				try {
 					switch (event.operation) {
@@ -531,7 +530,7 @@ export class IndexedDbIndexer implements Indexer {
 	/**
 	 * @private visibleForTesting
 	 */
-	async _processUserEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
+	async _processUserEntityEvents(events: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
 		for (const event of events) {
 			if (
 				!(

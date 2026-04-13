@@ -1,11 +1,9 @@
 import { isSameTypeRef, TypeRef } from "@tutao/utils"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
-import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP } from "../TutanotaConstants"
-import { tutanotaTypeModels } from "@tutao/typeRefs"
-import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import type { TypeModel } from "@tutao/typeRefs"
-import { isTest } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeModels, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { GroupType, isTest } from "@tutao/appEnv"
 
 export type TypeInfo = {
 	appId: number
@@ -60,15 +58,15 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 	return typeInfo
 }
 
-export function userIsGlobalAdmin(user: User): boolean {
+export function userIsGlobalAdmin(user: sysTypeRefs.User): boolean {
 	return user.memberships.some((m) => m.groupType === GroupType.Admin)
 }
 
-export function filterIndexMemberships(user: User): GroupMembership[] {
+export function filterIndexMemberships(user: sysTypeRefs.User): sysTypeRefs.GroupMembership[] {
 	return user.memberships.filter(({ groupType }) => groupType === GroupType.Mail || groupType === GroupType.Contact)
 }
 
-export function filterMailMemberships(user: User): GroupMembership[] {
+export function filterMailMemberships(user: sysTypeRefs.User): sysTypeRefs.GroupMembership[] {
 	return user.memberships.filter((m) => m.groupType === GroupType.Mail)
 }
 

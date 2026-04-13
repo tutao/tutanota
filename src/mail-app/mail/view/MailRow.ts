@@ -1,6 +1,5 @@
-import { getMailFolderType, MailSetKind, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getMailFolderType, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
 import m, { Children } from "mithril"
 import Badge from "../../../common/gui/base/Badge"
@@ -30,6 +29,7 @@ import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
+import { MailSetKind, ReplyType } from "@tutao/appEnv"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.FolderFilled,

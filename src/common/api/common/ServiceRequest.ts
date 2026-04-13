@@ -1,6 +1,6 @@
 import { TypeRef } from "@tutao/utils"
-import { assertMainOrNode } from "./Env.js"
-import type { Entity } from "./EntityTypes.js"
+import { assertMainOrNode } from "@tutao/appEnv"
+import { Entity } from "@tutao/typeRefs"
 import { AesKey } from "@tutao/crypto"
 import { restSuspension } from "@tutao/restClient"
 

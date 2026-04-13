@@ -1,11 +1,12 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isDesktop, isWebClient } from "../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
+import { isDesktop, Mode } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -56,7 +57,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 						label: "downloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (isWebClient()) {
+							if (env.mode === Mode.Browser) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)

@@ -1,14 +1,21 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { CUSTOM_MAX_ID, customIdToUint8array, deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/typeRefs"
+import {
+	CUSTOM_MAX_ID,
+	customIdToUint8array,
+	deconstructMailSetEntryId,
+	elementIdPart,
+	entityUpdateUtils,
+	getElementId,
+	isSameId,
+	listIdPart,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, OperationType } from "@tutao/appEnv"
 import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { MailModel } from "./MailModel"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
@@ -143,8 +150,8 @@ export class MailListModel implements MailSetListModel {
 		(mails) => mails.map(({ mail }) => mail),
 	)
 
-	async handleEntityUpdate(update: EntityUpdateData) {
-		if (isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
+	async handleEntityUpdate(update: entityUpdateUtils.EntityUpdateData) {
+		if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
 			// If a label is modified, we want to update all mails that reference it, which requires linearly iterating
 			// through all mails. There are more efficient ways we could do this, such as by keeping track of each label
 			// we've retrieved from the database and just update that, but we want to avoid adding more maps that we
@@ -165,7 +172,10 @@ export class MailListModel implements MailSetListModel {
 					this._updateSingleMail(newMailEntry)
 				}
 			}
-		} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
+		} else if (
+			entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetEntryTypeRef, update) &&
+			isSameId(this.mailSet.entries, update.instanceListId)
+		) {
 			// Adding/removing to this list (MailSetEntry doesn't have any fields to update, so we don't need to handle this)
 			if (update.operation === OperationType.DELETE) {
 				const mail = this.getLoadedMailByMailSetId(update.instanceId)
@@ -183,7 +193,7 @@ export class MailListModel implements MailSetListModel {
 					})
 				}
 			}
-		} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
+		} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this.mailMap.get(update.instanceId)

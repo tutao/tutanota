@@ -5,9 +5,9 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { theme } from "../../../gui/theme"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
-import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/utils"
+import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
 
 type FingerprintMismatchKeepPageAttrs = {
 	model: KeyVerificationModel

@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { lang } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 import { px, size } from "../../../gui/size"
 import { Card } from "../../../gui/base/Card"
 import { KeyVerificationModel } from "../KeyVerificationModel"
+import { IdentityKeyVerificationMethod } from "@tutao/appEnv"
 
 type MethodSelectionPageAttrs = {
 	model: KeyVerificationModel

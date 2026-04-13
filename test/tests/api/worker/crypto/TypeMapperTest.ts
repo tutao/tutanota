@@ -1,7 +1,7 @@
 import { ClientModelEncryptedParsedInstance, ClientTypeModel, ServerModelUntypedInstance, ServerTypeModel } from "@tutao/typeRefs"
 import { assertNotNull, TypeRef } from "@tutao/utils"
 import o from "@tutao/otest"
-import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
+import { TypeMapper } from "@tutao/instancePipeline"
 import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"

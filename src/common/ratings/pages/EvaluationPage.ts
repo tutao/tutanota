@@ -1,15 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { client } from "../../misc/ClientDetector.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { isApp, isIOSApp } from "../../api/common/Env.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { completeEvaluationStage, TriggerType } from "../UserSatisfactionUtils.js"
 import { DateTime } from "luxon"
 import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog"
-import { getCurrentDate } from "../../api/common/TutanotaConstants.js"
 import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog.js"
 import { px } from "../../gui/size.js"
+import { isApp, isIOSApp } from "@tutao/appEnv"
+import { getCurrentDate } from "@tutao/typeRefs"
 
 interface EvaluationPageAttrs {
 	triggerType: TriggerType

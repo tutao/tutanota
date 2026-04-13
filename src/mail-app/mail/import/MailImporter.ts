@@ -1,25 +1,24 @@
-import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, GENERATED_MIN_ID, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first, isEmpty } from "@tutao/utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
-import { elementIdPart, GENERATED_MIN_ID, isSameId } from "@tutao/typeRefs"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils"
+
 import { EventController } from "../../../common/api/main/EventController"
 import { ImportErrorCategories, MailImportError } from "../../../common/api/common/error/MailImportError.js"
 import { showSnackBar, SnackBarButtonAttrs } from "../../../common/gui/base/SnackBar.js"
 import { OpenSettingsHandler } from "../../../common/native/main/OpenSettingsHandler.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { ImportStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { ImportStatus } from "@tutao/appEnv"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { mailLocator } from "../../mailLocator"
+import { getApiBaseUrl, MailSetKind } from "@tutao/appEnv"
 
 // keep in sync with napi binding.d.cts
 export const enum ImportProgressAction {
@@ -68,7 +67,7 @@ export class MailImporter {
 	) {
 		eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		})
 	}
 
@@ -157,9 +156,9 @@ export class MailImporter {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
 				const updatedState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 				await this.newImportStateFromServer(updatedState)
 			}

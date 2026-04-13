@@ -1,12 +1,12 @@
-import { AccountType, GroupType, TimeFormat } from "../TutanotaConstants.js"
-import { User } from "../../entities/sys/TypeRefs.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { TimeFormat } from "@tutao/appEnv"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { AccountType, GroupType } from "@tutao/appEnv"
 
 /**
  * Checks if the current user is an admin of the customer.
  * @return True if the user is an admin
  */
-export function isGlobalAdmin(user: User): boolean {
+export function isGlobalAdmin(user: sysTypeRefs.User): boolean {
 	if (isInternalUser(user)) {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	} else {
@@ -18,7 +18,7 @@ export function isGlobalAdmin(user: User): boolean {
  * Provides the information if an internal user is logged in.
  * @return True if an internal user is logged in, false if no user or an external user is logged in.
  */
-export function isInternalUser(user: User): boolean {
+export function isInternalUser(user: sysTypeRefs.User): boolean {
 	return user.accountType !== AccountType.EXTERNAL
 }
 

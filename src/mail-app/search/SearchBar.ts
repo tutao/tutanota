@@ -4,34 +4,32 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { PositionRect } from "../../common/gui/base/Overlay"
 import { displayOverlay } from "../../common/gui/base/Overlay"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertIsEntity, getElementId, ListElementEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { Shortcut } from "../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../common/gui/base/Dialog"
-import type { WhitelabelChild } from "../../common/api/entities/sys/TypeRefs.js"
-import { FULL_INDEXED_TIMESTAMP, Keys } from "../../common/api/common/TutanotaConstants"
-import { assertMainOrNode, isApp } from "../../common/api/common/Env"
+import { FULL_INDEXED_TIMESTAMP, Keys } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { styles } from "../../common/gui/styles"
 import { client } from "../../common/misc/ClientDetector"
 import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/utils"
 import { BrowserType } from "../../common/misc/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
-import { assertIsEntity, getElementId } from "@tutao/typeRefs"
+import type { SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
 import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { PageSize } from "../../common/gui/base/ListUtils.js"
 import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../common/calendar/date/CalendarUtils.js"
-import { ListElementEntity } from "@tutao/typeRefs"
 
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
 import { mailLocator } from "../mailLocator.js"
 import { compareMails } from "../mail/model/MailUtils"
 import { ProgrammingError } from "../../common/api/common/error/ProgrammingError"
+import { isApp } from "@tutao/appEnv"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -47,7 +45,7 @@ export type SearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = tutanotaTypeRefs.Mail | tutanotaTypeRefs.Contact | tutanotaTypeRefs.CalendarEvent | WhitelabelChild | ShowMoreAction
+export type Entry = tutanotaTypeRefs.Mail | tutanotaTypeRefs.Contact | tutanotaTypeRefs.CalendarEvent | sysTypeRefs.WhitelabelChild | ShowMoreAction
 type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
@@ -65,7 +63,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
 	private readonly state: Stream<SearchBarState>
 	busy: boolean = false
-	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
+	private lastSelectedWhitelabelChildrenInfoResult: Stream<sysTypeRefs.WhitelabelChild> = stream()
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
@@ -313,7 +311,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	]
 
 	private selectResult(
-		result: (tutanotaTypeRefs.Mail | null) | tutanotaTypeRefs.Contact | WhitelabelChild | tutanotaTypeRefs.CalendarEvent | ShowMoreAction,
+		result: (tutanotaTypeRefs.Mail | null) | tutanotaTypeRefs.Contact | sysTypeRefs.WhitelabelChild | tutanotaTypeRefs.CalendarEvent | ShowMoreAction,
 	) {
 		const { query } = this.state()
 

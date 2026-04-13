@@ -24,23 +24,21 @@ import {
 	DEFAULT_CALENDAR_COLOR,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	FeatureType,
-	OperationType,
-} from "../../../common/api/common/TutanotaConstants"
+} from "@tutao/appEnv"
 import { EventController } from "../../../common/api/main/EventController"
 import {
-	createDateWrapper,
-	createMembershipRemoveData,
-	Group,
-	GroupInfo,
-	GroupInfoTypeRef,
-	GroupMembership,
-	GroupTypeRef,
-	User,
-	UserAlarmInfo,
-	UserAlarmInfoTypeRef,
-} from "../../../common/api/entities/sys/TypeRefs.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { isApp, isDesktop } from "../../../common/api/common/Env"
+	DELETE_MULTIPLE_LIMIT,
+	elementIdPart,
+	entityUpdateUtils,
+	getElementId,
+	isSameId,
+	listIdPart,
+	POST_MULTIPLE_LIMIT,
+	removeTechnicalFields,
+	sysServices,
+	sysTypeRefs,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
@@ -49,7 +47,6 @@ import type { IProgressMonitor } from "../../../common/api/common/utils/Progress
 import { NoopProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { DELETE_MULTIPLE_LIMIT, elementIdPart, getElementId, isSameId, listIdPart, POST_MULTIPLE_LIMIT, removeTechnicalFields } from "@tutao/typeRefs"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
 import m from "mithril"
@@ -63,7 +60,6 @@ import {
 	CalendarFacade,
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
-import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
 import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -71,7 +67,7 @@ import Stream from "mithril/stream"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import {
 	AlarmInterval,
 	assignEventId,
@@ -107,7 +103,7 @@ import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
-import { TutanotaError } from "@tutao/appEnv"
+import { isApp, isDesktop, OperationType, TutanotaError } from "@tutao/appEnv"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 
@@ -126,8 +122,8 @@ export type CalendarInfoBase = {
 
 export type CalendarInfo = CalendarInfoBase & {
 	groupRoot: CalendarGroupRoot
-	groupInfo: GroupInfo
-	group: Group
+	groupInfo: sysTypeRefs.GroupInfo
+	group: sysTypeRefs.Group
 	hasMultipleMembers: boolean
 	userIsOwner: boolean
 	isExternal: boolean
@@ -227,7 +223,7 @@ export class CalendarModel {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		})
 
 		syncTracker.addSyncDoneListener({
@@ -343,14 +339,14 @@ export class CalendarModel {
 	private async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const userController = this.logins.getUserController()
 
-		const notFoundMemberships: GroupMembership[] = []
-		const groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]> = []
+		const notFoundMemberships: sysTypeRefs.GroupMembership[] = []
+		const groupInstances: Array<[CalendarGroupRoot, sysTypeRefs.GroupInfo, sysTypeRefs.Group]> = []
 		for (const membership of userController.getCalendarMemberships()) {
 			try {
 				const result = await Promise.all([
 					this.entityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, membership.group),
-					this.entityClient.load(GroupInfoTypeRef, membership.groupInfo),
-					this.entityClient.load(GroupTypeRef, membership.group),
+					this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, membership.groupInfo),
+					this.entityClient.load(sysTypeRefs.GroupTypeRef, membership.group),
 				])
 				groupInstances.push(result)
 			} catch (e) {
@@ -382,8 +378,8 @@ export class CalendarModel {
 			// noinspection ES6MissingAwait
 			this.serviceExecutor
 				.delete(
-					MembershipService,
-					createMembershipRemoveData({
+					sysServices.MembershipService,
+					sysTypeRefs.createMembershipRemoveData({
 						user: userController.userId,
 						group: membership.group,
 					}),
@@ -395,10 +391,10 @@ export class CalendarModel {
 
 	private async makeCalendarInfo(
 		userId: Id,
-		group: Group,
+		group: sysTypeRefs.Group,
 		userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot,
 		groupRoot: CalendarGroupRoot,
-		groupInfo: GroupInfo,
+		groupInfo: sysTypeRefs.GroupInfo,
 	): Promise<CalendarInfo> {
 		const groupMembers = await loadGroupMembers(group, this.entityClient)
 		const shared = groupMembers.length > 1
@@ -677,7 +673,7 @@ export class CalendarModel {
 			event._kdfNonce = null
 
 			if (event.repeatRule != null) {
-				event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+				event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date }))
 			}
 			// Reset permissions because server will assign them
 			downcast(event)._permissions = null
@@ -708,7 +704,7 @@ export class CalendarModel {
 		return await this.loadCalendarInfos(progressMonitor)
 	}
 
-	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[], sourceUrl: string | null): Promise<Group> {
+	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[], sourceUrl: string | null): Promise<sysTypeRefs.Group> {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
 		// this should be removed once we handle missed events during startup
@@ -753,7 +749,7 @@ export class CalendarModel {
 		event._ownerEncSessionKey = null
 		event._kdfNonce = null
 		if (event.repeatRule != null) {
-			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date }))
 		}
 
 		event.pendingInvitation = this.isPendingInvitation(event)
@@ -783,7 +779,7 @@ export class CalendarModel {
 		newEvent._ownerEncSessionKey = null
 		newEvent._kdfNonce = null
 		if (newEvent.repeatRule != null) {
-			newEvent.repeatRule.excludedDates = newEvent.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+			newEvent.repeatRule.excludedDates = newEvent.repeatRule.excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date }))
 		}
 
 		newEvent.pendingInvitation = this.isPendingInvitation(newEvent)
@@ -1310,7 +1306,7 @@ export class CalendarModel {
 	 *
 	 * @return Promise<Array<UserAlarmInfo>>
 	 */
-	async loadAlarms(alarmInfos: Array<IdTuple>, user: User): Promise<Array<UserAlarmInfo>> {
+	async loadAlarms(alarmInfos: Array<IdTuple>, user: sysTypeRefs.User): Promise<Array<sysTypeRefs.UserAlarmInfo>> {
 		const { alarmInfoList } = user
 
 		if (alarmInfoList == null) {
@@ -1323,7 +1319,7 @@ export class CalendarModel {
 			return []
 		}
 
-		return this.entityClient.loadMultiple(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
+		return this.entityClient.loadMultiple(sysTypeRefs.UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
 	}
 
 	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
@@ -1336,14 +1332,14 @@ export class CalendarModel {
 	}
 
 	// Visible for testing
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		const calendarInfos = await this.calendarInfos.getAsync()
 		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
-		const alarmEventsToProcess: UserAlarmInfo[] = []
+		const alarmEventsToProcess: sysTypeRefs.UserAlarmInfo[] = []
 		for (const entityEventData of updates) {
 			// apps handle alarms natively. this code is a candidate to move into
 			// a generic web/native alarm handler
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !isApp()) {
+			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserAlarmInfoTypeRef, entityEventData) && !isApp()) {
 				if (entityEventData.operation === OperationType.CREATE) {
 					// Updates for UserAlarmInfo and CalendarEvent come in a
 					// separate batches and there's a race between loading of the
@@ -1353,7 +1349,10 @@ export class CalendarModel {
 					// and load it.
 					// All alarms for the same event come in the same batch so
 					try {
-						const userAlarmInfo = await this.entityClient.load(UserAlarmInfoTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
+						const userAlarmInfo = await this.entityClient.load(sysTypeRefs.UserAlarmInfoTypeRef, [
+							entityEventData.instanceListId,
+							entityEventData.instanceId,
+						])
 						alarmEventsToProcess.push(userAlarmInfo)
 						const deferredEvent = this.getPendingAlarmRequest(userAlarmInfo.alarmInfo.calendarRef.elementId)
 						deferredEvent.pendingAlarmCounter++
@@ -1367,7 +1366,7 @@ export class CalendarModel {
 				} else if (entityEventData.operation === OperationType.DELETE && !isApp()) {
 					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, entityEventData)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE) {
 					const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
 					deferredEvent.deferred.resolve(undefined)
@@ -1381,15 +1380,15 @@ export class CalendarModel {
 				if (diff.size !== 0) {
 					this.calendarInfos.reload()
 				}
-			} else if (isUpdateForTypeRef(GroupInfoTypeRef, entityEventData)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, entityEventData)) {
 				// the batch does not belong to that group so we need to find if we actually care about the related GroupInfo
 				for (const { groupInfo } of calendarInfos.values()) {
-					if (isUpdateFor(groupInfo, entityEventData)) {
+					if (entityUpdateUtils.isUpdateFor(groupInfo, entityEventData)) {
 						this.calendarInfos.reload()
 						break
 					}
 				}
-			} else if (isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, entityEventData)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, entityEventData)) {
 				// Usually this type of update comes alone after all other calendar updates,
 				// and user might have subscribed to a new calendar, so we must reload
 				// calendar infos to make sure that the calendar has been put in the correct section
@@ -1448,7 +1447,7 @@ export class CalendarModel {
 	 * @param scheduler - An instance of {@link AlarmScheduler}
 	 * @private
 	 */
-	private scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo, scheduler: AlarmScheduler): void {
+	private scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: sysTypeRefs.UserAlarmInfo, scheduler: AlarmScheduler): void {
 		this.userAlarmToAlarmInfo.set(getElementId(userAlarmInfo), userAlarmInfo.alarmInfo.alarmIdentifier)
 
 		scheduler.scheduleAlarm(event, userAlarmInfo.alarmInfo, event.repeatRule, (eventTime, summary) => {

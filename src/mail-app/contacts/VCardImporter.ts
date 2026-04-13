@@ -1,34 +1,15 @@
+import { decodeBase64, decodeQuotedPrintable } from "@tutao/utils"
+import { birthdayToIsoDate, isValidBirthday } from "../../common/api/common/utils/BirthdayUtils"
+import { ParsingError } from "../../common/api/common/error/ParsingError"
 import {
-	Birthday,
-	Contact,
-	ContactAddress,
-	ContactMailAddress,
-	ContactMessengerHandle,
-	ContactPhoneNumber,
-	ContactPronouns,
-	ContactRelationship,
-	ContactWebsite,
-	createBirthday,
-	createContact,
-	createContactAddress,
-	createContactMailAddress,
-	createContactMessengerHandle,
-	createContactPhoneNumber,
-	createContactPronouns,
-	createContactRelationship,
-	createContactWebsite,
-} from "../../common/api/entities/tutanota/TypeRefs.js"
-import {
+	assertMainOrNode,
 	ContactAddressType,
 	ContactMessengerHandleType,
 	ContactPhoneNumberType,
 	ContactRelationshipType,
 	ContactWebsiteType,
-} from "../../common/api/common/TutanotaConstants"
-import { decodeBase64, decodeQuotedPrintable } from "@tutao/utils"
-import { birthdayToIsoDate, isValidBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import { ParsingError } from "../../common/api/common/error/ParsingError"
-import { assertMainOrNode } from "../../common/api/common/Env"
+} from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -157,8 +138,8 @@ function parseImType(imRawType: string): { imType: ContactMessengerHandleType; c
 /**
  * @returns The list of created Contact instances (but not yet saved) or null if vCardFileData is not a valid vCard string.
  */
-export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Contact[] {
-	let contacts: Contact[] = []
+export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): tutanotaTypeRefs.Contact[] {
+	let contacts: tutanotaTypeRefs.Contact[] = []
 
 	for (let i = 0; i < vCardList.length; i++) {
 		let lastName: string = ""
@@ -172,13 +153,13 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		let department = ""
 		let middleName = ""
 		let suffix = ""
-		const addresses: Array<ContactAddress> = []
-		const mailAddresses: Array<ContactMailAddress> = []
-		const phoneNumbers: Array<ContactPhoneNumber> = []
-		const websites: Array<ContactWebsite> = []
-		const relationships: Array<ContactRelationship> = []
-		const pronouns: Array<ContactPronouns> = []
-		const messengerHandles: Array<ContactMessengerHandle> = []
+		const addresses: Array<tutanotaTypeRefs.ContactAddress> = []
+		const mailAddresses: Array<tutanotaTypeRefs.ContactMailAddress> = []
+		const phoneNumbers: Array<tutanotaTypeRefs.ContactPhoneNumber> = []
+		const websites: Array<tutanotaTypeRefs.ContactWebsite> = []
+		const relationships: Array<tutanotaTypeRefs.ContactRelationship> = []
+		const pronouns: Array<tutanotaTypeRefs.ContactPronouns> = []
+		const messengerHandles: Array<tutanotaTypeRefs.ContactMessengerHandle> = []
 		let vCardLines = vCardList[i].split("\n")
 
 		for (let j = 0; j < vCardLines.length; j++) {
@@ -219,23 +200,23 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "BDAY": {
 					let indexOfT = tagValue.indexOf("T")
-					let bDayDetails: Birthday | null = null
+					let bDayDetails: tutanotaTypeRefs.Birthday | null = null
 
 					if (tagValue.match(/--\d{4}/g)) {
-						bDayDetails = createBirthday({
+						bDayDetails = tutanotaTypeRefs.createBirthday({
 							month: tagValue.substring(2, 4),
 							day: tagValue.substring(4, 6),
 							year: null,
 						})
 					} else if (tagValue.match(/\d{4}-\d{2}-\d{2}/g)) {
 						let bDay = tagValue.substring(0, indexOfT !== -1 ? indexOfT : tagValue.length).split("-")
-						bDayDetails = createBirthday({
+						bDayDetails = tutanotaTypeRefs.createBirthday({
 							year: bDay[0].trim(),
 							month: bDay[1].trim(),
 							day: bDay[2].trim(),
 						})
 					} else if (tagValue.match(/\d{8}/g)) {
-						bDayDetails = createBirthday({
+						bDayDetails = tutanotaTypeRefs.createBirthday({
 							year: tagValue.substring(0, 4),
 							month: tagValue.substring(4, 6),
 							day: tagValue.substring(6, 8),
@@ -387,7 +368,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 				default:
 			}
 		}
-		contacts[i] = createContact({
+		contacts[i] = tutanotaTypeRefs.createContact({
 			_id: ["dummyContactListId", "dummyContactElementId" + i],
 			_ownerGroup: ownerGroupId,
 			lastName,
@@ -420,9 +401,9 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		})
 	}
 
-	function _addAddress(vCardAddressValue: string, addresses: Array<ContactAddress>, type: ContactAddressType) {
+	function _addAddress(vCardAddressValue: string, addresses: Array<tutanotaTypeRefs.ContactAddress>, type: ContactAddressType) {
 		let addressDetails = vCardReescapingArray(vCardEscapingSplitAdr(vCardAddressValue))
-		let address = createContactAddress({
+		let address = tutanotaTypeRefs.createContactAddress({
 			type: type,
 			address: addressDetails.join("").trim(),
 			customTypeName: "",
@@ -430,8 +411,8 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		addresses.push(address)
 	}
 
-	function _addPhoneNumber(vCardPhoneNumberValue: string, phoneNumbers: Array<ContactPhoneNumber>, type: ContactPhoneNumberType) {
-		let phoneNumber = createContactPhoneNumber({
+	function _addPhoneNumber(vCardPhoneNumberValue: string, phoneNumbers: Array<tutanotaTypeRefs.ContactPhoneNumber>, type: ContactPhoneNumberType) {
+		let phoneNumber = tutanotaTypeRefs.createContactPhoneNumber({
 			type: type,
 			number: vCardPhoneNumberValue,
 			customTypeName: "",
@@ -439,8 +420,8 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		phoneNumbers.push(phoneNumber)
 	}
 
-	function _addMailAddress(vCardMailAddressValue: string, mailAddresses: Array<ContactMailAddress>, type: ContactAddressType) {
-		let email = createContactMailAddress({
+	function _addMailAddress(vCardMailAddressValue: string, mailAddresses: Array<tutanotaTypeRefs.ContactMailAddress>, type: ContactAddressType) {
+		let email = tutanotaTypeRefs.createContactMailAddress({
 			type: type,
 			address: vCardMailAddressValue,
 			customTypeName: "",
@@ -448,8 +429,8 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		mailAddresses.push(email)
 	}
 
-	function addRelationship(relationshipPerson: string, relationships: Array<ContactRelationship>, type: ContactRelationshipType) {
-		const relationship = createContactRelationship({
+	function addRelationship(relationshipPerson: string, relationships: Array<tutanotaTypeRefs.ContactRelationship>, type: ContactRelationshipType) {
+		const relationship = tutanotaTypeRefs.createContactRelationship({
 			type: type,
 			person: relationshipPerson,
 			customTypeName: "",
@@ -457,16 +438,21 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		relationships.push(relationship)
 	}
 
-	function addPronouns(pronouns: string, pronounsArray: Array<ContactPronouns>, lang: string) {
-		const pronounsToAdd = createContactPronouns({
+	function addPronouns(pronouns: string, pronounsArray: Array<tutanotaTypeRefs.ContactPronouns>, lang: string) {
+		const pronounsToAdd = tutanotaTypeRefs.createContactPronouns({
 			language: lang,
 			pronouns,
 		})
 		pronounsArray.push(pronounsToAdd)
 	}
 
-	function addMessengerHandle(handle: string, messengerHandleArray: Array<ContactMessengerHandle>, type: ContactMessengerHandleType, customTypeName: string) {
-		const newHandle = createContactMessengerHandle({
+	function addMessengerHandle(
+		handle: string,
+		messengerHandleArray: Array<tutanotaTypeRefs.ContactMessengerHandle>,
+		type: ContactMessengerHandleType,
+		customTypeName: string,
+	) {
+		const newHandle = tutanotaTypeRefs.createContactMessengerHandle({
 			handle,
 			type,
 			customTypeName,
@@ -474,8 +460,8 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 		messengerHandleArray.push(newHandle)
 	}
 
-	function addWebsite(tagValue: string, websites: Array<ContactWebsite>) {
-		let website = createContactWebsite({
+	function addWebsite(tagValue: string, websites: Array<tutanotaTypeRefs.ContactWebsite>) {
+		let website = tutanotaTypeRefs.createContactWebsite({
 			type: ContactWebsiteType.OTHER,
 			url: vCardReescapingArray(vCardEscapingSplit(tagValue)).join(""),
 			customTypeName: "",

@@ -2,9 +2,9 @@ import m, { Children } from "mithril"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { mailLocator } from "../mailLocator.js"
-import { isWebClient } from "../../common/api/common/Env.js"
+import { Mode } from "@tutao/appEnv"
+import { entityUpdateUtils } from "@tutao/typeRefs"
 
 /**
  * Settings viewer for mail import rendered only in the WebApp, Android and iOS.
@@ -29,7 +29,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 						label: "mailImportDownloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (isWebClient()) {
+							if (env.mode === Mode.Browser) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)
@@ -52,5 +52,5 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 		]
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {}
 }

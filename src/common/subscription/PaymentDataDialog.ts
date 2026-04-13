@@ -1,13 +1,11 @@
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
-import { Country, getByAbbreviation } from "../api/common/CountryList"
+import { Country, getByAbbreviation } from "../../appEnv/CountryList"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { PaymentMethodType } from "../api/common/TutanotaConstants"
 import { assertNotNull, LazyLoaded, neverNull, newPromise } from "@tutao/utils"
-import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./utils/SubscriptionUtils.js"
@@ -18,6 +16,8 @@ import { lang } from "../misc/LanguageViewModel"
 import { PaypalButton } from "./PaypalButton"
 import { getVisiblePaymentMethods, isOnAccountAllowed, validatePaymentData } from "./utils/PaymentUtils"
 import { MessageBox } from "../gui/base/MessageBox"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { PaymentMethodType } from "@tutao/appEnv"
 
 function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 	return m(SimplifiedCreditCardInput, { viewModel: ccViewModel })
@@ -25,7 +25,7 @@ function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 
 function renderPaypalInput(
 	paypalButtonData: {
-		accountingInfo: AccountingInfo
+		accountingInfo: sysTypeRefs.AccountingInfo
 	},
 	payPalRequestUrl: LazyLoaded<string>,
 ): Children {
@@ -41,7 +41,7 @@ function renderPaypalInput(
 	})
 }
 
-function renderInvoiceInput(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): Children {
+function renderInvoiceInput(country: Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): Children {
 	return m(
 		".flex-center",
 		m(
@@ -76,7 +76,12 @@ function renderAccountBalanceInput(): Children {
 /**
  * @returns {boolean} true if the payment data update was successful
  */
-export async function show(customer: Customer, accountingInfo: AccountingInfo, price: number, defaultPaymentMethod: PaymentMethodType): Promise<boolean> {
+export async function show(
+	customer: sysTypeRefs.Customer,
+	accountingInfo: sysTypeRefs.AccountingInfo,
+	price: number,
+	defaultPaymentMethod: PaymentMethodType,
+): Promise<boolean> {
 	const paypalButtonData = { accountingInfo }
 	const payPalRequestUrl = getLazyLoadedPayPalUrl()
 	const invoiceData = {

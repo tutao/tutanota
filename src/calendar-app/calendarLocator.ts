@@ -1,4 +1,4 @@
-import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
+import { assertMainOrNode, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, KdfType, Mode } from "@tutao/appEnv"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -49,7 +49,7 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, ClientTypeModelResolver, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -57,7 +57,7 @@ import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { Const, FeatureType } from "@tutao/appEnv"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
@@ -109,7 +109,6 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/PublicEncryptionKeyProvider"
-import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typeRefs"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
@@ -706,7 +705,7 @@ class CalendarLocator implements CommonLocator {
 				AppType.Calendar,
 			)
 
-			if (isElectronClient()) {
+			if (isDesktop() || env.mode === Mode.Admin) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
@@ -803,9 +802,10 @@ class CalendarLocator implements CommonLocator {
 			isApp() || isDesktop()
 				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => calendarLocator.themeFacade))
 				: new WebThemeFacade(deviceConfig)
-		const lazySanitizer = isTest()
-			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
+		const lazySanitizer =
+			env.mode === Mode.Test
+				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
+				: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar, this.whitelabelThemeGenerator)
 

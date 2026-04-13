@@ -1,8 +1,8 @@
 import { ListFilter, ListModel, ListModelConfig } from "./ListModel"
 import { getElementId, isSameId, ListElement } from "@tutao/typeRefs"
-import { OperationType } from "../api/common/TutanotaConstants"
 import Stream from "mithril/stream"
 import { ListLoadingState, ListState } from "../gui/base/List"
+import { OperationType } from "@tutao/appEnv"
 
 /**
  * Specifies methods for fetching and sorting list elements for a ListElementListModel.

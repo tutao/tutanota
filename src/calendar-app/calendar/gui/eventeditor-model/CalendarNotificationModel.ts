@@ -3,12 +3,13 @@ import { CalendarNotificationSender } from "../../view/CalendarNotificationSende
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
-import { AccountType, CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus } from "@tutao/appEnv"
 import { clone } from "@tutao/utils"
 import { TooManyRequestsError } from "../../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { getNonOrganizerAttendees } from "./CalendarEventModel.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
+import { AccountType } from "@tutao/appEnv"
 
 /** all the people that may be interested in changes to an event get stored in these models.
  * if one of them is null, it's because there is no one that needs that kind of update.

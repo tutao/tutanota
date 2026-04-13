@@ -4,7 +4,7 @@
  * are dependent on the system time zone.
  */
 
-import { DAY_IN_MILLIS, daysToMillis } from "./TimeUtils.js"
+import { DAY_IN_MILLIS, daysToMillis } from "@tutao/appEnv"
 
 /**
  * The minimum length of a calendar year.

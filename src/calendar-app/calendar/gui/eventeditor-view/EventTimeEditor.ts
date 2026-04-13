@@ -1,16 +1,16 @@
 import m, { Component, Vnode } from "mithril"
-import { TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { TimeFormat } from "@tutao/appEnv"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { Switch } from "../../../../common/gui/base/Switch.js"
 import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { isApp } from "../../../../common/api/common/Env.js"
 import { DatePicker } from "../pickers/DatePicker.js"
 import { TimePicker } from "../pickers/TimePicker.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Divider } from "../../../../common/gui/Divider.js"
+import { isApp } from "@tutao/appEnv"
 
 export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number

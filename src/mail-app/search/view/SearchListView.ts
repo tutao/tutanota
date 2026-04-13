@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { downcast, isSameTypeRef, TypeRef, YEAR_IN_MILLIS } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
@@ -24,7 +24,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { Button, ButtonType } from "../../../common/gui/base/Button"
 import { mailLocator } from "../../mailLocator"
 import { CircleLoadingBar } from "../../../common/gui/ProgressSnackBar"
-import { FULL_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { formatDate } from "../../../common/misc/Formatter"
 
 assertMainOrNode()

@@ -1,24 +1,19 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getElementId, getEtId, getLetId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { knowledgeBaseSearch } from "./KnowledgeBaseSearchFilter.js"
 import type { LanguageCode } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { OperationType, ShareCapability } from "../../../common/api/common/TutanotaConstants.js"
+import { ShareCapability } from "@tutao/appEnv"
 import { downcast, LazyLoaded, noOp, promiseMap, SortedArray } from "@tutao/utils"
-import { getElementId, getEtId, getLetId, isSameId } from "@tutao/typeRefs"
 import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupModel.js"
 import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel.js"
 import type { UserController } from "../../../common/api/main/UserController.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { EventController } from "../../../common/api/main/EventController.js"
+import { OperationType } from "@tutao/appEnv"
 
 type KnowledgeBaseEntry = tutanotaTypeRefs.KnowledgeBaseEntry
 export const SELECT_NEXT_ENTRY = "next"
@@ -39,7 +34,7 @@ export class KnowledgeBaseModel {
 	_filterValue: string
 	readonly _eventController: EventController
 	readonly _entityClient: EntityClient
-	readonly _entityEventReceived: EntityEventsListener
+	readonly _entityEventReceived: entityUpdateUtils.EntityEventsListener
 	_groupInstances: Array<TemplateGroupInstance>
 	_initialized: LazyLoaded<KnowledgeBaseModel>
 	readonly userController: UserController
@@ -59,7 +54,7 @@ export class KnowledgeBaseModel {
 			onEntityUpdatesReceived: (updates) => {
 				return this._entityUpdate(updates)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		this._eventController.addEntityListener(this._entityEventReceived)
@@ -223,9 +218,9 @@ export class KnowledgeBaseModel {
 		return !instance || !hasCapabilityOnGroup(this.userController.user, instance.group, ShareCapability.Write)
 	}
 
-	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	_entityUpdate(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
 					return this._entityClient.load(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then((entry) => {
 						this._allEntries.insert(entry)

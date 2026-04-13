@@ -5,7 +5,7 @@ import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import m from "mithril"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
-import { isApp, isDesktop } from "../api/common/Env"
+import { isApp, isDesktop } from "@tutao/appEnv"
 
 export async function prepareLogContent() {
 	const entries: string[] = []

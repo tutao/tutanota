@@ -1,35 +1,26 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/crypto"
+import { matchers, object, replace, verify, when } from "testdouble"
 import {
-	aes256RandomKey,
-	aesDecrypt,
-	aesEncrypt,
+	Cardinality,
+	ClientModelParsedInstance,
+	ClientTypeModel,
+	ClientTypeReferenceResolver,
+	ServerTypeReferenceResolver,
+	ModelValue,
 	InstanceDecryptor,
 	MissingSessionKey,
-	random,
+	ServerModelEncryptedParsedInstance,
+	ServerTypeModel,
+	ValueType,
 	SYMMETRIC_CIPHER_FACADE,
 	SymmetricCipherFacade,
 	ValueDecryptor,
-} from "@tutao/crypto"
-import { Cardinality, ValueType } from "@tutao/typeRefs"
-import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { CryptoMapper, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
-import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { matchers, object, replace, verify, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
-import {
-	ClientModelParsedInstance,
-	ClientTypeModel,
-	ModelValue,
-	ServerModelEncryptedParsedInstance,
-	ServerTypeModel,
-} from "../../../../../src/common/api/common/EntityTypes.js"
+} from "@tutao/typeRefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
+import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instancePipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
-import { assertThrows } from "@tutao/otest"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, ModelMapper } from "@tutao/typeRefs"
 
 o.spec("CryptoMapper", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE

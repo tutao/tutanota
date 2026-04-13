@@ -2,11 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { ButtonColor, getColors } from "./Button.js"
 import { ButtonSize } from "./ButtonSize.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
-import { TabIndex } from "../../api/common/TutanotaConstants"
+import { TabIndex } from "@tutao/appEnv"
 
 assertMainOrNode()
 

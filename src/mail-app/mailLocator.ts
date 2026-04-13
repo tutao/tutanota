@@ -1,14 +1,4 @@
-import {
-	assertMainOrNode,
-	isAndroidApp,
-	isApp,
-	isBrowser,
-	isDesktop,
-	isElectronClient,
-	isIOSApp,
-	isOfflineStorageAvailable,
-	isTest,
-} from "../common/api/common/Env.js"
+import { assertMainOrNode, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -61,7 +51,7 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, ClientTypeModelResolver, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -71,7 +61,7 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { Const, FeatureType, GroupType } from "../common/api/common/TutanotaConstants.js"
+import { Const, FeatureType } from "@tutao/appEnv"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
@@ -141,7 +131,6 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { Indexer } from "./workerUtils/index/Indexer"
 import { SearchFacade } from "./workerUtils/index/SearchFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
-import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typeRefs"
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacade"
@@ -947,7 +936,7 @@ class MailLocator implements CommonLocator {
 			)
 
 			this.credentialsProvider = await this.createCredentialsProvider()
-			if (isElectronClient()) {
+			if (isDesktop() || env.mode === Mode.Admin) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
@@ -1056,9 +1045,10 @@ class MailLocator implements CommonLocator {
 		}
 		const selectedThemeFacade =
 			isApp() || isDesktop() ? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => mailLocator.themeFacade)) : new WebThemeFacade(deviceConfig)
-		const lazySanitizer = isTest()
-			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
+		const lazySanitizer =
+			env.mode === Mode.Test
+				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
+				: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Mail, this.whitelabelThemeGenerator)
 
@@ -1312,7 +1302,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {
-		if (isOfflineStorageAvailable()) {
+		if (!isBrowser() && !(env.mode === Mode.Admin)) {
 			return new OfflineStorageSettingsModel(this.logins.getUserController(), deviceConfig)
 		} else {
 			return null

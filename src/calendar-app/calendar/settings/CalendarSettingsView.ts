@@ -1,12 +1,7 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, isApp, isIOSApp } from "../../../common/api/common/Env.js"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { assertMainOrNode, GroupType, isApp, isIOSApp } from "@tutao/appEnv"
+
 import { TopLevelView } from "../../../TopLevelView.js"
 import { Header } from "../../../common/gui/Header.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -15,7 +10,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn.js"
 import { SettingsFolder } from "../../../common/settings/SettingsFolder.js"
 import { LazyLoaded, lazyStringValue } from "@tutao/utils"
-import { FeatureType, GroupType } from "../../../common/api/common/TutanotaConstants.js"
+import { FeatureType } from "@tutao/appEnv"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
@@ -31,7 +26,6 @@ import { SubscriptionViewer } from "../../../common/subscription/SubscriptionVie
 import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
 import { ReferralSettingsViewer } from "../../../common/settings/ReferralSettingsViewer.js"
 import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
-import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { AboutDialog } from "../../../common/settings/AboutDialog.js"
 import { CalendarSettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
@@ -47,6 +41,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { showSupportDialog } from "../../../common/support/SupportDialog.js"
 import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTestUtils.js"
 import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -349,11 +344,11 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		calendarLocator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener: EntityEventsListener = {
-		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
+	private entityListener: entityUpdateUtils.EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: entityUpdateUtils.EntityUpdateData[], eventOwnerGroupId: Id) => {
 			return this.entityEventsReceived(updates, eventOwnerGroupId)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<CalendarSettingsViewAttrs>): Children {
@@ -460,7 +455,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		m.route.set(url + location.hash)
 	}
 
-	_isGlobalAdmin(user: User): boolean {
+	_isGlobalAdmin(user: sysTypeRefs.User): boolean {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
@@ -468,9 +463,9 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.showBusinessSettings((await this.logins.getUserController().reloadCustomer()).businessUse)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
 				await this.updateShowBusinessSettings()
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				const user = this.logins.getUserController().user
@@ -484,7 +479,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					this._setUrl(this.userFolders[0].url)
 				}
 				m.redraw()
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
 				this.customDomains.reset()
 				this.adminFolders.length = 0
 				this.subscriptionFolders.length = 0

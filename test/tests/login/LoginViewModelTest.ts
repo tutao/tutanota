@@ -1,13 +1,11 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { DisplayMode, LoginState, LoginViewModel } from "../../../src/common/login/LoginViewModel.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { GroupInfoTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import { KeyPermanentlyInvalidatedError } from "../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
 import { CredentialAuthenticationError } from "../../../src/common/api/common/error/CredentialAuthenticationError.js"
 import { Credentials, credentialsToUnencrypted } from "../../../src/common/misc/credentials/Credentials.js"
 import { SecondFactorHandler } from "../../../src/common/misc/2fa/SecondFactorHandler"
-import { assertThrows } from "@tutao/otest"
 import { CredentialsProvider } from "../../../src/common/misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../src/common/api/common/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
@@ -23,6 +21,7 @@ import { UnencryptedCredentials } from "../../../src/common/native/common/genera
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { AppLock } from "../../../src/common/login/AppLock.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 const { anything } = matchers
 
@@ -126,11 +125,11 @@ o.spec("LoginViewModelTest", () => {
 		loginControllerMock = object<LoginController>()
 		const userControllerMock = object<UserController>()
 
-		replace(userControllerMock, "user", createTestEntity(UserTypeRef))
+		replace(userControllerMock, "user", createTestEntity(sysTypeRefs.UserTypeRef))
 		replace(
 			userControllerMock,
 			"userGroupInfo",
-			createTestEntity(GroupInfoTypeRef, {
+			createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
 				mailAddress: "test@example.com",
 			}),
 		)

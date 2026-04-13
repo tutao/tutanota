@@ -1,12 +1,12 @@
 import { ListElement } from "@tutao/typeRefs"
 import { Shortcut } from "../../misc/KeyManager.js"
-import { Keys } from "../../api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import { mapLazily, NBSP } from "@tutao/utils"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
-import { isBrowser } from "../../api/common/Env.js"
 import { ListElementListModel } from "../../misc/ListElementListModel"
 import { SearchToken, splitTextForHighlighting } from "../../api/common/utils/QueryTokenUtils"
+import { isBrowser } from "@tutao/appEnv"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100

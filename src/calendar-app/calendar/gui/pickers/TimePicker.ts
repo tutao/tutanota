@@ -1,18 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField, TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { Keys, TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { Keys, TabIndex, TimeFormat } from "@tutao/appEnv"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../common/gui/base/SingleLineTextField.js"
-import { isApp } from "../../../../common/api/common/Env.js"
 import { px, size } from "../../../../common/gui/size.js"
 import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { lang, Translation, TranslationKey } from "../../../../common/misc/LanguageViewModel"
+import { isApp } from "@tutao/appEnv"
 
 export type TimePickerAttrs = {
 	time: Time | null

@@ -6,24 +6,14 @@ import {
 	EntityRestInterface,
 	OwnerEncSessionKeyProvider,
 } from "../worker/rest/EntityRestClient"
-import type { RootInstance } from "../entities/sys/TypeRefs.js"
-import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
-import {
-	CUSTOM_MIN_ID,
-	elementIdPart,
-	firstBiggerThanSecond,
-	GENERATED_MIN_ID,
-	getElementId,
-	getLetId,
-	listIdPart,
-	RANGE_ITEM_LIMIT,
-} from "./utils/EntityUtils"
-import { Type, ValueType } from "./EntityConstants.js"
+import { CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/typeRefs"
+import { Type, ValueType } from "@tutao/typeRefs"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
-import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
+import type { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typeRefs"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { ClientTypeModelResolver } from "./EntityFunctions"
+import { ClientTypeModelResolver } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -141,7 +131,7 @@ export class EntityClient {
 	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const rootId = [groupId, typeModel.rootId] as const
-		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId, opts)
+		const root = await this.load<sysTypeRefs.RootInstance>(sysTypeRefs.RootInstanceTypeRef, rootId, opts)
 		return this.load<T>(typeRef, downcast(root.reference), opts)
 	}
 }

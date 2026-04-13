@@ -1,9 +1,17 @@
-import { assertNotNull, daysToMillis, groupByAndMap } from "@tutao/utils"
-import { constructMailSetEntryId, elementIdPart, firstBiggerThanSecondCustomId, GENERATED_MAX_ID, getElementId, listIdPart } from "@tutao/typeRefs"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertNotNull, groupByAndMap } from "@tutao/utils"
+import {
+	constructMailSetEntryId,
+	elementIdPart,
+	firstBiggerThanSecondCustomId,
+	GENERATED_MAX_ID,
+	getElementId,
+	getOfflineStorageDefaultTimeRangeDays,
+	listIdPart,
+	sysTypeRefs,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { AccountType, getOfflineStorageDefaultTimeRangeDays } from "../../../common/api/common/TutanotaConstants"
+import { AccountType, daysToMillis } from "@tutao/appEnv"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	private cutOffId: Id | null = null

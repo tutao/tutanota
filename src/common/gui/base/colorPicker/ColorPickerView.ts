@@ -8,7 +8,7 @@ import { ColorPickerModel } from "./ColorPickerModel.js"
 import { client } from "../../../misc/ClientDetector.js"
 import { isDarkTheme, theme } from "../../theme.js"
 import { assertNotNull, clamp, filterInt } from "@tutao/utils"
-import { Keys, TabIndex } from "../../../api/common/TutanotaConstants"
+import { Keys, TabIndex } from "@tutao/appEnv"
 import { isKeyPressed } from "../../../misc/KeyManager"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1

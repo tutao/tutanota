@@ -90,7 +90,7 @@ o.spec("EntityFunctionsTest", function () {
 				applicationTypesJson,
 			}))
 
-			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.resolveServerTypeReference(MailTypeRef))
+			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.resolveServerTypeReference(tutanotaTypeRefs.MailTypeRef))
 			o(e.message).equals("Trying to parse encrypted value as unencrypted for: base:0:1")
 		})
 
@@ -129,7 +129,7 @@ o.spec("EntityFunctionsTest", function () {
 				applicationTypesHash,
 				applicationTypesJson,
 			}))
-			await serverModelInfo.resolveServerTypeReference(MailTypeRef)
+			await serverModelInfo.resolveServerTypeReference(tutanotaTypeRefs.MailTypeRef)
 		})
 	})
 })

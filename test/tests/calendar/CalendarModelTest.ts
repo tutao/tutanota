@@ -1,37 +1,11 @@
-import o from "@tutao/otest"
-import {
-	CalendarEvent,
-	CalendarEventAttendeeTypeRef,
-	CalendarEventTypeRef,
-	CalendarGroupRoot,
-	CalendarGroupRootTypeRef,
-	Contact,
-	ContactMailAddressTypeRef,
-	ContactTypeRef,
-	EncryptedMailAddressTypeRef,
-} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import o, { verify } from "@tutao/otest"
+import { elementIdPart, entityUpdateUtils, getListId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, RepeatPeriod } from "@tutao/appEnv"
 import { DateTime } from "luxon"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
-import {
-	AlarmInfoTypeRef,
-	createDateWrapper,
-	GroupInfo,
-	GroupInfoTypeRef,
-	GroupMember,
-	GroupMembership,
-	GroupMembershipTypeRef,
-	GroupMemberTypeRef,
-	GroupTypeRef,
-	MailAddressAlias,
-	RepeatRuleTypeRef,
-	User,
-	UserAlarmInfoListType,
-	UserAlarmInfoTypeRef,
-} from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
@@ -42,11 +16,9 @@ import {
 	CalendarEventUidIndexEntry,
 	CalendarFacade,
 } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
-import { verify } from "@tutao/otest"
 import { FileController } from "../../../src/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { IProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
@@ -55,10 +27,10 @@ import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { elementIdPart, getListId, listIdPart } from "@tutao/typeRefs"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"
+import { GroupType } from "@tutao/appEnv"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
@@ -85,7 +57,7 @@ o.spec("CalendarModel", function () {
 		{ zone: "UTC" },
 	).toJSDate()
 
-	let calendarGroupRoot: CalendarGroupRoot
+	let calendarGroupRoot: tutanotaTypeRefs.CalendarGroupRoot
 	let calendarModel: CalendarModel
 	let notificationsMock: Notifications
 	let schedulerMock: AlarmScheduler
@@ -101,22 +73,22 @@ o.spec("CalendarModel", function () {
 	let nativePushServiceAppMock: NativePushServiceApp
 	let syncTrackMock: SyncTracker
 	let languageViewModelMock: LanguageViewModel
-	let groupMemberMock: GroupMember
+	let groupMemberMock: sysTypeRefs.GroupMember
 
 	let baseInvitation: ParsedCalendarData
-	let baseExistingProgenitor: CalendarEvent
+	let baseExistingProgenitor: tutanotaTypeRefs.CalendarEvent
 	let baseCalendarEventUidIndexEntry: CalendarEventUidIndexEntry
 
 	let userControllerMock: DoubledObject<{
-		user: User
-		userGroupInfo: GroupInfo
-		getCalendarMemberships: () => Array<GroupMembership>
+		user: sysTypeRefs.User
+		userGroupInfo: sysTypeRefs.GroupInfo
+		getCalendarMemberships: () => Array<sysTypeRefs.GroupMembership>
 	}>
-	let userMock: User
+	let userMock: sysTypeRefs.User
 
-	let calendarGroupMembership: GroupMembership
+	let calendarGroupMembership: sysTypeRefs.GroupMembership
 	let externalCalendarFacadeMock: ExternalCalendarFacade
-	let userGroupInfo: GroupInfo
+	let userGroupInfo: sysTypeRefs.GroupInfo
 	let contactModelMock: ContactModel
 
 	o.beforeEach(function () {
@@ -140,7 +112,7 @@ o.spec("CalendarModel", function () {
 
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 		const userId = "user-id"
-		userMock = object<User>()
+		userMock = object<sysTypeRefs.User>()
 		userMock._id = userId
 		userControllerMock.user = userMock
 
@@ -151,49 +123,49 @@ o.spec("CalendarModel", function () {
 		const progressMonitorMock = object<IProgressMonitor>()
 		when(progressTrackerMock.getMonitor(anything())).thenReturn(progressMonitorMock)
 
-		calendarGroupMembership = createTestEntity(GroupMembershipTypeRef, {
+		calendarGroupMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 			group: "calendar-group-id",
 			groupType: GroupType.Calendar,
 			groupInfo: ["group-info-listId", "calendar-group-info-id"],
 		})
 		// when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
 
-		calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+		calendarGroupRoot = createTestEntity(tutanotaTypeRefs.CalendarGroupRootTypeRef, {
 			_id: calendarGroupMembership.group,
 			longEvents: "longEvents",
 			shortEvents: "shortEvents",
 		})
 
-		const calendarGroupInfo = createTestEntity(GroupInfoTypeRef, {
+		const calendarGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
 			_id: calendarGroupMembership.groupInfo,
 			group: calendarGroupMembership.group,
 		})
 
-		groupMemberMock = createTestEntity(GroupMemberTypeRef, {
+		groupMemberMock = createTestEntity(sysTypeRefs.GroupMemberTypeRef, {
 			_id: ["group-member-list-id", "group-member-element-id"],
 			group: calendarGroupRoot._id,
 			user: userMock._id,
 			userGroupInfo: calendarGroupInfo._id,
 		})
 
-		const calendarGroup = createTestEntity(GroupTypeRef, {
+		const calendarGroup = createTestEntity(sysTypeRefs.GroupTypeRef, {
 			_id: calendarGroupMembership.group,
 			members: "group-member-list-id",
 		})
 
-		const organizerMailAddress = createTestEntity(ContactMailAddressTypeRef, { address: ORGANIZER })
-		const guestMailAddress = createTestEntity(ContactMailAddressTypeRef, { address: GUEST })
+		const organizerMailAddress = createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, { address: ORGANIZER })
+		const guestMailAddress = createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, { address: GUEST })
 
-		const organizerContactMock = createTestEntity(ContactTypeRef, { mailAddresses: [organizerMailAddress] })
-		const guestContactMock: Contact = createTestEntity(ContactTypeRef, { mailAddresses: [guestMailAddress] })
+		const organizerContactMock = createTestEntity(tutanotaTypeRefs.ContactTypeRef, { mailAddresses: [organizerMailAddress] })
+		const guestContactMock: tutanotaTypeRefs.Contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, { mailAddresses: [guestMailAddress] })
 
 		when(contactModelMock.searchForContact(ORGANIZER)).thenResolve(organizerContactMock)
 		when(contactModelMock.searchForContact(GUEST)).thenResolve(guestContactMock)
 
-		when(entityClientMock.loadAll(GroupMemberTypeRef, getListId(groupMemberMock))).thenResolve([groupMemberMock])
-		when(entityClientMock.load(CalendarGroupRootTypeRef, calendarGroupRoot._id)).thenResolve(calendarGroupRoot)
-		when(entityClientMock.load(GroupTypeRef, calendarGroup._id)).thenResolve(calendarGroup)
-		when(entityClientMock.load(GroupInfoTypeRef, calendarGroupInfo._id)).thenResolve(calendarGroupInfo)
+		when(entityClientMock.loadAll(sysTypeRefs.GroupMemberTypeRef, getListId(groupMemberMock))).thenResolve([groupMemberMock])
+		when(entityClientMock.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, calendarGroupRoot._id)).thenResolve(calendarGroupRoot)
+		when(entityClientMock.load(sysTypeRefs.GroupTypeRef, calendarGroup._id)).thenResolve(calendarGroup)
+		when(entityClientMock.load(sysTypeRefs.GroupInfoTypeRef, calendarGroupInfo._id)).thenResolve(calendarGroupInfo)
 		when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(undefined)
 
 		calendarModel = new CalendarModel(
@@ -217,23 +189,23 @@ o.spec("CalendarModel", function () {
 			languageViewModelMock,
 		)
 
-		baseExistingProgenitor = createTestEntity(CalendarEventTypeRef, {
+		baseExistingProgenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 			_id: ["listId", "eventId"],
 			uid,
 			_ownerGroup: calendarGroupRoot._id,
 			summary: "v1",
-			organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+			organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 				address: ORGANIZER,
 			}),
 			attendees: [
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 						address: ORGANIZER,
 					}),
 					status: CalendarAttendeeStatus.ACCEPTED,
 				}),
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 						address: GUEST,
 					}),
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
@@ -250,7 +222,7 @@ o.spec("CalendarModel", function () {
 		baseCalendarEventUidIndexEntry.alteredInstances = []
 	})
 
-	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
+	const noPatchesAndInstance: Pick<entityUpdateUtils.EntityUpdateData, "instance" | "patches"> = {
 		instance: null,
 		patches: null,
 	}
@@ -261,18 +233,18 @@ o.spec("CalendarModel", function () {
 
 		o.beforeEach(function () {
 			baseParsedEventReply = {
-				icsCalendarEvent: createTestEntity(CalendarEventTypeRef, {
+				icsCalendarEvent: createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					uid,
 					summary: baseExistingProgenitor.summary,
 					attendees: [
-						createTestEntity(CalendarEventAttendeeTypeRef, {
-							address: createTestEntity(EncryptedMailAddressTypeRef, {
+						createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+							address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 								address: GUEST,
 							}),
 							status: CalendarAttendeeStatus.ACCEPTED,
 						}),
 					],
-				}) as Require<"uid", CalendarEvent>,
+				}) as Require<"uid", tutanotaTypeRefs.CalendarEvent>,
 				alarms: [],
 			}
 
@@ -282,7 +254,7 @@ o.spec("CalendarModel", function () {
 			}
 
 			userGroupInfo = object()
-			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddressAliases = new Array<sysTypeRefs.MailAddressAlias>()
 			userGroupInfo.mailAddress = ORGANIZER
 			userControllerMock.userGroupInfo = userGroupInfo
 		})
@@ -300,8 +272,8 @@ o.spec("CalendarModel", function () {
 
 			baseParsedEventReply.icsCalendarEvent.summary = "Summary modified by the guest"
 			baseParsedEventReply.icsCalendarEvent.attendees!.push(
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 						address: ORGANIZER,
 					}),
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
@@ -315,7 +287,7 @@ o.spec("CalendarModel", function () {
 
 			const eventCaptor = matchers.captor()
 			verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), anything(), anything()))
-			const createdEvent: CalendarEvent = eventCaptor.value
+			const createdEvent: tutanotaTypeRefs.CalendarEvent = eventCaptor.value
 			o(createdEvent).deepEquals(baseExistingProgenitor)
 			o(createdEvent.pendingInvitation).deepEquals(false)
 		})
@@ -324,7 +296,7 @@ o.spec("CalendarModel", function () {
 	o.spec("processCalendarData - CalendarMethod.REQUEST", function () {
 		o.beforeEach(function () {
 			userGroupInfo = object()
-			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddressAliases = new Array<sysTypeRefs.MailAddressAlias>()
 			userGroupInfo.mailAddress = GUEST
 			userControllerMock.userGroupInfo = userGroupInfo
 
@@ -354,14 +326,14 @@ o.spec("CalendarModel", function () {
 				const eventCaptor = matchers.captor()
 				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), anything()))
 
-				const capturedEventInput: CalendarEvent = eventCaptor.value
+				const capturedEventInput: tutanotaTypeRefs.CalendarEvent = eventCaptor.value
 				o.check(capturedEventInput.pendingInvitation).equals(true)
 			})
 
 			// Repeat Rules
 			o("New REQUEST invite to repeating event sets pendingInvitation true", async function () {
 				// Arrange
-				baseInvitation.contents[0].icsCalendarEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+				baseInvitation.contents[0].icsCalendarEvent.repeatRule = createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 				})
@@ -375,7 +347,7 @@ o.spec("CalendarModel", function () {
 				const eventCaptor = matchers.captor()
 				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), anything()))
 
-				const capturedEventInput: CalendarEvent = eventCaptor.value
+				const capturedEventInput: tutanotaTypeRefs.CalendarEvent = eventCaptor.value
 				o.check(capturedEventInput.pendingInvitation).equals(true)
 				o.check(capturedEventInput.repeatRule?.frequency).equals(RepeatPeriod.DAILY)
 				o.check(capturedEventInput.repeatRule?.interval).equals("1")
@@ -395,7 +367,7 @@ o.spec("CalendarModel", function () {
 				const eventCaptor = matchers.captor()
 				verify(calendarFacadeMock.createCalendarEvent(eventCaptor.capture(), anything()))
 
-				const capturedEventInput: CalendarEvent = eventCaptor.value
+				const capturedEventInput: tutanotaTypeRefs.CalendarEvent = eventCaptor.value
 				o.check(capturedEventInput.pendingInvitation).equals(true)
 				o.check(capturedEventInput.recurrenceId).equals(recurrenceId)
 			})
@@ -415,10 +387,10 @@ o.spec("CalendarModel", function () {
 				const oldEventCaptor = matchers.captor()
 				verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), anything(), oldEventCaptor.capture()), { times: 1 })
 
-				const oldEvent: CalendarEvent = oldEventCaptor.value
+				const oldEvent: tutanotaTypeRefs.CalendarEvent = oldEventCaptor.value
 				o.check(oldEvent).deepEquals(baseExistingProgenitor)
 
-				const updatedEvent: CalendarEvent = eventCaptor.value
+				const updatedEvent: tutanotaTypeRefs.CalendarEvent = eventCaptor.value
 				o.check(updatedEvent._id).deepEquals(oldEvent._id)
 				o.check(updatedEvent.summary).equals(baseExistingProgenitor.summary)
 				o.check(updatedEvent.pendingInvitation).equals(true)
@@ -428,7 +400,7 @@ o.spec("CalendarModel", function () {
 				"new altered instances with guest status NEEDS_ACTION SHOULD be a pendingInvitation even if progenitor invitation has been accepted, and progenitor should keep its pendingInvitation status",
 				async function () {
 					// Arrange
-					baseExistingProgenitor.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+					baseExistingProgenitor.repeatRule = createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
 						frequency: RepeatPeriod.DAILY,
 						interval: "1",
 					})
@@ -462,7 +434,7 @@ o.spec("CalendarModel", function () {
 					// Assert
 					const alteredInstanceCaptor = matchers.captor()
 					verify(calendarFacadeMock.createCalendarEvent(alteredInstanceCaptor.capture(), anything()))
-					const actualAlteredInstance: CalendarEvent = alteredInstanceCaptor.value
+					const actualAlteredInstance: tutanotaTypeRefs.CalendarEvent = alteredInstanceCaptor.value
 					o.check(actualAlteredInstance.pendingInvitation).equals(true) // true because start time has changed (i.e. does not match recurrenceId) so organizer should send the guest status as NEEDS_ACTION
 					o.check(actualAlteredInstance.startTime).equals(alteredInstanceStartTime)
 					o.check(actualAlteredInstance.endTime).equals(alteredInstanceEndTime)
@@ -470,7 +442,7 @@ o.spec("CalendarModel", function () {
 
 					const updatedProgenitorCaptor = matchers.captor()
 					verify(calendarFacadeMock.updateCalendarEvent(updatedProgenitorCaptor.capture(), anything(), anything()))
-					const updatedProgenitor: CalendarEvent = updatedProgenitorCaptor.value
+					const updatedProgenitor: tutanotaTypeRefs.CalendarEvent = updatedProgenitorCaptor.value
 					o.check(updatedProgenitor.pendingInvitation).equals(baseExistingProgenitor.pendingInvitation) // progenitor keeps existing pendingInvitation state
 					const excludedDate = getFirstOrThrow(updatedProgenitor.repeatRule!.excludedDates)
 					o.check(excludedDate.date.getTime()).equals(alteredInstanceEvent.recurrenceId.getTime())
@@ -486,11 +458,11 @@ o.spec("CalendarModel", function () {
 				eventByUid.alteredInstances = []
 				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(eventByUid)
 
-				const sentEvent = createTestEntity(CalendarEventTypeRef, {
+				const sentEvent = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					summary: "v2",
 					uid,
 					sequence: "2",
-					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+					organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 						address: ORGANIZER,
 					}),
 					startTime: baseExistingProgenitor.startTime,
@@ -523,19 +495,21 @@ o.spec("CalendarModel", function () {
 
 		o("event entity is re-created when the start time changes", async function () {
 			// Arrange
-			const mockUserAlarmListInfoType = object<UserAlarmInfoListType>()
+			const mockUserAlarmListInfoType = object<sysTypeRefs.UserAlarmInfoListType>()
 			mockUserAlarmListInfoType.alarms = "alarm-id"
 			const alarmsListId = neverNull(loginControllerMock.getUserController().user.alarmInfoList).alarms
-			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
+			const alarmInfo = createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
 				_id: "alarm-id",
 			})
 			const alarmInfos: IdTuple[] = [[alarmsListId, alarmInfo._id]]
-			const userAlarmInfo = createTestEntity(UserAlarmInfoTypeRef, {
+			const userAlarmInfo = createTestEntity(sysTypeRefs.UserAlarmInfoTypeRef, {
 				_id: [alarmsListId, alarmInfo._id],
 				alarmInfo: alarmInfo,
 			})
 
-			when(entityClientMock.loadMultiple(UserAlarmInfoTypeRef, listIdPart(alarmInfos[0]), alarmInfos.map(elementIdPart))).thenResolve([userAlarmInfo])
+			when(entityClientMock.loadMultiple(sysTypeRefs.UserAlarmInfoTypeRef, listIdPart(alarmInfos[0]), alarmInfos.map(elementIdPart))).thenResolve([
+				userAlarmInfo,
+			])
 
 			baseExistingProgenitor.startTime = DateTime.fromObject(
 				{
@@ -545,7 +519,7 @@ o.spec("CalendarModel", function () {
 				},
 				{ zone: "UTC" },
 			).toJSDate()
-			baseExistingProgenitor.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
+			baseExistingProgenitor.organizer = createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 				address: ORGANIZER,
 			})
 			baseExistingProgenitor.alarmInfos = [[alarmsListId, alarmInfo._id]]
@@ -562,7 +536,7 @@ o.spec("CalendarModel", function () {
 				},
 				{ zone: "UTC" },
 			).toJSDate()
-			icsEvent.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
+			icsEvent.organizer = createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 				address: ORGANIZER,
 			})
 
@@ -576,7 +550,7 @@ o.spec("CalendarModel", function () {
 			expectedNewEvent.summary = icsEvent.summary
 			expectedNewEvent.sequence = icsEvent.sequence
 
-			when(entityClientMock.load<CalendarEvent>(CalendarEventTypeRef, anything())).thenResolve(expectedNewEvent)
+			when(entityClientMock.load<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, anything())).thenResolve(expectedNewEvent)
 			// Act
 			await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
@@ -612,12 +586,12 @@ o.spec("CalendarModel", function () {
 
 		o.beforeEach(function () {
 			userGroupInfo = object()
-			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddressAliases = new Array<sysTypeRefs.MailAddressAlias>()
 			userGroupInfo.mailAddress = GUEST
 			userControllerMock.userGroupInfo = userGroupInfo
 
 			baseParsedEvent = {
-				icsCalendarEvent: createTestEntity(CalendarEventTypeRef, {
+				icsCalendarEvent: createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 					uid,
 				}) as CalendarEventProgenitor,
 				alarms: [],
@@ -643,7 +617,7 @@ o.spec("CalendarModel", function () {
 			baseParsedEvent.icsCalendarEvent.summary = "Altered Instance"
 			baseParsedEvent.icsCalendarEvent.recurrenceId = new Date()
 			baseParsedEvent.icsCalendarEvent.repeatRule = null
-			baseParsedEvent.icsCalendarEvent.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
+			baseParsedEvent.icsCalendarEvent.organizer = createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 				address: ORGANIZER,
 			})
 			baseCalendarEventUidIndexEntry.alteredInstances.push(baseParsedEvent.icsCalendarEvent as CalendarEventAlteredInstance)
@@ -664,13 +638,13 @@ o.spec("CalendarModel", function () {
 				baseParsedEvent.icsCalendarEvent.summary = "Altered Instance"
 				baseParsedEvent.icsCalendarEvent.recurrenceId = new Date()
 				baseParsedEvent.icsCalendarEvent.repeatRule = null
-				baseParsedEvent.icsCalendarEvent.organizer = createTestEntity(EncryptedMailAddressTypeRef, {
+				baseParsedEvent.icsCalendarEvent.organizer = createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 					address: ORGANIZER,
 				})
 				baseCalendarEventUidIndexEntry.alteredInstances.push(baseParsedEvent.icsCalendarEvent as CalendarEventAlteredInstance)
 
-				baseExistingProgenitor.repeatRule = createTestEntity(RepeatRuleTypeRef, {
-					excludedDates: [createDateWrapper({ date: baseParsedEvent.icsCalendarEvent.recurrenceId })],
+				baseExistingProgenitor.repeatRule = createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+					excludedDates: [sysTypeRefs.createDateWrapper({ date: baseParsedEvent.icsCalendarEvent.recurrenceId })],
 				})
 
 				when(calendarFacadeMock.getEventsByUid(uid, anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
@@ -704,7 +678,7 @@ o.spec("CalendarModel", function () {
 
 		o.beforeEach(function () {
 			userGroupInfo = object()
-			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddressAliases = new Array<sysTypeRefs.MailAddressAlias>()
 			userGroupInfo.mailAddress = GUEST
 			userControllerMock.userGroupInfo = userGroupInfo
 
@@ -714,7 +688,7 @@ o.spec("CalendarModel", function () {
 				summary: "v2",
 				uid,
 				sequence: "2",
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 					address: ORGANIZER,
 				}),
 				startTime: baseExistingProgenitor.startTime,

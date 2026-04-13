@@ -8,18 +8,19 @@ import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "..
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog.js"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import type { CertificateInfo, CustomerInfo } from "../../../common/api/entities/sys/TypeRefs.js"
-import { CertificateState, CertificateType, PlanType, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
+import { CertificateState, CertificateType, UpgradePromptType } from "@tutao/appEnv"
 import { formatDateTime } from "../../../common/misc/Formatter"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { PlanType } from "@tutao/appEnv"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
-	customerInfo: CustomerInfo
+	customerInfo: sysTypeRefs.CustomerInfo
 	isWhitelabelFeatureEnabled: boolean
-	certificateInfo: CertificateInfo | null
+	certificateInfo: sysTypeRefs.CertificateInfo | null
 	whitelabelDomain: string
 }
 
@@ -68,7 +69,11 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		}
 	}
 
-	_renderEditButton(customerInfo: CustomerInfo, certificateInfo: CertificateInfo | null, isWhitelabelFeatureEnabled: boolean): Children {
+	_renderEditButton(
+		customerInfo: sysTypeRefs.CustomerInfo,
+		certificateInfo: sysTypeRefs.CertificateInfo | null,
+		isWhitelabelFeatureEnabled: boolean,
+	): Children {
 		return m(IconButton, {
 			title: "edit_action",
 			click: () => this.edit(isWhitelabelFeatureEnabled, customerInfo),
@@ -77,7 +82,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		})
 	}
 
-	private async edit(isWhitelabelFeatureEnabled: boolean, customerInfo: CustomerInfo): Promise<void> {
+	private async edit(isWhitelabelFeatureEnabled: boolean, customerInfo: sysTypeRefs.CustomerInfo): Promise<void> {
 		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(UpgradePromptType.WHITELABEL, [PlanType.Unlimited])
 		} else {
@@ -91,7 +96,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		}
 	}
 
-	private renderWhitelabelInfo(certificateInfo: CertificateInfo | null): () => Children {
+	private renderWhitelabelInfo(certificateInfo: sysTypeRefs.CertificateInfo | null): () => Children {
 		let components: Array<string>
 
 		if (certificateInfo) {
@@ -127,7 +132,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			)
 	}
 
-	private certificateTypeString(certificateInfo: CertificateInfo): string {
+	private certificateTypeString(certificateInfo: sysTypeRefs.CertificateInfo): string {
 		switch (certificateInfo.type) {
 			case CertificateType.LETS_ENCRYPT:
 				return lang.get("certificateTypeAutomatic_label")

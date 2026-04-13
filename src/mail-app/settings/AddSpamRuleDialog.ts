@@ -2,23 +2,23 @@ import m from "mithril"
 import type { TranslationKey } from "../../common/misc/LanguageViewModel"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { isDomainOrTopLevelDomain, isMailAddress } from "../../common/misc/FormatValidator"
-import { getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTA_MAIL_ADDRESS_DOMAINS } from "../../common/api/common/TutanotaConstants"
+import { SpamRuleFieldType, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/appEnv"
 import { contains, objectEntries } from "@tutao/utils"
 import { Dialog } from "../../common/gui/base/Dialog"
-import type { EmailSenderListElement } from "../../common/api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import type { SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
 import { locator } from "../../common/api/main/CommonLocator"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode, SpamRuleType } from "@tutao/appEnv"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
+import { getSpamRuleField, getSpamRuleType, sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
-type LoadedData = { customDomains: string[]; existingSpamRules: EmailSenderListElement[] }
+type LoadedData = { customDomains: string[]; existingSpamRules: sysTypeRefs.EmailSenderListElement[] }
 
-export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderListElement | null) {
+export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: sysTypeRefs.EmailSenderListElement | null) {
 	let loadedData: LoadedData | null = null
 
 	const typeItems = getSpamRuleTypeNameMapping()
@@ -111,7 +111,7 @@ function validate(
 	value: string,
 	field: SpamRuleFieldType,
 	loadedData: LoadedData | null,
-	existingSpamRuleOrTemplate: EmailSenderListElement | null,
+	existingSpamRuleOrTemplate: sysTypeRefs.EmailSenderListElement | null,
 ): TranslationKey | null {
 	let currentValue = value.toLowerCase().trim()
 

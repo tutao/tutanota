@@ -1,50 +1,50 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { createTestEntity } from "../../TestUtils"
-import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants"
 import { LabelsPopupViewModel } from "../../../../src/mail-app/mail/view/LabelsPopupViewModel"
 import { LabelState } from "../../../../src/mail-app/mail/model/MailModel"
+import { MailSetKind } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("LabelsPopupViewModelTest", () => {
-	const originalLabels: MailSet[] = [
-		createTestEntity(MailSetTypeRef, {
+	const originalLabels: tutanotaTypeRefs.MailSet[] = [
+		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: ["mailSetList", "first"],
 			folderType: MailSetKind.LABEL,
 			name: "1",
 			parentFolder: null,
 		}),
-		createTestEntity(MailSetTypeRef, {
+		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: ["mailSetList", "second"],
 			folderType: MailSetKind.LABEL,
 			name: "2",
 		}),
-		createTestEntity(MailSetTypeRef, {
+		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: ["mailSetList", "third"],
 			folderType: MailSetKind.LABEL,
 			name: "3",
 		}),
-		createTestEntity(MailSetTypeRef, {
+		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: ["mailSetList", "fourth"],
 			folderType: MailSetKind.LABEL,
 			name: "4",
 		}),
-		createTestEntity(MailSetTypeRef, {
+		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: ["mailSetList", "fifth"],
 			folderType: MailSetKind.LABEL,
 			name: "5",
 		}),
-		createTestEntity(MailSetTypeRef, {
+		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: ["mailSetList", "sixth"],
 			folderType: MailSetKind.LABEL,
 			name: "6",
 		}),
 	]
 
-	let mailLabelMap: Map<Id, ReadonlyArray<MailSet>>
-	let initialLabelStates: { label: MailSet; state: LabelState }[]
+	let mailLabelMap: Map<Id, ReadonlyArray<tutanotaTypeRefs.MailSet>>
+	let initialLabelStates: { label: tutanotaTypeRefs.MailSet; state: LabelState }[]
 	let viewModel: LabelsPopupViewModel
 
-	const checkStateChangeOutput = (expectedAdded: MailSet[], expectedRemoved: MailSet[], expectedMaxReached: boolean) => {
+	const checkStateChangeOutput = (expectedAdded: tutanotaTypeRefs.MailSet[], expectedRemoved: tutanotaTypeRefs.MailSet[], expectedMaxReached: boolean) => {
 		const { addedLabels, removedLabels } = viewModel.getLabelStateChange()
 
 		o(addedLabels).deepEquals(expectedAdded)

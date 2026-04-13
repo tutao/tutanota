@@ -9,20 +9,19 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { AccountType, ConversationType, Keys, MailMethod, PresentableKeyVerificationState } from "../api/common/TutanotaConstants"
+import { Keys, MailMethod, PresentableKeyVerificationState } from "@tutao/appEnv"
 import { copyToClipboard } from "./ClipboardUtils"
 import { px } from "../gui/size"
-import { isApp, isDesktop, Mode } from "../api/common/Env"
 import { RecipientType } from "../api/common/recipients/Recipient.js"
 import { createLogFile } from "../api/common/Logger.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { convertTextToHtml } from "./Formatter.js"
-import { ReportErrorService } from "../api/entities/monitor/Services.js"
-import { createErrorReportData, createErrorReportFile, createReportErrorIn } from "../api/entities/monitor/TypeRefs.js"
+import { monitorServices, monitorTypeRefs } from "@tutao/typeRefs"
 import { ErrorReportClientType } from "./ClientConstants.js"
 import { client } from "./ClientDetector.js"
 import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
 import { getTimeZone } from "../calendar/date/CalendarUtils.js"
+import { AccountType, ConversationType, isApp, isDesktop, Mode } from "@tutao/appEnv"
 
 type FeedbackContent = {
 	message: string
@@ -345,8 +344,8 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 
 	const clientType = getReportingClientType()
 
-	const errorData = createReportErrorIn({
-		data: createErrorReportData({
+	const errorData = monitorTypeRefs.createReportErrorIn({
+		data: monitorTypeRefs.createErrorReportData({
 			clientType,
 			appVersion: env.versionNumber,
 			userId: locator.logins.getUserController().userId,
@@ -359,13 +358,13 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 		}),
 		files: logs.map((log) => {
 			const stringData = uint8ArrayToString("utf-8", log.data)
-			return createErrorReportFile({
+			return monitorTypeRefs.createErrorReportFile({
 				name: log.name,
 				content: stringData,
 			})
 		}),
 	})
-	await locator.serviceExecutor.post(ReportErrorService, errorData)
+	await locator.serviceExecutor.post(monitorServices.ReportErrorService, errorData)
 }
 
 function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {

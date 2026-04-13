@@ -14,7 +14,7 @@ import {
 } from "@tutao/typeRefs"
 import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, Nullable, TypeRef } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/appEnv"
-import { IDENTITY_FIELDS, isSameId } from "./EntityUtils"
+import { IDENTITY_FIELDS, isSameId } from "./EntityUtils.js"
 
 export const enum PatchOperationType {
 	ADD_ITEM = "0",

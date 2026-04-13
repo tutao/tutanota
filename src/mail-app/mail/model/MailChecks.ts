@@ -1,9 +1,9 @@
 //@bundleInto:common
 
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { isFolderReadOnly, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { MailModel } from "./MailModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { isFolderReadOnly, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, MailState, SystemFolderType } from "@tutao/appEnv"
 
 export function isSubfolderOfType(system: FolderSystem, folder: tutanotaTypeRefs.MailSet, type: SystemFolderType): boolean {
 	const systemFolder = system.getSystemFolderByType(type)

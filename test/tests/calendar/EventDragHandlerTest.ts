@@ -1,12 +1,13 @@
 import o from "@tutao/otest"
 import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/calendar-app/calendar/view/EventDragHandler.js"
-import { DAY_IN_MILLIS, defer, downcast } from "@tutao/utils"
+import { defer, downcast } from "@tutao/utils"
 import type { DraggedEventContainer } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
 import { makeEvent } from "./CalendarTestUtils.js"
 import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { spy } from "@tutao/otest"
 import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { DAY_IN_MILLIS } from "@tutao/appEnv"
 
 const INIT_MOUSE_POS = {
 	x: 0,

@@ -15,7 +15,7 @@ import { SuspensionError } from "../../../common/api/common/error/SuspensionErro
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
 import { storageTypeRefs } from "@tutao/typeRefs"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { MailModel } from "../../mail/model/MailModel"
 import { MailboxExportState } from "../../../common/desktop/export/MailboxExportPersistence"
 

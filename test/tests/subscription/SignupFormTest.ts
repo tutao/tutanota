@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import { CaptchaDialogViewModel } from "../../../src/common/subscription/captcha/CaptchaDialog.js"
-import { CaptchaChallengeTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../TestUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
-const challenge = createTestEntity(CaptchaChallengeTypeRef)
+const challenge = createTestEntity(sysTypeRefs.CaptchaChallengeTypeRef)
 const viewModel = new CaptchaDialogViewModel(challenge, challenge)
 
 const parseCaptchaInput = (input: string) => {

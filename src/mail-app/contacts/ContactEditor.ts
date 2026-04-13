@@ -4,7 +4,11 @@ import type { Translation, TranslationKey } from "../../common/misc/LanguageView
 import { lang } from "../../common/misc/LanguageViewModel"
 import { isMailAddress } from "../../common/misc/FormatValidator"
 import { formatBirthdayNumeric, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
+import { Keys } from "@tutao/appEnv"
+import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import {
+	assertMainOrNode,
 	ContactAddressType,
 	ContactCustomDateType,
 	ContactMessengerHandleType,
@@ -13,33 +17,7 @@ import {
 	ContactSocialType,
 	ContactWebsiteType,
 	GroupType,
-	Keys,
-} from "../../common/api/common/TutanotaConstants"
-import {
-	Contact,
-	ContactAddress,
-	ContactCustomDate,
-	ContactMailAddress,
-	ContactMessengerHandle,
-	ContactPhoneNumber,
-	ContactPronouns,
-	ContactRelationship,
-	ContactSocialId,
-	ContactWebsite,
-	createBirthday,
-	createContact,
-	createContactAddress,
-	createContactCustomDate,
-	createContactMailAddress,
-	createContactMessengerHandle,
-	createContactPhoneNumber,
-	createContactPronouns,
-	createContactRelationship,
-	createContactSocialId,
-	createContactWebsite,
-} from "../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
-import { assertMainOrNode } from "../../common/api/common/Env"
+} from "@tutao/appEnv"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { LockedError, NotFoundError, PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import type { ButtonAttrs } from "../../common/gui/base/Button.js"
@@ -65,7 +43,6 @@ import { parseBirthday } from "../../common/misc/DateParser"
 import type { TextFieldAttrs } from "../../common/gui/base/TextField.js"
 import { Autocapitalize, Autocomplete, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { timestampToGeneratedId } from "@tutao/typeRefs"
 import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregateEditor"
 import { DefaultAnimationTime } from "../../common/gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
@@ -78,7 +55,7 @@ assertMainOrNode()
 
 const TAG = "[ContactEditor]"
 
-interface CompleteCustomDate extends ContactCustomDate {
+interface CompleteCustomDate extends tutanotaTypeRefs.ContactCustomDate {
 	date: string
 	isValid: boolean
 }
@@ -86,19 +63,19 @@ interface CompleteCustomDate extends ContactCustomDate {
 export class ContactEditor {
 	private readonly dialog: Dialog
 	private hasInvalidBirthday: boolean
-	private readonly mailAddresses: Array<[ContactMailAddress, Id]>
-	private readonly phoneNumbers: Array<[ContactPhoneNumber, Id]>
-	private readonly addresses: Array<[ContactAddress, Id]>
-	private readonly socialIds: Array<[ContactSocialId, Id]>
-	private readonly websites: Array<[ContactWebsite, Id]>
-	private readonly relationships: Array<[ContactRelationship, Id]>
-	private readonly messengerHandles: Array<[ContactMessengerHandle, Id]>
-	private readonly pronouns: Array<[ContactPronouns, Id]>
+	private readonly mailAddresses: Array<[tutanotaTypeRefs.ContactMailAddress, Id]>
+	private readonly phoneNumbers: Array<[tutanotaTypeRefs.ContactPhoneNumber, Id]>
+	private readonly addresses: Array<[tutanotaTypeRefs.ContactAddress, Id]>
+	private readonly socialIds: Array<[tutanotaTypeRefs.ContactSocialId, Id]>
+	private readonly websites: Array<[tutanotaTypeRefs.ContactWebsite, Id]>
+	private readonly relationships: Array<[tutanotaTypeRefs.ContactRelationship, Id]>
+	private readonly messengerHandles: Array<[tutanotaTypeRefs.ContactMessengerHandle, Id]>
+	private readonly pronouns: Array<[tutanotaTypeRefs.ContactPronouns, Id]>
 	private readonly customDates: Array<[CompleteCustomDate, Id]>
 	private birthday: string
 	windowCloseUnsubscribe: () => unknown
 	private readonly isNewContact: boolean
-	private readonly contact: Contact
+	private readonly contact: tutanotaTypeRefs.Contact
 	private readonly listId: Id
 
 	private saving: boolean = false
@@ -112,13 +89,13 @@ export class ContactEditor {
 	 */
 	constructor(
 		private readonly entityClient: EntityClient,
-		contact: Contact | null,
+		contact: tutanotaTypeRefs.Contact | null,
 		listId?: Id,
 		private readonly newContactIdReceiver: ((contactId: Id) => unknown) | null = null,
 	) {
 		this.contact = contact
 			? clone(contact)
-			: createContact({
+			: tutanotaTypeRefs.createContact({
 					mailAddresses: [],
 					title: null,
 					socialIds: [],
@@ -335,7 +312,7 @@ export class ContactEditor {
 		this.contact.phoneNumbers = this.phoneNumbers.map((e) => e[0]).filter((e) => e.number.trim().length > 0)
 		this.contact.addresses = this.addresses.map((e) => e[0]).filter((e) => e.address.trim().length > 0)
 		this.contact.socialIds = this.socialIds.map((e) => e[0]).filter((e) => e.socialId.trim().length > 0)
-		this.contact.customDate = this.customDates.map((e) => e[0] as ContactCustomDate).filter((e) => e.dateIso.trim().length > 0)
+		this.contact.customDate = this.customDates.map((e) => e[0] as tutanotaTypeRefs.ContactCustomDate).filter((e) => e.dateIso.trim().length > 0)
 		this.contact.relationships = this.relationships.map((e) => e[0]).filter((e) => e.person.trim().length > 0)
 		this.contact.websites = this.websites.map((e) => e[0]).filter((e) => e.url.length > 0)
 		this.contact.messengerHandles = this.messengerHandles.map((e) => e[0]).filter((e) => e.handle.length > 0)
@@ -382,7 +359,7 @@ export class ContactEditor {
 
 	private renderCustomDatesEditor(id: Id, allowCancel: boolean, date: CompleteCustomDate): Children {
 		let dateHelpText = (): Translation => {
-			let bday = createBirthday({
+			let bday = tutanotaTypeRefs.createBirthday({
 				day: "22",
 				month: "9",
 				year: "2000",
@@ -431,7 +408,7 @@ export class ContactEditor {
 		} satisfies AggregateEditorAttrs<any>)
 	}
 
-	private renderMailAddressesEditor(id: Id, allowCancel: boolean, mailAddress: ContactMailAddress): Children {
+	private renderMailAddressesEditor(id: Id, allowCancel: boolean, mailAddress: tutanotaTypeRefs.ContactMailAddress): Children {
 		let helpLabel: TranslationKey
 
 		if (mailAddress.address.trim().length > 0 && !isMailAddress(mailAddress.address.trim(), false)) {
@@ -461,7 +438,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderPhonesEditor(id: Id, allowCancel: boolean, phoneNumber: ContactPhoneNumber): Children {
+	private renderPhonesEditor(id: Id, allowCancel: boolean, phoneNumber: tutanotaTypeRefs.ContactPhoneNumber): Children {
 		const typeLabels = typedEntries(ContactPhoneNumberTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: phoneNumber.number,
@@ -483,7 +460,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderAddressesEditor(id: Id, allowCancel: boolean, address: ContactAddress): Children {
+	private renderAddressesEditor(id: Id, allowCancel: boolean, address: tutanotaTypeRefs.ContactAddress): Children {
 		const typeLabels = typedEntries(ContactMailAddressTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: address.address,
@@ -505,7 +482,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderSocialsEditor(id: Id, allowCancel: boolean, socialId: ContactSocialId): Children {
+	private renderSocialsEditor(id: Id, allowCancel: boolean, socialId: tutanotaTypeRefs.ContactSocialId): Children {
 		const typeLabels = typedEntries(ContactSocialTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: socialId.socialId,
@@ -528,7 +505,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderWebsitesEditor(id: Id, allowCancel: boolean, website: ContactWebsite): Children {
+	private renderWebsitesEditor(id: Id, allowCancel: boolean, website: tutanotaTypeRefs.ContactWebsite): Children {
 		const typeLabels = typedEntries(ContactCustomWebsiteTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: website.url,
@@ -551,7 +528,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderRelationshipsEditor(id: Id, allowCancel: boolean, relationship: ContactRelationship): Children {
+	private renderRelationshipsEditor(id: Id, allowCancel: boolean, relationship: tutanotaTypeRefs.ContactRelationship): Children {
 		const typeLabels = typedEntries(ContactRelationshipTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: relationship.person,
@@ -573,7 +550,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderMessengerHandleEditor(id: Id, allowCancel: boolean, messengerHandle: ContactMessengerHandle): Children {
+	private renderMessengerHandleEditor(id: Id, allowCancel: boolean, messengerHandle: tutanotaTypeRefs.ContactMessengerHandle): Children {
 		const typeLabels = typedEntries(ContactMessengerHandleTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: messengerHandle.handle,
@@ -596,7 +573,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderPronounsEditor(id: Id, allowCancel: boolean, pronouns: ContactPronouns): Children {
+	private renderPronounsEditor(id: Id, allowCancel: boolean, pronouns: tutanotaTypeRefs.ContactPronouns): Children {
 		const typeLabels = typedEntries({ "0": "language_label" } as Record<string, TranslationKey>)
 		return m(ContactAggregateEditor, {
 			value: pronouns.pronouns,
@@ -636,7 +613,7 @@ export class ContactEditor {
 		})
 	}
 
-	private renderField(fieldName: keyof Contact, label: TranslationKey): Children {
+	private renderField(fieldName: keyof tutanotaTypeRefs.Contact, label: TranslationKey): Children {
 		return m(StandaloneField, {
 			label,
 			value: (this.contact[fieldName] ?? "") as string,
@@ -660,7 +637,7 @@ export class ContactEditor {
 
 	private renderBirthdayField(): Children {
 		let birthdayHelpText = () => {
-			let bday = createBirthday({
+			let bday = tutanotaTypeRefs.createBirthday({
 				day: "22",
 				month: "9",
 				year: "2000",
@@ -749,8 +726,8 @@ export class ContactEditor {
 		}
 	}
 
-	private newPhoneNumber(): [ContactPhoneNumber, Id] {
-		const phoneNumber = createContactPhoneNumber({
+	private newPhoneNumber(): [tutanotaTypeRefs.ContactPhoneNumber, Id] {
+		const phoneNumber = tutanotaTypeRefs.createContactPhoneNumber({
 			type: ContactPhoneNumberType.MOBILE,
 			customTypeName: "",
 			number: "",
@@ -758,8 +735,8 @@ export class ContactEditor {
 		return [phoneNumber, this.newId()]
 	}
 
-	private newMailAddress(): [ContactMailAddress, Id] {
-		const mailAddress = createContactMailAddress({
+	private newMailAddress(): [tutanotaTypeRefs.ContactMailAddress, Id] {
+		const mailAddress = tutanotaTypeRefs.createContactMailAddress({
 			type: ContactAddressType.WORK,
 			customTypeName: "",
 			address: "",
@@ -767,8 +744,8 @@ export class ContactEditor {
 		return [mailAddress, this.newId()]
 	}
 
-	private newAddress(): [ContactAddress, Id] {
-		const address = createContactAddress({
+	private newAddress(): [tutanotaTypeRefs.ContactAddress, Id] {
+		const address = tutanotaTypeRefs.createContactAddress({
 			type: ContactAddressType.WORK,
 			customTypeName: "",
 			address: "",
@@ -776,8 +753,8 @@ export class ContactEditor {
 		return [address, this.newId()]
 	}
 
-	private newSocialId(): [ContactSocialId, Id] {
-		const socialId = createContactSocialId({
+	private newSocialId(): [tutanotaTypeRefs.ContactSocialId, Id] {
+		const socialId = tutanotaTypeRefs.createContactSocialId({
 			type: ContactSocialType.TWITTER,
 			customTypeName: "",
 			socialId: "",
@@ -785,8 +762,8 @@ export class ContactEditor {
 		return [socialId, this.newId()]
 	}
 
-	private newRelationship(): [ContactRelationship, Id] {
-		const relationship = createContactRelationship({
+	private newRelationship(): [tutanotaTypeRefs.ContactRelationship, Id] {
+		const relationship = tutanotaTypeRefs.createContactRelationship({
 			person: "",
 			type: ContactRelationshipType.ASSISTANT,
 			customTypeName: "",
@@ -794,8 +771,8 @@ export class ContactEditor {
 		return [relationship, this.newId()]
 	}
 
-	private newMessengerHandler(): [ContactMessengerHandle, Id] {
-		const messengerHandler = createContactMessengerHandle({
+	private newMessengerHandler(): [tutanotaTypeRefs.ContactMessengerHandle, Id] {
+		const messengerHandler = tutanotaTypeRefs.createContactMessengerHandle({
 			handle: "",
 			type: ContactMessengerHandleType.SIGNAL,
 			customTypeName: "",
@@ -803,8 +780,8 @@ export class ContactEditor {
 		return [messengerHandler, this.newId()]
 	}
 
-	private newPronoun(): [ContactPronouns, Id] {
-		const contactPronouns = createContactPronouns({
+	private newPronoun(): [tutanotaTypeRefs.ContactPronouns, Id] {
+		const contactPronouns = tutanotaTypeRefs.createContactPronouns({
 			language: "",
 			pronouns: "",
 		})
@@ -812,7 +789,7 @@ export class ContactEditor {
 	}
 
 	private newCustomDate(): [CompleteCustomDate, Id] {
-		const contactDate = createContactCustomDate({
+		const contactDate = tutanotaTypeRefs.createContactCustomDate({
 			dateIso: "",
 			type: ContactCustomDateType.ANNIVERSARY,
 			customTypeName: "",
@@ -820,8 +797,8 @@ export class ContactEditor {
 		return [{ ...contactDate, date: "", isValid: true }, this.newId()]
 	}
 
-	private newWebsite(): [ContactWebsite, Id] {
-		const website = createContactWebsite({
+	private newWebsite(): [tutanotaTypeRefs.ContactWebsite, Id] {
+		const website = tutanotaTypeRefs.createContactWebsite({
 			type: ContactWebsiteType.PRIVATE,
 			url: "",
 			customTypeName: "",
@@ -856,7 +833,7 @@ export class ContactEditor {
 		}
 	}
 
-	private onLanguageSelect(pronouns: ContactPronouns): void {
+	private onLanguageSelect(pronouns: tutanotaTypeRefs.ContactPronouns): void {
 		setTimeout(() => {
 			Dialog.showTextInputDialog({
 				title: "language_label",

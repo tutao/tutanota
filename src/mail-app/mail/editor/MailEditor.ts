@@ -17,20 +17,20 @@ import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
-	ConversationType,
 	ExternalImageRule,
 	FeatureType,
 	Keys,
 	MailAuthenticationStatus,
 	MailMethod,
-	UpgradePromptType,
+	minutesToMillis,
+	secondsToMillis,
 	UNDO_SEND_TIMEOUT_SECONDS,
-} from "../../../common/api/common/TutanotaConstants"
+	UpgradePromptType,
+} from "@tutao/appEnv"
 import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
-import { isApp, isBrowser, isDesktop, isIOSApp } from "../../../common/api/common/Env"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
 import type { TextFieldAttrs } from "../../../common/gui/base/TextField.js"
@@ -42,31 +42,9 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
-import {
-	Contact,
-	ContactTypeRef,
-	ConversationEntry,
-	ConversationEntryTypeRef,
-	createTranslationGetIn,
-	Mail,
-	MailboxProperties,
-	MailDetails,
-} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import {
-	assertNotNull,
-	cleanMatch,
-	debounce,
-	downcast,
-	isNotNull,
-	lazy,
-	minutesToMillis,
-	noOp,
-	ofClass,
-	secondsToMillis,
-	throttle,
-	typedValues,
-} from "@tutao/utils"
+import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "@tutao/utils"
 import {
 	createInlineImage,
 	replaceCidsWithInlineImages,
@@ -109,7 +87,6 @@ import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { BannerButtonAttrs, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../../common/api/common/utils/CustomerUtils.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { TranslationService } from "../../../common/api/entities/tutanota/Services.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import {
@@ -136,6 +113,7 @@ import { showNotAvailableForFreeDialog } from "../../../common/misc/Subscription
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
+import { ConversationType, isApp, isBrowser, isDesktop, isIOSApp } from "@tutao/appEnv"
 
 // Interval where we save drafts locally.
 //
@@ -1063,7 +1041,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			contactModel.getContactListId().then((contactListId: string) => {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
-				entity.load(ContactTypeRef, id).then((contact: Contact) => {
+				entity.load(tutanotaTypeRefs.ContactTypeRef, id).then((contact: tutanotaTypeRefs.Contact) => {
 					if (contact.mailAddresses.some((ma) => cleanMatch(ma.address, mailAddress))) {
 						recipient.setName(getContactDisplayName(contact))
 						recipient.setContact(contact)
@@ -1283,7 +1261,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						async () => {
 							if (model.draft) {
 								await model.mailFacade.undoSendMail(sentMail, sendJob)
-								const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
+								const conversationEntry = await model.entity.load(tutanotaTypeRefs.ConversationEntryTypeRef, model.draft.conversationEntry)
 								// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
 								const editorDialog = await newMailEditorFromDraft(
 									model.draft,
@@ -1600,9 +1578,9 @@ export async function newMailEditorAsResponse(
 }
 
 export async function newMailEditorFromDraft(
-	mail: Mail,
-	mailDetails: MailDetails,
-	conversationEntry: ConversationEntry,
+	mail: tutanotaTypeRefs.Mail,
+	mailDetails: tutanotaTypeRefs.MailDetails,
+	conversationEntry: tutanotaTypeRefs.ConversationEntry,
 	attachments: Attachment[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
@@ -1771,7 +1749,10 @@ export async function writeInviteMail(referralLink: string) {
 		"{registrationLink}": referralLink,
 		"{username}": username,
 	})
-	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const { invitationSubject } = await locator.serviceExecutor.get(
+		tutanotaServices.TranslationService,
+		tutanotaTypeRefs.createTranslationGetIn({ lang: lang.code }),
+	)
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
 	dialog?.show()
 }
@@ -1791,7 +1772,10 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		})
 		.split("\n")
 		.join("<br />")
-	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const { giftCardSubject } = await locator.serviceExecutor.get(
+		tutanotaServices.TranslationService,
+		tutanotaTypeRefs.createTranslationGetIn({ lang: lang.code }),
+	)
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
@@ -1801,7 +1785,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 
 async function getMailboxDetailsAndProperties(
 	mailboxDetails: MailboxDetail | null | undefined,
-): Promise<{ mailboxDetails: MailboxDetail; mailboxProperties: MailboxProperties }> {
+): Promise<{ mailboxDetails: MailboxDetail; mailboxProperties: tutanotaTypeRefs.MailboxProperties }> {
 	mailboxDetails = mailboxDetails ?? (await locator.mailboxModel.getUserMailboxDetails())
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return { mailboxDetails, mailboxProperties }

@@ -2,16 +2,8 @@ import o from "@tutao/otest"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { object, verify, when } from "testdouble"
 import { NewsItemStorage, NewsModel } from "../../../src/common/misc/news/NewsModel.js"
-import { NewsService } from "../../../src/common/api/entities/tutanota/Services.js"
-import {
-	createNewsId,
-	createNewsIn,
-	createNewsOut,
-	NewsId,
-	NewsIdTypeRef,
-	NewsInTypeRef,
-	NewsOutTypeRef,
-} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { tutanotaServices } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { NewsListItem } from "../../../src/common/misc/news/NewsListItem.js"
 import { Children } from "mithril"
 import { createTestEntity } from "../TestUtils.js"
@@ -20,10 +12,10 @@ o.spec("NewsModel", function () {
 	let newsModel: NewsModel
 	let serviceExecutor: IServiceExecutor
 	let storage: NewsItemStorage
-	let newsIds: NewsId[]
+	let newsIds: tutanotaTypeRefs.NewsId[]
 
 	const DummyNews = class implements NewsListItem {
-		render(newsId: NewsId): Children {
+		render(newsId: tutanotaTypeRefs.NewsId): Children {
 			return null
 		}
 
@@ -39,14 +31,14 @@ o.spec("NewsModel", function () {
 		newsModel = new NewsModel(serviceExecutor, storage, async () => new DummyNews())
 
 		newsIds = [
-			createTestEntity(NewsIdTypeRef, {
+			createTestEntity(tutanotaTypeRefs.NewsIdTypeRef, {
 				newsItemId: "ID:dummyNews",
 				newsItemName: "dummyNews",
 			}),
 		]
 
-		when(serviceExecutor.get(NewsService, null)).thenResolve(
-			createTestEntity(NewsOutTypeRef, {
+		when(serviceExecutor.get(tutanotaServices.NewsService, null)).thenResolve(
+			createTestEntity(tutanotaTypeRefs.NewsOutTypeRef, {
 				newsItemIds: newsIds,
 			}),
 		)
@@ -65,8 +57,8 @@ o.spec("NewsModel", function () {
 
 			await newsModel.acknowledgeNews(newsIds[0].newsItemId)
 
-			const expectedNewsIn = createTestEntity(NewsInTypeRef, { newsItemId: newsIds[0].newsItemId })
-			verify(serviceExecutor.post(NewsService, expectedNewsIn))
+			const expectedNewsIn = createTestEntity(tutanotaTypeRefs.NewsInTypeRef, { newsItemId: newsIds[0].newsItemId })
+			verify(serviceExecutor.post(tutanotaServices.NewsService, expectedNewsIn))
 		})
 	})
 })

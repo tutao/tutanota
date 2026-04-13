@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "../../gui/styles"
 import { px, size } from "../../gui/size"
-import { PlanType } from "../../api/common/TutanotaConstants"
 import { PersonalPaidPlanBox } from "./PersonalPaidPlanBox"
 import { getApplePriceStr, getPriceStr } from "../utils/SubscriptionUtils"
 import { PersonalFreePlanBox } from "./PersonalFreePlanBox"
@@ -9,6 +8,7 @@ import { PlanConfig } from "./BusinessPlanContainer"
 import { Icons } from "../../gui/base/icons/Icons"
 import { anyHasGlobalFirstYearCampaign, filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
+import { PlanType } from "@tutao/appEnv"
 
 export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	private paidPlanConfigs: PlanConfig[] = [

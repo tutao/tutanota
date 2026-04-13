@@ -1,9 +1,5 @@
-import { assertMainOrNode } from "../api/common/Env.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { formatDate } from "../misc/Formatter.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 import {
+	assertMainOrNode,
 	ContactAddressType,
 	ContactCustomDateType,
 	ContactMessengerHandleType,
@@ -11,7 +7,11 @@ import {
 	ContactRelationshipType,
 	ContactSocialType,
 	ContactWebsiteType,
-} from "../api/common/TutanotaConstants.js"
+} from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { formatDate } from "../misc/Formatter.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 import { StructuredMailAddress } from "../native/common/generatedipc/StructuredMailAddress.js"
 import { StructuredAddress } from "../native/common/generatedipc/StructuredAddress.js"
 import { StructuredPhoneNumber } from "../native/common/generatedipc/StructuredPhoneNumber.js"

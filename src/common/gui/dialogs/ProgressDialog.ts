@@ -1,5 +1,5 @@
 import m from "mithril"
-import { assertMainOrNode, isAdminClient } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { Dialog, DialogType } from "../base/Dialog"
 import { DefaultAnimationTime } from "../animation/Animations"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -7,9 +7,10 @@ import { lang } from "../../misc/LanguageViewModel"
 import { progressIcon } from "../base/Icon"
 import { CompletenessIndicator } from "../CompletenessIndicator.js"
 import Stream from "mithril/stream"
-import { TabIndex } from "../../api/common/TutanotaConstants"
+import { TabIndex } from "@tutao/appEnv"
 import { delay, MaybeLazy, resolveMaybeLazy } from "@tutao/utils"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
+import { Mode } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -60,7 +61,7 @@ export async function showProgressDialog<T>(
 	})
 	progressDialog.show()
 	let start = new Date().getTime()
-	let minDialogVisibilityMillis = isAdminClient() ? 0 : 1000
+	let minDialogVisibilityMillis = env.mode === Mode.Admin ? 0 : 1000
 	try {
 		return await action
 	} finally {

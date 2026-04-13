@@ -4,7 +4,7 @@ import { ToggleButton } from "../../../../common/gui/base/buttons/ToggleButton.j
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { AccountType, CalendarAttendeeStatus, UpgradePromptType } from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, UpgradePromptType } from "@tutao/appEnv"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -28,8 +28,9 @@ import { PasswordInput } from "../../../../common/gui/PasswordInput.js"
 import { Switch } from "../../../../common/gui/base/Switch.js"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils"
-import { tutanotaModelInfo, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils"
+import { AccountType } from "@tutao/appEnv"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

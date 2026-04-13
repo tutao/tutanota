@@ -1,8 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { CustomerInfo, DnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
-import { createDnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
-import { DnsRecordType } from "../../../common/api/common/TutanotaConstants"
+import { DnsRecordType } from "@tutao/appEnv"
 import type { MailAddressTableAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import { AddEmailAddressesPage, AddEmailAddressesPageAttrs } from "./AddEmailAddressesPage"
 import { DomainDnsStatus } from "../DomainDnsStatus"
@@ -10,23 +8,24 @@ import { VerifyOwnershipPage, VerifyOwnershipPageAttrs } from "./VerifyOwnership
 import { VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs } from "./VerifyDnsRecordsPage"
 import { EnterDomainPage, EnterDomainPageAttrs } from "./EnterDomainPage"
 import { createWizardDialog, wizardPageWrapper } from "../../../common/gui/base/WizardDialog.js"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
 
 import { newPromise } from "@tutao/utils"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 export type AddDomainData = {
 	domain: Stream<string>
-	customerInfo: CustomerInfo
-	expectedVerificationRecord: DnsRecord
+	customerInfo: sysTypeRefs.CustomerInfo
+	expectedVerificationRecord: sysTypeRefs.DnsRecord
 	editAliasFormAttrs: MailAddressTableAttrs
 	domainStatus: DomainDnsStatus
 }
 
 /** Shows a wizard for adding a custom email domain. */
-export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, mailAddressTableModel: MailAddressTableModel): Promise<void> {
+export function showAddDomainWizard(domain: string, customerInfo: sysTypeRefs.CustomerInfo, mailAddressTableModel: MailAddressTableModel): Promise<void> {
 	let mailAddressTableExpanded: boolean = false
 
 	const domainData: AddDomainData = {
@@ -34,7 +33,7 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		customerInfo: customerInfo,
 		// will be filled oncreate by the page
 		// not actually spf, but the type TXT only matters here
-		expectedVerificationRecord: createDnsRecord({
+		expectedVerificationRecord: sysTypeRefs.createDnsRecord({
 			subdomain: null,
 			type: DnsRecordType.DNS_RECORD_TYPE_TXT_SPF,
 			value: "",
@@ -84,6 +83,6 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 }
 
 export type ValidatedDnSRecord = {
-	record: DnsRecord
+	record: sysTypeRefs.DnsRecord
 	helpInfo: string[]
 }

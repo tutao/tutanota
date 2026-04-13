@@ -3,7 +3,7 @@ import { driveTypeRefs } from "@tutao/typeRefs"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { getElementId, getListId } from "@tutao/typeRefs"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
-import { Keys } from "../../../common/api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { Dropdown } from "../../../common/gui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton"
 import { theme } from "../../../common/gui/theme"
@@ -14,11 +14,11 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { modal } from "../../../common/gui/base/Modal"
 
 export interface DriveBreadcrumbsAttrs {
-	currentFolder: DriveFolder | null
-	parents: readonly DriveFolder[]
-	loadParents: () => Promise<DriveFolder[]>
+	currentFolder: driveTypeRefs.DriveFolder | null
+	parents: readonly driveTypeRefs.DriveFolder[]
+	loadParents: () => Promise<driveTypeRefs.DriveFolder[]>
 	onDropInto?: (f: FolderItem, event: DragEvent) => unknown
-	onClick?: (f: DriveFolder, event: MouseEvent) => unknown
+	onClick?: (f: driveTypeRefs.DriveFolder, event: MouseEvent) => unknown
 }
 
 export interface BreadcrumbLinkAttrs {
@@ -68,7 +68,7 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 	}
 }
 
-function folderRoute(entry: DriveFolder): string {
+function folderRoute(entry: driveTypeRefs.DriveFolder): string {
 	return `/drive/${getListId(entry)}/${getElementId(entry)}`
 }
 
@@ -139,7 +139,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 	}
 	private async onLoadParents(
 		dom: HTMLElement,
-		loadParents: () => Promise<DriveFolder[]>,
+		loadParents: () => Promise<driveTypeRefs.DriveFolder[]>,
 		onClick: DriveBreadcrumbsAttrs["onClick"],
 		onDropInto: DriveBreadcrumbsAttrs["onDropInto"],
 	) {

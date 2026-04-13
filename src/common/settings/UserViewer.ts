@@ -1,12 +1,10 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../api/common/Env.js"
+import { assertMainOrNode, BookingItemFeatureType, GroupType, OperationType } from "@tutao/appEnv"
 import { Dialog } from "../gui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import type { Customer, GroupInfo, GroupMembership, User } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "@tutao/utils"
-import { BookingItemFeatureType, GroupType, OperationType } from "../api/common/TutanotaConstants.js"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
@@ -18,7 +16,6 @@ import { HtmlEditor as Editor, HtmlEditorMode } from "../gui/editor/HtmlEditor.j
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { isSameId } from "@tutao/typeRefs"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -29,13 +26,12 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
 import { progressIcon } from "../gui/base/Icon.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
 
 assertMainOrNode()
 
 export class UserViewer implements UpdatableSettingsDetailsViewer {
-	private readonly user: LazyLoaded<User> = new LazyLoaded(() => this.loadUser())
+	private readonly user: LazyLoaded<sysTypeRefs.User> = new LazyLoaded(() => this.loadUser())
 	private readonly customer = new LazyLoaded(() => this.loadCustomer())
 	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
 	private groupsTableAttrs: TableAttrs | null = null
@@ -46,7 +42,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private isPurchasingNewSharedMailboxGroup: boolean
 
 	constructor(
-		public userGroupInfo: GroupInfo,
+		public userGroupInfo: sysTypeRefs.GroupInfo,
 		private isAdmin: boolean,
 	) {
 		this.userGroupInfo = userGroupInfo
@@ -82,7 +78,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.user.getAsync().then(async (user) => {
 			const mailMembership = await asyncFind(user.memberships, async (ship) => {
-				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(GroupTypeRef, ship.group)).user === user._id
+				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(sysTypeRefs.GroupTypeRef, ship.group)).user === user._id
 			})
 			if (mailMembership == null) {
 				console.error("User doesn't have a mailbox?", user._id)
@@ -273,7 +269,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			this.groupsTableAttrs.lines = await promiseMap(
 				this.getTeamMemberships(user, customer),
 				async (m) => {
-					const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, m.groupInfo)
+					const groupInfo = await locator.entityClient.load(sysTypeRefs.GroupInfoTypeRef, m.groupInfo)
 					return {
 						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeDisplayName(neverNull(m.groupType))],
 						actionButtonAttrs: {
@@ -331,7 +327,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 								label: "group_label",
 								items: dropdownItems,
 								selectedValue: selectedGroupInfo,
-								selectionChangedHandler: (selection: GroupInfo) => (selectedGroupInfo = selection),
+								selectionChangedHandler: (selection: sysTypeRefs.GroupInfo) => (selectedGroupInfo = selection),
 								dropdownWidth: 250,
 							}),
 					},
@@ -363,11 +359,11 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	private getTeamMemberships(user: User, customer: Customer): GroupMembership[] {
+	private getTeamMemberships(user: sysTypeRefs.User, customer: sysTypeRefs.Customer): sysTypeRefs.GroupMembership[] {
 		return user.memberships.filter((m) => m.groupInfo[0] === customer.teamGroups)
 	}
 
-	private isAdminUser(user: User): boolean {
+	private isAdminUser(user: sysTypeRefs.User): boolean {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
@@ -406,18 +402,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
 		for (const update of updates) {
 			const { instanceListId, instanceId, operation } = update
 			if (
-				isUpdateForTypeRef(GroupInfoTypeRef, update) &&
+				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) &&
 				operation === OperationType.UPDATE &&
 				isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])
 			) {
-				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
+				this.userGroupInfo = await locator.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.userGroupInfo._id)
 				await this.updateUsedStorageAndAdminFlag()
 				m.redraw()
-			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.CREATE) {
+			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) && operation === OperationType.CREATE) {
 				await this.teamGroupInfos.reload()
 				// When getting a create event, if user has just bought a new shared mailbox, add it to the selected user
 				if (this.isPurchasingNewSharedMailboxGroup) {
@@ -426,7 +422,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				}
 				m.redraw()
 			} else if (
-				isUpdateForTypeRef(UserTypeRef, update) &&
+				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserTypeRef, update) &&
 				operation === OperationType.UPDATE &&
 				this.user.isLoaded() &&
 				isSameId(this.user.getLoaded()._id, instanceId)
@@ -440,18 +436,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		m.redraw()
 	}
 
-	private loadUser(): Promise<User> {
-		return locator.entityClient.load(GroupTypeRef, this.userGroupInfo.group).then((userGroup) => {
-			return locator.entityClient.load(UserTypeRef, neverNull(userGroup.user))
+	private loadUser(): Promise<sysTypeRefs.User> {
+		return locator.entityClient.load(sysTypeRefs.GroupTypeRef, this.userGroupInfo.group).then((userGroup) => {
+			return locator.entityClient.load(sysTypeRefs.UserTypeRef, neverNull(userGroup.user))
 		})
 	}
 
-	private loadCustomer(): Promise<Customer> {
+	private loadCustomer(): Promise<sysTypeRefs.Customer> {
 		return locator.logins.getUserController().reloadCustomer()
 	}
 
-	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
-		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups))
+	private loadTeamGroupInfos(): Promise<Array<sysTypeRefs.GroupInfo>> {
+		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.teamGroups))
 	}
 }
 

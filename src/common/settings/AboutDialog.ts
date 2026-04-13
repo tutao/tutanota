@@ -7,11 +7,11 @@ import { newMailEditorFromTemplate } from "../../mail-app/mail/editor/MailEditor
 import { UserError } from "../api/main/UserError.js"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
-import { isApp } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
 import { getTutaLogo } from "../gui/base/Logo.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
 import { client } from "../misc/ClientDetector"
+import { isApp } from "@tutao/appEnv"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown

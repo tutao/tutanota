@@ -2,13 +2,13 @@ import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton } from "../gui/base/buttons/BaseButton"
 import { lang } from "../misc/LanguageViewModel"
 import { PayPalLogo } from "../gui/base/icons/Icons"
-import { AccountingInfoTypeRef } from "../api/entities/sys/TypeRefs"
 import { ClickHandler } from "../gui/base/GuiUtils"
 import { noOp, promiseMap } from "@tutao/utils"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../api/common/utils/EntityUpdateUtils"
+
 import { locator } from "../api/main/CommonLocator"
 import { SignupViewModel } from "../signup/SignupView"
 import { component_size, px } from "../gui/size"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 
 export interface PaypalButtonNewAttrs {
 	data: Pick<SignupViewModel, "accountingInfo">
@@ -18,7 +18,7 @@ export interface PaypalButtonNewAttrs {
 }
 
 export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
-	private entityEventListener: EntityEventsListener
+	private entityEventListener: entityUpdateUtils.EntityEventsListener
 	private isPaypalLinked = false
 
 	constructor({ attrs }: Vnode<PaypalButtonNewAttrs>) {
@@ -27,8 +27,8 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 		this.entityEventListener = {
 			onEntityUpdatesReceived: (updates) => {
 				return promiseMap(updates, (update) => {
-					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-						return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
+					if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.AccountingInfoTypeRef, update)) {
+						return locator.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
 							attrs.data.accountingInfo = newAccountingInfo
 							this.isPaypalLinked = newAccountingInfo.paypalBillingAgreement != null
 							if (this.isPaypalLinked) attrs.oncomplete?.()
@@ -37,7 +37,7 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 					}
 				}).then(noOp)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 		}
 	}
 

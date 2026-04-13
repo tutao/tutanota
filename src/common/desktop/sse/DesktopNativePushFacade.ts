@@ -5,11 +5,11 @@ import { ExtendedNotificationMode } from "../../native/common/generatedipc/Exten
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
 import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "@tutao/typeRefs"
-import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
-import { Base64, base64ToUint8Array } from "@tutao/utils"
-import { base64ToKey, uint8ArrayToBitArray } from "@tutao/crypto"
-import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs"
+import { InstancePipeline } from "@tutao/instancePipeline"
+import { Base64 } from "@tutao/utils"
+import { base64ToKey } from "@tutao/crypto"
 import { log } from "../DesktopLog"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
@@ -56,7 +56,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		for (const alarm of alarms) {
 			const sk = base64ToKey(newDeviceSessionKey)
 			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
-				AlarmNotificationTypeRef,
+				sysTypeRefs.AlarmNotificationTypeRef,
 				alarm as unknown as ServerModelUntypedInstance,
 				sk,
 			)

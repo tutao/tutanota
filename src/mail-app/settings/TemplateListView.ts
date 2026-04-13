@@ -1,17 +1,16 @@
 import m, { Children } from "mithril"
 
 import { showTemplateEditor } from "./TemplateEditor"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { isSameId } from "@tutao/typeRefs"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
-import { ShareCapability } from "../../common/api/common/TutanotaConstants"
+import { ShareCapability } from "@tutao/appEnv"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import type { LoginController } from "../../common/api/main/LoginController"
 import { ListColumnWrapper } from "../../common/gui/ListColumnWrapper"
 import { memoized, noOp } from "@tutao/utils"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../common/gui/SelectableRowContainer.js"
 import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import Stream from "mithril/stream"
@@ -26,7 +25,6 @@ import { IconButton } from "../../common/gui/base/IconButton.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
 import { lang } from "../../common/misc/LanguageViewModel.js"
 import { keyManager } from "../../common/misc/KeyManager.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 
@@ -162,9 +160,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}

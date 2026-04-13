@@ -1,16 +1,15 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
-import { assertMainOrNode, isApp } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { formatDate } from "../misc/Formatter"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import type { AccountingInfo, Customer, GroupInfo, OrderProcessingAgreement } from "../api/entities/sys/TypeRefs.js"
-import { createSignOrderProcessingAgreementData } from "../api/entities/sys/TypeRefs.js"
 import { neverNull } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { SignOrderProcessingAgreementService } from "../api/entities/sys/Services"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
+import { isApp } from "@tutao/appEnv"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"
@@ -35,9 +34,9 @@ const agreementTexts = {
 	},
 }
 
-export function showForSigning(customer: Customer, accountingInfo: AccountingInfo) {
+export function showForSigning(customer: sysTypeRefs.Customer, accountingInfo: sysTypeRefs.AccountingInfo) {
 	const signAction = (dialog: Dialog) => {
-		let data = createSignOrderProcessingAgreementData({
+		let data = sysTypeRefs.createSignOrderProcessingAgreementData({
 			version: version,
 			customerAddress: addressEditor.getValue(),
 		})
@@ -45,7 +44,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
 			Dialog.message("contractorInfo_msg")
 		} else {
-			locator.serviceExecutor.post(SignOrderProcessingAgreementService, data).then(() => dialog.close())
+			locator.serviceExecutor.post(sysServices.SignOrderProcessingAgreementService, data).then(() => dialog.close())
 		}
 	}
 
@@ -110,7 +109,7 @@ function cleanupPrintElement() {
 		.join(" ")
 }
 
-export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo) {
+export function showForViewing(agreement: sysTypeRefs.OrderProcessingAgreement, signerUserGroupInfo: sysTypeRefs.GroupInfo) {
 	Dialog.showActionDialog({
 		title: "orderProcessingAgreement_label",
 		okAction: !isApp() && "function" === typeof window.print ? () => printElementContent(document.getElementById("agreement-content")) : null,

@@ -2,8 +2,7 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaConstants"
+import { Const } from "@tutao/appEnv"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -13,7 +12,7 @@ import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
 import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { SwitchAccountTypeService } from "../api/entities/sys/Services"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
@@ -25,6 +24,7 @@ import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
+import { AccountType, PaymentMethodType } from "@tutao/appEnv"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -46,7 +46,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			}
 		}
 
-		const serviceData = createSwitchAccountTypePostIn({
+		const serviceData = sysTypeRefs.createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
 			plan: data.targetPlanType,
@@ -56,7 +56,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, serviceData))
 			.then(() => {
 				const stage = data.upgradeUsageTest?.getStage(1)
 

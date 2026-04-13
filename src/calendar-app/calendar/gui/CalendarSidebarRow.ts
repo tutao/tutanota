@@ -1,4 +1,4 @@
-import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants"
+import { Keys, TabIndex } from "@tutao/appEnv"
 import m, { Component, Vnode } from "mithril"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { px, size } from "../../../common/gui/size"

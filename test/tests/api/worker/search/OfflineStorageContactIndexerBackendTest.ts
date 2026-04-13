@@ -18,13 +18,13 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 	})
 
 	o.test("areContactsIndexed", async () => {
-		const contactList = createTestEntity(ContactListTypeRef)
+		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
 		await backend.areContactsIndexed(contactList)
 		verify(persistence.areContactsIndexed())
 	})
 
 	o.test("indexContactList does nothing when already indexed", async () => {
-		const contactList = createTestEntity(ContactListTypeRef)
+		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
 		when(persistence.areContactsIndexed()).thenResolve(true)
 		await backend.indexContactList(contactList)
 		verify(persistence.areContactsIndexed())
@@ -34,12 +34,12 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 	})
 
 	o.test("indexContactList does something when not indexed", async () => {
-		const contactList = createTestEntity(ContactListTypeRef)
+		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
 		when(persistence.areContactsIndexed()).thenResolve(false)
 
-		const contacts = [createTestEntity(ContactTypeRef), createTestEntity(ContactTypeRef)]
+		const contacts = [createTestEntity(tutanotaTypeRefs.ContactTypeRef), createTestEntity(tutanotaTypeRefs.ContactTypeRef)]
 
-		when(entityClient.loadAll(ContactTypeRef, contactList.contacts)).thenResolve(contacts)
+		when(entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts)).thenResolve(contacts)
 		await backend.indexContactList(contactList)
 		verify(persistence.areContactsIndexed())
 		verify(persistence.storeContactData(contacts))
@@ -52,13 +52,13 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 	})
 
 	o.test("onContactUpdated", async () => {
-		const contact = createTestEntity(ContactTypeRef)
+		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
 		await backend.onContactUpdated(contact)
 		verify(persistence.storeContactData([contact]))
 	})
 
 	o.test("onContactCreated", async () => {
-		const contact = createTestEntity(ContactTypeRef)
+		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
 		await backend.onContactCreated(contact)
 		verify(persistence.storeContactData([contact]))
 	})

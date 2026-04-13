@@ -1,30 +1,28 @@
-import { createCustomDomainCheckGetIn } from "../../common/api/entities/sys/TypeRefs.js"
-import type { CustomDomainCheckGetOut } from "../../common/api/entities/sys/TypeRefs.js"
-import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../common/api/common/TutanotaConstants"
+import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "@tutao/appEnv"
 import { LazyLoaded, noOp } from "@tutao/utils"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { locator } from "../../common/api/main/CommonLocator"
-import { CustomDomainCheckService } from "../../common/api/entities/sys/Services"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
 export class DomainDnsStatus {
-	status: LazyLoaded<CustomDomainCheckGetOut>
+	status: LazyLoaded<sysTypeRefs.CustomDomainCheckGetOut>
 	domain: string
 
 	constructor(cleanDomainName: string, customerId?: Id) {
 		this.domain = cleanDomainName
 		this.status = new LazyLoaded(() => {
-			let data = createCustomDomainCheckGetIn({
+			let data = sysTypeRefs.createCustomDomainCheckGetIn({
 				domain: cleanDomainName,
 				customer: customerId ?? null,
 			})
-			return locator.serviceExecutor.get(CustomDomainCheckService, data)
+			return locator.serviceExecutor.get(sysServices.CustomDomainCheckService, data)
 		})
 	}
 
-	getLoadedCustomDomainCheckGetOut(): CustomDomainCheckGetOut {
+	getLoadedCustomDomainCheckGetOut(): sysTypeRefs.CustomDomainCheckGetOut {
 		return this.status.getLoaded()
 	}
 

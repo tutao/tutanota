@@ -3,7 +3,7 @@ import { theme } from "../theme.js"
 import { SingleLineTextField } from "./SingleLineTextField.js"
 import { px, size } from "../size.js"
 import { TextFieldType } from "./TextField.js"
-import { TabIndex } from "../../api/common/TutanotaConstants.js"
+import { TabIndex } from "@tutao/appEnv"
 
 export enum InputButtonVariant {
 	OUTLINE = "outline",

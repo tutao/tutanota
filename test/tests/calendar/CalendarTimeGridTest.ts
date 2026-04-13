@@ -15,7 +15,7 @@ import { clone, incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants"
+import { RepeatPeriod } from "@tutao/appEnv"
 
 o.spec("CalendarTimeGrid", function () {
 	const TIME_RANGE_24_HRS: TimeRange = {
@@ -789,7 +789,7 @@ o.spec("CalendarTimeGrid", function () {
 
 			const overflowDailyEvent = createTestCalendarEvent("overflow", 22, 0, 23, 59)
 			overflowDailyEvent.event.endTime = createDateWithTime(nextDay, 10, 30)
-			overflowDailyEvent.event.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, { frequency: RepeatPeriod.DAILY, interval: "1" })
+			overflowDailyEvent.event.repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, { frequency: RepeatPeriod.DAILY, interval: "1" })
 
 			const regularEvent = createTestCalendarEvent("normal", 10, 0, 11, 0)
 			regularEvent.event.startTime.setDate(nextDay.getDate())
@@ -822,7 +822,7 @@ o.spec("CalendarTimeGrid", function () {
 
 				const overflowDailyEventFirstOccurence = createTestCalendarEvent("overflow", 22, 0, 23, 59)
 				overflowDailyEventFirstOccurence.event.endTime = createDateWithTime(nextDay, 10, 30)
-				overflowDailyEventFirstOccurence.event.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+				overflowDailyEventFirstOccurence.event.repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 				})

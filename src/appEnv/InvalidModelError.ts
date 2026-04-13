@@ -1,4 +1,4 @@
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "./TutanotaError.js"
 
 export class InvalidModelError extends TutanotaError {
 	constructor(message: string) {

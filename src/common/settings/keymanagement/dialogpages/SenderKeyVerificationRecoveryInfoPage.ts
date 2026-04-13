@@ -4,12 +4,12 @@ import { TitleSection } from "../../../gui/TitleSection"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { theme } from "../../../gui/theme"
-import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { SenderKeyVerificationRecoveryModel } from "../../../misc/SenderKeyVerificationRecoveryModel"
 import { Icon, IconSize } from "../../../gui/base/Icon"
 import { OutlineButton } from "../../../gui/base/buttons/OutlineButton"
+import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
 
 type VerificationErrorInfoPageAttrs = {
 	model: SenderKeyVerificationRecoveryModel

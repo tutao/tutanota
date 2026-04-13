@@ -12,19 +12,19 @@ o.spec("TemplateEditorModel", function () {
 		entityClient = downcast({})
 	})
 	o("content languages", function () {
-		const template = createTestEntity(EmailTemplateTypeRef, {
+		const template = createTestEntity(tutanotaTypeRefs.EmailTemplateTypeRef, {
 			contents: [
-				createTestEntity(EmailTemplateContentTypeRef, {
+				createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
 					languageCode: "en",
 					text: "",
 				}),
-				createTestEntity(EmailTemplateContentTypeRef, {
+				createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
 					languageCode: "de",
 					text: "",
 				}),
 			],
 		})
-		const templateGroupRoot = createTestEntity(TemplateGroupRootTypeRef)
+		const templateGroupRoot = createTestEntity(tutanotaTypeRefs.TemplateGroupRootTypeRef)
 		const model = new TemplateEditorModel(template, templateGroupRoot, entityClient)
 		const addedLanguages = model.getAddedLanguages()
 		const additionalLanguages = model.getAdditionalLanguages()

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Weekday } from "../../../../common/api/common/TutanotaConstants.js"
+import { Weekday } from "@tutao/appEnv"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { px } from "../../../../common/gui/size.js"
 

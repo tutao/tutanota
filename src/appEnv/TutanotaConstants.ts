@@ -1,157 +1,11 @@
-//@bundleInto:common-min
-
-import { DAY_IN_MILLIS, downcast } from "@tutao/utils"
-import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
-import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { isApp, isElectronClient, isIOSApp } from "./Env"
-import type { Country } from "./CountryList"
-import { ProgrammingError } from "./error/ProgrammingError"
+import { DAY_IN_MILLIS } from "./TimeConstants.js"
+import type { Country } from "./CountryList.js"
+import { ProgrammingError } from "./ProgrammingError.js"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
 
-// visible for testing
-export const MAX_BLOB_SIZE_BYTES = 1024 * 1024 * 10
-export const REQUEST_SIZE_LIMIT_DEFAULT = 1024 * 1024
-export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
-	["/rest/storage/blobservice", MAX_BLOB_SIZE_BYTES + 100], // overhead for encryption
-	["/rest/tutanota/filedataservice", 1024 * 1024 * 25],
-	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
-])
-
 export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
-
-export const getMailFolderType = (folder: tutanotaTypeRefs.MailSet): MailSetKind => downcast(folder.folderType)
-
-export function isFolder(folder: tutanotaTypeRefs.MailSet): boolean {
-	switch (folder.folderType) {
-		case MailSetKind.CUSTOM:
-		case MailSetKind.INBOX:
-		case MailSetKind.SENT:
-		case MailSetKind.TRASH:
-		case MailSetKind.ARCHIVE:
-		case MailSetKind.SPAM:
-		case MailSetKind.DRAFT:
-		case MailSetKind.SCHEDULED:
-			return true
-		case MailSetKind.ALL:
-		case MailSetKind.LABEL:
-		case MailSetKind.IMPORTED:
-		default:
-			return false
-	}
-}
-
-/**
- * @return true if {@link mailSet} is a read-only folder (see {@link READ_ONLY_SYSTEM_FOLDERS} for more info)
- */
-export function isFolderReadOnly(mailSet: tutanotaTypeRefs.MailSet) {
-	return READ_ONLY_SYSTEM_FOLDERS.includes(mailSet.folderType as MailSetKind)
-}
-
-export function isPermanentDeleteAllowedForFolder(mailSet: tutanotaTypeRefs.MailSet) {
-	return isPermanentDeleteAllowedMailSetKind(mailSet.folderType as MailSetKind)
-}
-
-export function isNestableMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
-	return mailSet.folderType === MailSetKind.CUSTOM
-}
-
-export function isVisibleSystemMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
-	switch (mailSet.folderType) {
-		case MailSetKind.INBOX:
-		case MailSetKind.SENT:
-		case MailSetKind.TRASH:
-		case MailSetKind.ARCHIVE:
-		case MailSetKind.SPAM:
-		case MailSetKind.DRAFT:
-		case MailSetKind.SCHEDULED:
-			return true
-		case MailSetKind.CUSTOM:
-		case MailSetKind.ALL:
-		case MailSetKind.LABEL:
-		case MailSetKind.IMPORTED:
-		default:
-			return false
-	}
-}
-
-export function canHaveDescendents(mailSet: tutanotaTypeRefs.MailSet): boolean {
-	switch (mailSet.folderType) {
-		case MailSetKind.CUSTOM:
-		case MailSetKind.INBOX:
-		case MailSetKind.DRAFT:
-		case MailSetKind.SENT:
-		case MailSetKind.ARCHIVE:
-			return true
-		case MailSetKind.TRASH:
-		case MailSetKind.SPAM:
-		case MailSetKind.ALL:
-		case MailSetKind.LABEL:
-		case MailSetKind.IMPORTED:
-		case MailSetKind.SCHEDULED:
-		default:
-			return false
-	}
-}
-
-export function isEditableMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
-	switch (mailSet.folderType) {
-		case MailSetKind.CUSTOM:
-		case MailSetKind.LABEL:
-			return true
-		case MailSetKind.INBOX:
-		case MailSetKind.DRAFT:
-		case MailSetKind.SENT:
-		case MailSetKind.TRASH:
-		case MailSetKind.ARCHIVE:
-		case MailSetKind.SPAM:
-		case MailSetKind.ALL:
-		case MailSetKind.IMPORTED:
-		case MailSetKind.SCHEDULED:
-		default:
-			return false
-	}
-}
-
-export function isPermanentDeleteAllowedMailSetKind(mailsetKind: MailSetKind) {
-	switch (mailsetKind) {
-		case MailSetKind.TRASH:
-		case MailSetKind.SPAM:
-			return true
-		case MailSetKind.CUSTOM:
-		case MailSetKind.LABEL:
-		case MailSetKind.INBOX:
-		case MailSetKind.DRAFT:
-		case MailSetKind.SENT:
-		case MailSetKind.ARCHIVE:
-		case MailSetKind.ALL:
-		case MailSetKind.IMPORTED:
-		case MailSetKind.SCHEDULED:
-		default:
-			return false
-	}
-}
-
-export function isTopLevelMailSet(mailSet: tutanotaTypeRefs.MailSet): boolean {
-	return mailSet.parentFolder == null
-}
-
-export function isLabel(folder: tutanotaTypeRefs.MailSet): boolean {
-	return folder.folderType === MailSetKind.LABEL
-}
-
-type ObjectPropertyKey = string | number | symbol
-export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
-	Object.keys(objectMap).reduce(
-		(r, k) => {
-			// @ts-ignore
-			const v = objectMap[downcast(k)]
-			return Object.assign(r, { [v]: k })
-		},
-		{} as Record<V, K>,
-	)
 
 export const enum OutOfOfficeNotificationMessageType {
 	Default = "0",
@@ -174,10 +28,6 @@ export enum GroupType {
 	Template = "10",
 	ContactList = "11",
 }
-
-export const GroupTypeNameByCode = reverse(GroupType)
-
-export const getMembershipGroupType = (membership: GroupMembership): GroupType => downcast(membership.groupType)
 
 /**
  * Permission is a kind of a metadata instance. Primarily used for two purposes:
@@ -228,31 +78,6 @@ export const SYSTEM_FOLDERS = [
 	MailSetKind.SCHEDULED,
 ] as const
 export type SystemFolderType = (typeof SYSTEM_FOLDERS)[number]
-
-export function getMailSetKind(folder: tutanotaTypeRefs.MailSet): MailSetKind {
-	return folder.folderType as MailSetKind
-}
-
-export const MOVE_SYSTEM_FOLDERS = Object.freeze([
-	MailSetKind.INBOX,
-	MailSetKind.SENT,
-	MailSetKind.TRASH,
-	MailSetKind.ARCHIVE,
-	MailSetKind.SPAM,
-	MailSetKind.DRAFT,
-] as const)
-
-/**
- * These are mail sets that are managed by the server and cannot be mutated by the client
- *
- * They have the following restrictions:
- *
- * - Mails cannot be moved in or out of these folders by the client (most other actions are still possible, such as labels and marking read/unread)
- * - Subfolders cannot be created or moved in this folder by the client
- */
-export const READ_ONLY_SYSTEM_FOLDERS = Object.freeze([MailSetKind.SCHEDULED])
-
-export type SimpleMoveMailTarget = (typeof SYSTEM_FOLDERS)[number]
 
 export const enum ReplyType {
 	NONE = "0",
@@ -325,10 +150,6 @@ export const enum ContactCustomDateType {
 	OTHER = "1",
 	CUSTOM = "2",
 }
-
-export const getContactSocialType = (contactSocialId: tutanotaTypeRefs.ContactSocialId): ContactSocialType => downcast(contactSocialId.type)
-export const getCustomDateType = (customDate: tutanotaTypeRefs.ContactCustomDate): ContactCustomDateType => downcast(customDate.type)
-export const getRelationshipType = (relationship: tutanotaTypeRefs.ContactRelationship): ContactRelationshipType => downcast(relationship.type)
 
 export const enum OperationType {
 	CREATE = "0",
@@ -435,8 +256,6 @@ export function isHighestTierPlan(planType: PlanType): boolean {
 	return (HighestTierPlans as readonly PlanType[]).includes(planType)
 }
 
-export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
-
 export enum SubscriptionType {
 	Personal,
 	Business,
@@ -462,9 +281,6 @@ export enum BookingItemFeatureType {
 	Unlimited = "15",
 }
 
-export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
-export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
-
 export enum PaymentMethodType {
 	Invoice = "0",
 	CreditCard = "1",
@@ -473,16 +289,6 @@ export enum PaymentMethodType {
 	AccountBalance = "4",
 	AppStore = "5",
 }
-
-export function getDefaultPaymentMethod(): PaymentMethodType {
-	if (isIOSApp()) {
-		return PaymentMethodType.AppStore
-	}
-
-	return PaymentMethodType.CreditCard
-}
-
-export const PaymentMethodTypeToName = reverse(PaymentMethodType)
 
 type ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
@@ -565,10 +371,6 @@ export enum ApprovalStatus {
 	NO_ACTIVITY = "10",
 }
 
-export function getCustomerApprovalStatus(customer: Customer): ApprovalStatus {
-	return downcast(customer.approvalStatus)
-}
-
 export const enum InboxRuleType {
 	FROM_EQUALS = "0",
 	RECIPIENT_TO_EQUALS = "1",
@@ -584,19 +386,11 @@ export enum SpamRuleType {
 	DISCARD = "3",
 }
 
-export function getSpamRuleType(spamRule: EmailSenderListElement): SpamRuleType | null {
-	return getAsEnumValue(SpamRuleType, spamRule.type)
-}
-
 export const enum SpamRuleFieldType {
 	FROM = "0",
 	TO = "1",
 	CC = "2",
 	BCC = "3",
-}
-
-export function getSpamRuleField(spamRule: EmailSenderListElement): SpamRuleFieldType {
-	return downcast(spamRule.field)
 }
 
 export const enum ReportMovedMailsType {
@@ -805,10 +599,6 @@ export const enum CertificateType {
 	LETS_ENCRYPT = "1",
 }
 
-export function getCertificateType(certificateInfo: CertificateInfo): CertificateType {
-	return downcast(certificateInfo.type)
-}
-
 export enum RepeatPeriod {
 	DAILY = "0",
 	WEEKLY = "1",
@@ -851,10 +641,6 @@ export const enum WeekStart {
 	SATURDAY = "2",
 }
 
-export function getWeekStart(userSettings: tutanotaTypeRefs.UserSettingsGroupRoot): WeekStart {
-	return downcast(userSettings.startOfTheWeek)
-}
-
 export const enum ShareCapability {
 	Read = "0",
 	Write = "1",
@@ -885,8 +671,6 @@ export enum CounterType {
 	UserStorage = "5",
 	GroupStorage = "6",
 }
-
-export const CounterTypeToName = reverse(CounterType)
 
 export const enum UnsubscribeFailureReason {
 	TOO_MANY_ENABLED_USERS = "unsubscribe.too_many_users",
@@ -1277,10 +1061,6 @@ export enum CalendarAttendeeStatus {
 	TENTATIVE = "4",
 }
 
-export function getAttendeeStatus(attendee: tutanotaTypeRefs.CalendarEventAttendee): CalendarAttendeeStatus {
-	return downcast(attendee.status)
-}
-
 export enum CalendarMethod {
 	PUBLISH = "PUBLISH",
 	REQUEST = "REQUEST",
@@ -1327,48 +1107,10 @@ export function mailMethodToCalendarMethod(mailMethod: MailMethod): CalendarMeth
 	}
 }
 
-export function getAsEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): V | null {
-	for (const key of Object.getOwnPropertyNames(enumValues)) {
-		// @ts-ignore
-		const enumValue = enumValues[key]
-
-		if (enumValue === value) {
-			return enumValue
-		}
-	}
-
-	return null
-}
-
-export function assertEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): V {
-	for (const key of Object.getOwnPropertyNames(enumValues)) {
-		// @ts-ignore
-		const enumValue = enumValues[key]
-
-		if (enumValue === value) {
-			return enumValue
-		}
-	}
-
-	throw new Error(`Invalid enum value ${value} for ${JSON.stringify(enumValues)}`)
-}
-
-export function assertEnumKey<K extends string, V>(obj: Record<K, V>, key: string): K {
-	if (key in obj) {
-		return downcast(key)
-	} else {
-		throw Error("Not valid enum value: " + key)
-	}
-}
-
 export const enum ClientType {
 	Browser = "0",
 	Desktop = "1",
 	App = "2",
-}
-
-export function getClientType(): ClientType {
-	return isApp() ? ClientType.App : isElectronClient() ? ClientType.Desktop : ClientType.Browser
 }
 
 export const enum ExternalImageRule {
@@ -1392,11 +1134,6 @@ export type InvoiceData = {
 	vatNumber: string // only for EU countries otherwise empty
 }
 
-export type PaymentData = {
-	paymentMethod: PaymentMethodType
-	creditCardData: CreditCard | null
-}
-
 export enum UsageTestState {
 	Created = "0",
 	Live = "1",
@@ -1405,16 +1142,12 @@ export enum UsageTestState {
 	Finalized = "4",
 }
 
-export const UsageTestStateToName = reverse(UsageTestState)
-
 export enum UsageTestMetricType {
 	NUMBER = "0",
 	ENUM = "1",
 	LIKERT = "2",
 	STRING = "3",
 }
-
-export const UsageTestMetricTypeToName = reverse(UsageTestMetricType)
 
 export const enum ArchiveDataType {
 	AuthorityRequests = "0",
@@ -1428,50 +1161,20 @@ export const FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
 
 export const PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 2 * 365
 
-export function getOfflineStorageDefaultTimeRangeDays(accountType: AccountType): number {
-	return accountType === AccountType.PAID ? PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
-}
-
 export enum UsageTestParticipationMode {
 	Once = "0",
 	Unlimited = "1",
 }
-
-export const UsageTestParticipationModeToName = reverse(UsageTestParticipationMode)
 
 export enum TerminationPeriodOptions {
 	EndOfCurrentPeriod = "0",
 	FutureDate = "1",
 }
 
-/**
- * Convert the input to KdfType.
- *
- * This actually returns the input without modifying it, as it wraps around TypeScript's 'as' operator, but
- * it also does a runtime check, guaranteeing that the input is truly a KdfType.
- *
- * @param maybe kdf type
- * @return `maybe` as KdfType
- * @throws Error if the input doesn't correspond to a KdfType
- */
-export function asKdfType(maybe: string): KdfType {
-	if (Object.values(KdfType).includes(maybe as KdfType)) {
-		return maybe as KdfType
-	}
-	throw new Error("bad kdf type")
-}
-
 export enum CryptoProtocolVersion {
 	RSA = "0",
 	SYMMETRIC_ENCRYPTION = "1", // secure external
 	TUTA_CRYPT = "2", // hybrid PQ protocol (Kyber + x25519)
-}
-
-export function asCryptoProtoocolVersion(maybe: NumberString): CryptoProtocolVersion {
-	if (Object.values(CryptoProtocolVersion).includes(maybe as CryptoProtocolVersion)) {
-		return maybe as CryptoProtocolVersion
-	}
-	throw new Error("bad protocol version")
 }
 
 export enum GroupKeyRotationType {
@@ -1483,8 +1186,6 @@ export enum GroupKeyRotationType {
 	AdminGroupKeyRotationMultipleUserAccount = "5", // scheduled for accounts that have multiple users but only a single admin user
 	AdminGroupKeyRotationMultipleAdminAccount = "6", // scheduled for accounts that have multiple admin users
 }
-
-export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)
 
 export const EXTERNAL_CALENDAR_SYNC_INTERVAL = 60 * 30 * 1000 // 30 minutes
 
@@ -1499,13 +1200,6 @@ export enum PublicKeyIdentifierType {
 export enum BlobAccessTokenKind {
 	Archive = "0",
 	Instances = "1",
-}
-
-export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierType {
-	if (Object.values(PublicKeyIdentifierType).includes(maybe as PublicKeyIdentifierType)) {
-		return maybe as PublicKeyIdentifierType
-	}
-	throw new Error("bad key identifier type")
 }
 
 export const BIRTHDAY_CALENDAR_BASE_ID = "birthday_calendar"
@@ -1524,14 +1218,6 @@ export const TUTA_MAIL_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/det
 export const TUTA_MAIL_APP_STORE_URL = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
 export const TUTA_CALENDAR_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
 export const TUTA_CALENDAR_APP_STORE_URL = "https://apps.apple.com/app/tuta-calendar-planner-app/id6657977811"
-
-/**
- * Gets the current date defined in the global `Const` object for testing purposes.
- * If null, fall back to the given parameter which defaults to `new Date()`
- */
-export function getCurrentDate(fallback = new Date()) {
-	return Const.CURRENT_DATE ?? fallback
-}
 
 export enum RolloutType {
 	UserIdentityKeyCreation = "0",
@@ -1641,5 +1327,3 @@ export enum UpgradePromptType {
 	APPLE_IN_APP_EVENT,
 	DRIVE,
 }
-
-export const UpgradePromptTypeByName = Object.freeze(reverse(UpgradePromptType))

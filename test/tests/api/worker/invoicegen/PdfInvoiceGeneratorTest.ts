@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { PdfWriter } from "../../../../../src/common/api/worker/pdf/PdfWriter.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { InvoiceDataGetOutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { PdfInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/PdfInvoiceGenerator.js"
 import { object, when } from "testdouble"
 import { invoiceItemListMock } from "./invoiceTestUtils.js"
 import { PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("PdfInvoiceGenerator", function () {
 	let pdfWriter: PdfWriter
@@ -14,7 +14,7 @@ o.spec("PdfInvoiceGenerator", function () {
 	})
 
 	o("pdf generation for japanese invoice addVat 3_items", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "竜宮 礼奈\n荻町, 411,\n〒501-5627 Shirakawa, Ono-Gun, Gifu, Japan",
 			country: "JP",
 			subTotal: "28.00",
@@ -31,7 +31,7 @@ o.spec("PdfInvoiceGenerator", function () {
 	})
 
 	o("pdf generation for russian invoice vatReverseCharge 4_items", async function () {
-		const renderInvoice = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const renderInvoice = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "CompanyRU\n194352, Санкт-Петербург\nСиреневый бульвар, д. 8, корп. 2, лит. А.",
 			country: "RU",
 			items: invoiceItemListMock(2),
@@ -46,7 +46,7 @@ o.spec("PdfInvoiceGenerator", function () {
 	})
 
 	o("pdf rendering with 100 entries", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "Marcel Davis",
 			country: "DE",
 			vatRate: "19",
@@ -61,7 +61,7 @@ o.spec("PdfInvoiceGenerator", function () {
 	})
 
 	o("pdf rendering with max entries to be put on first page", async function () {
-		const renderInvoice = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const renderInvoice = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "Peter Lustig",
 			country: "DE",
 			items: invoiceItemListMock(13),

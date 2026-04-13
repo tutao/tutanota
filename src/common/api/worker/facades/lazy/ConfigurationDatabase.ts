@@ -1,7 +1,6 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
-import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
-import { ExternalImageRule, NewsletterBannerRule, OperationType } from "../../../common/TutanotaConstants.js"
+import { ExternalImageRule, NewsletterBannerRule } from "@tutao/appEnv"
 import {
 	Aes128Key,
 	Aes256Key,
@@ -11,6 +10,7 @@ import {
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
 	AesKey,
+	cryptoUtils,
 	decryptKey,
 	IV_BYTE_LENGTH,
 	random,
@@ -25,12 +25,13 @@ import {
 	SpamClassificationModelOS,
 } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
-import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instancePipeline"
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { OperationType } from "@tutao/appEnv"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -71,7 +72,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		userFacade: UserFacade,
-		dbLoadFn: (arg0: User, arg1: KeyLoaderFacade) => Promise<ConfigDb> = (user: User, keyLoaderFacade: KeyLoaderFacade) =>
+		dbLoadFn: (arg0: sysTypeRefs.User, arg1: KeyLoaderFacade) => Promise<ConfigDb> = (user: sysTypeRefs.User, keyLoaderFacade: KeyLoaderFacade) =>
 			this.loadConfigDb(user, keyLoaderFacade),
 	) {
 		this.db = new LazyLoaded(() => {
@@ -268,7 +269,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		return rule
 	}
 
-	async loadConfigDb(user: User, keyLoaderFacade: KeyLoaderFacade): Promise<ConfigDb> {
+	async loadConfigDb(user: sysTypeRefs.User, keyLoaderFacade: KeyLoaderFacade): Promise<ConfigDb> {
 		const id = this.getDbId(user._id)
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
 			if (event.oldVersion === 0) {
@@ -319,9 +320,9 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		}
 	}
 
-	async onEntityEventsReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<any> {
+	async onEntityEventsReceived(events: readonly entityUpdateUtils.EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<any> {
 		for (const event of events) {
-			if (!(event.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, event))) {
+			if (!(event.operation === OperationType.UPDATE && entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserTypeRef, event))) {
 				continue
 			}
 			const configDb = await this.db.getAsync()
@@ -401,7 +402,7 @@ export async function getMetaData(db: DbFacade, objectStoreName: ObjectStoreName
 	const transaction = await db.createTransaction(true, [objectStoreName])
 	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
 	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
-	const userGroupKeyVersion = checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
+	const userGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
 	if (userEncDbKey == null || encDbIv == null) {
 		return null
 	} else {
@@ -422,7 +423,7 @@ export async function getIndexerMetaData(db: DbFacade, objectStoreName: ObjectSt
 	const transaction = await db.createTransaction(true, [objectStoreName])
 	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
 	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
-	const userGroupKeyVersion = checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
+	const userGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
 	const mailIndexingEnabled = (await transaction.get(objectStoreName, Metadata.mailIndexingEnabled)) as boolean
 	const excludedListIds = (await transaction.get(objectStoreName, Metadata.excludedListIds)) as Id[]
 	const lastEventIndexTimeMs = (await transaction.get(objectStoreName, Metadata.lastEventIndexTimeMs)) as number

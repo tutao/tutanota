@@ -1,9 +1,9 @@
-import { DAY_IN_MILLIS } from "@tutao/utils"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { stringToCustomId } from "@tutao/utils"
 import { StrippedEntity } from "@tutao/typeRefs"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
+import { DAY_IN_MILLIS } from "@tutao/appEnv"
 
 export type CalendarEventTimes = Pick<tutanotaTypeRefs.CalendarEvent, "startTime" | "endTime">
 

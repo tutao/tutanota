@@ -1,8 +1,8 @@
-import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
+import { CryptoWrapper } from "@tutao/instancePipeline"
 import { concat, KeyVersion } from "@tutao/utils"
 import { Aes256Key, AesKey, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/crypto"
-import { assertWorkerOrNode } from "../../common/Env.js"
-import { KeyMac } from "../../entities/sys/TypeRefs.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 
@@ -229,11 +229,11 @@ export class KeyAuthenticationFacade {
 	}
 }
 
-type BrandedKeyMac = Omit<KeyMac, "mac"> & { tag: MacTag }
+type BrandedKeyMac = Omit<sysTypeRefs.KeyMac, "mac"> & { tag: MacTag }
 
 /**
  * Brands a KeyMac so that it has a branded MacTag, which can be used in authentication methods.
  */
-export function brandKeyMac(keyMac: KeyMac): BrandedKeyMac {
+export function brandKeyMac(keyMac: sysTypeRefs.KeyMac): BrandedKeyMac {
 	return keyMac as BrandedKeyMac
 }

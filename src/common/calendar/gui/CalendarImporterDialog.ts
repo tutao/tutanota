@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { CALENDAR_MIME_TYPE, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
@@ -6,18 +6,15 @@ import { Dialog } from "../../gui/base/Dialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
 import { parseCalendarFile, showEventsImportDialog } from "./CalendarImporter.js"
-import { elementIdPart, isSameId, listIdPart } from "@tutao/typeRefs"
-import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
-import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
-import { isApp } from "../../api/common/Env.js"
 import { EventAlarmsTuple, EventImportRejectionReason, ParsedEvent, sortOutParsedEvents } from "./ImportExportUtils.js"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
+import { isApp } from "@tutao/appEnv"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import
@@ -132,7 +129,7 @@ export async function exportCalendar(
 			const eventsWithAlarms = await promiseMap(allEvents, async (event: tutanotaTypeRefs.CalendarEvent) => {
 				const thisUserAlarms = event.alarmInfos.filter((alarmInfoId) => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
 				if (thisUserAlarms.length === 0) return { event, alarms: [] }
-				const alarms = await locator.entityClient.loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
+				const alarms = await locator.entityClient.loadMultiple(sysTypeRefs.UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
 				return { event, alarms }
 			})
 			return await exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)
@@ -144,7 +141,7 @@ function exportCalendarEvents(
 	calendarName: string,
 	events: Array<{
 		event: tutanotaTypeRefs.CalendarEvent
-		alarms: Array<UserAlarmInfo>
+		alarms: Array<sysTypeRefs.UserAlarmInfo>
 	}>,
 	now: Date,
 	zone: string,

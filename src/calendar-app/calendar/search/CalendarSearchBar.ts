@@ -8,8 +8,8 @@ import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/TutanotaConstants"
-import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
+import { FULL_INDEXED_TIMESTAMP, Keys } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { styles } from "../../../common/gui/styles"
 import { client } from "../../../common/misc/ClientDetector"
 import { debounce, downcast, memoized, mod, TypeRef } from "@tutao/utils"
@@ -24,6 +24,7 @@ import { loadMultipleFromLists } from "../../../common/api/common/EntityClient.j
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
+import { isApp } from "@tutao/appEnv"
 
 assertMainOrNode()
 export type ShowMoreAction = {

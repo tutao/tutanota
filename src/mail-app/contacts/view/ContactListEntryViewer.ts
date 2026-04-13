@@ -4,9 +4,9 @@ import { theme } from "../../../common/gui/theme.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
-import { ContactAddressType } from "../../../common/api/common/TutanotaConstants.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel.js"
+import { ContactAddressType } from "@tutao/appEnv"
 
 type Contact = tutanotaTypeRefs.Contact
 export interface ContactListEntryViewerAttrs {

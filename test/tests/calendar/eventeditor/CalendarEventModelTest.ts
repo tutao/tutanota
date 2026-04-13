@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { AccountType, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "@tutao/appEnv"
 import { func, matchers, object, verify, when } from "testdouble"
 import {
 	CalendarOperation,
@@ -9,29 +9,9 @@ import {
 } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationSender } from "../../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
-import {
-	CalendarEventAttendeeTypeRef,
-	CalendarEventTypeRef,
-	createCalendarEventAttendee,
-	EncryptedMailAddressTypeRef,
-	MailboxGroupRootTypeRef,
-	MailboxProperties,
-	MailboxPropertiesTypeRef,
-	MailBoxTypeRef,
-	UserSettingsGroupRootTypeRef,
-} from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
-import {
-	AlarmInfoTypeRef,
-	CalendarEventRefTypeRef,
-	DateWrapper,
-	DateWrapperTypeRef,
-	GroupInfoTypeRef,
-	GroupTypeRef,
-	RepeatRuleTypeRef,
-	UserAlarmInfoTypeRef,
-} from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { clone, identity, noOp } from "@tutao/utils"
 import { RecipientsModel, ResolvableRecipient } from "../../../../src/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
@@ -40,6 +20,7 @@ import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/comm
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { CalendarInviteHandler } from "../../../../src/calendar-app/calendar/view/CalendarInvites"
+import { AccountType } from "@tutao/appEnv"
 
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
@@ -55,7 +36,7 @@ o.spec("CalendarEventModel", function () {
 	o.spec("integration tests", function () {
 		o("doing no edit operation on an existing event updates it as expected, no updates.", async function () {
 			// this test case is insane and only serves as a warning example to not do such things.
-			const event = createTestEntity(CalendarEventTypeRef, {
+			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				sequence: "0",
 				_id: ["eventListId", "eventElementId"],
 				_ownerGroup: "ownCalendar",
@@ -68,7 +49,7 @@ o.spec("CalendarEventModel", function () {
 				startTime: new Date("2023-04-27T15:00:00.000Z"),
 				invitedConfidentially: false,
 				endTime: new Date("2023-04-27T15:30:00.000Z"),
-				repeatRule: createTestEntity(RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
 					interval: "10",
 					_id: "repeatRuleId",
 					endType: EndType.Count,
@@ -79,11 +60,11 @@ o.spec("CalendarEventModel", function () {
 				organizer: ownerAddress,
 				alarmInfos: [["alarmListId", "alarmElementId"]],
 				attendees: [
-					createCalendarEventAttendee({
+					tutanotaTypeRefs.createCalendarEventAttendee({
 						address: ownerAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
-					createCalendarEventAttendee({
+					tutanotaTypeRefs.createCalendarEventAttendee({
 						address: otherAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
@@ -91,18 +72,18 @@ o.spec("CalendarEventModel", function () {
 			})
 			const recipientsModel: RecipientsModel = object()
 			const logins: LoginController = object()
-			const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
+			const userSettingsGroupRoot = createTestEntity(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, { groupSettings: [] })
 
 			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true, false, undefined, userSettingsGroupRoot)
 			when(logins.getUserController()).thenReturn(userController)
 
 			when(calendarModel.loadAlarms(event.alarmInfos, userController.user)).thenResolve([
-				createTestEntity(UserAlarmInfoTypeRef, {
+				createTestEntity(sysTypeRefs.UserAlarmInfoTypeRef, {
 					_id: event.alarmInfos[0],
-					alarmInfo: createTestEntity(AlarmInfoTypeRef, {
+					alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, {
 						alarmIdentifier: "alarmIdentifier",
 						trigger: "5M",
-						calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+						calendarRef: createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, {
 							elementId: event._id[1],
 							listId: event._id[0],
 						}),
@@ -123,14 +104,14 @@ o.spec("CalendarEventModel", function () {
 			when(recipientsModel.initialize(matchers.anything())).thenDo(() => resolvables[tryCount++])
 
 			const mailboxDetail: MailboxDetail = {
-				mailbox: createTestEntity(MailBoxTypeRef),
-				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
-				mailGroup: createTestEntity(GroupTypeRef, {
+				mailbox: createTestEntity(tutanotaTypeRefs.MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(sysTypeRefs.GroupInfoTypeRef),
+				mailGroup: createTestEntity(sysTypeRefs.GroupTypeRef, {
 					user: ownerId,
 				}),
-				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+				mailboxGroupRoot: createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef),
 			}
-			const mailboxProperties: MailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {})
+			const mailboxProperties: tutanotaTypeRefs.MailboxProperties = createTestEntity(tutanotaTypeRefs.MailboxPropertiesTypeRef, {})
 			const sendModelFac: () => SendMailModel = func<() => SendMailModel>()
 			const mockCalendarInviteHandler: CalendarInviteHandler = object()
 
@@ -178,13 +159,13 @@ o.spec("CalendarEventModel", function () {
 	})
 
 	o.spec("eventHasChanged", function () {
-		const fixedOrganizer = createTestEntity(EncryptedMailAddressTypeRef, {
+		const fixedOrganizer = createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 			address: "moo@d.de",
 			name: "bla",
 		})
 		const att = (a, n, s) =>
-			createTestEntity(CalendarEventAttendeeTypeRef, {
-				address: createTestEntity(EncryptedMailAddressTypeRef, { address: a, name: n }),
+			createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+				address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: a, name: n }),
 				status: s,
 			})
 		// attr, now, previous, expected, msg
@@ -201,21 +182,21 @@ o.spec("CalendarEventModel", function () {
 			[
 				"organizer",
 				fixedOrganizer,
-				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.de", name: "bla" }),
+				createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "moo@d.de", name: "bla" }),
 				false,
 				"same organizer, different object",
 			],
 			[
 				"organizer",
 				fixedOrganizer,
-				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.de", name: "blabla" }),
+				createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "moo@d.de", name: "blabla" }),
 				false,
 				"different address, same name",
 			],
 			[
 				"organizer",
 				fixedOrganizer,
-				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.io", name: "bla" }),
+				createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "moo@d.io", name: "bla" }),
 				true,
 				"same name, different address",
 			],
@@ -249,7 +230,7 @@ o.spec("CalendarEventModel", function () {
 			o(`${attr} changed -> ${expected}`, function () {
 				// createCalendarEvent will create events with a startTime and endTime created by "new Date()",
 				// which is not repeatable, so we only do it once.
-				const template = createTestEntity(CalendarEventTypeRef, { [attr]: previous })
+				const template = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, { [attr]: previous })
 				const copy = Object.assign({}, template, { [attr]: now })
 				o(eventHasChanged(copy, template)).equals(expected)(msg ?? attr)
 				o(eventHasChanged(copy, clone(copy))).equals(false)(`do not change ${msg}`)
@@ -257,12 +238,12 @@ o.spec("CalendarEventModel", function () {
 		}
 
 		o("same object -> false", function () {
-			const event = createTestEntity(CalendarEventTypeRef, {})
+			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {})
 			o(eventHasChanged(event, event)).equals(false)
 		})
 	})
 
-	const dw = (d) => createTestEntity(DateWrapperTypeRef, { date: getDateInZone(d) })
+	const dw = (d) => createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: getDateInZone(d) })
 	o.spec("areRepeatRulesEqual", function () {
 		// property, now, previous, expected, msg
 		const cases = [
@@ -270,23 +251,35 @@ o.spec("CalendarEventModel", function () {
 			["endValue", "10", "15", false],
 			["frequency", RepeatPeriod.DAILY, RepeatPeriod.MONTHLY, false],
 			["interval", "10", "15", false],
-			["excludedDates", [] as Array<DateWrapper>, [] as Array<DateWrapper>, true, "no exclusions"],
-			["excludedDates", [] as Array<DateWrapper>, [dw("2023-02-01")] as Array<DateWrapper>, false, "added exclusion"],
-			["excludedDates", [dw("2023-02-01")] as Array<DateWrapper>, [dw("2023-02-01")] as Array<DateWrapper>, true, "same exclusions"],
+			["excludedDates", [] as Array<sysTypeRefs.DateWrapper>, [] as Array<sysTypeRefs.DateWrapper>, true, "no exclusions"],
+			["excludedDates", [] as Array<sysTypeRefs.DateWrapper>, [dw("2023-02-01")] as Array<sysTypeRefs.DateWrapper>, false, "added exclusion"],
+			[
+				"excludedDates",
+				[dw("2023-02-01")] as Array<sysTypeRefs.DateWrapper>,
+				[dw("2023-02-01")] as Array<sysTypeRefs.DateWrapper>,
+				true,
+				"same exclusions",
+			],
 		] as const
 
 		for (const [attr, now, previous, expected, msg] of cases) {
 			o(`${attr} changed -> ${expected}`, function () {
-				o(areRepeatRulesEqual(createTestEntity(RepeatRuleTypeRef, { [attr]: now }), createTestEntity(RepeatRuleTypeRef, { [attr]: previous }))).equals(
-					expected,
-				)(msg ?? attr)
-				o(areRepeatRulesEqual(createTestEntity(RepeatRuleTypeRef, { [attr]: now }), createTestEntity(RepeatRuleTypeRef, { [attr]: now }))).equals(true)(
-					`do not change ${msg}`,
-				)
+				o(
+					areRepeatRulesEqual(
+						createTestEntity(sysTypeRefs.RepeatRuleTypeRef, { [attr]: now }),
+						createTestEntity(sysTypeRefs.RepeatRuleTypeRef, { [attr]: previous }),
+					),
+				).equals(expected)(msg ?? attr)
+				o(
+					areRepeatRulesEqual(
+						createTestEntity(sysTypeRefs.RepeatRuleTypeRef, { [attr]: now }),
+						createTestEntity(sysTypeRefs.RepeatRuleTypeRef, { [attr]: now }),
+					),
+				).equals(true)(`do not change ${msg}`)
 			})
 		}
 		o("same object -> true", function () {
-			const r1 = createTestEntity(RepeatRuleTypeRef, {})
+			const r1 = createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {})
 			o(areRepeatRulesEqual(r1, r1)).equals(true)
 		})
 	})

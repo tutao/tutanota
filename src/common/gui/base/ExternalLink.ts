@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "@tutao/appEnv"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 
 export type relDocument = "privacy-policy" | "terms-of-service" | "license" | "me"

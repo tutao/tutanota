@@ -1,21 +1,11 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
-import type { ShareCapability } from "../../../common/TutanotaConstants.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import {
-	createGroupInvitationDeleteData,
-	createGroupInvitationPostData,
-	createGroupInvitationPutData,
-	createSharedGroupData,
-	InternalRecipientKeyDataTypeRef,
-} from "../../../entities/tutanota/TypeRefs.js"
+import { sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import type { ShareCapability } from "@tutao/appEnv"
 import { isSameTypeRef, neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
-import { assertWorkerOrNode } from "../../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { aes256RandomKey, cryptoUtils, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
@@ -34,7 +24,7 @@ export class ShareFacade {
 	) {}
 
 	async sendGroupInvitation(
-		sharedGroupInfo: GroupInfo,
+		sharedGroupInfo: sysTypeRefs.GroupInfo,
 		recipientMailAddresses: Array<string>,
 		shareCapability: ShareCapability,
 	): Promise<tutanotaTypeRefs.GroupInvitationPostReturn> {
@@ -44,23 +34,23 @@ export class ShareFacade {
 	}
 
 	async sendGroupInvitationRequest(invitationData: tutanotaTypeRefs.GroupInvitationPostData): Promise<tutanotaTypeRefs.GroupInvitationPostReturn> {
-		return this.serviceExecutor.post(GroupInvitationService, invitationData)
+		return this.serviceExecutor.post(tutanotaServices.GroupInvitationService, invitationData)
 	}
 
 	async prepareGroupInvitation(
 		sharedGroupKey: VersionedKey,
-		sharedGroupInfo: GroupInfo,
+		sharedGroupInfo: sysTypeRefs.GroupInfo,
 		recipientMailAddresses: Array<string>,
 		shareCapability: ShareCapability,
 	): Promise<tutanotaTypeRefs.GroupInvitationPostData> {
-		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
+		const userGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(sharedGroupInfo)
 		const bucketKey = aes256RandomKey()
 		const invitationSessionKey = aes256RandomKey()
 		const sharedGroupEncInviterGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const sharedGroupEncSharedGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
-		const sharedGroupData = createSharedGroupData({
+		const sharedGroupData = tutanotaTypeRefs.createSharedGroupData({
 			sessionEncInviterName: _encryptString(invitationSessionKey, userGroupInfo.name),
 			sessionEncSharedGroupKey: _encryptBytes(invitationSessionKey, keyToUint8Array(sharedGroupKey.object)),
 			sessionEncSharedGroupName: _encryptString(invitationSessionKey, sharedGroupInfo.name),
@@ -71,7 +61,7 @@ export class ShareFacade {
 			sharedGroupEncSharedGroupInfoKey: sharedGroupEncSharedGroupInfoKey.key,
 			sharedGroupKeyVersion: String(sharedGroupKey.version),
 		})
-		const invitationData = createGroupInvitationPostData({
+		const invitationData = tutanotaTypeRefs.createGroupInvitationPostData({
 			sharedGroupData,
 			internalKeyData: [],
 		})
@@ -86,7 +76,7 @@ export class ShareFacade {
 				notFoundRecipients,
 				keyVerificationMismatchRecipients,
 			)
-			if (keyData && isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
+			if (keyData && isSameTypeRef(keyData._type, tutanotaTypeRefs.InternalRecipientKeyDataTypeRef)) {
 				invitationData.internalKeyData.push(keyData as tutanotaTypeRefs.InternalRecipientKeyData)
 			}
 		}
@@ -102,8 +92,8 @@ export class ShareFacade {
 		return invitationData
 	}
 
-	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
-		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
+	async acceptGroupInvitation(invitation: sysTypeRefs.ReceivedGroupInvitation): Promise<void> {
+		const userGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupKey = {
 			object: uint8ArrayToKey(invitation.sharedGroupKey),
@@ -112,20 +102,20 @@ export class ShareFacade {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
 		const sharedGroupEncInviteeGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
-		const serviceData = createGroupInvitationPutData({
+		const serviceData = tutanotaTypeRefs.createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
 			userGroupEncGroupKey: userGroupEncGroupKey.key,
 			sharedGroupEncInviteeGroupInfoKey: sharedGroupEncInviteeGroupInfoKey.key,
 			userGroupKeyVersion: userGroupEncGroupKey.encryptingKeyVersion.toString(),
 			sharedGroupKeyVersion: sharedGroupEncInviteeGroupInfoKey.encryptingKeyVersion.toString(),
 		})
-		await this.serviceExecutor.put(GroupInvitationService, serviceData)
+		await this.serviceExecutor.put(tutanotaServices.GroupInvitationService, serviceData)
 	}
 
 	async rejectOrCancelGroupInvitation(receivedGroupInvitationId: IdTuple): Promise<void> {
-		const serviceData = createGroupInvitationDeleteData({
+		const serviceData = tutanotaTypeRefs.createGroupInvitationDeleteData({
 			receivedInvitation: receivedGroupInvitationId,
 		})
-		await this.serviceExecutor.delete(GroupInvitationService, serviceData)
+		await this.serviceExecutor.delete(tutanotaServices.GroupInvitationService, serviceData)
 	}
 }

@@ -1,17 +1,17 @@
 import m, { Children, Component } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
-import type { Country } from "../api/common/CountryList"
-import { Countries, CountryType } from "../api/common/CountryList"
+import type { Country } from "../../appEnv/CountryList"
+import { Countries, CountryType } from "../../appEnv/CountryList"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { renderCountryDropdown } from "../gui/base/GuiUtils"
 import { TextField } from "../gui/base/TextField.js"
-import type { InvoiceData } from "../api/common/TutanotaConstants"
+import type { InvoiceData } from "@tutao/appEnv"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator"
-import { LocationService } from "../api/entities/sys/Services"
-import { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs"
+import { sysServices } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -67,7 +67,7 @@ export class InvoiceDataInput implements Component {
 	}
 
 	oncreate() {
-		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
+		locator.serviceExecutor.get(sysServices.LocationService, null).then((location: sysTypeRefs.LocationServiceGetReturn) => {
 			if (!this.selectedCountry()) {
 				const country = Countries.find((c) => c.a === location.country)
 

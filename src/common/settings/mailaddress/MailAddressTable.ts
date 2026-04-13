@@ -10,14 +10,14 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { assertMainOrNode } from "../../api/common/Env.js"
+import { assertMainOrNode, NewPaidPlans } from "@tutao/appEnv"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddressTableModel.js"
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { NewPaidPlans, UnsubscribeFailureReason, UpgradePromptType } from "../../api/common/TutanotaConstants"
+import { UnsubscribeFailureReason, UpgradePromptType } from "@tutao/appEnv"
 
 assertMainOrNode()
 

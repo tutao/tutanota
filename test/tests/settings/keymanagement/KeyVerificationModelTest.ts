@@ -1,27 +1,20 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { KeyVerificationModel } from "../../../../src/common/settings/keymanagement/KeyVerificationModel"
 import { KeyVerificationFacade } from "../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../../../src/common/native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationUsageTestUtils } from "../../../../src/common/settings/keymanagement/KeyVerificationUsageTestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import {
-	IdentityKeyQrVerificationResult,
-	IdentityKeySourceOfTrust,
-	IdentityKeyVerificationMethod,
-	PublicKeyIdentifierType,
-} from "../../../../src/common/api/common/TutanotaConstants"
+import { PublicKeyIdentifierType } from "@tutao/appEnv"
 import { SigningPublicKey } from "../../../../src/common/api/worker/facades/Ed25519Facade"
 import { Versioned } from "@tutao/utils"
 import { PermissionType } from "../../../../src/common/native/common/generatedipc/PermissionType"
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { TrustDBEntry } from "../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
-import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 import { DesktopSystemFacade } from "../../../../src/common/native/common/generatedipc/DesktopSystemFacade"
 import { withOverriddenEnv } from "../../TestUtils"
-import { Mode } from "../../../../src/common/api/common/Env"
-
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, IdentityKeySourceOfTrust, Mode } from "@tutao/appEnv"
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
 	let keyVerificationFacade: KeyVerificationFacade

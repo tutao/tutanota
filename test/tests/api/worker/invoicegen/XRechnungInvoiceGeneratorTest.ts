@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils.js"
-import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { extractCityName, extractPostalCode, XRechnungInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
 
 import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 o.spec("XRechnungInvoiceGenerator", function () {
 	o("xrechnung generation for japanese invoice noVat 2_items", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "竜宮 礼奈\n荻町, 411,\n〒501-5627 Shirakawa, Ono-Gun, Gifu, Japan",
 			country: "JP",
 			subTotal: "20.00",
@@ -15,7 +15,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatType: VatType.NO_VAT,
 			paymentMethod: PaymentMethod.INVOICE,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: `1`,
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -23,7 +23,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "10.00",
 					itemType: "25",
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: `1`,
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -39,7 +39,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 	})
 
 	o("xrechnung generation for german paypal addVat 3_items", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "Bernd Brot\nNeuschauerberg 56\n91488 Emskirchen",
 			country: "DE",
 			subTotal: "60.00",
@@ -50,7 +50,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatType: VatType.ADD_VAT,
 			paymentMethod: PaymentMethod.PAYPAL,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "4",
 					startDate: new Date("11.11.1999"),
 					endDate: new Date("12.31.2000"),
@@ -58,7 +58,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "40.00",
 					itemType: "21",
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "2",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -66,7 +66,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "10.00",
 					itemType: "9",
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -82,7 +82,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 	})
 
 	o("xrechnung generation for german accountBalance vatIncludedHidden 1_items", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "Klappriger Klabautermann\nMariendorfer Hof 971\n12107 Berlin",
 			country: "DE",
 			subTotal: "36.00",
@@ -93,7 +93,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatType: VatType.VAT_INCLUDED_HIDDEN,
 			paymentMethod: PaymentMethod.ACCOUNT_BALANCE,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("11.11.1999"),
 					endDate: new Date("12.31.2000"),
@@ -109,7 +109,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 	})
 
 	o("xrechnung generation for russia noVatReverse creditCard addVat 1_items", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "CompanyRU\n194352, Санкт-Петербург\nСиреневый бульвар, д. 8, корп. 2, лит. А.",
 			country: "RU",
 			subTotal: "30.00",
@@ -120,7 +120,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatIdNumber: "RU1234567891",
 			paymentMethod: PaymentMethod.CREDIT_CARD,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "3",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -136,7 +136,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 	})
 
 	o("xrechnung generation for credit note", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "Malte Kieselstein\nLudwigstraße 6\nHanau-Steinheim",
 			invoiceType: InvoiceType.CREDIT,
 			country: "DE",
@@ -148,7 +148,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatIdNumber: "DE12345678912345678912",
 			paymentMethod: PaymentMethod.ACCOUNT_BALANCE,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -164,7 +164,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 	})
 
 	o("xrechnung generation for discount", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "يورك هاوس، شييت ستريت،\n" + "وندسور SL4 1DD، المملكة المتحدة،‎",
 			invoiceType: InvoiceType.INVOICE,
 			country: "AE",
@@ -176,7 +176,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatIdNumber: "AE12345678912345678912",
 			paymentMethod: PaymentMethod.ACCOUNT_BALANCE,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -184,7 +184,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "30.00",
 					itemType: InvoiceItemType.LegendAccount,
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "3",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -192,7 +192,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "30.00",
 					itemType: InvoiceItemType.WhitelabelChild,
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -208,7 +208,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 	})
 
 	o("xrechnung generation for multi discount", async function () {
-		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {
+		const invoiceData = createTestEntity(sysTypeRefs.InvoiceDataGetOutTypeRef, {
 			address: "Jarl Balgruuf\nHolywood BT18 0AA",
 			invoiceType: InvoiceType.INVOICE,
 			country: "DE",
@@ -220,7 +220,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatIdNumber: "DE12345678912345678912",
 			paymentMethod: PaymentMethod.ACCOUNT_BALANCE,
 			items: [
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -228,7 +228,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "20.30",
 					itemType: InvoiceItemType.Credit,
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),
@@ -236,7 +236,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 					totalPrice: "-10.50",
 					itemType: InvoiceItemType.Discount,
 				}),
-				createTestEntity(InvoiceDataItemTypeRef, {
+				createTestEntity(sysTypeRefs.InvoiceDataItemTypeRef, {
 					amount: "1",
 					startDate: new Date("09.09.1984"),
 					endDate: new Date("09.09.1984"),

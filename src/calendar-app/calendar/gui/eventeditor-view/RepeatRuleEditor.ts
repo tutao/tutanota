@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { EndType, Keys, RepeatPeriod, TabIndex, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
+import { EndType, Keys, RepeatPeriod, TabIndex, Weekday } from "@tutao/appEnv"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
@@ -21,7 +21,6 @@ import { InputMode, SingleLineTextField } from "../../../../common/gui/base/Sing
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
 import { theme } from "../../../../common/gui/theme.js"
-import { isApp } from "../../../../common/api/common/Env.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { areAllAdvancedRepeatRulesValid } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -30,6 +29,7 @@ import { Divider } from "../../../../common/gui/Divider.js"
 import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
 import { DateTime } from "luxon"
+import { isApp } from "@tutao/appEnv"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel

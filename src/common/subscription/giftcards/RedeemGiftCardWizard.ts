@@ -12,8 +12,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { SignupForm } from "../SignupForm"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import type { AccountingInfo, GiftCardRedeemGetReturn } from "../../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, CustomerInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { elementIdPart, isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { locator } from "../../api/main/CommonLocator"
 import { getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg } from "./GiftCardUtils"
 import { CancelledError } from "../../api/common/error/CancelledError"
@@ -21,16 +20,14 @@ import { lang } from "../../misc/LanguageViewModel"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/LoginUtils"
 import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
 import { HabReminderImage } from "../../gui/base/icons/Icons"
-import { PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
 import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { TextField } from "../../gui/base/TextField.js"
-import { elementIdPart, isSameId } from "@tutao/typeRefs"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { Country, getByAbbreviation } from "../../api/common/CountryList.js"
+import { Country, getByAbbreviation } from "../../../appEnv/CountryList.js"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
@@ -38,6 +35,7 @@ import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
 import { signup } from "../utils/PaymentUtils"
 import { MessageBanner } from "../../gui/base/MessageBanner"
+import { PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -50,11 +48,11 @@ class RedeemGiftCardModel {
 	credentialsMethod = GetCredentialsMethod.Signup
 
 	// accountingInfo is loaded after the user logs in, before redeeming the gift card
-	accountingInfo: AccountingInfo | null = null
+	accountingInfo: sysTypeRefs.AccountingInfo | null = null
 
 	constructor(
 		private readonly config: {
-			giftCardInfo: GiftCardRedeemGetReturn
+			giftCardInfo: sysTypeRefs.GiftCardRedeemGetReturn
 			key: string
 			premiumPrice: number
 			storedCredentials: ReadonlyArray<CredentialsInfo>
@@ -68,7 +66,7 @@ class RedeemGiftCardModel {
 		private readonly entityClient: EntityClient,
 	) {}
 
-	get giftCardInfo(): GiftCardRedeemGetReturn {
+	get giftCardInfo(): sysTypeRefs.GiftCardRedeemGetReturn {
 		return this.config.giftCardInfo
 	}
 
@@ -170,8 +168,8 @@ class RedeemGiftCardModel {
 
 		await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
 		const customer = await this.logins.getUserController().reloadCustomer()
-		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		const customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
+		this.accountingInfo = await this.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
 
 		if (PaymentMethodType.AppStore === this.accountingInfo.paymentMethod) {
 			throw new UserError("redeemGiftCardWithAppStoreSubscription_msg")

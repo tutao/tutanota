@@ -18,24 +18,23 @@ import {
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
+import { px, size } from "../gui/size.js"
+import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
+import { PlanTypeToName, sysTypeRefs } from "@tutao/typeRefs"
 import {
 	AvailablePlanType,
 	CustomDomainType,
 	CustomDomainTypeCountName,
-	HighlightedPlans,
+	isIOSApp,
 	LegacyPlans,
+	LegacyPrivatePlans,
 	NewBusinessPlans,
 	NewPersonalPlans,
 	PaymentMethodType,
 	PlanType,
-	PlanTypeToName,
-} from "../api/common/TutanotaConstants.js"
-import { px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
-import { isIOSApp } from "../api/common/Env"
-import { locator } from "../api/main/CommonLocator.js"
-import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
-import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
+} from "@tutao/appEnv"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -64,7 +63,7 @@ export type SubscriptionSelectorAttr = {
 	multipleUsersAllowed: boolean
 	msg: MaybeTranslation | null
 	upgradeType?: UpgradeType
-	accountingInfo: AccountingInfo | null
+	accountingInfo: sysTypeRefs.AccountingInfo | null
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<Children> {
@@ -297,7 +296,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		accountingInfo,
 	}: {
 		priceAndConfigProvider: PriceAndConfigProvider
-		accountingInfo: AccountingInfo | null
+		accountingInfo: sysTypeRefs.AccountingInfo | null
 	}): { revoPrice: string; legendPrice: string } {
 		if (shouldShowApplePrices(accountingInfo)) {
 			const prices = priceAndConfigProvider.getMobilePrices()
@@ -363,7 +362,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const isYearly = interval === PaymentInterval.Yearly
 		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
-		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription))
+		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && LegacyPrivatePlans.includes(targetSubscription))
 
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 

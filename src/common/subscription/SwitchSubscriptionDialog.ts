@@ -2,34 +2,8 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import {
-	AccountingInfo,
-	Booking,
-	createSurveyData,
-	createSwitchAccountTypePostIn,
-	Customer,
-	GroupInfo,
-	GroupInfoTypeRef,
-	GroupTypeRef,
-	SurveyData,
-	UserTypeRef,
-} from "../api/entities/sys/TypeRefs.js"
-import {
-	AccountType,
-	AvailablePlanType,
-	BookingFailureReason,
-	Const,
-	getPaymentMethodType,
-	GroupType,
-	InvoiceData,
-	Keys,
-	LegacyPlans,
-	NewBusinessPlans,
-	PaymentMethodType,
-	PlanType,
-	PlanTypeToName,
-	UnsubscribeFailureReason,
-} from "../api/common/TutanotaConstants"
+import { getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { BookingFailureReason, Const, InvoiceData, Keys, UnsubscribeFailureReason } from "@tutao/appEnv"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -37,17 +11,15 @@ import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
-import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
 import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
-import { getByAbbreviation } from "../api/common/CountryList.js"
+import { getByAbbreviation } from "../../appEnv/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import {
@@ -67,9 +39,8 @@ import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../gui/size"
 import { Icons } from "../gui/base/icons/Icons"
-import { TemplateGroupService } from "../api/entities/tutanota/Services"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
+import { AccountType, AvailablePlanType, GroupType, isIOSApp, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -82,9 +53,9 @@ export async function showSwitchDialog({
 	acceptedPlans,
 	reason,
 }: {
-	customer: Customer
-	accountingInfo: AccountingInfo
-	lastBooking: Booking
+	customer: sysTypeRefs.Customer
+	accountingInfo: sysTypeRefs.AccountingInfo
+	lastBooking: sysTypeRefs.Booking
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
@@ -219,7 +190,7 @@ export async function showSwitchDialog({
 	return deferred.promise
 }
 
-async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
+async function onSwitchToFree(customer: sysTypeRefs.Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
 	if (isIOSApp()) {
 		// We want the user to disable renewal in AppStore before they try to downgrade on our side
 		const ownership = await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(customer._id)))
@@ -239,7 +210,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 	const reason = await showLeavingUserSurveyWizard(true, true)
 	const data =
 		reason.submitted && reason.category && reason.reason
-			? createSurveyData({
+			? sysTypeRefs.createSurveyData({
 					category: reason.category,
 					reason: reason.reason,
 					details: reason.details,
@@ -269,7 +240,7 @@ async function waitUntilRenewalDisabled() {
 }
 
 async function doSwitchToPaidPlan(
-	accountingInfo: AccountingInfo,
+	accountingInfo: sysTypeRefs.AccountingInfo,
 	newPaymentInterval: PaymentInterval,
 	targetSubscription: PlanType,
 	dialog: Dialog,
@@ -301,7 +272,7 @@ function createPlanButton(
 	targetSubscription: PlanType,
 	currentPlanInfo: CurrentPlanInfo,
 	newPaymentInterval: stream<PaymentInterval>,
-	accountingInfo: AccountingInfo,
+	accountingInfo: sysTypeRefs.AccountingInfo,
 	shouldApplyDiscount: boolean = false,
 ): lazy<LoginButtonAttrs> {
 	return () => ({
@@ -330,15 +301,15 @@ function createPlanButton(
 }
 
 /** deletes all template group on the customer account (after confirmation) */
-async function runTemplateCleanupFlow(customer: Customer) {
+async function runTemplateCleanupFlow(customer: sysTypeRefs.Customer) {
 	if (!(await Dialog.confirm("autoDeleteTemplateGroupsConfirmation_msg", "delete_action"))) {
 		return false
 	}
 
 	try {
-		const groupInfos: Array<GroupInfo> = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
+		const groupInfos: Array<sysTypeRefs.GroupInfo> = await locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.userGroups)
 		const userGroupIds = groupInfos.map((groupInfo) => groupInfo.group)
-		const userGroups = await locator.entityClient.loadMultiple(GroupTypeRef, null, userGroupIds)
+		const userGroups = await locator.entityClient.loadMultiple(sysTypeRefs.GroupTypeRef, null, userGroupIds)
 		const userIds: Array<Id> = userGroups
 			.map((g) => g.user)
 			.filter((userId) => userId !== null)
@@ -346,7 +317,7 @@ async function runTemplateCleanupFlow(customer: Customer) {
 		if (userIds.length < userGroups.length) {
 			console.error("customer.userGroups contains groups without user? customer: ", customer)
 		}
-		const users = await locator.entityClient.loadMultiple(UserTypeRef, null, userIds)
+		const users = await locator.entityClient.loadMultiple(sysTypeRefs.UserTypeRef, null, userIds)
 		const deletedTemplateGroups = new Set<string>()
 		for (const user of users) {
 			const templateMemberships = getUserGroupMemberships(user, GroupType.Template)
@@ -354,7 +325,7 @@ async function runTemplateCleanupFlow(customer: Customer) {
 				if (deletedTemplateGroups.has(group)) {
 					continue
 				}
-				await locator.serviceExecutor.delete(TemplateGroupService, tutanotaTypeRefs.createUserAreaGroupDeleteData({ group }))
+				await locator.serviceExecutor.delete(tutanotaServices.TemplateGroupService, tutanotaTypeRefs.createUserAreaGroupDeleteData({ group }))
 				deletedTemplateGroups.add(group)
 			}
 		}
@@ -374,7 +345,7 @@ async function runTemplateCleanupFlow(customer: Customer) {
  * @returns boolean true if we should re-try the switch, false if the customer cancelled the sub-flow or we can't handle
  * the issue automatically
  */
-export async function handleSwitchAccountPreconditionFailed(customer: Customer, e: PreconditionFailedError): Promise<boolean> {
+export async function handleSwitchAccountPreconditionFailed(customer: sysTypeRefs.Customer, e: PreconditionFailedError): Promise<boolean> {
 	const reason = e.data
 
 	if (reason == null) {
@@ -476,8 +447,12 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
  * @param surveyData
  * @returns the new plan type after the attempt.
  */
-export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType, surveyData: SurveyData | null): Promise<PlanType> {
-	const switchAccountTypeData = createSwitchAccountTypePostIn({
+export async function tryDowngradePremiumToFree(
+	customer: sysTypeRefs.Customer,
+	currentPlanType: PlanType,
+	surveyData: sysTypeRefs.SurveyData | null,
+): Promise<PlanType> {
+	const switchAccountTypeData = sysTypeRefs.createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
 		customer: customer._id,
@@ -488,7 +463,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
-		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData)
+		await locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, switchAccountTypeData)
 		return PlanType.Free
 	} catch (e) {
 		if (e instanceof PreconditionFailedError) {
@@ -508,8 +483,8 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 async function cancelSubscription(
 	dialog: Dialog,
 	currentPlanInfo: CurrentPlanInfo,
-	customer: Customer,
-	surveyData: SurveyData | null = null,
+	customer: sysTypeRefs.Customer,
+	surveyData: sysTypeRefs.SurveyData | null = null,
 ): Promise<PlanType> {
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
@@ -554,7 +529,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 	}
 
 	try {
-		const postIn = createSwitchAccountTypePostIn({
+		const postIn = sysTypeRefs.createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			plan: targetSubscription,
 			date: Const.CURRENT_DATE,
@@ -566,7 +541,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		})
 
 		try {
-			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, postIn))
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, postIn))
 			completeUpgradeStage(currentPlanInfo.planType, targetSubscription) // this is just a usage test
 			return
 		} catch (e) {

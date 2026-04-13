@@ -3,17 +3,6 @@
 
 import o from "@tutao/otest"
 import {
-	BirthdayTypeRef,
-	Contact,
-	ContactAddressTypeRef,
-	ContactMailAddressTypeRef,
-	ContactPhoneNumberTypeRef,
-	ContactSocialIdTypeRef,
-	ContactTypeRef,
-	ContactWebsiteTypeRef,
-} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/common/api/common/TutanotaConstants.js"
-import {
 	_addressesToVCardAddresses,
 	_phoneNumbersToVCardPhoneNumbers,
 	_socialIdsToVCardSocialUrls,
@@ -23,12 +12,14 @@ import {
 import { neverNull } from "@tutao/utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 import { createTestEntity } from "../TestUtils.js"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "@tutao/appEnv"
 
 let idCounter = 0
 o.spec("VCardExporterTest", function () {
 	//turns given contacts into a vCard format string
 	o("contactsToVCardsTest", function () {
-		let contactArray: Contact[] = []
+		let contactArray: tutanotaTypeRefs.Contact[] = []
 		let contact1 = createFilledContact(
 			"Ant",
 			"Ste",
@@ -144,7 +135,7 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Phd. Bob Manthey Kev, VI\nN:Kev;Bob;Manthey;Phd.;VI
 	})
 	o("birthdayToVCardsFormatString", function () {
 		//oldBirthday
-		let contactArray: Contact[] = []
+		let contactArray: tutanotaTypeRefs.Contact[] = []
 		let contact1 = createFilledContact("Ant", "", "", "", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-09-09"
 		let c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-09\nEND:VCARD\n\n`
@@ -268,7 +259,7 @@ END:VCARD
 	})
 
 	o("contactsToVCardsEscapingTest", function () {
-		let contactArray: Contact[] = []
+		let contactArray: tutanotaTypeRefs.Contact[] = []
 		//todo Birthday test
 		let contact1 = createFilledContact(
 			"Ant,",
@@ -451,12 +442,12 @@ END:VCARD
 	})
 	o("testSpecialCharsInVCard", function () {
 		let a = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. John\\;Quinlan Public\nN:Public;John\\;Quinlan;;Mr.;\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch\nEND:VCARD\n\n`
-		let b = createTestEntity(ContactTypeRef)
-		let bday = createTestEntity(BirthdayTypeRef)
+		let b = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		let bday = createTestEntity(tutanotaTypeRefs.BirthdayTypeRef)
 		let contacts = [b]
 		b._ownerGroup = ""
 		b.addresses[0] = {
-			_type: ContactAddressTypeRef,
+			_type: tutanotaTypeRefs.ContactAddressTypeRef,
 			_id: neverNull(null),
 			address: "Die Heide 81\nBasche",
 			customTypeName: "",
@@ -533,15 +524,15 @@ export function createFilledContact(
 	addresses?: string[] | null | undefined,
 	websites?: Array<string>,
 	birthdayIso?: string | null | undefined,
-): Contact {
-	let c = createTestEntity(ContactTypeRef)
+): tutanotaTypeRefs.Contact {
+	let c = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
 	c._id = ["0", String(idCounter++)]
 	c.firstName = firstName
 	c.lastName = lastName
 
 	if (emailAddresses) {
 		for (const m of emailAddresses) {
-			let a = createTestEntity(ContactMailAddressTypeRef)
+			let a = createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef)
 			a.address = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
@@ -551,7 +542,7 @@ export function createFilledContact(
 
 	if (phoneNumbers) {
 		for (const m of phoneNumbers) {
-			let a = createTestEntity(ContactPhoneNumberTypeRef)
+			let a = createTestEntity(tutanotaTypeRefs.ContactPhoneNumberTypeRef)
 			a.number = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
@@ -561,7 +552,7 @@ export function createFilledContact(
 
 	if (addresses) {
 		for (const m of addresses) {
-			let a = createTestEntity(ContactAddressTypeRef)
+			let a = createTestEntity(tutanotaTypeRefs.ContactAddressTypeRef)
 			a.address = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
@@ -571,7 +562,7 @@ export function createFilledContact(
 
 	if (socialIds) {
 		for (const m of socialIds) {
-			let a = createTestEntity(ContactSocialIdTypeRef)
+			let a = createTestEntity(tutanotaTypeRefs.ContactSocialIdTypeRef)
 			if (typeof m === "string") {
 				a.socialId = m
 				a.type = ContactSocialType.OTHER
@@ -586,7 +577,7 @@ export function createFilledContact(
 
 	if (websites) {
 		for (const website of websites) {
-			let entity = createTestEntity(ContactWebsiteTypeRef)
+			let entity = createTestEntity(tutanotaTypeRefs.ContactWebsiteTypeRef)
 			entity.url = website
 			entity.type = ContactWebsiteType.OTHER
 			c.websites.push(entity)

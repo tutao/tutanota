@@ -1,6 +1,6 @@
 import type { MailboxDetail } from "../../mailFunctionality/MailboxModel.js"
 import type { LoginController } from "../../api/main/LoginController"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"
 import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mailFunctionality/SharedMailUtils.js"
 import { theme } from "../../gui/theme"

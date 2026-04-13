@@ -1,7 +1,7 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { env, PlatformStub, stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
 import { BYTES_FOR_SERVER_CLASSIFICATION_DATA } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { MAX_WORD_FREQUENCY } from "../../../common/api/common/TutanotaConstants"
+import { MAX_WORD_FREQUENCY } from "@tutao/appEnv"
 
 export class HashingVectorizer {
 	private readonly hasher: (tokens: Array<string>) => Promise<Array<number>> = this.tensorHash

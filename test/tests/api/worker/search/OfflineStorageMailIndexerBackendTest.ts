@@ -2,9 +2,10 @@ import o from "@tutao/otest"
 import { OfflineStorageMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageMailIndexerBackend"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, verify, when } from "testdouble"
-import { FULL_INDEXED_TIMESTAMP, GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
+import { GroupType } from "@tutao/appEnv"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("OfflineStorageMailIndexerBackend", function () {
@@ -112,9 +113,9 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 
 	function makeMailData(): MailWithDetailsAndAttachments {
 		return {
-			mail: createTestEntity(MailTypeRef),
-			mailDetails: createTestEntity(MailDetailsTypeRef),
-			attachments: [createTestEntity(FileTypeRef)],
+			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef),
+			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef),
+			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
 		}
 	}
 

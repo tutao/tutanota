@@ -6,13 +6,14 @@ import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "../subscripti
 import { TranslationKeyType } from "../misc/TranslationKey"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
 import { PlanSelector, PlanSelectorAttr, SubscriptionActionButtons } from "../subscription/PlanSelector"
-import { AvailablePlanType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { getAsLazy } from "@tutao/utils"
 import { lang } from "../misc/LanguageViewModel"
 import { px } from "../gui/size"
 import { styles } from "../gui/styles"
 import { MessageBanner } from "../gui/base/MessageBanner"
 import { Icons } from "../gui/base/icons/Icons"
+import { PlanTypeToName } from "@tutao/typeRefs"
+import { AvailablePlanType, PlanType } from "@tutao/appEnv"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {

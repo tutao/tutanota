@@ -6,18 +6,8 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import {
-	DEFAULT_CALENDAR_COLOR,
-	GroupType,
-	Keys,
-	NewPaidPlans,
-	reverse,
-	ShareCapability,
-	TimeFormat,
-	UpgradePromptType,
-	WeekStart,
-} from "../../../common/api/common/TutanotaConstants"
+import { elementIdPart, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { DEFAULT_CALENDAR_COLOR, Keys, NewPaidPlans, ShareCapability, TimeFormat, UpgradePromptType, WeekStart } from "@tutao/appEnv"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	CalendarType,
@@ -38,7 +28,6 @@ import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarD
 import { styles } from "../../../common/gui/styles"
 import { CalendarTimeBasedView, CalendarTimeBasedViewAttrs } from "./CalendarTimeBasedView"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { isAndroidApp, isApp, isDesktop } from "../../../common/api/common/Env"
 import { component_size, layout_size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
@@ -73,10 +62,8 @@ import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPr
 import { client } from "../../../common/misc/ClientDetector.js"
 import { FloatingActionButton } from "../../../common/gui/base/FloatingActionButton.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
-import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { getExternalCalendarName, parseCalendarStringData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
-import { elementIdPart } from "@tutao/typeRefs"
 import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
@@ -97,6 +84,7 @@ import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
+import { GroupType, isApp, isDesktop } from "@tutao/appEnv"
 
 export type GroupColors = Map<Id, string>
 
@@ -1430,7 +1418,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return actions
 	}
 
-	private canImport(group: Group, user: User, groupSettings?: tutanotaTypeRefs.GroupSettings) {
+	private canImport(group: sysTypeRefs.Group, user: sysTypeRefs.User, groupSettings?: tutanotaTypeRefs.GroupSettings) {
 		return (
 			group.type === GroupType.Calendar &&
 			hasCapabilityOnGroup(user, group, ShareCapability.Write) &&
@@ -1443,7 +1431,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return !isExternal
 	}
 
-	private canExport(group: Group, user: User): boolean {
+	private canExport(group: sysTypeRefs.Group, user: sysTypeRefs.User): boolean {
 		return !isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
 	}
 
@@ -1451,7 +1439,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return (isApp() || isDesktop()) && isExternal
 	}
 
-	private handleShare(userController: UserController, groupInfo: GroupInfo, shared: boolean) {
+	private handleShare(userController: UserController, groupInfo: sysTypeRefs.GroupInfo, shared: boolean) {
 		if (userController.isFreeAccount()) {
 			showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SHARING)
 		} else {
@@ -1459,7 +1447,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	private handleExport(groupInfo: GroupInfo, groupRoot: tutanotaTypeRefs.CalendarGroupRoot, shared: boolean, userController: UserController) {
+	private handleExport(groupInfo: sysTypeRefs.GroupInfo, groupRoot: tutanotaTypeRefs.CalendarGroupRoot, shared: boolean, userController: UserController) {
 		const alarmInfoList = userController.user.alarmInfoList
 		if (alarmInfoList) {
 			exportCalendar(

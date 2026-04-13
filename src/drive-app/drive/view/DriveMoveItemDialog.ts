@@ -21,13 +21,13 @@ import { styles } from "../../../common/gui/styles"
 import { component_size, size } from "../../../common/gui/size"
 
 interface State {
-	currentFolder: DriveFolder
+	currentFolder: driveTypeRefs.DriveFolder
 	items: readonly FolderItem[]
-	parents: readonly DriveFolder[]
+	parents: readonly driveTypeRefs.DriveFolder[]
 	newFolderName: string | null
 }
 
-export type MoveItems = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
+export type MoveItems = (items: readonly FolderItemId[], destinationFolder: driveTypeRefs.DriveFolder) => Promise<void>
 
 /**
  * Shows a dialog for interactively choosing a destination to move an item to.
@@ -47,11 +47,11 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 	}
 
 	async function loadFolder(folderId: IdTuple): Promise<State> {
-		const currentFolder = await entityClient.load(DriveFolderTypeRef, folderId)
+		const currentFolder = await entityClient.load(driveTypeRefs.DriveFolderTypeRef, folderId)
 
 		const contents = await driveFacade.getFolderContents(folderId)
 		const items = toFolderItems(contents)
-		const parents = currentFolder.parent ? [await entityClient.load(DriveFolderTypeRef, currentFolder.parent)] : []
+		const parents = currentFolder.parent ? [await entityClient.load(driveTypeRefs.DriveFolderTypeRef, currentFolder.parent)] : []
 		return { currentFolder, parents, items, newFolderName: null }
 	}
 
@@ -114,7 +114,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 									currentFolder,
 									parents,
 									loadParents,
-									onClick: (f: DriveFolder, e: MouseEvent) => {
+									onClick: (f: driveTypeRefs.DriveFolder, e: MouseEvent) => {
 										e.preventDefault()
 										this.onOpenFolder(f)
 									},
@@ -175,7 +175,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 				]
 			}
 
-			private async onCreateFolder(newFolderNameCaptured: string, currentFolder: DriveFolder) {
+			private async onCreateFolder(newFolderNameCaptured: string, currentFolder: driveTypeRefs.DriveFolder) {
 				state.newFolderName = null
 				m.redraw()
 				const newFolder = await driveFacade.createFolder(newFolderNameCaptured, currentFolder._id)
@@ -183,7 +183,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 				m.redraw()
 			}
 
-			private async onOpenFolder(folder: DriveFolder) {
+			private async onOpenFolder(folder: driveTypeRefs.DriveFolder) {
 				state = await loadFolder(folder._id)
 				m.redraw()
 			}

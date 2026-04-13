@@ -1,8 +1,8 @@
-import { createCreditCard, CreditCard } from "../api/entities/sys/TypeRefs.js"
 import { LanguageViewModel, TranslationKey } from "../misc/LanguageViewModel.js"
 import { CCViewModel } from "./SimplifiedCreditCardInput.js"
 import { isValidCreditCardNumber } from "../misc/FormatValidator.js"
 import { typedValues } from "@tutao/utils"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 // we're using string values to make it easy to iterate all card types
 export enum CardType {
@@ -434,9 +434,9 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		return CardSpecs[this.creditCardType].cvvName
 	}
 
-	getCreditCardData(): CreditCard {
+	getCreditCardData(): sysTypeRefs.CreditCard {
 		const expiration = getExpirationMonthAndYear(this._expirationDate)
-		let cc = createCreditCard({
+		let cc = sysTypeRefs.createCreditCard({
 			number: stripWhitespace(this._creditCardNumber),
 			cardHolderName: this._cardHolderName,
 			cvv: this._cvv,
@@ -446,7 +446,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		return cc
 	}
 
-	setCreditCardData(data: CreditCard | null): void {
+	setCreditCardData(data: sysTypeRefs.CreditCard | null): void {
 		if (data) {
 			this.creditCardNumber = data.number
 			this.cvv = data.cvv

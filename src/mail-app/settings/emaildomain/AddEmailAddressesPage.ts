@@ -2,7 +2,6 @@ import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../../comm
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
-import { CustomerTypeRef, GroupInfoTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { neverNull } from "@tutao/utils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -14,13 +13,14 @@ import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { InvalidDataError, LimitReachedError } from "../../../common/api/common/error/RestError"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
-import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
+import { UpgradePromptType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
 
@@ -129,8 +129,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				return true
 			} else {
 				return locator.entityClient
-					.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-					.then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
+					.load(sysTypeRefs.CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+					.then((customer) => locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.userGroups))
 					.then((allUserGroupInfos) => {
 						return allUserGroupInfos.some(
 							(u) =>

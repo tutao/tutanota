@@ -1,4 +1,4 @@
-import { DEFAULT_VECTOR_MAX_LENGTH, MAX_WORD_FREQUENCY } from "../../TutanotaConstants"
+import { DEFAULT_VECTOR_MAX_LENGTH, MAX_WORD_FREQUENCY } from "@tutao/appEnv"
 
 /**
  * Example:

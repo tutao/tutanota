@@ -4,10 +4,10 @@ import type { TextFieldAttrs } from "../../gui/base/TextField.js"
 import { TextField } from "../../gui/base/TextField.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { CustomerPropertiesTypeRef, GroupInfo, Session, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { elementIdPart, entityUpdateUtils, getElementId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/utils"
 import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
-import { SessionState } from "../../api/common/TutanotaConstants.js"
+import { SessionState } from "@tutao/appEnv"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
 import { NotFoundError } from "../../api/common/error/RestError.js"
@@ -19,16 +19,13 @@ import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
-import { assertMainOrNode, isDesktop } from "../../api/common/Env.js"
+import { assertMainOrNode, isDesktop } from "@tutao/appEnv"
 import { locator } from "../../api/main/CommonLocator.js"
-import { elementIdPart, getElementId } from "@tutao/typeRefs"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
@@ -42,7 +39,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _mailAddress = stream(neverNull(locator.logins.getUserController().userGroupInfo.mailAddress))
 	private readonly _stars = stream("***")
 	private readonly _closedSessionsExpanded = stream(false)
-	private _sessions: Session[] = []
+	private _sessions: sysTypeRefs.Session[] = []
 	private readonly _secondFactorsForm = new SecondFactorsEditForm(
 		new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)),
 		locator.domainConfigProvider(),
@@ -224,7 +221,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private onChangeName(groupInfo: GroupInfo) {
+	private onChangeName(groupInfo: sysTypeRefs.GroupInfo) {
 		Dialog.showProcessTextInputDialog(
 			{
 				title: "edit_action",
@@ -279,7 +276,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async _updateSessions(): Promise<void> {
-		const sessions = await locator.entityClient.loadAll(SessionTypeRef, neverNull(locator.logins.getUserController().user.auth).sessions)
+		const sessions = await locator.entityClient.loadAll(sysTypeRefs.SessionTypeRef, neverNull(locator.logins.getUserController().user.auth).sessions)
 		sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 		this._sessions = sessions
 		m.redraw()
@@ -323,7 +320,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private showActiveSessionInfoDialog(session: Session, isThisSession: boolean) {
+	private showActiveSessionInfoDialog(session: sysTypeRefs.Session, isThisSession: boolean) {
 		const actionDialogProperties = {
 			title: "details_label",
 			child: {
@@ -355,7 +352,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		Dialog.showActionDialog(actionDialogProperties)
 	}
 
-	private _closeSession(session: Session) {
+	private _closeSession(session: sysTypeRefs.Session) {
 		locator.entityClient.erase(session).catch(
 			ofClass(NotFoundError, () => {
 				console.log(`session ${JSON.stringify(session._id)} already deleted`)
@@ -363,11 +360,14 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(SessionTypeRef, update)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.SessionTypeRef, update)) {
 				await this._updateSessions()
-			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) || isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
+			} else if (
+				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerPropertiesTypeRef, update) ||
+				entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)
+			) {
 				m.redraw()
 			}
 

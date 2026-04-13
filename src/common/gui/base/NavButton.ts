@@ -9,11 +9,12 @@ import { theme } from "../theme"
 import { styles } from "../styles"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { isKeyPressed } from "../../misc/KeyManager"
 import { DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
-import { assertMainOrNode, isDesktop } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { fileListToArray } from "../../api/common/utils/FileUtils.js"
+import { isDesktop } from "@tutao/appEnv"
 
 assertMainOrNode()
 export type NavButtonAttrs = {

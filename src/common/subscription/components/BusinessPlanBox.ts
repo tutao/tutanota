@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../../gui/size"
-import { PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
 import { Theme, theme } from "../../gui/theme"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { TranslationKeyType } from "../../misc/TranslationKey"
@@ -17,6 +16,8 @@ import { PlanBadge } from "./PlanBadge"
 import { blackFridayTheme, DiscountDetail, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import Stream from "mithril/stream"
+import { PlanTypeToName } from "@tutao/typeRefs"
+import { PlanType } from "@tutao/appEnv"
 
 type BusinessPlanBoxAttrs = {
 	planConfig: PlanConfig

@@ -1,8 +1,7 @@
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
-import { driveTypeRefs } from "@tutao/typeRefs"
-import { getElementId } from "@tutao/typeRefs"
+import { driveTypeRefs, getElementId } from "@tutao/typeRefs"
 import { partition } from "@tutao/utils"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
@@ -13,17 +12,17 @@ export function makeDuplicateFileName(fileName: string, indicator: string = "cop
 
 export interface FileFolderItem {
 	type: "file"
-	file: DriveFile
+	file: driveTypeRefs.DriveFile
 }
 
 export interface FolderFolderItem {
 	type: "folder"
-	folder: DriveFolder
+	folder: driveTypeRefs.DriveFolder
 }
 
 export type FolderItem = FileFolderItem | FolderFolderItem
 
-export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
+export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): driveTypeRefs.DriveFile | driveTypeRefs.DriveFolder {
 	return folderItem.type === "file" ? folderItem.file : folderItem.folder
 }
 
@@ -43,7 +42,11 @@ export interface FolderItemId {
 	id: IdTuple
 }
 
-export async function deduplicateItemNames(existingItems: FolderItem[], newFiles: Array<DriveFile>, newFolders: Array<DriveFolder>): Promise<Map<Id, string>> {
+export async function deduplicateItemNames(
+	existingItems: FolderItem[],
+	newFiles: Array<driveTypeRefs.DriveFile>,
+	newFolders: Array<driveTypeRefs.DriveFolder>,
+): Promise<Map<Id, string>> {
 	// This is for tracking filenames that are not yet part of the list model
 	// because we *just now* made them up when trying to find a free candidate name
 	// and are therefore unsuited as candidate names as well.
@@ -84,12 +87,12 @@ export function pickNewFileName(originalName: string, takenFileNames: ReadonlySe
 export async function moveItems(entityClient: EntityClient, driveFacade: DriveFacade, items: readonly FolderItemId[], destinationFolderId: IdTuple) {
 	const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
 	const files = await loadMultipleFromLists(
-		DriveFileTypeRef,
+		driveTypeRefs.DriveFileTypeRef,
 		entityClient,
 		fileItems.map((item) => item.id),
 	)
 	const folders = await loadMultipleFromLists(
-		DriveFolderTypeRef,
+		driveTypeRefs.DriveFolderTypeRef,
 		entityClient,
 		folderItems.map((item) => item.id),
 	)

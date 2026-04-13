@@ -2,7 +2,6 @@ import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/utils"
-import { OutOfOfficeNotificationMessageType } from "../../common/api/common/TutanotaConstants"
 import { InvalidDataError, PreconditionFailedError } from "../../common/api/common/error/RestError"
 import type { EntityClient } from "../../common/api/common/EntityClient"
 import { lang, LanguageViewModel } from "../../common/misc/LanguageViewModel"
@@ -13,6 +12,7 @@ import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError
 import { IServiceExecutor } from "../../common/api/common/ServiceRequest.js"
 
 import { getAvailablePlansWithAutoResponder } from "../../common/subscription/utils/SubscriptionUtils.js"
+import { OutOfOfficeNotificationMessageType } from "@tutao/appEnv"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,

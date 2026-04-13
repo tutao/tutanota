@@ -1,6 +1,5 @@
 import m, { Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { isAndroidApp } from "../api/common/Env.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../gui/base/Button.js"
@@ -8,6 +7,7 @@ import { ClickHandler } from "../gui/base/GuiUtils.js"
 import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderSettingsBannerButton } from "./SettingsBannerButton.js"
+import { isAndroidApp } from "@tutao/appEnv"
 
 function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderSettingsBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)

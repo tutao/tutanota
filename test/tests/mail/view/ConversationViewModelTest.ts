@@ -1,14 +1,6 @@
 import o from "@tutao/otest"
 import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail-app/mail/view/ConversationViewModel.js"
-import {
-	ConversationEntry,
-	ConversationEntryTypeRef,
-	Mail,
-	MailboxProperties,
-	MailboxPropertiesTypeRef,
-	MailSetTypeRef,
-	MailTypeRef,
-} from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ClientModelInfo, entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
@@ -16,21 +8,18 @@ import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/utils"
 import { matchers, object, when } from "testdouble"
-import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
-import { isSameId } from "@tutao/typeRefs"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
-import { ClientModelInfo } from "@tutao/typeRefs"
-import { EntityEventsListener } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
+import { MailSetKind, MailState, OperationType } from "@tutao/appEnv"
 
 o.spec("ConversationViewModel", function () {
-	let conversation: ConversationEntry[]
+	let conversation: tutanotaTypeRefs.ConversationEntry[]
 
-	let primaryMail: Mail
-	let anotherMail: Mail
+	let primaryMail: tutanotaTypeRefs.Mail
+	let anotherMail: tutanotaTypeRefs.Mail
 
 	let viewModel: ConversationViewModel
 	let mailModel: MailModel
@@ -40,13 +29,13 @@ o.spec("ConversationViewModel", function () {
 	let prefProvider: ConversationPrefProvider
 	let redraw: () => unknown
 	let loadingDefer: DeferredObject<void>
-	let eventCallback: EntityEventsListener
+	let eventCallback: entityUpdateUtils.EntityEventsListener
 	let canUseConversationView: boolean
 
 	const listId = "listId"
 
 	const viewModelFactory = async (): Promise<
-		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
+		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: tutanotaTypeRefs.MailboxProperties) => MailViewerViewModel
 	> => {
 		return ({ mail, showFolder }) => {
 			const viewModelObject = object<MailViewerViewModel>()
@@ -56,9 +45,9 @@ o.spec("ConversationViewModel", function () {
 		}
 	}
 
-	async function makeViewModel(pMail: Mail): Promise<void> {
+	async function makeViewModel(pMail: tutanotaTypeRefs.Mail): Promise<void> {
 		const factory = await viewModelFactory()
-		const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef)
+		const mailboxProperties = createTestEntity(tutanotaTypeRefs.MailboxPropertiesTypeRef)
 		const entityClient = new EntityClient(entityRestClientMock, ClientModelInfo.getNewInstanceForTestsOnly())
 
 		const eventController: EventController = {
@@ -86,14 +75,14 @@ o.spec("ConversationViewModel", function () {
 		)
 	}
 
-	const addMail = (mailId: string): Mail => {
+	const addMail = (mailId: string): tutanotaTypeRefs.Mail => {
 		const conversationId = "conversation" + mailId
-		const newMail = createTestEntity(MailTypeRef, {
+		const newMail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_id: [listId, mailId],
 			conversationEntry: [listId, conversationId],
 			state: MailState.RECEIVED,
 		})
-		const mailConversationEntry = createTestEntity(ConversationEntryTypeRef, {
+		const mailConversationEntry = createTestEntity(tutanotaTypeRefs.ConversationEntryTypeRef, {
 			_id: [listId, conversationId],
 			mail: newMail._id,
 			previous: primaryMail?._id,
@@ -151,7 +140,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef)).length
 			o.check(numMailsDisplayed).equals(conversation.length)(
 				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
 			)
@@ -162,7 +151,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef)).length
 			o.check(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
@@ -172,7 +161,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef)).length
 			o.check(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 	})
@@ -185,7 +174,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef)).length
 			o.check(numMailsDisplayed).equals(conversation.length)(
 				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
 			)
@@ -197,7 +186,7 @@ o.spec("ConversationViewModel", function () {
 			trashDraftMail.state = MailState.DRAFT
 			trashDraftMail.mailDetailsDraft = ["listId", "elementId"]
 
-			const trash = createTestEntity(MailSetTypeRef, {
+			const trash = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 				_id: [listId, "trashFolder"],
 				folderType: MailSetKind.TRASH,
 			})
@@ -211,7 +200,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef))
 			o.check(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
@@ -223,7 +212,7 @@ o.spec("ConversationViewModel", function () {
 			trashDraftMail.state = MailState.DRAFT
 			trashDraftMail.mailDetailsDraft = ["listId", "elementId"]
 
-			const trash = createTestEntity(MailSetTypeRef, {
+			const trash = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 				_id: [listId, "trashFolder"],
 				folderType: MailSetKind.TRASH,
 			})
@@ -237,7 +226,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef))
 			o.check(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
@@ -254,7 +243,7 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
-						typeRef: ConversationEntryTypeRef,
+						typeRef: tutanotaTypeRefs.ConversationEntryTypeRef,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
@@ -265,7 +254,7 @@ o.spec("ConversationViewModel", function () {
 				true,
 			)
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef))
 			o.check(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => `[${ci.entryId[0]}, ${ci.entryId[1]}]`).join(", ")}, should be ${conversation
 					.map((ce) => `[${ce._id[0]}, ${ce._id[1]}]`)
@@ -278,13 +267,13 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			conversation.pop() // "deleting" the mail
-			const mailConversationEntry = createTestEntity(ConversationEntryTypeRef, {
+			const mailConversationEntry = createTestEntity(tutanotaTypeRefs.ConversationEntryTypeRef, {
 				_id: anotherMail.conversationEntry,
 				mail: anotherMail._id,
 				previous: primaryMail?._id,
 			})
 			await entityRestClientMock.erase(mailConversationEntry)
-			const deletedmailConversationEntry = createTestEntity(ConversationEntryTypeRef, {
+			const deletedmailConversationEntry = createTestEntity(tutanotaTypeRefs.ConversationEntryTypeRef, {
 				_id: anotherMail.conversationEntry,
 				previous: primaryMail?._id,
 			})
@@ -293,7 +282,7 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
-						typeRef: ConversationEntryTypeRef,
+						typeRef: tutanotaTypeRefs.ConversationEntryTypeRef,
 						operation: OperationType.UPDATE,
 						instanceListId: listId,
 						instanceId: anotherMail.conversationEntry[1],
@@ -304,7 +293,7 @@ o.spec("ConversationViewModel", function () {
 				true,
 			)
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef))
 			o.check(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
@@ -321,7 +310,7 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
-						typeRef: ConversationEntryTypeRef,
+						typeRef: tutanotaTypeRefs.ConversationEntryTypeRef,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
@@ -332,7 +321,7 @@ o.spec("ConversationViewModel", function () {
 				true,
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef)).length
 			o.check(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
@@ -347,7 +336,7 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
-						typeRef: ConversationEntryTypeRef,
+						typeRef: tutanotaTypeRefs.ConversationEntryTypeRef,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
@@ -358,7 +347,7 @@ o.spec("ConversationViewModel", function () {
 				true,
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef)).length
 			o.check(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
@@ -372,7 +361,7 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			conversation.pop()
-			const trash = createTestEntity(MailSetTypeRef, {
+			const trash = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 				_id: ["folderListId", "trashFolder"],
 				folderType: MailSetKind.TRASH,
 			})
@@ -390,7 +379,7 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback.onEntityUpdatesReceived(
 				[
 					{
-						typeRef: ConversationEntryTypeRef,
+						typeRef: tutanotaTypeRefs.ConversationEntryTypeRef,
 						operation: OperationType.UPDATE,
 						instanceListId: listId,
 						instanceId: trashDraftMail.conversationEntry[1],
@@ -401,7 +390,7 @@ o.spec("ConversationViewModel", function () {
 				true,
 			)
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, tutanotaTypeRefs.MailTypeRef))
 			o.check(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)

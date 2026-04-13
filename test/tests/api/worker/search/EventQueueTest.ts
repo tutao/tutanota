@@ -1,29 +1,27 @@
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { spy } from "@tutao/otest"
-import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { OperationType } from "@tutao/appEnv"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
 	let processElement: any
 	let lastProcess: { resolve: () => void; reject: (Error) => void; promise: Promise<void> }
 
-	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
+	const noPatchesAndInstance: Pick<entityUpdateUtils.EntityUpdateData, "instance" | "patches"> = {
 		instance: null,
 		patches: null,
 	}
-	const newUpdate = (type: OperationType, instanceId: string): EntityUpdateData<Mail> => {
+	const newUpdate = (type: OperationType, instanceId: string): entityUpdateUtils.EntityUpdateData => {
 		return {
 			operation: type,
 			instanceId,
 			instanceListId: "list-id",
-			typeRef: MailTypeRef,
+			typeRef: tutanotaTypeRefs.MailTypeRef,
 			...noPatchesAndInstance,
-		} as Partial<EntityUpdateData> as EntityUpdateData<Mail>
+		} as Partial<entityUpdateUtils.EntityUpdateData> as entityUpdateUtils.EntityUpdateData
 	}
 
 	o.beforeEach(function () {

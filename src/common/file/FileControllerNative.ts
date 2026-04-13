@@ -1,17 +1,18 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { DataFile } from "../api/common/DataFile"
-import { assertMainOrNode, isAndroidApp, isApp, isDesktop, isElectronClient, isIOSApp, isTest } from "../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertOnlyFileReferences, FileReference } from "../api/common/utils/FileUtils"
 import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp.js"
-import { ArchiveDataType } from "../api/common/TutanotaConstants"
+import { ArchiveDataType } from "@tutao/appEnv"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
 import { TransferId } from "../api/common/drive/DriveTypes"
+import { isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -23,7 +24,7 @@ export class FileControllerNative extends FileController {
 		blobFacade: BlobFacade,
 		private readonly fileApp: NativeFileApp,
 	) {
-		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
+		assert(isDesktop() || env.mode === Mode.Admin || isApp() || env.mode === Mode.Test, "Don't make native file controller when not in native")
 		super(blobFacade)
 	}
 

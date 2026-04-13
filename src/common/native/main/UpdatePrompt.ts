@@ -1,7 +1,7 @@
 import m from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button.js"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { show } from "../../gui/base/NotificationOverlay"
 import { SettingsFacade } from "../common/generatedipc/SettingsFacade.js"
 

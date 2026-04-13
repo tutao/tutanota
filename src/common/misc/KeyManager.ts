@@ -1,8 +1,9 @@
 import type { TranslationKey } from "./LanguageViewModel"
-import { Keys } from "../api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { lazy, mod } from "@tutao/utils"
-import { assertMainOrNodeBoot, isAppleDevice } from "../api/common/Env"
+import { assertMainOrNodeBoot } from "@tutao/appEnv"
 import m from "mithril"
+import { isAppleDevice } from "@tutao/appEnv"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"

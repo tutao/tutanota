@@ -1,7 +1,7 @@
 import { Aes256Key, Argon2IDExports, generateKeyFromPassphraseArgon2id, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/crypto"
 import { LazyLoaded, stringToUtf8Uint8Array } from "@tutao/utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
-import { assertWorkerOrNode } from "../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { loadWasm } from "argon2.wasm"
 
 assertWorkerOrNode()

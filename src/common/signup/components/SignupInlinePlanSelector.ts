@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { SignupViewModel } from "../SignupView"
-import { AvailablePlanType, NewPersonalPlans, PlanType } from "../../api/common/TutanotaConstants"
 import { Icons } from "../../gui/base/icons/Icons"
 import { BusinessPlanBox } from "../../subscription/components/BusinessPlanBox"
 import { PlanConfig } from "../../subscription/components/BusinessPlanContainer"
@@ -8,6 +7,7 @@ import { getApplePriceStr, getPriceStr, shouldShowApplePrices } from "../../subs
 import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/PlanSelectorUtils"
 import { PaymentInterval } from "../../subscription/utils/PriceUtils"
 import { px, size } from "../../gui/size"
+import { AvailablePlanType, NewPersonalPlans, PlanType } from "@tutao/appEnv"
 
 type SignupInlinePlanSelectorAttrs = {
 	viewModel: SignupViewModel

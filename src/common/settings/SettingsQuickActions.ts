@@ -1,10 +1,10 @@
 import { lang } from "../misc/LanguageViewModel"
 import { Router } from "../gui/ScopedRouter"
-import { isApp, isBrowser, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { isNotNull } from "@tutao/utils"
 import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { QuickAction } from "../misc/quickactions/QuickActionsModel"
+import { isApp, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
 
 export async function quickSettingsActions(router: Router, logins: LoginController): Promise<readonly QuickAction[]> {
 	return [
@@ -137,7 +137,7 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			description: `${emailSettingsLabel} ${lang.getTranslationText("outOfOfficeNotification_title")}`,
 			exec: () => routeToFolderSection(router, folder, "outofoffice"),
 		},
-		isOfflineStorageAvailable()
+		!isBrowser() && !(env.mode === Mode.Admin)
 			? {
 					description: `${emailSettingsLabel} ${lang.getTranslationText("localDataSection_label")}`,
 					exec: () => routeToFolderSection(router, folder, "localdata"),

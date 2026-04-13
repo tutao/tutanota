@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../common/gui/base/Select.js"
-import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "@tutao/appEnv"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { debounceStart, getFirstOrThrow } from "@tutao/utils"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"

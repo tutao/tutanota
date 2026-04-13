@@ -1,13 +1,13 @@
-import type { GroupInfo, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import { GroupType } from "../TutanotaConstants"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { GroupType } from "@tutao/appEnv"
 
-export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
+export function getEnabledMailAddressesForGroupInfo(groupInfo: sysTypeRefs.GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)
 	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
 	return aliases
 }
 
-export function isAliasEnabledForGroupInfo(groupInfo: GroupInfo, aliasAddress: string): boolean {
+export function isAliasEnabledForGroupInfo(groupInfo: sysTypeRefs.GroupInfo, aliasAddress: string): boolean {
 	return (
 		(groupInfo.mailAddress && groupInfo.mailAddress === aliasAddress) ||
 		(groupInfo.mailAddressAliases.find((alias) => alias.mailAddress === aliasAddress)?.enabled ?? false)
@@ -17,7 +17,7 @@ export function isAliasEnabledForGroupInfo(groupInfo: GroupInfo, aliasAddress: s
 /**
  * Provides the memberships of the user with the given type. In case of area groups all groups are returned.
  */
-export function getUserGroupMemberships(user: User, groupType: GroupType): GroupMembership[] {
+export function getUserGroupMemberships(user: sysTypeRefs.User, groupType: GroupType): sysTypeRefs.GroupMembership[] {
 	if (groupType === GroupType.User) {
 		return [user.userGroup]
 	} else {
@@ -28,7 +28,7 @@ export function getUserGroupMemberships(user: User, groupType: GroupType): Group
 /**
  * Provides the name if available, otherwise the email address if available, otherwise an empty string.
  */
-export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
+export function getGroupInfoDisplayName(groupInfo: sysTypeRefs.GroupInfo): string {
 	if (groupInfo.name) {
 		return groupInfo.name
 	} else if (groupInfo.mailAddress) {
@@ -38,6 +38,6 @@ export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
 	}
 }
 
-export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
+export function compareGroupInfos(a: sysTypeRefs.GroupInfo, b: sysTypeRefs.GroupInfo): number {
 	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
 }

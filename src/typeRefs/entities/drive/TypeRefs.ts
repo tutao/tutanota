@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "@tutao/typeRefs"
+import { create, StrippedEntity } from "../../EntityUtils.js"
 import { TypeRef } from "@tutao/utils"
-import { typeModels } from "./TypeModels.js"
+import { default as typeModels } from "./TypeModels.js"
 import { Blob } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 

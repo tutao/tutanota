@@ -1,7 +1,7 @@
-import { InvoiceDataGetOut, InvoiceDataItem } from "../../entities/sys/TypeRefs.js"
 import XRechnungUBLTemplate from "./XRechnungUBLTemplate.js"
 import InvoiceTexts from "./InvoiceTexts.js"
 import { countryUsesGerman, getInvoiceItemTypeName, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 const DE_POSTAL_CODE_REGEX = new RegExp(/\d{5}/)
 const CITY_NAME_REGEX = new RegExp(/\d{5}/)
@@ -36,12 +36,12 @@ export class XRechnungInvoiceGenerator {
 	private readonly invoiceNumber: string
 	private readonly customerId: string
 	private readonly buyerMailAddress: string
-	private invoice: InvoiceDataGetOut
+	private invoice: sysTypeRefs.InvoiceDataGetOut
 	private itemIndex: number = 0
-	private discountItems: InvoiceDataItem[] = []
+	private discountItems: sysTypeRefs.InvoiceDataItem[] = []
 	private totalDiscountSum: number = -1
 
-	constructor(invoice: InvoiceDataGetOut, invoiceNumber: string, customerId: string, buyerMailAddress: string) {
+	constructor(invoice: sysTypeRefs.InvoiceDataGetOut, invoiceNumber: string, customerId: string, buyerMailAddress: string) {
 		this.invoice = invoice
 		this.invoiceNumber = invoiceNumber
 		this.customerId = customerId
@@ -264,7 +264,7 @@ export class XRechnungInvoiceGenerator {
 	 * @param invoiceItem
 	 * @private
 	 */
-	private resolveInvoiceLine(invoiceItem: InvoiceDataItem): string {
+	private resolveInvoiceLine(invoiceItem: sysTypeRefs.InvoiceDataItem): string {
 		this.itemIndex++
 		// If the invoice has a negative price it is some form of credit or discount.
 		// This is not the definition of an "invoice item" in the traditional sense, and therefore we treat it as a discount later applied to the whole invoice.
@@ -288,7 +288,7 @@ export class XRechnungInvoiceGenerator {
 	 * @param invoiceItem
 	 * @private
 	 */
-	private resolveCreditNoteLine(invoiceItem: InvoiceDataItem): string {
+	private resolveCreditNoteLine(invoiceItem: sysTypeRefs.InvoiceDataItem): string {
 		this.itemIndex++
 		return XRechnungUBLTemplate.CreditNoteLine.replace("{invoiceLineId}", this.itemIndex.toString())
 			.replace("{invoiceLineQuantity}", invoiceItem.amount)
@@ -355,7 +355,7 @@ function formatDate(date: Date | null): string {
  * This is singlePrice if the amount of item is 1 or totalPrice if not.
  * @param invoiceItem
  */
-function getInvoiceItemPrice(invoiceItem: InvoiceDataItem): string {
+function getInvoiceItemPrice(invoiceItem: sysTypeRefs.InvoiceDataItem): string {
 	if (invoiceItem.singlePrice != null) {
 		return invoiceItem.singlePrice
 	}

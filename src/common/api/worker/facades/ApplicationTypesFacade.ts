@@ -1,16 +1,14 @@
-import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
-import { ApplicationTypesHash, HttpMethod, MediaType, ServerModelInfo } from "@tutao/typeRefs"
+import { ApplicationTypesHash, baseModelInfo, baseServices, baseTypes, ServerModelInfo } from "@tutao/typeRefs"
 import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
-import { RestClient } from "@tutao/restClient"
-import { decompressString } from "../crypto/ModelMapper"
+import { HttpMethod, MediaType, RestClient } from "@tutao/restClient"
+import { decompressString } from "@tutao/instancePipeline"
 import { sha256Hash } from "@tutao/crypto"
 import { getServiceRestPath } from "../rest/ServiceExecutor"
-import { ApplicationTypesService } from "../../entities/base/Services"
 import { ServiceDefinition } from "../../common/ServiceRequest"
 import { ServerModelsUnavailableError } from "../../common/error/ServerModelsUnavailableError"
-import ModelInfo from "../../entities/base/ModelInfo"
-import { baseTypes } from "@tutao/typeRefs"
+import { isApp, isDesktop } from "@tutao/appEnv"
 
 assertWorkerOrNode()
 
@@ -43,11 +41,11 @@ export class ApplicationTypesFacade {
 
 	private async requestApplicationTypes(): Promise<baseTypes.ApplicationTypesGetOut> {
 		const applicationTypesGetOutCompressed = await this.restClient.request(
-			getServiceRestPath(ApplicationTypesService as ServiceDefinition),
+			getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition),
 			HttpMethod.GET,
 			{
 				headers: {
-					v: String(ModelInfo.version),
+					v: String(baseModelInfo.version),
 				},
 				responseType: MediaType.Binary,
 			},

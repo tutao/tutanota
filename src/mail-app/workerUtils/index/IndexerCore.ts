@@ -94,7 +94,7 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import {

@@ -21,7 +21,7 @@ import {
 } from "@tutao/crypto"
 import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
-import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
+import { CryptoProtocolVersion } from "@tutao/appEnv"
 
 export type DecapsulatedSymKey = {
 	senderIdentityPubKey: X25519PublicKey

@@ -17,7 +17,7 @@ import {
 } from "@tutao/utils"
 import { RouteSetFn, throttleRoute } from "../../../common/misc/RouteChange"
 import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode } from "@tutao/appEnv"
 import { TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { tutanotaTypeModels } from "@tutao/typeRefs"

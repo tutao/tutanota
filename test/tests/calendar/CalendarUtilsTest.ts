@@ -30,8 +30,8 @@ import {
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, RepeatRule, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
+import { StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { EndType, RepeatPeriod, ShareCapability } from "@tutao/appEnv"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
 import {
@@ -41,17 +41,6 @@ import {
 	serializeAlarmInterval,
 } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
-import {
-	AdvancedRepeatRule,
-	CalendarEvent,
-	CalendarEventAttendeeTypeRef,
-	CalendarEventTypeRef,
-	CalendarRepeatRuleTypeRef,
-	createAdvancedRepeatRule,
-	createCalendarRepeatRule,
-	EncryptedMailAddressTypeRef,
-	UserSettingsGroupRootTypeRef,
-} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/utils"
 import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
@@ -64,8 +53,8 @@ import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-mo
 import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
-import { StrippedEntity } from "@tutao/typeRefs"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
+import { AccountType, GroupType } from "@tutao/appEnv"
 
 const zone = "Europe/Berlin"
 
@@ -795,22 +784,22 @@ o.spec("CalendarUtilsTest", function () {
 		let groupOwnerMembership
 		o.before(function () {
 			// @ts-ignore
-			group = createTestEntity(GroupTypeRef, {
+			group = createTestEntity(sysTypeRefs.GroupTypeRef, {
 				_id: "g1",
 				type: GroupType.Calendar,
 				user: "groupOwner",
 			})
-			groupMembership = createTestEntity(GroupMembershipTypeRef, {
+			groupMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 				group: group._id,
 			})
-			groupOwnerMembership = createTestEntity(GroupMembershipTypeRef, {
+			groupOwnerMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 				group: group._id,
 			})
-			ownerUser = createTestEntity(UserTypeRef, {
+			ownerUser = createTestEntity(sysTypeRefs.UserTypeRef, {
 				_id: "groupOwner",
 				memberships: [groupOwnerMembership],
 			})
-			user = createTestEntity(UserTypeRef, {
+			user = createTestEntity(sysTypeRefs.UserTypeRef, {
 				_id: "groupMember",
 				memberships: [groupMembership],
 			})
@@ -914,7 +903,7 @@ o.spec("CalendarUtilsTest", function () {
 				StandardAlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
-				createCalendarRepeatRule({
+				tutanotaTypeRefs.createCalendarRepeatRule({
 					timeZone: timeZone,
 					frequency: RepeatPeriod.WEEKLY,
 					interval: String(1),
@@ -999,7 +988,7 @@ o.spec("CalendarUtilsTest", function () {
 				StandardAlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
-				createCalendarRepeatRule({
+				tutanotaTypeRefs.createCalendarRepeatRule({
 					timeZone: timeZone,
 					frequency: RepeatPeriod.WEEKLY,
 					interval: String(1),
@@ -1007,14 +996,14 @@ o.spec("CalendarUtilsTest", function () {
 					endType: "0",
 					excludedDates: [],
 					advancedRules: [
-						createAdvancedRepeatRule({
+						tutanotaTypeRefs.createAdvancedRepeatRule({
 							interval: "TU",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
-						createAdvancedRepeatRule({
+						} as StrippedEntity<tutanotaTypeRefs.AdvancedRepeatRule>),
+						tutanotaTypeRefs.createAdvancedRepeatRule({
 							interval: "MO",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						} as StrippedEntity<tutanotaTypeRefs.AdvancedRepeatRule>),
 					],
 				}),
 			)
@@ -1102,7 +1091,7 @@ o.spec("CalendarUtilsTest", function () {
 				StandardAlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
-				createCalendarRepeatRule({
+				tutanotaTypeRefs.createCalendarRepeatRule({
 					timeZone: timeZone,
 					frequency: RepeatPeriod.MONTHLY,
 					interval: String(1),
@@ -1110,14 +1099,14 @@ o.spec("CalendarUtilsTest", function () {
 					endType: "0",
 					excludedDates: [],
 					advancedRules: [
-						createAdvancedRepeatRule({
+						tutanotaTypeRefs.createAdvancedRepeatRule({
 							interval: "TU",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
-						createAdvancedRepeatRule({
+						} as StrippedEntity<tutanotaTypeRefs.AdvancedRepeatRule>),
+						tutanotaTypeRefs.createAdvancedRepeatRule({
 							interval: "MO",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						} as StrippedEntity<tutanotaTypeRefs.AdvancedRepeatRule>),
 					],
 				}),
 			)
@@ -1205,7 +1194,7 @@ o.spec("CalendarUtilsTest", function () {
 				StandardAlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
-				createCalendarRepeatRule({
+				tutanotaTypeRefs.createCalendarRepeatRule({
 					timeZone: timeZone,
 					frequency: RepeatPeriod.MONTHLY,
 					interval: String(1),
@@ -1213,10 +1202,10 @@ o.spec("CalendarUtilsTest", function () {
 					endType: "0",
 					excludedDates: [],
 					advancedRules: [
-						createAdvancedRepeatRule({
+						tutanotaTypeRefs.createAdvancedRepeatRule({
 							interval: "1MO",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						} as StrippedEntity<tutanotaTypeRefs.AdvancedRepeatRule>),
 					],
 				}),
 			)
@@ -1301,7 +1290,7 @@ o.spec("CalendarUtilsTest", function () {
 				StandardAlarmInterval.ONE_DAY,
 				timeZone,
 				10,
-				createCalendarRepeatRule({
+				tutanotaTypeRefs.createCalendarRepeatRule({
 					timeZone: repeatRuleTimeZone,
 					frequency: RepeatPeriod.DAILY,
 					interval: String(1),
@@ -1351,8 +1340,8 @@ o.spec("CalendarUtilsTest", function () {
 	o.spec("Event start and end time comparison", function () {
 		const zone = getTimeZone()
 
-		function eventOn(start: Date, end: Date): CalendarEvent {
-			return createTestEntity(CalendarEventTypeRef, {
+		function eventOn(start: Date, end: Date): tutanotaTypeRefs.CalendarEvent {
+			return createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: start,
 				endTime: end,
 			})
@@ -1407,7 +1396,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("events with invalid dates are detected", function () {
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("nan"),
 						endTime: new Date("1990"),
 					}),
@@ -1415,7 +1404,7 @@ o.spec("CalendarUtilsTest", function () {
 			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("1991"),
 						endTime: new Date("nan"),
 					}),
@@ -1423,7 +1412,7 @@ o.spec("CalendarUtilsTest", function () {
 			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("nan"),
 						endTime: new Date("nan"),
 					}),
@@ -1433,7 +1422,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("events with start date not before end date are detected", function () {
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("1990"),
 						endTime: new Date("1990"),
 					}),
@@ -1441,7 +1430,7 @@ o.spec("CalendarUtilsTest", function () {
 			).equals(CalendarEventValidity.InvalidEndBeforeStart)
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("1990"),
 						endTime: new Date("1980"),
 					}),
@@ -1451,7 +1440,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("events with date before 1970 are detected", function () {
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("1969"),
 						endTime: new Date("1990"),
 					}),
@@ -1459,7 +1448,7 @@ o.spec("CalendarUtilsTest", function () {
 			).equals(CalendarEventValidity.InvalidPre1970)
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("1960"),
 						endTime: new Date("1966"),
 					}),
@@ -1467,7 +1456,7 @@ o.spec("CalendarUtilsTest", function () {
 			).equals(CalendarEventValidity.InvalidPre1970)
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: new Date("1970"),
 						endTime: new Date("1966"),
 					}),
@@ -1477,7 +1466,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("valid events are detected", function () {
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: getDateInUTC("1970"),
 						endTime: getDateInUTC("1990"),
 					}),
@@ -1485,7 +1474,7 @@ o.spec("CalendarUtilsTest", function () {
 			).equals(CalendarEventValidity.Valid)("events on the cusp of 1970 UTC are valid")
 			o(
 				checkEventValidity(
-					createTestEntity(CalendarEventTypeRef, {
+					createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 						startTime: getDateInZone("1971"),
 						endTime: getDateInZone("2022"),
 					}),
@@ -1979,7 +1968,7 @@ o.spec("CalendarUtilsTest", function () {
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 1, zone)
 			repeatRule.endValue = "2"
 			repeatRule.endType = EndType.Count
-			repeatRule.excludedDates = [createTestEntity(DateWrapperTypeRef, { date: eventWrapper.event.startTime })]
+			repeatRule.excludedDates = [createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: eventWrapper.event.startTime })]
 			eventWrapper.event.repeatRule = repeatRule
 			const alteredEvent = clone(eventWrapper)
 			alteredEvent.event._id = ["shortEvents", generateEventElementId(alteredEvent.event.startTime.getTime())]
@@ -2103,12 +2092,12 @@ o.spec("CalendarUtilsTest", function () {
 	})
 	o.spec("calendarEventHasMoreThanOneOccurrencesLeft", function () {
 		o("event without end condition has more than one occurrence", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.Never,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date(),
 				endTime: new Date(),
 				repeatRule,
@@ -2123,7 +2112,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event without repeat rule has less than two occurrences", function () {
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date(),
 				endTime: new Date(),
 				repeatRule: null,
@@ -2138,15 +2127,15 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with higher count than exclusions+1 has more left", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: "3",
-				excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") })],
+				excludedDates: [createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") })],
 				timeZone: zone,
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2161,18 +2150,18 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with count and enough exclusions has less than two left", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: "3",
 				excludedDates: [
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") }),
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
 				],
 				timeZone: zone,
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2187,18 +2176,18 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with count and enough exclusions has less than two left, first is excluded", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: "3",
 				excludedDates: [
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
 				],
 				timeZone: zone,
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2213,7 +2202,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with end date and enough exclusions has less than two left, first is excluded", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = tutanotaTypeRefs.createCalendarRepeatRule({
 				endType: EndType.UntilDate,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
@@ -2229,12 +2218,12 @@ o.spec("CalendarUtilsTest", function () {
 				),
 				timeZone: zone,
 				excludedDates: [
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
 				],
 				advancedRules: [],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2249,7 +2238,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = tutanotaTypeRefs.createCalendarRepeatRule({
 				endType: EndType.UntilDate,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
@@ -2265,12 +2254,12 @@ o.spec("CalendarUtilsTest", function () {
 				),
 				timeZone: zone,
 				excludedDates: [
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
 				],
 				advancedRules: [],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2285,7 +2274,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = tutanotaTypeRefs.createCalendarRepeatRule({
 				endType: EndType.UntilDate,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
@@ -2301,16 +2290,16 @@ o.spec("CalendarUtilsTest", function () {
 				),
 				timeZone: zone,
 				excludedDates: [
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
 					// 2023-03-03T22:00:00Z not excluded
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
-					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-05T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-05T22:00:00Z") }),
 					// 2023-03-06T22:00:00Z not excluded
 					// 2023-03-07T22:00:00Z not excluded
 				],
 				advancedRules: [],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2325,18 +2314,18 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with end date after 2 occurrences and an altered instance is considered to have more than one occurrence", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.UntilDate,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: getDateInUTC("2023-03-04").getTime().toString(),
 				timeZone: zone,
 				excludedDates: [
-					createTestEntity(DateWrapperTypeRef, { date: getDateInZone("2023-03-02T22:00") }),
+					createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: getDateInZone("2023-03-02T22:00") }),
 					// 2023-03-03T22:00:00Z not excluded
 				],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: getDateInZone("2023-03-02T22:00"),
 				endTime: getDateInZone("2023-03-02T23:00"),
 				repeatRule,
@@ -2351,15 +2340,15 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with exclusions that are not occurrences", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "2",
 				endValue: "2",
 				timeZone: zone,
-				excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") })],
+				excludedDates: [createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") })],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2374,7 +2363,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with one occurrence (count), no exclusions", function () {
-			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+			const repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
@@ -2382,7 +2371,7 @@ o.spec("CalendarUtilsTest", function () {
 				timeZone: zone,
 				excludedDates: [],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2397,7 +2386,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with one occurrence (untilDate), no exclusions", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = tutanotaTypeRefs.createCalendarRepeatRule({
 				endType: EndType.UntilDate,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
@@ -2415,7 +2404,7 @@ o.spec("CalendarUtilsTest", function () {
 				excludedDates: [],
 				advancedRules: [],
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+			const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -2432,8 +2421,8 @@ o.spec("CalendarUtilsTest", function () {
 	o.spec("getEventType", function () {
 		let userController: UserController
 		o.beforeEach(() => {
-			const user = createTestEntity(UserTypeRef, { _id: "user-id" })
-			const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
+			const user = createTestEntity(sysTypeRefs.UserTypeRef, { _id: "user-id" })
+			const userSettingsGroupRoot = createTestEntity(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, { groupSettings: [] })
 			userController = makeUserController([], AccountType.PAID, undefined, false, false, user, userSettingsGroupRoot)
 		})
 		o("external gets EXTERNAL", function () {
@@ -2445,8 +2434,8 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("if no ownergroup but organizer, gets OWN", function () {
-			const event: Partial<CalendarEvent> = {
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+			const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 					address: "my@address.to",
 					name: "my",
 				}),
@@ -2457,8 +2446,8 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("if no ownergroup and not organizer, gets INVITE", function () {
-			const event: Partial<CalendarEvent> = {
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+			const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 					address: "no@address.to",
 					name: "my",
 				}),
@@ -2469,8 +2458,8 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event in not any of our calendars gets SHARED_RO", function () {
-			const event: Partial<CalendarEvent> = {
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
+			const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 				_ownerGroup: "ownergroup",
 			}
 			const calendars = new Map()
@@ -2479,14 +2468,14 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event in rw-shared calendar w/o attendees gets SHARED_RW", function () {
-			const event: Partial<CalendarEvent> = {
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
+			const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 				_ownerGroup: "ownergroup",
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
 				hasMultipleMembers: true,
-				group: createTestEntity(GroupTypeRef, {
+				group: createTestEntity(sysTypeRefs.GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
 					user: "otherUser",
@@ -2495,7 +2484,7 @@ o.spec("CalendarUtilsTest", function () {
 			const ownMailAddresses = ["my@address.to"]
 			replace(userController.user, "_id", ["userList", "userId"])
 			replace(userController.user, "memberships", [
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					group: "calendarGroup",
 					capability: ShareCapability.Write,
 				}),
@@ -2504,19 +2493,19 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event in rw-shared calendar w attendees gets LOCKED", function () {
-			const event: Partial<CalendarEvent> = {
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
+			const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 				_ownerGroup: "ownergroup",
 				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }),
+					createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }),
 					}),
 				],
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
 				hasMultipleMembers: true,
-				group: createTestEntity(GroupTypeRef, {
+				group: createTestEntity(sysTypeRefs.GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
 					user: "otherUser",
@@ -2526,7 +2515,7 @@ o.spec("CalendarUtilsTest", function () {
 
 			replace(userController.user, "_id", ["userList", "userId"])
 			replace(userController.user, "memberships", [
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					group: "calendarGroup",
 					capability: ShareCapability.Write,
 				}),
@@ -2535,19 +2524,19 @@ o.spec("CalendarUtilsTest", function () {
 		})
 
 		o("event with ownergroup in own calendar where we're organizer gets OWN", function () {
-			const event: Partial<CalendarEvent> = {
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "my@address.to", name: "my" }),
+			const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "my@address.to", name: "my" }),
 				_ownerGroup: "ownergroup",
 				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }),
+					createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }),
 					}),
 				],
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
 				hasMultipleMembers: false,
-				group: createTestEntity(GroupTypeRef, {
+				group: createTestEntity(sysTypeRefs.GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
 					user: "userId",
@@ -2560,12 +2549,12 @@ o.spec("CalendarUtilsTest", function () {
 	})
 
 	o("event with ownergroup in ro-shared calendar gets shared_ro", function () {
-		const event: Partial<CalendarEvent> = {
-			organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
+		const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+			organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 			_ownerGroup: "ownergroup",
 			attendees: [
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 						address: "bla",
 						name: "blabla",
 					}),
@@ -2575,35 +2564,35 @@ o.spec("CalendarUtilsTest", function () {
 		const calendars = new Map()
 		calendars.set("ownergroup", {
 			hasMultipleMembers: true,
-			group: createTestEntity(GroupTypeRef, {
+			group: createTestEntity(sysTypeRefs.GroupTypeRef, {
 				_id: "calendarGroup",
 				type: GroupType.Calendar,
 				user: "otherUser",
 			}),
 		})
 		const ownMailAddresses = ["my@address.to"]
-		const user = createTestEntity(UserTypeRef, {
+		const user = createTestEntity(sysTypeRefs.UserTypeRef, {
 			_id: "user-id",
 			memberships: [
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					group: "calendarGroup",
 					capability: ShareCapability.Read,
 				}),
 			],
 		})
 		replace(user, "_id", ["userList", "userId"])
-		const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
+		const userSettingsGroupRoot = createTestEntity(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, { groupSettings: [] })
 		const userController = makeUserController([], AccountType.PAID, undefined, false, false, user, userSettingsGroupRoot)
 		o(getEventType(event, calendars, ownMailAddresses, userController)).equals(EventType.SHARED_RO)
 	})
 
 	o("event with ownergroup in own calendar and a different organizer gets INVITE", function () {
-		const event: Partial<CalendarEvent> = {
-			organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "other@address.to", name: "other" }),
+		const event: Partial<tutanotaTypeRefs.CalendarEvent> = {
+			organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: "other@address.to", name: "other" }),
 			_ownerGroup: "ownergroup",
 			attendees: [
-				createTestEntity(CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(EncryptedMailAddressTypeRef, {
+				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
 						address: "bla",
 						name: "blabla",
 					}),
@@ -2613,18 +2602,18 @@ o.spec("CalendarUtilsTest", function () {
 		const calendars = new Map()
 		calendars.set("ownergroup", {
 			hasMultipleMembers: false,
-			group: createTestEntity(GroupTypeRef, {
+			group: createTestEntity(sysTypeRefs.GroupTypeRef, {
 				_id: "calendarGroup",
 				type: GroupType.Calendar,
 				user: "userId",
 			}),
 		})
 		const ownMailAddresses = ["my@address.to"]
-		const user = createTestEntity(UserTypeRef, {
+		const user = createTestEntity(sysTypeRefs.UserTypeRef, {
 			_id: "user-id",
 		})
 		replace(user, "_id", ["userList", "userId"])
-		const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
+		const userSettingsGroupRoot = createTestEntity(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, { groupSettings: [] })
 		const userController = makeUserController([], AccountType.PAID, undefined, false, false, user, userSettingsGroupRoot)
 		o(getEventType(event, calendars, ownMailAddresses, userController)).equals(EventType.INVITE)
 	})
@@ -2666,7 +2655,7 @@ function iterateAlarmOccurrences(
 	alarmInterval: AlarmInterval,
 	calculationZone: string,
 	maxOccurrences: number,
-	repeatRule: RepeatRule,
+	repeatRule: sysTypeRefs.RepeatRule,
 ): Date[] {
 	const occurrences: Date[] = []
 
@@ -2685,7 +2674,7 @@ function iterateAlarmOccurrences(
 }
 
 function createEvent(startTime: Date, endTime: Date): EventWrapper {
-	const event = createTestEntity(CalendarEventTypeRef)
+	const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef)
 	event.startTime = startTime // 1 May 8:00
 
 	event.endTime = endTime

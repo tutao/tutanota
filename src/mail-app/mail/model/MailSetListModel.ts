@@ -1,13 +1,11 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, getElementId, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
-import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
-import { elementIdPart, getElementId, listIdPart } from "@tutao/typeRefs"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { groupByAndMap, isEmpty, promiseFilter } from "@tutao/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
+import { MailSetKind } from "@tutao/appEnv"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSetEntry = tutanotaTypeRefs.MailSetEntry
@@ -142,7 +140,7 @@ export interface MailSetListModel {
 	 * Handle entity events
 	 * @param update
 	 */
-	handleEntityUpdate(update: EntityUpdateData): Promise<void>
+	handleEntityUpdate(update: entityUpdateUtils.EntityUpdateData): Promise<void>
 
 	/**
 	 * Select the item in the list

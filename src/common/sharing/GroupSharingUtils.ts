@@ -1,13 +1,13 @@
-import type { GroupInfo, ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/CommonLocator"
-import { MailMethod } from "../api/common/TutanotaConstants"
+import { MailMethod } from "@tutao/appEnv"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
 import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient"
 import { getDefaultSender, getSenderNameForUser, isAliasEnabledWithUser } from "../mailFunctionality/SharedMailUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
-export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
+export function sendShareNotificationEmail(sharedGroupInfo: sysTypeRefs.GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
 		const senderMailAddress = getDefaultSender(locator.logins, mailboxDetails)
 		const userName = getSenderNameForUser(mailboxDetails, locator.logins.getUserController())
@@ -37,7 +37,7 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 	})
 }
 
-export function sendAcceptNotificationEmail(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts) {
+export function sendAcceptNotificationEmail(invitation: sysTypeRefs.ReceivedGroupInvitation, texts: GroupSharingTexts) {
 	const to = [
 		{
 			name: invitation.inviterName,
@@ -59,7 +59,7 @@ export function sendAcceptNotificationEmail(invitation: ReceivedGroupInvitation,
 	)
 }
 
-export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts) {
+export function sendRejectNotificationEmail(invitation: sysTypeRefs.ReceivedGroupInvitation, texts: GroupSharingTexts) {
 	const to = [
 		{
 			name: invitation.inviterName,

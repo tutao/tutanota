@@ -1,9 +1,8 @@
-import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeySignature, type SystemKeysReturn } from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { PublicKeyService } from "../../entities/sys/Services.js"
-import { parseKeyVersion } from "./KeyLoaderFacade.js"
+import { sysServices } from "@tutao/typeRefs"
+import { cryptoUtils } from "@tutao/crypto"
 import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { PublicKeyIdentifierType } from "@tutao/appEnv"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/crypto/error"
 import {
@@ -19,6 +18,7 @@ import {
 } from "@tutao/crypto"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 export type PublicKeyIdentifier = {
 	identifier: string
@@ -32,7 +32,7 @@ export type PublicKeyRawData = {
 	pubRsaKey: null | Uint8Array
 }
 
-export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: PublicKeySignature | null }
+export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: sysTypeRefs.PublicKeySignature | null }
 
 /**
  * Load public encryption keys.
@@ -76,12 +76,12 @@ export class PublicEncryptionKeyProvider {
 	}
 
 	private async fetchAndValidatePublicEncryptionKey(version: any, pubKeyIdentifier: PublicKeyIdentifier): Promise<MaybeSignedPublicKey> {
-		const requestData = createPublicKeyGetIn({
+		const requestData = sysTypeRefs.createPublicKeyGetIn({
 			version: version != null ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, requestData)
+		const publicKeyGetOut = await this.serviceExecutor.get(sysServices.PublicKeyService, requestData)
 		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
 		this.enforceRsaKeyVersionConstraint(publicEncryptionKey.publicKey)
 		if (version != null && publicEncryptionKey.publicKey.version !== version) {
@@ -101,7 +101,7 @@ export class PublicEncryptionKeyProvider {
 		}
 	}
 
-	public convertFromPublicKeyGetOut(publicKeyGetOut: PublicKeyGetOut): MaybeSignedPublicKey {
+	public convertFromPublicKeyGetOut(publicKeyGetOut: sysTypeRefs.PublicKeyGetOut): MaybeSignedPublicKey {
 		const publicEncryptionKey = this.convertFromPublicKeyRawData({
 			pubRsaKey: publicKeyGetOut.pubRsaKey,
 			pubEccKey: publicKeyGetOut.pubEccKey,
@@ -114,7 +114,7 @@ export class PublicEncryptionKeyProvider {
 		}
 	}
 
-	public convertFromSystemKeysReturn(publicKeys: SystemKeysReturn): Versioned<PublicKey> {
+	public convertFromSystemKeysReturn(publicKeys: sysTypeRefs.SystemKeysReturn): Versioned<PublicKey> {
 		return this.convertFromPublicKeyRawData({
 			pubRsaKey: publicKeys.systemAdminPubRsaKey,
 			pubEccKey: publicKeys.systemAdminPubEccKey,
@@ -146,7 +146,7 @@ export class PublicEncryptionKeyProvider {
 	 * Converts some form of public PQ keys to the PQPublicKeys type. Assumes pubEccKey and pubKyberKey exist.
 	 * @param pubDistributionKey
 	 */
-	public convertFromPubDistributionKey(pubDistributionKey: PubDistributionKey): Versioned<PQPublicKeys> {
+	public convertFromPubDistributionKey(pubDistributionKey: sysTypeRefs.PubDistributionKey): Versioned<PQPublicKeys> {
 		const publicKey = this.convertFromPublicKeyRawData({
 			pubRsaKey: null,
 			pubEccKey: pubDistributionKey.pubEccKey,
@@ -161,7 +161,7 @@ export class PublicEncryptionKeyProvider {
 	}
 
 	private convertFromPublicKeyRawData(publicKeys: PublicKeyRawData): Versioned<PublicKey> {
-		const version = parseKeyVersion(publicKeys.pubKeyVersion)
+		const version = cryptoUtils.parseKeyVersion(publicKeys.pubKeyVersion)
 		// const version = Number(publicKeys.pubKeyVersion)
 		if (publicKeys.pubRsaKey) {
 			if (publicKeys.pubEccKey) {

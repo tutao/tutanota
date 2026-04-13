@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { styles } from "../../../common/gui/styles"
-import { WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { WeekStart } from "@tutao/appEnv"
 import { calendarWeek, extractCalendarEventModifierKey } from "../gui/CalendarGuiUtils"
 import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs, getTimeColumnWidth } from "../../../common/calendar/gui/CalendarTimeColumn"

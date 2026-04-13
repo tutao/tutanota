@@ -4,7 +4,7 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
-import { isWorker } from "../Env.js"
+import { isWorker } from "@tutao/appEnv"
 import { Transport } from "./Transport.js"
 import { objToError } from "../utils/ErrorUtils.js"
 import { newPromise } from "@tutao/utils"

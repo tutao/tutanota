@@ -13,7 +13,7 @@ import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.j
 import { clone, lazy, noOp } from "@tutao/utils"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel.js"
 import { isSameId } from "@tutao/typeRefs"
-import { Keys } from "../../common/api/common/TutanotaConstants.js"
+import { Keys } from "@tutao/appEnv"
 import { isMailAddress } from "../../common/misc/FormatValidator.js"
 import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUtils.js"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"

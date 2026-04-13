@@ -1,57 +1,38 @@
 import o from "@tutao/otest"
-import { FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import {
-	_getCurrentIndexTimestamp,
-	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	MailIndexer,
-	MboxIndexData,
-} from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
-import {
-	BodyTypeRef,
-	File as TutanotaFile,
-	FileTypeRef,
-	Mail,
-	MailBagTypeRef,
-	MailBox,
-	MailboxGroupRootTypeRef,
-	MailBoxTypeRef,
-	MailDetailsBlob,
-	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
-	MailDetailsTypeRef,
-	MailSet,
-	MailSetEntry,
-	MailSetEntryTypeRef,
-	MailSetRefTypeRef,
-	MailSetTypeRef,
-	MailTypeRef,
-	RecipientsTypeRef,
-} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { assertNotNull, DAY_IN_MILLIS, defer, downcast, getDayShifted } from "@tutao/utils"
-import {
+	ClientTypeModelResolver,
 	constructMailSetEntryId,
 	isSameId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
+	sysTypeRefs,
 	timestampToGeneratedId,
+	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
+import {
+	_getCurrentIndexTimestamp,
+	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
+	MailIndexer,
+	MboxIndexData,
+} from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
+import { assertNotNull, defer, downcast, getDayShifted } from "@tutao/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
+import { tutanotaTypeModels } from "@tutao/typeRefs"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
-import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { ConnectionError, NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError"
+import { GroupType, MailState } from "@tutao/appEnv"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -83,7 +64,7 @@ o.spec("MailIndexer", () => {
 	let indexer: MailIndexer
 	const userId = "userId1"
 	const mailGroup1 = "mailGroup1"
-	let user: User
+	let user: sysTypeRefs.User
 	o.beforeEach(function () {
 		infoMessageHandler = object()
 		entityMock = new EntityRestClientMock()
@@ -93,10 +74,10 @@ o.spec("MailIndexer", () => {
 		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock, clientTypeModelResolver), mailFacade)
 		dateProvider = new FixedDateProvider(now)
 		backend = object()
-		user = createTestEntity(UserTypeRef, {
+		user = createTestEntity(sysTypeRefs.UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(GroupMembershipTypeRef, {
+				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 					group: mailGroup1,
 					groupType: GroupType.Mail,
 				}),
@@ -119,8 +100,8 @@ o.spec("MailIndexer", () => {
 		await indexer.init(user)
 	}
 
-	function _addFolder(mailbox: MailBox): MailSet {
-		const folder = createTestEntity(MailSetTypeRef)
+	function _addFolder(mailbox: tutanotaTypeRefs.MailBox): tutanotaTypeRefs.MailSet {
+		const folder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef)
 		folder._id = [mailbox.mailSets.mailSets, entityMock.getNextId()]
 		folder.entries = entityMock.getNextId()
 		return folder
@@ -156,48 +137,48 @@ o.spec("MailIndexer", () => {
 			const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime() - 60 * 60 * 1000
 			const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 			const userId = "userId1"
-			let user: User
+			let user: sysTypeRefs.User
 			const mailGroup = "mail-group-id"
-			let mailbox: MailBox
-			let folder1: MailSet, folder2: MailSet
-			let mail0: Mail,
-				details0: MailDetailsBlob,
-				mailEntry0: MailSetEntry,
-				mail1: Mail,
-				details1: MailDetailsBlob,
-				mailEntry1: MailSetEntry,
-				mail2: Mail,
-				details2: MailDetailsBlob,
-				mailEntry2: MailSetEntry,
-				files: TutanotaFile[],
-				mail3: Mail,
-				details3: MailDetailsBlob,
-				mailEntry3: MailSetEntry,
-				mail4: Mail,
-				details4: MailDetailsBlob,
-				mailEntry4: MailSetEntry
+			let mailbox: tutanotaTypeRefs.MailBox
+			let folder1: tutanotaTypeRefs.MailSet, folder2: tutanotaTypeRefs.MailSet
+			let mail0: tutanotaTypeRefs.Mail,
+				details0: tutanotaTypeRefs.MailDetailsBlob,
+				mailEntry0: tutanotaTypeRefs.MailSetEntry,
+				mail1: tutanotaTypeRefs.Mail,
+				details1: tutanotaTypeRefs.MailDetailsBlob,
+				mailEntry1: tutanotaTypeRefs.MailSetEntry,
+				mail2: tutanotaTypeRefs.Mail,
+				details2: tutanotaTypeRefs.MailDetailsBlob,
+				mailEntry2: tutanotaTypeRefs.MailSetEntry,
+				files: tutanotaTypeRefs.File[],
+				mail3: tutanotaTypeRefs.Mail,
+				details3: tutanotaTypeRefs.MailDetailsBlob,
+				mailEntry3: tutanotaTypeRefs.MailSetEntry,
+				mail4: tutanotaTypeRefs.Mail,
+				details4: tutanotaTypeRefs.MailDetailsBlob,
+				mailEntry4: tutanotaTypeRefs.MailSetEntry
 			// let transaction, core, indexer, db
 			o.beforeEach(() => {
-				user = createTestEntity(UserTypeRef, {
+				user = createTestEntity(sysTypeRefs.UserTypeRef, {
 					_id: userId,
 					memberships: [
-						createTestEntity(GroupMembershipTypeRef, {
+						createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
 							group: mailGroup,
 							groupType: GroupType.Mail,
 						}),
 					],
 				})
-				const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 					_id: mailGroup,
 					mailbox: "mailbox-id",
 				})
 				const mailBagMailListId = "mailBagMailListId"
-				mailbox = createTestEntity(MailBoxTypeRef, {
+				mailbox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 					_id: "mailbox-id",
 					_ownerGroup: mailGroup,
-					currentMailBag: createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId }),
+					currentMailBag: createTestEntity(tutanotaTypeRefs.MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId }),
 				})
-				const folderRef = createTestEntity(MailSetRefTypeRef, {
+				const folderRef = createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, {
 					mailSets: entityMock.getNextId(),
 				})
 				mailbox.mailSets = folderRef
@@ -428,14 +409,14 @@ o.spec("MailIndexer", () => {
 				endIndexTimestamp: number
 				expectedNewestTimestampForIndexMailListCall: number | null
 			}) {
-				const mailsChunk: Mail[] = []
+				const mailsChunk: tutanotaTypeRefs.Mail[] = []
 				const mailDetailsAndMailsChunk: MailWithMailDetails[] = []
 				for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
-					const mail: Mail = createTestEntity(MailTypeRef)
+					const mail: tutanotaTypeRefs.Mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
 					mailsChunk.push(mail)
 					mailDetailsAndMailsChunk.push({
 						mail,
-						mailDetails: createTestEntity(MailDetailsTypeRef),
+						mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef),
 					})
 				}
 
@@ -445,21 +426,21 @@ o.spec("MailIndexer", () => {
 
 				// one mail per day
 				when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenResolve([
-					createTestEntity(MailSetEntryTypeRef),
+					createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef),
 				])
 
 				when(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything())).thenResolve(mailsChunk)
 				when(bulkMailLoader.loadMailDetails(matchers.anything())).thenResolve(mailDetailsAndMailsChunk)
 				when(bulkMailLoader.loadAttachments(matchers.anything())).thenResolve([]) // doesn't matter for this test
 
-				const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 					_id: mailGroup1,
 					mailbox: "mailbox-id",
 				})
-				const mailbox = createTestEntity(MailBoxTypeRef, {
+				const mailbox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 					_id: "mailbox-id",
 					_ownerGroup: mailGroup1,
-					mailSets: createTestEntity(MailSetRefTypeRef, {
+					mailSets: createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, {
 						mailSets: "mailSets-id",
 					}),
 				})
@@ -521,14 +502,14 @@ o.spec("MailIndexer", () => {
 		o.test("when indexing fails during network request it reports no error", async function () {
 			const indexingTimestampAim = now - 10_000
 			await initWithEnabled(true)
-			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 				_id: mailGroup1,
 				mailbox: "mailbox-id",
 			})
-			const mailbox = createTestEntity(MailBoxTypeRef, {
+			const mailbox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 				_id: "mailbox-id",
 				_ownerGroup: mailGroup1,
-				mailSets: createTestEntity(MailSetRefTypeRef, {
+				mailSets: createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, {
 					mailSets: "foldersId",
 				}),
 			})
@@ -558,14 +539,14 @@ o.spec("MailIndexer", () => {
 		o.test("when indexing starts it cancels any ongoing indexing", async function () {
 			const initPromise = initWithEnabled(true).then()
 			await initPromise
-			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 				_id: mailGroup1,
 				mailbox: "mailbox-id",
 			})
-			const mailbox = createTestEntity(MailBoxTypeRef, {
+			const mailbox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 				_id: "mailbox-id",
 				_ownerGroup: mailGroup1,
-				mailSets: createTestEntity(MailSetRefTypeRef, {
+				mailSets: createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, {
 					mailSets: "foldersId",
 				}),
 			})
@@ -573,7 +554,7 @@ o.spec("MailIndexer", () => {
 			entityMock.addListInstances(_addFolder(mailbox))
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
 
-			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			const neverResolved = new Promise<tutanotaTypeRefs.MailSetEntry[]>(() => {})
 			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
 			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
 
@@ -620,7 +601,7 @@ o.spec("MailIndexer", () => {
 			mail.receivedDate = receivedDate
 
 			if (mail.state === MailState.DRAFT) {
-				const mailDetailsListEntity = createTestEntity(MailDetailsDraftTypeRef, {
+				const mailDetailsListEntity = createTestEntity(tutanotaTypeRefs.MailDetailsDraftTypeRef, {
 					_id: mailDetailsBlobId,
 					details: mailDetailsBlob.details,
 				})
@@ -842,35 +823,57 @@ o.spec("MailIndexer", () => {
 		// if this test fails, you need to think about migrating (or dropping)
 		// so old mail indexes use the new attribute ids.
 		o.test("mail does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
-			o.check(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+			o.check(
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId.toString()].associations).filter(
+					(v: any) => v.id === LEGACY_TO_RECIPIENTS_ID,
+				).length,
+			).equals(0)
 		})
 		o.test("recipients does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
 			o.check(
-				Object.values(typeModels[RecipientsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length,
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.RecipientsTypeRef.typeId.toString()].associations).filter(
+					(v: any) => v.id === LEGACY_TO_RECIPIENTS_ID,
+				).length,
 			).equals(0)
 		})
 		o.test("mail does not have an attribute with id LEGACY_BODY_ID", function () {
-			o.check(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+			o.check(
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID)
+					.length,
+			).equals(0)
 		})
 		o.test("maildetails does not have an attribute with id LEGACY_BODY_ID", function () {
-			o.check(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+			o.check(
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID)
+					.length,
+			).equals(0)
 		})
 		o.test("mail does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
-			o.check(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+			o.check(
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId.toString()].associations).filter(
+					(v: any) => v.id === LEGACY_CC_RECIPIENTS_ID,
+				).length,
+			).equals(0)
 		})
 		o.test("maildetails does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
 			o.check(
-				Object.values(typeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length,
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailDetailsTypeRef.typeId.toString()].associations).filter(
+					(v: any) => v.id === LEGACY_CC_RECIPIENTS_ID,
+				).length,
 			).equals(0)
 		})
 		o.test("mail does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
-			o.check(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(
-				0,
-			)
+			o.check(
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId.toString()].associations).filter(
+					(v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID,
+				).length,
+			).equals(0)
 		})
 		o.test("maildetails does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
 			o.check(
-				Object.values(typeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length,
+				Object.values(tutanotaTypeModels[tutanotaTypeRefs.MailDetailsTypeRef.typeId.toString()].associations).filter(
+					(v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID,
+				).length,
 			).equals(0)
 		})
 	})
@@ -944,23 +947,23 @@ o.spec("MailIndexer", () => {
 			const rangeStart = DAY_IN_MILLIS * totalMails
 			const rangeEnd = 0
 
-			const lotsOfMails: Mail[] = []
+			const lotsOfMails: tutanotaTypeRefs.Mail[] = []
 			const lotsOfMailDetailsAndMails: MailWithMailDetails[] = []
 			for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
 				const _id: IdTuple = ["helloooo", "I'm a mail!"]
-				const mail: Mail = createTestEntity(MailTypeRef, {
+				const mail: tutanotaTypeRefs.Mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 					_id,
 				})
 				lotsOfMails.push(mail)
 				lotsOfMailDetailsAndMails.push({
 					mail,
-					mailDetails: createTestEntity(MailDetailsTypeRef, {
-						recipients: createTestEntity(RecipientsTypeRef, {
+					mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+						recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
 							toRecipients: [],
 							ccRecipients: [],
 							bccRecipients: [],
 						}),
-						body: createTestEntity(BodyTypeRef, {
+						body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
 							compressedText: "tiiiiiiiiiiiiiny",
 						}),
 					}),
@@ -968,7 +971,9 @@ o.spec("MailIndexer", () => {
 			}
 
 			// one mail per day
-			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenResolve([createTestEntity(MailSetEntryTypeRef)])
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenResolve([
+				createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef),
+			])
 
 			when(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything())).thenResolve(lotsOfMails)
 			when(bulkMailLoader.loadMailDetails(matchers.anything())).thenResolve(lotsOfMailDetailsAndMails)
@@ -1060,14 +1065,14 @@ o.spec("MailIndexer", () => {
 			const indexingTimestampAim = now - 10_000
 			const initPromise = initWithEnabled(true).then()
 			await initPromise
-			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 				_id: mailGroup1,
 				mailbox: "mailbox-id",
 			})
-			const mailbox = createTestEntity(MailBoxTypeRef, {
+			const mailbox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 				_id: "mailbox-id",
 				_ownerGroup: mailGroup1,
-				mailSets: createTestEntity(MailSetRefTypeRef, {
+				mailSets: createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, {
 					mailSets: "foldersId",
 				}),
 			})
@@ -1075,7 +1080,7 @@ o.spec("MailIndexer", () => {
 			entityMock.addListInstances(_addFolder(mailbox))
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
 
-			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			const neverResolved = new Promise<tutanotaTypeRefs.MailSetEntry[]>(() => {})
 			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
 			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
 
@@ -1105,14 +1110,14 @@ o.spec("MailIndexer", () => {
 			const indexingTimestampAim = now - 10_000
 			const initPromise = initWithEnabled(true).then()
 			await initPromise
-			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
 				_id: mailGroup1,
 				mailbox: "mailbox-id",
 			})
-			const mailbox = createTestEntity(MailBoxTypeRef, {
+			const mailbox = createTestEntity(tutanotaTypeRefs.MailBoxTypeRef, {
 				_id: "mailbox-id",
 				_ownerGroup: mailGroup1,
-				mailSets: createTestEntity(MailSetRefTypeRef, {
+				mailSets: createTestEntity(tutanotaTypeRefs.MailSetRefTypeRef, {
 					mailSets: "foldersId",
 				}),
 			})
@@ -1120,7 +1125,7 @@ o.spec("MailIndexer", () => {
 			entityMock.addListInstances(_addFolder(mailbox))
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
 
-			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			const neverResolved = new Promise<tutanotaTypeRefs.MailSetEntry[]>(() => {})
 			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
 			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
 
@@ -1160,16 +1165,16 @@ function createMailInstances({
 	mailDetailsBlobId: IdTuple
 	attachmentIds?: Array<IdTuple>
 }): {
-	mail: Mail
-	mailDetailsBlob: MailDetailsBlob
-	mailSetEntry: MailSetEntry
-	files: Array<TutanotaFile>
+	mail: tutanotaTypeRefs.Mail
+	mailDetailsBlob: tutanotaTypeRefs.MailDetailsBlob
+	mailSetEntry: tutanotaTypeRefs.MailSetEntry
+	files: Array<tutanotaTypeRefs.File>
 } {
-	const mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
+	const mailSetEntry = createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef, {
 		_id: mailSetEntryId,
 		mail: mailId,
 	})
-	let mail = createTestEntity(MailTypeRef, {
+	let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 		_id: mailId,
 		subject,
 		_ownerEncSessionKey: new Uint8Array(),
@@ -1177,15 +1182,15 @@ function createMailInstances({
 		attachments: attachmentIds,
 		//state: MailState.RECEIVED,
 	})
-	let mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+	let mailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
 		_id: mailDetailsBlobId,
-		details: createTestEntity(MailDetailsTypeRef, {
-			body: createTestEntity(BodyTypeRef),
-			recipients: createTestEntity(RecipientsTypeRef),
+		details: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+			body: createTestEntity(tutanotaTypeRefs.BodyTypeRef),
+			recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef),
 		}),
 	})
 	const files = attachmentIds.map((id) => {
-		const file = createTestEntity(FileTypeRef)
+		const file = createTestEntity(tutanotaTypeRefs.FileTypeRef)
 		file._id = id
 		return file
 	})

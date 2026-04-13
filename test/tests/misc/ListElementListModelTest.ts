@@ -1,19 +1,19 @@
 import o from "@tutao/otest"
 import { getElementId, getListId, sortCompareById } from "@tutao/typeRefs"
 import { defer, DeferredObject } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
-import { OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
 import { ConnectionError } from "../../../src/common/api/common/error/RestError"
+import { OperationType } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"
-	let fetchDefer: DeferredObject<ListFetchResult<KnowledgeBaseEntry>>
-	let listModel: ListElementListModel<KnowledgeBaseEntry>
-	const defaultListConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+	let fetchDefer: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>>
+	let listModel: ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>
+	const defaultListConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 		fetch: () => fetchDefer.promise,
 		sortCompare: sortCompareById,
 		loadSingle: () => {
@@ -22,33 +22,33 @@ o.spec("ListElementListModel", function () {
 		autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 	}
 
-	const itemA = createTestEntity(KnowledgeBaseEntryTypeRef, {
+	const itemA = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "a"],
 		title: "a",
 	})
-	const itemB = createTestEntity(KnowledgeBaseEntryTypeRef, {
+	const itemB = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "b"],
 		title: "b",
 	})
-	const itemC = createTestEntity(KnowledgeBaseEntryTypeRef, {
+	const itemC = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "c"],
 		title: "c",
 	})
-	const itemD = createTestEntity(KnowledgeBaseEntryTypeRef, {
+	const itemD = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "d"],
 		title: "d",
 	})
 
 	const items = [itemA, itemB, itemC, itemD]
 
-	async function setItems(items: KnowledgeBaseEntry[]) {
+	async function setItems(items: tutanotaTypeRefs.KnowledgeBaseEntry[]) {
 		fetchDefer.resolve({ items, complete: true })
 		await listModel.loadInitial()
 	}
 
 	o.beforeEach(function () {
-		fetchDefer = defer<ListFetchResult<KnowledgeBaseEntry>>()
-		listModel = new ListElementListModel<KnowledgeBaseEntry>(defaultListConfig)
+		fetchDefer = defer<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>>()
+		listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(defaultListConfig)
 	})
 
 	function getSortedSelection() {
@@ -175,8 +175,10 @@ o.spec("ListElementListModel", function () {
 	})
 
 	o.spec("Updating items", function () {
-		function loadsElement(element: KnowledgeBaseEntry): (listId: Id, elementId: Id) => Promise<KnowledgeBaseEntry | null> {
-			return async (_listId: Id, elementId: Id): Promise<KnowledgeBaseEntry | null> => {
+		function loadsElement(
+			element: tutanotaTypeRefs.KnowledgeBaseEntry,
+		): (listId: Id, elementId: Id) => Promise<tutanotaTypeRefs.KnowledgeBaseEntry | null> {
+			return async (_listId: Id, elementId: Id): Promise<tutanotaTypeRefs.KnowledgeBaseEntry | null> => {
 				if (elementId === getElementId(element)) {
 					return element
 				} else {
@@ -186,14 +188,14 @@ o.spec("ListElementListModel", function () {
 		}
 
 		o("update for item with id sorting updates item", async function () {
-			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
+			const updatedItemD = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
 
-			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+			const newConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 				...defaultListConfig,
 				loadSingle: loadsElement(updatedItemD),
 			}
 
-			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+			listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(newConfig)
 			await setItems(items)
 
 			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
@@ -202,9 +204,9 @@ o.spec("ListElementListModel", function () {
 		})
 
 		o("update for item with custom sorting changes position", async function () {
-			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
+			const updatedItemD = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
 
-			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+			const newConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 				...defaultListConfig,
 				loadSingle: loadsElement(updatedItemD),
 				sortCompare: (e1, e2) => {
@@ -212,7 +214,7 @@ o.spec("ListElementListModel", function () {
 				},
 			}
 
-			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+			listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(newConfig)
 			await setItems(items)
 
 			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
@@ -221,14 +223,14 @@ o.spec("ListElementListModel", function () {
 		})
 
 		o("create loading done", async function () {
-			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+			const itemE = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 				_id: [listId, "e"],
 				title: "e",
 			})
 
-			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+			let somePromise: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>> = defer()
 
-			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+			const newConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 				...defaultListConfig,
 				fetch: () => {
 					return somePromise.promise
@@ -236,7 +238,7 @@ o.spec("ListElementListModel", function () {
 				loadSingle: loadsElement(itemE),
 			}
 
-			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+			listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(newConfig)
 
 			listModel.loadInitial()
 
@@ -252,14 +254,14 @@ o.spec("ListElementListModel", function () {
 		})
 
 		o("when receive create event while empty list and not loaded completely it will not insert the item", async function () {
-			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+			const itemE = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 				_id: [listId, "e"],
 				title: "e",
 			})
 
-			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+			let somePromise: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>> = defer()
 
-			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+			const newConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 				...defaultListConfig,
 				fetch: () => {
 					return somePromise.promise
@@ -267,7 +269,7 @@ o.spec("ListElementListModel", function () {
 				loadSingle: loadsElement(itemE),
 			}
 
-			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+			listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(newConfig)
 
 			listModel.loadInitial()
 
@@ -283,14 +285,14 @@ o.spec("ListElementListModel", function () {
 		})
 
 		o("when receive create event while empty list and error it does not insert", async function () {
-			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+			const itemE = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 				_id: [listId, "e"],
 				title: "e",
 			})
 
-			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+			let somePromise: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>> = defer()
 
-			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+			const newConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 				...defaultListConfig,
 				fetch: () => {
 					return somePromise.promise
@@ -298,7 +300,7 @@ o.spec("ListElementListModel", function () {
 				loadSingle: loadsElement(itemE),
 			}
 
-			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+			listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(newConfig)
 
 			listModel.loadInitial()
 
@@ -311,14 +313,14 @@ o.spec("ListElementListModel", function () {
 		})
 
 		o("when receive create event and out of range", async function () {
-			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+			const itemE = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 				_id: [listId, "e"],
 				title: "e",
 			})
 
-			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+			let somePromise: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>> = defer()
 
-			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+			const newConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 				...defaultListConfig,
 				fetch: () => {
 					return somePromise.promise
@@ -326,7 +328,7 @@ o.spec("ListElementListModel", function () {
 				loadSingle: loadsElement(itemE),
 			}
 
-			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+			listModel = new ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>(newConfig)
 
 			listModel.loadInitial()
 

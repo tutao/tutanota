@@ -83,7 +83,7 @@ export function isDraggingDriveItems(dataTransfer: DataTransfer | null): boolean
 	return maybeDriveItem != null && maybeDriveItem !== ""
 }
 
-export function driveFolderName(folder: DriveFolder): Translation {
+export function driveFolderName(folder: driveTypeRefs.DriveFolder): Translation {
 	switch (folder.type) {
 		case DriveFolderType.Root:
 			return lang.getTranslation("driveHome_label")

@@ -1,14 +1,22 @@
 import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import {
+	CUSTOM_MAX_ID,
+	customIdToUint8array,
+	deconstructMailSetEntryId,
+	elementIdPart,
+	entityUpdateUtils,
+	getElementId,
+	isSameId,
+	listIdPart,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import Stream from "mithril/stream"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailModel } from "./MailModel"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
-import { CUSTOM_MAX_ID, customIdToUint8array, deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/typeRefs"
 import {
 	assertNotNull,
 	compare,
@@ -24,9 +32,9 @@ import {
 } from "@tutao/utils"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { OperationType } from "@tutao/appEnv"
 
 type Mail = tutanotaTypeRefs.Mail
 /**
@@ -114,18 +122,21 @@ export class ConversationListModel implements MailSetListModel {
 		(conversations) => this.getDisplayedMailsOfConversations(conversations),
 	)
 
-	async handleEntityUpdate(update: EntityUpdateData) {
-		if (isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
+	async handleEntityUpdate(update: entityUpdateUtils.EntityUpdateData) {
+		if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
 			if (update.operation === OperationType.UPDATE) {
 				this.handleMailFolderUpdate([update.instanceListId, update.instanceId])
 			}
-		} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
+		} else if (
+			entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetEntryTypeRef, update) &&
+			isSameId(this.mailSet.entries, update.instanceListId)
+		) {
 			if (update.operation === OperationType.DELETE) {
 				await this.handleMailSetEntryDeletion(update)
 			} else if (update.operation === OperationType.CREATE) {
 				await this.handleMailSetEntryCreation([update.instanceListId, update.instanceId])
 			}
-		} else if (isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
+		} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this._getLoadedMail(update.instanceId)
@@ -192,7 +203,7 @@ export class ConversationListModel implements MailSetListModel {
 		}
 	}
 
-	private async handleMailSetEntryDeletion(update: EntityUpdateData) {
+	private async handleMailSetEntryDeletion(update: entityUpdateUtils.EntityUpdateData) {
 		const { mailId } = deconstructMailSetEntryId(update.instanceId)
 		await this.deleteMailByMailElementId(mailId)
 	}

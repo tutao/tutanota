@@ -8,10 +8,9 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/b
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { InboxRuleType, Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "@tutao/appEnv"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
-import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
@@ -35,6 +34,7 @@ import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+import { InboxRuleType, isAndroidApp, isDesktop, isIOSApp } from "@tutao/appEnv"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

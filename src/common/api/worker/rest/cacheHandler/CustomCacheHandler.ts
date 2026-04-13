@@ -1,16 +1,13 @@
-import { SomeEntity } from "@tutao/typeRefs"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, SomeEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { freezeMap, getTypeString, TypeRef } from "@tutao/utils"
 import { ExposedCacheStorage } from "../DefaultEntityRestCache.js"
-import { User } from "../../../entities/sys/TypeRefs"
-import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"
 
 /**
  * update when implementing custom cache handlers.
  * add new types to the union when implementing new
  * custom cache handlers.
  */
-export type CustomCacheHandledType = never | tutanotaTypeRefs.CalendarEvent | tutanotaTypeRefs.Mail | User
+export type CustomCacheHandledType = never | tutanotaTypeRefs.CalendarEvent | tutanotaTypeRefs.Mail | sysTypeRefs.User
 
 /**
  * makes sure that any {ref<A>, handler<A>} pair passed to
@@ -57,7 +54,7 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 
 	getElementIdsInCacheRange?: (storage: ExposedCacheStorage, listId: Id, ids: Array<Id>) => Promise<Array<Id>>
 
-	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => boolean
+	shouldLoadOnCreateEvent?: (event: entityUpdateUtils.EntityUpdateData) => boolean
 
 	/**
 	 * Called when an entity is about to be inserted into the cache.
@@ -81,7 +78,7 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventCreate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
+	onEntityEventCreate?: (id: T["_id"], events: entityUpdateUtils.EntityUpdateData[]) => Promise<void>
 
 	/**
 	 * Called after receiving an update event for an entity.
@@ -91,7 +88,7 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventUpdate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
+	onEntityEventUpdate?: (id: T["_id"], events: entityUpdateUtils.EntityUpdateData[]) => Promise<void>
 
 	/**
 	 * Called after receiving a deletion event for an entity.

@@ -8,11 +8,10 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { GroupType, ShareCapability, UpgradePromptType } from "../../api/common/TutanotaConstants"
+import { ShareCapability, UpgradePromptType } from "@tutao/appEnv"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { TextField } from "../../gui/base/TextField.js"
-import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { getCapabilityText, getMemberCapability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
 import { GroupSharingModel } from "../model/GroupSharingModel"
@@ -29,8 +28,10 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { GroupType } from "@tutao/appEnv"
 
-export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
+export async function showGroupSharingDialog(groupInfo: sysTypeRefs.GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
 	assert(isShareableGroupType(groupInfo.groupType as GroupType), `Group type "${groupType}" must be shareable`)
 	const texts = getTextsForGroupType(groupType)

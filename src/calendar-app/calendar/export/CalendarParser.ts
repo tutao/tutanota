@@ -1,14 +1,6 @@
-import { DAY_IN_MILLIS, filterInt, neverNull } from "@tutao/utils"
+import { filterInt, neverNull } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import {
-	CalendarAdvancedRepeatRule,
-	createCalendarAdvancedRepeatRule,
-	createDateWrapper,
-	createRepeatRule,
-	DateWrapper,
-	RepeatRule,
-} from "../../../common/api/entities/sys/TypeRefs.js"
+import { reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -25,7 +17,7 @@ import {
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
-import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../../common/api/common/TutanotaConstants"
+import { CalendarAttendeeStatus, CalendarMethod, DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/appEnv"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -349,7 +341,7 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	}
 }
 
-export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRule {
+export function parseRrule(rawRruleValue: string, tzId: string | null): sysTypeRefs.RepeatRule {
 	let rruleValue
 
 	try {
@@ -367,7 +359,7 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRu
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
 	const endType: EndType = until != null ? EndType.UntilDate : count != null ? EndType.Count : EndType.Never
 	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
-	const repeatRule = createRepeatRule({
+	const repeatRule = sysTypeRefs.createRepeatRule({
 		endValue: until ? String(until.getTime()) : count ? String(count) : null,
 		endType: endType,
 		interval: String(interval),
@@ -384,8 +376,8 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRu
 	return repeatRule
 }
 
-export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvancedRepeatRule[] {
-	const advancedRepeatRules: CalendarAdvancedRepeatRule[] = []
+export function parseAdvancedRule(rrule: Record<string, string>): sysTypeRefs.CalendarAdvancedRepeatRule[] {
+	const advancedRepeatRules: sysTypeRefs.CalendarAdvancedRepeatRule[] = []
 	for (const rruleKey in rrule) {
 		if (!BYRULE_MAP.has(rruleKey)) {
 			continue
@@ -397,7 +389,7 @@ export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvanc
 			}
 
 			advancedRepeatRules.push(
-				createCalendarAdvancedRepeatRule({
+				sysTypeRefs.createCalendarAdvancedRepeatRule({
 					ruleType: BYRULE_MAP.get(rruleKey)!.toString(),
 					interval,
 				}),
@@ -407,15 +399,15 @@ export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvanc
 	return advancedRepeatRules
 }
 
-export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
+export function parseExDates(excludedDatesProps: Property[]): sysTypeRefs.DateWrapper[] {
 	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
-	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
+	const allExDates: Map<number, sysTypeRefs.DateWrapper> = new Map<number, sysTypeRefs.DateWrapper>()
 	for (let excludedDatesProp of excludedDatesProps) {
 		const tzId = getTzId(excludedDatesProp)
 		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
 		for (let value of values) {
 			const { date: exDate } = parseTime(value, tzId ?? undefined)
-			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
+			allExDates.set(exDate.getTime(), sysTypeRefs.createDateWrapper({ date: exDate }))
 		}
 	}
 	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
@@ -557,7 +549,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		const rruleProp = getPropStringValue(eventObj, "RRULE", true)
 		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
 
-		let repeatRule: RepeatRule | null = null
+		let repeatRule: sysTypeRefs.RepeatRule | null = null
 		if (rruleProp != null) {
 			repeatRule = parseRrule(rruleProp, tzId)
 			repeatRule.excludedDates = parseExDates(excludedDateProps)

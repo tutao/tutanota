@@ -14,12 +14,12 @@ import { theme } from "../../../common/gui/theme.js"
 import { ClickHandler } from "../../../common/gui/base/GuiUtils.js"
 import { TodayIconButton } from "./TodayIconButton.js"
 import { ExpanderButton } from "../../../common/gui/base/Expander.js"
-import { isApp } from "../../../common/api/common/Env.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
 import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
+import { isApp } from "@tutao/appEnv"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType

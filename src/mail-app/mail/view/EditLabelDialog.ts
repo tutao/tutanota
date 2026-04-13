@@ -7,7 +7,7 @@ import { LockedError, PreconditionFailedError } from "../../../common/api/common
 import { MailViewModel } from "./MailViewModel"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
-import { UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
+import { UpgradePromptType } from "@tutao/appEnv"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 

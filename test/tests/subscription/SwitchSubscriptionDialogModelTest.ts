@@ -1,29 +1,30 @@
-import { AccountingInfoTypeRef, BookingItemTypeRef, BookingTypeRef, CustomerTypeRef, FeatureTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { AccountType, BookingItemFeatureType, FeatureType, PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { FeatureType } from "@tutao/appEnv"
 import o from "@tutao/otest"
 import { SwitchSubscriptionDialogModel } from "../../../src/common/subscription/SwitchSubscriptionDialogModel.js"
 import { PaymentInterval } from "../../../src/common/subscription/utils/PriceUtils.js"
 import { createTestEntity } from "../TestUtils.js"
+import { sysTypeRefs } from "@tutao/typeRefs"
+import { AccountType, BookingItemFeatureType, PlanType } from "@tutao/appEnv"
 
 o.spec("SwitchSubscriptionDialogModelTest", function () {
 	const paidPlanType = PlanType.Premium
-	const premiumCustomer = createTestEntity(CustomerTypeRef, {
+	const premiumCustomer = createTestEntity(sysTypeRefs.CustomerTypeRef, {
 		type: AccountType.PAID,
 	})
-	const yearlyIntervalAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
+	const yearlyIntervalAccountingInfo = createTestEntity(sysTypeRefs.AccountingInfoTypeRef, {
 		paymentInterval: "" + PaymentInterval.Yearly,
 	})
 	o("multipleUsersStillSupportedLegacy - MultipleUsers enabled", function () {
-		const premiumCustomerWithMultipleUsers = createTestEntity(CustomerTypeRef, {
+		const premiumCustomerWithMultipleUsers = createTestEntity(sysTypeRefs.CustomerTypeRef, {
 			customizations: [
-				createTestEntity(FeatureTypeRef, {
+				createTestEntity(sysTypeRefs.FeatureTypeRef, {
 					feature: FeatureType.MultipleUsers,
 				}),
 			],
 		})
-		const booking = createTestEntity(BookingTypeRef, {
+		const booking = createTestEntity(sysTypeRefs.BookingTypeRef, {
 			items: [
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.Revolutionary,
 					currentCount: "1",
 				}),
@@ -33,9 +34,9 @@ o.spec("SwitchSubscriptionDialogModelTest", function () {
 		o(model.multipleUsersStillSupportedLegacy()).equals(true)
 	})
 	o("multipleUsersStillSupportedLegacy - customer has multiple users booked", function () {
-		const booking = createTestEntity(BookingTypeRef, {
+		const booking = createTestEntity(sysTypeRefs.BookingTypeRef, {
 			items: [
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.LegacyUsers,
 					currentCount: "2",
 				}),
@@ -45,13 +46,13 @@ o.spec("SwitchSubscriptionDialogModelTest", function () {
 		o(model.multipleUsersStillSupportedLegacy()).equals(true)
 	})
 	o("multipleUsersStillSupportedLegacy - customer has shared mailbox booked", function () {
-		const booking = createTestEntity(BookingTypeRef, {
+		const booking = createTestEntity(sysTypeRefs.BookingTypeRef, {
 			items: [
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.LegacyUsers,
 					currentCount: "1",
 				}),
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.SharedMailGroup,
 					currentCount: "1",
 				}),
@@ -61,13 +62,13 @@ o.spec("SwitchSubscriptionDialogModelTest", function () {
 		o(model.multipleUsersStillSupportedLegacy()).equals(true)
 	})
 	o("multipleUsersStillSupportedLegacy - customer has a local admin group booked", function () {
-		const booking = createTestEntity(BookingTypeRef, {
+		const booking = createTestEntity(sysTypeRefs.BookingTypeRef, {
 			items: [
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.LegacyUsers,
 					currentCount: "1",
 				}),
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.LocalAdminGroup,
 					currentCount: "1",
 				}),
@@ -77,9 +78,9 @@ o.spec("SwitchSubscriptionDialogModelTest", function () {
 		o(model.multipleUsersStillSupportedLegacy()).equals(true)
 	})
 	o("multipleUsersStillSupportedLegacy - customer only has one user and does not have multiple users enabled", function () {
-		const booking = createTestEntity(BookingTypeRef, {
+		const booking = createTestEntity(sysTypeRefs.BookingTypeRef, {
 			items: [
-				createTestEntity(BookingItemTypeRef, {
+				createTestEntity(sysTypeRefs.BookingItemTypeRef, {
 					featureType: BookingItemFeatureType.LegacyUsers,
 					currentCount: "1",
 				}),

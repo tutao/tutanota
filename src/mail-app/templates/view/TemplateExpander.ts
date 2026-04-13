@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { component_size, px, size } from "../../../common/gui/size"
-import { Keys } from "../../../common/api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"

@@ -10,10 +10,10 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import { Icon, IconSize } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/utils"
-import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { TitleSection } from "../../../gui/TitleSection"
 import { FingerprintRow } from "../FingerprintRow"
+import { IdentityKeyVerificationMethod } from "@tutao/appEnv"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel

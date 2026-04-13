@@ -1,3 +1,4 @@
 /* generated file, don't edit. */
 
-export { AlarmNotification } from "../../../api/entities/sys/TypeRefs.js"
+import { sysTypeRefs } from "@tutao/typerefs"
+export type AlarmNotification = sysTypeRefs.AlarmNotification

@@ -1,6 +1,6 @@
 import { LazyLoaded } from "@tutao/utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
-import { assertWorkerOrNode } from "../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import {
 	decapsulateKyber,
 	encapsulateKyber,

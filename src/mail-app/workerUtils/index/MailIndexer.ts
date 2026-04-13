@@ -1,17 +1,7 @@
-import {
-	FULL_INDEXED_TIMESTAMP,
-	ImportStatus,
-	isFolder,
-	MailSetKind,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-} from "../../../common/api/common/TutanotaConstants"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, NOTHING_INDEXED_TIMESTAMP, MailSetKind } from "@tutao/appEnv"
 import {
 	assertNotNull,
 	clamp,
-	DAY_IN_MILLIS,
 	defer,
 	DeferredObject,
 	findAllAndRemove,
@@ -23,21 +13,32 @@ import {
 	promiseMap,
 } from "@tutao/utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, isSameId, listIdPart } from "@tutao/typeRefs"
+	deconstructMailSetEntryId,
+	elementIdPart,
+	entityUpdateUtils,
+	getElementId,
+	hasError,
+	isFolder,
+	isSameId,
+	listIdPart,
+	sysTypeRefs,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { assertNotNull, clamp, defer, DeferredObject, findAllAndRemove, first, isEmpty, isNotEmpty, isNotNull, newPromise, promiseMap } from "@tutao/utils"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
-import type { sysTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { hasError } from "@tutao/typeRefs"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { cryptoUtils } from "@tutao/crypto"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
+import { OperationType } from "@tutao/appEnv"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -591,12 +592,12 @@ export class MailIndexer {
 	/**
 	 * Prepare IndexUpdate in response to the new entity events.
 	 */
-	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
+	async processEntityEvents(events: readonly entityUpdateUtils.EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
 		for (const event of events) {
-			if (isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, event)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, event)) {
 				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId])
 			}
 		}

@@ -1,7 +1,7 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
 import { AppName, Nullable, TypeRef } from "@tutao/utils"
 import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
-import { BucketKey } from "./entities/sys/TypeRefs"
+import * as sysTypeRefs from "./entities/sys/TypeRefs.js"
 
 /**
  * Tuta Metamodel Entity Types
@@ -231,7 +231,7 @@ export interface Entity {
 	_type: TypeRef<this>
 	_id?: Id | IdTuple
 	_original?: this
-	bucketKey?: null | BucketKey
+	bucketKey?: null | sysTypeRefs.BucketKey
 	_ownerGroup?: null | Id
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString

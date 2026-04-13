@@ -1,6 +1,6 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
-import { generatedIdToTimestamp } from "@tutao/typeRefs"
+import { generatedIdToTimestamp, getCustomerApprovalStatus, sysTypeRefs } from "@tutao/typeRefs"
 import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
 import {
 	AccessBlockedError,
@@ -14,15 +14,6 @@ import {
 	TooManyRequestsError,
 } from "../api/common/error/RestError"
 import { CancelledError } from "../api/common/error/CancelledError"
-import {
-	ApprovalStatus,
-	AvailablePlans,
-	AvailablePlanType,
-	getCustomerApprovalStatus,
-	KdfType,
-	NewBusinessPlans,
-	SubscriptionType,
-} from "../api/common/TutanotaConstants"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
@@ -34,11 +25,11 @@ import { CredentialAuthenticationError } from "../api/common/error/CredentialAut
 import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
-import { Customer } from "../api/entities/sys/TypeRefs"
 import { deviceConfig } from "./DeviceConfig"
 import { CacheMode } from "../api/worker/rest/EntityRestClient"
+import { ApprovalStatus, AvailablePlans, AvailablePlanType, KdfType, NewBusinessPlans, SubscriptionType } from "@tutao/appEnv"
 
-function getAccountAgeInMs(customer: Customer) {
+function getAccountAgeInMs(customer: sysTypeRefs.Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
 }
 

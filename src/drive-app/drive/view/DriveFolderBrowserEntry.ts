@@ -3,7 +3,7 @@ import { theme } from "../../../common/gui/theme"
 import { Icon, IconAttrs, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { FolderItem } from "./DriveUtils"
-import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants"
+import { Keys, TabIndex } from "@tutao/appEnv"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 

@@ -9,8 +9,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import { assertWorkerOrNode, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, isOfflineStorageAvailable } from "../../../common/api/common/Env.js"
-import { Const } from "../../../common/api/common/TutanotaConstants.js"
+import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode } from "@tutao/appEnv"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
@@ -49,7 +48,7 @@ import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAc
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
@@ -67,18 +66,16 @@ import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { CryptoWrapper, InstancePipeline } from "@tutao/instancePipeline"
+import { CryptoWrapper, InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instancePipeline"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
-import { ClientModelInfo, ServerModelInfo, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
-import { PatchMerger } from "@tutao/instancePipeline"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
@@ -231,7 +228,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
 
 	let offlineStorageProvider
-	if (isOfflineStorageAvailable()) {
+	if (!isBrowser() && !(env.mode === Mode.Admin)) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
@@ -261,7 +258,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
-			ref: UserTypeRef,
+			ref: sysTypeRefs.UserTypeRef,
 			handler: new CustomUserCacheHandler(locator.cacheStorage),
 		})
 		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
@@ -277,7 +274,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
+	const cryptoFacadeSessionKeyResolver: SessionKeyResolver = (entity) => locator.crypto.resolveSessionKey(entity)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, cryptoFacadeSessionKeyResolver)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
@@ -455,7 +453,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			return mainInterface.loginListener.onLoginFailure(reason)
 		},
 
-		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
+		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null): Promise<void> {
 			return mainInterface.loginListener.onSecondFactorChallenge(sessionId, challenges, mailAddress)
 		},
 	}

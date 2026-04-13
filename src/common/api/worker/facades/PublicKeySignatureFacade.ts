@@ -1,10 +1,9 @@
-import { assertWorkerOrNode } from "../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
-import { createPublicKeySignature, PublicKeySignature } from "../../entities/sys/TypeRefs"
 import { byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/utils"
 import { InvalidDataError } from "../../common/error/RestError"
-import { asPublicKeySignatureType, PublicKeySignatureType } from "../../common/TutanotaConstants"
-import { checkKeyVersionConstraints } from "./KeyLoaderFacade"
+import { asPublicKeySignatureType, PublicKeySignatureType } from "@tutao/appEnv"
+import { cryptoUtils } from "@tutao/crypto"
 import {
 	AsymmetricKeyPair,
 	Ed25519PrivateKey,
@@ -20,7 +19,8 @@ import {
 	PublicKey,
 	rsaPublicKeyToBytes,
 } from "@tutao/crypto"
-import { CryptoWrapper } from "../crypto/CryptoWrapper"
+import { CryptoWrapper } from "@tutao/instancePipeline"
+import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 
@@ -103,7 +103,7 @@ export class PublicKeySignatureFacade {
 			throw new InvalidDataError("key pair versions greater than one byte are not yet supported")
 		}
 		const signatureType: PublicKeySignatureType = asPublicKeySignatureType(byteArrays[0][0].toString())
-		const encryptionKeyPairVersion = checkKeyVersionConstraints(byteArrays[1][0])
+		const encryptionKeyPairVersion = cryptoUtils.checkKeyVersionConstraints(byteArrays[1][0])
 		const pubEccKey = byteArrays[2]
 		const secondPubKeyComponent = byteArrays[3]
 		switch (signatureType) {
@@ -139,7 +139,7 @@ export class PublicKeySignatureFacade {
 	async signPublicKey(
 		versionedEncryptionKeyPair: Versioned<AsymmetricKeyPair>,
 		privateIdentityKey: Versioned<Ed25519PrivateKey>,
-	): Promise<PublicKeySignature> {
+	): Promise<sysTypeRefs.PublicKeySignature> {
 		const encryptionKeyPair = versionedEncryptionKeyPair.object
 		let publicEncryptionKey = this.extractAndValidatePublicKey(encryptionKeyPair)
 		const { encodedKeyPairForSigning, signatureType } = this.serializePublicKeyForSigning({
@@ -147,7 +147,7 @@ export class PublicKeySignatureFacade {
 			version: versionedEncryptionKeyPair.version,
 		})
 		const signatureBytes = await this.ed25519Facade.sign(privateIdentityKey.object, encodedKeyPairForSigning)
-		return createPublicKeySignature({
+		return sysTypeRefs.createPublicKeySignature({
 			signature: signatureBytes,
 			signingKeyVersion: privateIdentityKey.version.toString(),
 			signatureType,

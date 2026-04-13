@@ -4,12 +4,12 @@ import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
-import { ContactMergeAction, Keys, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
-import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
+import { ContactMergeAction, Keys, UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/appEnv"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -64,8 +64,8 @@ import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
 import { client } from "../../../common/misc/ClientDetector"
-import type { ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
+import { isApp } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -539,7 +539,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		]
 	}
 
-	updateContactListInvitationsSection(receivedInvitations: ReceivedGroupInvitation[]) {
+	updateContactListInvitationsSection(receivedInvitations: sysTypeRefs.ReceivedGroupInvitation[]) {
 		if (isEmpty(receivedInvitations)) {
 			this.contactListInvitationSection = null
 		} else {

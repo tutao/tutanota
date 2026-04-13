@@ -1,39 +1,39 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { MailSetKind } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { getElementId } from "@tutao/typeRefs"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { getElementId } from "@tutao/typeRefs"
+import { MailSetKind } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"
-	const inbox = createTestEntity(MailSetTypeRef, { _id: [listId, "inbox"], folderType: MailSetKind.INBOX })
-	const archive = createTestEntity(MailSetTypeRef, { _id: [listId, "archive"], folderType: MailSetKind.ARCHIVE })
-	const customFolder = createTestEntity(MailSetTypeRef, {
+	const inbox = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, { _id: [listId, "inbox"], folderType: MailSetKind.INBOX })
+	const archive = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, { _id: [listId, "archive"], folderType: MailSetKind.ARCHIVE })
+	const customFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: [listId, "custom"],
 		folderType: MailSetKind.CUSTOM,
 		name: "X",
 	})
-	const customSubfolder = createTestEntity(MailSetTypeRef, {
+	const customSubfolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: [listId, "customSub"],
 		folderType: MailSetKind.CUSTOM,
 		parentFolder: customFolder._id,
 		name: "AA",
 	})
-	const customSubSubfolder = createTestEntity(MailSetTypeRef, {
+	const customSubSubfolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: [listId, "customSubSub"],
 		folderType: MailSetKind.CUSTOM,
 		parentFolder: customSubfolder._id,
 		name: "B",
 	})
-	const customSubSubfolderAnother = createTestEntity(MailSetTypeRef, {
+	const customSubSubfolderAnother = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 		_id: [listId, "customSubSubAnother"],
 		folderType: MailSetKind.CUSTOM,
 		parentFolder: customSubfolder._id,
 		name: "A",
 	})
 
-	const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "inbox"], sets: [customSubfolder._id] })
+	const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, { _id: ["mailListId", "inbox"], sets: [customSubfolder._id] })
 
 	const allFolders = [archive, inbox, customFolder, customSubfolder, customSubSubfolder, customSubSubfolderAnother]
 
@@ -74,12 +74,12 @@ o.spec("FolderSystem", function () {
 	})
 
 	o("indented list sorts stepsiblings correctly", function () {
-		const customFolderAnother = createTestEntity(MailSetTypeRef, {
+		const customFolderAnother = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: [listId, "customAnother"],
 			folderType: MailSetKind.CUSTOM,
 			name: "Another top-level custom",
 		})
-		const customFolderAnotherSub = createTestEntity(MailSetTypeRef, {
+		const customFolderAnotherSub = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
 			_id: [listId, "customAnotherSub"],
 			folderType: MailSetKind.CUSTOM,
 			parentFolder: customFolderAnother._id,

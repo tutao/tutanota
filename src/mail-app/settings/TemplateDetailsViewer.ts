@@ -7,13 +7,12 @@ import { getLanguageCode } from "./TemplateEditorModel"
 import { showTemplateEditor } from "./TemplateEditor"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { lang, languageByCode, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { ActionBar } from "../../common/gui/base/ActionBar.js"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer.js"
-import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "../../common/settings/Interfaces.js"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
@@ -89,7 +88,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 		showTemplateEditor(template, groupRoot)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
 		return Promise.resolve()
 	}
 }

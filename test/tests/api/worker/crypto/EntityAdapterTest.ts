@@ -1,10 +1,8 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
-import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { EntityAdapter, InstancePipeline } from "@tutao/instancePipeline"
 import { assertThrows } from "@tutao/otest"
 import { TypeModelResolver } from "@tutao/typeRefs"
 
@@ -18,9 +16,9 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted instance - GroupInfo", async () => {
-		const groupModel = await typeModelResolver.resolveClientTypeReference(GroupInfoTypeRef)
+		const groupModel = await typeModelResolver.resolveClientTypeReference(sysTypeRefs.GroupInfoTypeRef)
 
-		const groupInfo = createTestEntity(GroupInfoTypeRef, {
+		const groupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
 			_id: undefined,
 			_ownerGroup: "ownerGroupId",
 			_permissions: "permissionListId",
@@ -30,7 +28,7 @@ o.spec("EntityAdapter", () => {
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 			group: "someGroup",
 		})
-		const groupInfoParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(GroupInfoTypeRef, groupInfo)
+		const groupInfoParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(sysTypeRefs.GroupInfoTypeRef, groupInfo)
 		const entityAdapter = await EntityAdapter.from(groupModel, groupInfoParsed, instancePipeline.modelMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
@@ -43,24 +41,24 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted instance - Mail", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
 
-		const mail = createTestEntity(MailTypeRef, {
+		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_id: undefined,
 			_ownerGroup: "ownerGroupId",
 			_permissions: "permissionListId",
 			_ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			_ownerKeyVersion: "99",
 			_kdfNonce: null,
-			bucketKey: createTestEntity(BucketKeyTypeRef, {
+			bucketKey: createTestEntity(sysTypeRefs.BucketKeyTypeRef, {
 				_id: "bucketKey",
 			}),
-			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
+			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const mailBucketKey = await instancePipeline.modelMapper.mapToInstance(BucketKeyTypeRef, mailParsed["1310"]![0])
+		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(tutanotaTypeRefs.MailTypeRef, mail)
+		const mailBucketKey = await instancePipeline.modelMapper.mapToInstance(sysTypeRefs.BucketKeyTypeRef, mailParsed["1310"]![0])
 		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
@@ -69,19 +67,22 @@ o.spec("EntityAdapter", () => {
 		o(entityAdapter._ownerKeyVersion).equals("99")
 		o(entityAdapter._kdfNonce).equals(mail._kdfNonce!)
 		o(entityAdapter._permissions).equals("permissionListId")
-		o(entityAdapter.bucketKey).deepEquals(mailBucketKey as BucketKey)
+		o(entityAdapter.bucketKey).deepEquals(mailBucketKey as sysTypeRefs.BucketKey)
 	})
 
 	o.test("can create local mapped/decrypted data transfer instance", async () => {
-		const importMailGetInModel = await typeModelResolver.resolveClientTypeReference(ImportMailGetInTypeRef)
+		const importMailGetInModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ImportMailGetInTypeRef)
 
-		const importMailGetIn = createTestEntity(ImportMailGetInTypeRef, {
+		const importMailGetIn = createTestEntity(tutanotaTypeRefs.ImportMailGetInTypeRef, {
 			ownerGroup: "ownerGroupId", // ownerGroupId is currently not used as MailGroup is hardcoded in CryptoFacade#resolveSessionKey
 			targetMailFolder: ["folderList", "folderId"],
 			ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			ownerKeyVersion: "99",
 		})
-		const importMailGetInParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(ImportMailGetInTypeRef, importMailGetIn)
+		const importMailGetInParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(
+			tutanotaTypeRefs.ImportMailGetInTypeRef,
+			importMailGetIn,
+		)
 		const entityAdapter = await EntityAdapter.from(importMailGetInModel, importMailGetInParsed, instancePipeline.modelMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
@@ -90,15 +91,15 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _ownerEncSessionKey", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
 
-		const mail = createTestEntity(MailTypeRef, {
+		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_permissions: "permissionListId",
-			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
+			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
+		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(tutanotaTypeRefs.MailTypeRef, mail)
 		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		const ownerEncSk: Uint8Array = new Uint8Array([1, 2, 3])
@@ -135,14 +136,14 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _ownerGroup", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
 
-		const mail = createTestEntity(MailTypeRef, {
+		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_permissions: "permissionListId",
-			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
+			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
+		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(tutanotaTypeRefs.MailTypeRef, mail)
 		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		const ownerGroupId = "ownerGroupId"

@@ -2,14 +2,13 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getElementId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
 import { assertNotNull, lazyMemoized } from "@tutao/utils"
-import { getElementId } from "@tutao/typeRefs"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 
 /** ViewModel for the overall contact view. */
@@ -79,16 +78,16 @@ export class ContactViewModel {
 		}
 	}
 
-	private readonly entityListener: EntityEventsListener = {
+	private readonly entityListener: entityUpdateUtils.EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
 				const { instanceListId, instanceId, operation } = update
-				if (isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && instanceListId === this.contactListId) {
+				if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, update) && instanceListId === this.contactListId) {
 					await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 				}
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	async loadAndSelect(contactId: Id) {

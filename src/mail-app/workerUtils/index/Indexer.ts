@@ -1,8 +1,7 @@
-import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
-import type { User } from "../../../common/api/entities/sys/TypeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 
 export interface IndexerInitParams {
-	user: User
+	user: sysTypeRefs.User
 	retryOnError?: boolean
 }
 
@@ -17,7 +16,7 @@ export interface Indexer {
 
 	disableMailIndexing(): Promise<void>
 
-	processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void>
+	processEntityEvents(updates: readonly entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id): Promise<void>
 
 	/**
 	 * Extends the mail index to the given timestamp.

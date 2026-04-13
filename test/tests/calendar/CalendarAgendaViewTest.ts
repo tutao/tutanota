@@ -30,20 +30,20 @@ o.spec("CalendarAgendaViewTest", function () {
 		let nextEventEnd = new Date(allDayStartDate)
 		nextEventEnd.setUTCHours(12, 0, 0, 0)
 
-		const events: CalendarEvent[] = [
-			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
+		const events: tutanotaTypeRefs.CalendarEvent[] = [
+			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: allDayStartDate,
 				endTime: allDayEndDate,
 			}),
-			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
+			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: actualEventStart,
 				endTime: actualEventEnd,
 			}),
-			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
+			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: sameTimeEventStart,
 				endTime: sameTimeEventEnd,
 			}),
-			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
+			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
 				startTime: nextEventStart,
 				endTime: nextEventEnd,
 			}),

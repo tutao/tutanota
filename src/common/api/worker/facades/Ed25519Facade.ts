@@ -1,4 +1,4 @@
-import { assertWorkerOrNode } from "../../common/Env.js"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import {
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,

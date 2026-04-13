@@ -1,18 +1,15 @@
-import { elementIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { assertWorkerOrNode } from "../../../common/Env"
+import { elementIdPart, storageTypeRefs as storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { convertToDataFile, DataFile } from "../../../common/DataFile.js"
-import { ArchiveDataType } from "../../../common/TutanotaConstants.js"
+import { ArchiveDataType } from "@tutao/appEnv"
 import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import { NotFoundError } from "../../../common/error/RestError"
-import { elementIdPart } from "@tutao/typeRefs"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade"
-import { BlobServerUrl } from "../../../entities/storage/TypeRefs"
-import { Group } from "../../../entities/sys/TypeRefs"
 import { restSuspension } from "@tutao/restClient"
 
 assertWorkerOrNode()
@@ -39,7 +36,7 @@ export class MailExportFacade {
 	/**
 	 * Returns a list of servers that can be used to request data from.
 	 */
-	async getExportServers(group: Group): Promise<BlobServerUrl[]> {
+	async getExportServers(group: sysTypeRefs.Group): Promise<storageTypeRefs.BlobServerUrl[]> {
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(ArchiveDataType.Attachments, group._id)
 		return blobServerAccessInfo.servers
 	}

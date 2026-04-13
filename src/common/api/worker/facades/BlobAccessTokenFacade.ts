@@ -1,15 +1,13 @@
-import { ArchiveDataType, BlobAccessTokenKind } from "../../common/TutanotaConstants"
-import { assertWorkerOrNode } from "../../common/Env"
-import { BlobAccessTokenService } from "../../entities/storage/Services"
+import { ArchiveDataType, BlobAccessTokenKind } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/appEnv"
 import { IServiceExecutor } from "../../common/ServiceRequest"
-import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
 import { DateProvider } from "../../common/DateProvider.js"
 import { AuthDataProvider } from "./UserFacade.js"
 import { deduplicate, first, isEmpty, lazyMemoized, TypeRef } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { BlobLoadOptions } from "./lazy/BlobFacade.js"
 import { BlobReferencingInstance } from "../../common/utils/BlobUtils.js"
-import { TypeModelResolver } from "@tutao/typeRefs"
+import { storageServices, TypeModelResolver, storageTypeRefs } from "@tutao/typeRefs"
 
 assertWorkerOrNode()
 
@@ -41,16 +39,16 @@ export class BlobAccessTokenFacade {
 	 * @param archiveDataType The type of data that should be stored.
 	 * @param ownerGroupId The ownerGroup were the data belongs to (e.g. group of type mail)
 	 */
-	async requestWriteToken(archiveDataType: ArchiveDataType, ownerGroupId: Id): Promise<BlobServerAccessInfo> {
+	async requestWriteToken(archiveDataType: ArchiveDataType, ownerGroupId: Id): Promise<storageTypeRefs.BlobServerAccessInfo> {
 		const requestNewToken = async () => {
-			const tokenRequest = createBlobAccessTokenPostIn({
+			const tokenRequest = storageTypeRefs.createBlobAccessTokenPostIn({
 				archiveDataType,
-				write: createBlobWriteData({
+				write: storageTypeRefs.createBlobWriteData({
 					archiveOwnerGroup: ownerGroupId,
 				}),
 				read: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			const { blobAccessInfo } = await this.serviceExecutor.post(storageServices.BlobAccessTokenService, tokenRequest)
 			return blobAccessInfo
 		}
 		const key = this.makeWriteCacheKey(ownerGroupId, archiveDataType)
@@ -84,7 +82,7 @@ export class BlobAccessTokenFacade {
 		archiveDataType: ArchiveDataType,
 		referencingInstances: readonly BlobReferencingInstance[],
 		blobLoadOptions: BlobLoadOptions,
-	): Promise<BlobServerAccessInfo> {
+	): Promise<storageTypeRefs.BlobServerAccessInfo> {
 		if (isEmpty(referencingInstances)) {
 			throw new ProgrammingError("Must pass at least one referencing instance")
 		}
@@ -96,17 +94,17 @@ export class BlobAccessTokenFacade {
 		const archiveId = this.getArchiveId(referencingInstances)
 
 		const requestNewToken = lazyMemoized(async () => {
-			const instanceIds = referencingInstances.map(({ elementId }) => createInstanceId({ instanceId: elementId }))
-			const tokenRequest = createBlobAccessTokenPostIn({
+			const instanceIds = referencingInstances.map(({ elementId }) => storageTypeRefs.createInstanceId({ instanceId: elementId }))
+			const tokenRequest = storageTypeRefs.createBlobAccessTokenPostIn({
 				archiveDataType,
-				read: createBlobReadData({
+				read: storageTypeRefs.createBlobReadData({
 					archiveId,
 					instanceListId,
 					instanceIds,
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)
+			const { blobAccessInfo } = await this.serviceExecutor.post(storageServices.BlobAccessTokenService, tokenRequest, blobLoadOptions)
 			return blobAccessInfo
 		})
 
@@ -128,24 +126,24 @@ export class BlobAccessTokenFacade {
 		archiveDataType: ArchiveDataType,
 		referencingInstance: BlobReferencingInstance,
 		blobLoadOptions: BlobLoadOptions,
-	): Promise<Map<Id, BlobServerAccessInfo>> {
+	): Promise<Map<Id, storageTypeRefs.BlobServerAccessInfo>> {
 		const archiveIds = this.getArchiveIds([referencingInstance])
-		const archiveIdsToAccessInfo = new Map<Id, BlobServerAccessInfo>()
+		const archiveIdsToAccessInfo = new Map<Id, storageTypeRefs.BlobServerAccessInfo>()
 		for (const archiveId of archiveIds) {
 			const requestNewToken = async () => {
 				const instanceListId = referencingInstance.listId
 				const instanceId = referencingInstance.elementId
-				const instanceIds = [createInstanceId({ instanceId })]
-				const tokenRequest = createBlobAccessTokenPostIn({
+				const instanceIds = [storageTypeRefs.createInstanceId({ instanceId })]
+				const tokenRequest = storageTypeRefs.createBlobAccessTokenPostIn({
 					archiveDataType,
-					read: createBlobReadData({
+					read: storageTypeRefs.createBlobReadData({
 						archiveId: archiveId,
 						instanceListId,
 						instanceIds,
 					}),
 					write: null,
 				})
-				return (await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)).blobAccessInfo
+				return (await this.serviceExecutor.post(storageServices.BlobAccessTokenService, tokenRequest, blobLoadOptions)).blobAccessInfo
 			}
 			const blobServerAccessInfo = await this.readCache.getToken(archiveId, [referencingInstance.elementId], requestNewToken)
 			archiveIdsToAccessInfo.set(archiveId, blobServerAccessInfo)
@@ -177,18 +175,18 @@ export class BlobAccessTokenFacade {
 	 * Requests a token that grants access to all blobs stored in the given archive. The user must own the archive (member of group)
 	 * @param archiveId ID for the archive to read blobs from
 	 */
-	async requestReadTokenArchive(archiveId: Id): Promise<BlobServerAccessInfo> {
+	async requestReadTokenArchive(archiveId: Id): Promise<storageTypeRefs.BlobServerAccessInfo> {
 		const requestNewToken = async () => {
-			const tokenRequest = createBlobAccessTokenPostIn({
+			const tokenRequest = storageTypeRefs.createBlobAccessTokenPostIn({
 				archiveDataType: null,
-				read: createBlobReadData({
+				read: storageTypeRefs.createBlobReadData({
 					archiveId,
 					instanceIds: [],
 					instanceListId: null,
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			const { blobAccessInfo } = await this.serviceExecutor.post(storageServices.BlobAccessTokenService, tokenRequest)
 			return blobAccessInfo
 		}
 		return this.readCache.getToken(archiveId, [], requestNewToken)
@@ -232,7 +230,11 @@ export class BlobAccessTokenFacade {
 	 * @param additionalRequestParams
 	 * @param typeRef the typeRef that shall be used to determine the correct model version
 	 */
-	public async createQueryParams(blobServerAccessInfo: BlobServerAccessInfo, additionalRequestParams: Dict, typeRef: TypeRef<any>): Promise<Dict> {
+	public async createQueryParams(
+		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
+		additionalRequestParams: Dict,
+		typeRef: TypeRef<any>,
+	): Promise<Dict> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		return Object.assign(
 			additionalRequestParams,
@@ -250,13 +252,13 @@ export class BlobAccessTokenFacade {
  * @param blobServerAccessInfo
  * @param dateProvider
  */
-function canBeUsedForAnotherRequest(blobServerAccessInfo: BlobServerAccessInfo, dateProvider: DateProvider): boolean {
+function canBeUsedForAnotherRequest(blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo, dateProvider: DateProvider): boolean {
 	return blobServerAccessInfo.expires.getTime() > dateProvider.now()
 }
 
 class BlobAccessTokenCache {
-	private readonly instanceMap: Map<Id, BlobServerAccessInfo> = new Map()
-	private readonly archiveMap: Map<Id, BlobServerAccessInfo> = new Map()
+	private readonly instanceMap: Map<Id, storageTypeRefs.BlobServerAccessInfo> = new Map()
+	private readonly archiveMap: Map<Id, storageTypeRefs.BlobServerAccessInfo> = new Map()
 
 	constructor(private readonly dateProvider: DateProvider) {}
 
@@ -267,8 +269,8 @@ class BlobAccessTokenCache {
 	public async getToken(
 		archiveOrGroupKey: Id | null,
 		instanceIds: readonly Id[],
-		loader: () => Promise<BlobServerAccessInfo>,
-	): Promise<BlobServerAccessInfo> {
+		loader: () => Promise<storageTypeRefs.BlobServerAccessInfo>,
+	): Promise<storageTypeRefs.BlobServerAccessInfo> {
 		const archiveToken = archiveOrGroupKey ? this.archiveMap.get(archiveOrGroupKey) : null
 		if (archiveToken != null && canBeUsedForAnotherRequest(archiveToken, this.dateProvider)) {
 			return archiveToken

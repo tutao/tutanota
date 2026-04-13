@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, isOfflineStorageAvailable, isTest } from "../common/Env"
+import { assertWorkerOrNode, GroupType, isBrowser, Mode } from "@tutao/appEnv"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -10,34 +10,30 @@ import {
 	TooManyRequestsError,
 } from "../common/error/RestError"
 import {
-	createWebsocketLeaderStatus,
-	EntityUpdate,
-	OperationStatusUpdate,
-	OperationStatusUpdateTypeRef,
-	WebsocketCounterData,
-	WebsocketCounterDataTypeRef,
-	WebsocketEntityDataTypeRef,
-	WebsocketLeaderStatusTypeRef,
-} from "../entities/sys/TypeRefs.js"
+	AttributeModel,
+	Entity,
+	entityUpdateUtils,
+	hasError,
+	ServerModelParsedInstance,
+	ServerModelUntypedInstance,
+	sysModelInfo,
+	sysTypeRefs,
+	timestampToGeneratedId,
+	tutanotaModelInfo,
+	tutanotaTypeRefs,
+	TypeModelResolver,
+	GENERATED_MIN_ID
+} from "@tutao/typeRefs"
 import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
-import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
+import { CloseEventBusOption, SECOND_MS } from "@tutao/appEnv"
 import { CancelledError } from "../common/error/CancelledError"
-import { timestampToGeneratedId, GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
-import sysModelInfo from "../entities/sys/ModelInfo.js"
-import { tutanotaModelInfo } from "@tutao/typeRefs"
-import { TypeModelResolver } from "@tutao/typeRefs"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { UserFacade } from "./facades/UserFacade"
-import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/typeRefs"
-import { InstancePipeline } from "@tutao/instancePipeline"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
+import { EntityAdapter, InstancePipeline } from "@tutao/instancePipeline"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import { EntityAdapter } from "@tutao/instancePipeline"
-import { AttributeModel, hasError } from "@tutao/typeRefs"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
@@ -90,10 +86,10 @@ export const enum ConnectMode {
 }
 
 export interface EventBusListener {
-	onCounterChanged(counter: WebsocketCounterData): unknown
+	onCounterChanged(counter: sysTypeRefs.WebsocketCounterData): unknown
 
 	onEntityEventsReceived(
-		events: readonly EntityUpdateData[],
+		events: readonly entityUpdateUtils.EntityUpdateData[],
 		batchId: Id,
 		groupId: Id,
 		progressMonitorId: Nullable<ProgressMonitorId>,
@@ -109,7 +105,7 @@ export interface EventBusListener {
 
 	onSyncDone(): unknown
 
-	onOperationStatusUpdate(update: OperationStatusUpdate): unknown
+	onOperationStatusUpdate(update: sysTypeRefs.OperationStatusUpdate): unknown
 }
 
 const PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS = 1000
@@ -310,7 +306,7 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
+				const entityUpdateData = await this.decodeEntityEventValue(sysTypeRefs.WebsocketEntityDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
 
 				// We only process entity updates for apps and types the clients know about.
@@ -321,7 +317,7 @@ export class EventBusClient {
 
 				const updates = await promiseMap(entityUpdatesForClientApps, async (event) => {
 					let { parsedInstance, parsedBlobInstance } = await this.getParsedInstanceFromEntityEvent(event)
-					return entityUpdateToUpdateData(event, parsedInstance, parsedBlobInstance)
+					return entityUpdateUtils.entityUpdateToUpdateData(event, parsedInstance, parsedBlobInstance)
 				})
 				const groupId = entityUpdateData.eventBatchOwner
 				const batchId = entityUpdateData.eventBatchId
@@ -335,7 +331,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
-				const counterData = await this.decodeEntityEventValue(WebsocketCounterDataTypeRef, JSON.parse(value))
+				const counterData = await this.decodeEntityEventValue(sysTypeRefs.WebsocketCounterDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(counterData.applicationTypesHash)
 				this.listener.onCounterChanged(counterData)
 				break
@@ -349,7 +345,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.LeaderStatus: {
-				const data = await this.decodeEntityEventValue(WebsocketLeaderStatusTypeRef, JSON.parse(value))
+				const data = await this.decodeEntityEventValue(sysTypeRefs.WebsocketLeaderStatusTypeRef, JSON.parse(value))
 				if (data.applicationTypesHash) {
 					this.typeModelResolver.setServerApplicationTypesModelHash(data.applicationTypesHash)
 				}
@@ -359,7 +355,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.OperationStatusUpdate: {
-				const data = await this.decodeEntityEventValue(OperationStatusUpdateTypeRef, JSON.parse(value))
+				const data = await this.decodeEntityEventValue(sysTypeRefs.OperationStatusUpdateTypeRef, JSON.parse(value))
 				this.listener.onOperationStatusUpdate(data)
 				break
 			}
@@ -397,7 +393,7 @@ export class EventBusClient {
 	}
 
 	private async getParsedInstanceFromEntityEvent(
-		event: EntityUpdate,
+		event: sysTypeRefs.EntityUpdate,
 	): Promise<{ parsedInstance: Nullable<ServerModelParsedInstance>; parsedBlobInstance: Nullable<ServerModelParsedInstance> }> {
 		const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId))
 		if (event.instance != null) {
@@ -461,7 +457,7 @@ export class EventBusClient {
 		console.log("ws close event:", event, "state:", this.state)
 
 		this.userFacade.setLeaderStatus(
-			createWebsocketLeaderStatus({
+			sysTypeRefs.createWebsocketLeaderStatus({
 				leaderStatus: false,
 				// a valid applicationVersionSum and applicationTypesHash can only be provided by the server
 				applicationVersionSum: null,
@@ -650,7 +646,7 @@ export class EventBusClient {
 		}
 	}
 
-	private async processEventBatch(entityUpdates: EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
+	private async processEventBatch(entityUpdates: entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		try {
 			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(entityUpdates, batchId, groupId)
@@ -687,7 +683,7 @@ export class EventBusClient {
 
 	private eventGroups(): Id[] {
 		const user = this.userFacade.getLoggedInUser()
-		if (isOfflineStorageAvailable() || isTest()) {
+		if ((!isBrowser() && !(env.mode === Mode.Admin)) || env.mode === Mode.Test) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)

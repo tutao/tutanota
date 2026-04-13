@@ -1,22 +1,18 @@
-import type { PushIdentifier } from "../../api/entities/sys/TypeRefs.js"
-import { createPushIdentifier, PushIdentifierTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { getElementId, sysModelInfo, sysTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull } from "@tutao/utils"
-import { PushServiceType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
-import { isAndroidApp, isApp, isDesktop, isIOSApp } from "../../api/common/Env"
 import { LoginController } from "../../api/main/LoginController"
 import { client } from "../../misc/ClientDetector"
 import { DeviceConfig } from "../../misc/DeviceConfig"
-import { getElementId } from "@tutao/typeRefs"
 import { locator } from "../../api/main/CommonLocator"
 import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError"
 import { NativePushFacade } from "../common/generatedipc/NativePushFacade.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import modelInfo from "../../api/entities/sys/ModelInfo.js"
 import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotificationMode.js"
 import { AppType } from "../../misc/ClientConstants.js"
+import { isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/appEnv"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
@@ -26,7 +22,7 @@ const MOBILE_SYS_MODEL_VERSION = 126
 function effectiveModelVersion(): number {
 	// on desktop we use generated classes
 	// on mobile we use hand-written classes
-	return isDesktop() ? modelInfo.version : MOBILE_SYS_MODEL_VERSION
+	return isDesktop() ? sysModelInfo.version : MOBILE_SYS_MODEL_VERSION
 }
 
 interface CurrentPushIdentifier {
@@ -122,22 +118,22 @@ export class NativePushServiceApp {
 		return this.nativePushFacade.getPushIdentifier()
 	}
 
-	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
+	private async storePushIdentifierLocally(pushIdentifier: sysTypeRefs.PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
 		const origin = assertNotNull(env.staticUrl)
 		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
 		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, origin, getElementId(pushIdentifier), sk)
 	}
 
-	private async loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {
+	private async loadPushIdentifier(identifier: string): Promise<sysTypeRefs.PushIdentifier | null> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList)
-		const identifiers = await this.entityClient.loadAll(PushIdentifierTypeRef, list.list)
+		const identifiers = await this.entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, list.list)
 		return identifiers.find((i) => i.identifier === identifier) ?? null
 	}
 
-	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
+	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<sysTypeRefs.PushIdentifier> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
-		const pushIdentifier = createPushIdentifier({
+		const pushIdentifier = sysTypeRefs.createPushIdentifier({
 			_area: "0",
 			_owner: this.logins.getUserController().userGroupInfo.group,
 			_ownerGroup: this.logins.getUserController().userGroupInfo.group,
@@ -151,7 +147,7 @@ export class NativePushServiceApp {
 			app: this.app,
 		})
 		const id = assertNotNull(await this.entityClient.setup(list, pushIdentifier))
-		return this.entityClient.load(PushIdentifierTypeRef, [list, id])
+		return this.entityClient.load(sysTypeRefs.PushIdentifierTypeRef, [list, id])
 	}
 
 	async closePushNotification(addresses: string[]) {
@@ -174,7 +170,7 @@ export class NativePushServiceApp {
 		return this.nativePushFacade.initPushNotifications()
 	}
 
-	private async scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
+	private async scheduleAlarmsIfNeeded(pushIdentifier: sysTypeRefs.PushIdentifier): Promise<void> {
 		if (this._currentIdentifier?.disabled) {
 			return
 		}

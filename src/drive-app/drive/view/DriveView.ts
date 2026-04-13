@@ -19,7 +19,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { HighestTierPlans, Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "../../../common/api/common/TutanotaConstants"
+import { Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "@tutao/appEnv"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
@@ -223,7 +223,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				exec: () => {
 					const selectedItems = this.driveViewModel.listState().selectedItems
 
-					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (items: readonly FolderItemId[], destination: DriveFolder) =>
+					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (items: readonly FolderItemId[], destination: driveTypeRefs.DriveFolder) =>
 						this.driveViewModel.moveItems(items, destination._id),
 					)
 				},

@@ -6,11 +6,11 @@ import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector.js"
-import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { Keys } from "../api/common/TutanotaConstants"
+import { Keys } from "@tutao/appEnv"
 import { useKeyHandler } from "../misc/KeyManager.js"
+import { isApp, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -121,7 +121,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 										? lang.makeTranslation(
 												"onlyPrivateComputer_msg",
 												lang.get("onlyPrivateComputer_msg") +
-													(isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : ""),
+													(!isBrowser() && !(env.mode === Mode.Admin) ? "\n" + lang.get("dataWillBeStored_msg") : ""),
 											)
 										: "functionNotSupported_msg",
 									disabled: !canSaveCredentials,

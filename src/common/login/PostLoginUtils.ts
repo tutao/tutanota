@@ -1,9 +1,9 @@
-import { isIOSApp } from "../api/common/Env.js"
-import { Const } from "../api/common/TutanotaConstants.js"
+import { Const } from "@tutao/appEnv"
 import { UserController } from "../api/main/UserController.js"
 import { assertNotNull } from "@tutao/utils"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
+import { isIOSApp } from "@tutao/appEnv"
 
 // the customer may have been reminded when they were a free account, so we can't use lastUpgradeReminder being null as a marker.
 // we use a date that's shortly before we started issuing reminders for legacy accounts and after we started only allowing new plans as upgrades.

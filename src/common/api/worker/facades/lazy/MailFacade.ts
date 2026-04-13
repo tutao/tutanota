@@ -1,114 +1,53 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
-	ApplyLabelService,
-	DraftService,
-	ExternalUserService,
-	ListUnsubscribeService,
-	MailFolderService,
-	MailService,
-	ManageLabelService,
-	MoveMailService,
-	PopulateClientSpamTrainingDataService,
-	ProcessInboxService,
-	ReportMailService,
-	ResolveConversationsService,
-	SendDraftService,
-	SimpleMoveMailService,
-	UnreadMailStateService,
-} from "../../../entities/tutanota/Services.js"
+	containsId,
+	elementIdPart,
+	Entity,
+	entityUpdateUtils,
+	getElementId,
+	getLetId,
+	getListId,
+	isSameId,
+	listIdPart,
+	monitorServices,
+	monitorTypeRefs,
+	SimpleMoveMailTarget,
+	StrippedEntity,
+	sysTypeRefs,
+	tutanotaServices,
+	tutanotaTypeRefs,
+} from "@tutao/typeRefs"
 import {
 	ArchiveDataType,
-	ConversationType,
 	CounterType,
 	CryptoProtocolVersion,
-	DEFAULT_KDF_TYPE,
 	EncryptionAuthStatus,
-	GroupType,
 	KdfType,
 	MailAuthenticationStatus,
 	MailMethod,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_OF_CONVERSATIONS,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
-	OperationType,
 	PhishingMarkerStatus,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
-	SimpleMoveMailTarget,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-} from "../../../common/TutanotaConstants.js"
+} from "@tutao/appEnv"
 import {
-	Contact,
-	createApplyLabelServicePostIn,
-	createAttachmentKeyData,
-	createCreateExternalUserGroupData,
-	createCreateMailFolderData,
-	createDeleteMailData,
-	createDeleteMailFolderData,
-	createDraftAttachment,
-	createDraftCreateData,
-	createDraftData,
-	createDraftRecipient,
-	createDraftUpdateData,
-	createEncryptedMailAddress,
-	createExternalUserData,
-	createListUnsubscribeData,
-	createManageLabelServiceDeleteIn,
-	createManageLabelServiceLabelData,
-	createManageLabelServicePostIn,
-	createMoveMailData,
-	createNewDraftAttachment,
-	createPopulateClientSpamTrainingDataPostIn,
-	createPopulateClientSpamTrainingDatum,
-	createProcessInboxDatum,
-	createProcessInboxPostIn,
-	createReportMailPostData,
-	createResolveConversationsServiceGetIn,
-	createSecureExternalRecipientKeyData,
-	createSendDraftData,
-	createSendDraftDeleteIn,
-	createSendDraftParameters,
-	createSimpleMoveMailPostIn,
-	createUnreadMailStatePostIn,
-	createUpdateMailFolderData,
-	DraftAttachment,
-	DraftRecipient,
-	EncryptedMailAddress,
-	File as TutanotaFile,
-	FileTypeRef,
-	InternalRecipientKeyData,
-	InternalRecipientKeyDataTypeRef,
-	Mail,
-	MailDetails,
-	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
-	MailSet,
-	MailTypeRef,
-	MovedMails,
-	PopulateClientSpamTrainingDatum,
-	ProcessInboxDatum,
-	ReportedMailFieldMarker,
-	SendDraftParameters,
-	SendDraftReturn,
-	SymEncInternalRecipientKeyData,
-	SymEncInternalRecipientKeyDataTypeRef,
-	TutanotaPropertiesTypeRef,
-} from "../../../entities/tutanota/TypeRefs.js"
+	Aes128Key,
+	aes256RandomKey,
+	aesEncrypt,
+	AesKey,
+	createAuthVerifier,
+	cryptoUtils,
+	decryptKey,
+	encryptKey,
+	generateRandomSalt,
+	keyToUint8Array,
+	murmurHash,
+	random,
+	sha256Hash,
+} from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { NotFoundError } from "../../../common/error/RestError.js"
-import {
-	BlobReferenceTokenWrapper,
-	createGeneratedIdWrapper,
-	ExternalUserReference,
-	ExternalUserReferenceTypeRef,
-	GroupInfoTypeRef,
-	GroupRootTypeRef,
-	GroupTypeRef,
-	type InstanceSessionKey,
-	User,
-	UserTypeRef,
-} from "../../../entities/sys/TypeRefs.js"
 import {
 	addressDomain,
 	assertNotNull,
@@ -127,55 +66,37 @@ import {
 	promiseFilter,
 	promiseMap,
 	splitInChunks,
+	stringToCustomId,
 } from "@tutao/utils"
 import { BlobFacade } from "./BlobFacade.js"
-import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
+import {
+	assertWorkerOrNode,
+	ConversationType,
+	DEFAULT_KDF_TYPE,
+	GroupType,
+	isApp,
+	isDesktop,
+	MAX_NBR_OF_CONVERSATIONS,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	OperationType,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+} from "@tutao/appEnv"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
-import {
-	containsId,
-	elementIdPart,
-	getElementId,
-	getLetId,
-	getListId,
-	isSameId,
-	listIdPart,
-	stringToCustomId,
-	StrippedEntity,
-} from "../../../common/utils/EntityUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
-import {
-	Aes128Key,
-	aes256RandomKey,
-	aesEncrypt,
-	AesKey,
-	createAuthVerifier,
-	decryptKey,
-	encryptKey,
-	generateRandomSalt,
-	keyToUint8Array,
-	murmurHash,
-	random,
-	sha256Hash,
-} from "@tutao/crypto"
+import { CryptoWrapper, UNCOMPRESSED_MAX_SIZE, VersionedKey } from "@tutao/instancePipeline"
 import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
-import { CounterService } from "../../../entities/monitor/Services.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { createWriteCounterData } from "../../../entities/monitor/TypeRefs.js"
 import { UserFacade } from "../UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
-import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
-import { CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
-import { Entity } from "@tutao/typeRefs"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
@@ -183,7 +104,7 @@ import { UnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-
 import { createSpamMailDatum, SpamMailProcessor } from "../../../common/utils/spamClassificationUtils/SpamMailProcessor"
 
 assertWorkerOrNode()
-type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
+type Attachments = ReadonlyArray<tutanotaTypeRefs.File | DataFile | FileReference>
 
 interface CreateDraftParams {
 	subject: string
@@ -211,7 +132,7 @@ interface UpdateDraftParams {
 	bccRecipients: RecipientList
 	attachments: Attachments | null
 	confidential: boolean
-	draft: Mail
+	draft: tutanotaTypeRefs.Mail
 }
 
 export class MailFacade {
@@ -238,14 +159,14 @@ export class MailFacade {
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-		const newFolder = createCreateMailFolderData({
+		const newFolder = tutanotaTypeRefs.createCreateMailFolderData({
 			folderName: name,
 			parentFolder: parent,
 			ownerEncSessionKey: ownerEncSessionKey.key,
 			ownerGroup: ownerGroupId,
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
-		await this.serviceExecutor.post(MailFolderService, newFolder, { sessionKey: sk })
+		await this.serviceExecutor.post(tutanotaServices.MailFolderService, newFolder, { sessionKey: sk })
 	}
 
 	/**
@@ -253,14 +174,14 @@ export class MailFacade {
 	 * @param folder to be updated
 	 * @param newName - if this is the same as the folder's current name, nothing is done
 	 */
-	async updateMailFolderName(folder: MailSet, newName: string): Promise<void> {
+	async updateMailFolderName(folder: tutanotaTypeRefs.MailSet, newName: string): Promise<void> {
 		if (newName !== folder.name) {
 			folder.name = newName
 			await this.entityClient.update(folder)
 		}
 	}
 
-	async updateListUnsubscribe(mail: Mail): Promise<void> {
+	async updateListUnsubscribe(mail: tutanotaTypeRefs.Mail): Promise<void> {
 		if (mail.listUnsubscribe !== null) {
 			mail.listUnsubscribe = false
 			await this.entityClient.update(mail)
@@ -272,18 +193,18 @@ export class MailFacade {
 	 * @param folder to be updated
 	 * @param newParent - if this is the same as the folder's current parent, nothing is done
 	 */
-	async updateMailFolderParent(folder: MailSet, newParent: IdTuple | null): Promise<void> {
+	async updateMailFolderParent(folder: tutanotaTypeRefs.MailSet, newParent: IdTuple | null): Promise<void> {
 		const isOwnParent = isSameId(folder._id, newParent)
 		const isDifferentParent = folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)
 		const isNewParent = folder.parentFolder == null && newParent != null
 		const isUnsettingParent = folder.parentFolder != null && newParent == null
 
 		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent)) {
-			const updateFolder = createUpdateMailFolderData({
+			const updateFolder = tutanotaTypeRefs.createUpdateMailFolderData({
 				folder: folder._id,
 				newParent: newParent,
 			})
-			await this.serviceExecutor.put(MailFolderService, updateFolder)
+			await this.serviceExecutor.put(tutanotaServices.MailFolderService, updateFolder)
 		}
 	}
 
@@ -308,7 +229,7 @@ export class MailFacade {
 		confidential,
 		replyTos,
 		method,
-	}: CreateDraftParams): Promise<Mail> {
+	}: CreateDraftParams): Promise<tutanotaTypeRefs.Mail> {
 		if (byteLength(bodyText) > UNCOMPRESSED_MAX_SIZE) {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(bodyText)})`)
 		}
@@ -318,11 +239,11 @@ export class MailFacade {
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-		const service = createDraftCreateData({
+		const service = tutanotaTypeRefs.createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
 			ownerEncSessionKey: ownerEncSessionKey.key,
-			draftData: createDraftData({
+			draftData: tutanotaTypeRefs.createDraftData({
 				subject,
 				compressedBodyText: bodyText,
 				senderMailAddress,
@@ -339,8 +260,8 @@ export class MailFacade {
 			}),
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
-		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { sessionKey: sk })
-		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
+		const createDraftReturn = await this.serviceExecutor.post(tutanotaServices.DraftService, service, { sessionKey: sk })
+		return this.entityClient.load(tutanotaTypeRefs.MailTypeRef, createDraftReturn.draft)
 	}
 
 	/**
@@ -368,7 +289,7 @@ export class MailFacade {
 		attachments,
 		confidential,
 		draft,
-	}: UpdateDraftParams): Promise<Mail> {
+	}: UpdateDraftParams): Promise<tutanotaTypeRefs.Mail> {
 		if (byteLength(body) > UNCOMPRESSED_MAX_SIZE) {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(body)})`)
 		}
@@ -376,7 +297,7 @@ export class MailFacade {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
 		// we assume that there is an _ownerEncSessionKey anyway, so we can default to 0
-		const mailGroupKeyVersion = parseKeyVersion(draft._ownerKeyVersion ?? "0")
+		const mailGroupKeyVersion = cryptoUtils.parseKeyVersion(draft._ownerKeyVersion ?? "0")
 		const mailGroupKey = {
 			version: mailGroupKeyVersion,
 			object: await this.keyLoaderFacade.loadSymGroupKey(senderMailGroupId, mailGroupKeyVersion),
@@ -385,9 +306,9 @@ export class MailFacade {
 		const replyTos = await this.getReplyTos(draft)
 
 		const sk = decryptKey(mailGroupKey.object, assertNotNull(draft._ownerEncSessionKey))
-		const service = createDraftUpdateData({
+		const service = tutanotaTypeRefs.createDraftUpdateData({
 			draft: draft._id,
-			draftData: createDraftData({
+			draftData: tutanotaTypeRefs.createDraftData({
 				subject: subject,
 				compressedBodyText: body,
 				senderMailAddress: senderMailAddress,
@@ -408,27 +329,27 @@ export class MailFacade {
 		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
-		await this.serviceExecutor.put(DraftService, service, { sessionKey: sk })
+		await this.serviceExecutor.put(tutanotaServices.DraftService, service, { sessionKey: sk })
 		return deferredUpdatePromiseWrapper.promise
 	}
 
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<MovedMails[]> {
+	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<tutanotaTypeRefs.MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
 
 		// group by listId (for locking it on the server) because mails in the same Set can still be from different mail bags.
 		const mailsPerList = groupBy(mails, (mailId) => listIdPart(mailId))
-		const movedMails: MovedMails[] = []
+		const movedMails: tutanotaTypeRefs.MovedMails[] = []
 		for (const [_, mailsInList] of mailsPerList) {
 			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsInList)
 			for (const mails of mailChunks) {
 				const moveMailPostOut = await this.serviceExecutor.post(
-					MoveMailService,
-					createMoveMailData({
+					tutanotaServices.MoveMailService,
+					tutanotaTypeRefs.createMoveMailData({
 						mails,
 						excludeMailSet,
 						targetFolder,
@@ -441,17 +362,17 @@ export class MailFacade {
 		return movedMails
 	}
 
-	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<MovedMails[]> {
+	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<tutanotaTypeRefs.MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
 
 		const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
-		const movedMails: MovedMails[] = []
+		const movedMails: tutanotaTypeRefs.MovedMails[] = []
 		for (const mails of mailChunks) {
 			const simpleMove = await this.serviceExecutor.post(
-				SimpleMoveMailService,
-				createSimpleMoveMailPostIn({
+				tutanotaServices.SimpleMoveMailService,
+				tutanotaTypeRefs.createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
 					moveReason: null, // moveReason is not needed anymore from clients using TutanotaModel > 97
@@ -462,14 +383,14 @@ export class MailFacade {
 		return movedMails
 	}
 
-	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
+	async reportMail(mail: tutanotaTypeRefs.Mail, reportType: MailReportType): Promise<void> {
 		const mailSessionKey: Aes128Key = assertNotNull(await this.crypto.resolveSessionKey(mail))
-		const postData = createReportMailPostData({
+		const postData = tutanotaTypeRefs.createReportMailPostData({
 			mailId: mail._id,
 			mailSessionKey: keyToUint8Array(mailSessionKey),
 			reportType,
 		})
-		await this.serviceExecutor.post(ReportMailService, postData)
+		await this.serviceExecutor.post(tutanotaServices.ReportMailService, postData)
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
@@ -482,11 +403,11 @@ export class MailFacade {
 		for (const [_, mails] of mailsGrouped) {
 			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 			for (const mailChunk of mailChunks) {
-				const deleteMailData = createDeleteMailData({
+				const deleteMailData = tutanotaTypeRefs.createDeleteMailData({
 					mails: mailChunk,
 					folder: filterMailSet,
 				})
-				await this.serviceExecutor.delete(MailService, deleteMailData)
+				await this.serviceExecutor.delete(tutanotaServices.MailService, deleteMailData)
 			}
 		}
 	}
@@ -522,7 +443,7 @@ export class MailFacade {
 		existingFileIds: ReadonlyArray<IdTuple>,
 		senderMailGroupId: Id,
 		mailGroupKey: VersionedKey,
-	): Promise<DraftAttachment[]> {
+	): Promise<tutanotaTypeRefs.DraftAttachment[]> {
 		if (providedFiles == null || providedFiles.length === 0) return []
 
 		// Verify mime types are correct before uploading
@@ -533,7 +454,7 @@ export class MailFacade {
 			if (isDataFile(providedFile)) {
 				// user added attachment
 				const fileSessionKey = aes256RandomKey()
-				let referenceTokens: Array<BlobReferenceTokenWrapper>
+				let referenceTokens: Array<sysTypeRefs.BlobReferenceTokenWrapper>
 				const transferId = await this.blobFacade.generateTransferId()
 				if (isApp() || isDesktop()) {
 					const { location } = await this.fileApp.writeDataFile(providedFile)
@@ -563,7 +484,7 @@ export class MailFacade {
 				return this.crypto.resolveSessionKey(providedFile).then((fileSessionKey) => {
 					const sessionKey = assertNotNull(fileSessionKey, "filesessionkey was not resolved")
 					const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
-					const attachment = createDraftAttachment({
+					const attachment = tutanotaTypeRefs.createDraftAttachment({
 						existingFile: getLetId(providedFile),
 						ownerEncFileSessionKey: ownerEncFileSessionKey.key,
 						newFile: null,
@@ -587,14 +508,14 @@ export class MailFacade {
 	}
 
 	private createAndEncryptDraftAttachment(
-		referenceTokens: BlobReferenceTokenWrapper[],
+		referenceTokens: sysTypeRefs.BlobReferenceTokenWrapper[],
 		fileSessionKey: AesKey,
 		providedFile: DataFile | FileReference,
 		mailGroupKey: VersionedKey,
-	): DraftAttachment {
+	): tutanotaTypeRefs.DraftAttachment {
 		const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
-		return createDraftAttachment({
-			newFile: createNewDraftAttachment({
+		return tutanotaTypeRefs.createDraftAttachment({
+			newFile: tutanotaTypeRefs.createNewDraftAttachment({
 				encFileName: this.cryptoWrapper.encryptString(fileSessionKey, providedFile.name),
 				encMimeType: this.cryptoWrapper.encryptString(fileSessionKey, providedFile.mimeType),
 				referenceTokens: referenceTokens,
@@ -606,10 +527,16 @@ export class MailFacade {
 		})
 	}
 
-	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<SendDraftReturn> {
+	async sendDraft(
+		draft: tutanotaTypeRefs.Mail,
+		recipients: Array<Recipient>,
+		language: string,
+		sendAt: Date | null,
+		allowUndo: boolean = false,
+	): Promise<tutanotaTypeRefs.SendDraftReturn> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes256RandomKey()
-		const parameters: StrippedEntity<SendDraftParameters> = {
+		const parameters: StrippedEntity<tutanotaTypeRefs.SendDraftParameters> = {
 			language: language,
 			mail: draft._id,
 			mailSessionKey: null,
@@ -626,9 +553,9 @@ export class MailFacade {
 
 		const attachments = await this.getAttachmentIds(draft)
 		for (const fileId of attachments) {
-			const file = await this.entityClient.load(FileTypeRef, fileId)
+			const file = await this.entityClient.load(tutanotaTypeRefs.FileTypeRef, fileId)
 			const fileSessionKey = assertNotNull(await this.crypto.resolveSessionKey(file), "fileSessionKey was null")
-			const data = createAttachmentKeyData({
+			const data = tutanotaTypeRefs.createAttachmentKeyData({
 				file: fileId,
 				fileSessionKey: null,
 				bucketEncFileSessionKey: null,
@@ -644,7 +571,7 @@ export class MailFacade {
 		}
 
 		await Promise.all([
-			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
+			this.entityClient.loadRoot(tutanotaTypeRefs.TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 				parameters.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
 			this.crypto.resolveSessionKey(draft).then(async (mailSessionkey) => {
@@ -669,32 +596,44 @@ export class MailFacade {
 			}),
 		])
 
-		const sendDraftData = createSendDraftData({
+		const sendDraftData = tutanotaTypeRefs.createSendDraftData({
 			...parameters,
-			parameters: createSendDraftParameters(parameters),
+			parameters: tutanotaTypeRefs.createSendDraftParameters(parameters),
 			sendAt,
 			allowUndo,
 		})
 
-		return await this.serviceExecutor.post(SendDraftService, sendDraftData)
+		return await this.serviceExecutor.post(tutanotaServices.SendDraftService, sendDraftData)
 	}
 
 	async unscheduleMail(mail: IdTuple) {
-		await this.serviceExecutor.delete(SendDraftService, createSendDraftDeleteIn({ mail, sendJob: null }))
+		await this.serviceExecutor.delete(
+			tutanotaServices.SendDraftService,
+			tutanotaTypeRefs.createSendDraftDeleteIn({
+				mail,
+				sendJob: null,
+			}),
+		)
 	}
 
 	async undoSendMail(mail: IdTuple, sendJob: IdTuple) {
-		await this.serviceExecutor.delete(SendDraftService, createSendDraftDeleteIn({ mail, sendJob }))
+		await this.serviceExecutor.delete(
+			tutanotaServices.SendDraftService,
+			tutanotaTypeRefs.createSendDraftDeleteIn({
+				mail,
+				sendJob,
+			}),
+		)
 	}
 
-	async getAttachmentIds(draft: Mail): Promise<IdTuple[]> {
+	async getAttachmentIds(draft: tutanotaTypeRefs.Mail): Promise<IdTuple[]> {
 		return draft.attachments
 	}
 
-	async getReplyTos(draft: Mail): Promise<EncryptedMailAddress[]> {
+	async getReplyTos(draft: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.EncryptedMailAddress[]> {
 		const mailDetailsDraftId = assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft")
 		const mailDetails = await this.entityClient.loadMultiple(
-			MailDetailsDraftTypeRef,
+			tutanotaTypeRefs.MailDetailsDraftTypeRef,
 			listIdPart(mailDetailsDraftId),
 			[elementIdPart(mailDetailsDraftId)],
 			this.keyProviderFromInstance(draft),
@@ -706,7 +645,7 @@ export class MailFacade {
 	}
 
 	async checkMailForPhishing(
-		mail: Mail,
+		mail: tutanotaTypeRefs.Mail,
 		links: Array<{
 			href: string
 			innerHTML: string
@@ -774,22 +713,22 @@ export class MailFacade {
 	}
 
 	async deleteFolder(id: IdTuple): Promise<void> {
-		const deleteMailFolderData = createDeleteMailFolderData({
+		const deleteMailFolderData = tutanotaTypeRefs.createDeleteMailFolderData({
 			folders: [id],
 		})
 		// TODO make DeleteMailFolderData unencrypted in next model version
-		await this.serviceExecutor.delete(MailFolderService, deleteMailFolderData, { sessionKey: "dummy" as any })
+		await this.serviceExecutor.delete(tutanotaServices.MailFolderService, deleteMailFolderData, { sessionKey: "dummy" as any })
 	}
 
-	async fixupCounterForFolder(groupId: Id, folder: MailSet, unreadMails: number): Promise<void> {
+	async fixupCounterForFolder(groupId: Id, folder: tutanotaTypeRefs.MailSet, unreadMails: number): Promise<void> {
 		const counterId = getElementId(folder)
-		const data = createWriteCounterData({
+		const data = monitorTypeRefs.createWriteCounterData({
 			counterType: CounterType.UnreadMails,
 			row: groupId,
 			column: counterId,
 			value: String(unreadMails),
 		})
-		await this.serviceExecutor.post(CounterService, data)
+		await this.serviceExecutor.post(monitorServices.CounterService, data)
 	}
 
 	_checkFieldForPhishing(type: ReportedMailFieldType, value: string): boolean {
@@ -799,7 +738,7 @@ export class MailFacade {
 
 	private async addRecipientKeyData(
 		bucketKey: AesKey,
-		sendDraftParameters: StrippedEntity<SendDraftParameters>,
+		sendDraftParameters: StrippedEntity<tutanotaTypeRefs.SendDraftParameters>,
 		recipients: Array<Recipient>,
 		senderMailGroupId: Id,
 	): Promise<void> {
@@ -830,7 +769,7 @@ export class MailFacade {
 				const passwordVerifier = createAuthVerifier(passwordKey)
 				const externalGroupKeys = await this.getExternalGroupKeys(recipient.address, kdfType, passwordKey, passwordVerifier)
 				const ownerEncBucketKey = this.cryptoWrapper.encryptKeyWithVersionedKey(externalGroupKeys.currentExternalMailGroupKey, bucketKey)
-				const data = createSecureExternalRecipientKeyData({
+				const data = tutanotaTypeRefs.createSecureExternalRecipientKeyData({
 					mailAddress: recipient.address,
 					kdfVersion: kdfType,
 					ownerEncBucketKey: ownerEncBucketKey.key,
@@ -853,10 +792,10 @@ export class MailFacade {
 				if (keyData == null) {
 					// cannot add recipient because of notFoundError
 					// we do not throw here because we want to collect all not found recipients first
-				} else if (isSameTypeRef(keyData._type, SymEncInternalRecipientKeyDataTypeRef)) {
-					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData as SymEncInternalRecipientKeyData)
-				} else if (isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
-					sendDraftParameters.internalRecipientKeyData.push(keyData as InternalRecipientKeyData)
+				} else if (isSameTypeRef(keyData._type, tutanotaTypeRefs.SymEncInternalRecipientKeyDataTypeRef)) {
+					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData as tutanotaTypeRefs.SymEncInternalRecipientKeyData)
+				} else if (isSameTypeRef(keyData._type, tutanotaTypeRefs.InternalRecipientKeyDataTypeRef)) {
+					sendDraftParameters.internalRecipientKeyData.push(keyData as tutanotaTypeRefs.InternalRecipientKeyData)
 				}
 			}
 		}
@@ -874,7 +813,7 @@ export class MailFacade {
 	 * @VisibleForTesting
 	 * @param sendDraftParameters The send draft parameters for the mail that should be sent
 	 */
-	isTutaCryptMail(sendDraftParameters: StrippedEntity<SendDraftParameters>) {
+	isTutaCryptMail(sendDraftParameters: StrippedEntity<tutanotaTypeRefs.SendDraftParameters>) {
 		// if an secure external recipient is involved in the conversation we do not use asymmetric encryption
 		if (sendDraftParameters.symEncInternalRecipientKeyData.length > 0 || sendDraftParameters.secureExternalRecipientKeyData.length) {
 			return false
@@ -885,7 +824,7 @@ export class MailFacade {
 		return sendDraftParameters.internalRecipientKeyData.every((recipientData) => recipientData.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT)
 	}
 
-	private getContactPassword(contact: Contact | null): string | null {
+	private getContactPassword(contact: tutanotaTypeRefs.Contact | null): string | null {
 		return contact?.presharedPassword ?? null
 	}
 
@@ -904,13 +843,13 @@ export class MailFacade {
 		externalUserPwKey: AesKey,
 		verifier: Uint8Array,
 	): Promise<{ currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }> {
-		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId())
+		const groupRoot = await this.entityClient.loadRoot(sysTypeRefs.GroupRootTypeRef, this.userFacade.getUserGroupId())
 		const cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 		const mailAddressId = stringToCustomId(cleanedMailAddress)
 
-		let externalUserReference: ExternalUserReference
+		let externalUserReference: sysTypeRefs.ExternalUserReference
 		try {
-			externalUserReference = await this.entityClient.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
+			externalUserReference = await this.entityClient.load(sysTypeRefs.ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				return this.createExternalUser(cleanedMailAddress, externalUserKdfType, externalUserPwKey, verifier)
@@ -918,23 +857,23 @@ export class MailFacade {
 			throw e
 		}
 
-		const externalUser = await this.entityClient.load(UserTypeRef, externalUserReference.user)
+		const externalUser = await this.entityClient.load(sysTypeRefs.UserTypeRef, externalUserReference.user)
 		const externalUserGroupId = externalUserReference.userGroup
 		const externalMailGroupId = assertNotNull(
 			externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
 			"no mail group membership on external user",
 		).group
 
-		const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
-		const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupId)
-		const requiredInternalUserGroupKeyVersion = parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
-		const requiredExternalUserGroupKeyVersion = parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
+		const externalMailGroup = await this.entityClient.load(sysTypeRefs.GroupTypeRef, externalMailGroupId)
+		const externalUserGroup = await this.entityClient.load(sysTypeRefs.GroupTypeRef, externalUserGroupId)
+		const requiredInternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
+		const requiredExternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
 		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
 		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
 		const requiredInternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
 		const currentExternalUserGroupKey = {
 			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
-			version: parseKeyVersion(externalUserGroup.groupKeyVersion),
+			version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
 		}
 		const requiredExternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
 			externalUserGroupId,
@@ -943,7 +882,7 @@ export class MailFacade {
 		)
 		const currentExternalMailGroupKey = {
 			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
-			version: parseKeyVersion(externalMailGroup.groupKeyVersion),
+			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
 		}
 		return {
 			currentExternalUserGroupKey,
@@ -961,17 +900,17 @@ export class MailFacade {
 			.catch(ofClass(NotFoundError, () => null))
 	}
 
-	entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
+	entityEventsReceived(data: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
 		return promiseMap(data, (update) => {
 			if (
 				this.deferredDraftUpdate != null &&
 				this.deferredDraftId != null &&
 				update.operation === OperationType.UPDATE &&
-				isUpdateForTypeRef(MailTypeRef, update) &&
+				entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) &&
 				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
 			) {
 				return this.entityClient
-					.load(MailTypeRef, this.deferredDraftId)
+					.load(tutanotaTypeRefs.MailTypeRef, this.deferredDraftId)
 					.then((mail) => {
 						const deferredPromiseWrapper = assertNotNull(this.deferredDraftUpdate, "deferredDraftUpdate went away?")
 						this.deferredDraftUpdate = null
@@ -989,7 +928,7 @@ export class MailFacade {
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
 	 */
-	phishingMarkersUpdateReceived(markers: ReportedMailFieldMarker[]) {
+	phishingMarkersUpdateReceived(markers: tutanotaTypeRefs.ReportedMailFieldMarker[]) {
 		for (const marker of markers) {
 			if (marker.status === PhishingMarkerStatus.INACTIVE) {
 				this.phishingMarkers.delete(marker.marker)
@@ -1012,7 +951,7 @@ export class MailFacade {
 		const externalUserEncEntropy = this.cryptoWrapper.encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
 
 		const internalUserEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalUserGroupKey, currentExternalUserGroupKey.object)
-		const userGroupData = createCreateExternalUserGroupData({
+		const userGroupData = tutanotaTypeRefs.createCreateExternalUserGroupData({
 			mailAddress: cleanedMailAddress,
 			externalPwEncUserGroupKey: encryptKey(externalUserPwKey, currentExternalUserGroupKey.object),
 			internalUserEncUserGroupKey: internalUserEncGroupKey.key,
@@ -1038,7 +977,7 @@ export class MailFacade {
 		const internalMailEncUserGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
 		const internalMailEncMailGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
 
-		const externalUserData = createExternalUserData({
+		const externalUserData = tutanotaTypeRefs.createExternalUserData({
 			verifier,
 			userGroupData,
 			kdfVersion: externalUserKdfType,
@@ -1055,23 +994,23 @@ export class MailFacade {
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
 			internalMailGroupKeyVersion: internalMailGroupKey.version.toString(),
 		})
-		await this.serviceExecutor.post(ExternalUserService, externalUserData)
+		await this.serviceExecutor.post(tutanotaServices.ExternalUserService, externalUserData)
 		return {
 			currentExternalUserGroupKey,
 			currentExternalMailGroupKey,
 		}
 	}
 
-	_getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
+	_getMailGroupIdForMailAddress(user: sysTypeRefs.User, mailAddress: string): Promise<Id> {
 		return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
-			return this.entityClient.load(GroupTypeRef, groupMembership.group).then((mailGroup) => {
+			return this.entityClient.load(sysTypeRefs.GroupTypeRef, groupMembership.group).then((mailGroup) => {
 				if (mailGroup.user == null) {
 					return this.entityClient
-						.load(GroupInfoTypeRef, groupMembership.groupInfo)
+						.load(sysTypeRefs.GroupInfoTypeRef, groupMembership.groupInfo)
 						.then((mailGroupInfo) => isAliasEnabledForGroupInfo(mailGroupInfo, mailAddress))
 				} else if (isSameId(mailGroup.user, user._id)) {
 					return this.entityClient
-						.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+						.load(sysTypeRefs.GroupInfoTypeRef, user.userGroup.groupInfo)
 						.then((userGroupInfo) => isAliasEnabledForGroupInfo(userGroupInfo, mailAddress))
 				} else {
 					// not supported
@@ -1093,12 +1032,12 @@ export class MailFacade {
 	 *
 	 * @return main user address, all enabled aliases and shared mailbox address
 	 */
-	async getAllMailAddressesForUser(user: User): Promise<string[]> {
-		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+	async getAllMailAddressesForUser(user: sysTypeRefs.User): Promise<string[]> {
+		const userGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, user.userGroup.groupInfo)
 		const mailAddressesForUserGroup = getEnabledMailAddressesForGroupInfo(userGroupInfo)
 
 		const mailAddressesForMailGroups = await promiseMap(getUserGroupMemberships(user, GroupType.Mail), async (groupMembership) => {
-			const mailGroupInfo = await this.entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo)
+			const mailGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, groupMembership.groupInfo)
 			return getEnabledMailAddressesForGroupInfo(mailGroupInfo)
 		})
 		const allMailAddressesForMailGroups = flatMap(mailAddressesForMailGroups, (mailAddresses) => mailAddresses)
@@ -1107,22 +1046,22 @@ export class MailFacade {
 	}
 
 	async clearFolder(folderId: IdTuple) {
-		const deleteMailData = createDeleteMailData({
+		const deleteMailData = tutanotaTypeRefs.createDeleteMailData({
 			folder: folderId,
 			mails: [],
 		})
-		await this.serviceExecutor.delete(MailService, deleteMailData)
+		await this.serviceExecutor.delete(tutanotaServices.MailService, deleteMailData)
 	}
 
 	async unsubscribe(mailId: IdTuple, postUrl: string) {
-		const postData = createListUnsubscribeData({
+		const postData = tutanotaTypeRefs.createListUnsubscribeData({
 			mail: mailId,
 			postLink: postUrl,
 		})
-		await this.serviceExecutor.post(ListUnsubscribeService, postData)
+		await this.serviceExecutor.post(tutanotaServices.ListUnsubscribeService, postData)
 	}
 
-	async loadAttachments(mail: Mail): Promise<TutanotaFile[]> {
+	async loadAttachments(mail: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.File[]> {
 		if (mail.attachments.length === 0) {
 			return []
 		}
@@ -1130,13 +1069,13 @@ export class MailFacade {
 		const attachmentElementIds = mail.attachments.map(elementIdPart)
 
 		const ownerEncSessionKeyProvider = mail.bucketKey != null ? await this.createOwnerEncSessionKeyProviderForAttachments([mail]) : undefined
-		return await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds, ownerEncSessionKeyProvider)
+		return await this.entityClient.loadMultiple(tutanotaTypeRefs.FileTypeRef, attachmentsListId, attachmentElementIds, ownerEncSessionKeyProvider)
 	}
 
 	/**
 	 * @param mail in case it is a mailDetailsBlob
 	 */
-	async loadMailDetailsBlob(mail: Mail): Promise<MailDetails> {
+	async loadMailDetailsBlob(mail: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.MailDetails> {
 		// if isDraft
 		if (mail.mailDetailsDraft != null) {
 			throw new ProgrammingError("not supported, must be mail details blob")
@@ -1144,7 +1083,7 @@ export class MailFacade {
 			const mailDetailsBlobId = assertNotNull(mail.mailDetails, `null mailDetails on non-draft mail with id: ${getListId(mail)}/${getElementId(mail)}`)
 
 			const mailDetailsBlobs = await this.entityClient.loadMultiple(
-				MailDetailsBlobTypeRef,
+				tutanotaTypeRefs.MailDetailsBlobTypeRef,
 				listIdPart(mailDetailsBlobId),
 				[elementIdPart(mailDetailsBlobId)],
 				this.keyProviderFromInstance(mail),
@@ -1156,13 +1095,13 @@ export class MailFacade {
 		}
 	}
 
-	private keyProviderFromInstance(mail: Mail): OwnerEncSessionKeyProvider | undefined {
+	private keyProviderFromInstance(mail: tutanotaTypeRefs.Mail): OwnerEncSessionKeyProvider | undefined {
 		// only use the provider if there is an _ownerEncSessionKey
 		// this is not guaranteed in case of (temporary) decryption failures!
 		return mail._ownerEncSessionKey != null
 			? async () => ({
 					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
+					encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				})
 			: undefined
 	}
@@ -1170,7 +1109,7 @@ export class MailFacade {
 	/**
 	 * @param mail in case it is a mailDetailsDraft
 	 */
-	async loadMailDetailsDraft(mail: Mail): Promise<MailDetails> {
+	async loadMailDetailsDraft(mail: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.MailDetails> {
 		// if not isDraft
 		if (mail.mailDetailsDraft == null) {
 			throw new ProgrammingError("not supported, must be mail details draft")
@@ -1178,7 +1117,7 @@ export class MailFacade {
 			const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
 
 			const mailDetailsDrafts = await this.entityClient.loadMultiple(
-				MailDetailsDraftTypeRef,
+				tutanotaTypeRefs.MailDetailsDraftTypeRef,
 				listIdPart(detailsDraftId),
 				[elementIdPart(detailsDraftId)],
 				this.keyProviderFromInstance(mail),
@@ -1199,12 +1138,12 @@ export class MailFacade {
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 		await this.serviceExecutor.post(
-			ManageLabelService,
-			createManageLabelServicePostIn({
+			tutanotaServices.ManageLabelService,
+			tutanotaTypeRefs.createManageLabelServicePostIn({
 				ownerGroup: mailGroupId,
 				ownerEncSessionKey: ownerEncSessionKey.key,
 				ownerKeyVersion: String(ownerEncSessionKey.encryptingKeyVersion),
-				data: createManageLabelServiceLabelData({
+				data: tutanotaTypeRefs.createManageLabelServiceLabelData({
 					name: labelData.name,
 					color: labelData.color,
 				}),
@@ -1221,7 +1160,7 @@ export class MailFacade {
 	 * @param name possible new name for label
 	 * @param color possible new color for label
 	 */
-	async updateLabel(label: MailSet, name: string, color: string) {
+	async updateLabel(label: tutanotaTypeRefs.MailSet, name: string, color: string) {
 		if (name !== label.name || color !== label.color) {
 			label.name = name
 			label.color = color
@@ -1229,22 +1168,22 @@ export class MailFacade {
 		}
 	}
 
-	async deleteLabel(label: MailSet) {
+	async deleteLabel(label: tutanotaTypeRefs.MailSet) {
 		await this.serviceExecutor.delete(
-			ManageLabelService,
-			createManageLabelServiceDeleteIn({
+			tutanotaServices.ManageLabelService,
+			tutanotaTypeRefs.createManageLabelServiceDeleteIn({
 				label: label._id,
 			}),
 		)
 	}
 
-	async applyLabels(mailIds: IdTuple[], addedLabels: readonly MailSet[], removedLabels: readonly MailSet[]) {
-		const postIn = createApplyLabelServicePostIn({
+	async applyLabels(mailIds: IdTuple[], addedLabels: readonly tutanotaTypeRefs.MailSet[], removedLabels: readonly tutanotaTypeRefs.MailSet[]) {
+		const postIn = tutanotaTypeRefs.createApplyLabelServicePostIn({
 			mails: mailIds,
 			addedLabels: addedLabels.map((label) => label._id),
 			removedLabels: removedLabels.map((label) => label._id),
 		})
-		await this.serviceExecutor.post(ApplyLabelService, postIn)
+		await this.serviceExecutor.post(tutanotaServices.ApplyLabelService, postIn)
 	}
 
 	/**
@@ -1257,8 +1196,8 @@ export class MailFacade {
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
 				this.serviceExecutor.post(
-					UnreadMailStateService,
-					createUnreadMailStatePostIn({
+					tutanotaServices.UnreadMailStateService,
+					tutanotaTypeRefs.createUnreadMailStatePostIn({
 						unread,
 						mails,
 					}),
@@ -1270,15 +1209,15 @@ export class MailFacade {
 	private async encryptUnencryptedProcessInboxData(
 		mailGroupId: Id,
 		unencryptedProcessInboxData: readonly UnencryptedProcessInboxDatum[],
-	): Promise<ProcessInboxDatum[]> {
-		const processInboxData: ProcessInboxDatum[] = []
+	): Promise<tutanotaTypeRefs.ProcessInboxDatum[]> {
+		const processInboxData: tutanotaTypeRefs.ProcessInboxDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedProcessInboxData) {
 			const { targetMoveFolder, classifierType, mailId, vectorLegacy, vectorWithServerClassifiers } = unencryptedProcessInboxDatum
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			processInboxData.push(
-				createProcessInboxDatum({
+				tutanotaTypeRefs.createProcessInboxDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 					encVectorLegacy: aesEncrypt(sk, vectorLegacy),
@@ -1299,8 +1238,8 @@ export class MailFacade {
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, processInboxData),
 			async (inboxData) =>
 				this.serviceExecutor.post(
-					ProcessInboxService,
-					createProcessInboxPostIn({
+					tutanotaServices.ProcessInboxService,
+					tutanotaTypeRefs.createProcessInboxPostIn({
 						mailOwnerGroup: mailGroupId,
 						processInboxData: inboxData,
 					}),
@@ -1312,15 +1251,15 @@ export class MailFacade {
 	private async encryptUnencryptedPopulateClientSpamTrainingDatum(
 		mailGroupId: Id,
 		unencryptedPopulateClientSpamTrainingData: ReadonlyArray<UnencryptedPopulateClientSpamTrainingDatum>,
-	): Promise<Array<PopulateClientSpamTrainingDatum>> {
-		const populateClientSpamTrainingData: PopulateClientSpamTrainingDatum[] = []
+	): Promise<Array<tutanotaTypeRefs.PopulateClientSpamTrainingDatum>> {
+		const populateClientSpamTrainingData: tutanotaTypeRefs.PopulateClientSpamTrainingDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedPopulateClientSpamTrainingData) {
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			const { isSpam, confidence, mailId, vector, vectorNewFormat } = unencryptedProcessInboxDatum
 			populateClientSpamTrainingData.push(
-				createPopulateClientSpamTrainingDatum({
+				tutanotaTypeRefs.createPopulateClientSpamTrainingDatum({
 					ownerEncVectorSessionKey: ownerEncSessionKey.key,
 					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 					encVectorLegacy: aesEncrypt(sk, vector),
@@ -1346,8 +1285,8 @@ export class MailFacade {
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, populateClientSpamTrainingData),
 			async (clientSpamTrainingData) =>
 				this.serviceExecutor.post(
-					PopulateClientSpamTrainingDataService,
-					createPopulateClientSpamTrainingDataPostIn({
+					tutanotaServices.PopulateClientSpamTrainingDataService,
+					tutanotaTypeRefs.createPopulateClientSpamTrainingDataPostIn({
 						mailOwnerGroup: mailGroupId,
 						populateClientSpamTrainingData: clientSpamTrainingData,
 					}),
@@ -1356,7 +1295,7 @@ export class MailFacade {
 		)
 	}
 
-	async createModelInputAndUploadableVectors(mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+	async createModelInputAndUploadableVectors(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails, sourceFolder: tutanotaTypeRefs.MailSet) {
 		const datum = createSpamMailDatum(mail, mailDetails)
 		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
 		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
@@ -1369,9 +1308,9 @@ export class MailFacade {
 			splitInChunks(MAX_NBR_OF_CONVERSATIONS, conversationListIds),
 			async (conversationListIds) =>
 				this.serviceExecutor.get(
-					ResolveConversationsService,
-					createResolveConversationsServiceGetIn({
-						conversationLists: conversationListIds.map((id) => createGeneratedIdWrapper({ value: id })),
+					tutanotaServices.ResolveConversationsService,
+					tutanotaTypeRefs.createResolveConversationsServiceGetIn({
+						conversationLists: conversationListIds.map((id) => sysTypeRefs.createGeneratedIdWrapper({ value: id })),
 					}),
 				),
 			{ concurrency: 2 },
@@ -1386,7 +1325,7 @@ export class MailFacade {
 	 *
 	 * @param mails an iterator of mails to resolve
 	 */
-	async createOwnerEncSessionKeyProviderForAttachments(mails: Iterable<Mail>): Promise<OwnerEncSessionKeyProvider> {
+	async createOwnerEncSessionKeyProviderForAttachments(mails: Iterable<tutanotaTypeRefs.Mail>): Promise<OwnerEncSessionKeyProvider> {
 		// Initially when e2e encrypted mails are received they are encrypted using public key encryption.
 		// There are multiple entities indirectly encrypted with one public key (mail itself, mail details, attachments).
 		// It goes something like this: public key -> bucket key -> entity session key.
@@ -1397,7 +1336,7 @@ export class MailFacade {
 		//
 		// Since we might be downloading many attachments at once we put all the keys encrypted with the bucket key
 		// into the big map so that when it's time to decrypt the attachment we can just use it.
-		const sessionKeys: Map<Id, InstanceSessionKey> = new Map()
+		const sessionKeys: Map<Id, sysTypeRefs.InstanceSessionKey> = new Map()
 
 		for (const mail of mails) {
 			if (mail.bucketKey != null) {
@@ -1415,14 +1354,14 @@ export class MailFacade {
 			if (entity._ownerEncSessionKey) {
 				return {
 					key: entity._ownerEncSessionKey,
-					encryptingKeyVersion: parseKeyVersion(entity._ownerKeyVersion ?? "0"),
+					encryptingKeyVersion: cryptoUtils.parseKeyVersion(entity._ownerKeyVersion ?? "0"),
 				}
 			}
 
 			const keyData = assertNotNull(sessionKeys.get(instanceElementId), `could not load session key for ${instanceElementId}`)
 			return {
 				key: keyData.symEncSessionKey,
-				encryptingKeyVersion: parseKeyVersion(keyData.symKeyVersion),
+				encryptingKeyVersion: cryptoUtils.parseKeyVersion(keyData.symKeyVersion),
 			}
 		}
 	}
@@ -1432,15 +1371,15 @@ export function phishingMarkerValue(type: ReportedMailFieldType, value: string):
 	return type + murmurHash(value.replace(/\s/g, ""))
 }
 
-function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient {
-	return createDraftRecipient({
+function recipientToDraftRecipient(recipient: PartialRecipient): tutanotaTypeRefs.DraftRecipient {
+	return tutanotaTypeRefs.createDraftRecipient({
 		name: recipient.name ?? "",
 		mailAddress: recipient.address,
 	})
 }
 
-function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
-	return createEncryptedMailAddress({
+function recipientToEncryptedMailAddress(recipient: PartialRecipient): tutanotaTypeRefs.EncryptedMailAddress {
+	return tutanotaTypeRefs.createEncryptedMailAddress({
 		name: recipient.name ?? "",
 		address: recipient.address,
 	})
