@@ -5,8 +5,14 @@ import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval
 import { AccountType, AvailablePlanType, Const, isIOSApp, PaymentMethodType, PlanType } from "@tutao/app-env"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import * as restError from "@tutao/rest-client/error"
-import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
-import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
+import {
+	appStorePlanName,
+	getPreconditionFailedPaymentMsg,
+	SubscriptionApp,
+	UpgradeType,
+	waitUntilCustomerInfoPlanTypeIsCorrect,
+} from "./utils/SubscriptionUtils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -236,6 +242,13 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			if (!success) {
 				return
 			}
+			const receivedNotification = await showProgressDialog(
+				"waitingForAppStoreConfirmation_msg",
+				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?.customerInfo)),
+			)
+			if (receivedNotification) {
+				return
+			}
 		}
 
 		const serviceData = sysTypeRefs.createSwitchAccountTypePostIn({
@@ -278,10 +291,14 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 	/** @return whether subscribed successfully */
 	private async handleAppStorePayment(data: SignupViewModel): Promise<boolean> {
 		if (!locator.logins.isUserLoggedIn()) {
-			await locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+			await locator.logins.createSession(
+				assertNotNull(data.newAccountData).mailAddress,
+				assertNotNull(data.newAccountData).password,
+				SessionType.Temporary,
+			)
 		}
 
-		const customerId = locator.logins.getUserController().user.customer!
+		const customerId = assertNotNull(locator.logins.getUserController().user.customer)
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
 
 		try {
