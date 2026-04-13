@@ -60,11 +60,9 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.io.SequenceInputStream
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -84,7 +82,7 @@ class AndroidFileFacade(
 	override suspend fun deleteFile(file: String) {
 		if (file.startsWith(Uri.fromFile(activity.filesDir).toString())) {
 			// we do not deleteAlarmNotification files that are not stored in our cache dir
-			val fileInstance = File(Uri.parse(file).path!!)
+			val fileInstance = File(file.toUri().path!!)
 			try {
 				val deleted = fileInstance.delete()
 				if (!deleted && fileInstance.exists()) {
@@ -102,14 +100,22 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun joinFiles(filename: String, files: List<String>): String {
-		val inStreams: MutableList<InputStream> = ArrayList(files.size)
-		for (infile in files) {
-			inStreams.add(FileInputStream(Uri.parse(infile).path))
-		}
 		val newFileName = getNonClobberingFileName(tempDir.decrypt, filename)
 		val outputFile = File(tempDir.decrypt, newFileName)
-		writeFileStream(outputFile, SequenceInputStream(Collections.enumeration(inStreams)))
-		return outputFile.toUri().toString()
+		return withContext(Dispatchers.IO) {
+			outputFile.parentFile!!.mkdirs()
+
+			FileOutputStream(outputFile).use { outputStream ->
+				for (infile in files) {
+					try {
+						FileInputStream(infile.toUri().path).use { it.copyTo(outputStream, COPY_BUFFER_SIZE) }
+					} finally {
+						deleteFile(infile)
+					}
+				}
+				outputFile.toUri().toString()
+			}
+		}
 	}
 
 	override suspend fun openFileChooser(
