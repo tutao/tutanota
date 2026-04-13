@@ -6,13 +6,13 @@ runs:
 
   steps:
     - name: Setup Swift
-      uses: swift-actions/setup-swift@cdbe0f7f4c77929b6580e71983e8606e55ffe7e4 # v1.26.2
+      uses: swift-actions/setup-swift@7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a # v2.4.0
       with:
         swift-version: ${{ env.swift-version }}
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@7f352e61cbe8130c957c3bc898c4fb025784ea1e
       with:
-        xcode-version: '26.2'
+        xcode-version: '26.4'
     - name: List simulators
       shell: bash
       run: |

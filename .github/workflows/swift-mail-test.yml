@@ -19,7 +19,7 @@ on:
       - '!app-ios/**/Info.plist'
 
 env:
-  swift-version: "5.9.2"
+  swift-version: "6.2.0"
   swift-format-version: "509.0.0"
   rust-targets: "aarch64-apple-ios-sim"
 
