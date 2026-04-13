@@ -2138,14 +2138,28 @@ styles.registerStyle("main", () => {
 			"border-top-right-radius": px(size.radius_8),
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
-		".onboarding-logo, .onboarding-logo > svg": {
+		".onboarding-logo": {
 			width: "fit-content",
 			height: px(160),
+			"max-width": "100%",
+			overflow: "hidden",
 		},
-		".onboarding-logo-large, .onboarding-logo-large > svg": {
+		".onboarding-logo > svg, .onboarding-logo > .dynamic-color-svg-wrapper, .onboarding-logo > .dynamic-color-svg-wrapper > svg": {
+			width: "fit-content",
+			height: "100%",
+			"max-width": "100%",
+		},
+		".onboarding-logo-large": {
 			width: "fit-content",
 			// This value brings the bottom of the illustration inline with the first button on the notifications page
 			height: px(222),
+			"max-width": "100%",
+			overflow: "hidden",
+		},
+		".onboarding-logo-large > svg, .onboarding-logo-large > .dynamic-color-svg-wrapper, .onboarding-logo-large > .dynamic-color-svg-wrapper > svg": {
+			width: "fit-content",
+			height: "100%",
+			"max-width": "100%",
 		},
 		"settings-illustration-large, .settings-illustration-large > svg": {
 			width: "full-width",

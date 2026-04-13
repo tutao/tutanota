@@ -2,6 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "../gui/styles.js"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
+import { DynamicColorSvg } from "../gui/base/DynamicColorSvg.js"
 
 export interface SetupLeavingUserSurveyPageAttrs {
 	closeAction: () => void
@@ -33,13 +34,12 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 								...vnode.attrs.imageStyle,
 							},
 						},
-						m("img.pb-16.block.full-width.height-100p", {
-							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/${vnode.attrs.image}.png`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-						}),
+						m(
+							".pb-16.block.full-width.height-100p",
+							m(DynamicColorSvg, {
+								path: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/${vnode.attrs.image}.svg`,
+							}),
+						),
 					),
 					m("h3.center.b", lang.get(vnode.attrs.mainMessage)),
 					m(

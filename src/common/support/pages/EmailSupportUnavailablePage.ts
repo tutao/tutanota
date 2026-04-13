@@ -10,6 +10,7 @@ import { SupportDialogState } from "../SupportDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { UpgradePromptType } from "../../api/common/TutanotaConstants"
 import { Thunk } from "@tutao/tutanota-utils"
+import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
 
 type EmailSupportUnavailableAttrs = {
 	data: SupportDialogState
@@ -26,17 +27,18 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 				m("div.pt-8.pb-8.plr-12", [
 					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
 					m("p", lang.get("supportNoDirectSupport_msg")),
-					m("img.block", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-						style: {
-							margin: "0 auto",
-							width: "100%",
+					m(
+						".block",
+						{
+							style: {
+								margin: "0 auto",
+								width: "100%",
+							},
 						},
-					}),
+						m(DynamicColorSvg, {
+							path: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.svg`,
+						}),
+					),
 				]),
 			),
 			m(SectionButton, {

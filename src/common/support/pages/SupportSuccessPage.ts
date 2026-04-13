@@ -13,6 +13,7 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Card } from "../../gui/base/Card"
 import { SecondaryButton } from "../../gui/base/buttons/VariantButtons"
+import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
 
 type SupportSuccessPageAttrs = {
 	dialog: Dialog
@@ -31,13 +32,12 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 					m(
 						".mt-32.mb-8",
 						{},
-						m("img.block.full-width.height-100p", {
-							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/problem.png`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-						}),
+						m(
+							".block.full-width.height-100p",
+							m(DynamicColorSvg, {
+								path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/rate-us.svg`,
+							}),
+						),
 					),
 				),
 			),

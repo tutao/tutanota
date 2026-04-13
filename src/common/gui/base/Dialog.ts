@@ -25,7 +25,6 @@ import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "../../api/common/Env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
-import { client } from "../../misc/ClientDetector"
 import { LoginTextField } from "./LoginTextField"
 
 assertMainOrNode()
@@ -716,9 +715,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-24",
 						m(ImageWithOptionsDialog, {
-							image: `${window.tutao.appState.prefixWithoutFile}/images/update/update_needed_illu_${
-								client.isCalendarApp() ? "calendar" : "mail"
-							}.svg`,
+							image: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/update.svg`,
 							titleText: "updateNeeded_msg",
 							messageText: allowDefer ? "updateFound_label" : "outdatedClient_msg",
 							mainActionText: "update_action",
@@ -820,7 +817,9 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-48",
 						m(ImageWithOptionsDialog, {
-							image: `${window.tutao.appState.prefixWithoutFile}/images/newsletter-unsubscribe/unsubscribe_${success ? "success" : "failure"}_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
+							image: success
+								? `${window.tutao.appState.prefixWithoutFile}/images/newsletter-unsubscribe/unsubscribe_success.svg`
+								: `${window.tutao.appState.prefixWithoutFile}/images/newsletter-unsubscribe/unsubscribe_failure_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
 							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
 							messageText: success ? "unsubscribeSuccessful_msg" : "unsubscribeFailed_msg",
 							mainActionText: "ok_action",

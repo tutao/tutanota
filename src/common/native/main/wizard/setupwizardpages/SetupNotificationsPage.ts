@@ -17,7 +17,7 @@ export class SetupNotificationsPage implements Component<SetupNotificationsPageA
 	view({ attrs }: Vnode<SetupNotificationsPageAttrs>): Children {
 		return m(
 			SetupPageLayout,
-			{ image: "notifications" },
+			{ image: "images/dynamic-color-svg/notifications.svg" },
 			m(NotificationPermissionsBody, {
 				isNotificationPermissionGranted: attrs.data.isNotificationPermissionGranted,
 				isBatteryPermissionGranted: attrs.data.isBatteryPermissionGranted,
