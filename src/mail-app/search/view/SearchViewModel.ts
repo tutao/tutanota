@@ -311,6 +311,10 @@ export class SearchViewModel {
 		if (searchQuery == null) {
 			// no search query at all yet
 			listModel.updateLoadingStatus(ListLoadingState.Done)
+		} else if (this.search.isSameSearchWithExtendedRange(searchQuery, restriction)) {
+			if (restriction.end != null) {
+				this.search.extendCurrentResult(restriction.end).catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
+			}
 		} else if (this.search.isNewSearch(searchQuery, restriction)) {
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search

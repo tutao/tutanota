@@ -11,7 +11,7 @@ import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonit
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, searchQueryEquals } from "./SearchUtils"
+import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
@@ -384,6 +384,19 @@ export class SearchModel {
 
 	private isSearchResultExtendableForType(type: SearchRestriction["type"]): boolean {
 		return isSameTypeRef(MailTypeRef, type)
+	}
+
+	isSameSearchWithExtendedRange(query: string, restriction: SearchRestriction): boolean {
+		if (!this.isSearchResultExtendableForType(restriction.type)) {
+			return false
+		}
+
+		const lastQuery = this.lastQuery
+		if (!lastQuery) {
+			return false
+		}
+
+		return lastQuery.query === query && isSameSearchRestrictionWithRangeExtended(lastQuery.restriction, restriction)
 	}
 
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {
