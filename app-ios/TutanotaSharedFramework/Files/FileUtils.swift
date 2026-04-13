@@ -15,7 +15,12 @@ public class FileUtils {
 	/// - Returns path to folder with decrypted content
 	public static func getDecryptedFolder() throws -> String { try Self.makeTempDir(name: DECRYPTED_DIRNAME) }
 
-	public static func deleteFile(path: URL) throws { try FileManager.default.removeItem(at: path) }
+	public static func delete(file: URL) throws {
+		do { try FileManager.default.removeItem(at: file) } catch {
+			if let err = error as? NSError, err.code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
+			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
+		}
+	}
 
 	/// deletes the shared-content folder in the shared app group container recursively,
 	/// removing any files that were copied there after bering shared by another app
