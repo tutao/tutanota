@@ -760,6 +760,10 @@ o.spec("HtmlSanitizer", function () {
 				o.check(htmlSanitizer.sanitizeHTML('<a href="relative">text</a>').html).equals('<a href="javascript:void(0)">text</a>')
 				o.check(htmlSanitizer.sanitizeHTML('<a href="/relative">text</a>').html).equals('<a href="javascript:void(0)">text</a>')
 			})
+			o.test("disallow links with empty href", function () {
+				o.check(htmlSanitizer.sanitizeHTML('<a href="">text</a>').html).equals('<a href="javascript:void(0)">text</a>')
+				o.check(htmlSanitizer.sanitizeHTML('<a href="" target="_blank">text</a>').html).equals('<a href="javascript:void(0)">text</a>')
+			})
 			o.test("allow relative links when asked", function () {
 				o.check(
 					htmlSanitizer.sanitizeHTML('<a href="relative">text</a>', {
