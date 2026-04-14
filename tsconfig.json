@@ -38,7 +38,7 @@
 			"path": "./src/tsconfig.restClient.json"
 		},
 		{
-			"path": "./src/tsconfig.instacePipeline.json"
+			"path": "./src/tsconfig.instancePipeline.json"
 		},
 		{
 			"path": "./src/tsconfig.typerefs.json"
