@@ -92,7 +92,7 @@ import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvi
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
-import { typeModelToRestPath } from "../rest/EntityRestClient"
+import { OwnerKeyProvider, typeModelToRestPath } from "../rest/EntityRestClient"
 import { AttributeModel } from "../../common/AttributeModel"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../facades/InstanceSessionKeysCache"
@@ -104,7 +104,6 @@ type ResolvedSessionKeys = {
 	resolvedSessionKeyForInstance: AesKey
 	instanceSessionKeys: Array<InstanceSessionKey>
 }
-
 export class CryptoFacade {
 	constructor(
 		private readonly userFacade: UserFacade,
@@ -131,6 +130,24 @@ export class CryptoFacade {
 	async decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
 		const gk = await this.keyLoaderFacade.loadSymGroupKey(ownerGroup, ownerEncSessionKey.encryptingKeyVersion)
 		return decryptKey(gk, ownerEncSessionKey.key)
+	}
+
+	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+		try {
+			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
+				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
+			} else {
+				return await this.resolveSessionKey(migratedEntity)
+			}
+		} catch (e) {
+			if (e instanceof SessionKeyNotFoundError) {
+				console.log(`could not resolve session key for instance of type ${migratedEntity._type.app}/${migratedEntity._type.typeId}`, e)
+				return null
+			} else {
+				throw e
+			}
+		}
 	}
 
 	/**
@@ -516,6 +533,8 @@ export class CryptoFacade {
 				await this.typeModelResolver.resolveServerTypeReference(instance._type),
 				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 				resolvedSessionKeyForInstance,
+				instance._kdfNonce ?? null,
+				instance._ownerGroup ?? null,
 			)
 			decryptedInstance = await this.instancePipeline.modelMapper.mapToInstance(instance._type, parsedInstance)
 		}

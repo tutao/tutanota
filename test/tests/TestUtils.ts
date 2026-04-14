@@ -5,7 +5,7 @@ import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFa
 import { assertNotNull, clone, deepEqual, defer, isNotNull, Thunk, typedEntries, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
-import { Aes256Key, aes256RandomKey, FIXED_IV } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, FIXED_IV, SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import { Entity, ModelValue, TypeModel } from "../../src/common/api/common/EntityTypes.js"
@@ -18,8 +18,7 @@ import { ModelMapper } from "../../src/common/api/worker/crypto/ModelMapper"
 import { dummyResolver } from "./api/worker/crypto/InstancePipelineTestUtils"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 import { ClientPlatform } from "../../src/common/misc/ClientDetector"
-import { ProgrammingError } from "../../src/common/api/common/error/ProgrammingError"
-import { DateProvider } from "../../src/common/api/common/DateProvider.js"
+import { KeyLoaderFacade } from "../../src/common/api/worker/facades/KeyLoaderFacade"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -332,10 +331,16 @@ export function clientInitializedTypeModelResolver(): TypeModelResolver {
 	return new TypeModelResolver(clientModelInfo, serverModelInfo)
 }
 
-export function instancePipelineFromTypeModelResolver(typeModelResolver: TypeModelResolver): InstancePipeline {
+export function instancePipelineFromTypeModelResolver(
+	typeModelResolver: TypeModelResolver,
+	keyLoaderFacade: KeyLoaderFacade = object(),
+	symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE,
+): InstancePipeline {
 	return new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
 		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
+		() => keyLoaderFacade,
+		symmetricCipherFacade,
 	)
 }
 

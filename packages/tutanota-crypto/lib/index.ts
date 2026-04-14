@@ -62,7 +62,7 @@ export {
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export { KeyLength, EntropySource, HkdfKeyDerivationDomains } from "./misc/Constants.js"
+export { KeyLength, EntropySource, HkdfKeyDerivationDomains, UNIT_SEPARATOR_CHAR, DomainSeparator } from "./misc/Constants.js"
 export {
 	AbstractEncryptedKeyPair,
 	EncryptedKeyPairs,
@@ -133,8 +133,23 @@ export {
 	Aes256Key,
 	IV_BYTE_LENGTH,
 	FIXED_IV,
+	generateIV,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { AeadFacade } from "./encryption/symmetric/AeadFacade.js"
-export { SymmetricKeyDeriver } from "./encryption/symmetric/SymmetricKeyDeriver.js"
+export { SymmetricKeyDeriver, SymmetricSubKeys, AeadSubKeys } from "./encryption/symmetric/SymmetricKeyDeriver.js"
+export {
+	SymmetricCipherVersion,
+	SymmetricAesCipherVersion,
+	SymmetricAeadCipherVersion,
+	getSymmetricCipherVersion,
+} from "./encryption/symmetric/SymmetricCipherVersion.js"
+export {
+	SymmetricCipherFacade,
+	SYMMETRIC_CIPHER_FACADE,
+	ValueDecryptor,
+	InstanceDecryptor,
+	MissingSessionKey,
+} from "./encryption/symmetric/SymmetricCipherFacade.js"
+export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"

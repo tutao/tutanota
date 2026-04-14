@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { AesCbcFacade } from "../lib/encryption/symmetric/AesCbcFacade.js"
-import { SymmetricKeyDeriver } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
-import { aes256RandomKey, FIXED_IV } from "../lib/index.js"
+import { SymmetricKeyDeriver, SymmetricSubKeys } from "../lib/encryption/symmetric/SymmetricKeyDeriver.js"
+import { Aes128Key, Aes256Key, aes256RandomKey, FIXED_IV } from "../lib/index.js"
 import { _aes128RandomKey } from "./AesTest.js"
 import { object, when } from "testdouble"
 import { SymmetricCipherVersion } from "../lib/encryption/symmetric/SymmetricCipherVersion.js"
@@ -12,14 +12,18 @@ import { CryptoError } from "../lib/misc/CryptoError.js"
 o.spec("AesCbcFacadeTest", function () {
 	let aesCbcFacade: AesCbcFacade
 	let symmetricKeyDeriver: SymmetricKeyDeriver
-	let aesKey_256
-	let aesKey_128
+	let aesKey_256: Aes256Key
+	let aesKey_128: Aes128Key
 	let iv = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 	let plainText = new Uint8Array([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
-	let authentication256Key
-	let encryption256Key
-	let authentication128Key
-	let encryption128Key
+	let authentication256Key: Aes256Key
+	let encryption256Key: Aes256Key
+	let authentication128Key: Aes128Key
+	let encryption128Key: Aes128Key
+	let symmetricSubKeys128WithoutAuthenticationKey: SymmetricSubKeys
+	let symmetricSubKeys256WithoutAuthenticationKey: SymmetricSubKeys
+	let symmetricSubKeys128WithAuthenticationKey: SymmetricSubKeys
+	let symmetricSubKeys256WithAuthenticationKey: SymmetricSubKeys
 
 	o.before(function () {
 		aesKey_256 = aes256RandomKey()
@@ -29,35 +33,40 @@ o.spec("AesCbcFacadeTest", function () {
 		encryption256Key = aes256RandomKey()
 		authentication256Key = aes256RandomKey()
 		symmetricKeyDeriver = object()
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn({
-			encryptionKey: aesKey_128,
+		symmetricSubKeys128WithoutAuthenticationKey = {
+			encryptionKey: encryption128Key,
 			authenticationKey: null,
-		})
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn({
-			encryptionKey: aesKey_256,
+		}
+		symmetricSubKeys256WithoutAuthenticationKey = {
+			encryptionKey: encryption256Key,
 			authenticationKey: null,
-		})
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn({
-			encryptionKey: aesKey_128,
+		}
+		symmetricSubKeys128WithAuthenticationKey = {
+			encryptionKey: encryption128Key,
 			authenticationKey: authentication128Key,
-		})
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn({
-			encryptionKey: aesKey_256,
+		}
+		symmetricSubKeys256WithAuthenticationKey = {
+			encryptionKey: encryption256Key,
 			authenticationKey: authentication256Key,
-		})
+		}
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn(
+			symmetricSubKeys128WithoutAuthenticationKey,
+		)
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn(
+			symmetricSubKeys256WithoutAuthenticationKey,
+		)
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_128, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn(symmetricSubKeys128WithAuthenticationKey)
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn(symmetricSubKeys256WithAuthenticationKey)
 
 		aesCbcFacade = new AesCbcFacade(symmetricKeyDeriver)
 	})
 	o("unexpected cipher version", async function () {
-		const cipherVersion = SymmetricCipherVersion.Aead
-		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, cipherVersion)).thenReturn({
-			encryptionKey: aesKey_256,
-			authenticationKey: authentication256Key,
-		})
+		const cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+		when(symmetricKeyDeriver.deriveSubKeys(aesKey_256, cipherVersion)).thenReturn(symmetricSubKeys256WithAuthenticationKey)
 		let e = await assertThrows(Error, async () => aesCbcFacade.encrypt(aesKey_256, plainText, true, iv, true, cipherVersion))
 		o(e.message).equals("unexpected cipher version " + cipherVersion)
 
-		e = await assertThrows(Error, async () => aesCbcFacade.decrypt(aesKey_256, plainText, true, true, cipherVersion))
+		e = await assertThrows(Error, async () => aesCbcFacade.decrypt(symmetricSubKeys256WithAuthenticationKey, plainText, true, true, cipherVersion))
 		o(e.message).equals("unexpected cipher version " + cipherVersion)
 	})
 	o.spec("roundtrip 128", function () {
@@ -66,17 +75,16 @@ o.spec("AesCbcFacadeTest", function () {
 			const hasPadding = false
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			const ciphertext = aesCbcFacade.encrypt(aesKey_128, plainText, hasRandomIv, Uint8Array.from(FIXED_IV), hasPadding, cipherVersion)
-			const decrypted = aesCbcFacade.decrypt(aesKey_128, ciphertext, hasRandomIv, hasPadding, cipherVersion)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys128WithoutAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion)
 			o(decrypted).deepEquals(plainText)
-			const expectedLength = BLOCK_SIZE_BYTES // ciphertext
-			o(ciphertext.length).equals(expectedLength)
+			o(ciphertext.length).equals(BLOCK_SIZE_BYTES)
 		})
 		o("with iv and padding success", function () {
 			const hasRandomIv = true
 			const hasPadding = true
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			const ciphertext = aesCbcFacade.encrypt(aesKey_128, plainText, hasRandomIv, iv, hasPadding, cipherVersion)
-			const decrypted = aesCbcFacade.decrypt(aesKey_128, ciphertext, hasRandomIv, hasPadding, cipherVersion)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys128WithoutAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion)
 			o(decrypted).deepEquals(plainText)
 			const expectedLength =
 				BLOCK_SIZE_BYTES + // ciphertext
@@ -89,7 +97,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const hasPadding = true
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 			const ciphertext = aesCbcFacade.encrypt(aesKey_128, plainText, hasRandomIv, Uint8Array.from(FIXED_IV), hasPadding, cipherVersion)
-			const decrypted = aesCbcFacade.decrypt(aesKey_128, ciphertext, hasRandomIv, hasPadding, cipherVersion)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys128WithAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion)
 			o(decrypted).deepEquals(plainText)
 			const expectedLength =
 				SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES +
@@ -102,7 +110,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const hasPadding = true
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 			const ciphertext = aesCbcFacade.encrypt(aesKey_128, plainText, hasRandomIv, iv, hasPadding, cipherVersion)
-			const decrypted = aesCbcFacade.decrypt(aesKey_128, ciphertext, hasRandomIv, hasPadding, cipherVersion)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys128WithAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion)
 			o(decrypted).deepEquals(plainText)
 			const expectedLength =
 				SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES +
@@ -117,7 +125,9 @@ o.spec("AesCbcFacadeTest", function () {
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 			const ciphertext = aesCbcFacade.encrypt(aesKey_128, plainText, hasRandomIv, iv, hasPadding, cipherVersion)
 			ciphertext[ciphertext.length - 1]++
-			const e = await assertThrows(CryptoError, async () => aesCbcFacade.decrypt(aesKey_128, ciphertext, hasRandomIv, hasPadding, cipherVersion))
+			const e = await assertThrows(CryptoError, async () =>
+				aesCbcFacade.decrypt(symmetricSubKeys128WithAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion),
+			)
 			o(e.message).equals("invalid mac")
 		})
 	})
@@ -127,7 +137,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const hasPadding = false
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion)
-			const decrypted = aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys256WithAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion)
 			o(decrypted).deepEquals(plainText)
 			const expectedLength =
 				SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES +
@@ -140,7 +150,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const hasPadding = true
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion)
-			const decrypted = aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys256WithAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion)
 			o(decrypted).deepEquals(plainText)
 			const expectedLength =
 				SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES +
@@ -155,7 +165,9 @@ o.spec("AesCbcFacadeTest", function () {
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion)
 			ciphertext[ciphertext.length - 1]++
-			const e = await assertThrows(CryptoError, async () => aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion))
+			const e = await assertThrows(CryptoError, async () =>
+				aesCbcFacade.decrypt(symmetricSubKeys256WithAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion),
+			)
 			o(e.message).equals("invalid mac")
 		})
 		o("authentication is enforced for 256 bit keys - error thrown", async function () {
@@ -164,24 +176,25 @@ o.spec("AesCbcFacadeTest", function () {
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			await assertThrows(CryptoError, async () => aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion, false))
 			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion, true)
-			await assertThrows(CryptoError, async () => aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion, false))
+			await assertThrows(CryptoError, async () =>
+				aesCbcFacade.decrypt(symmetricSubKeys256WithoutAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion, false),
+			)
 		})
 		o("skip authentication no iv no padding success", function () {
 			const hasRandomIv = false
 			const hasPadding = false
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, Uint8Array.from(FIXED_IV), hasPadding, cipherVersion, true)
-			const decrypted = aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion, true)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys256WithoutAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion, true)
 			o(decrypted).deepEquals(plainText)
-			const expectedLength = BLOCK_SIZE_BYTES
-			o(ciphertext.length).equals(expectedLength)
+			o(ciphertext.length).equals(BLOCK_SIZE_BYTES)
 		})
 		o("skip authentication with iv and padding success", function () {
 			const hasRandomIv = true
 			const hasPadding = true
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			const ciphertext = aesCbcFacade.encrypt(aesKey_256, plainText, hasRandomIv, iv, hasPadding, cipherVersion, true)
-			const decrypted = aesCbcFacade.decrypt(aesKey_256, ciphertext, hasRandomIv, hasPadding, cipherVersion, true)
+			const decrypted = aesCbcFacade.decrypt(symmetricSubKeys256WithoutAuthenticationKey, ciphertext, hasRandomIv, hasPadding, cipherVersion, true)
 			o(decrypted).deepEquals(plainText)
 			const expectedLength =
 				BLOCK_SIZE_BYTES + // ciphertext

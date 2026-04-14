@@ -52,7 +52,7 @@ export class KeyLoaderFacade {
 			const refreshedGroupKey = await this.getCurrentSymGroupKey(groupId) // we pass the currentGroupKey to break the recursion
 			return this.loadSymGroupKey(groupId, requestedVersion, refreshedGroupKey)
 		} else {
-			// we load a former key as the cached one is newer: groupKey.requestedVersion > requestedVersion
+			// we load a former key as the cached one is newer: groupKey.version > requestedVersion
 			const group = await this.entityClient.load(GroupTypeRef, groupId)
 			const { symmetricGroupKey } = await this.findFormerGroupKey(group, groupKey, requestedVersion)
 			return symmetricGroupKey
@@ -131,7 +131,7 @@ export class KeyLoaderFacade {
 				keyPair = group.currentKeys
 			} else {
 				if (parseKeyVersion(group.groupKeyVersion) < currentGroupKey.version) {
-					// this should not happen we want to find out where we actuall call this from
+					// this should not happen we want to find out where we actually call this from
 					try {
 						throw new Error()
 					} catch (e) {
@@ -172,7 +172,7 @@ export class KeyLoaderFacade {
 	}
 
 	/**
-	 * Loads all former keypairs for a group
+	 * Loads all former key pairs for a group
 	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
 	 */
 	async loadAllFormerKeyPairs(group: Group, currentGroupKey: VersionedKey | undefined = undefined): Promise<Versioned<AsymmetricKeyPair>[]> {

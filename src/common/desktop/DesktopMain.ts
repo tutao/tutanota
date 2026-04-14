@@ -62,7 +62,7 @@ import { TutaSseFacade } from "./sse/TutaSseFacade.js"
 import { SseStorage } from "./sse/SseStorage.js"
 import { DesktopSseDelay } from "./sse/reconnectDelay.js"
 import { KeychainEncryption } from "./credentials/KeychainEncryption.js"
-import { Argon2IDExports } from "@tutao/tutanota-crypto"
+import { Argon2IDExports, SYMMETRIC_CIPHER_FACADE } from "@tutao/tutanota-crypto"
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
 import { ExposedNativeInterface } from "../native/common/NativeInterface.js"
 import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
@@ -121,7 +121,7 @@ const opts = {
 	wasAutoLaunched: process.platform !== "darwin" ? process.argv.some((arg) => arg === "-a") : app.getLoginItemSettings().wasOpenedAtLogin,
 }
 
-// In windows we require elevated permissions in order to be able to register/deregister as a mailto handler, since it requires registry
+// In windows, we require elevated permissions in order to be able to register/deregister as a mailto handler, since it requires registry
 // modifications. If we don't have admin rights, apparently the easiest way to get them is just to spin up a new instance of the app
 // with admin privileges, and then call DesktopUtils.[un]registerAsMailHandler from that instance.
 // Tutanota isn't a CLI app, so while this functionality is technically available to users, we don't publicise it as such
@@ -161,7 +161,7 @@ async function createComponents(): Promise<Components> {
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
 
-	// Fire config loading, dont wait for it
+	// Fire config loading, don't wait for it
 	conf.init(getConfigFile(app.getAppPath(), "package.json", fs), getConfigFile(app.getPath("userData"), "conf.json", fs)).catch((e) => {
 		console.error("Could not load config", e)
 		process.exit(1)
@@ -190,6 +190,12 @@ async function createComponents(): Promise<Components> {
 	const nativeInstancePipeline = new InstancePipeline(
 		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
 		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
+		() => {
+			// Alarms are always encrypted using session keys by the client and never by the server.
+			// That is because, as they need to work offline, they cannot rely on being able to load group keys.
+			throw new ProgrammingError("trying to use group keys for alarm encryption")
+		},
+		SYMMETRIC_CIPHER_FACADE,
 	)
 	const sseStorage = new SseStorage(conf)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline, clientModelInfo)
@@ -432,7 +438,7 @@ async function main(components: Components) {
 
 	log.debug("Webapp ready")
 	app.on("activate", () => {
-		// MacOs
+		// macOS
 		// this is fired for almost every interaction and on launch
 		// so set listener later to avoid the call on launch
 		wm.getLastFocused(true)
@@ -450,10 +456,10 @@ function manageDownloadsForSession(session: Session, dictUrl: string) {
 	session.setSpellCheckerDictionaryDownloadURL(dictUrl)
 	session
 		.removeAllListeners("spellcheck-dictionary-download-failure")
-		.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
-		.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
-		.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
-		.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
+		.on("spellcheck-dictionary-initialized", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+		.on("spellcheck-dictionary-download-begin", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
+		.on("spellcheck-dictionary-download-success", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
+		.on("spellcheck-dictionary-download-failure", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 }
 
 async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig, utils: DesktopUtils) {
@@ -472,7 +478,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 			case 1:
 				for (const window of wm.getAll()) {
 					log.debug("Closing window ", window.id)
-					// ideally we would destroy the window but it leads to obscure segfaults
+					// ideally we would destroy the window, but it leads to obscure segfaults
 					await window.close()
 				}
 

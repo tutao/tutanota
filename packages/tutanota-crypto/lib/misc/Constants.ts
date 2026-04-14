@@ -16,3 +16,6 @@ export type HkdfKeyDerivationDomains =
 	| "publicIdentityKey"
 
 export type MacTag = Uint8Array & { __brand: "macTag" }
+
+export const UNIT_SEPARATOR_CHAR = "" as const
+export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`

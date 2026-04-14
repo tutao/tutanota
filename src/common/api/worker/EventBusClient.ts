@@ -406,10 +406,16 @@ export class EventBusClient {
 				const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
 				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
-				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 				const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
 				const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
-				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
+					serverTypeModel,
+					encryptedParsedInstance,
+					sessionKey,
+					entityAdapter._kdfNonce,
+					entityAdapter._ownerGroup,
+				)
 
 				// we do not want to process the instance if there are _errors (when decrypting)
 				if (!hasError(parsedInstance)) {
@@ -426,6 +432,8 @@ export class EventBusClient {
 							mailDetailsBlobServerTypeModel,
 							mailDetailsBlobEncryptedParsedInstance,
 							sessionKey,
+							entityAdapter._kdfNonce,
+							entityAdapter._ownerGroup,
 						)
 						return { parsedInstance, parsedBlobInstance }
 					}
@@ -652,7 +660,7 @@ export class EventBusClient {
 			}
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {
-				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
+				// a ServiceUnavailableError is a temporary error, and we have to retry to avoid data inconsistencies
 				console.log("ws retry processing event in 30s", e)
 				const retryPromise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 					// if we have a websocket reconnect we have to stop retrying

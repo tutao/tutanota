@@ -21,10 +21,16 @@ import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "../../../..
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { ValueType } from "../../../../../src/common/api/common/EntityConstants"
 import { areValuesDifferent, computePatches } from "../../../../../src/common/api/common/utils/PatchGenerator"
+import { object } from "testdouble"
 
 o.spec("computePatches", function () {
 	const dummyTypeReferenceResolver = dummyResolver as ClientTypeReferenceResolver
-	const dummyInstancePipeline = new InstancePipeline(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)
+	const dummyInstancePipeline = new InstancePipeline(
+		dummyResolver as ClientTypeReferenceResolver,
+		dummyResolver as ServerTypeReferenceResolver,
+		object(),
+		object(),
+	)
 
 	o("computePatches returns empty list for equal objects", async function () {
 		const testEntity = await createFilledTestEntity()

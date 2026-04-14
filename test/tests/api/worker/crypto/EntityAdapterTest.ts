@@ -28,10 +28,10 @@ o.spec("EntityAdapter", () => {
 			_ownerKeyVersion: "99",
 			_kdfNonce: null,
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
-			group: "somegroup",
+			group: "someGroup",
 		})
 		const groupInfoParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(GroupInfoTypeRef, groupInfo)
-		const entityAdapter = await EntityAdapter.from(groupModel, groupInfoParsed, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(groupModel, groupInfoParsed, instancePipeline.modelMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
@@ -61,7 +61,7 @@ o.spec("EntityAdapter", () => {
 
 		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
 		const mailBucketKey = await instancePipeline.modelMapper.mapToInstance(BucketKeyTypeRef, mailParsed["1310"]![0])
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
@@ -77,12 +77,12 @@ o.spec("EntityAdapter", () => {
 
 		const importMailGetIn = createTestEntity(ImportMailGetInTypeRef, {
 			ownerGroup: "ownerGroupId", // ownerGroupId is currently not used as MailGroup is hardcoded in CryptoFacade#resolveSessionKey
-			targetMailFolder: ["folderlist", "folderId"],
+			targetMailFolder: ["folderList", "folderId"],
 			ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			ownerKeyVersion: "99",
 		})
 		const importMailGetInParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(ImportMailGetInTypeRef, importMailGetIn)
-		const entityAdapter = await EntityAdapter.from(importMailGetInModel, importMailGetInParsed, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(importMailGetInModel, importMailGetInParsed, instancePipeline.modelMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter.ownerEncSessionKey).equals(importMailGetIn.ownerEncSessionKey!)
@@ -99,7 +99,7 @@ o.spec("EntityAdapter", () => {
 		})
 
 		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		const ownerEncSk: Uint8Array = new Uint8Array([1, 2, 3])
 
@@ -123,7 +123,7 @@ o.spec("EntityAdapter", () => {
 		})
 
 		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		const kdfNonce: Uint8Array = new Uint8Array([3, 4, 5])
 
@@ -143,7 +143,7 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		const ownerGroupId = "ownerGroupId"
 		o(entityAdapter._ownerGroup).equals(null)

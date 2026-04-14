@@ -8,17 +8,29 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeModel,
 } from "../../common/EntityTypes"
-import { Base64, base64ToUint8Array, Nullable, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	Base64,
+	base64ToUint8Array,
+	KeyVersion,
+	lazy,
+	Nullable,
+	stringToUtf8Uint8Array,
+	TypeRef,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { aesDecrypt, aesEncrypt, AesKey } from "@tutao/tutanota-crypto"
-import { convertDbToJsType, convertJsToDbType, decompressString, valueToDefault } from "./ModelMapper"
+import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade } from "@tutao/tutanota-crypto"
+import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { isWebClient } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { AttributeModel } from "../../common/AttributeModel"
 import { hasError } from "../../common/utils/ErrorUtils"
+import { KeyLoaderFacade } from "../facades/KeyLoaderFacade"
+import { EntityAdapter } from "./EntityAdapter"
 
 // Exported for testing
 export function encryptValue(valueType: ModelValue & { encrypted: true }, value: Nullable<ParsedValue>, sk: AesKey): Nullable<Base64> {
@@ -32,52 +44,40 @@ export function encryptValue(valueType: ModelValue & { encrypted: true }, value:
 	}
 }
 
-// Exported for testing
-export function decryptValue(
-	valueType: ModelValue & {
-		encrypted: true
-	},
-	value: Nullable<Base64>,
-	sk: AesKey,
-): Nullable<ParsedValue> {
-	if (value == null) {
-		return null
-	} else if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
-		// Might happen if cardinality was changed from ZeroOrOne -> One -> ZeroOrOne
-		console.warn(`Found an encrypted attribute (${valueType.id}:${valueType.name}) with a Cardinality.ZeroOrOne and an empty value`)
-		return null
-	} else if (valueType.cardinality === Cardinality.One && value === "") {
-		// Migration for values added after the Type has been defined initially
-		return valueToDefault(valueType.type)
-	} else {
-		let decryptedBytes = aesDecrypt(sk, base64ToUint8Array(value))
-
-		if (valueType.type === ValueType.Bytes) {
-			return decryptedBytes
-		} else if (valueType.type === ValueType.CompressedString) {
-			return decompressString(decryptedBytes)
-		} else {
-			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
-		}
-	}
-}
-
 export class CryptoMapper {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+		private readonly symmetricCipherFacade: SymmetricCipherFacade,
+		private readonly keyLoaderFacade: lazy<KeyLoaderFacade>,
+		private readonly modelMapper: ModelMapper,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
 			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
 		}
 	}
 
+	async getInputKey(requiredGroupKeyVersion: "none" | KeyVersion, groupId: Nullable<Id>): Promise<Nullable<AesKey>> {
+		if (requiredGroupKeyVersion === "none") {
+			return null
+		}
+		if (groupId === null) {
+			throw new CryptoError("Cannot load group key. Missing group Id.")
+		}
+		return this.keyLoaderFacade().loadSymGroupKey(groupId, requiredGroupKeyVersion)
+	}
+
 	public async decryptParsedInstance(
 		serverTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
-		sk: Nullable<AesKey>,
+		sessionKey: Nullable<AesKey>,
+		kdfNonce: Nullable<Uint8Array>,
+		ownerGroupId: Nullable<Id>,
+		fieldPathPrefix: string = "",
 	): Promise<ServerModelParsedInstance> {
 		const decrypted: ServerModelParsedInstance = {} as ServerModelParsedInstance
+		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, String(serverTypeModel.id))
+
 		for (const [valueIdStr, valueInfo] of Object.entries(serverTypeModel.values)) {
 			const valueId = parseInt(valueIdStr)
 			const valueName = valueInfo.name
@@ -86,14 +86,11 @@ export class CryptoMapper {
 			try {
 				if (!valueInfo.encrypted) {
 					decrypted[valueId] = encryptedValue
-				} else if (sk != null) {
+				} else {
 					const encryptedValueInfo = valueInfo as ModelValue & { encrypted: true }
 					const encryptedString = encryptedValue as Base64
-					decrypted[valueId] = decryptValue(encryptedValueInfo, encryptedString, sk)
-				} else {
-					throw new SessionKeyNotFoundError(
-						"session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + JSON.stringify(valueInfo),
-					)
+					const fieldPath = `${fieldPathPrefix}${valueInfo.id}`
+					decrypted[valueId] = await this.decryptValue(encryptedValueInfo, encryptedString, instanceDecryptor, ownerGroupId, fieldPath)
 				}
 			} catch (e) {
 				if (decrypted._errors == null) {
@@ -118,10 +115,14 @@ export class CryptoMapper {
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
+				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
 				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
-					sk,
+					sessionKey,
+					kdfNonce,
+					ownerGroupId,
+					fieldPathPrefixForThisAssociation,
 				)
 				decrypted[associationId] = decryptedAggregates
 				if (this.containErrors(decryptedAggregates)) {
@@ -157,11 +158,23 @@ export class CryptoMapper {
 	public async decryptAggregateAssociation(
 		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
-		sk: Nullable<AesKey>,
+		sessionKey: Nullable<AesKey>,
+		kdfNonce: Nullable<Uint8Array>,
+		ownerGroupId: Nullable<Id>,
+		fieldPathPrefix: string,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
 		for (const encryptedAggregate of encryptedInstanceValues) {
-			const decryptedAggregate = await this.decryptParsedInstance(associationServerTypeModel, encryptedAggregate, sk)
+			const entityAdapter = await EntityAdapter.from(associationServerTypeModel, encryptedAggregate, this.modelMapper)
+			fieldPathPrefix = `${fieldPathPrefix}${entityAdapter._id as Id}/`
+			const decryptedAggregate = await this.decryptParsedInstance(
+				associationServerTypeModel,
+				encryptedAggregate,
+				sessionKey,
+				kdfNonce,
+				ownerGroupId,
+				fieldPathPrefix,
+			)
 			decryptedAggregates.push(decryptedAggregate)
 		}
 		return decryptedAggregates
@@ -218,5 +231,42 @@ export class CryptoMapper {
 		}
 
 		return encryptedAggregates
+	}
+
+	async decryptValue(
+		valueType: ModelValue & {
+			encrypted: true
+		},
+		value: Nullable<Base64>,
+		instanceDecryptor: InstanceDecryptor,
+		groupId: Nullable<Id>,
+		fieldPath: string,
+	): Promise<Nullable<ParsedValue>> {
+		if (value == null) {
+			return null
+		} else if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
+			// Might happen if cardinality was changed from ZeroOrOne -> One -> ZeroOrOne
+			console.warn(`Found an encrypted attribute (${valueType.id}:${valueType.name}) with a Cardinality.ZeroOrOne and an empty value`)
+			return null
+		} else if (valueType.cardinality === Cardinality.One && value === "") {
+			// Migration for values added after the Type has been defined initially
+			return valueToDefault(valueType.type)
+		} else {
+			const ciphertext = base64ToUint8Array(value)
+			const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)
+			if (valueDecryptor === MissingSessionKey) {
+				throw new SessionKeyNotFoundError("")
+			}
+			const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, groupId)
+			const decryptedBytes = valueDecryptor.getValue(inputKey)
+
+			if (valueType.type === ValueType.Bytes) {
+				return decryptedBytes
+			} else if (valueType.type === ValueType.CompressedString) {
+				return decompressString(decryptedBytes)
+			} else {
+				return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
+			}
+		}
 	}
 }

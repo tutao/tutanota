@@ -26,7 +26,7 @@ import type {
 	UntypedInstance,
 } from "../../common/EntityTypes"
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
-import { AssociationType, Type } from "../../common/EntityConstants.js"
+import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -41,7 +41,6 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { PatchListTypeRef } from "../../entities/sys/TypeRefs"
-import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { expandId } from "./RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { computePatchPayload } from "../../common/utils/PatchGenerator"
@@ -248,13 +247,15 @@ export class EntityRestClient implements EntityRestInterface {
 		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(json))
 
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
-		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entityAdapter)
-		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity)
+		const sessionKey = await this._crypto.resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
 			migratedEntity.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
+			migratedEntity._kdfNonce,
+			migratedEntity._ownerGroup,
 		)
 		tm?.endMeasurement()
 		return decrypted
@@ -266,8 +267,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async mapInstanceToEntity<T extends SomeEntity>(typeRef: TypeRef<T>, parsedInstance: ServerModelParsedInstance): Promise<T> {
-		const instance = downcast<T>(await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance))
-		return instance
+		return downcast<T>(await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance))
 	}
 
 	async mapInstancesToEntity<T extends SomeEntity>(typeRef: TypeRef<T>, parsedInstances: Array<ServerModelParsedInstance>): Promise<T[]> {
@@ -280,24 +280,6 @@ export class EntityRestClient implements EntityRestInterface {
 				concurrency: 5,
 			},
 		)
-	}
-
-	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
-		try {
-			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
-				return this._crypto.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
-			} else {
-				return await this._crypto.resolveSessionKey(migratedEntity)
-			}
-		} catch (e) {
-			if (e instanceof SessionKeyNotFoundError) {
-				console.log(`could not resolve session key for instance of type ${migratedEntity._type.app}/${migratedEntity._type.typeId}`, e)
-				return null
-			} else {
-				throw e
-			}
-		}
 	}
 
 	async loadParsedInstancesRange<T extends ListElementEntity>(
@@ -451,7 +433,7 @@ export class EntityRestClient implements EntityRestInterface {
 			async (instance) => {
 				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
-				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 				return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
 			},
 			{
@@ -490,6 +472,8 @@ export class EntityRestClient implements EntityRestInterface {
 			serverTypeModel,
 			entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
+			entityAdapter._kdfNonce,
+			entityAdapter._ownerGroup,
 		)
 	}
 
@@ -564,11 +548,13 @@ export class EntityRestClient implements EntityRestInterface {
 				if (e instanceof PayloadTooLargeError) {
 					// If we try to post too many large instances then we get PayloadTooLarge
 					// So we fall back to posting single instances
-					const returnedIds = await promiseMap(instanceChunk, (instance) => {
-						return this.setup(listId, instance).catch((e) => {
+					const returnedIds = await promiseMap(instanceChunk, async (instance) => {
+						try {
+							return await this.setup(listId, instance)
+						} catch (e) {
 							errors.push(e)
 							failedInstances.push(instance)
-						})
+						}
 					})
 					return returnedIds.filter(Boolean) as Id[]
 				} else {
@@ -600,7 +586,7 @@ export class EntityRestClient implements EntityRestInterface {
 			undefined,
 			options?.ownerKeyProvider,
 		)
-		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instance)
+		const sessionKey = await this._crypto.resolveSessionKeyWithOwnerKeyProvider(options?.ownerKeyProvider, instance)
 		// map and encrypt instance._original and the instance
 		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
@@ -720,7 +706,7 @@ export class EntityRestClient implements EntityRestInterface {
 	/**
 	 * for the admin area (no cache available)
 	 */
-	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
+	entityEventsReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<readonly EntityUpdateData[]> {
 		return Promise.resolve(events)
 	}
 

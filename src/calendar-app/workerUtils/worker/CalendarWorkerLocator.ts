@@ -40,7 +40,7 @@ import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../com
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
-import { random } from "@tutao/tutanota-crypto"
+import { random, SYMMETRIC_CIPHER_FACADE } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ExportFacadeSendDispatcher.js"
 import { lazyAsync, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
@@ -92,11 +92,10 @@ import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/Ins
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
-	NoOpLastProcessedEventBatchStorageFacade,
 	LastProcessedEventBatchStorageFacade,
+	NoOpLastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
-import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
@@ -204,6 +203,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
 		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
+		() => locator.keyLoader,
+		SYMMETRIC_CIPHER_FACADE,
 	)
 	locator.rsa = await createRsaImplementation(worker)
 
@@ -278,7 +279,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {

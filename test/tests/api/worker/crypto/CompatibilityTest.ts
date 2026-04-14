@@ -66,11 +66,11 @@ import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
-import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
-import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
-import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "../../../../../packages/tutanota-crypto/lib/hashes/Blake3"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade.js"
+import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade.js"
+import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "../../../../../packages/tutanota-crypto/lib/hashes/Blake3.js"
 
 const originalRandom = random.generateRandomData
 
@@ -83,7 +83,7 @@ o.spec("CompatibilityTest", function () {
 
 	o("rsa encryption", () => {
 		for (const td of testData.rsaEncryptionTests) {
-			random.generateRandomData = (number) => hexToUint8Array(td.seed)
+			random.generateRandomData = (_number) => hexToUint8Array(td.seed)
 
 			let publicKey = hexToRsaPublicKey(td.publicKey)
 			let encryptedData = rsaEncrypt(publicKey, hexToUint8Array(td.input), hexToUint8Array(td.seed))
@@ -120,7 +120,7 @@ o.spec("CompatibilityTest", function () {
 	})
 	o("aes 256", function () {
 		for (const td of testData.aes256Tests) {
-			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
+			random.generateRandomData = (_number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
 			// encrypt data
 			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64))
@@ -191,7 +191,7 @@ o.spec("CompatibilityTest", function () {
 
 	o("aes 128 no mac", function () {
 		for (const td of testData.aes128Tests) {
-			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
+			random.generateRandomData = (_number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
 			let encryptedBytes = aes256EncryptSearchIndexEntry(key, base64ToUint8Array(td.plainTextBase64))
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
@@ -201,7 +201,7 @@ o.spec("CompatibilityTest", function () {
 	})
 	o("aes 128 mac", function () {
 		for (const td of testData.aes128MacTests) {
-			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
+			random.generateRandomData = (_number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
 			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64))
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
@@ -215,7 +215,7 @@ o.spec("CompatibilityTest", function () {
 			random.generateRandomData = (IV_BYTE_LENGTH: number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			const aeadFacade = new AeadFacade()
 			const encryptionKey = uint8ArrayToKey(hexToUint8Array(td.encryptionKey))
-			const authenticationKey = hexToUint8Array(td.authenticationKey)
+			const authenticationKey = uint8ArrayToKey(hexToUint8Array(td.authenticationKey))
 			const keys = { encryptionKey, authenticationKey }
 			const plaintext = base64ToUint8Array(td.plaintextBase64)
 			const associatedData = base64ToUint8Array(td.associatedData)
@@ -516,7 +516,7 @@ o.spec("CompatibilityTest", function () {
 				)
 				o.check(keysFrom256).deepEquals({
 					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom256Hex)),
-					authenticationKey: hexToUint8Array(td.authenticationKeyFrom256Hex),
+					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFrom256Hex)),
 				})
 
 				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
@@ -526,7 +526,7 @@ o.spec("CompatibilityTest", function () {
 				)
 				o.check(keysFrom128).deepEquals({
 					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom128Hex)),
-					authenticationKey: hexToUint8Array(td.authenticationKeyFrom128Hex),
+					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFrom128Hex)),
 				})
 
 				const keysFromSessionKey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(
@@ -535,7 +535,7 @@ o.spec("CompatibilityTest", function () {
 				)
 				o.check(keysFromSessionKey).deepEquals({
 					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFromSessionKeyHex)),
-					authenticationKey: hexToUint8Array(td.authenticationKeyFromSessionKeyHex),
+					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFromSessionKeyHex)),
 				})
 			}
 		})

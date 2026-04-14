@@ -123,7 +123,7 @@ export type TypeModel = {
 	encrypted: boolean
 	/**
 	 * this is used to directly load certain instances that are indirectly referenced by their predictable Id,
-	 * eg. when going from the Calendar group to the instance that contains the calendar list. All groups need to
+	 * e.g. when going from the Calendar group to the instance that contains the calendar list. All groups need to
 	 * have the same structure, so this associated data has to go in another type.
 	 **/
 	rootId: Id

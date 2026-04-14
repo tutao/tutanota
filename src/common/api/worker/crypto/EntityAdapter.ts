@@ -1,17 +1,8 @@
 import { BucketKey, BucketKeyTypeRef } from "../../entities/sys/TypeRefs"
-import { assertNotNull, downcast, TypeRef } from "@tutao/tutanota-utils"
-import type {
-	ClientModelParsedInstance,
-	EncryptedParsedInstance,
-	Entity,
-	ServerModelEncryptedParsedInstance,
-	ServerModelParsedInstance,
-	ServerTypeModel,
-	TypeModel,
-} from "../../common/EntityTypes"
+import { assertNotNull, downcast, Nullable, TypeRef } from "@tutao/tutanota-utils"
+import type { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"
-import { InstancePipeline } from "./InstancePipeline"
-import { Nullable } from "@tutao/tutanota-utils"
+import { ModelMapper } from "./ModelMapper"
 
 export class EntityAdapter implements Entity {
 	isAdapter = true
@@ -22,14 +13,14 @@ export class EntityAdapter implements Entity {
 		public readonly bucketKey: BucketKey | null,
 	) {}
 
-	static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, instancePipeline: InstancePipeline) {
+	static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, modelMapper: ModelMapper) {
 		let bucketKey: Nullable<BucketKey> = null
 		const bucketKeyParsedInstance = downcast<ServerModelParsedInstance>(
 			AttributeModel.getAttributeorNull<ServerModelEncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)?.[0],
 		)
 		if (bucketKeyParsedInstance) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			bucketKey = await instancePipeline.modelMapper.mapToInstance<BucketKey>(BucketKeyTypeRef, bucketKeyParsedInstance)
+			bucketKey = await modelMapper.mapToInstance<BucketKey>(BucketKeyTypeRef, bucketKeyParsedInstance)
 		}
 		return new EntityAdapter(typeModel, encryptedParsedInstance, bucketKey)
 	}

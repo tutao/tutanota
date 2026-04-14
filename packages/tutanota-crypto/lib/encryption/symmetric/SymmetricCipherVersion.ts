@@ -4,11 +4,16 @@ import { CryptoError } from "../../misc/CryptoError.js"
  * The version of the symmetric cipher.
  * Must fit into 1 byte, so 255 is the maximum allowed enum value.
  */
-export enum SymmetricCipherVersion {
-	UnusedReservedUnauthenticated, // 0: Un(!)authenticated encryption. DO NOT USE THIS to write a version byte! In theory, this could be the original version (AES-128-CBC without MAC), but this version does not have a version byte nor a version explicitly declared.
-	AesCbcThenHmac, // 1: Authenticated encryption Aes-128/256 (depending on the key length) AES-CBC-then-HMAC
-	Aead, // 2: Authenticated encryption with associated data based on AES-CBC-then-HMAC, where HMAC is also computed over the associated data
-}
+export const SymmetricCipherVersion = {
+	UnusedReservedUnauthenticated: 0, // Un(!)authenticated encryption. DO NOT USE THIS to write a version byte! In theory, this could be the original version (AES-128-CBC without MAC), but this version does not have a version byte nor a version explicitly declared.
+	AesCbcThenHmac: 1, // Authenticated encryption Aes-128/256 (depending on the key length) AES-CBC-then-HMAC
+	AeadWithGroupKey: 2, // Authenticated encryption with associated data using group key derived sub-keys based on AES-CTR-then-BLAKE3, where BLAKE3 is also computed over the associated data
+	AeadWithSessionKey: 3, // Authenticated encryption with associated data using session key derived sub-keys based on AES-CTR-then-BLAKE3, where BLAKE3 is also computed over the associated data
+} as const
+
+export type SymmetricCipherVersion = (typeof SymmetricCipherVersion)[keyof typeof SymmetricCipherVersion]
+export type SymmetricAesCipherVersion = typeof SymmetricCipherVersion.UnusedReservedUnauthenticated | typeof SymmetricCipherVersion.AesCbcThenHmac
+export type SymmetricAeadCipherVersion = typeof SymmetricCipherVersion.AeadWithGroupKey | typeof SymmetricCipherVersion.AeadWithSessionKey
 
 /**
  * Get the SymmetricCipherVersion from either the version byte or the full ciphertext

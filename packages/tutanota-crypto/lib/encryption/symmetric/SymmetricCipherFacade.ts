@@ -1,9 +1,218 @@
-import { AesKey, FIXED_IV, generateIV, IV_BYTE_LENGTH, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { AesKey, FIXED_IV, generateIV, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
-import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { assert } from "@tutao/tutanota-utils"
+import { getSymmetricCipherVersion, SymmetricAeadCipherVersion, SymmetricAesCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
+import { assert, isKeyVersion, KeyVersion, Nullable, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
-import { random } from "../../random/Randomizer.js"
+import { AEAD_FACADE, AeadFacade } from "./AeadFacade.js"
+import { AeadSubKeys, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver.js"
+import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../misc/Constants.js"
+import { CryptoError } from "../../misc/CryptoError.js"
+
+const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
+const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
+
+function createCache<K, S extends string | number | boolean, V>(serialize: (key: K) => S) {
+	const map = new Map<S, V>()
+
+	return {
+		get(key: K): V | undefined {
+			return map.get(serialize(key))
+		},
+		set(key: K, value: V): void {
+			map.set(serialize(key), value)
+		},
+		has(key: K): boolean {
+			return map.has(serialize(key))
+		},
+	}
+}
+
+type InstanceAesSubKeyCacheKey = {
+	cipherVersion: SymmetricAesCipherVersion
+	aesKey: AesKey
+}
+
+interface InstanceAesSubKeyCache {
+	set: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey, cachedKey: SymmetricSubKeys) => void
+	get: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => SymmetricSubKeys | undefined
+	has: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => boolean
+}
+
+type InstanceAeadSubKeyCacheKey = {
+	cipherVersion: SymmetricAeadCipherVersion
+	aesKey: AesKey
+}
+
+interface InstanceAeadSubKeyCache {
+	set: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey, cachedKey: AeadSubKeys) => void
+	get: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => AeadSubKeys | undefined
+	has: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => boolean
+}
+
+function serializeInstanceSubKeyCacheKey(key: InstanceAesSubKeyCacheKey | InstanceAeadSubKeyCacheKey): string {
+	return `${key.cipherVersion},[${key.aesKey.join(",")}]`
+}
+
+/**
+ * Decrypts one attribute of one given instance.
+ */
+export interface ValueDecryptor {
+	readonly requiredGroupKeyVersion: "none" | KeyVersion
+	getValue(key?: Nullable<AesKey>): Uint8Array
+}
+
+class AesCbcDecryptor implements ValueDecryptor {
+	readonly requiredGroupKeyVersion = "none" as const
+	constructor(
+		private readonly ciphertext: Uint8Array,
+		private readonly aesCbcFacade: AesCbcFacade,
+		private readonly cipherVersion: SymmetricAesCipherVersion,
+		private readonly sessionKey: AesKey,
+		private readonly instanceAesSubKeyCache: InstanceAesSubKeyCache,
+		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+	) {}
+	getValue(): Uint8Array {
+		const instanceAesSubKeyCacheKey = {
+			cipherVersion: this.cipherVersion,
+			aesKey: this.sessionKey,
+		}
+		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
+		if (subKeys === undefined) {
+			subKeys = this.symmetricKeyDeriver.deriveSubKeys(this.sessionKey, this.cipherVersion)
+			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
+		}
+		return this.aesCbcFacade.decrypt(subKeys, this.ciphertext, true, true, this.cipherVersion)
+	}
+}
+
+class AeadWithGroupKeyDecryptor implements ValueDecryptor {
+	constructor(
+		private readonly ciphertext: Uint8Array,
+		private readonly aeadFacade: AeadFacade,
+		readonly requiredGroupKeyVersion: KeyVersion,
+		private readonly kdfNonce: Uint8Array,
+		private readonly globalInstanceTypeId: string,
+		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+		private readonly associatedData: Uint8Array,
+		private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache,
+	) {}
+
+	getValue(key: Nullable<AesKey>): Uint8Array {
+		if (key == null) {
+			throw new CryptoError("AEAD decryption of failed because of a missing group key.")
+		}
+		const instanceAeadSubKeyCacheKey = {
+			cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
+			aesKey: key,
+		}
+		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
+		if (subKeys === undefined) {
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(key, this.kdfNonce, this.globalInstanceTypeId)
+			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
+		}
+		return this.aeadFacade.decrypt(subKeys, this.ciphertext, this.associatedData)
+	}
+}
+
+class AeadWithSessionKeyDecryptor implements ValueDecryptor {
+	readonly requiredGroupKeyVersion = "none" as const
+	constructor(
+		private readonly ciphertext: Uint8Array,
+		private readonly aeadFacade: AeadFacade,
+		private readonly sessionKey: AesKey,
+		private readonly globalInstanceTypeId: string,
+		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+		private readonly associatedData: Uint8Array,
+		private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache,
+	) {}
+	getValue(): Uint8Array {
+		const instanceAeadSubKeyCacheKey = {
+			cipherVersion: SymmetricCipherVersion.AeadWithSessionKey,
+			aesKey: this.sessionKey,
+		}
+		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
+		if (subKeys === undefined) {
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.sessionKey, this.globalInstanceTypeId)
+			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
+		}
+		return this.aeadFacade.decrypt(subKeys, this.ciphertext, this.associatedData)
+	}
+}
+
+export const MissingSessionKey = "missing session key" as const
+export type MissingSessionKey = typeof MissingSessionKey
+
+export class InstanceDecryptor {
+	private readonly instanceAesSubKeyCache: InstanceAesSubKeyCache = createCache(serializeInstanceSubKeyCacheKey)
+	private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache = createCache(serializeInstanceSubKeyCacheKey)
+
+	constructor(
+		private readonly sessionKey: Nullable<AesKey>,
+		private readonly nullableKdfNonce: Nullable<Uint8Array>,
+		private readonly globalInstanceTypeId: string,
+		private readonly aesCbcFacade: AesCbcFacade,
+		private readonly aeadFacade: AeadFacade,
+		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+	) {}
+
+	getValueDecryptor(ciphertext: Uint8Array, fieldPath: string): ValueDecryptor | MissingSessionKey {
+		const cipherVersion = getSymmetricCipherVersion(ciphertext)
+		switch (cipherVersion) {
+			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				if (this.sessionKey === null) {
+					return MissingSessionKey
+				}
+				return new AesCbcDecryptor(ciphertext, this.aesCbcFacade, cipherVersion, this.sessionKey, this.instanceAesSubKeyCache, this.symmetricKeyDeriver)
+			}
+			case SymmetricCipherVersion.AeadWithGroupKey: {
+				if (this.nullableKdfNonce === null) {
+					throw new CryptoError("no kdf nonce for group key encrypted value")
+				}
+				const keyVersion = this.getGroupKeyVersion(ciphertext)
+				const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
+				return new AeadWithGroupKeyDecryptor(
+					ciphertext,
+					this.aeadFacade,
+					keyVersion,
+					this.nullableKdfNonce,
+					this.globalInstanceTypeId,
+					this.symmetricKeyDeriver,
+					associatedData,
+					this.instanceAeadSubKeyCache,
+				)
+			}
+			case SymmetricCipherVersion.AeadWithSessionKey: {
+				if (this.sessionKey === null) {
+					return MissingSessionKey
+				}
+				const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
+				return new AeadWithSessionKeyDecryptor(
+					ciphertext,
+					this.aeadFacade,
+					this.sessionKey,
+					this.globalInstanceTypeId,
+					this.symmetricKeyDeriver,
+					associatedData,
+					this.instanceAeadSubKeyCache,
+				)
+			}
+		}
+	}
+
+	private getGroupKeyVersion(ciphertext: Uint8Array): KeyVersion {
+		const keyVersionLengthByte = ciphertext[1]
+		if (keyVersionLengthByte !== 0) {
+			throw new CryptoError("Currently only one byte is supported for group key versions")
+		}
+		const groupKeyVersion = ciphertext[2]
+		if (isKeyVersion(groupKeyVersion)) {
+			return groupKeyVersion
+		} else {
+			throw new CryptoError("Unsupported group key version number")
+		}
+	}
+}
 
 /**
  * This facade contains all methods for encryption/ decryption for symmetric encryption incl. AES-128 and AES-256 in CBC mode or AEAD.
@@ -16,11 +225,19 @@ import { random } from "../../random/Randomizer.js"
 export class SymmetricCipherFacade {
 	/** whether we can use SubtleCrypto for big chunks of data (we use JS impl for most encryption) */
 	private readonly subtleCryptoAvailable: boolean
-	constructor(private readonly aesCbcFacade: AesCbcFacade) {
+	constructor(
+		private readonly aesCbcFacade: AesCbcFacade,
+		private readonly aeadFacade: AeadFacade,
+		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+	) {
 		this.subtleCryptoAvailable = crypto.subtle != null
 		if (!this.subtleCryptoAvailable) {
 			console.log("SubtleCrypto is not available, falling back to JS AES impl of decryption")
 		}
+	}
+
+	getInstanceDecryptor(sessionKey: Nullable<AesKey>, kdfNonce: Nullable<Uint8Array>, instanceTypeId: string): InstanceDecryptor {
+		return new InstanceDecryptor(sessionKey, kdfNonce, instanceTypeId, this.aesCbcFacade, this.aeadFacade, this.symmetricKeyDeriver)
 	}
 
 	/**
@@ -165,7 +382,8 @@ export class SymmetricCipherFacade {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac:
 				return this.aesCbcFacade.encrypt(key, plainText, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
-			case SymmetricCipherVersion.Aead:
+			case SymmetricCipherVersion.AeadWithGroupKey:
+			case SymmetricCipherVersion.AeadWithSessionKey:
 				assert(mustGenerateRandomIv, "AEAD requires random IV")
 				// we can only use this once all clients support it
 				throw new Error("Not enabled")
@@ -183,9 +401,11 @@ export class SymmetricCipherFacade {
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				return this.aesCbcFacade.decrypt(key, cipherText, hasPrependedIv, padding, cipherVersion, skipAuthenticationEnforcement)
+				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+				return this.aesCbcFacade.decrypt(subKeys, cipherText, hasPrependedIv, padding, cipherVersion, skipAuthenticationEnforcement)
 			}
-			case SymmetricCipherVersion.Aead: {
+			case SymmetricCipherVersion.AeadWithGroupKey:
+			case SymmetricCipherVersion.AeadWithSessionKey: {
 				// use this as soon as we define what to use as associated data
 				throw new Error("not yet enabled")
 			}
@@ -202,17 +422,15 @@ export class SymmetricCipherFacade {
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				return this.aesCbcFacade.decryptAsync(key, cipherText, hasPrependedIv, cipherVersion, skipAuthenticationEnforcement)
+				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+				return this.aesCbcFacade.decryptAsync(subKeys, cipherText, hasPrependedIv, cipherVersion, skipAuthenticationEnforcement)
 			}
-			case SymmetricCipherVersion.Aead: {
+			case SymmetricCipherVersion.AeadWithGroupKey:
+			case SymmetricCipherVersion.AeadWithSessionKey: {
 				// use this as soon as we define what to use as associated data
 				throw new Error("not yet enabled")
 			}
 		}
 	}
-
-	private generateIV(): Uint8Array {
-		return random.generateRandomData(IV_BYTE_LENGTH)
-	}
 }
-export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE)
+export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER)

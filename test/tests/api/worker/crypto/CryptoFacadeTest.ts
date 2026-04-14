@@ -1912,7 +1912,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailEncryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
 
 		return {
-			entityAdapter: await EntityAdapter.from(MailTypeModel, mailEncryptedParsedInstance, instancePipeline),
+			entityAdapter: await EntityAdapter.from(MailTypeModel, mailEncryptedParsedInstance, instancePipeline.modelMapper),
 			bucketKey,
 			sk,
 			bk,
@@ -2001,7 +2001,7 @@ o.spec("CryptoFacadeTest", function () {
 		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
 
 		const encryptedMailParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, untypedMailInstance)
-		const entityAdapter = await EntityAdapter.from(MailTypeModel, encryptedMailParsedInstance, instancePipeline)
+		const entityAdapter = await EntityAdapter.from(MailTypeModel, encryptedMailParsedInstance, instancePipeline.modelMapper)
 
 		return {
 			entityAdapter: entityAdapter,
@@ -2110,7 +2110,7 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
 }
 
 /**
- * Helper function to mock the user facade so that the given test user is considered as logged in user.
+ * Helper function to mock the user facade so that the given test user is considered as logged-in user.
  */
 export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade, keyLoaderFacade: KeyLoaderFacade) {
 	when(userFacade.getLoggedInUser()).thenReturn(testUser.user)

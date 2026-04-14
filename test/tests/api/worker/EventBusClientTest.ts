@@ -13,7 +13,6 @@ import {
 	WebsocketEntityDataTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { noOp } from "@tutao/tutanota-utils"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -29,6 +28,7 @@ import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFac
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
+import { Thunk } from "@tutao/tutanota-utils"
 
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,
@@ -97,7 +97,7 @@ o.spec("EventBusClientTest", function () {
 			async entityEventsReceived(events): Promise<ReadonlyArray<EntityUpdateData>> {
 				return events.slice()
 			},
-			async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
+			async getLastEntityEventBatchForGroup(_groupId: Id): Promise<Id | null> {
 				return null
 			},
 			async recordSyncTime(): Promise<void> {
@@ -107,7 +107,7 @@ o.spec("EventBusClientTest", function () {
 				return null
 			},
 			async purgeStorage(): Promise<void> {},
-			async putLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
+			async putLastEntityEventBatchForGroup(_groupId: Id, _batchId: Id): Promise<void> {
 				return
 			},
 			async isOutOfSync(): Promise<boolean> {
@@ -149,7 +149,6 @@ o.spec("EventBusClientTest", function () {
 			]
 		})
 
-		const batchId = "-----------1"
 		o("initial connect: when the cache is clean it initializes cache with GENERATED_MIN_ID", async function () {
 			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
 			when(cacheMock.timeSinceLastSyncMs()).thenResolve(null)
@@ -266,16 +265,18 @@ o.spec("EventBusClientTest", function () {
 		})
 
 		o("on sleep it reconnects", async function () {
-			let passedCb
-			when(sleepDetector.start(matchers.anything())).thenDo((cb) => (passedCb = cb))
+			let passedCb: Thunk
+			when(sleepDetector.start(matchers.anything())).thenDo((cb: Thunk) => (passedCb = cb))
 			const firstSocket = socket
 
 			await ebc.connect(ConnectMode.Initial)
 			// @ts-ignore
+			// noinspection JSConstantReassignment
 			firstSocket.readyState = WebSocket.OPEN
 			await firstSocket.onopen?.(new Event("open"))
 			verify(socket.close(), { ignoreExtraArgs: true, times: 0 })
 			const secondSocket = (socket = object())
+			// @ts-ignore
 			passedCb()
 
 			verify(firstSocket.close(), { ignoreExtraArgs: true, times: 1 })
@@ -291,7 +292,7 @@ o.spec("EventBusClientTest", function () {
 			eventBatchOwner: "ownerId",
 			entityUpdates: [
 				createTestEntity(EntityUpdateTypeRef, {
-					_id: "eventbatchid",
+					_id: "eventBatchId",
 					application: "tutanota",
 					typeId: MailTypeRef.typeId.toString(),
 					instanceListId: "listId1",
@@ -313,7 +314,7 @@ o.spec("EventBusClientTest", function () {
 			mailGroup: mailGroupId,
 			counterValues: [
 				createTestEntity(WebsocketCounterValueTypeRef, {
-					_id: "counterupdateid",
+					_id: "counterUpdateId",
 					count: String(counterValue),
 					counterId,
 				}),

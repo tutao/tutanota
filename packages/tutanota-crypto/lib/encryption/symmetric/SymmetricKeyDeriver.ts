@@ -6,22 +6,22 @@ import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat } from "@tutao/tutanota-utils"
 import { CryptoError } from "../../misc/CryptoError.js"
+import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../misc/Constants.js"
 
 export type SymmetricSubKeys = {
 	encryptionKey: AesKey
 	authenticationKey: AesKey | null
 }
 
-export type AeadSubKeys = {
+export type AeadSubKeys = SymmetricSubKeys & {
 	encryptionKey: Aes256Key
-	authenticationKey: Uint8Array
+	authenticationKey: Aes256Key
 }
 
 const DEFAULT_LENGTH_PER_KEY_BYTES = getKeyLengthInBytes(AesKeyLength.Aes256)
 const DEFAULT_TOTAL_KEY_LENGTH_BYTES = 2 * DEFAULT_LENGTH_PER_KEY_BYTES
-const UNIT_SEPARATOR_CHAR = String.fromCharCode(0x1f)
-const AEAD_GROUP_KEY_NONCE_DERIVATION = "GK and nonce instanceMessageKey" + UNIT_SEPARATOR_CHAR
-const AEAD_SESSION_KEY_DERIVATION = "SK instanceSessionKey" + UNIT_SEPARATOR_CHAR
+const AEAD_GROUP_KEY_NONCE_DERIVATION: DomainSeparator = `GK and nonce instanceMessageKey${UNIT_SEPARATOR_CHAR}`
+const AEAD_SESSION_KEY_DERIVATION: DomainSeparator = `SK instanceSessionKey${UNIT_SEPARATOR_CHAR}`
 
 /**
  * Derives keys for symmetric encryption schemes.
@@ -34,7 +34,6 @@ export class SymmetricKeyDeriver {
 	 */
 	deriveSubKeys(key: AesKey, symmetricCipherVersion: SymmetricCipherVersion): SymmetricSubKeys {
 		const keyLength = getAndVerifyAesKeyLength(key)
-		const keyBytes = keyToUint8Array(key)
 		switch (symmetricCipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 				return { encryptionKey: key, authenticationKey: null }
@@ -81,7 +80,7 @@ export class SymmetricKeyDeriver {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
 		return {
 			encryptionKey: uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES)),
-			authenticationKey: derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES),
+			authenticationKey: uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES)),
 		}
 	}
 }

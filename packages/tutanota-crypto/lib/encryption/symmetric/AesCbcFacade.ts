@@ -12,7 +12,7 @@ import { CryptoError } from "../../misc/CryptoError.js"
 import { assertNotNull, concat } from "@tutao/tutanota-utils"
 import sjcl from "../../internal/sjcl.js"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac.js"
-import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"
+import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 import { MacTag } from "../../misc/Constants"
 
@@ -36,8 +36,8 @@ export class AesCbcFacade {
 		cipherVersion: SymmetricCipherVersion,
 		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
-		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
 		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
 		const cipherText = bitArrayToUint8Array(
 			sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plainText), uint8ArrayToBitArray(iv), [], padding),
 		)
@@ -66,15 +66,14 @@ export class AesCbcFacade {
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	decrypt(
-		key: AesKey,
+		subKeys: SymmetricSubKeys,
 		cipherText: Uint8Array,
 		ivIsPrepended: boolean,
 		padding: boolean,
 		cipherVersion: SymmetricCipherVersion,
 		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
-		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
 		let cipherTextWithoutMacAndVersionByte: Uint8Array
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
@@ -107,7 +106,7 @@ export class AesCbcFacade {
 	}
 
 	async decryptAsync(
-		key: AesKey,
+		subKeys: SymmetricSubKeys,
 		cipherText: Uint8Array,
 		ivIsPrepended: boolean,
 		cipherVersion: SymmetricCipherVersion,
@@ -115,8 +114,7 @@ export class AesCbcFacade {
 	): Promise<Uint8Array> {
 		const subtle = crypto.subtle
 
-		this.tryToEnforceAuthentication(key, cipherVersion, skipAuthenticationEnforcement)
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
 		let cipherTextWithoutMacAndVersionByte: Uint8Array
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
@@ -163,15 +161,20 @@ export class AesCbcFacade {
 		return { iv, aesCbcCiphertext }
 	}
 
-	private tryToEnforceAuthentication(key: AesKey, cipherVersion: SymmetricCipherVersion, skipAuthenticationEnforcement: boolean) {
+	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, skipAuthenticationEnforcement: boolean) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
-			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryptions which are only possible for 128-bit keys
+			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
 			if (skipAuthenticationEnforcement) {
 				// we accept unauthenticated decryption for exceptions such as the search index
 				return
 			} else {
 				// we must enforce authentication but for legacy 128-bit keys we cannot (backward compatibility)
-				const keyLength = getAndVerifyAesKeyLength(key)
+				const keyLength = getAndVerifyAesKeyLength(subKeys.encryptionKey)
+				if (subKeys.authenticationKey != null) {
+					if (getAndVerifyAesKeyLength(subKeys.authenticationKey) !== keyLength) {
+						throw new CryptoError("invalid sub-keys")
+					}
+				}
 				if (keyLength !== AesKeyLength.Aes128) {
 					throw new CryptoError("key length " + keyLength + " is incompatible with cipherVersion " + cipherVersion)
 				}

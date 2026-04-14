@@ -72,7 +72,8 @@ export class AeadFacade {
 		const unauthenticatedCiphertext = concat(iv, aesCtrCiphertext)
 		const unauthenticatedCiphertextLength = bitArrayToUint8Array([unauthenticatedCiphertext.length])
 
-		const tag = blake3Mac(key.authenticationKey, concat(unauthenticatedCiphertextLength, unauthenticatedCiphertext, associatedData))
+		const authenticationKey = bitArrayToUint8Array(key.authenticationKey)
+		const tag = blake3Mac(authenticationKey, concat(unauthenticatedCiphertextLength, unauthenticatedCiphertext, associatedData))
 
 		return concat(unauthenticatedCiphertext, tag)
 	}
@@ -87,7 +88,8 @@ export class AeadFacade {
 		const authenticationTag = ciphertext.subarray(ciphertext.length - DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES, ciphertext.length)
 		const ciphertextWithoutMacLength = bitArrayToUint8Array([ciphertextWithoutMac.length])
 		const authenticatedData = concat(ciphertextWithoutMacLength, ciphertextWithoutMac, associatedData)
-		blake3MacVerify(key.authenticationKey, authenticatedData, authenticationTag as MacTag)
+		const authenticationKey = bitArrayToUint8Array(key.authenticationKey)
+		blake3MacVerify(authenticationKey, authenticatedData, authenticationTag as MacTag)
 
 		const iv = ciphertextWithoutMac.subarray(0, IV_BYTE_LENGTH)
 		const aesCtrCiphertext = ciphertextWithoutMac.subarray(IV_BYTE_LENGTH, ciphertextWithoutMac.length)
@@ -100,6 +102,8 @@ export class AeadFacade {
 
 	private validateKeyLength(key: AeadSubKeys) {
 		getAndVerifyAesKeyLength(key.encryptionKey, [AesKeyLength.Aes256])
-		getAndVerifyAesKeyLength(uint8ArrayToBitArray(key.authenticationKey), [AesKeyLength.Aes256])
+		getAndVerifyAesKeyLength(key.authenticationKey, [AesKeyLength.Aes256])
 	}
 }
+
+export const AEAD_FACADE = new AeadFacade()

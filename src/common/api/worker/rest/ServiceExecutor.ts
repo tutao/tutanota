@@ -164,7 +164,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const cleanInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)
-		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
 		return await this.instancePipeline.decryptAndMap(typeRef, cleanInstance, sessionKey)

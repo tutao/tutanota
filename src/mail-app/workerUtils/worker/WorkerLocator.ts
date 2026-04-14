@@ -50,7 +50,7 @@ import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../com
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
-import { random } from "@tutao/tutanota-crypto"
+import { random, SYMMETRIC_CIPHER_FACADE } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ExportFacadeSendDispatcher.js"
 import { assertNotNull, delay, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
@@ -247,6 +247,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
 		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
+		() => locator.keyLoader,
+		SYMMETRIC_CIPHER_FACADE,
 	)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto, typeModelResolver)
 	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
@@ -395,7 +397,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
-	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
@@ -917,7 +919,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 }
 
-const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
+const RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
 async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 	const indexer = await locator.indexer()
@@ -928,17 +930,18 @@ async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 	} catch (e) {
 		if (e instanceof ServiceUnavailableError) {
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
+			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
 			return fullLoginIndexerInit(worker)
 		} else if (e instanceof ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
-			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
+			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")
 			return fullLoginIndexerInit(worker)
 		} else {
-			// not awaiting
 			console.log("send indexer error to main thread", e)
+			// not awaiting
+			// noinspection ES6MissingAwait
 			worker.sendError(e)
 			return
 		}

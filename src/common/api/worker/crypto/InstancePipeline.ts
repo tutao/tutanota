@@ -3,11 +3,12 @@ import { CryptoMapper } from "./CryptoMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { ModelMapper } from "./ModelMapper"
-import { downcast, TypeRef } from "@tutao/tutanota-utils"
-import { AesKey } from "@tutao/tutanota-crypto"
-import { Nullable } from "@tutao/tutanota-utils"
+import { downcast, lazy, Nullable, TypeRef } from "@tutao/tutanota-utils"
+import { AesKey, SymmetricCipherFacade } from "@tutao/tutanota-crypto"
 import { isWebClient } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { KeyLoaderFacade } from "../facades/KeyLoaderFacade"
+import { EntityAdapter } from "./EntityAdapter"
 
 export class InstancePipeline {
 	readonly typeMapper: TypeMapper
@@ -17,13 +18,15 @@ export class InstancePipeline {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+		keyLoaderFacade: lazy<KeyLoaderFacade>,
+		symmetricCipherFacade: SymmetricCipherFacade,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
 			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
 		}
 		this.typeMapper = new TypeMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
-		this.cryptoMapper = new CryptoMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
 		this.modelMapper = new ModelMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
+		this.cryptoMapper = new CryptoMapper(clientTypeReferenceResolver, serverTypeReferenceResolver, symmetricCipherFacade, keyLoaderFacade, this.modelMapper)
 	}
 
 	async mapAndEncrypt<T extends Entity>(
@@ -50,7 +53,14 @@ export class InstancePipeline {
 	async decryptAndMap<T extends Entity>(typeRef: TypeRef<T>, instance: ServerModelUntypedInstance, sk: AesKey | null): Promise<T> {
 		const serverTypeModel = await this.serverTypeReferenceResolver(typeRef)
 		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(serverTypeModel, instance)
-		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sk)
+		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.modelMapper)
+		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(
+			serverTypeModel,
+			encryptedParsedInstance,
+			sk,
+			entityAdapter._kdfNonce,
+			entityAdapter._ownerGroup,
+		)
 		return await this.modelMapper.mapToInstance(typeRef, parsedInstance)
 	}
 }
