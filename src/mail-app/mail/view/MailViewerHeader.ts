@@ -250,7 +250,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						: null,
 					this.tutaoBadge(viewModel),
 					m(
-						"span" + (displayAddressForSender ? ".invisible.overflow-hidden" : ".text-break") + (viewModel.isUnread() ? ".font-weight-600" : ""),
+						"span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""),
 						displayAddressForSender ? (viewModel.getDisplayedSender()?.address ?? "") : senderName,
 					),
 				],
