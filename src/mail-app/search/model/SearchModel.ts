@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { CalendarEvent, CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
@@ -13,6 +13,7 @@ import { CalendarEventsRepository } from "../../../common/calendar/date/Calendar
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -280,12 +281,40 @@ export class SearchModel {
 
 			this.result(calendarResult)
 			this.lastSearchPromise = Promise.resolve(calendarResult)
-		} else {
+		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
 			// we set search end when null to be able to tell when the same search is extended
-			if (this.isSearchResultExtendableForType(restriction.type) && restriction.end == null) {
-				restriction.end = getMailIndexTimestampForSearch(this.indexState().aimedMailIndexTimestamp)
+			const indexState = this.indexState()
+
+			const aimedTimestamp = indexState.aimedMailIndexTimestamp
+			const currentTimestamp = indexState.currentMailIndexTimestamp
+
+			if (restriction.end == null) {
+				restriction.end = getMailIndexTimestampForSearch(aimedTimestamp)
 			}
 
+			// We modify the query because we need SearchFacade to not give us mails older than the current
+			// timestamp, as the offline cleaner may not have purged all emails yet.
+			//
+			// We can only be certain about mails up to currentTimestamp.
+			const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }
+
+			this.lastSearchPromise = this._searchFacade
+				.search(query, truncatedRestriction, minSuggestionCount, maxResults ?? undefined)
+				.then((result) => {
+					// we put back in the original restriction as we want the user's query to be put in here, not the
+					// modified request
+					result.restriction = restriction
+					this.result(result)
+					return result
+				})
+				.catch(
+					ofClass(DbError, (e) => {
+						console.log("DBError while search", e)
+						throw e
+					}),
+				)
+		} else if (isSameTypeRef(ContactTypeRef, restriction.type)) {
+			// contacts are assumed to be fully indexed, thus restriction dates are meaningless here
 			this.lastSearchPromise = this._searchFacade
 				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
 				.then((result) => {
@@ -298,6 +327,8 @@ export class SearchModel {
 						throw e
 					}),
 				)
+		} else {
+			throw new ProgrammingError(`searching type ${restriction.type.app}/${restriction.type.typeId} is unimplemented`)
 		}
 
 		return this.lastSearchPromise
