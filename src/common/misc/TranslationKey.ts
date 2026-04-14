@@ -2266,3 +2266,4 @@ export type TranslationKeyType =
 	| "indexingEmails_msg"
 	| "searchUntil_msg"
 	| "manualUpdateNeeded_msg"
+	| "setAsSenderNameForPrimaryAddress_label"
