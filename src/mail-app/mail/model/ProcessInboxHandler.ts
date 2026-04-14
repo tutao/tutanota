@@ -1,7 +1,7 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
-import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
@@ -72,7 +72,6 @@ export class ProcessInboxHandler {
 		isLeaderClient: boolean,
 	): Promise<MailSet> {
 		await this.logins.loadCustomizations()
-		const isSpamClassificationFeatureEnabled = this.logins.isEnabled(FeatureType.SpamClientClassification)
 		if (!mail.processNeeded) {
 			return sourceFolder
 		}
@@ -98,11 +97,9 @@ export class ProcessInboxHandler {
 			finalProcessInboxDatum = processInboxDatum
 			moveToFolder = targetFolder
 		} else {
-			if (isSpamClassificationFeatureEnabled) {
-				const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
-				moveToFolder = targetFolder
-				finalProcessInboxDatum = processInboxDatum
-			}
+			const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
+			moveToFolder = targetFolder
+			finalProcessInboxDatum = processInboxDatum
 
 			// apply regular inbox rules only if the mail is classified as ham by the spam classifier
 			if (moveToFolder.folderType === MailSetKind.INBOX) {

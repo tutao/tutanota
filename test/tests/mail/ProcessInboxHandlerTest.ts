@@ -10,7 +10,7 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
-import { FeatureType, MailSetKind, ProcessingState, SpamDecision } from "../../../src/common/api/common/TutanotaConstants"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { assertNotNull, delay } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
@@ -83,7 +83,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 			new Map(),
 			0,
 		)
-		when(logins.isEnabled(FeatureType.SpamClientClassification)).thenReturn(true)
 	})
 
 	o.spec("instanceSessionKeys for mail and it's files are updated using the processInboxHandler", function () {
@@ -610,50 +609,6 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			vectorLegacy: new Uint8Array(),
-			vectorWithServerClassifiers: new Uint8Array(),
-			ownerEncMailSessionKeys: mailInstanceSessionKeys,
-		}
-
-		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
-	})
-
-	o("handleIncomingMail does NOT move mail from inbox to spam folder if spam classification is disabled", async function () {
-		when(logins.isEnabled(FeatureType.SpamClientClassification)).thenReturn(false)
-
-		mail.sets = [inboxFolder._id]
-		when(mailFacade.createModelInputAndUploadableVectors(mail, mailDetails, inboxFolder)).thenResolve({
-			modelInput: [],
-			uploadableVectorLegacy: new Uint8Array(),
-			uploadableVector: new Uint8Array(),
-		})
-		processInboxHandler = new ProcessInboxHandler(
-			logins,
-			mailFacade,
-			cryptoFacade,
-			() => spamHandler,
-			() => inboxRuleHandler,
-			new Map(),
-			0,
-		)
-		when(inboxRuleHandler.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
-		when(inboxRuleHandler.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, inboxFolder)).thenResolve(null)
-		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-
-		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
-		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
-			instanceSessionKeys: mailInstanceSessionKeys,
-			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
-		})
-
-		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
-		o(targetFolder).deepEquals(inboxFolder)
-		await delay(0)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			classifierType: null,
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			vectorLegacy: new Uint8Array(),
