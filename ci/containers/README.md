@@ -13,7 +13,15 @@ You're going to have to do this as root unless you have rootless containers set 
   ```podman image rm linux-build:latest```
 
 ## F-Droid container
-* building the image
-  ``` podman build -t fdroid --network=host -f ci/containers/fdroid-build.dockerfile```
-* run a build against the latest metadata version (run in fdroiddata repo)
-  ``` podman run --rm -v $(pwd):/repo -v /opt/android-sdk:/opt/android-sdk -e ANDROID_HOME:/opt/android-sdk fdroid```
+* building the f-droid container image (inside the tutanota repo root):
+  ```
+  podman build -t fdroid --network=host -f ci/containers/fdroid-build.dockerfile
+  ```
+* check out the metadata repo at https://gitlab.com/fdroid/fdroiddata.git
+* run the f-droid build (inside the metadata repo root):
+  ```
+  podman run --rm -v $(pwd):/repo -v /opt/android-sdk:/opt/android-sdk -e ANDROID_HOME:/opt/android-sdk fdroid
+  ```
+  
+**Note:** the container uses the hosts android SDK installation, this means that you have to install all required NDKs
+on the host (currently for the app itself and sqlcipher).
