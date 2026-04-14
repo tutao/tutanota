@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import type { LegacyTextFieldAttrs } from "../../gui/base/LegacyTextField.js"
+import { LegacyTextFieldAttrs, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -31,6 +31,10 @@ import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { UserController } from "../../api/main/UserController"
+import { Checkbox } from "../../gui/base/Checkbox"
+import { isOfflineError } from "../../api/common/utils/ErrorUtils"
+import { TextField } from "../../gui/base/TextField"
+import { theme } from "../../gui/theme"
 
 assertMainOrNode()
 
@@ -221,17 +225,55 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private onChangeName(groupInfo: sysTypeRefs.GroupInfo) {
-		Dialog.showProcessTextInputDialog(
-			{
-				title: "edit_action",
-				label: "name_label",
-				defaultValue: groupInfo.name,
-			},
-			async (newName) => {
-				groupInfo.name = newName
-				return locator.entityClient.update(groupInfo)
-			},
-		)
+		let name = groupInfo.name
+		let updatePrimaryAddressName = false
+		let dialog: Dialog
+
+		const wrappedOkAction = async () => {
+			try {
+				groupInfo.name = name
+				await locator.entityClient.update(groupInfo)
+
+				if (updatePrimaryAddressName) {
+					const model = await locator.mailAddressTableModelForOwnMailbox()
+					await model.setAliasName(assertNotNull(groupInfo.mailAddress), name)
+				}
+
+				dialog.close()
+			} catch (error) {
+				if (!isOfflineError(error)) {
+					dialog.close()
+				}
+				throw error
+			}
+		}
+
+		dialog = Dialog.showActionDialog({
+			title: "edit_action",
+			child: () => [
+				m(TextField, {
+					label: "name_label",
+					value: name,
+					type: LegacyTextFieldType.Text,
+					leadingIcon: {
+						icon: Icons.PenFilled,
+						color: theme.on_surface_variant,
+					},
+					onReturnKeyPressed: wrappedOkAction,
+					oninput: (newName) => (name = newName),
+				}),
+				m(
+					".pt-16",
+					m(Checkbox, {
+						label: () => lang.getTranslationText("setAsSenderNameForPrimaryAddress_label"),
+						checked: updatePrimaryAddressName,
+						onChecked: (checked) => (updatePrimaryAddressName = checked),
+					}),
+				),
+			],
+			allowOkWithReturn: true,
+			okAction: wrappedOkAction,
+		})
 	}
 
 	private renderAppLockField(): Children {
