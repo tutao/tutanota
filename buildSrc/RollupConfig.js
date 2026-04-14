@@ -34,6 +34,8 @@ export let tsImportAliases = {
 	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
 	"@tutao/restClient": path.normalize("src/restClient/dist/index.js"),
 	"@tutao/appEnv": path.normalize("src/appEnv/dist/index.js"),
+	"@tutao/typeRefs": path.normalize("/src/typeRefs/dist/index.js"),
+	"@tutao/instancePipeline": path.normalize("/src/instancePipeline/dist/index.js"),
 }
 
 /**
@@ -177,7 +179,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/utils") || isIn("src/error")) {
+	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/appEnv") || isIn("src/error")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -288,7 +290,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "login"
 	} else if (
 		isIn("src/common/api/common") ||
-		isIn("src/common/api/entities") ||
 		isIn("src/desktop/config/ConfigKeys") ||
 		moduleId.includes("cborg") ||
 		// CryptoError is needed on the main thread in order to check errors
@@ -332,7 +333,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "linkify"
 	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen") || isIn("src/common/api/worker/recoveryDocumentGenerator")) {
 		return "pdf"
-	} else if (isIn("src/common/api/worker") || isIn("src/crypto") || moduleId.includes("argon2")) {
+	} else if (isIn("src/common/api/worker") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
@@ -342,6 +343,12 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "qr"
 	} else if (isIn("src/drive-app")) {
 		return "drive"
+	} else if (isIn("src/utils")) {
+		return "common-min"
+	} else if (isIn("src/typeRefs")) {
+		return "common"
+	} else if (isIn("src/restClient") || isIn("src/crypto") || isIn("src/instancePipeline")) {
+		return "worker"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
