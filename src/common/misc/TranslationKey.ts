@@ -2268,3 +2268,4 @@ export type TranslationKeyType =
 	| "beginTyping_msg"
 	| "emptyString_msg"
 	| "manualUpdateNeeded_msg"
+	| "setAsSenderNameForPrimaryAddress_label"
