@@ -8,7 +8,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/b
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "@tutao/app-env"
+import { InboxRuleType, isAndroidApp, isDesktop, isIOSApp, Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "@tutao/app-env"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
@@ -34,7 +34,6 @@ import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
-import { InboxRuleType, isAndroidApp, isDesktop, isIOSApp } from "@tutao/app-env"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -250,7 +249,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						: null,
 					this.tutaoBadge(viewModel),
 					m(
-						"span" + (displayAddressForSender ? ".invisible.overflow-hidden" : ".text-break") + (viewModel.isUnread() ? ".font-weight-600" : ""),
+						"span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""),
 						displayAddressForSender ? (viewModel.getDisplayedSender()?.address ?? "") : senderName,
 					),
 				],
