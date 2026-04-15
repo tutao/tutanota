@@ -55,7 +55,7 @@
 					"userId": "string"
 				}
 			],
-			"ret": "void"
+			"ret": "MailboxExportState?"
 		},
 		"startMailboxExport": {
 			"doc": "Pick a directory for storing the export data and persist the export state",
@@ -89,6 +89,21 @@
 				},
 				{
 					"mailId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"saveMailboxExportFailure": {
+			"doc": "Save a current mail as a failed export",
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"mailBagId": "string"
+				},
+				{
+					"mailId": "IdTuple"
 				}
 			],
 			"ret": "void"
