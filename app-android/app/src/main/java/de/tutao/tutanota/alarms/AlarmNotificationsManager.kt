@@ -41,16 +41,19 @@ class AlarmNotificationsManager(
 		for (alarmNotification in alarmInfos) {
 			val sessionKey = resolveNotificationSessionKey(alarmNotification, pushKeyResolver)
 			if (sessionKey != null) {
-				try {
-					schedule(alarmNotification.decrypt(crypto, sessionKey))
+				val decryptedAlarmNotification: AlarmNotification = try {
+					alarmNotification.decrypt(crypto, sessionKey)
 				} catch (cryptoError: CryptoError) {
 					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", cryptoError)
+					continue
 				} catch (exception: IllegalArgumentException) {
-					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", exception)
-				} catch (exception: NumberFormatException) {
-					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", exception)
-					return
+					Log.e(TAG, "Invalid argument/value inside the alarm notification", exception)
+					// there is an invalid value inside the decrypted alarm notification  e.g. "" instead of 0 or null
+					// In these case we never scheduled the alarm, so we can safely remove the alarm notification from sseStorage.
+					this.sseStorage.deleteAlarmNotification(alarmNotification.alarmInfo.identifier)
+					continue
 				}
+				schedule(decryptedAlarmNotification)
 			} else {
 				Log.d(TAG, "Failed to resolve session key for saved alarm notification")
 			}
@@ -91,18 +94,17 @@ class AlarmNotificationsManager(
 					newDeviceSessionKey ?: resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
 				if (sessionKey == null) {
 					Log.d(TAG, "Failed to resolve session key for alarm notification.")
-					return
+					continue
 				}
-				try {
-					schedule(alarmNotificationEntity.decrypt(crypto, sessionKey))
-				} catch (cryptoError: CryptoError) {
-					Log.e(TAG, "Failed to decrypt notification to schedule new alarm ", cryptoError)
-				} catch (exception: IllegalArgumentException) {
-					Log.e(TAG, "Failed to decrypt notification to schedule new alarm ", exception)
-				} catch (exception: NumberFormatException) {
-					Log.e(TAG, "Failed to decrypt notification to schedule alarm ", exception)
-					return
+				val decryptedAlarmNotificationEntity = try {
+					alarmNotificationEntity.decrypt(crypto, sessionKey)
+				} catch (e: Exception) {
+					Log.e(TAG, "Unable to decrypt alarmNotification, skipp schedule new alarm.", e)
+					continue
 				}
+
+				schedule(decryptedAlarmNotificationEntity)
+				Log.d(TAG, "storing alarm in sseStorage: $alarmNotificationEntity")
 				sseStorage.insertAlarmNotification(alarmNotificationEntity)
 			} else {
 				cancelScheduledAlarm(alarmNotification, pushKeyResolver)
@@ -143,7 +145,6 @@ class AlarmNotificationsManager(
 
 			if (alarmNotification.repeatRule == null) {
 				val isAllDayEvent = isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
-
 				val localizedEventStartTime = if (isAllDayEvent) {
 					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, timeZone)
 				} else {
