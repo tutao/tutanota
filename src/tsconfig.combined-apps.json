@@ -19,9 +19,6 @@
 			"path": "tsconfig.crypto.json"
 		},
 		{
-			"path": "tsconfig.error.json"
-		},
-		{
 			"path": "tsconfig.usagetests.json"
 		},
 		{

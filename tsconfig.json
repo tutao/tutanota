@@ -11,9 +11,6 @@
 	"exclude": ["**/dist"],
 	"references": [
 		{
-			"path": "./src/tsconfig.error.json"
-		},
-		{
 			"path": "./src/tsconfig.crypto.json"
 		},
 		{
