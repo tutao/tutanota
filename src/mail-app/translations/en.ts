@@ -1778,7 +1778,7 @@ export default {
 		"searchPage_label": "Search page",
 		"searchResult_label": "Results",
 		"searchTemplates_placeholder": "Search templates",
-		"searchUntil_msg": "Search Until {1}",
+		"searchUntil_msg": "Search until {1}",
 		"searchUsers_placeholder": "Search for users",
 		"secondFactorAuthentication_label": "Second factor authentication",
 		"secondFactorConfirmLogin_label": "Confirm login",

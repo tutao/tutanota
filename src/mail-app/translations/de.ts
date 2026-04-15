@@ -1112,7 +1112,7 @@ export default {
 		"mailExportOnlyOnDesktop_label": "Der E-Mail-Export ist derzeit nur in unserem Desktop-Client verfügbar.",
 		"mailExportProgress_msg": "Bereite {current} von {total} E-Mails für den Export vor...",
 		"mailExportSettings_label": "E-Mail-Export",
-		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails...\n\nHinweis: Beim exportieren von mehr als 1000 E-Mails, empfehlen wir die Funktion unter Einstellungen -> Export zu verwenden.",
+		"mailExportSuggestAlternative_msg": "Exportiere {current} von {total} E-Mails...\n\nHinweis: Beim Exportieren von mehr als 1000 E-Mails, empfehlen wir die Funktion unter Einstellungen -> Export zu verwenden.",
 		"mailFolder_label": "E-Mail-Ordner",
 		"mailHeaders_title": "E-Mail-Header",
 		"mailImportDownloadDesktopClient_label": "Desktop-Client herunterladen",

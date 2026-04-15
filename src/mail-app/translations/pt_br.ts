@@ -2199,7 +2199,7 @@ export default {
 		"verifyDomainOwnership_title": "Verificação de autorização",
 		"verifyDomainOwnershipExplanation_msg": "Precisamos verificar se você é o dono do domínio: {domain}",
 		"verifyOwnershipTXTrecord_msg": "Por favor configure um novo registro DNS de tipo TXT com o valor abaixo",
-		"view_label": "Ver",
+		"view_label": "Vista",
 		"viewEvent_action": "Ver evento",
 		"viewInDarkMode_action": "Ver no modo escuro",
 		"viewInLightMode_action": "Ver no modo claro",

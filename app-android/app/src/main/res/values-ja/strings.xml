@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">カレンダーアプリにログインしてください</string>
     <string name="widgetOpenApp_action">アプリを開く</string>
     <string name="widgetNoEvents_msg">予定なし</string>
+    <string name="widgetNoEventsToday_msg">本日の予定はありません</string>
     <string name="widgetDescription_msg">今日の予定イベントを見る</string>
     <string name="birthdayCalendar_label">誕生日</string>
     <string name="birthdayEvent_title">{name}の誕生日</string>
