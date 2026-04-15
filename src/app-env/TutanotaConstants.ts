@@ -1327,3 +1327,5 @@ export enum UpgradePromptType {
 	APPLE_IN_APP_EVENT,
 	DRIVE,
 }
+
+export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
