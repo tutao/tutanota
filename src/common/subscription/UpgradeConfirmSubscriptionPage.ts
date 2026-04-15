@@ -2,10 +2,10 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { Const } from "@tutao/appEnv"
+import { AccountType, Const, PaymentMethodType } from "@tutao/appEnv"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -24,7 +24,6 @@ import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
-import { AccountType, PaymentMethodType } from "@tutao/appEnv"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -71,7 +70,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				return this.close(data, this.dom)
 			})
 			.catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(restError.PreconditionFailedError, (e) => {
 					Dialog.message(
 						lang.makeTranslation(
 							"precondition_failed",
@@ -82,7 +81,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				}),
 			)
 			.catch(
-				ofClass(BadGatewayError, (e) => {
+				ofClass(restError.TooManyRequestsError, (e) => {
 					Dialog.message(
 						lang.makeTranslation(
 							"payment_failed",

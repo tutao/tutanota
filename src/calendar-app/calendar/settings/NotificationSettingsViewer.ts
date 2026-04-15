@@ -5,14 +5,13 @@ import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/utils"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { PushServiceType } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
+import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/appEnv"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { AppType } from "../../../common/misc/ClientConstants.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
-import { isApp, isBrowser, isDesktop } from "@tutao/appEnv"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -51,7 +50,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 					identifier: identifier.identifier,
 					current: isCurrentDevice,
 					removeClicked: () => {
-						calendarLocator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
+						calendarLocator.entityClient.erase(identifier).catch(ofClass(restError.NotFoundError, noOp))
 					},
 					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 					disableClicked: () => this.togglePushIdentifier(identifier),

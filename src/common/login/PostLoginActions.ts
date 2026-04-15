@@ -12,10 +12,10 @@ import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../m
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, FeatureType, SecondFactorType, UpgradePromptType } from "@tutao/appEnv"
+import { CloseEventBusOption, Const, FeatureType, isApp, isDesktop, LOGIN_TITLE, Mode, SecondFactorType, UpgradePromptType } from "@tutao/appEnv"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../gui/Notifications"
-import { LockedError, NotAuthorizedError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
 import { getThemeCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode.js"
@@ -34,7 +34,6 @@ import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
-import { isApp, isDesktop, LOGIN_TITLE, Mode } from "@tutao/appEnv"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -285,7 +284,7 @@ export class PostLoginActions implements PostLoginAction {
 
 			const newCustomerProperties = sysTypeRefs.createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
 			newCustomerProperties.lastUpgradeReminder = new Date(this.dateProvider.now())
-			this.entityClient.update(newCustomerProperties).catch(ofClass(LockedError, noOp))
+			this.entityClient.update(newCustomerProperties).catch(ofClass(restError.LockedError, noOp))
 		}
 	}
 
@@ -383,7 +382,7 @@ export class PostLoginActions implements PostLoginAction {
 								},
 							})
 						} catch (e) {
-							if (e instanceof NotAuthorizedError) {
+							if (e instanceof restError.NotAuthorizedError) {
 								return lang.getTranslation("invalidPassword_msg").text
 							} else {
 								reject(e)

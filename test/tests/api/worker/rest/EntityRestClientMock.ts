@@ -1,5 +1,7 @@
 import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typeRefs"
 import {
+	_verifyType,
 	compareNewestFirst,
 	compareOldestFirst,
 	elementIdPart,
@@ -9,13 +11,12 @@ import {
 	isSameId,
 	listIdPart,
 	timestampToGeneratedId,
+	Type,
+	TypeModelResolver,
 } from "@tutao/typeRefs"
-import { _verifyType, TypeModelResolver } from "@tutao/typeRefs"
-import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/utils"
-import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typeRefs"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
-import { Type } from "@tutao/typeRefs"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { getIds } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 
@@ -84,12 +85,12 @@ export class EntityRestClientMock extends EntityRestClient {
 
 	_getListEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
 		if (!this._listEntities[listId]) {
-			throw new NotFoundError(`Not list ${listId}`)
+			throw new restError.NotFoundError(`Not list ${listId}`)
 		}
 		try {
 			return this._handleMockElement(this._listEntities[listId][elementId], [listId, elementId])
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				return null
 			} else {
 				throw e
@@ -99,12 +100,12 @@ export class EntityRestClientMock extends EntityRestClient {
 
 	_getBlobEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
 		if (!this._blobEntities[listId]) {
-			throw new NotFoundError(`Not list ${listId}`)
+			throw new restError.NotFoundError(`Not list ${listId}`)
 		}
 		try {
 			return this._handleMockElement(this._blobEntities[listId][elementId], [listId, elementId])
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				return null
 			} else {
 				throw e
@@ -121,7 +122,7 @@ export class EntityRestClientMock extends EntityRestClient {
 			const listElement = this._getListEntry(listId, elementId)
 
 			if (listElement == null) {
-				throw new NotFoundError(`List element ${listId} ${elementId} not found`)
+				throw new restError.NotFoundError(`List element ${listId} ${elementId} not found`)
 			}
 			return downcast(listElement)
 		} else if (typeof id === "string") {
@@ -174,7 +175,7 @@ export class EntityRestClientMock extends EntityRestClient {
 					try {
 						return this._handleMockElement(this._entities[id], id)
 					} catch (e) {
-						if (e instanceof NotFoundError) {
+						if (e instanceof restError.NotFoundError) {
 							return null
 						} else {
 							throw e
@@ -253,13 +254,13 @@ export class EntityRestClientMock extends EntityRestClient {
 			if (this._getListEntry(listId, id)) {
 				delete this._listEntities[listId][id]
 			} else {
-				throw new NotFoundError(`List element ${listId} ${id} not found`)
+				throw new restError.NotFoundError(`List element ${listId} ${id} not found`)
 			}
 		} else if (id) {
 			if (this._entities[id]) {
 				delete this._listEntities[id]
 			} else {
-				throw new NotFoundError(`Element ${id} not found`)
+				throw new restError.NotFoundError(`Element ${id} not found`)
 			}
 		} else {
 			throw new Error("Illegal arguments for DELETE")
@@ -272,7 +273,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		} else if (element != null) {
 			return element
 		} else {
-			throw new NotFoundError(`element with id ${id.toString()} does not exists`)
+			throw new restError.NotFoundError(`element with id ${id.toString()} does not exists`)
 		}
 	}
 }

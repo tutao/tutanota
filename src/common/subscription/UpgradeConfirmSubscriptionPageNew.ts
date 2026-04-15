@@ -2,9 +2,9 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { Const } from "@tutao/appEnv"
+import { AccountType, AvailablePlanType, Const, isIOSApp, PaymentMethodType, PlanType } from "@tutao/appEnv"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { appStorePlanName, getPreconditionFailedPaymentMsg, SubscriptionApp, UpgradeType } from "./utils/SubscriptionUtils"
 import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
@@ -29,7 +29,6 @@ import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { AllIcons } from "../gui/base/Icon"
 import { layout_size, px } from "../gui/size"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { AccountType, AvailablePlanType, isIOSApp, PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
@@ -253,7 +252,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			// Order confirmation (click on Buy), send selected payment method as an enum
 			.then(() => ctx.goNext())
 			.catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(restError.PreconditionFailedError, (e) => {
 					Dialog.message(
 						lang.makeTranslation(
 							"precondition_failed",
@@ -264,7 +263,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 				}),
 			)
 			.catch(
-				ofClass(BadGatewayError, () => {
+				ofClass(restError.TooManyRequestsError, () => {
 					Dialog.message(
 						lang.makeTranslation(
 							"payment_failed",

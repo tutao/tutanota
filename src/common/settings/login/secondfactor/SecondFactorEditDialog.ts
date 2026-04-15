@@ -1,5 +1,5 @@
 import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
-import { SecondFactorType } from "@tutao/appEnv"
+import { isApp, SecondFactorType } from "@tutao/appEnv"
 import type { DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
@@ -21,9 +21,8 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
-import { NotAuthorizedError } from "../../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { sysTypeRefs } from "@tutao/typeRefs"
-import { isApp } from "@tutao/appEnv"
 
 export interface SecondFactorEditDialogAttrs {
 	allowCancel?: boolean
@@ -66,7 +65,7 @@ export class SecondFactorEditDialog {
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
 				Dialog.message(lang.makeTranslation("error_msg", e.message))
-			} else if (e instanceof NotAuthorizedError) {
+			} else if (e instanceof restError.NotAuthorizedError) {
 				this.dialog.close()
 				if (this.attrs?.onTokenExpired) {
 					this.attrs?.onTokenExpired()

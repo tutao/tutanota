@@ -3,7 +3,7 @@ import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
 import m from "mithril"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
-import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { MailViewModel } from "./MailViewModel"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -26,13 +26,13 @@ export async function showEditLabelDialog(mailbox: tutanotaTypeRefs.MailBox | nu
 				await mailViewModel.createLabel(mailbox, { name, color })
 			}
 		} catch (error) {
-			if (error instanceof PreconditionFailedError) {
+			if (error instanceof restError.PreconditionFailedError) {
 				if (error.data === LIMIT_EXCEEDED_ERROR) {
 					showNotAvailableForFreeDialog(UpgradePromptType.MORE_LABELS_NEEDED)
 				} else {
 					Dialog.message("unknownError_msg")
 				}
-			} else if (isOfflineError(error) || !(error instanceof LockedError)) {
+			} else if (isOfflineError(error) || !(error instanceof restError.LockedError)) {
 				throw error
 			}
 		}

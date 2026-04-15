@@ -8,13 +8,12 @@ import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
-import { ContactMergeAction, Keys, UpgradePromptType } from "@tutao/appEnv"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode, ContactMergeAction, isApp, Keys, UpgradePromptType } from "@tutao/appEnv"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { getContactSelectionMessage, MultiContactViewer } from "./MultiContactViewer"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -65,7 +64,6 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
 import { client } from "../../../common/misc/ClientDetector"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
-import { isApp } from "@tutao/appEnv"
 
 assertMainOrNode()
 
@@ -751,7 +749,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						return showProgressDialog(
 							"pleaseWait_msg",
 							locator.entityClient.update(contact1).then(() => locator.entityClient.erase(contact2)),
-						).catch(ofClass(NotFoundError, noOp))
+						).catch(ofClass(restError.NotFoundError, noOp))
 					} else if (action === ContactMergeAction.DeleteFirst) {
 						this._removeFromMergableContacts(mergable, contact1)
 
@@ -935,7 +933,7 @@ export function deleteContacts(contactList: Contact[], onConfirm: () => void = n
 		if (confirmed) {
 			onConfirm()
 			for (const contact of contactList) {
-				locator.entityClient.erase(contact).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
+				locator.entityClient.erase(contact).catch(ofClass(restError.NotFoundError, noOp)).catch(ofClass(restError.LockedError, noOp))
 			}
 		}
 	})
@@ -949,7 +947,7 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 				return showProgressDialog(
 					"pleaseWait_msg",
 					locator.entityClient.update(keptContact).then(() => locator.entityClient.erase(goodbyeContact)),
-				).catch(ofClass(NotFoundError, noOp))
+				).catch(ofClass(restError.NotFoundError, noOp))
 			}
 		})
 	} else {

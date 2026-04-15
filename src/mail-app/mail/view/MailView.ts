@@ -3,12 +3,11 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, Keys, MailReportType } from "@tutao/appEnv"
+import { assertMainOrNode, FeatureType, isApp, Keys, MailReportType, MailSetKind, SystemFolderType } from "@tutao/appEnv"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { getElementId, getMailFolderType, isFolder, isFolderReadOnly, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
 import { MailListView } from "./MailListView"
-import { assertMainOrNode, isApp, MailSetKind, SystemFolderType } from "@tutao/appEnv"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
@@ -80,7 +79,7 @@ import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBo
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { LockedError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
@@ -337,7 +336,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.mailViewModel.clearStickyMail()
 		viewModel
 			.reportSpamForMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+			.catch(ofClass(restError.LockedError, () => Dialog.message("operationStillActive_msg")))
 			.finally(m.redraw)
 	}
 

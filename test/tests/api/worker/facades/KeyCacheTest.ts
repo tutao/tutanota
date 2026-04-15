@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey } from "@tutao/crypto"
-import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
 import { VersionedKey } from "@tutao/instancePipeline"
@@ -65,9 +65,9 @@ o.spec("KeyCacheTest", function () {
 			// We expect that there is no cached entry for that group id and therefore the key loader will be invoked.
 			o(async () =>
 				keyCache.getCurrentGroupKey(groupId, async () => {
-					throw new NotAuthorizedError("unexpected call to key loader")
+					throw new restError.NotAuthorizedError("unexpected call to key loader")
 				}),
-			).asyncThrows(NotAuthorizedError)
+			).asyncThrows(restError.NotAuthorizedError)
 		})
 
 		o("ignore user group key update", async function () {

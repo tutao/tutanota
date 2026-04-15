@@ -1,6 +1,6 @@
 import o, { mock, Spy, spy, verify } from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
-import { ProcessingState } from "@tutao/appEnv"
+import { MailSetKind, OperationType, ProcessingState } from "@tutao/appEnv"
 import { ClientModelInfo, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
@@ -16,11 +16,10 @@ import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFaca
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { NotAuthorizedError } from "../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
-import { MailSetKind, OperationType } from "@tutao/appEnv"
 
 const { anything } = matchers
 
@@ -225,7 +224,7 @@ o.spec("MailModelTest", function () {
 			})
 
 			// mail not being there
-			restClient.setListElementException(mail._id, new NotAuthorizedError("blah"))
+			restClient.setListElementException(mail._id, new restError.NotAuthorizedError("blah"))
 			await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
 			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 0 })
 		})

@@ -12,12 +12,12 @@ import { ConfigurationDatabase } from "../../../../src/common/api/worker/facades
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { WorkerFacade } from "../../../../src/common/api/worker/facades/WorkerFacade.js"
-import { NotFoundError } from "../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.js"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { EncryptionAuthStatus, ExternalImageRule, MailAuthenticationStatus, MailPhishingStatus } from "@tutao/appEnv"
+import { EncryptionAuthStatus, ExternalImageRule, isBrowser, MailAuthenticationStatus, MailPhishingStatus, MailState } from "@tutao/appEnv"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
@@ -30,7 +30,6 @@ import { UndoModel } from "../../../../src/mail-app/UndoModel"
 import { CommonSystemFacade } from "../../../../src/common/native/common/generatedipc/CommonSystemFacade"
 import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 import { TransferProgressDispatcher } from "../../../../src/common/api/main/TransferProgressDispatcher"
-import { isBrowser, MailState } from "@tutao/appEnv"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: tutanotaTypeRefs.Mail
@@ -381,7 +380,7 @@ o.spec("MailViewerViewModel", function () {
 
 		o("mail details NotFoundError", async function () {
 			const viewModel = makeViewModelWithHeaders("")
-			when(mailFacade.loadMailDetailsBlob(mail)).thenReject(new NotFoundError("mail details not found"))
+			when(mailFacade.loadMailDetailsBlob(mail)).thenReject(new restError.NotFoundError("mail details not found"))
 
 			await viewModel.loadAll(Promise.resolve())
 
@@ -398,7 +397,7 @@ o.spec("MailViewerViewModel", function () {
 			const mailDetailsBlob = mail.mailDetails
 			mail.mailDetails = null
 
-			when(mailFacade.loadMailDetailsDraft(mail)).thenReject(new NotFoundError("mail details draft not found"))
+			when(mailFacade.loadMailDetailsDraft(mail)).thenReject(new restError.NotFoundError("mail details draft not found"))
 			await viewModel.loadAll(Promise.resolve())
 			o(viewModel.isLoading()).deepEquals(false)
 			o(viewModel.getMailBody()).deepEquals("")

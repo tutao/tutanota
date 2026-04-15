@@ -3,7 +3,6 @@ import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { AttributeModel, ClientTypeModelResolver, elementIdPart, hasError, ServerModelUntypedInstance, sysTypeModels, sysTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, throttleStart, uint8ArrayToBase64 } from "@tutao/utils"
-import { handleRestError } from "../../api/common/error/RestError.js"
 import { SseStorage } from "./SseStorage.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
@@ -15,6 +14,7 @@ import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNo
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
 import { CryptoError } from "@tutao/crypto/error"
 import { OperationType } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -200,7 +200,7 @@ export class TutaSseFacade implements SseEventHandler {
 		const res = await this.fetch(url, { headers })
 
 		if (!res.ok) {
-			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
+			throw restError.handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
 		} else {
 			const untypedInstance = (await res.json()) as ServerModelUntypedInstance
 			log.debug("downloaded missed notification")

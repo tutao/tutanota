@@ -32,13 +32,16 @@ import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFa
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import {
+	AccountType,
 	CryptoProtocolVersion,
 	EncryptionKeyVerificationState,
 	GroupKeyRotationType,
+	GroupType,
 	PublicKeyIdentifierType,
 	PublicKeySignatureType,
 	RolloutType,
 	ShareCapability,
+	TutanotaError,
 } from "@tutao/appEnv"
 import { sysServices, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
@@ -49,7 +52,7 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/ShareFacade.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
-import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
 import {
@@ -59,7 +62,6 @@ import {
 	PubDistKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { AccountType, GroupType, TutanotaError } from "@tutao/appEnv"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
@@ -2115,7 +2117,7 @@ o.spec("KeyRotationFacade", function () {
 		})
 		o.spec("processPendingKeyRotationsAndUpdates error handling", function () {
 			o("loadPendingKeyRotations LockedError is caught", async function () {
-				const terror = new LockedError("test error")
+				const terror = new restError.LockedError("test error")
 				when(entityClientMock.load(sysTypeRefs.UserGroupRootTypeRef, anything())).thenReject(terror)
 				const log = (console.log = spy(console.log))
 				await keyRotationFacade.loadAndProcessPendingKeyRotations(object(), null)
@@ -2134,7 +2136,7 @@ o.spec("KeyRotationFacade", function () {
 				//ignore errors from  previous function calls
 				mockAttribute(keyRotationFacade, keyRotationFacade.loadPendingKeyRotations, () => {})
 				//make processPendingKeyRotations throw
-				const terror = new LockedError("test error")
+				const terror = new restError.LockedError("test error")
 				mockAttribute(keyRotationFacade, keyRotationFacade.processPendingKeyRotation, () => {
 					throw terror
 				})
@@ -2159,7 +2161,7 @@ o.spec("KeyRotationFacade", function () {
 			o("processPendingKeyRotation LockedError is caught", async function () {
 				//ignore errors from previous function calls
 				mockAttribute(keyRotationFacade, keyRotationFacade.loadPendingKeyRotations, () => {})
-				const terror = new LockedError("test error")
+				const terror = new restError.LockedError("test error")
 				mockAttribute(keyRotationFacade, keyRotationFacade.processPendingKeyRotation, () => {
 					throw terror
 				})

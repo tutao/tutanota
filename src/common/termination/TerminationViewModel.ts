@@ -6,11 +6,10 @@ import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { TerminationPeriodOptions } from "@tutao/appEnv"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
-import { sysServices } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { PreconditionFailedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { incrementDate } from "@tutao/utils"
-import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class TerminationViewModel {
 	mailAddress: string
@@ -58,7 +57,7 @@ export class TerminationViewModel {
 				serviceResponse.terminationRequest,
 			)
 		} catch (e) {
-			if (e instanceof PreconditionFailedError) {
+			if (e instanceof restError.PreconditionFailedError) {
 				switch (e.data) {
 					case "invalidTerminationDate":
 						this.onTerminationRequestFailed("terminationInvalidDate_msg")

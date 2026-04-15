@@ -2,7 +2,7 @@ import { AccountType, assertMainOrNode, FeatureType, getApiBaseUrl, GroupType, i
 import { assertNotNull, Base64Url, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
 import { elementIdPart, entityUpdateUtils, isSameId, listIdPart, sysServices, sysTypeModels, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 
-import { NotFoundError } from "../common/error/RestError"
+import { MediaType, restError } from "@tutao/restClient"
 import { locator } from "./CommonLocator"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"
@@ -11,7 +11,6 @@ import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
-import { MediaType } from "@tutao/restClient"
 
 assertMainOrNode()
 
@@ -368,7 +367,7 @@ export async function initUserController({
 	const [props, userSettingsGroupRoot, customer] = await Promise.all([
 		entityClient.loadRoot(tutanotaTypeRefs.TutanotaPropertiesTypeRef, user.userGroup.group),
 		entityClient.load(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, user.userGroup.group).catch(
-			ofClass(NotFoundError, () =>
+			ofClass(restError.NotFoundError, () =>
 				entityClient
 					.setup(
 						null,

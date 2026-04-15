@@ -1,4 +1,4 @@
-import { Keys } from "@tutao/appEnv"
+import { isApp, isBrowser, isDesktop, Keys, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 import { $Promisable, assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
@@ -14,7 +14,7 @@ import { DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
@@ -37,7 +37,6 @@ import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWit
 import { Card } from "../../../common/gui/base/Card"
 import { isDarkTheme, theme } from "../../../common/gui/theme"
 import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
-import { isApp, isBrowser, isDesktop, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -126,7 +125,7 @@ export async function createEditDraftDialog(viewModel: MailViewerViewModel, loca
 				try {
 					conversationEntry = await locator.entityClient.load(tutanotaTypeRefs.ConversationEntryTypeRef, viewModel.mail.conversationEntry)
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						// draft was likely deleted
 						return null
 					} else {
@@ -552,7 +551,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 												}
 											})
 											.catch((e) => {
-												if (e instanceof LockedError) {
+												if (e instanceof restError.LockedError) {
 													return Dialog.message("operationStillActive_msg")
 												} else {
 													if (isEmpty(nextUnsubscribeActions)) {

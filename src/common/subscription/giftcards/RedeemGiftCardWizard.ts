@@ -24,7 +24,7 @@ import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvi
 import { TextField } from "../../gui/base/TextField.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
-import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { Country, getByAbbreviation } from "../../../appEnv/CountryList.js"
@@ -150,12 +150,12 @@ class RedeemGiftCardModel {
 		return this.giftCardFacade
 			.redeemGiftCard(this.giftCardId, this.key, country?.a ?? null)
 			.catch(
-				ofClass(NotFoundError, () => {
+				ofClass(restError.NotFoundError, () => {
 					throw new UserError("invalidGiftCard_msg")
 				}),
 			)
 			.catch(
-				ofClass(NotAuthorizedError, (e) => {
+				ofClass(restError.NotAuthorizedError, (e) => {
 					throw new UserError(lang.makeTranslation("error_msg", e.message))
 				}),
 			)

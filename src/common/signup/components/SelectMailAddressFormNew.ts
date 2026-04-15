@@ -13,7 +13,7 @@ import { Icon } from "../../gui/base/Icon"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils"
 import { locator } from "../../api/main/CommonLocator"
-import { AccessDeactivatedError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { theme } from "../../gui/theme"
 import { Icons } from "../../gui/base/icons/Icons"
 
@@ -221,7 +221,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 							errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg",
 						}
 			} catch (e) {
-				if (e instanceof AccessDeactivatedError) {
+				if (e instanceof restError.AccessDeactivatedError) {
 					result = { isValid: false, errorId: "mailAddressDelay_msg" }
 				} else {
 					throw e

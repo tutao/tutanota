@@ -1,7 +1,7 @@
 import o, { spy } from "@tutao/otest"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { defer, delay } from "@tutao/utils"
-import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { OperationType } from "@tutao/appEnv"
 
@@ -92,7 +92,7 @@ o.spec("EventQueueTest", function () {
 		})
 		let queue = new EventQueue("test 2!", (nextElement: QueuedBatch) => {
 			if (nextElement.batchId === "2") {
-				return Promise.reject(new ConnectionError("no connection"))
+				return Promise.reject(new restError.ConnectionError("no connection"))
 			} else {
 				throw new Error("should not be called")
 			}

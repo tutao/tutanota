@@ -2,7 +2,7 @@ import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/utils"
-import { InvalidDataError, PreconditionFailedError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import type { EntityClient } from "../../common/api/common/EntityClient"
 import { lang, LanguageViewModel } from "../../common/misc/LanguageViewModel"
 import type { UserController } from "../../common/api/main/UserController"
@@ -189,12 +189,12 @@ export class EditOutOfOfficeNotificationDialogModel {
 				}
 			})
 			.catch(
-				ofClass(InvalidDataError, (e) => {
+				ofClass(restError.TooManyRequestsError, (e) => {
 					throw new UserError("outOfOfficeMessageInvalid_msg")
 				}),
 			)
 			.catch(
-				ofClass(PreconditionFailedError, async (e) => {
+				ofClass(restError.PreconditionFailedError, async (e) => {
 					if (e.data === FAILURE_UPGRADE_REQUIRED) {
 						throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithAutoResponder())
 					} else {

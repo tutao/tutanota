@@ -20,7 +20,7 @@ import { MobileContactsFacade } from "../../../common/native/common/generatedipc
 import { ContactSyncResult } from "../../../common/native/common/generatedipc/ContactSyncResult.js"
 import { assertMainOrNode, GroupType, isApp, isIOSApp, OperationType } from "@tutao/appEnv"
 import { ContactStoreError } from "../../../common/api/common/error/ContactStoreError.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { lang } from "../../../common/misc/LanguageViewModel"
@@ -317,7 +317,7 @@ export class NativeContactsSyncManager {
 				try {
 					await this.entityClient.update(updatedContact)
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						console.warn("Not found contact to update during sync: ", cleanContact._id, e)
 					} else {
 						throw e
@@ -333,7 +333,7 @@ export class NativeContactsSyncManager {
 				try {
 					await this.entityClient.erase(cleanContact)
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						console.warn("Not found contact to delete during sync: ", cleanContact._id, e)
 					} else {
 						throw e

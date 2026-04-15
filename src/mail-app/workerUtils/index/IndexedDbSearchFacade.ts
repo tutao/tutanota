@@ -1,4 +1,15 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import type { TypeModel } from "@tutao/typeRefs"
+import {
+	AssociationType,
+	Cardinality,
+	ClientTypeModelResolver,
+	compareNewestFirst,
+	elementIdPart,
+	firstBiggerThanSecond,
+	timestampToGeneratedId,
+	tutanotaTypeRefs,
+	ValueType,
+} from "@tutao/typeRefs"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	arrayHashSigned,
@@ -44,18 +55,14 @@ import {
 	TypeInfo,
 	typeRefToTypeInfo,
 } from "../../../common/api/common/utils/IndexUtils.js"
-import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "@tutao/typeRefs"
 import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import { AssociationType, Cardinality, ValueType } from "@tutao/typeRefs"
-import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
-import type { TypeModel } from "@tutao/typeRefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
-import { ClientTypeModelResolver } from "@tutao/typeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { SearchFacade } from "./SearchFacade"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
@@ -178,7 +185,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 					try {
 						entity = await this.entityClient.load(restriction.type, id)
 					} catch (e) {
-						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+						if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
 							continue
 						} else {
 							throw e
@@ -662,7 +669,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 					const mails = await Promise.all(
 						intermediateResults.map((intermediateResultId) =>
 							this.entityClient.load(tutanotaTypeRefs.MailTypeRef, intermediateResultId).catch(
-								ofClass(NotFoundError, () => {
+								ofClass(restError.NotFoundError, () => {
 									console.log(`Could not find updated mail ${JSON.stringify(intermediateResultId)}`)
 									return null
 								}),

@@ -3,7 +3,7 @@ import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./Cale
 import { EventController } from "../../../common/api/main/EventController"
 
 import { elementIdPart, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { NotFoundError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
@@ -76,7 +76,7 @@ export class CalendarEventUpdateCoordinator {
 					])
 					await this.handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate)
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId])
 					} else {
 						throw e

@@ -3,13 +3,13 @@ import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from 
 import { Router } from "../../../common/gui/ScopedRouter"
 import { driveTypeRefs, elementIdPart, entityUpdateUtils, getElementId, isSameId, listIdPart } from "@tutao/typeRefs"
 import m from "mithril"
-import { handleRestError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "@tutao/utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
 
-import { Const, OperationStatus, SECOND_IN_MILLIS } from "@tutao/appEnv"
+import { Const, OperationStatus, OperationType, SECOND_IN_MILLIS } from "@tutao/appEnv"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
@@ -26,7 +26,6 @@ import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
-import { OperationType } from "@tutao/appEnv"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -204,7 +203,7 @@ export class DriveViewModel {
 			if (op != null) {
 				let error: Error | null
 				if (update.status === OperationStatus.FAILURE) {
-					error = handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
+					error = restError.handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
 				} else {
 					error = null
 				}
@@ -509,7 +508,7 @@ export class DriveViewModel {
 			this.listModel.loadInitial()
 			await this.loadParents(folder)
 		} catch (e) {
-			if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+			if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
 				this.navigateToRootFolder()
 			} else {
 				throw e

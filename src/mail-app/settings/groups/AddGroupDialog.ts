@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { FeatureType, UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode, BookingItemFeatureType, FeatureType, GroupType, UpgradePromptType } from "@tutao/appEnv"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import type { ValidationResult } from "../../../common/settings/SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../../../common/settings/SelectMailAddressForm.js"
@@ -7,7 +7,7 @@ import { getGroupTypeDisplayName } from "../../../common/settings/groups/GroupDe
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog.js"
-import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/GroupUtils.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
@@ -15,7 +15,6 @@ import { TextField } from "../../../common/gui/base/TextField.js"
 import { getFirstOrThrow, ofClass } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { assertMainOrNode, BookingItemFeatureType, GroupType } from "@tutao/appEnv"
 import { EmailDomainData, getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
@@ -202,7 +201,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 			.createTemplateGroup(name)
 			.then(() => true)
 			.catch(
-				ofClass(PreconditionFailedError, async (e) => {
+				ofClass(restError.PreconditionFailedError, async (e) => {
 					if (
 						e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED ||
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED

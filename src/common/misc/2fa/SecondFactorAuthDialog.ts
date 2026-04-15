@@ -2,7 +2,7 @@ import { SecondFactorType } from "@tutao/appEnv"
 import type { Thunk } from "@tutao/utils"
 import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
 import type { TranslationKey } from "../LanguageViewModel.js"
-import { AccessBlockedError, BadRequestError, LockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { Dialog } from "../../gui/base/Dialog.js"
 import m from "mithril"
 import { SecondFactorAuthView } from "./SecondFactorAuthView.js"
@@ -158,11 +158,11 @@ export class SecondFactorAuthDialog {
 			await this.loginFacade.authenticateWithSecondFactor(authData)
 			this.waitingForSecondFactorDialog?.close()
 		} catch (e) {
-			if (e instanceof NotAuthenticatedError) {
+			if (e instanceof restError.NotAuthenticatedError) {
 				Dialog.message("loginFailed_msg")
-			} else if (e instanceof BadRequestError) {
+			} else if (e instanceof restError.BadRequestError) {
 				Dialog.message("loginFailed_msg")
-			} else if (e in AccessBlockedError) {
+			} else if (e in restError.TooManyRequestsError) {
 				Dialog.message("loginFailedOften_msg")
 				this.close()
 			} else {
@@ -201,7 +201,7 @@ export class SecondFactorAuthDialog {
 				this.webauthnState = {
 					state: "init",
 				}
-			} else if (e instanceof AccessBlockedError && this.waitingForSecondFactorDialog?.visible) {
+			} else if (e instanceof restError.TooManyRequestsError && this.waitingForSecondFactorDialog?.visible) {
 				Dialog.message("loginFailedOften_msg")
 				this.close()
 			} else if (e instanceof WebauthnError) {
@@ -210,12 +210,12 @@ export class SecondFactorAuthDialog {
 					state: "error",
 					error: "couldNotAuthU2f_msg",
 				}
-			} else if (e instanceof LockedError) {
+			} else if (e instanceof restError.LockedError) {
 				this.webauthnState = {
 					state: "init",
 				}
 				Dialog.message("serviceUnavailable_msg")
-			} else if (e instanceof NotAuthenticatedError) {
+			} else if (e instanceof restError.NotAuthenticatedError) {
 				this.webauthnState = {
 					state: "init",
 				}

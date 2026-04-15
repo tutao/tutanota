@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
-import { AccessDeactivatedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { formatMailAddressFromParts } from "../misc/Formatter.js"
 import { Icon } from "../gui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -214,7 +214,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 							errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg",
 						}
 			} catch (e) {
-				if (e instanceof AccessDeactivatedError) {
+				if (e instanceof restError.AccessDeactivatedError) {
 					result = { isValid: false, errorId: "mailAddressDelay_msg" }
 				} else {
 					throw e

@@ -1,19 +1,17 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
 import { DesktopFileFacade } from "../../../../src/common/desktop/files/DesktopFileFacade.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
-import { NotFoundError, PreconditionFailedError, TooManyRequestsError } from "../../../../src/common/api/common/error/RestError.js"
+import { HttpMethod, restError } from "@tutao/restClient"
 import type fs from "node:fs"
-import { assertThrows } from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopUtils } from "../../../../src/common/desktop/DesktopUtils.js"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import { TempFs } from "../../../../src/common/desktop/files/TempFs.js"
 import { BuildConfigKey, DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
-import { HttpMethod } from "@tutao/restClient"
 import { FetchImpl, FetchResult } from "../../../../src/common/desktop/net/NetAgent"
 import { CommandExecutor } from "../../../../src/common/desktop/CommandExecutor"
 import { BufferEncoding } from "rollup"
@@ -114,7 +112,7 @@ o.spec("DesktopFileFacade", function () {
 			}
 
 			const errorId = "123"
-			const response: FetchResult = mockResponse(NotFoundError.CODE, {
+			const response: FetchResult = mockResponse(restError.NotFoundError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 				},
@@ -136,7 +134,7 @@ o.spec("DesktopFileFacade", function () {
 			const retryAfter = "20"
 			const errorId = "123"
 
-			const response: FetchResult = mockResponse(TooManyRequestsError.CODE, {
+			const response: FetchResult = mockResponse(restError.TooManyRequestsError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 					"retry-after": retryAfter,
@@ -148,7 +146,7 @@ o.spec("DesktopFileFacade", function () {
 			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
-				statusCode: TooManyRequestsError.CODE,
+				statusCode: restError.TooManyRequestsError.CODE,
 				errorId,
 				precondition: null,
 				suspensionTime: retryAfter,
@@ -161,7 +159,7 @@ o.spec("DesktopFileFacade", function () {
 			const headers = { v: "foo", accessToken: "bar" }
 			const errorId = "123"
 			const retryAfter = "20"
-			const response: FetchResult = mockResponse(TooManyRequestsError.CODE, {
+			const response: FetchResult = mockResponse(restError.TooManyRequestsError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 					"suspension-time": retryAfter,
@@ -172,7 +170,7 @@ o.spec("DesktopFileFacade", function () {
 			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
-				statusCode: TooManyRequestsError.CODE,
+				statusCode: restError.TooManyRequestsError.CODE,
 				errorId,
 				precondition: null,
 				suspensionTime: retryAfter,
@@ -185,7 +183,7 @@ o.spec("DesktopFileFacade", function () {
 			const headers = { v: "foo", accessToken: "bar" }
 			const errorId = "123"
 			const precondition = "a.2"
-			const response: FetchResult = mockResponse(PreconditionFailedError.CODE, {
+			const response: FetchResult = mockResponse(restError.PreconditionFailedError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 					precondition: precondition,
@@ -196,7 +194,7 @@ o.spec("DesktopFileFacade", function () {
 			const result = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 
 			o(result).deepEquals({
-				statusCode: PreconditionFailedError.CODE,
+				statusCode: restError.PreconditionFailedError.CODE,
 				errorId,
 				precondition,
 				suspensionTime: null,
@@ -263,7 +261,7 @@ o.spec("DesktopFileFacade", function () {
 		o("when retry-after is returned, it is propagated", async function () {
 			const retryAFter = "20"
 			const errorId = "123"
-			const response = mockResponse(TooManyRequestsError.CODE, {
+			const response = mockResponse(restError.TooManyRequestsError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 					"retry-after": retryAFter,
@@ -273,7 +271,7 @@ o.spec("DesktopFileFacade", function () {
 
 			const uploadResult = await ff.upload(fileToUploadPath, targetUrl, HttpMethod.POST, {})
 
-			o(uploadResult.statusCode).equals(TooManyRequestsError.CODE)
+			o(uploadResult.statusCode).equals(restError.TooManyRequestsError.CODE)
 			o(uploadResult.errorId).equals(errorId)
 			o(uploadResult.precondition).equals(null)
 			o(uploadResult.suspensionTime).equals(retryAFter)
@@ -283,7 +281,7 @@ o.spec("DesktopFileFacade", function () {
 		o("when suspension-time is returned, it is propagated", async function () {
 			const retryAFter = "20"
 			const errorId = "123"
-			const response = mockResponse(TooManyRequestsError.CODE, {
+			const response = mockResponse(restError.TooManyRequestsError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 					"suspension-time": retryAFter,
@@ -292,7 +290,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 			const uploadResult = await ff.upload(fileToUploadPath, targetUrl, HttpMethod.POST, {})
 
-			o(uploadResult.statusCode).equals(TooManyRequestsError.CODE)
+			o(uploadResult.statusCode).equals(restError.TooManyRequestsError.CODE)
 			o(uploadResult.errorId).equals(errorId)
 			o(uploadResult.precondition).equals(null)
 			o(uploadResult.suspensionTime).equals(retryAFter)
@@ -302,7 +300,7 @@ o.spec("DesktopFileFacade", function () {
 		o("when precondition-time is returned, it is propagated", async function () {
 			const precondition = "a.2"
 			const errorId = "123"
-			const response = mockResponse(PreconditionFailedError.CODE, {
+			const response = mockResponse(restError.PreconditionFailedError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
 					precondition: precondition,
@@ -312,7 +310,7 @@ o.spec("DesktopFileFacade", function () {
 
 			const uploadResult = await ff.upload(fileToUploadPath, targetUrl, HttpMethod.POST, {})
 
-			o(uploadResult.statusCode).equals(PreconditionFailedError.CODE)
+			o(uploadResult.statusCode).equals(restError.PreconditionFailedError.CODE)
 			o(uploadResult.errorId).equals(errorId)
 			o(uploadResult.precondition).equals(precondition)
 			o(uploadResult.suspensionTime).equals(null)

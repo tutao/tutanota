@@ -6,7 +6,7 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { KnowledgeBaseEntryView } from "./KnowledgeBaseEntryView.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { makeListSelectionChangedScrollHandler } from "../../../common/gui/base/GuiUtils.js"
@@ -57,7 +57,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 							.then((fetchedTemplate) => {
 								attrs.onTemplateSelect(fetchedTemplate)
 							})
-							.catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
+							.catch(ofClass(restError.NotFoundError, () => Dialog.message("templateNotExists_msg")))
 					},
 					readonly: model.isReadOnly(selectedEntry),
 				})

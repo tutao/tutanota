@@ -1,53 +1,32 @@
 import o from "@tutao/otest"
-import {
-	AccessBlockedError,
-	AccessDeactivatedError,
-	AccessExpiredError,
-	BadGatewayError,
-	BadRequestError,
-	ConnectionError,
-	handleRestError,
-	InternalServerError,
-	InvalidDataError,
-	InvalidSoftwareVersionError,
-	LimitReachedError,
-	LockedError,
-	MethodNotAllowedError,
-	NotAuthenticatedError,
-	NotAuthorizedError,
-	NotFoundError,
-	PreconditionFailedError,
-	ResourceError,
-	SessionExpiredError,
-	TooManyRequestsError,
-} from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { TutanotaError } from "@tutao/appEnv"
 
 o.spec("RestErrorTest", function () {
 	o("handleRestError should create the correct error classes", () => {
-		o(handleRestError(400) instanceof BadRequestError).equals(true)
-		o(handleRestError(401) instanceof NotAuthenticatedError).equals(true)
-		o(handleRestError(403) instanceof NotAuthorizedError).equals(true)
-		o(handleRestError(404) instanceof NotFoundError).equals(true)
-		o(handleRestError(405) instanceof MethodNotAllowedError).equals(true)
-		o(handleRestError(412) instanceof PreconditionFailedError).equals(true)
-		o(handleRestError(423) instanceof LockedError).equals(true)
-		o(handleRestError(429) instanceof TooManyRequestsError).equals(true)
-		o(handleRestError(440) instanceof SessionExpiredError).equals(true)
-		o(handleRestError(470) instanceof AccessDeactivatedError).equals(true)
-		o(handleRestError(471) instanceof AccessExpiredError).equals(true)
-		o(handleRestError(472) instanceof AccessBlockedError).equals(true)
-		o(handleRestError(473) instanceof InvalidDataError).equals(true)
-		o(handleRestError(474) instanceof InvalidSoftwareVersionError).equals(true)
-		o(handleRestError(475) instanceof LimitReachedError).equals(true)
-		o(handleRestError(500) instanceof InternalServerError).equals(true)
-		o(handleRestError(502) instanceof BadGatewayError).equals(true)
-		let resourceError = handleRestError(123, "/path", "errorId")
-		o(resourceError instanceof ResourceError).equals(true)
+		o(restError.handleRestError(400) instanceof restError.BadRequestError).equals(true)
+		o(restError.handleRestError(401) instanceof restError.NotAuthenticatedError).equals(true)
+		o(restError.handleRestError(403) instanceof restError.NotAuthorizedError).equals(true)
+		o(restError.handleRestError(404) instanceof restError.NotFoundError).equals(true)
+		o(restError.handleRestError(405) instanceof restError.MethodNotAllowedError).equals(true)
+		o(restError.handleRestError(412) instanceof restError.PreconditionFailedError).equals(true)
+		o(restError.handleRestError(423) instanceof restError.LockedError).equals(true)
+		o(restError.handleRestError(429) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(440) instanceof restError.SessionExpiredError).equals(true)
+		o(restError.handleRestError(470) instanceof restError.AccessDeactivatedError).equals(true)
+		o(restError.handleRestError(471) instanceof restError.AccessExpiredError).equals(true)
+		o(restError.handleRestError(472) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(473) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(474) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(475) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(500) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(502) instanceof restError.TooManyRequestsError).equals(true)
+		let resourceError = restError.handleRestError(123, "/path", "errorId")
+		o(resourceError instanceof restError.TooManyRequestsError).equals(true)
 		o(resourceError.message).equals("123: errorId /path")
 	})
 	o("handleRestError should correctly initialize PreconditionFailedError class", () => {
-		const preconditionFailedError = handleRestError(412, "/path", null, "reason") as PreconditionFailedError
+		const preconditionFailedError = restError.handleRestError(412, "/path", null, "reason") as restError.PreconditionFailedError
 		o(preconditionFailedError.data).equals("reason")
 		o(preconditionFailedError.message).equals("412: reason /path")
 	})
@@ -70,23 +49,23 @@ o.spec("RestErrorTest", function () {
 		})
 	}
 
-	createErrorTest(BadRequestError, "BadRequestError", 400)
-	createErrorTest(NotAuthenticatedError, "NotAuthenticatedError", 401)
-	createErrorTest(NotAuthorizedError, "NotAuthorizedError", 403)
-	createErrorTest(MethodNotAllowedError, "MethodNotAllowedError", 405)
-	createErrorTest(NotFoundError, "NotFoundError", 404)
-	createErrorTest(PreconditionFailedError, "PreconditionFailedError", 412)
-	createErrorTest(LockedError, "LockedError", 423)
-	createErrorTest(TooManyRequestsError, "TooManyRequestsError", 429)
-	createErrorTest(SessionExpiredError, "SessionExpiredError", 440)
-	createErrorTest(AccessDeactivatedError, "AccessDeactivatedError", 470)
-	createErrorTest(AccessExpiredError, "AccessExpiredError", 471)
-	createErrorTest(AccessBlockedError, "AccessBlockedError", 472)
-	createErrorTest(InvalidDataError, "InvalidDataError", 473)
-	createErrorTest(InvalidSoftwareVersionError, "InvalidSoftwareVersionError", 474)
-	createErrorTest(LimitReachedError, "LimitReachedError", 475)
-	createErrorTest(InternalServerError, "InternalServerError", 500)
-	createErrorTest(BadGatewayError, "BadGatewayError", 502)
-	createErrorTest(ResourceError, "ResourceError", undefined)
-	createErrorTest(ConnectionError, "ConnectionError", undefined)
+	createErrorTest(restError.BadRequestError, "BadRequestError", 400)
+	createErrorTest(restError.NotAuthenticatedError, "NotAuthenticatedError", 401)
+	createErrorTest(restError.NotAuthorizedError, "NotAuthorizedError", 403)
+	createErrorTest(restError.MethodNotAllowedError, "MethodNotAllowedError", 405)
+	createErrorTest(restError.NotFoundError, "NotFoundError", 404)
+	createErrorTest(restError.PreconditionFailedError, "PreconditionFailedError", 412)
+	createErrorTest(restError.LockedError, "LockedError", 423)
+	createErrorTest(restError.TooManyRequestsError, "TooManyRequestsError", 429)
+	createErrorTest(restError.SessionExpiredError, "SessionExpiredError", 440)
+	createErrorTest(restError.AccessDeactivatedError, "AccessDeactivatedError", 470)
+	createErrorTest(restError.AccessExpiredError, "AccessExpiredError", 471)
+	createErrorTest(restError.TooManyRequestsError, "AccessBlockedError", 472)
+	createErrorTest(restError.TooManyRequestsError, "InvalidDataError", 473)
+	createErrorTest(restError.TooManyRequestsError, "InvalidSoftwareVersionError", 474)
+	createErrorTest(restError.TooManyRequestsError, "LimitReachedError", 475)
+	createErrorTest(restError.TooManyRequestsError, "InternalServerError", 500)
+	createErrorTest(restError.TooManyRequestsError, "BadGatewayError", 502)
+	createErrorTest(restError.TooManyRequestsError, "ResourceError", undefined)
+	createErrorTest(restError.ConnectionError, "ConnectionError", undefined)
 })

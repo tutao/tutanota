@@ -5,7 +5,7 @@ import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "@tutao/utils"
-import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
 import { Icons } from "../gui/base/icons/Icons.js"
@@ -203,7 +203,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 							.getAsync()
 							.then((user) => locator.userManagementFacade.changeAdminFlag(user, value))
 							.catch(
-								ofClass(PreconditionFailedError, (e) => {
+								ofClass(restError.PreconditionFailedError, (e) => {
 									if (e.data && e.data === "usergroup.pending-key-rotation") {
 										Dialog.message("makeAdminPendingUserGroupKeyRotationError_msg")
 									} else if (e.data === "multiadmingroup.pending-key-rotation") {
@@ -276,7 +276,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 							title: "remove_action",
 							click: () => {
 								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group)).catch(
-									ofClass(NotAuthorizedError, (e) => {
+									ofClass(restError.NotAuthorizedError, (e) => {
 										Dialog.message("removeUserFromGroupNotAdministratedUserError_msg")
 									}),
 								)
@@ -353,7 +353,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			m.redraw()
 		} catch (e) {
 			// may happen if the user gets the admin flag removed, so ignore it
-			if (!(e instanceof BadRequestError)) {
+			if (!(e instanceof restError.BadRequestError)) {
 				throw e
 			}
 		}
@@ -381,7 +381,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		if (confirmed) {
 			return locator.userManagementFacade
 				.deleteUser(await this.user.getAsync(), false)
-				.catch(ofClass(PreconditionFailedError, () => Dialog.message("stillReferencedFromContactForm_msg")))
+				.catch(ofClass(restError.PreconditionFailedError, () => Dialog.message("stillReferencedFromContactForm_msg")))
 		}
 	}
 
@@ -398,7 +398,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		if (confirmed) {
 			await locator.userManagementFacade
 				.deleteUser(await this.user.getAsync(), true)
-				.catch(ofClass(PreconditionFailedError, () => Dialog.message("emailAddressInUse_msg")))
+				.catch(ofClass(restError.PreconditionFailedError, () => Dialog.message("emailAddressInUse_msg")))
 		}
 	}
 

@@ -2,9 +2,12 @@ import o, { spy } from "@tutao/otest"
 import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import {
+	BucketPermissionType,
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	EncryptionKeyVerificationState,
+	GroupType,
+	PermissionType,
 	PresentableKeyVerificationState,
 	ProcessingState,
 	PublicKeyIdentifierType,
@@ -21,9 +24,10 @@ import {
 	sysTypeRefs,
 	tutanotaTypeRefs,
 	TypeModel,
+	TypeModelResolver,
 	UntypedInstance,
 } from "@tutao/typeRefs"
-import { HttpMethod, RestClient } from "@tutao/restClient"
+import { HttpMethod, RestClient, restError } from "@tutao/restClient"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import {
 	Aes256Key,
@@ -32,6 +36,7 @@ import {
 	aesEncrypt,
 	AesKey,
 	bitArrayToUint8Array,
+	cryptoUtils,
 	decryptKey,
 	encryptKey,
 	encryptRsaKey,
@@ -49,8 +54,6 @@ import {
 } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
-import { cryptoUtils } from "@tutao/crypto"
-import { TypeModelResolver } from "@tutao/typeRefs"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
@@ -64,13 +67,10 @@ import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worke
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
-import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
-import { EntityAdapter } from "@tutao/instancePipeline"
+import { CryptoWrapper, EntityAdapter } from "@tutao/instancePipeline"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
-import { CryptoWrapper } from "@tutao/instancePipeline"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
-import { BucketPermissionType, GroupType, PermissionType } from "@tutao/appEnv"
 
 const { anything, argThat } = matchers
 
@@ -817,7 +817,7 @@ o.spec("CryptoFacadeTest", function () {
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: notFoundRecipientMailAddress,
 			}),
-		).thenReject(new NotFoundError(""))
+		).thenReject(new restError.NotFoundError(""))
 
 		await crypto.encryptBucketKeyForInternalRecipient(
 			"senderGroupId",
@@ -863,13 +863,13 @@ o.spec("CryptoFacadeTest", function () {
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: notFoundRecipient1MailAddress,
 			}),
-		).thenReject(new NotFoundError(""))
+		).thenReject(new restError.NotFoundError(""))
 		when(
 			publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: notFoundRecipient2MailAddress,
 			}),
-		).thenReject(new NotFoundError(""))
+		).thenReject(new restError.NotFoundError(""))
 
 		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, notFoundRecipient1MailAddress, notFoundRecipients, mismatchRecipients)
 

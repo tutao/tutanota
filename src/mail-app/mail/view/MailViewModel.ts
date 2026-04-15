@@ -1,15 +1,6 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import {
-	elementIdPart,
-	entityUpdateUtils,
-	getElementId,
-	getMailSetKind,
-	isPermanentDeleteAllowedForFolder,
-	isPermanentDeleteAllowedMailSetKind,
-	isSameId,
-	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, getElementId, getMailSetKind, isPermanentDeleteAllowedForFolder, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -18,7 +9,7 @@ import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import Stream from "mithril/stream"
@@ -278,7 +269,7 @@ export class MailViewModel {
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
-			} else if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+			} else if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
 				mail = null
 			} else {
 				throw e
@@ -822,7 +813,7 @@ export class MailViewModel {
 		// the request is handled a little differently if it is the system folder vs. a subfolder
 		if (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM) {
 			return this.mailModel.clearFolder(folder).catch(
-				ofClass(PreconditionFailedError, () => {
+				ofClass(restError.PreconditionFailedError, () => {
 					throw new UserError("operationStillActive_msg")
 				}),
 			)
@@ -830,7 +821,7 @@ export class MailViewModel {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			if (isSubfolderOfType(folders, folder, MailSetKind.TRASH) || isSubfolderOfType(folders, folder, MailSetKind.SPAM)) {
 				return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
-					ofClass(PreconditionFailedError, () => {
+					ofClass(restError.PreconditionFailedError, () => {
 						throw new UserError("operationStillActive_msg")
 					}),
 				)

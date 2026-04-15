@@ -2,7 +2,7 @@ import { aesDecrypt, cryptoUtils, EntropySource, random, Randomizer } from "@tut
 import { UserFacade } from "./UserFacade.js"
 import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { lazy, noOp, ofClass } from "@tutao/utils"
-import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { _encryptBytes } from "@tutao/instancePipeline"
@@ -53,14 +53,14 @@ export class EntropyFacade {
 		})
 		return this.serviceExecutor
 			.put(tutanotaServices.EntropyService, entropyData)
-			.catch(ofClass(LockedError, noOp))
+			.catch(ofClass(restError.LockedError, noOp))
 			.catch(
-				ofClass(ConnectionError, (e) => {
+				ofClass(restError.ConnectionError, (e) => {
 					console.log("could not store entropy", e)
 				}),
 			)
 			.catch(
-				ofClass(ServiceUnavailableError, (e) => {
+				ofClass(restError.TooManyRequestsError, (e) => {
 					console.log("could not store entropy", e)
 				}),
 			)

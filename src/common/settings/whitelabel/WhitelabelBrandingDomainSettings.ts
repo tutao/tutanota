@@ -2,20 +2,19 @@ import { TextField } from "../../gui/base/TextField.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/utils"
-import { PreconditionFailedError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { Icons } from "../../gui/base/icons/Icons"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog.js"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { CertificateState, CertificateType, UpgradePromptType } from "@tutao/appEnv"
+import { CertificateState, CertificateType, PlanType, UpgradePromptType } from "@tutao/appEnv"
 import { formatDateTime } from "../../../common/misc/Formatter"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
 import { sysTypeRefs } from "@tutao/typeRefs"
-import { PlanType } from "@tutao/appEnv"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: sysTypeRefs.CustomerInfo
@@ -57,7 +56,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			try {
 				return await showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
 			} catch (e) {
-				if (e instanceof PreconditionFailedError) {
+				if (e instanceof restError.PreconditionFailedError) {
 					if (e.data === FAILURE_LOCKED) {
 						return await Dialog.message("operationStillActive_msg")
 					} else if (e.data === FAILURE_CONTACT_FORM_ACTIVE) {

@@ -1,11 +1,11 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { BadRequestError, LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { $Promisable, assertNotNull, clamp, delay, filterInt, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/utils"
-import { EncryptionAuthStatus, MailAuthenticationStatus, MailReportType, secondsToMillis } from "@tutao/appEnv"
+import { EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, MailReportType, MailSetKind, secondsToMillis, SystemFolderType } from "@tutao/appEnv"
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -48,7 +48,6 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { isApp, isDesktop, MailSetKind, SystemFolderType } from "@tutao/appEnv"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSet = tutanotaTypeRefs.MailSet
@@ -232,10 +231,10 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 		return true
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
-		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
+		if (e instanceof restError.LockedError || e instanceof restError.PreconditionFailedError) {
 			await Dialog.message("operationStillActive_msg")
 			return false
-		} else if (e instanceof BadRequestError) {
+		} else if (e instanceof restError.BadRequestError) {
 			// This will be thrown when a mail is attempted to be moved between two different mailboxes
 			await Dialog.message("couldNotMoveMail_msg")
 			return false
@@ -354,7 +353,7 @@ export async function moveMailsToSystemFolder({
 
 function handleMoveError(err: Error) {
 	//LockedError should no longer be thrown!?!
-	if (err instanceof LockedError || err instanceof PreconditionFailedError) {
+	if (err instanceof restError.LockedError || err instanceof restError.PreconditionFailedError) {
 		return Dialog.message("operationStillActive_msg").then(() => false)
 	} else {
 		throw err

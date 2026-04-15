@@ -7,7 +7,7 @@ import { lang } from "../../common/misc/LanguageViewModel.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { PushServiceType } from "@tutao/appEnv"
+import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/appEnv"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
@@ -17,9 +17,8 @@ import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/b
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
 import { noOp, ofClass } from "@tutao/utils"
-import { NotFoundError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
-import { isApp, isBrowser, isDesktop } from "@tutao/appEnv"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
@@ -90,7 +89,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 				identifier: identifier.identifier,
 				current: isCurrentDevice,
 				removeClicked: () => {
-					locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
+					locator.entityClient.erase(identifier).catch(ofClass(restError.NotFoundError, noOp))
 				},
 				formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 				disableClicked: () => this.togglePushIdentifier(identifier),

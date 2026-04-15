@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
-import { sysServices, sysTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
-import { HttpMethod } from "@tutao/restClient"
+import { sysServices, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
+import { HttpMethod, RestClient, restError } from "@tutao/restClient"
 import {
 	aes256RandomKey,
 	AesKey,
@@ -16,14 +16,12 @@ import {
 import { LoginFacade, LoginListener } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
-import { RestClient } from "@tutao/restClient"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/common/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { Credentials } from "../../../../../src/common/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/utils"
-import { Const, KdfType, RolloutType } from "@tutao/appEnv"
-import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/common/api/common/error/RestError"
+import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "@tutao/appEnv"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
 import { ConnectMode, EventBusClient } from "../../../../../src/common/api/worker/EventBusClient"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
@@ -33,14 +31,11 @@ import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Arg
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
-import { _encryptString } from "@tutao/instancePipeline"
+import { _encryptString, InstancePipeline } from "@tutao/instancePipeline"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { InstancePipeline } from "@tutao/instancePipeline"
 import { CacheMode } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"
 import { LoginFailReason } from "../../../../../src/common/api/main/PageContextLoginListener"
-import { AccountType, DEFAULT_KDF_TYPE } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 const { anything, argThat } = matchers
 
@@ -403,7 +398,7 @@ o.spec("LoginFacadeTest", function () {
 						HttpMethod.GET,
 						anything(),
 					),
-				).thenReject(new NotAuthenticatedError("not your cheese"))
+				).thenReject(new restError.NotAuthenticatedError("not your cheese"))
 
 				const res = await facade.resumeSession(
 					credentials,
@@ -549,7 +544,7 @@ o.spec("LoginFacadeTest", function () {
 			async function testConnectionFailingSyncLogin() {
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					throw new ConnectionError("Oopsie 3")
+					throw new restError.ConnectionError("Oopsie 3")
 				})
 
 				await o(() =>
@@ -562,7 +557,7 @@ o.spec("LoginFacadeTest", function () {
 						dbKey,
 						timeRangeDate,
 					),
-				).asyncThrows(ConnectionError)
+				).asyncThrows(restError.ConnectionError)
 				o(calls).deepEquals(["sessionService"])
 			}
 
@@ -599,7 +594,7 @@ o.spec("LoginFacadeTest", function () {
 			}
 
 			async function testConnectionFailingAsyncLogin() {
-				const connectionError = new ConnectionError("Oopsie 2")
+				const connectionError = new restError.ConnectionError("Oopsie 2")
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
 					throw connectionError
@@ -702,7 +697,7 @@ o.spec("LoginFacadeTest", function () {
 
 				const groupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef)
 				when(entityClientMock.load(sysTypeRefs.GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
-				const connectionError = new ConnectionError("test")
+				const connectionError = new restError.ConnectionError("test")
 				when(userFacade.isFullyLoggedIn()).thenReturn(false)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
@@ -869,7 +864,7 @@ o.spec("LoginFacadeTest", function () {
 						null,
 						timeRangeDate,
 					),
-				).asyncThrows(AccessExpiredError)
+				).asyncThrows(restError.AccessExpiredError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()), { times: 0 })
 			})
 
@@ -887,7 +882,7 @@ o.spec("LoginFacadeTest", function () {
 						null,
 						timeRangeDate,
 					),
-				).asyncThrows(NotAuthenticatedError)
+				).asyncThrows(restError.NotAuthenticatedError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
 			})
 		})

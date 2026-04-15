@@ -1,4 +1,4 @@
-import { AccessExpiredError, BadRequestError, NotAuthenticatedError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils.js"
@@ -345,7 +345,7 @@ export class LoginViewModel implements ILoginViewModel {
 				this.state = LoginState.NotAuthenticated
 			}
 		} catch (e) {
-			if (e instanceof NotAuthenticatedError && this.autoLoginCredentials) {
+			if (e instanceof restError.NotAuthenticatedError && this.autoLoginCredentials) {
 				const autoLoginCredentials = this.autoLoginCredentials
 				await this.credentialsProvider.deleteByUserId(autoLoginCredentials.userId)
 				if (credentials) {
@@ -465,9 +465,9 @@ export class LoginViewModel implements ILoginViewModel {
 	private async onLoginFailed(error: Error): Promise<void> {
 		this.helpText = getLoginErrorMessage(error, false)
 
-		if (error instanceof BadRequestError || error instanceof NotAuthenticatedError) {
+		if (error instanceof restError.BadRequestError || error instanceof restError.NotAuthenticatedError) {
 			this.state = LoginState.InvalidCredentials
-		} else if (error instanceof AccessExpiredError) {
+		} else if (error instanceof restError.AccessExpiredError) {
 			this.state = LoginState.AccessExpired
 		} else {
 			this.state = LoginState.UnknownError

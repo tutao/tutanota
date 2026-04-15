@@ -1,13 +1,12 @@
 import o from "@tutao/otest"
-import { getElementId, getListId, sortCompareById } from "@tutao/typeRefs"
+import { getElementId, getListId, sortCompareById, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { defer, DeferredObject } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
-import { ConnectionError } from "../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { OperationType } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"
@@ -305,7 +304,7 @@ o.spec("ListElementListModel", function () {
 			listModel.loadInitial()
 
 			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
-			somePromise.reject(new ConnectionError("test"))
+			somePromise.reject(new restError.ConnectionError("test"))
 
 			await received
 

@@ -14,18 +14,18 @@ import {
 	getElementId,
 	getListId,
 	listIdPart,
+	PatchOperationType,
 	ServerModelParsedInstance,
 	SomeEntity,
 	sysTypeRefs,
 	tutanotaTypeRefs,
+	TypeModelResolver,
 } from "@tutao/typeRefs"
-import { stringToCustomId } from "@tutao/utils"
-import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/utils"
+import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, stringToCustomId, TypeRef } from "@tutao/utils"
 import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { RestClient } from "@tutao/restClient"
-import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
+import { RestClient, restError } from "@tutao/restClient"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
 import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
@@ -34,7 +34,6 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { PatchOperationType, TypeModelResolver } from "@tutao/typeRefs"
 import { ModelMapper, PatchMerger } from "@tutao/instancePipeline"
 import { collapseId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { LastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
@@ -309,7 +308,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						await toStorableInstance(firstContact),
 					)
 					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id2])).thenReject(
-						new NotFoundError("does not exist"),
+						new restError.NotFoundError("does not exist"),
 					)
 					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id3])).thenResolve(
 						await toStorableInstance(thirdContact),
@@ -519,7 +518,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await toStorableInstance(firstContact),
 				)
 				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id2])).thenReject(
-					new NotFoundError("does not exist"),
+					new restError.NotFoundError("does not exist"),
 				)
 				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id3])).thenResolve(
 					await toStorableInstance(thirdContact),
@@ -838,7 +837,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlob._id, anything())).thenReject(
-					new NotFoundError("not found"),
+					new restError.NotFoundError("not found"),
 				)
 				await cache.entityEventsReceived(
 					[await updateDataForDelete(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId))],
@@ -847,7 +846,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 				// entity is not loaded from server when it is deleted
 				verify(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
-				await assertThrows(NotFoundError, () => cache.load(tutanotaTypeRefs.MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
+				await assertThrows(restError.NotFoundError, () => cache.load(tutanotaTypeRefs.MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
 
 				// we tried to reload the mail body using the rest client, because it was removed from the cache
 				verify(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 1 })
@@ -886,7 +885,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				// id1 was moved to another list, which means it is no longer cached, which means we should try to load it again (causing NotFoundError)
 				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntries[0]._id, anything())).thenReject(
-					new NotFoundError("This is not the mailSetEntry you're looking for"),
+					new restError.NotFoundError("This is not the mailSetEntry you're looking for"),
 				)
 
 				const thrown = await assertThrows(Error, () => cache.load(tutanotaTypeRefs.MailSetEntryTypeRef, [listId, getElementId(mailSetEntries[0])]))
@@ -1715,7 +1714,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			await Promise.all(inCache.map(async (i) => await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(i))))
 
 			const loadParsedInstancesRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
-				if (listId !== listIdToLoad) throw new NotFoundError("unknown list id")
+				if (listId !== listIdToLoad) throw new restError.NotFoundError("unknown list id")
 				const startOfList = serverMails.filter((mail) => firstBiggerThanSecond(getElementId(mail), startId)).slice(0, count)
 				return Promise.all(startOfList.map(toStorableInstance))
 			})

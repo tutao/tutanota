@@ -4,7 +4,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { stringValidator } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
@@ -99,7 +99,7 @@ export class GroupDetailsModel {
 			const userGroup = await this.entityClient.load(sysTypeRefs.GroupTypeRef, userGroupInfo.group)
 			return locator.groupManagementFacade.removeUserFromGroup(assertNotNull(userGroup.user), this.groupInfo.group)
 		} catch (e) {
-			if (!(e instanceof NotAuthorizedError)) throw e
+			if (!(e instanceof restError.NotAuthorizedError)) throw e
 			throw new UserError("removeUserFromGroupNotAdministratedError_msg")
 		}
 	}
@@ -109,7 +109,7 @@ export class GroupDetailsModel {
 		try {
 			return await locator.groupManagementFacade.deactivateGroup(group, !deactivate)
 		} catch (e) {
-			if (!(e instanceof PreconditionFailedError)) throw e
+			if (!(e instanceof restError.PreconditionFailedError)) throw e
 			if (!deactivate) {
 				throw new UserError("emailAddressInUse_msg")
 			} else {
@@ -219,7 +219,7 @@ export class GroupDetailsModel {
 			try {
 				this.usedStorageInBytes = await locator.groupManagementFacade.readUsedSharedMailGroupStorage(await this.group.getAsync())
 			} catch (e) {
-				if (!(e instanceof BadRequestError)) throw e
+				if (!(e instanceof restError.BadRequestError)) throw e
 				// may happen if the user gets the admin flag removed
 			}
 		} else {

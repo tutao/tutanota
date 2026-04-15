@@ -1,5 +1,5 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
-import { type InvoiceData, Keys } from "@tutao/appEnv"
+import { type InvoiceData, Keys, PaymentDataResultType, PaymentMethodType, PlanType } from "@tutao/appEnv"
 import { Country, CountryType } from "../../../appEnv/CountryList"
 import { PowSolution } from "../../api/common/pow-worker"
 import { NewAccountData, type UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard"
@@ -9,7 +9,7 @@ import { client } from "../../misc/ClientDetector"
 import { getPreconditionFailedPaymentMsg, PaymentErrorCode, SubscriptionApp } from "./SubscriptionUtils"
 import { SessionType } from "../../api/common/SessionType"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { assertNotNull, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { SignupViewModel } from "../../signup/SignupView"
@@ -19,7 +19,6 @@ import m from "mithril"
 import { Button, ButtonType } from "../../gui/base/Button"
 
 import { entityUpdateUtils, getClientType, PaymentData, sysTypeRefs } from "@tutao/typeRefs"
-import { PaymentDataResultType, PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -407,7 +406,7 @@ export async function signup(
 	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
 		.catch(
 			ofClass(
-				InvalidDataError,
+				restError.TooManyRequestsError,
 				() =>
 					({
 						variant: "fatalFailure",
@@ -416,7 +415,7 @@ export async function signup(
 			),
 		)
 		.catch(
-			ofClass(PreconditionFailedError, (e) =>
+			ofClass(restError.PreconditionFailedError, (e) =>
 				e.data === "registration-mail-address-unavailable"
 					? ({
 							variant: "recoverableFailure",

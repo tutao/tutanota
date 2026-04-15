@@ -22,8 +22,8 @@ import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR, RepeatPeriod } from "@tutao/appEnv"
-import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
+import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR, OperationType, RepeatPeriod } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 import { EventController } from "../../api/main/EventController.js"
 
 import { generateLocalEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
@@ -31,7 +31,6 @@ import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils.js"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
-import { OperationType } from "@tutao/appEnv"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -379,7 +378,7 @@ export class CalendarEventsRepository {
 				}
 				await this.addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, wrapper)
 			} catch (e) {
-				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+				if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
 					console.log(TAG, e.name, "updated event is not accessible anymore")
 				}
 				throw e

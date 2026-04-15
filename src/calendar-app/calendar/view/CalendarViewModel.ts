@@ -17,8 +17,18 @@ import {
 	noOp,
 } from "@tutao/utils"
 import { entityUpdateUtils, getElementId, getListId, getWeekStart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { DEFAULT_CALENDAR_COLOR, EndType, EXTERNAL_CALENDAR_SYNC_INTERVAL, NewPaidPlans, TimeFormat, UpgradePromptType, WeekStart } from "@tutao/appEnv"
-import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
+import {
+	DEFAULT_CALENDAR_COLOR,
+	EndType,
+	EXTERNAL_CALENDAR_SYNC_INTERVAL,
+	GroupType,
+	NewPaidPlans,
+	OperationType,
+	TimeFormat,
+	UpgradePromptType,
+	WeekStart,
+} from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import stream from "mithril/stream"
@@ -67,7 +77,6 @@ import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
-import { GroupType, OperationType } from "@tutao/appEnv"
 
 export interface EventWrapperFlags {
 	/**
@@ -786,10 +795,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 							const event = await this.entityClient.load(tutanotaTypeRefs.CalendarEventTypeRef, eventId)
 							await this.updatePreviewedEvent(event)
 						} catch (e) {
-							if (e instanceof NotAuthorizedError) {
+							if (e instanceof restError.NotAuthorizedError) {
 								// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
 								console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
-							} else if (e instanceof NotFoundError) {
+							} else if (e instanceof restError.NotFoundError) {
 								console.log("Not found event in entityEventsReceived of view", e)
 							} else {
 								throw e

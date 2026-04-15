@@ -1,30 +1,6 @@
 // @bundleInto:common
 
-import {
-	AccessBlockedError,
-	AccessDeactivatedError,
-	AccessExpiredError,
-	BadGatewayError,
-	BadRequestError,
-	ConnectionError,
-	InsufficientStorageError,
-	InternalServerError,
-	InvalidDataError,
-	InvalidSoftwareVersionError,
-	LimitReachedError,
-	LockedError,
-	MethodNotAllowedError,
-	NotAuthenticatedError,
-	NotAuthorizedError,
-	NotFoundError,
-	PayloadTooLargeError,
-	PreconditionFailedError,
-	RequestTimeoutError,
-	ResourceError,
-	ServiceUnavailableError,
-	SessionExpiredError,
-	TooManyRequestsError,
-} from "../error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -65,7 +41,7 @@ import { MoveDestinationIsSourceError } from "../error/MoveDestinationIsSourceEr
  * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
  */
 export function isOfflineError(e: Error): boolean {
-	return e instanceof ConnectionError || e instanceof LoginIncompleteError
+	return e instanceof restError.ConnectionError || e instanceof LoginIncompleteError
 }
 
 // If importing fails it is a good idea to adjust the chunking to bundle the error into common
@@ -78,27 +54,27 @@ export function isOfflineError(e: Error): boolean {
  * All errors that cross IPC boundaries should be added here.
  */
 const ErrorNameToType = {
-	ConnectionError,
-	BadRequestError,
-	NotAuthenticatedError,
-	SessionExpiredError,
-	NotAuthorizedError,
-	NotFoundError,
-	MethodNotAllowedError,
-	PreconditionFailedError,
-	LockedError,
-	TooManyRequestsError,
-	AccessDeactivatedError,
-	AccessExpiredError,
-	AccessBlockedError,
-	InvalidDataError,
-	InvalidSoftwareVersionError,
-	LimitReachedError,
-	InternalServerError,
-	BadGatewayError,
-	ResourceError,
-	RequestTimeoutError,
-	InsufficientStorageError,
+	ConnectionError: restError.ConnectionError,
+	BadRequestError: restError.BadRequestError,
+	NotAuthenticatedError: restError.NotAuthenticatedError,
+	SessionExpiredError: restError.SessionExpiredError,
+	NotAuthorizedError: restError.NotAuthorizedError,
+	NotFoundError: restError.NotFoundError,
+	MethodNotAllowedError: restError.MethodNotAllowedError,
+	PreconditionFailedError: restError.PreconditionFailedError,
+	LockedError: restError.LockedError,
+	TooManyRequestsError: restError.TooManyRequestsError,
+	AccessDeactivatedError: restError.AccessDeactivatedError,
+	AccessExpiredError: restError.AccessExpiredError,
+	AccessBlockedError: restError.TooManyRequestsError,
+	InvalidDataError: restError.TooManyRequestsError,
+	InvalidSoftwareVersionError: restError.TooManyRequestsError,
+	LimitReachedError: restError.TooManyRequestsError,
+	InternalServerError: restError.TooManyRequestsError,
+	BadGatewayError: restError.TooManyRequestsError,
+	ResourceError: restError.TooManyRequestsError,
+	RequestTimeoutError: restError.RequestTimeoutError,
+	InsufficientStorageError: restError.TooManyRequestsError,
 	CryptoError,
 	SessionKeyNotFoundError,
 	SseError,
@@ -109,13 +85,13 @@ const ErrorNameToType = {
 	ServerModelsUnavailableError,
 	InvalidModelError,
 	OutOfSyncError,
-	ServiceUnavailableError,
+	ServiceUnavailableError: restError.TooManyRequestsError,
 	DbError,
 	IndexingNotSupportedError,
 	QuotaExceededError,
 	CancelledError,
 	FileOpenError,
-	PayloadTooLargeError,
+	PayloadTooLargeError: restError.TooManyRequestsError,
 	DeviceStorageUnavailableError,
 	MailBodyTooLargeError,
 	ImportError,
@@ -131,13 +107,13 @@ const ErrorNameToType = {
 	MoveToTrashError,
 	MoveDestinationIsSourceError,
 	Error,
-	"java.net.SocketTimeoutException": ConnectionError,
-	"java.net.SocketException": ConnectionError,
-	"java.net.ConnectException": ConnectionError,
-	"javax.net.ssl.SSLException": ConnectionError,
-	"javax.net.ssl.SSLHandshakeException": ConnectionError,
-	"java.io.EOFException": ConnectionError,
-	"java.net.UnknownHostException": ConnectionError,
+	"java.net.SocketTimeoutException": restError.ConnectionError,
+	"java.net.SocketException": restError.ConnectionError,
+	"java.net.ConnectException": restError.ConnectionError,
+	"javax.net.ssl.SSLException": restError.ConnectionError,
+	"javax.net.ssl.SSLHandshakeException": restError.ConnectionError,
+	"java.io.EOFException": restError.ConnectionError,
+	"java.net.UnknownHostException": restError.ConnectionError,
 	"java.lang.SecurityException": PermissionError,
 	"java.io.FileNotFoundException": FileNotFoundError,
 	"de.tutao.tutashared.CryptoError": CryptoError,
@@ -146,7 +122,7 @@ const ErrorNameToType = {
 	// iOS app crypto error domain
 	"android.content.ActivityNotFoundException": FileOpenError,
 	"de.tutao.tutashared.TutFileViewer": FileOpenError,
-	NSURLErrorDomain: ConnectionError,
+	NSURLErrorDomain: restError.ConnectionError,
 	NSCocoaErrorDomain: Error,
 	"de.tutao.tutashared.CredentialAuthenticationException": CredentialAuthenticationError,
 	"de.tutao.tutashared.AppLockAuthenticationException": AppLockAuthenticationError,
@@ -188,5 +164,5 @@ export function objToError(o: Record<string, any>): Error {
  * for the instance that was already deleted. Normally this would be optimized away but it might still happen due to timing.
  */
 export function isExpectedErrorForSynchronization(e: Error): boolean {
-	return e instanceof NotFoundError || e instanceof NotAuthorizedError
+	return e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError
 }

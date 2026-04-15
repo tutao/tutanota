@@ -1,12 +1,11 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode, SecondFactorType } from "@tutao/appEnv"
 import { assertNotNull, LazyLoaded, neverNull, noOp } from "@tutao/utils"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
-import { SecondFactorType } from "@tutao/appEnv"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
-import { NotAuthorizedError, NotFoundError } from "../../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
@@ -141,7 +140,7 @@ export class SecondFactorsEditForm {
 					const token = await this.loginFacade.getVerifierToken(passphrase)
 					this.showAddSecondFactorDialog(token)
 				} catch (e) {
-					if (e instanceof NotAuthorizedError) {
+					if (e instanceof restError.NotAuthorizedError) {
 						return lang.get("invalidPassword_msg")
 					} else {
 						throw e
@@ -168,7 +167,7 @@ export class SecondFactorsEditForm {
 				try {
 					token = await this.loginFacade.getVerifierToken(passphrase)
 				} catch (e) {
-					if (e instanceof NotAuthorizedError) {
+					if (e instanceof restError.NotAuthorizedError) {
 						return lang.get("invalidPassword_msg")
 					} else {
 						throw e
@@ -194,7 +193,7 @@ export class SecondFactorsEditForm {
 			}
 			showProgressDialog("pleaseWait_msg", locator.entityClient.erase(secondFactorToRemove, options))
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log("could not delete second factor (already deleted)")
 			} else {
 				throw e

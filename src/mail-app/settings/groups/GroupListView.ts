@@ -7,7 +7,7 @@ import { Icon } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode, UpgradePromptType } from "@tutao/appEnv"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../common/gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
@@ -15,7 +15,7 @@ import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/
 import { component_size } from "../../../common/gui/size.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../common/api/common/utils/GroupUtils.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { keyManager } from "../../../common/misc/KeyManager.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../common/gui/base/BaseSearchBar.js"
@@ -25,7 +25,6 @@ import { theme } from "../../../common/gui/theme.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
-import { UpgradePromptType } from "@tutao/appEnv"
 
 assertMainOrNode()
 const className = "group-list"
@@ -166,7 +165,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 				try {
 					return await locator.entityClient.load<sysTypeRefs.GroupInfo>(sysTypeRefs.GroupInfoTypeRef, [listId, elementId])
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						// we return null if the GroupInfo does not exist
 						return null
 					} else {

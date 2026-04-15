@@ -12,14 +12,13 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
 import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { InvalidDataError, LimitReachedError } from "../../../common/api/common/error/RestError"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
+import { assertMainOrNode, UpgradePromptType } from "@tutao/appEnv"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
-import { UpgradePromptType } from "@tutao/appEnv"
 import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
@@ -173,9 +172,9 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				)
 				return true
 			} catch (e) {
-				if (e instanceof InvalidDataError) {
+				if (e instanceof restError.TooManyRequestsError) {
 					await Dialog.message("mailAddressNA_msg")
-				} else if (e instanceof LimitReachedError) {
+				} else if (e instanceof restError.TooManyRequestsError) {
 					// ignore
 				} else if (e instanceof UpgradeRequiredError) {
 					await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_ALIASES_NEEDED, e.plans, e.message)

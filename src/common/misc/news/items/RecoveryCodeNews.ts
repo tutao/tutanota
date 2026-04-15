@@ -5,7 +5,7 @@ import { lang } from "../../LanguageViewModel.js"
 import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
-import { AccessBlockedError, NotAuthenticatedError } from "../../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { LazyLoaded, noOp, ofClass } from "@tutao/utils"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
@@ -147,8 +147,8 @@ export class RecoveryCodeNews implements NewsListItem {
 						this.recoveryCode = recoverCode
 						return ""
 					})
-					.catch(ofClass(NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
-					.catch(ofClass(AccessBlockedError, () => lang.get("tooManyAttempts_msg")))
+					.catch(ofClass(restError.NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
+					.catch(ofClass(restError.TooManyRequestsError, () => lang.get("tooManyAttempts_msg")))
 					.finally(m.redraw)
 			},
 			cancel: {

@@ -12,7 +12,7 @@ import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "../../../libs/luxon.js"
-import { LockedError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -53,7 +53,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: downcast(userSettingsGroupRoot.timeFormat),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.timeFormat = value
-				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
+				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
 			},
 		}
 		const weekdayFormat = new Intl.DateTimeFormat(lang.languageTag, {
@@ -85,7 +85,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: downcast(userSettingsGroupRoot.startOfTheWeek),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.startOfTheWeek = value
-				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
+				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
 			},
 		}
 		return m(".fill-absolute.scroll.plr-24.pb-48", [

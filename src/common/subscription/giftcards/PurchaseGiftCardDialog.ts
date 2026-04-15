@@ -9,9 +9,9 @@ import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCa
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
-import { Keys } from "@tutao/appEnv"
+import { isIOSApp, Keys, PaymentMethodType, PlanType } from "@tutao/appEnv"
 import { lang, Translation } from "../../misc/LanguageViewModel"
-import { BadGatewayError, PreconditionFailedError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { client } from "../../misc/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/utils"
@@ -24,7 +24,6 @@ import { Icon, IconSize } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { MessageBanner } from "../../gui/base/MessageBanner"
-import { isIOSApp, PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -80,7 +79,7 @@ class PurchaseGiftCardModel {
 	}
 
 	private handlePurchaseError(e: Error): never {
-		if (e instanceof PreconditionFailedError) {
+		if (e instanceof restError.PreconditionFailedError) {
 			const message = e.data
 
 			switch (message) {
@@ -101,7 +100,7 @@ class PurchaseGiftCardModel {
 				default:
 					throw new UserError(getPreconditionFailedPaymentMsg(e.data))
 			}
-		} else if (e instanceof BadGatewayError) {
+		} else if (e instanceof restError.TooManyRequestsError) {
 			throw new UserError("paymentProviderNotAvailableError_msg")
 		} else {
 			throw e

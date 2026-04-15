@@ -1,15 +1,14 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
 import { isSameId, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { FeatureType, MailSetKind } from "@tutao/appEnv"
+import { assertMainOrNode, FeatureType, MailSetKind } from "@tutao/appEnv"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
-import { assertMainOrNode, MailSetKind } from "@tutao/appEnv"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
-import { LockedError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 
 assertMainOrNode()
 
@@ -45,7 +44,7 @@ export class ProcessInboxHandler {
 						try {
 							await mailFacade.processNewMails(mailGroup, processedMails)
 						} catch (e) {
-							if (e instanceof LockedError) {
+							if (e instanceof restError.LockedError) {
 								// retry in case of LockedError
 								this.processedMailsByMailGroup.set(mailGroup, processedMails)
 								this.sendProcessInboxServiceRequest(mailFacade)

@@ -3,8 +3,8 @@ import Stream from "mithril/stream"
 import { EventController } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { entityUpdateUtils, getElementId, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ShareCapability } from "@tutao/appEnv"
-import { NotFoundError } from "../../api/common/error/RestError"
+import { OperationType, ShareCapability } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 import { findAndRemove, lazy, noOp, ofClass, promiseMap } from "@tutao/utils"
 import type { GroupMemberInfo } from "../GroupUtils"
 import { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
@@ -20,7 +20,6 @@ import { Recipient, RecipientType } from "../../api/common/recipients/Recipient"
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 
 import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
-import { OperationType } from "@tutao/appEnv"
 
 export class GroupSharingModel {
 	readonly info: sysTypeRefs.GroupInfo
@@ -219,7 +218,7 @@ export class GroupSharingModel {
 								this.onEntityUpdate()
 							}
 						})
-						.catch(ofClass(NotFoundError, (e) => console.log("sent invitation not found", update)))
+						.catch(ofClass(restError.NotFoundError, (e) => console.log("sent invitation not found", update)))
 				}
 
 				if (update.operation === OperationType.DELETE) {
@@ -241,7 +240,7 @@ export class GroupSharingModel {
 								})
 							}
 						})
-						.catch(ofClass(NotFoundError, (e) => console.log("group member not found", update)))
+						.catch(ofClass(restError.NotFoundError, (e) => console.log("group member not found", update)))
 				}
 
 				if (update.operation === OperationType.DELETE) {

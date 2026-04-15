@@ -2,7 +2,7 @@ import { EntityClient } from "../../common/api/common/EntityClient"
 import { clone, deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { NotFoundError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { UserError } from "../../common/api/main/UserError"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
 
@@ -44,7 +44,7 @@ export class KnowledgeBaseEditorModel {
 		}
 
 		if (this.entry._id) {
-			return this._entityClient.update(this.entry).catch(ofClass(NotFoundError, noOp))
+			return this._entityClient.update(this.entry).catch(ofClass(restError.NotFoundError, noOp))
 		} else {
 			this.entry._ownerGroup = this._templateGroupRoot._id
 			return this._entityClient.setup(this._templateGroupRoot.knowledgeBase, this.entry)

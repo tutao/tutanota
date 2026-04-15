@@ -1,10 +1,9 @@
 import { ClientTypeModelResolver, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs, usageServices, usageTypeRefs } from "@tutao/typeRefs"
 import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
+import { restError, restSuspension } from "@tutao/restClient"
 import { UsageTestMetricType } from "@tutao/appEnv"
 import { SuspensionError } from "../api/common/error/SuspensionError"
-import { restSuspension } from "@tutao/restClient"
 import { DateProvider } from "../api/common/DateProvider.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { lang, TranslationKey } from "./LanguageViewModel"
@@ -416,7 +415,7 @@ export class UsageTestModel implements PingAdapter {
 			if (e instanceof SuspensionError) {
 				test.active = false
 				console.log("rate-limit for pings reached")
-			} else if (e instanceof PreconditionFailedError) {
+			} else if (e instanceof restError.PreconditionFailedError) {
 				if (e.data === "invalid_state") {
 					test.active = false
 					console.log(`Tried to send ping for paused test ${test.testName}`, e)
@@ -432,7 +431,7 @@ export class UsageTestModel implements PingAdapter {
 				} else {
 					throw e
 				}
-			} else if (e instanceof NotFoundError) {
+			} else if (e instanceof restError.NotFoundError) {
 				// Cached assignments are likely out of date if we run into a NotFoundError here.
 				// We should not attempt to re-send pings, as the relevant test has likely been deleted.
 				// Hence, we just remove the cached assignment and disable the test.
@@ -447,7 +446,7 @@ export class UsageTestModel implements PingAdapter {
 						assignments: storedAssignments.assignments.filter((assignment) => assignment.testId !== test.testId),
 					})
 				}
-			} else if (e instanceof BadRequestError) {
+			} else if (e instanceof restError.BadRequestError) {
 				test.active = false
 				console.log(`Tried to send ping. Setting test '${test.testName}' inactive because it is misconfigured`, e)
 			} else if (isOfflineError(e)) {

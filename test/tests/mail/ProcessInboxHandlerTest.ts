@@ -13,7 +13,7 @@ import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
-import { LockedError } from "../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 
 const { captor, anything } = matchers
 
@@ -634,7 +634,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 		when(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum])).thenDo(() => {
 			if (throwError) {
-				return Promise.reject(new LockedError("test lock"))
+				return Promise.reject(new restError.LockedError("test lock"))
 			} else {
 				return undefined
 			}

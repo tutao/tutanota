@@ -11,15 +11,14 @@ import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTempl
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import type { GroupSharingTexts } from "../GroupGuiUtils.js"
 import { getTextsForGroupType } from "../GroupGuiUtils.js"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { GroupType, UpgradePromptType } from "@tutao/appEnv"
 import { locator } from "../../api/main/CommonLocator.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ColorPickerView } from "../../gui/base/colorPicker/ColorPickerView"
-import { LockedError } from "../../api/common/error/RestError"
-import { GroupType } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 
 export function showGroupInvitationDialog(invitation: sysTypeRefs.ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -65,7 +64,7 @@ export function showGroupInvitationDialog(invitation: sysTypeRefs.ReceivedGroupI
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}
 
-					locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
+					locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
 				})
 			}
 		})

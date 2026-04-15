@@ -1,18 +1,7 @@
-import {
-	AccessBlockedError,
-	AccessDeactivatedError,
-	AccessExpiredError,
-	ConnectionError,
-	InsufficientStorageError,
-	InvalidSoftwareVersionError,
-	NotAuthenticatedError,
-	RequestTimeoutError,
-	ServiceUnavailableError,
-	SessionExpiredError,
-} from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode, InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -32,7 +21,6 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../api/common/error/ServerModelsUnavailableError"
-import { InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
 import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
@@ -63,7 +51,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 	if (isOfflineError(e)) {
 		showOfflineMessage()
-	} else if (e instanceof InvalidSoftwareVersionError) {
+	} else if (e instanceof restError.TooManyRequestsError) {
 		if (!invalidSoftwareVersionActive) {
 			invalidSoftwareVersionActive = true
 			return Dialog.updateReminder(false, () => {
@@ -72,16 +60,16 @@ export async function handleUncaughtErrorImpl(e: Error) {
 			})
 		}
 	} else if (
-		e instanceof NotAuthenticatedError ||
-		e instanceof AccessBlockedError ||
-		e instanceof AccessDeactivatedError ||
-		e instanceof AccessExpiredError
+		e instanceof restError.NotAuthenticatedError ||
+		e instanceof restError.TooManyRequestsError ||
+		e instanceof restError.AccessDeactivatedError ||
+		e instanceof restError.AccessExpiredError
 	) {
 		// If the session is closed (e.g. password is changed) we log user out forcefully so we reload the page
 		if (logins.isUserLoggedIn()) {
 			logoutIfNoPasswordPrompt()
 		}
-	} else if (e instanceof SessionExpiredError) {
+	} else if (e instanceof restError.SessionExpiredError) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError || e instanceof InvalidModelError) {
 		const isOffline =
@@ -100,7 +88,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		await worker.getWorkerInterface().cacheStorage.purgeStorage()
 		await logins.logout(false)
 		await windowFacade.reload({ noAutoLogin: true })
-	} else if (e instanceof InsufficientStorageError) {
+	} else if (e instanceof restError.TooManyRequestsError) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog("insufficientStorageAdmin_msg")
 		} else {
@@ -110,14 +98,14 @@ export async function handleUncaughtErrorImpl(e: Error) {
 			)
 			Dialog.message(errorMessage)
 		}
-	} else if (e instanceof ServiceUnavailableError) {
+	} else if (e instanceof restError.TooManyRequestsError) {
 		if (!serviceUnavailableDialogActive) {
 			serviceUnavailableDialogActive = true
 			Dialog.message("serviceUnavailable_msg").then(() => {
 				serviceUnavailableDialogActive = false
 			})
 		}
-	} else if (e instanceof RequestTimeoutError) {
+	} else if (e instanceof restError.RequestTimeoutError) {
 		if (!requestTimeoutDialogActive) {
 			requestTimeoutDialogActive = true
 			Dialog.message("requestTimeout_msg").then(() => {
@@ -218,10 +206,10 @@ export async function reloginForExpiredSession() {
 			} catch (e) {
 				if (
 					e instanceof CancelledError ||
-					e instanceof AccessBlockedError ||
-					e instanceof NotAuthenticatedError ||
-					e instanceof AccessDeactivatedError ||
-					e instanceof ConnectionError
+					e instanceof restError.TooManyRequestsError ||
+					e instanceof restError.NotAuthenticatedError ||
+					e instanceof restError.AccessDeactivatedError ||
+					e instanceof restError.ConnectionError
 				) {
 					const { getLoginErrorMessage } = await import("../misc/LoginUtils.js")
 					return lang.getTranslationText(getLoginErrorMessage(e, false))

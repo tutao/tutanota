@@ -1,16 +1,14 @@
 import { elementIdPart, storageTypeRefs as storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { ArchiveDataType, assertWorkerOrNode } from "@tutao/appEnv"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { convertToDataFile, DataFile } from "../../../common/DataFile.js"
-import { ArchiveDataType } from "@tutao/appEnv"
 import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
-import { NotFoundError } from "../../../common/error/RestError"
+import { restError, restSuspension } from "@tutao/restClient"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade"
-import { restSuspension } from "@tutao/restClient"
 
 assertWorkerOrNode()
 
@@ -74,7 +72,7 @@ export class MailExportFacade {
 					return convertToDataFile(attachment, bytes)
 				}
 			} catch (e) {
-				if (e instanceof NotFoundError) {
+				if (e instanceof restError.NotFoundError) {
 					return null
 				} else {
 					throw e

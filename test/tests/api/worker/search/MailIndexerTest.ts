@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
 import {
 	ClientTypeModelResolver,
 	constructMailSetEntryId,
@@ -10,6 +10,7 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	sysTypeRefs,
 	timestampToGeneratedId,
+	tutanotaTypeModels,
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
 import {
@@ -25,14 +26,12 @@ import type { DateProvider } from "../../../../../src/common/api/worker/DateProv
 import { func, matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { tutanotaTypeModels } from "@tutao/typeRefs"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { ConnectionError, NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError"
-import { GroupType, MailState } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -518,7 +517,9 @@ o.spec("MailIndexer", () => {
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
 
 			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
-			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReject(new ConnectionError("no connection"))
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReject(
+				new restError.ConnectionError("no connection"),
+			)
 
 			await indexer.indexMailboxes(user, indexingTimestampAim)
 
@@ -641,7 +642,7 @@ o.spec("MailIndexer", () => {
 				const entities = addEntities(MailState.DRAFT)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new NotAuthorizedError("blah"))
+				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
@@ -649,7 +650,7 @@ o.spec("MailIndexer", () => {
 				const entities = addEntities(MailState.RECEIVED)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setBlobElementException(assertNotNull(entities.mail.mailDetails), new NotAuthorizedError("blah"))
+				entityMock.setBlobElementException(assertNotNull(entities.mail.mailDetails), new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
@@ -657,7 +658,7 @@ o.spec("MailIndexer", () => {
 				const entities = addEntities(MailState.RECEIVED)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				when(mailFacade.loadAttachments(entities.mail)).thenReject(new NotAuthorizedError("blah"))
+				when(mailFacade.loadAttachments(entities.mail)).thenReject(new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
@@ -690,7 +691,7 @@ o.spec("MailIndexer", () => {
 				const entities = addEntities(MailState.DRAFT)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new NotAuthorizedError("blah"))
+				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
 				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
@@ -699,7 +700,7 @@ o.spec("MailIndexer", () => {
 				const entities = addEntities(MailState.DRAFT)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				when(mailFacade.loadAttachments(entities.mail)).thenReject(new NotAuthorizedError("blah"))
+				when(mailFacade.loadAttachments(entities.mail)).thenReject(new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
 				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })

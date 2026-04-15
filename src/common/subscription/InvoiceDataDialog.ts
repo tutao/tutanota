@@ -4,7 +4,7 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { InvoiceDataInput } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
-import { BadRequestError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import type { InvoiceData } from "@tutao/appEnv"
 import { ofClass } from "@tutao/utils"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
@@ -32,7 +32,7 @@ export function show(
 					}
 				})
 				.catch(
-					ofClass(BadRequestError, (e) => {
+					ofClass(restError.BadRequestError, (e) => {
 						Dialog.message("paymentMethodNotAvailable_msg")
 					}),
 				)

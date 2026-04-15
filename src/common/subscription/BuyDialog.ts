@@ -3,13 +3,12 @@ import { assertNotNull, filterInt, incrementDate, newPromise, ofClass } from "@t
 import { TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { FeatureType } from "@tutao/appEnv"
+import { assertMainOrNode, BookingItemFeatureType, FeatureType } from "@tutao/appEnv"
 import { formatDate } from "../misc/Formatter.js"
-import { NotAuthorizedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./utils/PriceUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { assertMainOrNode, BookingItemFeatureType } from "@tutao/appEnv"
 import { sysTypeRefs } from "@tutao/typeRefs"
 
 assertMainOrNode()
@@ -50,7 +49,7 @@ async function prepareDialog({ featureType, count, reactivate }: BookingParams):
 	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 	const accountingInfo = await locator.entityClient
 		.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
-		.catch(ofClass(NotAuthorizedError, () => null))
+		.catch(ofClass(restError.NotAuthorizedError, () => null))
 	if (accountingInfo && accountingInfo.paymentMethod == null) {
 		const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
 		if (confirm) {

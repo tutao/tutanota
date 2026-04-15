@@ -6,7 +6,7 @@ import {
 	getStartOfDayWithZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
-import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus, EndType } from "@tutao/appEnv"
@@ -164,7 +164,7 @@ export class CalendarEventPreviewViewModel {
 			const model = await this.eventModelFactory(CalendarOperation.DeleteThis, this.calendarEvent)
 			await model?.apply()
 		} catch (e) {
-			if (!(e instanceof NotFoundError)) {
+			if (!(e instanceof restError.NotFoundError)) {
 				throw e
 			}
 		}
@@ -175,7 +175,7 @@ export class CalendarEventPreviewViewModel {
 			const model = await this.eventModelFactory(CalendarOperation.DeleteAll, this.calendarEvent)
 			await model?.apply()
 		} catch (e) {
-			if (!(e instanceof NotFoundError)) {
+			if (!(e instanceof restError.NotFoundError)) {
 				throw e
 			}
 		}
@@ -194,7 +194,7 @@ export class CalendarEventPreviewViewModel {
 				recurrenceId: this.calendarEvent.startTime,
 			})
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (err instanceof restError.NotFoundError) {
 				console.log("occurrence not found when clicking on the event")
 			} else {
 				throw err
@@ -256,7 +256,7 @@ export class CalendarEventPreviewViewModel {
 				await progenitorModel.apply()
 			})
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (err instanceof restError.NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err
@@ -279,7 +279,7 @@ export class CalendarEventPreviewViewModel {
 			)
 			await progenitorModel.apply()
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (err instanceof restError.NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err
@@ -312,7 +312,7 @@ export class CalendarEventPreviewViewModel {
 			const eventEditor = new EventEditorDialog()
 			return await eventEditor.showNewCalendarEventEditDialog(newEventModel)
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (err instanceof restError.NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err
@@ -351,7 +351,7 @@ export class CalendarEventPreviewViewModel {
 				recurrenceId: null,
 			})
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (err instanceof restError.NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err

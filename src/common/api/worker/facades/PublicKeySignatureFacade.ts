@@ -1,11 +1,10 @@
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { asPublicKeySignatureType, assertWorkerOrNode, PublicKeySignatureType } from "@tutao/appEnv"
 import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
 import { byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/utils"
-import { InvalidDataError } from "../../common/error/RestError"
-import { asPublicKeySignatureType, PublicKeySignatureType } from "@tutao/appEnv"
-import { cryptoUtils } from "@tutao/crypto"
+import { restError } from "@tutao/restClient"
 import {
 	AsymmetricKeyPair,
+	cryptoUtils,
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
 	isPqKeyPairs,
@@ -74,13 +73,13 @@ export class PublicKeySignatureFacade {
 		const keyPairVersionAsBytes = new Uint8Array(1)
 		const signatureTypeAsBytes = new Uint8Array(1)
 		if (versionedPublicKey.version > 255) {
-			throw new InvalidDataError("currently not possible to parse key pair versions that do not fit into one byte")
+			throw new restError.TooManyRequestsError("currently not possible to parse key pair versions that do not fit into one byte")
 		}
 		keyPairVersionAsBytes[0] = versionedPublicKey.version
 
 		const signatureTypeEnumValue = parseInt(signatureType)
 		if (signatureTypeEnumValue > 255) {
-			throw new InvalidDataError("currently not possible to parse signature types that do not fit into one byte")
+			throw new restError.TooManyRequestsError("currently not possible to parse signature types that do not fit into one byte")
 		}
 		signatureTypeAsBytes[0] = signatureTypeEnumValue
 
@@ -97,10 +96,10 @@ export class PublicKeySignatureFacade {
 		const byteArrays = bytesToByteArrays(serializedPublicKey, 4)
 
 		if (byteArrays[0].length !== 1) {
-			throw new InvalidDataError("signature types greater than one byte are not yet supported")
+			throw new restError.TooManyRequestsError("signature types greater than one byte are not yet supported")
 		}
 		if (byteArrays[1].length !== 1) {
-			throw new InvalidDataError("key pair versions greater than one byte are not yet supported")
+			throw new restError.TooManyRequestsError("key pair versions greater than one byte are not yet supported")
 		}
 		const signatureType: PublicKeySignatureType = asPublicKeySignatureType(byteArrays[0][0].toString())
 		const encryptionKeyPairVersion = cryptoUtils.checkKeyVersionConstraints(byteArrays[1][0])

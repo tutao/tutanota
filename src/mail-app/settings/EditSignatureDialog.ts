@@ -1,14 +1,13 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../../common/gui/base/Dialog"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { EmailSignatureType, FeatureType } from "@tutao/appEnv"
+import { assertMainOrNode, EmailSignatureType, FeatureType, isApp } from "@tutao/appEnv"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
 import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { downcast, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../../common/api/main/CommonLocator"
-import { assertMainOrNode, isApp } from "@tutao/appEnv"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
 
@@ -79,7 +78,7 @@ export function show(props: tutanotaTypeRefs.TutanotaProperties) {
 				return showProgressDialog("pleaseWait_msg", updatePromise)
 					.then(() => dialog.close())
 					.catch(
-						ofClass(PayloadTooLargeError, () => {
+						ofClass(restError.TooManyRequestsError, () => {
 							props.emailSignatureType = oldType
 							props.customEmailSignature = oldCustomValue
 							return Dialog.message("requestTooLarge_msg")

@@ -17,8 +17,13 @@ import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
+	ConversationType,
 	ExternalImageRule,
 	FeatureType,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
 	Keys,
 	MailAuthenticationStatus,
 	MailMethod,
@@ -27,7 +32,7 @@ import {
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "@tutao/appEnv"
-import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
@@ -113,7 +118,6 @@ import { showNotAvailableForFreeDialog } from "../../../common/misc/Subscription
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
-import { ConversationType, isApp, isBrowser, isDesktop, isIOSApp } from "@tutao/appEnv"
 
 // Interval where we save drafts locally.
 //
@@ -995,7 +999,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				} catch (e) {
 					if (isOfflineError(e)) {
 						// we are offline but we want to show the error dialog only when we click on send.
-					} else if (e instanceof TooManyRequestsError) {
+					} else if (e instanceof restError.TooManyRequestsError) {
 						await Dialog.message("tooManyAttempts_msg")
 					} else {
 						throw e

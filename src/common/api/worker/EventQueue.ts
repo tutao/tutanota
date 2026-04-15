@@ -1,4 +1,4 @@
-import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 import { purgeSyncMetrics, syncMetrics } from "./utils/SyncMetrics"
 import { entityUpdateUtils } from "@tutao/typeRefs"
@@ -112,7 +112,7 @@ export class EventQueue {
 					// processing continues if the event bus receives a new event
 					this.processingBatch = null
 
-					if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
+					if (!(e instanceof restError.TooManyRequestsError || e instanceof restError.ConnectionError)) {
 						console.error(
 							"Uncaught EventQueue error!",
 							e,

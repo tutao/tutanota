@@ -19,17 +19,27 @@ import {
 } from "@tutao/typeRefs"
 import {
 	ArchiveDataType,
+	assertWorkerOrNode,
+	ConversationType,
 	CounterType,
 	CryptoProtocolVersion,
+	DEFAULT_KDF_TYPE,
 	EncryptionAuthStatus,
+	GroupType,
+	isApp,
+	isDesktop,
 	KdfType,
 	MailAuthenticationStatus,
 	MailMethod,
 	MailReportType,
 	MailSetKind,
+	MAX_NBR_OF_CONVERSATIONS,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	OperationType,
 	PhishingMarkerStatus,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
+	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "@tutao/appEnv"
 import {
 	Aes128Key,
@@ -47,7 +57,7 @@ import {
 	sha256Hash,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
-import { NotFoundError } from "../../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import {
 	addressDomain,
 	assertNotNull,
@@ -69,18 +79,6 @@ import {
 	stringToCustomId,
 } from "@tutao/utils"
 import { BlobFacade } from "./BlobFacade.js"
-import {
-	assertWorkerOrNode,
-	ConversationType,
-	DEFAULT_KDF_TYPE,
-	GroupType,
-	isApp,
-	isDesktop,
-	MAX_NBR_OF_CONVERSATIONS,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
-	OperationType,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-} from "@tutao/appEnv"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
@@ -639,7 +637,7 @@ export class MailFacade {
 			this.keyProviderFromInstance(draft),
 		)
 		if (mailDetails.length === 0) {
-			throw new NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
+			throw new restError.NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
 		}
 		return mailDetails[0].details.replyTos
 	}
@@ -851,7 +849,7 @@ export class MailFacade {
 		try {
 			externalUserReference = await this.entityClient.load(sysTypeRefs.ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				return this.createExternalUser(cleanedMailAddress, externalUserKdfType, externalUserPwKey, verifier)
 			}
 			throw e
@@ -897,7 +895,7 @@ export class MailFacade {
 				identifier: mailAddress,
 			})
 			.then((value) => value)
-			.catch(ofClass(NotFoundError, () => null))
+			.catch(ofClass(restError.NotFoundError, () => null))
 	}
 
 	entityEventsReceived(data: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
@@ -917,7 +915,7 @@ export class MailFacade {
 						deferredPromiseWrapper.resolve(mail)
 					})
 					.catch(
-						ofClass(NotFoundError, () => {
+						ofClass(restError.NotFoundError, () => {
 							console.log(`Could not find updated mail ${JSON.stringify([update.instanceListId, update.instanceId])}`)
 						}),
 					)
@@ -1021,7 +1019,7 @@ export class MailFacade {
 			if (filteredMemberships.length === 1) {
 				return filteredMemberships[0].group
 			} else {
-				throw new NotFoundError("group for mail address not found " + mailAddress)
+				throw new restError.NotFoundError("group for mail address not found " + mailAddress)
 			}
 		})
 	}
@@ -1089,7 +1087,7 @@ export class MailFacade {
 				this.keyProviderFromInstance(mail),
 			)
 			if (mailDetailsBlobs.length === 0) {
-				throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
+				throw new restError.NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
 			}
 			return mailDetailsBlobs[0].details
 		}
@@ -1123,7 +1121,7 @@ export class MailFacade {
 				this.keyProviderFromInstance(mail),
 			)
 			if (mailDetailsDrafts.length === 0) {
-				throw new NotFoundError(`MailDetailsDraft ${detailsDraftId}`)
+				throw new restError.NotFoundError(`MailDetailsDraft ${detailsDraftId}`)
 			}
 			return mailDetailsDrafts[0].details
 		}

@@ -16,7 +16,7 @@ import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { formatDateTime, formatDateTimeFromYesterdayOn } from "../misc/Formatter.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { NotAuthorizedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { Dialog } from "../gui/base/Dialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { client } from "../misc/ClientDetector"
@@ -307,7 +307,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 						modifiedGroupInfo(gi)
 					})
 					.catch(
-						ofClass(NotAuthorizedError, () => {
+						ofClass(restError.NotAuthorizedError, () => {
 							// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
 						}),
 					),
@@ -322,7 +322,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 						groupInfo(gi)
 					})
 					.catch(
-						ofClass(NotAuthorizedError, () => {
+						ofClass(restError.NotAuthorizedError, () => {
 							// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
 						}),
 					),

@@ -3,7 +3,7 @@ import { assertNotNull, defer } from "@tutao/utils"
 import { assertMainOrNodeBoot, FeatureType, InvalidModelError, KdfType, Mode } from "@tutao/appEnv"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
-import { NotFoundError } from "../common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { client } from "../../misc/ClientDetector"
 import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
@@ -290,7 +290,7 @@ export class LoginController {
 		try {
 			await this.loginFacade.deleteSession(credentials.accessToken, pushIdentifier)
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log("session already deleted")
 			} else {
 				throw e

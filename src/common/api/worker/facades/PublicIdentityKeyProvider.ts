@@ -3,15 +3,14 @@ import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { bytesToEd25519PublicKey, cryptoUtils } from "@tutao/crypto"
 import { Versioned } from "@tutao/utils"
-import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/appEnv"
-import { NotFoundError } from "../../common/error/RestError.js"
+import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 import { CryptoError } from "@tutao/crypto/error"
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../common/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
 import type { PublicKeyIdentifier } from "./PublicEncryptionKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "./IdentityKeyTrustDatabase"
-import { SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
@@ -125,7 +124,7 @@ export class PublicIdentityKeyProvider {
 				}
 			}
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				return null
 			} else {
 				throw e
