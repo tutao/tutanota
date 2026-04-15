@@ -59,7 +59,6 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	RsaPublicKey,
-	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
@@ -448,7 +447,6 @@ o.spec("KeyRotationFacade", function () {
 	let adminKeyLoader: AdminKeyLoaderFacade
 
 	let user: User
-	const pwKey = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
 	let cryptoWrapperMock: CryptoWrapper
 	let userEncAdminKey: Uint8Array
 	const groupId = someGroupId
@@ -995,7 +993,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareRecoverData(recoverCodeFacade)
 				when(adminKeyLoader.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(adminKeyLoader.hasAdminEncGKey(adminGroup)).thenReturn(true)
-				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveUserDistKey(userGroupId, NEW_USER_GROUP_KEY.version, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
 				when(cryptoWrapperMock.encryptKey(DISTRIBUTION_KEY, NEW_USER_GROUP_KEY.object)).thenReturn(DISTRIBUTION_KEY_ENC_NEW_USER_GROUP_KEY)
@@ -1510,7 +1508,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareRecoverData(recoverCodeFacade)
 
 				when(adminKeyLoader.hasAdminEncGKey(userGroup)).thenReturn(true)
-				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveUserDistKey(userGroupId, NEW_USER_GROUP_KEY.version, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
 				when(cryptoWrapperMock.aes256RandomKey()).thenReturn(NEW_USER_GROUP_KEY.object)
@@ -1774,7 +1772,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareRecoverData(recoverCodeFacade)
 
 				when(adminKeyLoader.hasAdminEncGKey(userGroup)).thenReturn(true)
-				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveUserDistKey(userGroupId, NEW_USER_GROUP_KEY.version, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
