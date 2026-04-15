@@ -2,13 +2,13 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import type { InvoiceData } from "@tutao/appEnv"
+import type { InvoiceData } from "@tutao/app-env"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { defer, ofClass } from "@tutao/utils"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data

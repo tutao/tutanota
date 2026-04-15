@@ -22,7 +22,7 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
-import { PlanTypeToName, sysTypeRefs } from "@tutao/typeRefs"
+import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
 import {
 	AvailablePlanType,
 	CustomDomainType,
@@ -34,7 +34,7 @@ import {
 	NewPersonalPlans,
 	PaymentMethodType,
 	PlanType,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{

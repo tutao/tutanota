@@ -5,7 +5,7 @@ import { SessionType } from "../common/SessionType.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { Credentials } from "../../misc/credentials/Credentials.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export const enum LoginFailReason {
 	SessionExpired,

@@ -1,16 +1,16 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["typeRefs", "./../types/"],
-	"exclude": ["typeRefs/dist"],
+	"include": ["typerefs", "./../types/"],
+	"exclude": ["typerefs/dist"],
 	"compilerOptions": {
-		"rootDir": "typeRefs",
-		"outDir": "typeRefs/dist",
-		"tsBuildInfoFile": "typeRefs/dist/tsbuildinfo",
+		"rootDir": "typerefs",
+		"outDir": "typerefs/dist",
+		"tsBuildInfoFile": "typerefs/dist/tsbuildinfo",
 		"composite": true
 	},
 	"references": [
 		{
-			"path": "tsconfig.appEnv.json"
+			"path": "tsconfig.app-env.json"
 		},
 		{
 			"path": "tsconfig.utils.json"

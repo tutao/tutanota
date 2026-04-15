@@ -1,11 +1,11 @@
 import o, { verify } from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
-import { ServerModelParsedInstance, TypeModelResolver } from "@tutao/typeRefs"
+import { ServerModelParsedInstance, TypeModelResolver } from "@tutao/typerefs"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { ModelMapper } from "@tutao/instancePipeline"
+import { ModelMapper } from "@tutao/instance-pipeline"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { object, when } from "testdouble"
-import { tutanotaTypeRefs, sysTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs, sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"

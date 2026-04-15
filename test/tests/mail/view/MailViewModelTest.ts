@@ -4,8 +4,8 @@ import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/Con
 import { object, when } from "testdouble"
 import { MailListDisplayMode } from "../../../../src/common/misc/DeviceConfig"
 import { listByConversationInFolder } from "../../../../src/mail-app/mail/view/MailViewModel"
-import { MailSetKind } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { MailSetKind } from "../../../../src/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("MailViewModelTest", () => {
 	o.spec("listByConversation", () => {

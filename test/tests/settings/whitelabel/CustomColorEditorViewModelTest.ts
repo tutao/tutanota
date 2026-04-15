@@ -11,7 +11,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { WhitelabelThemeGenerator } from "../../../../src/common/gui/WhitelabelThemeGenerator"
 import { matchers, object, when } from "testdouble"
 import { BaseThemeId, MaterialPalette, Theme } from "../../../../src/common/gui/theme"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("CustomColorEditorViewModel", () => {
 	let model: CustomColorsEditorViewModel

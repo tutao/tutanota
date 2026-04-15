@@ -17,7 +17,7 @@ import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
 import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
 import { styles } from "../gui/styles"
-import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/appEnv"
+import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/app-env"
 
 export type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions

@@ -1,7 +1,7 @@
-import { assertWorkerOrNode } from "@tutao/appEnv"
-import { getAsEnumValue, sysServices } from "@tutao/typeRefs"
+import { assertWorkerOrNode } from "@tutao/app-env"
+import { getAsEnumValue, sysServices } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../common/ServiceRequest"
-import { RolloutType } from "@tutao/appEnv"
+import { RolloutType } from "@tutao/app-env"
 import { assertNotNull, LazyLoaded } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 

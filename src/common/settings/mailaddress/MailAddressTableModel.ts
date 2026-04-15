@@ -1,18 +1,18 @@
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
 import { assertNotNull, lazyMemoized } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { getAvailableMatchingPlans } from "../../subscription/utils/SubscriptionUtils.js"
 
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 export enum AddressStatus {
 	Primary,

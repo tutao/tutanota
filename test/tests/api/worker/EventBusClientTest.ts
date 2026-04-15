@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/common/api/worker/EventBusClient.js"
-import { entityUpdateUtils, sysTypeRefs, timestampToGeneratedId, TypeModelResolver } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs, timestampToGeneratedId, TypeModelResolver } from "@tutao/typerefs"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -8,13 +8,13 @@ import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDete
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
-import { GroupType, OperationType } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { GroupType, OperationType } from "../../../../src/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 export const noPatchesAndInstance: Pick<entityUpdateUtils.EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,

@@ -1,11 +1,11 @@
-import { entityUpdateUtils, getElementId, getEtId, getLetId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getElementId, getEtId, getLetId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { knowledgeBaseSearch } from "./KnowledgeBaseSearchFilter.js"
 import type { LanguageCode } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { ShareCapability } from "@tutao/appEnv"
+import { ShareCapability } from "@tutao/app-env"
 import { downcast, LazyLoaded, noOp, promiseMap, SortedArray } from "@tutao/utils"
 import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupModel.js"
 import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel.js"
@@ -13,7 +13,7 @@ import type { UserController } from "../../../common/api/main/UserController.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
 
 import { EventController } from "../../../common/api/main/EventController.js"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 type KnowledgeBaseEntry = tutanotaTypeRefs.KnowledgeBaseEntry
 export const SELECT_NEXT_ENTRY = "next"

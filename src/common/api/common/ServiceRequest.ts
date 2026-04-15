@@ -1,8 +1,8 @@
 import { TypeRef } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/appEnv"
-import { Entity } from "@tutao/typeRefs"
+import { assertMainOrNode } from "@tutao/app-env"
+import { Entity } from "@tutao/typerefs"
 import { AesKey } from "@tutao/crypto"
-import { restSuspension } from "@tutao/restClient"
+import { restSuspension } from "@tutao/rest-client"
 
 assertMainOrNode()
 

@@ -8,7 +8,7 @@ import { lang, Translation } from "../misc/LanguageViewModel.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { createAccount } from "./utils/PaymentUtils"
 import { Dialog } from "../gui/base/Dialog"
-import { isIOSApp, PlanType } from "@tutao/appEnv"
+import { isIOSApp, PlanType } from "@tutao/app-env"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement

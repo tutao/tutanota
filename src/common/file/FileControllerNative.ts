@@ -1,18 +1,18 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { DataFile } from "../api/common/DataFile"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertOnlyFileReferences, FileReference } from "../api/common/utils/FileUtils"
 import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp.js"
-import { ArchiveDataType } from "@tutao/appEnv"
+import { ArchiveDataType } from "@tutao/app-env"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
 import { TransferId } from "../api/common/drive/DriveTypes"
-import { isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
+import { isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNode()
 

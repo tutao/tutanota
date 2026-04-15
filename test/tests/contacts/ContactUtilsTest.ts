@@ -8,8 +8,8 @@ import {
 	extractStructuredPhoneNumbers,
 	formatBirthdayNumeric,
 } from "../../../src/common/contactsFunctionality/ContactUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ContactAddressType, ContactPhoneNumberType } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ContactAddressType, ContactPhoneNumberType } from "../../../src/app-env"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {

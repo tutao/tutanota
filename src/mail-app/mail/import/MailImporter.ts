@@ -1,4 +1,4 @@
-import { elementIdPart, entityUpdateUtils, GENERATED_MIN_ID, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, GENERATED_MIN_ID, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, first, isEmpty } from "@tutao/utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
@@ -15,10 +15,10 @@ import { ImportErrorCategories, MailImportError } from "../../../common/api/comm
 import { showSnackBar, SnackBarButtonAttrs } from "../../../common/gui/base/SnackBar.js"
 import { OpenSettingsHandler } from "../../../common/native/main/OpenSettingsHandler.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { ImportStatus } from "@tutao/appEnv"
+import { ImportStatus } from "@tutao/app-env"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { mailLocator } from "../../mailLocator"
-import { getApiBaseUrl, MailSetKind } from "@tutao/appEnv"
+import { getApiBaseUrl, MailSetKind } from "@tutao/app-env"
 
 // keep in sync with napi binding.d.cts
 export const enum ImportProgressAction {

@@ -7,7 +7,7 @@ import { ClickHandler } from "../gui/base/GuiUtils.js"
 import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderSettingsBannerButton } from "./SettingsBannerButton.js"
-import { isAndroidApp } from "@tutao/appEnv"
+import { isAndroidApp } from "@tutao/app-env"
 
 function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderSettingsBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)

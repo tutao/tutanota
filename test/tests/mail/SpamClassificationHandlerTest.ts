@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import { EncryptionAuthStatus, MailAuthenticationStatus, MailPhishingStatus, MailSetKind, MailState, ProcessingState, SpamDecision } from "@tutao/appEnv"
+import { EncryptionAuthStatus, MailAuthenticationStatus, MailPhishingStatus, MailSetKind, MailState, ProcessingState, SpamDecision } from "../../../src/app-env"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { createTestEntity } from "../TestUtils"
 import { SERVER_CLASSIFIERS_TO_TRUST, SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
@@ -12,7 +12,7 @@ import { ContactModel } from "../../../src/common/contactsFunctionality/ContactM
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { assert, assertNotNull } from "@tutao/utils"
-import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 const { anything } = matchers
 

@@ -1,5 +1,5 @@
 import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
-import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typeRefs"
+import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typerefs"
 import {
 	_verifyType,
 	compareNewestFirst,
@@ -13,8 +13,8 @@ import {
 	timestampToGeneratedId,
 	Type,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
-import { restError } from "@tutao/restClient"
+} from "@tutao/typerefs"
+import { restError } from "@tutao/rest-client"
 import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/utils"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"

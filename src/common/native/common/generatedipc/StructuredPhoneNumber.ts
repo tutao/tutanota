@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ContactPhoneNumberType } from "@tutao/appEnv"
+import { ContactPhoneNumberType } from "@tutao/app-env"
 
 export interface StructuredPhoneNumber {
 	readonly number: string

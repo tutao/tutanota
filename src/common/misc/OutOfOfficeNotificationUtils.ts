@@ -1,7 +1,7 @@
 import { formatDate } from "./Formatter"
 import { lang } from "./LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { getDayShifted } from "@tutao/utils"
 
 /**

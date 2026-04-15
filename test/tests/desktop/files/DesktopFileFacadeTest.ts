@@ -4,7 +4,7 @@ import { DesktopFileFacade } from "../../../../src/common/desktop/files/DesktopF
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
-import { HttpMethod, restError } from "@tutao/restClient"
+import { HttpMethod, restError } from "@tutao/rest-client"
 import type fs from "node:fs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"

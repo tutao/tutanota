@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { assertMainOrNode, DAY_IN_MILLIS, GroupType, OperationType, SpamRuleFieldType, SpamRuleType, UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode, DAY_IN_MILLIS, GroupType, OperationType, SpamRuleFieldType, SpamRuleType, UpgradePromptType } from "@tutao/app-env"
 import {
 	entityUpdateUtils,
 	GENERATED_MAX_ID,
@@ -12,11 +12,11 @@ import {
 	sortCompareByReverseId,
 	sysTypeRefs,
 	timestampToGeneratedId,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import stream from "mithril/stream"
 import { formatDateTime } from "../../common/misc/Formatter"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"

@@ -1,5 +1,5 @@
-import { WeekStart } from "@tutao/appEnv"
-import { getWeekStart, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { WeekStart } from "@tutao/app-env"
+import { getWeekStart, tutanotaTypeRefs } from "@tutao/typerefs"
 
 /** Start of the week offset relative to Sunday (forward). */
 export function getStartOfTheWeekOffset(weekStart: WeekStart): number {

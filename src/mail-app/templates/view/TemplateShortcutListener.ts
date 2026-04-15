@@ -1,7 +1,7 @@
 import { Editor } from "../../../common/gui/editor/Editor"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { downcast, getFirstOrThrow } from "@tutao/utils"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { lang, languageByCode, LanguageViewModel } from "../../../common/misc/LanguageViewModel"
 import { Dropdown } from "../../../common/gui/base/Dropdown.js"

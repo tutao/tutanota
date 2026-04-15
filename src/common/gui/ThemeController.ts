@@ -2,7 +2,7 @@ import { DeviceConfig } from "../misc/DeviceConfig"
 import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/utils"
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
@@ -17,7 +17,7 @@ import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
 import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
-import { isApp, isDesktop } from "@tutao/appEnv"
+import { isApp, isDesktop } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

@@ -20,12 +20,12 @@ import {
 	sysTypeRefs,
 	tutanotaTypeRefs,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, stringToCustomId, TypeRef } from "@tutao/utils"
 import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { RestClient, restError } from "@tutao/restClient"
+import { RestClient, restError } from "@tutao/rest-client"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
 import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
@@ -34,10 +34,10 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { ModelMapper, PatchMerger } from "@tutao/instancePipeline"
+import { ModelMapper, PatchMerger } from "@tutao/instance-pipeline"
 import { collapseId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { LastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "../../../../../src/app-env"
 
 const { anything } = matchers
 

@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { AriaRole } from "../../gui/AriaUtils.js"
-import { Keys, TabIndex } from "@tutao/appEnv"
+import { Keys, TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { theme } from "../../gui/theme"

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { px } from "../../../common/gui/size.js"
 
 export type KnowledgebaseListEntryAttrs = {

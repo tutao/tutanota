@@ -1,5 +1,5 @@
 import { CommandExecutor } from "../CommandExecutor"
-import { Mode } from "@tutao/appEnv"
+import { Mode } from "@tutao/app-env"
 
 // In tests, we don't use a real CommandExecutor, so it's safe to instantiate there.
 //

@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
 
 export function knowledgeBaseSearch(

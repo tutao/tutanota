@@ -5,7 +5,7 @@ import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
 import { TutaNotificationHandler } from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
 import { SseClient, SseConnectOptions } from "../../../../src/common/desktop/sse/SseClient.js"
 import { fetch as undiciFetch } from "undici"
-import { AttributeModel, ServerModelUntypedInstance, sysTypeModels, sysTypeRefs, TypeModelResolver, UntypedInstance } from "@tutao/typeRefs"
+import { AttributeModel, ServerModelUntypedInstance, sysTypeModels, sysTypeRefs, TypeModelResolver, UntypedInstance } from "@tutao/typerefs"
 import { assertNotNull, deepEqual, downcast, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import {
@@ -17,13 +17,13 @@ import {
 	removeOriginals,
 } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/common/native/common/EncryptedMissedNotification"
 import { CryptoError } from "@tutao/crypto/error"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "../../../../src/app-env"
 
 const APP_V = env.versionNumber
 

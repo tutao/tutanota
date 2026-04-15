@@ -1,7 +1,7 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/appEnv"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { TutanotaError } from "@tutao/app-env"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export class SecondFactorPendingError extends TutanotaError {
 	data: {

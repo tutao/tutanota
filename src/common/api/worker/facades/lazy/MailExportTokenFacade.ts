@@ -1,5 +1,5 @@
-import { restError, restSuspension } from "@tutao/restClient"
-import { tutanotaServices } from "@tutao/typeRefs"
+import { restError, restSuspension } from "@tutao/rest-client"
+import { tutanotaServices } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 
 const TAG = "[MailExportTokenFacade]"

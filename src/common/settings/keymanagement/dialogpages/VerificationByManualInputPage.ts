@@ -13,7 +13,7 @@ import { debounce } from "@tutao/utils"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { TitleSection } from "../../../gui/TitleSection"
 import { FingerprintRow } from "../FingerprintRow"
-import { IdentityKeyVerificationMethod } from "@tutao/appEnv"
+import { IdentityKeyVerificationMethod } from "@tutao/app-env"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel

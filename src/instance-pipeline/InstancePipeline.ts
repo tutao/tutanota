@@ -7,11 +7,11 @@ import {
 	Entity,
 	ServerModelUntypedInstance,
 	ServerTypeReferenceResolver,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, Nullable, TypeRef } from "@tutao/utils"
 import { AesKey } from "@tutao/crypto"
-import { isWebClient, ProgrammingError } from "@tutao/appEnv"
+import { isWebClient, ProgrammingError } from "@tutao/app-env"
 
 export class InstancePipeline {
 	readonly typeMapper: TypeMapper

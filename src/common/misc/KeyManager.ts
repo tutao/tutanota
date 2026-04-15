@@ -1,9 +1,9 @@
 import type { TranslationKey } from "./LanguageViewModel"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { lazy, mod } from "@tutao/utils"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import m from "mithril"
-import { isAppleDevice } from "@tutao/appEnv"
+import { isAppleDevice } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"

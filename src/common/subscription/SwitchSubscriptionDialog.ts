@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import { getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	AccountType,
 	AvailablePlanType,
@@ -17,7 +17,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 	UnsubscribeFailureReason,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -25,11 +25,11 @@ import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
-import { getByAbbreviation } from "../../appEnv/CountryList.js"
+import { countryList } from "@tutao/app-env"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
@@ -532,7 +532,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		const accountingInfo = await userController.loadAccountingInfo()
 		const invoiceData: InvoiceData = {
 			invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-			country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
+			country: accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null,
 			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
 		}
 		const updatedInvoiceData = await showSwitchToBusinessInvoiceDataDialog(customer, invoiceData, accountingInfo)

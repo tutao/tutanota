@@ -12,7 +12,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { SignupForm } from "../SignupForm"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { elementIdPart, isSameId, sysTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { locator } from "../../api/main/CommonLocator"
 import { getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg } from "./GiftCardUtils"
 import { CancelledError } from "../../api/common/error/CancelledError"
@@ -24,10 +24,10 @@ import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvi
 import { TextField } from "../../gui/base/TextField.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { Country, getByAbbreviation } from "../../../appEnv/CountryList.js"
+import { countryList } from "@tutao/app-env"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
@@ -35,7 +35,7 @@ import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
 import { signup } from "../utils/PaymentUtils"
 import { MessageBanner } from "../../gui/base/MessageBanner"
-import { PaymentMethodType, PlanType } from "@tutao/appEnv"
+import { PaymentMethodType, PlanType } from "@tutao/app-env"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -142,7 +142,7 @@ class RedeemGiftCardModel {
 		}
 	}
 
-	async redeemGiftCard(country: Country | null): Promise<void> {
+	async redeemGiftCard(country: countryList.Country | null): Promise<void> {
 		if (country == null) {
 			throw new UserError("invoiceCountryInfoBusiness_msg")
 		}
@@ -384,13 +384,13 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 	private confirmed = false
 	private showCountryDropdown: boolean
-	private country: Country | null
+	private country: countryList.Country | null
 	private dom!: HTMLElement
 
 	constructor({ attrs }: Vnode<GiftCardRedeemAttrs>) {
 		// we expect that the accounting info is actually available by now,
 		// but we optional chain because invoiceCountry is nullable anyway
-		this.country = mapNullable(attrs.data.accountingInfo?.invoiceCountry, getByAbbreviation)
+		this.country = mapNullable(attrs.data.accountingInfo?.invoiceCountry, countryList.getByAbbreviation)
 
 		// if a country is already set, then we don't need to ask for one
 		this.showCountryDropdown = this.country == null

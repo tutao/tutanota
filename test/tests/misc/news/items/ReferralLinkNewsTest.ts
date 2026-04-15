@@ -5,11 +5,11 @@ import { object, replace, when } from "testdouble"
 import { ReferralLinkViewer } from "../../../../../src/common/misc/news/items/ReferralLinkViewer.js"
 import { getDayShifted } from "@tutao/utils"
 import { ReferralLinkNews } from "../../../../../src/common/misc/news/items/ReferralLinkNews.js"
-import { timestampToGeneratedId } from "@tutao/typeRefs"
+import { timestampToGeneratedId } from "@tutao/typerefs"
 import { UserController } from "../../../../../src/common/api/main/UserController.js"
 import { initCommonLocator } from "../../../../../src/common/api/main/CommonLocator.js"
 import { IMailLocator } from "../../../../../src/mail-app/mailLocator.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider

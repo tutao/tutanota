@@ -7,7 +7,7 @@ import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/utils"
-import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
+import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 
 type FingerprintMismatchKeepPageAttrs = {
 	model: KeyVerificationModel

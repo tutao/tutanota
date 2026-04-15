@@ -1,5 +1,5 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { PresentableKeyVerificationState } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { PresentableKeyVerificationState } from "@tutao/app-env"
 
 export const enum RecipientType {
 	UNKNOWN = "unknown",

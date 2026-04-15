@@ -1,6 +1,6 @@
-import { TimeFormat } from "@tutao/appEnv"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { AccountType, GroupType } from "@tutao/appEnv"
+import { TimeFormat } from "@tutao/app-env"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { AccountType, GroupType } from "@tutao/app-env"
 
 /**
  * Checks if the current user is an admin of the customer.

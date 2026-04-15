@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { layout_size, px, size } from "../../../common/gui/size"
-import { EventTextTimeOption, Keys, WeekStart } from "@tutao/appEnv"
+import { EventTextTimeOption, Keys, WeekStart } from "@tutao/app-env"
 import {
 	CalendarDay,
 	CalendarMonth,
@@ -45,7 +45,7 @@ import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../common/gui/theme"
-import { isAppleDevice, isIOSApp } from "@tutao/appEnv"
+import { isAppleDevice, isIOSApp } from "@tutao/app-env"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date

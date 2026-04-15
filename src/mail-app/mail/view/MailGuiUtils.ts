@@ -1,11 +1,20 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { restError } from "@tutao/restClient"
+import { elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
+import { restError } from "@tutao/rest-client"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { $Promisable, assertNotNull, clamp, delay, filterInt, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/utils"
-import { EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, MailReportType, MailSetKind, secondsToMillis, SystemFolderType } from "@tutao/appEnv"
+import {
+	EncryptionAuthStatus,
+	isApp,
+	isDesktop,
+	MailAuthenticationStatus,
+	MailReportType,
+	MailSetKind,
+	secondsToMillis,
+	SystemFolderType,
+} from "@tutao/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"

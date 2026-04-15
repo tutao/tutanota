@@ -29,13 +29,13 @@
 			"path": "./src/tsconfig.combined-apps.json"
 		},
 		{
-			"path": "./src/tsconfig.appEnv.json"
+			"path": "./src/tsconfig.app-env.json"
 		},
 		{
-			"path": "./src/tsconfig.restClient.json"
+			"path": "./src/tsconfig.rest-client.json"
 		},
 		{
-			"path": "./src/tsconfig.instancePipeline.json"
+			"path": "./src/tsconfig.instance-pipeline.json"
 		},
 		{
 			"path": "./src/tsconfig.typerefs.json"

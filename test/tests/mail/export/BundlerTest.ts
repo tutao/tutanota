@@ -8,8 +8,8 @@ import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { MailState } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { MailState } from "../../../../src/app-env"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient

@@ -1,4 +1,4 @@
-import { getAttendeeStatus, hasError, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getAttendeeStatus, hasError, tutanotaTypeRefs } from "@tutao/typerefs"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -10,7 +10,7 @@ import {
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { CalendarAttendeeStatus, EndType, RepeatPeriod, UpgradePromptType } from "@tutao/appEnv"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod, UpgradePromptType } from "@tutao/app-env"
 import { downcast, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { cleanMailAddress, findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -26,7 +26,7 @@ import { font_size, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../common/gui/base/ExpandableTextArea.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel

@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { matchers, object, replace, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"
-import { CalendarAttendeeStatus, PresentableKeyVerificationState, ShareCapability } from "@tutao/appEnv"
+import { CalendarAttendeeStatus, PresentableKeyVerificationState, ShareCapability } from "../../../../src/app-env"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
@@ -29,7 +29,7 @@ import { ProgrammingError } from "../../../../src/common/api/common/error/Progra
 import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
-import { AccountType } from "@tutao/appEnv"
+import { AccountType } from "../../../../src/app-env"
 
 type CalendarEvent = tutanotaTypeRefs.CalendarEvent
 const CalendarEventAttendeeTypeRef = tutanotaTypeRefs.CalendarEventAttendeeTypeRef

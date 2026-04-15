@@ -7,7 +7,7 @@ import { lang } from "../../common/misc/LanguageViewModel.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/appEnv"
+import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/app-env"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
@@ -17,8 +17,8 @@ import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/b
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
 import { noOp, ofClass } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { restError } from "@tutao/rest-client"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null

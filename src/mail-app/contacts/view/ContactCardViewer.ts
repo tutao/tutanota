@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../../common/gui/theme.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ContactViewer } from "./ContactViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"

@@ -9,7 +9,7 @@ import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { SenderKeyVerificationRecoveryModel } from "../../../misc/SenderKeyVerificationRecoveryModel"
 import { Icon, IconSize } from "../../../gui/base/Icon"
 import { OutlineButton } from "../../../gui/base/buttons/OutlineButton"
-import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
+import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 
 type VerificationErrorInfoPageAttrs = {
 	model: SenderKeyVerificationRecoveryModel

@@ -1,7 +1,7 @@
-import { DnsRecordType } from "@tutao/appEnv"
+import { DnsRecordType } from "@tutao/app-env"
 import m, { Children } from "mithril"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 const enum ActualDnsRecordType {
 	MX = "MX",

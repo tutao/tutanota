@@ -7,17 +7,17 @@ import {
 	elementIdPart,
 	ServerModelUntypedInstance,
 	UntypedInstance,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { DesktopConfigKey } from "../config/ConfigKeys"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, Base64, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/utils"
 import { log } from "../DesktopLog"
 import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
-import { InstancePipeline } from "@tutao/instancePipeline"
-import { hasError } from "@tutao/typeRefs"
+import { InstancePipeline } from "@tutao/instance-pipeline"
+import { hasError } from "@tutao/typerefs"
 import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk

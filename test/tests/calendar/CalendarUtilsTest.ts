@@ -30,8 +30,8 @@ import {
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { EndType, RepeatPeriod, ShareCapability } from "@tutao/appEnv"
+import { StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { EndType, RepeatPeriod, ShareCapability } from "../../../src/app-env"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
 import {
@@ -54,7 +54,7 @@ import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarM
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
-import { AccountType, GroupType } from "@tutao/appEnv"
+import { AccountType, GroupType } from "../../../src/app-env"
 
 const zone = "Europe/Berlin"
 

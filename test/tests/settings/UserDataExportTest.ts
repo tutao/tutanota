@@ -5,10 +5,10 @@ import { LoginController } from "../../../src/common/api/main/LoginController.js
 import { matchers, object, when } from "testdouble"
 import { formatDateTimeUTC } from "../../../src/calendar-app/calendar/export/CalendarExporter.js"
 import { CounterFacade } from "../../../src/common/api/worker/facades/lazy/CounterFacade.js"
-import { CounterType } from "@tutao/appEnv"
+import { CounterType } from "../../../src/app-env"
 import { createTestEntity } from "../TestUtils.js"
 import { TypeRef } from "@tutao/utils"
-import { sysTypeRefs, monitorTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, monitorTypeRefs } from "@tutao/typerefs"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"

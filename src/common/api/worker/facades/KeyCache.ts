@@ -1,8 +1,8 @@
 import { getFromMap, neverNull } from "@tutao/utils"
-import { VersionedKey } from "@tutao/instancePipeline"
+import { VersionedKey } from "@tutao/instance-pipeline"
 import { Aes256Key } from "@tutao/crypto"
 import { cryptoUtils } from "@tutao/crypto"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * A cache for decrypted current keys of each group. Encrypted keys are stored on membership.symEncGKey.

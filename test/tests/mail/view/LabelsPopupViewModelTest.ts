@@ -2,8 +2,8 @@ import o from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils"
 import { LabelsPopupViewModel } from "../../../../src/mail-app/mail/view/LabelsPopupViewModel"
 import { LabelState } from "../../../../src/mail-app/mail/model/MailModel"
-import { MailSetKind } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { MailSetKind } from "../../../../src/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("LabelsPopupViewModelTest", () => {
 	const originalLabels: tutanotaTypeRefs.MailSet[] = [

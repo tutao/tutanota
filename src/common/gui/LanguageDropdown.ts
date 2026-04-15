@@ -5,7 +5,7 @@ import { deviceConfig } from "../misc/DeviceConfig"
 import { locator } from "../api/main/CommonLocator"
 import { styles } from "./styles"
 import { DropDownSelectorLink } from "./base/DropDownSelectorLink"
-import { isDesktop } from "@tutao/appEnv"
+import { isDesktop } from "@tutao/app-env"
 
 interface LanguageDropdownAttrs {
 	variant: "Link" | "TextField"

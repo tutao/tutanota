@@ -13,9 +13,9 @@ import {
 	UntypedAssociation,
 	UntypedInstance,
 	UntypedValue,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { TypeRef, uint8ArrayToBase64 } from "@tutao/utils"
-import { isWebClient, ProgrammingError } from "@tutao/appEnv"
+import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
 
 /**

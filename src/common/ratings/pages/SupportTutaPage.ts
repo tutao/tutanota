@@ -4,7 +4,7 @@ import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog
 import { client } from "../../misc/ClientDetector.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { NewPaidPlans, UpgradePromptType } from "@tutao/appEnv"
+import { NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { progressIcon } from "../../gui/base/Icon.js"
@@ -12,9 +12,9 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { completeSupportTutaStage, SupportTutaButtonType } from "../UserSatisfactionUtils.js"
 import { px } from "../../gui/size.js"
 import { assertNotNull, last, neverNull } from "@tutao/utils"
-import { GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typeRefs"
+import { GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typerefs"
 import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
-import { LegacyPrivatePlans, PlanType } from "@tutao/appEnv"
+import { LegacyPrivatePlans, PlanType } from "@tutao/app-env"
 
 interface SupportTutaPageAttrs {
 	dialog: Dialog

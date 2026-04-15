@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
-import { listIdPart } from "@tutao/typeRefs"
-import type { EventTextTimeOption } from "@tutao/appEnv"
+import { listIdPart } from "@tutao/typerefs"
+import type { EventTextTimeOption } from "@tutao/app-env"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
 import { px } from "../../../common/gui/size"
 import { normalizeColorHex } from "../../../common/gui/base/GuiUtils"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper

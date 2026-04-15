@@ -9,9 +9,9 @@ import {
 	ServerTypeModel,
 	ServerTypeReferenceResolver,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instancePipeline"
+import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError } from "@tutao/crypto/error"
 

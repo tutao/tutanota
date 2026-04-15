@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ContactCustomDateType } from "@tutao/appEnv"
+import { ContactCustomDateType } from "@tutao/app-env"
 
 export interface StructuredCustomDate {
 	readonly dateIso: string

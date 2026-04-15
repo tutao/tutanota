@@ -1,12 +1,12 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, PlanType } from "@tutao/appEnv"
+import { assertMainOrNode, PlanType } from "@tutao/app-env"
 import { formatDateWithMonth } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { TextField } from "../gui/base/TextField.js"
 import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
 import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
 import { Button, ButtonType } from "../gui/base/Button"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

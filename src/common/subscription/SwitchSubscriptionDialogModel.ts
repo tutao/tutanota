@@ -1,8 +1,8 @@
-import { FeatureType } from "@tutao/appEnv"
+import { FeatureType } from "@tutao/app-env"
 import { asPaymentInterval, PaymentInterval } from "./utils/PriceUtils"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { BookingItemFeatureType, LegacyPlans, PlanType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { BookingItemFeatureType, LegacyPlans, PlanType } from "@tutao/app-env"
 
 export type CurrentPlanInfo = {
 	businessUse: boolean

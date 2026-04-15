@@ -14,7 +14,7 @@ import { mockAttribute } from "@tutao/otest"
 import "@tensorflow/tfjs-backend-cpu"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { Sequential } from "@tensorflow/tfjs-layers"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import {
@@ -23,8 +23,8 @@ import {
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { SpamDecision } from "@tutao/appEnv"
-import { GENERATED_MIN_ID } from "@tutao/typeRefs"
+import { SpamDecision } from "../../../../../../src/app-env"
+import { GENERATED_MIN_ID } from "@tutao/typerefs"
 import { SpamClassifierStorageFacade } from "../../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 
 const { anything } = matchers

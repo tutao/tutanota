@@ -1,10 +1,10 @@
-import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
 import { lazyMemoized } from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { collapseId } from "../../../common/api/worker/rest/RestClientIdUtils"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 export class ContactIndexer {
 	constructor(

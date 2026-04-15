@@ -63,12 +63,12 @@ import {
 	ShareCapability,
 	Weekday,
 	WeekStart,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { layout_size } from "../../../common/gui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
@@ -90,7 +90,7 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../common/misc/KeyManager.js"
 import { IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
-import { AccountType, isAppleDevice } from "@tutao/appEnv"
+import { AccountType, isAppleDevice } from "@tutao/app-env"
 
 export interface IntervalOption {
 	value: number

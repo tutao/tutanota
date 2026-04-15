@@ -17,8 +17,8 @@ import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSys
 import { styles } from "../styles.js"
 import { IconButton } from "../base/IconButton.js"
 import { locator } from "../../api/main/CommonLocator"
-import { FeatureType, UpgradePromptType } from "@tutao/appEnv"
-import { isIOSApp, Mode } from "@tutao/appEnv"
+import { FeatureType, UpgradePromptType } from "@tutao/app-env"
+import { isIOSApp, Mode } from "@tutao/app-env"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController

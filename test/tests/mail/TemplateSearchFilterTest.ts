@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { searchInTemplates } from "../../../src/mail-app/templates/model/TemplatePopupModel.js"
 import { createTestEntity } from "../TestUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("TemplateSearchFilter", function () {
 	const abcTemplate = createTestEntity(tutanotaTypeRefs.EmailTemplateTypeRef, {

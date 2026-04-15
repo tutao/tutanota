@@ -1,7 +1,7 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
-import { assertIsEntity2, elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getElementId, isSameId, ListElement, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertIsEntity2, elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getElementId, isSameId, ListElement, tutanotaTypeRefs } from "@tutao/typerefs"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
 import {
 	deepEqual,
@@ -19,7 +19,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"

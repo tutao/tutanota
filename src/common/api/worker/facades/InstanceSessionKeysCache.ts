@@ -1,6 +1,6 @@
 import { assertNotNull, Nullable } from "@tutao/utils"
-import { Entity } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { Entity } from "@tutao/typerefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * This caches instanceSessionKeys (payload to UpdateInstanceSessionKeyService) for instances with bucketKeys

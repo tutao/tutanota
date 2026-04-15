@@ -12,7 +12,7 @@ import {
 	tutanotaModelInfo,
 	tutanotaTypeRefs,
 	TypeModel,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/utils"
@@ -22,9 +22,9 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 const TAG = "[notifications]"
 

@@ -1,5 +1,5 @@
-import type { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "@tutao/typeRefs"
-import { AttributeModel, sysTypeRefs } from "@tutao/typeRefs"
+import type { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "@tutao/typerefs"
+import { AttributeModel, sysTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, downcast, Nullable, TypeRef } from "@tutao/utils"
 import { InstancePipeline } from "./InstancePipeline"
 

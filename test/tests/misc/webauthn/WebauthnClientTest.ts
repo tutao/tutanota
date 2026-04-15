@@ -5,7 +5,7 @@ import { WebauthnClient } from "../../../../src/common/misc/2fa/webauthn/Webauth
 import { WebAuthnFacade } from "../../../../src/common/native/common/generatedipc/WebAuthnFacade.js"
 import { createTestEntity, domainConfigStub } from "../../TestUtils.js"
 import { DomainConfigProvider } from "../../../../src/common/api/common/DomainConfigProvider.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("WebauthnClient", function () {
 	let webauthn: WebAuthnFacade

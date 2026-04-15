@@ -3,7 +3,7 @@ import { layout_size, px } from "../../../common/gui/size"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ClickHandler, colorForBg, normalizeColorHex } from "../../../common/gui/base/GuiUtils"
-import { TabIndex } from "@tutao/appEnv"
+import { TabIndex } from "@tutao/app-env"
 
 export type LegacyCalendarEventBubbleAttrs = {
 	text: string

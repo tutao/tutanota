@@ -6,11 +6,11 @@ import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/Bl
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ArchiveDataType } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ArchiveDataType } from "../../../../../src/app-env"
 import { createReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade"
-import { restSuspension } from "@tutao/restClient"
+import { restSuspension } from "@tutao/rest-client"
 
 o.spec("MailExportFacade", () => {
 	const token = "my token"

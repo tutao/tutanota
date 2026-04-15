@@ -8,7 +8,7 @@ import { PlanConfig } from "./BusinessPlanContainer"
 import { Icons } from "../../gui/base/icons/Icons"
 import { anyHasGlobalFirstYearCampaign, filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
-import { PlanType } from "@tutao/appEnv"
+import { PlanType } from "@tutao/app-env"
 
 export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	private paidPlanConfigs: PlanConfig[] = [

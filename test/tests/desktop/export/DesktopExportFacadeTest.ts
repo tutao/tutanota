@@ -12,7 +12,7 @@ import path from "node:path"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import { ExportError } from "../../../../src/common/api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "../../../../src/common/desktop/export/DesktopExportLock"
-import { elementIdPart } from "@tutao/typeRefs"
+import { elementIdPart } from "@tutao/typerefs"
 
 function enoentError() {
 	const err = new Error()

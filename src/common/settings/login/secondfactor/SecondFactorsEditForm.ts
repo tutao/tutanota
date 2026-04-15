@@ -1,11 +1,11 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, SecondFactorType } from "@tutao/appEnv"
+import { assertMainOrNode, SecondFactorType } from "@tutao/app-env"
 import { assertNotNull, LazyLoaded, neverNull, noOp } from "@tutao/utils"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
@@ -19,7 +19,7 @@ import { showRequestPasswordDialog } from "../../../misc/passwords/PasswordReque
 import { LoginFacade } from "../../../api/worker/facades/LoginFacade"
 import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog"
 import { Dialog } from "../../../gui/base/Dialog"
-import { assertEnumValue, entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { assertEnumValue, entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

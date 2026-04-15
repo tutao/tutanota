@@ -1,4 +1,4 @@
-import type { TypeModel } from "@tutao/typeRefs"
+import type { TypeModel } from "@tutao/typerefs"
 import {
 	AssociationType,
 	Cardinality,
@@ -9,7 +9,7 @@ import {
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	arrayHashSigned,
@@ -57,7 +57,7 @@ import {
 } from "../../../common/api/common/utils/IndexUtils.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"

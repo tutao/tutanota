@@ -20,8 +20,14 @@ import { downcast, neverNull } from "@tutao/utils"
 import { _contactToVCard } from "../../../src/mail-app/contacts/VCardExporter.js"
 import { birthdayToIsoDate } from "../../../src/common/api/common/utils/BirthdayUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ContactAddressType, ContactComparisonResult, ContactPhoneNumberType, ContactSocialType, IndifferentContactComparisonResult } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import {
+	ContactAddressType,
+	ContactComparisonResult,
+	ContactPhoneNumberType,
+	ContactSocialType,
+	IndifferentContactComparisonResult,
+} from "../../../src/app-env"
 
 o.spec("ContactMergeUtilsTest", function () {
 	// tests are made for the validation of the comparison functions to find mergable contacts

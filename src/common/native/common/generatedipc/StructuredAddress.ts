@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ContactAddressType } from "@tutao/appEnv"
+import { ContactAddressType } from "@tutao/app-env"
 
 export interface StructuredAddress {
 	readonly address: string

@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog } from "../../gui/base/Dialog"
 import { Autocomplete } from "../../gui/base/TextField.js"
-import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/appEnv"
+import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
 
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
 import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/utils"
@@ -23,7 +23,7 @@ import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
 import { styles } from "../../gui/styles"
 import { SignupViewModel } from "../SignupView"
 import { getWhitelabelRegistrationDomains } from "../../misc/WhitelabelCustomizations"
-import { PlanType } from "@tutao/appEnv"
+import { PlanType } from "@tutao/app-env"
 
 export type SignupFormAttrs = {
 	// will return an error message that needs to be displayed in case of recoverable errors.

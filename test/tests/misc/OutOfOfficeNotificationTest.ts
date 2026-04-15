@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { mockAttribute, unmockAttribute } from "@tutao/otest"
 import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/utils"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"

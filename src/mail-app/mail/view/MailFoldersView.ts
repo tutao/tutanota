@@ -4,7 +4,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SidebarSection } from "../../../common/gui/SidebarSection.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { canHaveDescendents, elementIdPart, getElementId, isEditableMailSet, isNestableMailSet, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { canHaveDescendents, elementIdPart, getElementId, isEditableMailSet, isNestableMailSet, tutanotaTypeRefs } from "@tutao/typerefs"
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
@@ -22,7 +22,7 @@ import { DropData, DropType } from "../../../common/gui/base/GuiUtils"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../../../common/gui/HtmlUtils"
 import { theme } from "../../../common/gui/theme.js"
-import { MailSetKind } from "@tutao/appEnv"
+import { MailSetKind } from "@tutao/app-env"
 
 type MailSet = tutanotaTypeRefs.MailSet
 export interface MailFolderViewAttrs {

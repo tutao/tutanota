@@ -6,7 +6,7 @@ import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
 import { NotificationPermissionsBody } from "../../../../settings/NotificationPermissionsDialog.js"
-import { isAndroidApp } from "@tutao/appEnv"
+import { isAndroidApp } from "@tutao/app-env"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean

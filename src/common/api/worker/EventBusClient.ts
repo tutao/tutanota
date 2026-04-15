@@ -1,5 +1,5 @@
-import { assertWorkerOrNode, CloseEventBusOption, GroupType, isBrowser, Mode, SECOND_MS } from "@tutao/appEnv"
-import { restError } from "@tutao/restClient"
+import { assertWorkerOrNode, CloseEventBusOption, GroupType, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 import {
 	AttributeModel,
 	Entity,
@@ -14,7 +14,7 @@ import {
 	tutanotaTypeRefs,
 	TypeModelResolver,
 	GENERATED_MIN_ID
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CancelledError } from "../common/error/CancelledError"
@@ -22,7 +22,7 @@ import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import { UserFacade } from "./facades/UserFacade"
-import { EntityAdapter, InstancePipeline } from "@tutao/instancePipeline"
+import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoFacade } from "./crypto/CryptoFacade"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"

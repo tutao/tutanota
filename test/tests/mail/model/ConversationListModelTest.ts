@@ -13,7 +13,7 @@ import {
 	listIdPart,
 	sysTypeRefs,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { matchers, object, verify, when } from "testdouble"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient"
@@ -22,7 +22,7 @@ import { ExposedCacheStorage } from "../../../../src/common/api/worker/rest/Defa
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { assertNotNull, clamp, lastThrow, pad } from "@tutao/utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
@@ -34,7 +34,7 @@ import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSyste
 import { WebsocketConnectivityModel } from "../../../../src/common/misc/WebsocketConnectivityModel"
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
-import { MailSetKind, OperationType } from "@tutao/appEnv"
+import { MailSetKind, OperationType } from "../../../../src/app-env"
 
 o.spec("ConversationListModel", () => {
 	let model: ConversationListModel

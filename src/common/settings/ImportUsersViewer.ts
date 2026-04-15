@@ -3,13 +3,13 @@ import { Dialog } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
 import { contains, delay, ofClass, promiseMap } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { OperationId } from "../api/main/OperationProgressTracker.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
-import { BookingItemFeatureType } from "@tutao/appEnv"
+import { BookingItemFeatureType } from "@tutao/app-env"
 
 const delayTime = 900
 type UserImportDetails = {

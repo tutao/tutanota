@@ -4,7 +4,7 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import type { QRCode } from "jsqr"
 import { TitleSection } from "../../../gui/TitleSection"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../../gui/QrCodeScanner"
-import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "@tutao/appEnv"
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "@tutao/app-env"
 
 export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "camera_not_found" | "video_source_error" | "unknown"
 

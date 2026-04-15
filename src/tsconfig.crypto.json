@@ -13,7 +13,7 @@
 			"path": "tsconfig.utils.json"
 		},
 		{
-			"path": "tsconfig.appEnv.json"
+			"path": "tsconfig.app-env.json"
 		},
 		{
 			"path": "tsconfig.crypto-primitives.json"

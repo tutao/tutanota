@@ -11,9 +11,9 @@ import {
 	TypeModel,
 	UntypedValue,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, Nullable, TypeRef } from "@tutao/utils"
-import { ProgrammingError } from "@tutao/appEnv"
+import { ProgrammingError } from "@tutao/app-env"
 import { IDENTITY_FIELDS, isSameId } from "./EntityUtils.js"
 
 export const enum PatchOperationType {

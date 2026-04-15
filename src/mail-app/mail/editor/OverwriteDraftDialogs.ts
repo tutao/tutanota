@@ -8,7 +8,7 @@ import { LoginButton } from "../../../common/gui/base/buttons/LoginButton"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { ButtonType } from "../../../common/gui/base/Button"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 
 export function showOverwriteRemoteDraftDialog(updatedAt: number): Promise<"cancel" | "overwrite" | "discard"> {
 	return new Promise((resolve) => {

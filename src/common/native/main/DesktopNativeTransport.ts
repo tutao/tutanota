@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { Message } from "../../api/common/threading/MessageDispatcher.js"
 import { Transport } from "../../api/common/threading/Transport.js"
 import { NativeApp } from "../../../global.js"

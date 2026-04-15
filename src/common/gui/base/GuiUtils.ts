@@ -1,5 +1,4 @@
-import type { Country } from "../../../appEnv/CountryList"
-import { Countries } from "../../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import type { InfoLink, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
@@ -14,7 +13,7 @@ import { DropDownSelector } from "./DropDownSelector.js"
 import { IconButtonAttrs } from "./IconButton.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { isColorLight, isValidCSSHexColor } from "./Color.js"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "./DropDownSelectorNew"
 import { theme } from "../theme"
@@ -54,11 +53,11 @@ export type ClickHandler = (event: MouseEvent, dom: HTMLElement) => void
 export type KeyboardHandler = (event: KeyboardEvent, dom: HTMLElement) => void
 
 // lazy because of global dependencies
-const dropdownCountries = lazyMemoized(() => Countries.map((c) => ({ value: c, name: c.n })))
+const dropdownCountries = lazyMemoized(() => countryList.Countries.map((c) => ({ value: c, name: c.n })))
 
 export function renderCountryDropdown(params: {
-	selectedCountry: Country | null
-	onSelectionChanged: (country: Country) => void
+	selectedCountry: countryList.Country | null
+	onSelectionChanged: (country: countryList.Country) => void
 	helpLabel?: lazy<string>
 	label?: MaybeTranslation
 }): Children {
@@ -72,8 +71,8 @@ export function renderCountryDropdown(params: {
 }
 
 export function renderCountryDropdownNew(params: {
-	selectedCountry: Country | null
-	onSelectionChanged: (country: Country | null) => void
+	selectedCountry: countryList.Country | null
+	onSelectionChanged: (country: countryList.Country | null) => void
 	helpLabel?: lazy<string>
 	label?: MaybeTranslation
 }): Children {
@@ -93,7 +92,7 @@ export function renderCountryDropdownNew(params: {
 			icon: Icons.PlaceFilled,
 			color: theme.on_surface_variant,
 		},
-	} satisfies DropDownSelectorNewAttrs<Country | null>)
+	} satisfies DropDownSelectorNewAttrs<countryList.Country | null>)
 }
 
 export function createMoreActionButtonAttrs(

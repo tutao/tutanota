@@ -1,15 +1,15 @@
-import { entityUpdateUtils, GENERATED_MIN_ID, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, GENERATED_MIN_ID, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { stringValidator } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
-import { BookingItemFeatureType, GroupType, OperationType } from "@tutao/appEnv"
+import { BookingItemFeatureType, GroupType, OperationType } from "@tutao/app-env"
 
 export class GroupDetailsModel {
 	groupInfo: sysTypeRefs.GroupInfo

@@ -1,5 +1,5 @@
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { FeatureType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { FeatureType } from "@tutao/app-env"
 
 export function getWhitelabelDomainInfo(customerInfo: sysTypeRefs.CustomerInfo, domainName?: string): sysTypeRefs.DomainInfo | null {
 	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null

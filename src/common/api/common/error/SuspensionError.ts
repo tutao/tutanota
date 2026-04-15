@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "@tutao/app-env"
 import { filterInt } from "@tutao/utils"
 
 export class SuspensionError extends TutanotaError {

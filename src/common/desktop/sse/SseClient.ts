@@ -5,7 +5,7 @@ import { Scheduler } from "../../api/common/utils/Scheduler.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 import { newPromise } from "@tutao/utils"
-import { reverse } from "@tutao/typeRefs"
+import { reverse } from "@tutao/typerefs"
 
 const log = makeTaggedLogger("[SSE]")
 

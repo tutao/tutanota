@@ -14,10 +14,10 @@ import { NativeFileApp } from "../common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
 import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
-import { isDesktop, isHighestTierPlan } from "@tutao/appEnv"
+import { isDesktop, isHighestTierPlan } from "@tutao/app-env"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(

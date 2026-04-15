@@ -9,10 +9,10 @@ import {
 	isSameId,
 	listIdPart,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
-import { assertMainOrNode, OperationType } from "@tutao/appEnv"
+import { assertMainOrNode, OperationType } from "@tutao/app-env"
 import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"

@@ -1,7 +1,7 @@
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
-import { assertMainOrNode, InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { assertMainOrNode, InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -21,7 +21,7 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../api/common/error/ServerModelsUnavailableError"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

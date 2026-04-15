@@ -8,7 +8,7 @@ import { noOp, promiseMap } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { SignupViewModel } from "../signup/SignupView"
 import { component_size, px } from "../gui/size"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 export interface PaypalButtonNewAttrs {
 	data: Pick<SignupViewModel, "accountingInfo">

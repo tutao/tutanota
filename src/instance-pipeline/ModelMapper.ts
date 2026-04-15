@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, InvalidModelError, isWebClient, ProgrammingError } from "@tutao/appEnv"
+import { assertWorkerOrNode, InvalidModelError, isWebClient, ProgrammingError } from "@tutao/app-env"
 import {
 	base64ToBase64Url,
 	base64ToUint8Array,
@@ -23,7 +23,7 @@ import {
 	ServerTypeReferenceResolver,
 	Type,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
 

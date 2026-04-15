@@ -1,18 +1,18 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { lang } from "../../LanguageViewModel.js"
 import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { LazyLoaded, noOp, ofClass } from "@tutao/utils"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../gui/base/Icon.js"
 import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
 import { RecoverCodeFacade } from "../../../api/worker/facades/lazy/RecoverCodeFacade.js"
-import { daysToMillis, isApp } from "@tutao/appEnv"
+import { daysToMillis, isApp } from "@tutao/app-env"
 
 /**
  * News item that informs admin users about their recovery code.

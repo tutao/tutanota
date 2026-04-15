@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -22,7 +22,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../gui/base/SnackBar.js"
 import { Icons } from "../gui/base/icons/Icons"
-import { isApp, isDesktop } from "@tutao/appEnv"
+import { isApp, isDesktop } from "@tutao/app-env"
 
 assertMainOrNode()
 

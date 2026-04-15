@@ -1,5 +1,5 @@
-import { elementIdPart, storageTypeRefs as storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ArchiveDataType, assertWorkerOrNode } from "@tutao/appEnv"
+import { elementIdPart, storageTypeRefs as storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { ArchiveDataType, assertWorkerOrNode } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { convertToDataFile, DataFile } from "../../../common/DataFile.js"
 import { BlobFacade } from "./BlobFacade.js"
@@ -7,7 +7,7 @@ import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
-import { restError, restSuspension } from "@tutao/restClient"
+import { restError, restSuspension } from "@tutao/rest-client"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade"
 
 assertWorkerOrNode()

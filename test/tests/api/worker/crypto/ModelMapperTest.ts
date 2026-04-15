@@ -8,7 +8,7 @@ import {
 	isDefaultValue,
 	ModelMapper,
 	valueToDefault,
-} from "@tutao/instancePipeline"
+} from "@tutao/instance-pipeline"
 import {
 	AssociationType,
 	Cardinality,
@@ -19,12 +19,12 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeReferenceResolver,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { removeOriginals } from "../../../TestUtils"
-import { InvalidModelError } from "@tutao/appEnv"
+import { InvalidModelError } from "../../../../../src/app-env"
 
 o.spec("ModelMapper", function () {
 	const modelMapper: ModelMapper = new ModelMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)

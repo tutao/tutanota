@@ -9,7 +9,7 @@ import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { ButtonType } from "../gui/base/Button.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 /**
  * The most up-to-date versions of the terms and conditions, privacy statement, and gift card terms

@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme"
 import type { lazy } from "@tutao/utils"
 import { memoized } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { Icons } from "./icons/Icons"
 import { px, size } from "../size.js"
 

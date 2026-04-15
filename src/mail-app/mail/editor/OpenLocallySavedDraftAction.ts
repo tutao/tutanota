@@ -4,7 +4,7 @@ import type { MailboxModel } from "../../../common/mailFunctionality/MailboxMode
 import type { Dialog } from "../../../common/gui/base/Dialog"
 import type { MailViewerViewModel } from "../view/MailViewerViewModel"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"

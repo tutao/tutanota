@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ArchiveDataType, Mode } from "@tutao/appEnv"
+import { ArchiveDataType, Mode } from "../../../src/app-env"
 import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { NativeFileApp } from "../../../src/common/native/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -8,10 +8,10 @@ import { neverNull } from "@tutao/utils"
 import { DataFile } from "../../../src/common/api/common/DataFile.js"
 import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
 import { FileControllerBrowser } from "../../../src/common/file/FileControllerBrowser.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
 import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 const { anything, argThat } = matchers
 

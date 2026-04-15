@@ -2,7 +2,7 @@ import o, { assertThrows, spy } from "@tutao/otest"
 import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/utils"
-import { ClientModelInfo, entityUpdateUtils, getElementId, getListId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, entityUpdateUtils, getElementId, getListId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
@@ -28,7 +28,7 @@ import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../..
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
-import { GroupType, OperationType } from "@tutao/appEnv"
+import { GroupType, OperationType } from "../../../src/app-env"
 
 let saveAndSendMock
 let rescheduleEventMock

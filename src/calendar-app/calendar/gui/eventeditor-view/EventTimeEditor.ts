@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { TimeFormat } from "@tutao/appEnv"
+import { TimeFormat } from "@tutao/app-env"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { Switch } from "../../../../common/gui/base/Switch.js"
@@ -10,7 +10,7 @@ import { DatePicker } from "../pickers/DatePicker.js"
 import { TimePicker } from "../pickers/TimePicker.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Divider } from "../../../../common/gui/Divider.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number

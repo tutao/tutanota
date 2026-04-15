@@ -9,7 +9,7 @@ import { arrayEquals, freshVersioned } from "@tutao/utils"
 import { EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade

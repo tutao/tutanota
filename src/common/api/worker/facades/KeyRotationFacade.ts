@@ -9,7 +9,7 @@ import {
 	sysServices,
 	sysTypeRefs,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	AccountType,
 	assertWorkerOrNode,
@@ -20,7 +20,7 @@ import {
 	PublicKeyIdentifierType,
 	RolloutType,
 	TutanotaError,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import {
 	assertNotNull,
 	downcast,
@@ -55,14 +55,14 @@ import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { PQFacade } from "./PQFacade.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
-import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
+import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
 import { RecoverCodeFacade } from "./lazy/RecoverCodeFacade.js"
 import { UserFacade } from "./UserFacade.js"
 import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"

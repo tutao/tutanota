@@ -1,14 +1,14 @@
-import { sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertNotNull, delay, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
-import { VersionedKey } from "@tutao/instancePipeline"
+import { VersionedKey } from "@tutao/instance-pipeline"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
 import { DateProvider } from "../../../common/DateProvider"
 

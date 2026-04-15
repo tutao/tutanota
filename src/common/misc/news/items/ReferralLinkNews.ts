@@ -1,11 +1,11 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { getReferralLink, ReferralLinkViewer } from "./ReferralLinkViewer.js"
 import { DateProvider } from "../../../api/common/DateProvider.js"
-import { generatedIdToTimestamp } from "@tutao/typeRefs"
+import { generatedIdToTimestamp } from "@tutao/typerefs"
 import { getDayShifted, neverNull } from "@tutao/utils"
 import { UserController } from "../../../api/main/UserController.js"
 

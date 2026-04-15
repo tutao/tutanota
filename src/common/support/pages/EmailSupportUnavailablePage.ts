@@ -8,7 +8,7 @@ import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { UpgradePromptType } from "@tutao/app-env"
 
 type EmailSupportUnavailableAttrs = {
 	data: SupportDialogState

@@ -12,8 +12,8 @@ import {
 import { neverNull } from "@tutao/utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 import { createTestEntity } from "../TestUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/app-env"
 
 let idCounter = 0
 o.spec("VCardExporterTest", function () {

@@ -1,5 +1,5 @@
-import { assertMainOrNode, ShareCapability } from "@tutao/appEnv"
-import { elementIdPart, entityUpdateUtils, getEtId, listIdPart, sortCompareById, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
+import { elementIdPart, entityUpdateUtils, getEtId, listIdPart, sortCompareById, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -9,7 +9,7 @@ import { EventController } from "../api/main/EventController.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { DbError } from "../api/common/error/DbError.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 

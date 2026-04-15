@@ -2,8 +2,8 @@ import { assert, getDayShifted, getStartOfDay } from "@tutao/utils"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
-import { DAY_IN_MILLIS, isBrowser, Mode } from "@tutao/appEnv"
-import { getOfflineStorageDefaultTimeRangeDays } from "@tutao/typeRefs"
+import { DAY_IN_MILLIS, isBrowser, Mode } from "@tutao/app-env"
+import { getOfflineStorageDefaultTimeRangeDays } from "@tutao/typerefs"
 
 /**
  * A model for handling offline storage configuration

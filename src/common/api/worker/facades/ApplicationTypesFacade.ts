@@ -1,14 +1,14 @@
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
-import { ApplicationTypesHash, baseModelInfo, baseServices, baseTypes, ServerModelInfo } from "@tutao/typeRefs"
+import { ApplicationTypesHash, baseModelInfo, baseServices, baseTypes, ServerModelInfo } from "@tutao/typerefs"
 import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
-import { HttpMethod, MediaType, RestClient } from "@tutao/restClient"
-import { decompressString } from "@tutao/instancePipeline"
+import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
+import { decompressString } from "@tutao/instance-pipeline"
 import { sha256Hash } from "@tutao/crypto"
 import { getServiceRestPath } from "../rest/ServiceExecutor"
 import { ServiceDefinition } from "../../common/ServiceRequest"
 import { ServerModelsUnavailableError } from "../../common/error/ServerModelsUnavailableError"
-import { isApp, isDesktop } from "@tutao/appEnv"
+import { isApp, isDesktop } from "@tutao/app-env"
 
 assertWorkerOrNode()
 

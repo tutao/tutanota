@@ -4,8 +4,8 @@ import { matchers, object, verify, when } from "testdouble"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { CustomUserCacheHandler } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { SpamClassifierStorageFacade } from "../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { GroupType } from "@tutao/appEnv"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { GroupType } from "../../../../../src/app-env"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("CustomUserCacheHandler", () => {
 	let storage: CacheStorage

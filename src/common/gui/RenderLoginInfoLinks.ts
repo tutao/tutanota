@@ -6,7 +6,7 @@ import { mapNullable } from "@tutao/utils"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { prepareLogContent, showLogsDialog } from "./LogDialogUtils.js"
 import { LanguageDropdown } from "./LanguageDropdown"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()

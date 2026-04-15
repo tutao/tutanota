@@ -21,7 +21,7 @@ import { default as monitorTypeModels } from "./entities/monitor/TypeModels.js"
 import { default as sysModelInfo } from "./entities/sys/ModelInfo.js"
 import { default as sysTypeModels } from "./entities/sys/TypeModels.js"
 
-import { isTest, ProgrammingError } from "@tutao/appEnv"
+import { isTest, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./baseTypes"
 
 export type ApplicationTypesHash = string

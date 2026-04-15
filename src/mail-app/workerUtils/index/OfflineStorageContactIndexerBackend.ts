@@ -1,5 +1,5 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 

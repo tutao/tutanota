@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import m from "mithril"
 import { getAllDayDateUTC, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -6,9 +6,9 @@ import { showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { newPromise } from "@tutao/utils"
 import { isKeyPressed, isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { EventWrapper } from "./CalendarViewModel"
-import { isAppleDevice } from "@tutao/appEnv"
+import { isAppleDevice } from "@tutao/app-env"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {

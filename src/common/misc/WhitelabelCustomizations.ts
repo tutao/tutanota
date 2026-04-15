@@ -1,7 +1,7 @@
 import { BaseThemeId, Theme } from "../gui/theme"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { mapNullable } from "@tutao/utils"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNodeBoot()
 

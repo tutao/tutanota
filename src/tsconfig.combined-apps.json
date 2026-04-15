@@ -22,14 +22,14 @@
 			"path": "tsconfig.usagetests.json"
 		},
 		{
-			"path": "tsconfig.restClient.json"
+			"path": "tsconfig.rest-client.json"
 		},
 		{
 			"path": "tsconfig.typerefs.json"
 		},
 
 		{
-			"path": "tsconfig.instancePipeline.json"
+			"path": "tsconfig.instance-pipeline.json"
 		}
 	]
 }

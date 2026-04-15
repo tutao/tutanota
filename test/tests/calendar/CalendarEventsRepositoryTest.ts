@@ -8,14 +8,14 @@ import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "@tutao/appEnv"
+import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../../../src/app-env"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
 import { getFirstOrThrow, getStartOfDay } from "@tutao/utils"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
-import { entityUpdateUtils, tutanotaTypeRefs, sysTypeRefs } from "@tutao/typeRefs"
-import { OperationType } from "@tutao/appEnv"
+import { entityUpdateUtils, tutanotaTypeRefs, sysTypeRefs } from "@tutao/typerefs"
+import { OperationType } from "../../../src/app-env"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {

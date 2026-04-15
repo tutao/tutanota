@@ -1,9 +1,9 @@
 import { WsConnectionState } from "../api/main/WorkerClient.js"
 import stream from "mithril/stream"
 import { identity } from "@tutao/utils"
-import { CloseEventBusOption } from "@tutao/appEnv"
+import { CloseEventBusOption } from "@tutao/app-env"
 import { ExposedEventBus } from "../api/worker/workerInterfaces.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export interface WebsocketConnectivityListener {
 	updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void>

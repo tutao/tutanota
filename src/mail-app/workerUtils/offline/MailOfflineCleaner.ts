@@ -9,9 +9,9 @@ import {
 	listIdPart,
 	sysTypeRefs,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
-import { AccountType, daysToMillis } from "@tutao/appEnv"
+import { AccountType, daysToMillis } from "@tutao/app-env"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	private cutOffId: Id | null = null

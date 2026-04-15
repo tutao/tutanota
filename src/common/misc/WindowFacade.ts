@@ -1,11 +1,11 @@
 import m, { Params } from "mithril"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
 import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { isApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
+import { isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown

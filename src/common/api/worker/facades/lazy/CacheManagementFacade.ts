@@ -1,6 +1,6 @@
-import { isSameId, sysTypeRefs } from "@tutao/typeRefs"
+import { isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { UserFacade } from "../UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 

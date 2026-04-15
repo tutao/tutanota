@@ -8,15 +8,15 @@ import { ButtonType } from "../../gui/base/Button.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { Checkbox } from "../../gui/base/Checkbox.js"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { formatPrice } from "../utils/PriceUtils.js"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { urlEncodeHtmlTags } from "../../misc/Formatter.js"
 import QRCode from "qrcode-svg"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { isAndroidApp, isApp } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { isAndroidApp, isApp } from "@tutao/app-env"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",

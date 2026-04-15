@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { matchers, object, verify, when } from "testdouble"
 import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/appEnv"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/app-env"
 import { bytesToEd25519PublicKey, Ed25519PublicKey, sha256Hash } from "@tutao/crypto"
 import testData from "../crypto/CompatibilityTestData.json"
 import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
@@ -13,7 +13,7 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 const { anything } = matchers
 

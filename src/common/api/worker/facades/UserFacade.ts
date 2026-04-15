@@ -1,12 +1,12 @@
 import { Aes256Key, AesKey, cryptoUtils, decryptKey } from "@tutao/crypto"
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { isSameId, sysTypeRefs } from "@tutao/typeRefs"
+import { isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 import { KeyCache } from "./KeyCache.js"
-import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
+import { CryptoWrapper, VersionedKey } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "@tutao/app-env"
 
 export interface AuthDataProvider {
 	/**

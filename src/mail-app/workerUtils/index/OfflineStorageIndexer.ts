@@ -2,14 +2,14 @@ import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
 import { assertNotNull, difference } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
-import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { entityUpdateUtils } from "@tutao/typeRefs"
-import { GroupType } from "@tutao/appEnv"
+import { entityUpdateUtils } from "@tutao/typerefs"
+import { GroupType } from "@tutao/app-env"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(

@@ -1,9 +1,9 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, OperationType } from "@tutao/appEnv"
+import { assertMainOrNode, OperationType } from "@tutao/app-env"
 import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
-import { entityUpdateUtils, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { FeatureType } from "@tutao/appEnv"
+import { FeatureType } from "@tutao/app-env"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 

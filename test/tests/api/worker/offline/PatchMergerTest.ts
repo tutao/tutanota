@@ -9,7 +9,7 @@ import {
 	SessionKeyResolver,
 	VersionedEncryptedKey,
 	VersionedKey,
-} from "@tutao/instancePipeline"
+} from "@tutao/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
@@ -19,9 +19,9 @@ import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/Servi
 import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
-import { AttributeModel, Entity, ModelValue, PatchOperationType, ServerModelParsedInstance, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { AttributeModel, Entity, ModelValue, PatchOperationType, ServerModelParsedInstance, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, downcast, noOp, Nullable, stringToBase64 } from "@tutao/utils"
-import { RestClient } from "@tutao/restClient"
+import { RestClient } from "@tutao/rest-client"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
@@ -32,7 +32,7 @@ import {
 import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage"
 import { createSystemMail } from "../../common/mail/CommonMailUtilsTest"
-import { EncryptionAuthStatus } from "@tutao/appEnv"
+import { EncryptionAuthStatus } from "../../../../../src/app-env"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 

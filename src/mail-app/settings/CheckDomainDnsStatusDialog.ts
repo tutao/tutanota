@@ -1,7 +1,7 @@
 import { Dialog, DialogType } from "../../common/gui/base/Dialog"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { renderCheckResult } from "./emaildomain/VerifyDnsRecordsPage"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 
 assertMainOrNode()

@@ -6,7 +6,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
-import { elementIdPart, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	DEFAULT_CALENDAR_COLOR,
 	GroupType,
@@ -18,7 +18,7 @@ import {
 	TimeFormat,
 	UpgradePromptType,
 	WeekStart,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	CalendarType,
@@ -33,7 +33,7 @@ import {
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"

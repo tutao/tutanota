@@ -9,7 +9,7 @@ import {
 } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import { ClientModelInfo, tutanotaTypeRefs, sysTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, tutanotaTypeRefs, sysTypeRefs } from "@tutao/typerefs"
 import { aes256RandomKey, aesDecryptUnauthenticated, FIXED_IV } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
@@ -20,7 +20,7 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "../../../../../src/app-env"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

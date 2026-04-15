@@ -1,6 +1,6 @@
 // @bundleInto:common
 
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -31,7 +31,7 @@ import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
-import { InvalidModelError } from "@tutao/appEnv"
+import { InvalidModelError } from "@tutao/app-env"
 import { MoveCycleError } from "../error/MoveCycleError"
 import { MoveToTrashError } from "../error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../error/MoveDestinationIsSourceError"

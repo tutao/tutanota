@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import { CalendarInviteHandler, ReplyResult } from "../../../src/calendar-app/calendar/view/CalendarInvites.js"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { CalendarAttendeeStatus } from "@tutao/appEnv"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { CalendarAttendeeStatus } from "../../../src/app-env"
 import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { instance, matchers, verify, when } from "testdouble"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
@@ -13,7 +13,7 @@ import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/v
 import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
-import { AccountType } from "@tutao/appEnv"
+import { AccountType } from "../../../src/app-env"
 
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,

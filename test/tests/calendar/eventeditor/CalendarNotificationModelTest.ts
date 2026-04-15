@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { FeatureType } from "@tutao/appEnv"
+import { FeatureType } from "../../../../src/app-env"
 import { hasPlanWithInvites } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { object, replace, when } from "testdouble"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { AccountType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { AccountType } from "../../../../src/app-env"
 
 o.spec("CalendarNotificationModel", function () {
 	let userController: UserController

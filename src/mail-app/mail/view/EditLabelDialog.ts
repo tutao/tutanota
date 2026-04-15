@@ -1,13 +1,13 @@
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
 import m from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { MailViewModel } from "./MailViewModel"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { UpgradePromptType } from "@tutao/app-env"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 

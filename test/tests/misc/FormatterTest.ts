@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { lang, languageCodeToTag, languages } from "../../../src/common/misc/LanguageViewModel.js"
 import { formatDate, urlEncodeHtmlTags } from "../../../src/common/misc/Formatter.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/common/misc/DateParser.js"
 import { createTestEntity } from "../TestUtils.js"
 

@@ -1,4 +1,4 @@
-import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EventController } from "../api/main/EventController.js"
@@ -6,11 +6,11 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 import m from "mithril"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 export type MailboxDetail = {
 	mailbox: tutanotaTypeRefs.MailBox

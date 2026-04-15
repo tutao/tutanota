@@ -14,8 +14,8 @@ import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubb
 import { clone, incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { RepeatPeriod } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { RepeatPeriod } from "../../../src/app-env"
 
 o.spec("CalendarTimeGrid", function () {
 	const TIME_RANGE_24_HRS: TimeRange = {

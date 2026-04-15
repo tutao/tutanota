@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Weekday } from "@tutao/appEnv"
+import { Weekday } from "@tutao/app-env"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { px } from "../../../../common/gui/size.js"
 

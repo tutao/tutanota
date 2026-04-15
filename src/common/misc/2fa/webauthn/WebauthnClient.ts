@@ -2,10 +2,10 @@ import { decode } from "cborg"
 import { downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { WebauthnKeyDescriptor } from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
-import { Const } from "@tutao/appEnv"
+import { Const } from "@tutao/app-env"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { getApiBaseUrl } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { getApiBaseUrl } from "@tutao/app-env"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {

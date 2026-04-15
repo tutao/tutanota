@@ -1,9 +1,9 @@
-import { getEtId, GroupTypeNameByCode, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { GroupType, ShareCapability } from "@tutao/appEnv"
+import { getEtId, GroupTypeNameByCode, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { GroupType, ShareCapability } from "@tutao/app-env"
 import { lang } from "../misc/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../api/common/EntityClient"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { UserController } from "../api/main/UserController"
 
 /**

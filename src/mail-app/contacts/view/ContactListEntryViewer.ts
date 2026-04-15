@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { theme } from "../../../common/gui/theme.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel.js"
-import { ContactAddressType } from "@tutao/appEnv"
+import { ContactAddressType } from "@tutao/app-env"
 
 type Contact = tutanotaTypeRefs.Contact
 export interface ContactListEntryViewerAttrs {

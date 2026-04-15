@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { getElementId, getListId, sortCompareById, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getElementId, getListId, sortCompareById, tutanotaTypeRefs } from "@tutao/typerefs"
 import { defer, DeferredObject } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
-import { restError } from "@tutao/restClient"
-import { OperationType } from "@tutao/appEnv"
+import { restError } from "@tutao/rest-client"
+import { OperationType } from "../../../src/app-env"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"

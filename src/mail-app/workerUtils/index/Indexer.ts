@@ -1,4 +1,4 @@
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 export interface IndexerInitParams {
 	user: sysTypeRefs.User

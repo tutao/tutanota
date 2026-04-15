@@ -1,7 +1,7 @@
-import { TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/appEnv"
+import { TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
 import { LoginController } from "../../api/main/LoginController.js"
 import { getCustomMailDomains } from "../../api/common/utils/CustomerUtils.js"
-import { AccountType } from "@tutao/appEnv"
+import { AccountType } from "@tutao/app-env"
 
 export interface EmailDomainData {
 	domain: string

@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { client } from "../../../src/common/misc/ClientDetector.js"
 import { AppType, BrowserType, DeviceType } from "../../../src/common/misc/ClientConstants.js"
 import { withOverriddenEnv } from "../TestUtils"
-import { Mode } from "@tutao/appEnv"
+import { Mode } from "../../../src/app-env"
 
 o.spec("ClientDetector test", function () {
 	o("ClientDetector detect chrome windows", () => {

@@ -1,8 +1,8 @@
-import { AccountType, assertMainOrNode, FeatureType, getApiBaseUrl, GroupType, isDesktop, LegacyPlans, OperationType, PlanType } from "@tutao/appEnv"
+import { AccountType, assertMainOrNode, FeatureType, getApiBaseUrl, GroupType, isDesktop, LegacyPlans, OperationType, PlanType } from "@tutao/app-env"
 import { assertNotNull, Base64Url, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
-import { elementIdPart, entityUpdateUtils, isSameId, listIdPart, sysServices, sysTypeModels, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, isSameId, listIdPart, sysServices, sysTypeModels, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
-import { MediaType, restError } from "@tutao/restClient"
+import { MediaType, restError } from "@tutao/rest-client"
 import { locator } from "./CommonLocator"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"

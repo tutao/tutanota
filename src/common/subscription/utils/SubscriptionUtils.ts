@@ -1,7 +1,7 @@
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
-import { getClientType, getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { getClientType, getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "../../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
@@ -21,7 +21,7 @@ import {
 	NewPaidPlans,
 	PaymentMethodType,
 	PlanType,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 
 export const enum UpgradeType {
 	/**

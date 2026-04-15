@@ -1,17 +1,16 @@
 import m, { Children, Component } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
-import type { Country } from "../../appEnv/CountryList"
-import { Countries, CountryType } from "../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { renderCountryDropdown } from "../gui/base/GuiUtils"
 import { TextField } from "../gui/base/TextField.js"
-import type { InvoiceData } from "@tutao/appEnv"
+import type { InvoiceData } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices } from "@tutao/typerefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -20,7 +19,7 @@ export enum InvoiceDataInputLocation {
 
 export class InvoiceDataInput implements Component {
 	private readonly invoiceAddressComponent: HtmlEditor
-	public readonly selectedCountry: Stream<Country | null>
+	public readonly selectedCountry: Stream<countryList.Country | null>
 	private vatNumber: string = ""
 
 	constructor(
@@ -69,7 +68,7 @@ export class InvoiceDataInput implements Component {
 	oncreate() {
 		locator.serviceExecutor.get(sysServices.LocationService, null).then((location: sysTypeRefs.LocationServiceGetReturn) => {
 			if (!this.selectedCountry()) {
-				const country = Countries.find((c) => c.a === location.country)
+				const country = countryList.Countries.find((c) => c.a === location.country)
 
 				if (country) {
 					this.selectedCountry(country)
@@ -106,13 +105,13 @@ export class InvoiceDataInput implements Component {
 		return {
 			invoiceAddress: address,
 			country: selectedCountry,
-			vatNumber: selectedCountry?.t === CountryType.EU && this.businessUse ? this.vatNumber : "",
+			vatNumber: selectedCountry?.t === countryList.CountryType.EU && this.businessUse ? this.vatNumber : "",
 		}
 	}
 
 	private isVatIdFieldVisible(): boolean {
 		const selectedCountry = this.selectedCountry()
-		return this.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
+		return this.businessUse && selectedCountry != null && selectedCountry.t === countryList.CountryType.EU
 	}
 
 	public getAddress(): string {

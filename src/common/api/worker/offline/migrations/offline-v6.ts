@@ -1,7 +1,7 @@
 import { OfflineStorage } from "../OfflineStorage.js"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade.js"
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
-import { isBrowser, Mode } from "@tutao/appEnv"
+import { isBrowser, Mode } from "@tutao/app-env"
 
 /**
  * indexedDB index is no longer needed once migrated to offline storage index

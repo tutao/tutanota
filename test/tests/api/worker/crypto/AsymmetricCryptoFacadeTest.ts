@@ -9,7 +9,7 @@ import {
 	EncryptionKeyVerificationState,
 	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
-} from "@tutao/appEnv"
+} from "../../../../../src/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
@@ -30,14 +30,14 @@ import { cryptoUtils } from "@tutao/crypto"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { KeyVersion, Versioned } from "@tutao/utils"
-import { sysServices } from "@tutao/typeRefs"
+import { sysServices } from "@tutao/typerefs"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { CryptoWrapper } from "@tutao/instancePipeline"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { CryptoWrapper } from "@tutao/instance-pipeline"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation

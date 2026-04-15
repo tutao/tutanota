@@ -40,7 +40,7 @@ import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/Ext
 import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
 import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
 import { ExportFacade } from "../common/generatedipc/ExportFacade.js"
-import { isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain

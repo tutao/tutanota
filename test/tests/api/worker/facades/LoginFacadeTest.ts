@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
-import { sysServices, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
-import { HttpMethod, RestClient, restError } from "@tutao/restClient"
+import { sysServices, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
+import { HttpMethod, RestClient, restError } from "@tutao/rest-client"
 import {
 	aes256RandomKey,
 	AesKey,
@@ -21,7 +21,7 @@ import { CacheStorageLateInitializer } from "../../../../../src/common/api/worke
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { Credentials } from "../../../../../src/common/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/utils"
-import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "@tutao/appEnv"
+import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "../../../../../src/app-env"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
 import { ConnectMode, EventBusClient } from "../../../../../src/common/api/worker/EventBusClient"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
@@ -31,7 +31,7 @@ import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Arg
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
-import { _encryptString, InstancePipeline } from "@tutao/instancePipeline"
+import { _encryptString, InstancePipeline } from "@tutao/instance-pipeline"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CacheMode } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"

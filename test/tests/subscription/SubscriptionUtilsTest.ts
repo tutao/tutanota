@@ -4,7 +4,7 @@ import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { clone } from "@tutao/utils"
 
 import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"
-import { NewPaidPlans, PlanType } from "@tutao/appEnv"
+import { NewPaidPlans, PlanType } from "../../../src/app-env"
 
 o.spec("SubscriptionUtilsTest", function () {
 	let serviceExecutor: IServiceExecutor

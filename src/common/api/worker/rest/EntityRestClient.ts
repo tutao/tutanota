@@ -1,4 +1,4 @@
-import { HttpMethod, MediaType, type RestClient, restError, type restSuspension } from "@tutao/restClient"
+import { HttpMethod, MediaType, type RestClient, restError, type restSuspension } from "@tutao/rest-client"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import type {
 	ClientModelUntypedInstance,
@@ -11,7 +11,7 @@ import type {
 	ServerTypeModel,
 	TypeModel,
 	UntypedInstance,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	_verifyType,
 	AttributeModel,
@@ -26,17 +26,17 @@ import {
 	sysTypeRefs,
 	Type,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 import { AesKey, cryptoUtils } from "@tutao/crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
-import { EntityAdapter, InstancePipeline, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
+import { EntityAdapter, InstancePipeline, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { expandId } from "./RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 

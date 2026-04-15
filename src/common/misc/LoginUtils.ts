@@ -1,8 +1,8 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
-import { generatedIdToTimestamp, getCustomerApprovalStatus, sysTypeRefs } from "@tutao/typeRefs"
+import { generatedIdToTimestamp, getCustomerApprovalStatus, sysTypeRefs } from "@tutao/typerefs"
 import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { CancelledError } from "../api/common/error/CancelledError"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -17,7 +17,7 @@ import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { deviceConfig } from "./DeviceConfig"
 import { CacheMode } from "../api/worker/rest/EntityRestClient"
-import { ApprovalStatus, AvailablePlans, AvailablePlanType, KdfType, NewBusinessPlans, SubscriptionType } from "@tutao/appEnv"
+import { ApprovalStatus, AvailablePlans, AvailablePlanType, KdfType, NewBusinessPlans, SubscriptionType } from "@tutao/app-env"
 
 function getAccountAgeInMs(customer: sysTypeRefs.Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)

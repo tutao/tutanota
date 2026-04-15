@@ -23,9 +23,9 @@ import {
 	ServerTypeModel,
 	sysTypeRefs,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, Nullable, promiseMap, TypeRef } from "@tutao/utils"
-import { convertDbToJsType, decryptValue, InstancePipeline, PatchOperationError } from "@tutao/instancePipeline"
+import { convertDbToJsType, decryptValue, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
 import { AesKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 

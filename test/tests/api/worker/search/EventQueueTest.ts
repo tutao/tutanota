@@ -1,9 +1,9 @@
 import o, { spy } from "@tutao/otest"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { defer, delay } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
-import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { OperationType } from "@tutao/appEnv"
+import { restError } from "@tutao/rest-client"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
+import { OperationType } from "../../../../../src/app-env"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue

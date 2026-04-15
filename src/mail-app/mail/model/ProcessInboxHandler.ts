@@ -1,14 +1,14 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
-import { isSameId, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { assertMainOrNode, FeatureType, MailSetKind } from "@tutao/appEnv"
+import { isSameId, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertMainOrNode, FeatureType, MailSetKind } from "@tutao/app-env"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 assertMainOrNode()
 

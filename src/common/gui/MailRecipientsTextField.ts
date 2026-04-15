@@ -6,7 +6,7 @@ import { Icon, IconSize, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
 import { getFirstOrThrow, lazy } from "@tutao/utils"
 import { Dialog } from "./base/Dialog.js"
@@ -15,7 +15,7 @@ import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
-import { PresentableKeyVerificationState } from "@tutao/appEnv"
+import { PresentableKeyVerificationState } from "@tutao/app-env"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey

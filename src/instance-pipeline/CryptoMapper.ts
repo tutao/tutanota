@@ -14,12 +14,12 @@ import {
 	ServerTypeModel,
 	ServerTypeReferenceResolver,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { Base64, base64ToUint8Array, Nullable, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aesDecrypt, aesEncrypt, AesKey } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, valueToDefault } from "./ModelMapper"
-import { isWebClient, ProgrammingError } from "@tutao/appEnv"
+import { isWebClient, ProgrammingError } from "@tutao/app-env"
 
 // Exported for testing
 export function encryptValue(

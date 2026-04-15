@@ -5,7 +5,7 @@ import { getHtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { appendEmailSignature, prependEmailSignature } from "../../../src/mail-app/mail/signature/Signature.js"
 import { LINE_BREAK } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { EmailSignatureType } from "@tutao/appEnv"
+import { EmailSignatureType } from "../../../src/app-env"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 o.spec("MailUtilsSignatureTest", function () {

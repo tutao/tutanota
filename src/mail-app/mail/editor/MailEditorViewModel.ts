@@ -16,7 +16,7 @@ import { showFileChooser } from "../../../common/file/FileController.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import { showDownloadProgressDialog } from "../view/MailGuiUtils"
-import { Mode } from "@tutao/appEnv"
+import { Mode } from "@tutao/app-env"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,

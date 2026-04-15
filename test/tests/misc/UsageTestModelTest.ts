@@ -7,11 +7,11 @@ import {
 	UsageTestModel,
 	UsageTestStorage,
 } from "../../../src/common/misc/UsageTestModel.js"
-import { ClientModelInfo, sysTypeRefs, tutanotaTypeRefs, usageModelInfo, usageServices, usageTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, sysTypeRefs, tutanotaTypeRefs, usageModelInfo, usageServices, usageTypeRefs } from "@tutao/typerefs"
 import { matchers, object, replace, verify, when } from "testdouble"
 import { clone } from "@tutao/utils"
 import { Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
-import { restSuspension } from "@tutao/restClient"
+import { restSuspension } from "@tutao/rest-client"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"

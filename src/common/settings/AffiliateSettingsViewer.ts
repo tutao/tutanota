@@ -14,7 +14,7 @@ import { mailLocator } from "../../mail-app/mailLocator.js"
 import { showInfoSnackbar } from "../gui/base/SnackBar.js"
 import { LazyLoaded } from "@tutao/utils"
 import { AffiliateViewModel } from "./AffiliateViewModel.js"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 /**
  * Section in user settings to display the referral link and let users share it.

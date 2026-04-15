@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import { component_size, layout_size, px } from "../../gui/size"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailRow } from "../../../mail-app/mail/view/MailRow"
 import { noOp } from "@tutao/utils"
 import { IconButton } from "../../gui/base/IconButton.js"
@@ -9,8 +9,8 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { ProcessingState } from "@tutao/appEnv"
-import { isApp, isDesktop } from "@tutao/appEnv"
+import { ProcessingState } from "@tutao/app-env"
+import { isApp, isDesktop } from "@tutao/app-env"
 
 export const BUTTON_WIDTH = 270
 

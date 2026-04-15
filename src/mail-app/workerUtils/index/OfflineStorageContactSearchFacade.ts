@@ -1,6 +1,6 @@
 import { ContactSearchFacade } from "./ContactSearchFacade"
 import { OfflineStorageSearchFacade } from "./OfflineStorageSearchFacade"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 /**
  * SQLite-based contact search

@@ -2,12 +2,12 @@ import o, { assertThrows } from "@tutao/otest"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey } from "@tutao/crypto"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
-import { VersionedKey } from "@tutao/instancePipeline"
+import { VersionedKey } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache

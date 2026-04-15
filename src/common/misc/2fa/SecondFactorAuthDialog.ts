@@ -1,8 +1,8 @@
-import { SecondFactorType } from "@tutao/appEnv"
+import { SecondFactorType } from "@tutao/app-env"
 import type { Thunk } from "@tutao/utils"
 import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
 import type { TranslationKey } from "../LanguageViewModel.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { Dialog } from "../../gui/base/Dialog.js"
 import m from "mithril"
 import { SecondFactorAuthView } from "./SecondFactorAuthView.js"
@@ -13,7 +13,7 @@ import { WebauthnError } from "../../api/common/error/WebauthnError.js"
 import { appIdToLoginUrl } from "./SecondFactorUtils.js"
 
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 type AuthData = {
 	readonly sessionId: IdTuple

@@ -1,7 +1,7 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
 import { Time } from "../date/Time"
 import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/utils"
-import { elementIdPart } from "@tutao/typeRefs"
+import { elementIdPart } from "@tutao/typerefs"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"

@@ -1,5 +1,5 @@
 import { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { Dialog } from "../../gui/base/Dialog.js"
 
 /**

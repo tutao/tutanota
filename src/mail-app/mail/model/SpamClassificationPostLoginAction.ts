@@ -1,6 +1,6 @@
 import { LoggedInEvent, PostLoginAction } from "../../../common/api/main/LoginController"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
-import { FeatureType } from "@tutao/appEnv"
+import { FeatureType } from "@tutao/app-env"
 import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull } from "@tutao/utils"

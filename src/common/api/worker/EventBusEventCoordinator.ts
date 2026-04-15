@@ -1,9 +1,9 @@
 import { EventBusListener } from "./EventBusClient.js"
-import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
-import { RolloutType } from "@tutao/appEnv"
+import { RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, Nullable } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -14,7 +14,7 @@ import { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../main/SyncTracker"
 import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
-import { Mode, OperationType } from "@tutao/appEnv"
+import { Mode, OperationType } from "@tutao/app-env"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {

@@ -5,8 +5,8 @@ import { DateProvider } from "../../../../common/api/common/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Duration } from "luxon"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { isSameId } from "@tutao/typeRefs"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { isSameId } from "@tutao/typerefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 export type CalendarEventAlarmModelResult = {
 	alarms: Array<AlarmInfoTemplate>

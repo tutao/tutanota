@@ -1,8 +1,8 @@
-import { Const } from "@tutao/appEnv"
+import { Const } from "@tutao/app-env"
 import { assertTranslation, lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
-import { PlanTypeToName, reverse, sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { PlanTypeToName, reverse, sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -10,7 +10,7 @@ import { MobilePlanPrice } from "../../native/common/generatedipc/MobilePlanPric
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
 import { SignupViewModel } from "../../signup/SignupView"
-import { BookingItemFeatureType, isIOSApp, PaymentMethodType, PlanType } from "@tutao/appEnv"
+import { BookingItemFeatureType, isIOSApp, PaymentMethodType, PlanType } from "@tutao/app-env"
 
 export enum PaymentInterval {
 	Monthly = 1,

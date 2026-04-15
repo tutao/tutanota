@@ -9,8 +9,8 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { matchers, object, verify, when } from "testdouble"
 import { AsymmetricKeyPair, Ed25519KeyPair, KeyPairType, MacTag } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
-import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
@@ -18,7 +18,7 @@ import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { Versioned } from "@tutao/utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "../../../../../src/app-env"
 
 const { anything, argThat, captor } = matchers
 

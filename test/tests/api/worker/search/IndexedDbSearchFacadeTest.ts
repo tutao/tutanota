@@ -8,7 +8,7 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import type { TypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import {
@@ -36,7 +36,7 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo

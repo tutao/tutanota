@@ -25,7 +25,7 @@ import {
 	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import {
 	asCryptoProtoocolVersion,
 	assertEnumValue,
@@ -44,8 +44,8 @@ import {
 	tutanotaServices,
 	tutanotaTypeRefs,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
-import { HttpMethod, RestClient, restError } from "@tutao/restClient"
+} from "@tutao/typerefs"
+import { HttpMethod, RestClient, restError } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import type { EntityClient } from "../../common/EntityClient"
 import {
@@ -68,7 +68,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
-import { CryptoWrapper, EntityAdapter, InstancePipeline, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
+import { CryptoWrapper, EntityAdapter, InstancePipeline, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"

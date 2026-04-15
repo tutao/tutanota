@@ -1,5 +1,5 @@
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { entityUpdateUtils, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -14,7 +14,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "@tutao/app-env"
 
 export class ContactListViewModel {
 	private selectedContactList: Id | null = null

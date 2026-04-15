@@ -7,7 +7,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import type { AllIcons } from "../../gui/base/Icon"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export type GroupInvitationFolderRowAttrs = {
 	invitation: sysTypeRefs.ReceivedGroupInvitation

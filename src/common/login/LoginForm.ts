@@ -8,9 +8,9 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { useKeyHandler } from "../misc/KeyManager.js"
-import { isApp, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown

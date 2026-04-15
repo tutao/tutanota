@@ -3,11 +3,11 @@ import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { object, when } from "testdouble"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import o from "@tutao/otest"
 import { UserController } from "../../../src/common/api/main/UserController"
-import { tutanotaTypeRefs, isSameId } from "@tutao/typeRefs"
+import { tutanotaTypeRefs, isSameId } from "@tutao/typerefs"
 
 o.spec("GroupSettingsModel", function () {
 	let groupSettingsModel: GroupSettingsModel

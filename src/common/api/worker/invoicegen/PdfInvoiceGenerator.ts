@@ -2,7 +2,7 @@ import { MARGIN_LEFT, MARGIN_TOP, PDF_FONTS, PDF_IMAGES, PdfDocument, TABLE_VERT
 import InvoiceTexts from "./InvoiceTexts.js"
 import { PdfWriter } from "../pdf/PdfWriter.js"
 import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * Object generating a PDF invoice document.

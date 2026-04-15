@@ -1,5 +1,5 @@
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/appEnv"
-import { restError } from "@tutao/restClient"
+import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 import {
 	ClientTypeModelResolver,
 	entityUpdateUtils,
@@ -8,7 +8,7 @@ import {
 	sysTypeRefs,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
 import { contains, defer, downcast, isNotNull, isSameTypeRef, millisToDays, neverNull, promiseMap } from "@tutao/utils"
@@ -41,7 +41,7 @@ import {
 } from "../../../common/api/worker/search/IndexTables.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instancePipeline"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DateProvider } from "../../../common/api/common/DateProvider"

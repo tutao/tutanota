@@ -1,6 +1,6 @@
-import { FeatureType, PresentableKeyVerificationState, ShareCapability, TimeFormat } from "@tutao/appEnv"
+import { FeatureType, PresentableKeyVerificationState, ShareCapability, TimeFormat } from "../../../src/app-env"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
-import { GENERATED_MAX_ID, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { GENERATED_MAX_ID, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { downcast, LazyLoaded } from "@tutao/utils"
 import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
@@ -10,7 +10,7 @@ import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
 import { CalendarType } from "../../../src/common/calendar/date/CalendarUtils"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
-import { AccountType, ContactAddressType, GroupType } from "@tutao/appEnv"
+import { AccountType, ContactAddressType, GroupType } from "../../../src/app-env"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const

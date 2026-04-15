@@ -1,4 +1,4 @@
-import { IdentityKeySourceOfTrust, isBrowser } from "@tutao/appEnv"
+import { IdentityKeySourceOfTrust, isBrowser } from "@tutao/app-env"
 import { TaggedSqlValue } from "../offline/SqlValue"
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { ProgrammingError } from "../../common/error/ProgrammingError"

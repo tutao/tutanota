@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { solvePowChallengeInWorker } from "../../../src/common/subscription/captcha/Captcha.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("SolvePowChallenge", () => {
 	o(

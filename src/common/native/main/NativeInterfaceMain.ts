@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import type { Transport } from "../../api/common/threading/Transport.js"
 import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
@@ -9,7 +9,7 @@ import { IosNativeTransport } from "./IosNativeTransport.js"
 import { AndroidNativeTransport } from "./AndroidNativeTransport.js"
 import { DesktopNativeTransport } from "./DesktopNativeTransport.js"
 import { WebGlobalDispatcher } from "../common/generatedipc/WebGlobalDispatcher.js"
-import { isAndroidApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
+import { isAndroidApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNode()
 

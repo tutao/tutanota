@@ -1,10 +1,10 @@
 import { lang, Translation } from "../../misc/LanguageViewModel"
 import m, { Component, Vnode } from "mithril"
 import { Dialog } from "../base/Dialog"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { TextField } from "../base/TextField.js"
 import type { Shortcut } from "../../misc/KeyManager"
-import { isAppleDevice } from "@tutao/appEnv"
+import { isAppleDevice } from "@tutao/app-env"
 
 function makeShortcutName(shortcut: Shortcut): Translation {
 	const mainModifier = isAppleDevice() ? Keys.META.name : Keys.CTRL.name

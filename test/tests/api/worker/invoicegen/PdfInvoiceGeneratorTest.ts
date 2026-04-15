@@ -5,7 +5,7 @@ import { PdfInvoiceGenerator } from "../../../../../src/common/api/worker/invoic
 import { object, when } from "testdouble"
 import { invoiceItemListMock } from "./invoiceTestUtils.js"
 import { PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("PdfInvoiceGenerator", function () {
 	let pdfWriter: PdfWriter

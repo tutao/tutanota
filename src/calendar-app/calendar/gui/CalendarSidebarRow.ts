@@ -1,4 +1,4 @@
-import { Keys, TabIndex } from "@tutao/appEnv"
+import { Keys, TabIndex } from "@tutao/app-env"
 import m, { Component, Vnode } from "mithril"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { px, size } from "../../../common/gui/size"

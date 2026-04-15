@@ -4,7 +4,7 @@ import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, encryptKey } from "@tutao/crypto"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("UserFacadeTest", function () {
 	let keyCache: KeyCache

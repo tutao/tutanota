@@ -5,11 +5,11 @@ import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSq
 import { assertNotNull, getTypeString, typedValues } from "@tutao/utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { ClientModelInfo, ensureBase64Ext, getElementId, getListId, ListElementEntity, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, ensureBase64Ext, getElementId, getListId, ListElementEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../TestUtils"
 import { object } from "testdouble"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "../../../../../src/app-env"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

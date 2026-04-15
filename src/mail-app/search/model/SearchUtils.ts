@@ -17,10 +17,10 @@ import {
 } from "@tutao/utils"
 import { RouteSetFn, throttleRoute } from "../../../common/misc/RouteChange"
 import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { tutanotaTypeModels } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { tutanotaTypeModels } from "@tutao/typerefs"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
 	ATTACHMENTS_ID,
@@ -31,7 +31,7 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	SENDER_ID,
 	SUBJECT_ID,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { SearchQuery } from "./SearchModel"
 
 assertMainOrNode()

@@ -2,10 +2,10 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import jsQR, { QRCode } from "jsqr"
 import { assertNotNull } from "@tutao/utils"
 import { lang } from "../misc/LanguageViewModel.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
-import { isApp, isAppleDevice, isDesktop } from "@tutao/appEnv"
+import { isApp, isAppleDevice, isDesktop } from "@tutao/app-env"
 
 assertMainOrNode()
 
