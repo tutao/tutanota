@@ -107,6 +107,7 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
+import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
 
 assertWorkerOrNode()
 
@@ -226,7 +227,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash: string | null) =>
 		locator.applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
 	)
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform))
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
+		new UpdateAppTypesHashMiddleware(serverModelInfo),
+	)
 	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),

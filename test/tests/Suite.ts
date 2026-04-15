@@ -219,9 +219,10 @@ import "./crypto/HmacTest.js"
 import "./crypto/Blake3Test.js"
 import "./crypto/AeadFacadeTest.js"
 import "./usagetests/UsageTestAll.js"
+import "./restClient/RestClientTest.js"
 
 import * as td from "testdouble"
-import { Mode } from "../../src/app-env"
+import { Mode } from "@tutao/app-env"
 
 export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
 	await setupSuite({ integration })
