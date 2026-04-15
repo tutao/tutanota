@@ -13,7 +13,7 @@ import { KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { Ed25519Facade } from "../Ed25519Facade"
 import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
-import { ProgrammingError } from "../../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 assertWorkerOrNode()
 

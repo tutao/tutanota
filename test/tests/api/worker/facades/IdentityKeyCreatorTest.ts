@@ -17,7 +17,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/f
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { Versioned } from "@tutao/utils"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { GroupType } from "../../../../../src/app-env"
 
 const { anything, argThat, captor } = matchers

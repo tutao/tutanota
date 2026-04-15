@@ -3,7 +3,7 @@ import { PdfWriter } from "./PdfWriter.js"
 import { Deflater } from "./Deflater.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { parseQrSvg } from "./qrSvg.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 export enum PDF_FONTS {
 	REGULAR = 1,

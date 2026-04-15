@@ -31,7 +31,7 @@ import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig.js"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"

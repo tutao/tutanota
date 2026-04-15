@@ -7,7 +7,7 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { matchers, object, verify, when } from "testdouble"
 import { AesKey, cryptoUtils, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { CryptoProtocolVersion, PublicKeyIdentifierType } from "../../../../../src/app-env"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { GroupType, TutanotaError } from "../../../../../src/app-env"

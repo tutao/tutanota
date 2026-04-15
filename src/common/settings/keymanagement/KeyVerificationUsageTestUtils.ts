@@ -1,5 +1,5 @@
 import { Stage, UsageTest } from "@tutao/usagetests"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { IdentityKeyVerificationMethod } from "@tutao/app-env"
 
 export type TestTracks = {

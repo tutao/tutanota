@@ -5,7 +5,7 @@ import { TypeModelResolver } from "@tutao/typerefs"
 import { ServerModelParsedInstance, TypeModel } from "@tutao/typerefs"
 import { EntityRestClient } from "../EntityRestClient"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "@tutao/typerefs"
-import { ProgrammingError } from "../../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { AttributeModel } from "@tutao/typerefs"
 
 /**

@@ -54,7 +54,7 @@ import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditD
 import { FilterChip } from "../../../../common/gui/base/FilterChip"
 import { formatDate } from "../../../../common/misc/Formatter"
 import { createDropdown } from "../../../../common/gui/base/Dropdown"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
 import { isSameId } from "@tutao/typerefs"
 import { CalendarInfo } from "../../model/CalendarModel"

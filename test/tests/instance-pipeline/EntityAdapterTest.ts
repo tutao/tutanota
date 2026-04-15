@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../TestUtils"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
 import { assertThrows } from "@tutao/otest"

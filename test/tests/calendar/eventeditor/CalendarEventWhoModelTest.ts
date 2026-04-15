@@ -25,7 +25,7 @@ import {
 } from "../CalendarTestUtils.js"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { RecipientField } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"

@@ -2,7 +2,7 @@ import type { KeyVerificationFacade } from "../api/worker/facades/lazy/KeyVerifi
 import { PublicIdentityKeyProvider } from "../api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/app-env"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
-import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * Handles the high level logic of how to deal with key verification errors for recipients.

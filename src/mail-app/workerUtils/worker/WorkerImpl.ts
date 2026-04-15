@@ -2,7 +2,7 @@ import type { Commands } from "../../../common/api/common/threading/MessageDispa
 import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import { restError } from "@tutao/rest-client"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
 import { assertWorkerOrNode, isMainOrNode } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"

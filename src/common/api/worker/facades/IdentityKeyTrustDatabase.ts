@@ -1,7 +1,7 @@
 import { IdentityKeySourceOfTrust, isBrowser } from "@tutao/app-env"
 import { TaggedSqlValue } from "../offline/SqlValue"
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes } from "@tutao/crypto"
 import { lazy, Versioned } from "@tutao/utils"
 import { sql } from "../offline/Sql"

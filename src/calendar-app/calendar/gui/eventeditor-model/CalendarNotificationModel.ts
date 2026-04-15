@@ -2,7 +2,7 @@ import { SendMailModel } from "../../../../common/mailFunctionality/SendMailMode
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { AccountType, CalendarAttendeeStatus } from "@tutao/app-env"
 import { clone } from "@tutao/utils"
 import { restError } from "@tutao/rest-client"

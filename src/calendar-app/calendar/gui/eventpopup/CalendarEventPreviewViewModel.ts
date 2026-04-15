@@ -8,7 +8,7 @@ import {
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { restError } from "@tutao/rest-client"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { CalendarAttendeeStatus, EndType } from "@tutao/app-env"
 import m from "mithril"
 import { clone, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/utils"

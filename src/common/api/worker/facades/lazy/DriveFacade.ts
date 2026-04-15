@@ -11,7 +11,7 @@ import { driveServices, driveTypeRefs, getElementId, getListId, isSameId, listId
 import { CryptoFacade } from "../../crypto/CryptoFacade"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { TransferId } from "../../../common/drive/DriveTypes"
-import { ProgrammingError } from "../../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { restError } from "@tutao/rest-client"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"

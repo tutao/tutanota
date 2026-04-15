@@ -39,7 +39,7 @@ import { client } from "../misc/ClientDetector.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
 import { createDropdown } from "../gui/base/Dropdown.js"
 

@@ -31,7 +31,7 @@ import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/Ke
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { sysServices } from "@tutao/typerefs"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"

@@ -3,7 +3,7 @@
  */
 import { downcast } from "@tutao/utils"
 import { Request } from "./threading/MessageDispatcher.js"
-import { ProgrammingError } from "./error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 type RequestSender<RequestTypes> = (arg0: Request<RequestTypes>) => Promise<any>
 

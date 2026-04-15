@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { restError } from "@tutao/rest-client"
-import { TutanotaError } from "../../../../../src/app-env"
+import { TutanotaError } from "@tutao/app-env"
 
 o.spec("RestErrorTest", function () {
 	o("handleRestError should create the correct error classes", () => {
@@ -15,14 +15,14 @@ o.spec("RestErrorTest", function () {
 		o(restError.handleRestError(440) instanceof restError.SessionExpiredError).equals(true)
 		o(restError.handleRestError(470) instanceof restError.AccessDeactivatedError).equals(true)
 		o(restError.handleRestError(471) instanceof restError.AccessExpiredError).equals(true)
-		o(restError.handleRestError(472) instanceof restError.TooManyRequestsError).equals(true)
-		o(restError.handleRestError(473) instanceof restError.TooManyRequestsError).equals(true)
-		o(restError.handleRestError(474) instanceof restError.TooManyRequestsError).equals(true)
-		o(restError.handleRestError(475) instanceof restError.TooManyRequestsError).equals(true)
-		o(restError.handleRestError(500) instanceof restError.TooManyRequestsError).equals(true)
-		o(restError.handleRestError(502) instanceof restError.TooManyRequestsError).equals(true)
+		o(restError.handleRestError(472) instanceof restError.AccessBlockedError).equals(true)
+		o(restError.handleRestError(473) instanceof restError.InvalidDataError).equals(true)
+		o(restError.handleRestError(474) instanceof restError.InvalidSoftwareVersionError).equals(true)
+		o(restError.handleRestError(475) instanceof restError.LimitReachedError).equals(true)
+		o(restError.handleRestError(500) instanceof restError.InternalServerError).equals(true)
+		o(restError.handleRestError(502) instanceof restError.BadGatewayError).equals(true)
 		let resourceError = restError.handleRestError(123, "/path", "errorId")
-		o(resourceError instanceof restError.TooManyRequestsError).equals(true)
+		o(resourceError instanceof restError.ResourceError).equals(true)
 		o(resourceError.message).equals("123: errorId /path")
 	})
 	o("handleRestError should correctly initialize PreconditionFailedError class", () => {
@@ -60,12 +60,12 @@ o.spec("RestErrorTest", function () {
 	createErrorTest(restError.SessionExpiredError, "SessionExpiredError", 440)
 	createErrorTest(restError.AccessDeactivatedError, "AccessDeactivatedError", 470)
 	createErrorTest(restError.AccessExpiredError, "AccessExpiredError", 471)
-	createErrorTest(restError.TooManyRequestsError, "AccessBlockedError", 472)
-	createErrorTest(restError.TooManyRequestsError, "InvalidDataError", 473)
-	createErrorTest(restError.TooManyRequestsError, "InvalidSoftwareVersionError", 474)
-	createErrorTest(restError.TooManyRequestsError, "LimitReachedError", 475)
-	createErrorTest(restError.TooManyRequestsError, "InternalServerError", 500)
-	createErrorTest(restError.TooManyRequestsError, "BadGatewayError", 502)
-	createErrorTest(restError.TooManyRequestsError, "ResourceError", undefined)
+	createErrorTest(restError.AccessBlockedError, "AccessBlockedError", 472)
+	createErrorTest(restError.InvalidDataError, "InvalidDataError", 473)
+	createErrorTest(restError.InvalidSoftwareVersionError, "InvalidSoftwareVersionError", 474)
+	createErrorTest(restError.LimitReachedError, "LimitReachedError", 475)
+	createErrorTest(restError.InternalServerError, "InternalServerError", 500)
+	createErrorTest(restError.BadGatewayError, "BadGatewayError", 502)
+	createErrorTest(restError.ResourceError, "ResourceError", undefined)
 	createErrorTest(restError.ConnectionError, "ConnectionError", undefined)
 })

@@ -1,4 +1,4 @@
-import { ProgrammingError } from "../error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { DateProvider } from "../DateProvider.js"
 
 export class NoZoneDateProvider implements DateProvider {

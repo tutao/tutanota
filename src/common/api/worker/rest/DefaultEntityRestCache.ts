@@ -31,7 +31,7 @@ import {
 	TypeModelResolver,
 	ValueType,
 } from "@tutao/typerefs"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { assertWorkerOrNode, Mode, OperationType } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"

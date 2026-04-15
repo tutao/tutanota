@@ -9,7 +9,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ClientTypeModelResolver } from "@tutao/typerefs"
 import { AttributeModel } from "@tutao/typerefs"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(

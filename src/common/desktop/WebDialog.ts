@@ -7,7 +7,7 @@ import { MessageDispatcher } from "../api/common/threading/MessageDispatcher.js"
 import { exposeRemote } from "../api/common/WorkerProxy.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { register } from "./electron-localshortcut/LocalShortcut.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 export const webauthnIpcConfig = Object.freeze({
 	renderToMainEvent: "to-main-webdialog",

@@ -4,7 +4,7 @@ import { MessageDispatcher, Request } from "../../api/common/threading/MessageDi
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
 import type { NativeInterface } from "../common/NativeInterface"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { IosNativeTransport } from "./IosNativeTransport.js"
 import { AndroidNativeTransport } from "./AndroidNativeTransport.js"
 import { DesktopNativeTransport } from "./DesktopNativeTransport.js"

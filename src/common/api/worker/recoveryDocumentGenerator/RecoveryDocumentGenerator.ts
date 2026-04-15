@@ -2,7 +2,7 @@ import { PDF_FONTS, PDF_IMAGES, PdfDocument } from "../pdf/PdfDocument.js"
 import { PdfWriter } from "../pdf/PdfWriter.js"
 import QRCode from "qrcode-svg"
 import { formatSortableDate } from "@tutao/utils"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 const ON_SURFACE_HIGH: [number, number, number] = [245 / 255, 238 / 255, 234 / 255]
 const THEME_PRIMARY: [number, number, number] = [143 / 255, 74 / 255, 78 / 255]

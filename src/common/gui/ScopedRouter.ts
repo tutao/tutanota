@@ -1,7 +1,7 @@
 import { throttleRoute } from "../misc/RouteChange.js"
 import m from "mithril"
 import { debounceStart } from "@tutao/utils"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 /** URL-related functions */
 export interface Router {

@@ -1,5 +1,5 @@
 import { CacheStorage, LastUpdateTime, Range } from "./DefaultEntityRestCache.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "@tutao/typerefs"
 import { Nullable, TypeRef } from "@tutao/utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"

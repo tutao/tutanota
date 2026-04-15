@@ -1,6 +1,6 @@
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { log } from "../DesktopLog.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { OfflineDbRefCounter } from "./OfflineDbRefCounter.js"

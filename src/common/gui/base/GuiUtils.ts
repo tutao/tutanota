@@ -7,7 +7,7 @@ import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs, Pos
 import type { $Promisable, lazy, MaybeLazy } from "@tutao/utils"
 import { assertNotNull, lazyMemoized, resolveMaybeLazy } from "@tutao/utils"
 import { Dialog } from "./Dialog"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import m, { Children } from "mithril"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { IconButtonAttrs } from "./IconButton.js"

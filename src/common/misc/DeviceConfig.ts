@@ -1,7 +1,7 @@
 import { Base64, base64ToUint8Array, getDayShifted, getStartOfDay, typedEntries, uint8ArrayToBase64 } from "@tutao/utils"
 import type { LanguageCode } from "./LanguageViewModel"
 import type { ThemePreference } from "../gui/theme"
-import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptionMode.js"
 import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"

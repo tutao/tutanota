@@ -39,7 +39,7 @@ import { UserFacade } from "../UserFacade.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
-import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,

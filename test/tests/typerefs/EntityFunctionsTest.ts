@@ -2,12 +2,12 @@ import o, { assertThrows } from "@tutao/otest"
 import { ClientModelInfo, ServerModelInfo, ServerModels } from "@tutao/typerefs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { Cardinality, Type, ValueType } from "@tutao/typerefs"
-import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
-import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
+import { ProgrammingError } from "@tutao/app-env"
+import { ApplicationTypesFacade } from "../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { object } from "testdouble"
 import { TypeModel } from "@tutao/typerefs"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { clientModelAsServerModel } from "../../TestUtils"
+import { clientModelAsServerModel } from "../TestUtils"
 
 o.spec("EntityFunctionsTest", function () {
 	let serverModelInfo: ServerModelInfo

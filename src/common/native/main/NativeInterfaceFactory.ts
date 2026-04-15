@@ -1,7 +1,7 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { NativeFileApp } from "../common/FileApp.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { DesktopFacade } from "../common/generatedipc/DesktopFacade.js"
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"

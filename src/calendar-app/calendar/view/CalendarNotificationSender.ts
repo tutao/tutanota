@@ -12,7 +12,7 @@ import { findRecipientWithAddress } from "../../../common/api/common/utils/Commo
 import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus, formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */

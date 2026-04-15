@@ -7,7 +7,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { InvoiceData } from "@tutao/app-env"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { defer, ofClass } from "@tutao/utils"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 /**

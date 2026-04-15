@@ -26,7 +26,7 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.j
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionType } from "../../../common/native/common/generatedipc/PermissionType"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 assertMainOrNode()
 
