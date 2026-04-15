@@ -69,6 +69,9 @@ class AlarmNotificationsManagerTest {
 		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
 			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any()))
+			.thenReturn(true) // this is the default behavior, even if the setting is not present.
+
 	}
 
 	@Test
