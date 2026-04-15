@@ -3,7 +3,7 @@ import { GENERATION_NUMBER, NEW_LINE, PDF_DEFAULT_OBJECTS, PDF_METADATA, PdfDict
 import { PdfStreamObject } from "./PdfStreamObject.js"
 import { concat, hexToUint8Array } from "@tutao/utils"
 import { Deflater } from "./Deflater.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 // Binary header specifying the PDF version (1.4 = "312e34") and the fact that binary data is present in the file
 const PDF_HEADER = hexToUint8Array("255044462d312e340a25e2e3cfd30a")

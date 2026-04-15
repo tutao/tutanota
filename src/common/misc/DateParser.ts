@@ -1,6 +1,6 @@
 import { DateTime } from "luxon"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * parses the following formats:

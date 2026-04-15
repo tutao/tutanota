@@ -4,7 +4,7 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ClientTypeModelResolver } from "@tutao/typerefs"
 import { lazy, lazyMemoized, typedValues } from "@tutao/utils"
 import type { SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * IndexedDB-based search facade

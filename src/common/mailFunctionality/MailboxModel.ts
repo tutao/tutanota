@@ -9,7 +9,7 @@ import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { restError } from "@tutao/rest-client"
 
 import m from "mithril"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { OperationType } from "@tutao/app-env"
 
 export type MailboxDetail = {

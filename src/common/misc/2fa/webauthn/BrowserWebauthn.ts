@@ -1,5 +1,5 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
-import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"

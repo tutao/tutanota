@@ -22,7 +22,7 @@ import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { FileReference, splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
-import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
 import { _encryptBytes, InstancePipeline } from "@tutao/instance-pipeline"

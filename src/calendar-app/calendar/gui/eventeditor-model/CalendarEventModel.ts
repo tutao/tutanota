@@ -85,7 +85,7 @@ import { SanitizedTextViewModel } from "../../../../common/misc/SanitizedTextVie
 import { UserController } from "../../../../common/api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel.js"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { getEventType } from "../CalendarGuiUtils.js"

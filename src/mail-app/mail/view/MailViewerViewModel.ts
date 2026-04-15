@@ -52,7 +52,7 @@ import { formatDateTime, urlEncodeHtmlTags } from "../../../common/misc/Formatte
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { InitAsResponseArgs } from "../../../common/mailFunctionality/SendMailModel.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"

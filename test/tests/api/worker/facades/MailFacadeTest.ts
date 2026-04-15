@@ -12,7 +12,7 @@ import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.j
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { DataFile } from "../../../../../src/common/api/common/DataFile.js"
 import { downcast, KeyVersion, lazyNumberRange } from "@tutao/utils"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"

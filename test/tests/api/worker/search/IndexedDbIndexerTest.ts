@@ -23,7 +23,7 @@ import { DbStub } from "./DbStub"
 import type { GroupData } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {

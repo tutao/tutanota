@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
 import { CryptoWrapper } from "@tutao/instance-pipeline"
-import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest"
+import { RSA_TEST_KEYPAIR } from "../api/worker/facades/RsaPqPerformanceTest"
 import { generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "@tutao/crypto"
 import { assertThrows } from "@tutao/otest"
 import { CryptoError } from "@tutao/crypto/error"
-import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade"
+import { WASMKyberFacade } from "../../../src/common/api/worker/facades/KyberFacade"
 
-import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
+import { loadLibOQSWASM } from "../crypto/WebAssemblyTestUtils"
 
 o.spec("CryptoWrapperTest", function () {
 	let cryptoWrapper: CryptoWrapper

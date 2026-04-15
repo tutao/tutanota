@@ -8,7 +8,7 @@ import m from "mithril"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 import { EventController } from "../../../common/api/main/EventController"
 import { ImportErrorCategories, MailImportError } from "../../../common/api/common/error/MailImportError.js"

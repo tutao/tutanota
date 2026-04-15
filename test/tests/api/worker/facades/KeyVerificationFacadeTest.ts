@@ -9,7 +9,7 @@ import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/
 import { createTestEntity } from "../../../TestUtils"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"

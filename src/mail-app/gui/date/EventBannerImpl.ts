@@ -38,7 +38,7 @@ import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/cal
 import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { GENERATED_MIN_ID } from "@tutao/typerefs"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {

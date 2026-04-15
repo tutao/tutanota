@@ -1,7 +1,7 @@
 import { Base64, Base64Url } from "@tutao/utils"
 import { CredentialType } from "./CredentialType.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 /** Data obtained after logging in. */
 export interface Credentials {

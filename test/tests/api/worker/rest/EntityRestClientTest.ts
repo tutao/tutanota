@@ -33,7 +33,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { CryptoWrapper, InstancePipeline, VersionedKey } from "@tutao/instance-pipeline"
@@ -1139,10 +1139,10 @@ o.spec("EntityRestClient", function () {
 			when(restClient.request(anything(), anything(), anything())).thenDo((path: string, method: HttpMethod, { body }) => {
 				//post multiple - body is an array
 				if (body && body.startsWith("[")) {
-					throw new restError.TooManyRequestsError("test") //post single
+					throw new restError.PayloadTooLargeError("test") //post single
 				} else if (step === 1) {
 					step += 1
-					throw new restError.TooManyRequestsError("might happen")
+					throw new restError.InternalServerError("might happen")
 				} else {
 					return JSON.stringify(untypedPostReturns[step++])
 				}
@@ -1155,7 +1155,7 @@ o.spec("EntityRestClient", function () {
 			o(result.failedInstances.length).equals(1) //one individual post results in an error
 
 			o(result.errors.length).equals(1)
-			o(result.errors[0] instanceof restError.TooManyRequestsError).equals(true)
+			o(result.errors[0] instanceof restError.InternalServerError).equals(true)
 			o(result.failedInstances).deepEquals([instances[1]])
 		})
 	})

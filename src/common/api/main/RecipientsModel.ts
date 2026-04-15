@@ -10,7 +10,7 @@ import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { EncryptionKeyVerificationState, PresentableKeyVerificationState } from "@tutao/app-env"
 import { KeyVerificationMismatchError } from "../common/error/KeyVerificationMismatchError"
-import { ProgrammingError } from "../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { VerifiedPublicEncryptionKey } from "../worker/facades/lazy/KeyVerificationFacade"
 
 /**

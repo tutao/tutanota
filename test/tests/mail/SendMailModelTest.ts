@@ -23,7 +23,7 @@ import { getContactDisplayName } from "../../../src/common/contactsFunctionality
 import { ConfigurationDatabase } from "../../../src/common/api/worker/facades/lazy/ConfigurationDatabase"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
 import { DateProvider } from "../../../src/common/api/common/DateProvider"
-import { ProgrammingError } from "../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 import { ConversationType, GroupType, OperationType } from "../../../src/app-env"
 

@@ -15,7 +15,7 @@ import { aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tuta
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { UserFacade } from "../UserFacade.js"
-import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { CustomerFacade } from "./CustomerFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey } from "@tutao/instance-pipeline"

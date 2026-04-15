@@ -23,7 +23,7 @@ import {
 } from "@tutao/typerefs"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
 import { restError } from "@tutao/rest-client"
-import { ProgrammingError } from "./error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 export class EntityClient {
 	_target: EntityRestInterface

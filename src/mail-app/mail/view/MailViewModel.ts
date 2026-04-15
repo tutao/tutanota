@@ -11,7 +11,7 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import { restError } from "@tutao/rest-client"
 import { UserError } from "../../../common/api/main/UserError.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { EventController } from "../../../common/api/main/EventController.js"

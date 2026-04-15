@@ -5,7 +5,7 @@ import { func, matchers, object, verify, when } from "testdouble"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../TestUtils"
 import { RolloutType } from "../../../../../src/app-env"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 o.spec("RolloutFacadeTest", function () {
 	let serviceExecutor: IServiceExecutor

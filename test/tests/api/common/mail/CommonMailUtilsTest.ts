@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { EncryptionAuthStatus } from "../../../../../src/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { getDisplayedSender } from "../../../../../src/common/api/common/CommonMailUtils.js"
 import { getConfidentialIcon } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
 

@@ -5,10 +5,10 @@ import { TypeRef } from "@tutao/utils"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
 import { ClientModelParsedInstance, ClientTypeModel, ServerModelParsedInstance, ServerTypeModel } from "@tutao/typerefs"
 import { assertThrows } from "@tutao/otest"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typerefs"
-import { removeOriginals } from "../../../TestUtils"
-import { InvalidModelError } from "../../../../../src/app-env"
+import { removeOriginals } from "../TestUtils"
+import { InvalidModelError } from "@tutao/app-env"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {

@@ -83,7 +83,7 @@ import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHand
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"

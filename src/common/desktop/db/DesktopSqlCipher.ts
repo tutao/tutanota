@@ -3,7 +3,7 @@ import { mapNullable, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { TaggedSqlValue, tagSqlObject, untagSqlValue } from "../../api/worker/offline/SqlValue.js"
 
 export class DesktopSqlCipher implements SqlCipherFacade {

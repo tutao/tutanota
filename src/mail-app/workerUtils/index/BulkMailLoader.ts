@@ -5,7 +5,7 @@ import { CacheMode, EntityRestClientLoadOptions, OwnerEncSessionKeyProvider } fr
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { SomeEntity } from "@tutao/typerefs"
 import { cryptoUtils } from "@tutao/crypto"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 
 export const ENTITY_INDEXER_CHUNK = 20

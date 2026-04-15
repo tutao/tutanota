@@ -28,7 +28,7 @@ import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayE
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
 import { mailLocator } from "../mailLocator.js"
 import { compareMails } from "../mail/model/MailUtils"
-import { ProgrammingError } from "../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { isApp } from "@tutao/app-env"
 
 assertMainOrNode()

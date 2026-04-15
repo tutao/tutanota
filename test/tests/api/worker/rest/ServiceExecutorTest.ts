@@ -7,7 +7,7 @@ import { DeleteService, GetService, PostService, PutService } from "../../../../
 import { AttributeModel, ServerModelUntypedInstance, tutanotaTypeRefs } from "@tutao/typerefs"
 import { HttpMethod, MediaType } from "@tutao/rest-client"
 import { deepEqual } from "@tutao/utils"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"

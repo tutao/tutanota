@@ -4,7 +4,17 @@ import { locator } from "../api/main/CommonLocator.js"
 import { Stage } from "@tutao/usagetests"
 import { isEmpty } from "@tutao/utils"
 import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
-import { AvailablePlanType, isAndroidApp, isApp, isBrowser, isDesktop, LegacyPrivatePlans, NewBusinessPlans, PlanType } from "@tutao/app-env"
+import {
+	AvailablePlanType,
+	isAndroidApp,
+	isApp,
+	isBrowser,
+	isDesktop,
+	LegacyBusinessPlans,
+	LegacyPrivatePlans,
+	NewBusinessPlans,
+	PlanType,
+} from "@tutao/app-env"
 import { PlanTypeToName } from "@tutao/typerefs"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
@@ -70,7 +80,7 @@ export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceC
 	}
 
 	const currentPlanType = await locator.logins.getUserController().getPlanType()
-	if (LegacyPrivatePlans.includes(currentPlanType) || NewBusinessPlans.includes(currentPlanType as AvailablePlanType)) {
+	if (LegacyBusinessPlans.includes(currentPlanType) || NewBusinessPlans.includes(currentPlanType as AvailablePlanType)) {
 		disallowReasons.push(RatingDisallowReason.BUSINESS_USER)
 	}
 

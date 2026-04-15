@@ -6,7 +6,7 @@ import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typerefs"
 import { Const, NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { AvailablePlanType, NewBusinessPlans, NewPersonalPlans, PlanType } from "@tutao/app-env"
 
 let upgradeDialogShowing = false

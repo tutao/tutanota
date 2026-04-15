@@ -5,7 +5,7 @@ import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeM
 import { assertNotNull, clear, defer, DeferredObject } from "@tutao/utils"
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { DesktopNotifier } from "../notifications/DesktopNotifier.js"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import path from "node:path"

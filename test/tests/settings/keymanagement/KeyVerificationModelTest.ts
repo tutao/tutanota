@@ -11,7 +11,7 @@ import { PermissionType } from "../../../../src/common/native/common/generatedip
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { TrustDBEntry } from "../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
-import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { DesktopSystemFacade } from "../../../../src/common/native/common/generatedipc/DesktopSystemFacade"
 import { withOverriddenEnv } from "../../TestUtils"
 import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, IdentityKeySourceOfTrust, Mode } from "../../../../src/app-env"

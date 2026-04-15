@@ -2,7 +2,7 @@ import type { LanguageViewModelType } from "../misc/LanguageViewModel"
 import { lang, LanguageViewModel } from "../misc/LanguageViewModel"
 import { delay, downcast, LazyLoaded } from "@tutao/utils"
 import { search } from "../api/common/utils/PlainTextSearch"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { getHtmlSanitizer, HtmlSanitizer } from "../misc/HtmlSanitizer.js"
 
 export type FaqEntry = {

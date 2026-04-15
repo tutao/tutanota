@@ -11,14 +11,14 @@ import {
 	VersionedKey,
 } from "@tutao/instance-pipeline"
 import { instance, object, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
-import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
-import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
-import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
-import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
-import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
+import { KeyLoaderFacade } from "../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
+import { UserFacade } from "../../../src/common/api/worker/facades/UserFacade"
+import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { ServiceExecutor } from "../../../src/common/api/worker/rest/ServiceExecutor"
+import { CacheStorage, DefaultEntityRestCache } from "../../../src/common/api/worker/rest/DefaultEntityRestCache"
+import { AsymmetricCryptoFacade } from "../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
+import { KeyRotationFacade } from "../../../src/common/api/worker/facades/KeyRotationFacade"
 import { AttributeModel, Entity, ModelValue, PatchOperationType, ServerModelParsedInstance, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, downcast, noOp, Nullable, stringToBase64 } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
@@ -28,13 +28,13 @@ import {
 	instancePipelineFromTypeModelResolver,
 	modelMapperFromTypeModelResolver,
 	removeOriginals,
-} from "../../../TestUtils"
-import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage"
-import { createSystemMail } from "../../common/mail/CommonMailUtilsTest"
-import { EncryptionAuthStatus } from "../../../../../src/app-env"
-import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
+} from "../TestUtils"
+import { CustomCacheHandlerMap } from "../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { EphemeralCacheStorage } from "../../../src/common/api/worker/rest/EphemeralCacheStorage"
+import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
+import { EncryptionAuthStatus } from "@tutao/app-env"
+import { PublicEncryptionKeyProvider } from "../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
+import { InstanceSessionKeysCache } from "../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey

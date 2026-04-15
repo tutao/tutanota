@@ -12,7 +12,7 @@ import { InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { GroupType, OperationType } from "../../../../src/app-env"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 

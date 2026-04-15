@@ -9,7 +9,7 @@ import { Button, ButtonType } from "./Button.js"
 import { ListSwipeHandler } from "./ListSwipeHandler.js"
 import { applySafeAreaInsetMarginLR } from "../HtmlUtils.js"
 import { theme, ThemeId } from "../theme.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { Coordinate2D } from "./SwipeHandler.js"
 import { styles } from "../styles.js"
 

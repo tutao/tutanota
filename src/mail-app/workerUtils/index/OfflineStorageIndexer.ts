@@ -7,7 +7,7 @@ import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { entityUpdateUtils } from "@tutao/typerefs"
 import { GroupType } from "@tutao/app-env"
 

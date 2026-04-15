@@ -3,7 +3,7 @@ import { getAsEnumValue, sysServices } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { RolloutType } from "@tutao/app-env"
 import { assertNotNull, LazyLoaded } from "@tutao/utils"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 
 assertWorkerOrNode()
 

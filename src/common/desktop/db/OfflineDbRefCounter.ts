@@ -2,7 +2,7 @@ import { defer, DeferredObject, delay } from "@tutao/utils"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { log } from "../DesktopLog.js"
 import { OfflineDbFactory } from "./PerWindowSqlCipherFacade.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 const TAG = "[OfflineDbRefCounter]"
 const MAX_WAIT_FOR_DB_CLOSE_MS = 1000

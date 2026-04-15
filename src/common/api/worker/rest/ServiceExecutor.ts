@@ -15,7 +15,7 @@ import {
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { assertWorkerOrNode } from "@tutao/app-env"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"

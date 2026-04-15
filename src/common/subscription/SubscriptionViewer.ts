@@ -67,7 +67,7 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { client } from "../misc/ClientDetector.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 
 assertMainOrNode()

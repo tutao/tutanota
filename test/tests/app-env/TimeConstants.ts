@@ -8,7 +8,7 @@ import {
 	minutesToMillis,
 	SECOND_IN_MILLIS,
 	secondsToMillis,
-} from "../../../src/app-env"
+} from "@tutao/app-env"
 
 o.spec("TimeUtils", () => {
 	o.test("seconds", () => {

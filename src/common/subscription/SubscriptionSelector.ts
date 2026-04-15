@@ -15,7 +15,7 @@ import {
 	SelectedSubscriptionOptions,
 	UpgradePriceType,
 } from "./FeatureListProvider"
-import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { ProgrammingError } from "@tutao/app-env"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
 import { px, size } from "../gui/size.js"
