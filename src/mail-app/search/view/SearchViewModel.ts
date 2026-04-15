@@ -477,8 +477,11 @@ export class SearchViewModel {
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
 		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
-			// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
-			this._listModel.updateLoadingStatus(ListLoadingState.Idle)
+			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
+				// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
+				this.listModel.updateLoadingStatus(ListLoadingState.Idle)
+			}
+
 			// the current search result will be extended as the range extends
 			void this.indexerFacade.extendMailIndex(startDate.getTime())
 
@@ -837,24 +840,18 @@ export class SearchViewModel {
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
-		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
-			if (!newState.inMultiselect && newState.selectedItems.size === 1) {
-				const mail = this.getSelectedMails()[0]
+		if (isSameTypeRef(this.searchedType, MailTypeRef) && !newState.inMultiselect && newState.selectedItems.size === 1) {
+			const mail = this.getSelectedMails()[0]
 
-				// Sometimes a stale state is passed through, resulting in no mail
-				if (mail) {
-					if (!this._conversationViewModel) {
-						this.updateDisplayedConversation(mail)
-					} else if (this._conversationViewModel) {
-						const isSameElementId = isSameId(elementIdPart(this._conversationViewModel?.primaryMail._id), elementIdPart(mail._id))
-						const isSameListId = isSameId(listIdPart(this._conversationViewModel?.primaryMail._id), listIdPart(mail._id))
-						if (!isSameElementId || !isSameListId) {
-							this.updateSearchUrl()
-							this.updateDisplayedConversation(mail)
-						}
-					}
-				} else {
-					this._conversationViewModel = null
+			// Sometimes a stale state is passed through, resulting in no mail
+			if (mail) {
+				// displayed conversation has changed
+				if (
+					!this._conversationViewModel ||
+					!isSameId(listIdPart(this._conversationViewModel.primaryMail._id), listIdPart(mail._id)) ||
+					!isSameId(elementIdPart(this._conversationViewModel.primaryMail._id), elementIdPart(mail._id))
+				) {
+					this.updateDisplayedConversation(mail)
 				}
 			} else {
 				this._conversationViewModel = null
@@ -862,6 +859,7 @@ export class SearchViewModel {
 		} else {
 			this._conversationViewModel = null
 		}
+
 		this.updateUi()
 	}
 

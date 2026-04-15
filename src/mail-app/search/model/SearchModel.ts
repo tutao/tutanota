@@ -358,18 +358,21 @@ export class SearchModel {
 			return
 		}
 
-		if (this.lastQuery != null) {
-			// update lastQuery range to reflect the extended search
-			// because we want it to be the same search, with an extended range
-			this.lastQuery.restriction.end = extensionEnd
-		}
-
 		this.lastSearchExtensionPromise = this._searchFacade
 			.extendSearchResult(currentResult, extensionEnd)
 			.then((extendedResult) => {
 				const currentResultAgain = this.result()
 				if (currentResultAgain == null || !areResultsForTheSameQuery(currentResult, currentResultAgain)) {
 					return
+				}
+
+				if (this.lastQuery != null) {
+					// SearchResult share the same instance of SearchRestriction with its SearchQuery, but when extending
+					// we create a shallow copy of restriction.
+					//
+					// So we make sure result and query share the same restriction instance (from initial search) again.
+					Object.assign(this.lastQuery.restriction, extendedResult.restriction)
+					extendedResult.restriction = this.lastQuery.restriction
 				}
 
 				this.result(extendedResult)
