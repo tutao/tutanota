@@ -26,6 +26,7 @@ import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.stubbing.Answer
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
@@ -97,6 +98,40 @@ class AlarmNotificationsManagerTest {
 		Mockito.verifyNoMoreInteractions(systemAlarmFacade)
 		Mockito.verify(sseStorage).deleteAlarmNotification(singleAlarmIdentifier)
 		Mockito.verify(sseStorage).deleteAlarmNotification(repeatingAlarmIdentifier)
+	}
+
+	@Test
+	fun rescheduleAlarms_invalid_argument_exception_when_decrypting_deletes_alarm() {
+		// given an encrypted alarm value with an invalid endValue loaded from SSE storage
+		val singleAlarmIdentifier = "singleAlarmIdentifier"
+		val repeatingAlarmIdentifier = "repeatingAlarmIdentifier"
+		val alarmNotification = createEncryptedAlarmNotification(userId, singleAlarmIdentifier, null, null, null)
+		val repeatRule =
+			EncryptedRepeatRule(
+				"1",
+				"1",
+				"Europe/Berlin",
+				EndType.NEVER.ordinal.toString(),
+				"", // invalid empty string endValue
+				emptyList(),
+				emptyList()
+			)
+		val repeatingAlarmNotification = createEncryptedAlarmNotification(
+			userId, repeatingAlarmIdentifier, null, null, repeatRule
+		)
+		val alarms = ArrayList<EncryptedAlarmNotificationEntity>()
+		alarms.add(alarmNotification.toEntity())
+		alarms.add(repeatingAlarmNotification.toEntity())
+		Mockito.`when`(sseStorage.readAlarmNotifications()).thenReturn(alarms)
+
+		// when rescheduling alarms
+		manager.reScheduleAlarms()
+
+		// then the alarm with invalid values is detected and deleted from SSE storage
+		Mockito.verify(sseStorage).deleteAlarmNotification(repeatingAlarmIdentifier)
+
+		// and alarms with with valid values are not deleted
+		Mockito.verify(sseStorage, never()).deleteAlarmNotification(singleAlarmIdentifier)
 	}
 
 	@Test

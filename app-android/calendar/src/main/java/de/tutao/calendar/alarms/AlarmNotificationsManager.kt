@@ -7,6 +7,7 @@ import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmModel
@@ -29,6 +30,8 @@ class AlarmNotificationsManager(
 	private val crypto: AndroidNativeCryptoFacade,
 	private val systemAlarmFacade: SystemAlarmFacade,
 	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val dateProvider: DateProvider,
+	private val timeZone: TimeZone
 ) {
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
@@ -38,16 +41,19 @@ class AlarmNotificationsManager(
 		for (alarmNotification in alarmInfos) {
 			val sessionKey = resolveNotificationSessionKey(alarmNotification, pushKeyResolver)
 			if (sessionKey != null) {
-				try {
-					schedule(alarmNotification.decrypt(crypto, sessionKey))
+				val decryptedAlarmNotification: AlarmNotification = try {
+					alarmNotification.decrypt(crypto, sessionKey)
 				} catch (cryptoError: CryptoError) {
 					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", cryptoError)
+					continue
 				} catch (exception: IllegalArgumentException) {
-					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", exception)
-				} catch (exception: NumberFormatException) {
-					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", exception)
-					return
+					Log.e(TAG, "Invalid argument/value inside the alarm notification", exception)
+					// there is an invalid value inside the decrypted alarm notification  e.g. "" instead of 0 or null
+					// In these case we never scheduled the alarm, so we can safely remove the alarm notification from sseStorage.
+					this.sseStorage.deleteAlarmNotification(alarmNotification.alarmInfo.identifier)
+					continue
 				}
+				schedule(decryptedAlarmNotification)
 			} else {
 				Log.d(TAG, "Failed to resolve session key for saved alarm notification")
 			}
@@ -88,31 +94,16 @@ class AlarmNotificationsManager(
 					newDeviceSessionKey ?: resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
 				if (sessionKey == null) {
 					Log.d(TAG, "Failed to resolve session key for alarm notification.")
-					return
+					continue
 				}
-				try {
-					schedule(alarmNotificationEntity.decrypt(crypto, sessionKey))
-				} catch (cryptoError: CryptoError) {
-					Log.e(
-						TAG,
-						"Failed to decrypt notification to schedule new alarm due to Crypto Error: ",
-						cryptoError
-					)
-				} catch (exception: IllegalArgumentException) {
-					Log.e(
-						TAG,
-						"Failed to decrypt notification to schedule new alarm due to IllegalArgumentException: ",
-						exception
-					)
-				} catch (exception: NumberFormatException) {
-					// NOTE: this is may be unreachable because a NumberFormatException is a subtype of an IllegalArgumentException
-					Log.e(
-						TAG,
-						"Failed to decrypt notification to schedule alarm due to NumberFormatException ",
-						exception
-					)
-					return
+				val decryptedAlarmNotificationEntity = try {
+					alarmNotificationEntity.decrypt(crypto, sessionKey)
+				} catch (e: Exception) {
+					Log.e(TAG, "Unable to decrypt alarmNotification, skipp schedule new alarm.", e)
+					continue
 				}
+
+				schedule(decryptedAlarmNotificationEntity)
 				Log.d(TAG, "storing alarm in sseStorage: $alarmNotificationEntity")
 				sseStorage.insertAlarmNotification(alarmNotificationEntity)
 			} else {
@@ -138,29 +129,41 @@ class AlarmNotificationsManager(
 	private fun schedule(alarmNotification: AlarmNotification) {
 		try {
 			val identifier = alarmNotification.alarmInfo.alarmIdentifier
+
+			val pushIdentifier = this.sseStorage.getPushIdentifier()
+			val canReceiveCalendarNotifications =
+				this.sseStorage.getReceiveCalendarNotificationConfig(pushIdentifier ?: "")
+
+			// We don't need to check from which device type the identifier comes from, only Mobile Mail App is allowed to set this ReceiveCalendarNotificationConfig
+			if (!canReceiveCalendarNotifications) {
+				Log.d(
+					TAG,
+					"Skipping alarm scheduling - alarmIdentifier: $identifier"
+				)
+				return
+			}
+
 			if (alarmNotification.repeatRule == null) {
 				val isAllDayEvent = isAllDayEventByTimes(alarmNotification.eventStart, alarmNotification.eventEnd)
-				val localTimeZone = TimeZone.getDefault();
 				val localizedEventStartTime = if (isAllDayEvent) {
-					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, localTimeZone)
+					AlarmModel.getAllDayDateLocal(alarmNotification.eventStart, timeZone)
 				} else {
 					alarmNotification.eventStart
 				}
 
 				val alarmTime = AlarmModel.calculateAlarmTime(
 					localizedEventStartTime,
-					localTimeZone,
+					timeZone,
 					alarmNotification.alarmInfo.trigger
 				)
 
-				val now = Date()
-
+				val now = dateProvider.now
 				when {
 					occurrenceIsTooFar(alarmTime) -> {
 						Log.d(TAG, "Alarm $identifier is too far in the future, skipping")
 					}
 
-					alarmTime.after(now) -> {
+					alarmTime.toInstant().isAfter(now) -> {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime,
 							0,
@@ -173,7 +176,7 @@ class AlarmNotificationsManager(
 					}
 
 					else -> {
-						Log.d(TAG, "Alarm $identifier is before $now, skipping")
+						Log.d(TAG, "Alarm $identifier is before ${now.atZone(timeZone.toZoneId())}, skipping")
 					}
 				}
 			} else {
@@ -196,7 +199,7 @@ class AlarmNotificationsManager(
 	}
 
 	private fun occurrenceIsTooFar(alarmTime: Date): Boolean {
-		return alarmTime.time > System.currentTimeMillis() + TIME_IN_THE_FUTURE_LIMIT_MS
+		return alarmTime.time > dateProvider.now.toEpochMilli().plus(TIME_IN_THE_FUTURE_LIMIT_MS)
 	}
 
 	/**
@@ -243,7 +246,6 @@ class AlarmNotificationsManager(
 					return
 				}
 
-				Log.d(TAG, "Attempting to cancel alarm ${alarmNotification.alarmInfo.alarmIdentifier}")
 				try {
 					iterateAlarmOccurrences(alarmNotification) { _, occurrence, _ ->
 						Log.d(
@@ -273,7 +275,7 @@ class AlarmNotificationsManager(
 		callback: AlarmModel.AlarmIterationCallback,
 	) {
 		val repeatRule = alarmNotification.repeatRule!!
-		val timeZone = repeatRule.timeZone
+		val eventTimeZone = repeatRule.timeZone
 		val eventStart = alarmNotification.eventStart
 		val eventEnd = alarmNotification.eventEnd
 		val frequency = repeatRule.frequency
@@ -285,9 +287,9 @@ class AlarmNotificationsManager(
 		val byRules: List<ByRule> = alarmNotification.repeatRule?.advancedRules ?: listOf()
 
 		AlarmModel.iterateAlarmOccurrences(
-			Date(),
-			timeZone, eventStart, eventEnd, frequency, interval, endType,
-			endValue, alarmTrigger, TimeZone.getDefault(), excludedDates, byRules, callback
+			Date.from(dateProvider.now),
+			eventTimeZone, eventStart, eventEnd, frequency, interval, endType,
+			endValue, alarmTrigger, timeZone, excludedDates, byRules, callback
 		)
 	}
 
