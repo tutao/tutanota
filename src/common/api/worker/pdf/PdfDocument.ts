@@ -484,9 +484,10 @@ export class PdfDocument {
 					}
 					const dataUrl = await canvas.convertToBlob({ type: "image/jpeg" })
 					imageBuffer = await dataUrl.arrayBuffer()
-
+					const dimensions: [number, number] = [ADDRESS_FIELD_WIDTH / 8, ADDRESS_FIELD_HEIGHT / 8]
+					position[1] = position[1] - dimensions[1]
 					// For the rendered image, we take its dimension divided by 8. This gives a nice resolution for JPEG
-					this.addImage(PDF_IMAGES.ADDRESS, position, [ADDRESS_FIELD_WIDTH / 8, ADDRESS_FIELD_HEIGHT / 8])
+					this.addImage(PDF_IMAGES.ADDRESS, position, dimensions)
 
 					// Prepare for rendering the address below the image invisibly
 					byteLengthForAddress = 2
