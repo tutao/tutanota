@@ -11,6 +11,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { transposeGradConfig } from "@tensorflow/tfjs-core/dist/gradients/Transpose_grad"
 
 assertMainOrNode()
 
@@ -60,6 +61,7 @@ export class SpamClassificationHandler {
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
 				console.log(`skipped spam classification for mail marked as phishing`)
 			} else if (isMailFromTrustedSender) {
+				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 				console.log(`skipped spam classification for mail from trusted sender`)
 			} else if (isMailClassifiedByTrustedServerClassifier) {
 				console.log(`skipped spam classification for new mail because of trusted server classifiers ${serverClassifiers} for ownerGroup ${ownerGroup}`)
