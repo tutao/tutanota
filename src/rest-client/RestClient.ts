@@ -61,6 +61,14 @@ export interface RestClientOptions {
 }
 
 /**
+ * Middlewares that are invoked after the request have been made
+ * Hence the implementation should only read/modify response
+ */
+export interface RestClientMiddleware {
+	interceptResponse(sentRequest: XMLHttpRequest, method: HttpMethod): Promise<void>
+}
+
+/**
  * Allows REST communication with the server.
  * The RestClient observes upload/download progress and times
  * out in case no data is sent or received for a certain time.
@@ -72,6 +80,7 @@ export class RestClient {
 	private id: number
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
+	private responseMiddlewares: Array<RestClientMiddleware> = new Array<RestClientMiddleware>()
 
 	constructor(
 		private readonly suspensionHandler: restSuspension.SuspensionHandler,
@@ -79,6 +88,11 @@ export class RestClient {
 		private readonly clientPlatform: string,
 	) {
 		this.id = 0
+	}
+
+	addMiddleware(middleware: RestClientMiddleware): RestClient {
+		this.responseMiddlewares.push(middleware)
+		return this
 	}
 
 	request(path: string, method: HttpMethod, options: RestClientOptions = {}): Promise<any | null> {
@@ -160,6 +174,8 @@ export class RestClient {
 						clearTimeout(timeout)
 
 						this.saveServerTimeOffsetFromRequest(xhr)
+
+						await Promise.all(this.responseMiddlewares.map((middleware) => middleware.interceptResponse(xhr, method)))
 
 						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
