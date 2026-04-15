@@ -1,4 +1,11 @@
-import { FULL_INDEXED_TIMESTAMP, ImportStatus, isFolder, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants"
+import {
+	FULL_INDEXED_TIMESTAMP,
+	ImportStatus,
+	isFolder,
+	MailSetKind,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+} from "../../../common/api/common/TutanotaConstants"
 import {
 	File as TutanotaFile,
 	ImportedMailTypeRef,
@@ -30,7 +37,7 @@ import {
 	newPromise,
 	promiseMap,
 } from "@tutao/tutanota-utils"
-import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
@@ -526,8 +533,12 @@ export class MailIndexer {
 	 * Provides all mail set list ids of the given mailbox
 	 */
 	private async loadMailFolderListIds(mailbox: MailBox): Promise<Id[]> {
-		const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
+		const mailSets = await this.loadMailSets(mailbox)
 		return mailSets.filter(isFolder).map((set) => set.entries)
+	}
+
+	private async loadMailSets(mailbox: MailBox) {
+		return await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 	}
 
 	private async processImportStateEntityEvents(operation: OperationType, importStateId: IdTuple): Promise<void> {
@@ -577,7 +588,12 @@ export class MailIndexer {
 			return []
 		}
 
-		const importedMailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
+		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, assertNotNull(importMailState._ownerGroup))
+		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+		const mailSets = await this.loadMailSets(mailbox)
+		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
+
+		const importedMailSetEntryListId = getListId(importedMailSet)
 		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp
 		const dateRangeFilteredMailSetEntryIds = importedMailEntries
 			.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
